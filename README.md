@@ -7,3 +7,4 @@ Cada palabra trae imagen, formas (plural o conjugación), pronunciación aproxim
 Incluye los temas básicos (animales, colores, familia, nacionalidades, países, profesiones y números) y la lista Oxford 3000 agrupada por temas, de nivel A1 a B2.
 
 Imágenes: [OpenMoji](https://openmoji.org), licencia CC BY-SA 4.0.
+
