@@ -383,7 +383,9 @@
 "group": "3000",
 "count": 60,
 "langs": [
-"français"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -393,7 +395,9 @@
 "group": "3000",
 "count": 72,
 "langs": [
-"français"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -403,7 +407,9 @@
 "group": "3000",
 "count": 82,
 "langs": [
-"français"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -412,7 +418,10 @@
 "title": "Verbos de cambio y procesos (1)",
 "group": "3000",
 "count": 77,
-"langs": []
+"langs": [
+"english",
+"français"
+]
 },
 {
 "id": "w30",
@@ -420,7 +429,10 @@
 "title": "Verbos de cambio y procesos (2)",
 "group": "3000",
 "count": 76,
-"langs": []
+"langs": [
+"english",
+"français"
+]
 },
 {
 "id": "w31",
@@ -428,7 +440,10 @@
 "title": "Adjetivos: aspecto y sensaciones",
 "group": "3000",
 "count": 98,
-"langs": []
+"langs": [
+"english",
+"français"
+]
 },
 {
 "id": "w32",
