@@ -477,6 +477,7 @@
 "group": "3000",
 "count": 70,
 "langs": [
+"english",
 "français"
 ]
 },
@@ -486,7 +487,10 @@
 "title": "Adjetivos: otros (1)",
 "group": "3000",
 "count": 81,
-"langs": []
+"langs": [
+"english",
+"français"
+]
 },
 {
 "id": "w36",
@@ -494,7 +498,10 @@
 "title": "Adjetivos: otros (2)",
 "group": "3000",
 "count": 81,
-"langs": []
+"langs": [
+"english",
+"français"
+]
 },
 {
 "id": "w37",
@@ -502,7 +509,9 @@
 "title": "Adjetivos: otros (3)",
 "group": "3000",
 "count": 80,
-"langs": []
+"langs": [
+"français"
+]
 },
 {
 "id": "w38",
@@ -510,7 +519,9 @@
 "title": "Adverbios (1)",
 "group": "3000",
 "count": 81,
-"langs": []
+"langs": [
+"français"
+]
 },
 {
 "id": "w39",
@@ -518,7 +529,9 @@
 "title": "Adverbios (2)",
 "group": "3000",
 "count": 81,
-"langs": []
+"langs": [
+"français"
+]
 },
 {
 "id": "w40",
@@ -526,7 +539,9 @@
 "title": "Preposiciones",
 "group": "3000",
 "count": 51,
-"langs": []
+"langs": [
+"français"
+]
 },
 {
 "id": "w41",
@@ -534,7 +549,9 @@
 "title": "Pronombres y determinantes",
 "group": "3000",
 "count": 72,
-"langs": []
+"langs": [
+"français"
+]
 },
 {
 "id": "w42",
@@ -542,7 +559,9 @@
 "title": "Conjunciones y conectores",
 "group": "3000",
 "count": 26,
-"langs": []
+"langs": [
+"français"
+]
 },
 {
 "id": "w43",
@@ -550,6 +569,8 @@
 "title": "Preguntas y exclamaciones",
 "group": "3000",
 "count": 24,
-"langs": []
+"langs": [
+"français"
+]
 }
 ]
