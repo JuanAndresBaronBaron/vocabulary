@@ -238,6 +238,25 @@ function say(text, btn){
   if(btn){ btn.classList.add("playing"); u.onend = u.onerror = () => btn.classList.remove("playing"); }
   speechSynthesis.speak(u);
 }
+/* audio encadenado para las secuencias automáticas */
+let autoTok = 0;
+const sleep = ms => new Promise(res => setTimeout(res, ms));
+function sayP(text, btn){
+  return new Promise(res => {
+    if(!("speechSynthesis" in window) || !text) return res();
+    speechSynthesis.cancel();
+    document.querySelectorAll(".say.playing").forEach(b=>b.classList.remove("playing"));
+    const u = new SpeechSynthesisUtterance(speakable(text));
+    const code = LANGS[lang].code; u.lang = code; u.rate = rate;
+    const v = voiceFor(code); if(v) u.voice = v;
+    let done = false;
+    const fin = () => { if(done) return; done = true; if(btn) btn.classList.remove("playing"); res(); };
+    if(btn) btn.classList.add("playing");
+    u.onend = u.onerror = fin;
+    setTimeout(fin, 1500 + speakable(text).length * 110 / rate);
+    setTimeout(() => speechSynthesis.speak(u), 30);
+  });
+}
 function voiceNote(){
   const el = $("#voicenote"); if(!el) return;
   if(!("speechSynthesis" in window)){ el.innerHTML = "Tu navegador no permite audio."; el.hidden=false; return; }
@@ -318,7 +337,7 @@ async function docView(id){
     document.querySelectorAll("[data-l]").forEach(b=>b.classList.toggle("on", b.dataset.l===state.lvl));
     $("#rate").textContent = rate<0.8 ? "🐢 Lento" : "▶ Normal";
   };
-  $("#modes").onclick = e => { const b=e.target.closest("[data-m]"); if(!b) return; state.mode=b.dataset.m; sync(); draw(doc); };
+  $("#modes").onclick = e => { const b=e.target.closest("[data-m]"); if(!b) return; autoTok++; state.fc.auto=false; state.mode=b.dataset.m; sync(); draw(doc); };
   $("#rate").onclick = () => { rate = rate<0.8 ? 0.9 : 0.6; store.set("rate",rate); sync(); };
   document.querySelectorAll("[data-l]").forEach(b => b.onclick = () => { state.lvl=b.dataset.l; state.fc={i:0,flip:false,order:null,rev:state.fc.rev}; state.test=null; sync(); draw(doc); });
   sync(); draw(doc);
@@ -381,14 +400,39 @@ function tarjetas(doc){
       <button class="btn pri" id="next">Siguiente →</button>
     </div>
     <div class="ctrl">
+      <button class="btn ${s.auto?"pri":""}" id="auto">${s.auto?"⏸ Detener secuencia":"▶ Secuencia automática"}</button>
       <button class="btn" id="shuf">🔀 Barajar</button>
       <button class="btn" id="rev">${s.rev?"Mostrar primero: español":"Mostrar primero: "+LANGS[lang].name}</button>
     </div></div>`;
-  const go = k => { s.i = (s.i+k+list.length)%list.length; s.flip=false; tarjetas(doc); };
-  $("#card").onclick = () => { s.flip=!s.flip; tarjetas(doc); if(s.flip && !s.rev) say(d.word); };
+  const stop = () => { if(s.auto){ s.auto = false; autoTok++; speechSynthesis && speechSynthesis.cancel(); } };
+  const go = k => { stop(); s.i = (s.i+k+list.length)%list.length; s.flip=false; tarjetas(doc); };
+  $("#card").onclick = () => { stop(); s.flip=!s.flip; tarjetas(doc); if(s.flip && !s.rev) say(d.word); };
+  $("#auto").onclick = () => { if(s.auto){ stop(); tarjetas(doc); } else fcAuto(doc); };
   $("#prev").onclick = () => go(-1); $("#next").onclick = () => go(1);
-  $("#shuf").onclick = () => { s.order = shuffle(list.map((_,i)=>i)); s.i=0; s.flip=false; tarjetas(doc); };
-  $("#rev").onclick = () => { s.rev=!s.rev; s.flip=false; tarjetas(doc); };
+  $("#shuf").onclick = () => { stop(); s.order = shuffle(list.map((_,i)=>i)); s.i=0; s.flip=false; tarjetas(doc); };
+  $("#rev").onclick = () => { stop(); s.rev=!s.rev; s.flip=false; tarjetas(doc); };
+}
+
+/* secuencia automática: solo suena el idioma que se estudia, nunca el español */
+async function fcAuto(doc){
+  const s = state.fc, tok = ++autoTok;
+  const alive = () => tok === autoTok && s.auto && state.mode === "tarjetas" && document.getElementById("card");
+  s.auto = true;
+  while(true){
+    const list = entries(doc); if(!list.length) break;
+    if(s.i >= list.length) s.i = 0;
+    const d = list[s.order ? s.order[s.i] : s.i].l[lang];
+    s.flip = false; tarjetas(doc);
+    if(s.rev){ await sleep(500); if(!alive()) return; await sayP(d.word); await sleep(1200); }
+    else await sleep(2000);
+    if(!alive()) return;
+    s.flip = true; tarjetas(doc);
+    if(!s.rev){ await sayP(d.word); if(!alive()) return; await sleep(700); }
+    if(d.ex){ if(!alive()) return; await sayP(d.ex); }
+    await sleep(1500);
+    if(!alive()) return;
+    s.i = (s.i + 1) % list.length;
+  }
 }
 
 function test(doc){
@@ -432,7 +476,7 @@ const ACTS = {
   escribir: {ic:"✍️", name:"Escribir", hint:"La escribes de memoria"},
 };
 const prKey = id => `pr:${id}:${lang}`;
-let prUI = {open:!matchMedia("(max-width:820px)").matches, hist:[], busy:false};
+let prUI = {open:!matchMedia("(max-width:820px)").matches, hist:[], busy:false, auto:store.get("prAuto", false)};
 
 function practica(doc){
   const s = store.get(prKey(doc.id), null);
@@ -561,7 +605,7 @@ function prRun(doc, s){
     </aside>
     <section class="pr-stage">
       <div class="pr-top"><span class="count">Repetición <b>${w.n+1}</b> de ${s.reps} · ${esc(r.es)}</span>
-        <span class="pr-row"><button class="btn" id="pr-skip" title="Marcar esta palabra como aprendida">Ya me la sé</button><button class="btn" id="pr-fs" title="Pantalla completa">${document.fullscreenElement?"✕ Salir":"⛶"}</button><button class="btn" id="pr-stop">⏸ Pausar</button></span></div>
+        <span class="pr-row"><button class="btn ${prUI.auto?"pri":""}" id="pr-auto" title="Escuchar y Leer avanzan solas">${prUI.auto?"⏸ Auto":"▶ Auto"}</button><button class="btn" id="pr-skip" title="Marcar esta palabra como aprendida">Ya me la sé</button><button class="btn" id="pr-fs" title="Pantalla completa">${document.fullscreenElement?"✕ Salir":"⛶"}</button><button class="btn" id="pr-stop">⏸ Pausar</button></span></div>
       <div class="pr-flow" id="pr-flow">
         ${cards.map(c => prCard(all[s.words[c.wi].i], actFor(s, c.n), c.off===0, c.n, s.reps, c.off)).join("")}
         <div class="pr-dots" title="Repeticiones de esta palabra">${Array.from({length:s.reps},(_,k)=>`<i class="${k<w.n?"on":k===w.n?"now":""}"></i>`).join("")}</div>
@@ -602,10 +646,21 @@ function prRun(doc, s){
 
   const act = actFor(s, w.n), card = flow.querySelector(".pr-card.cur");
   const btn = card.querySelector(".pr-next");
+  const tok = ++autoTok, alive = () => tok === autoTok && prUI.auto && state.mode === "practica" && document.body.contains(flow);
   if(act === "escuchar"){
-    setTimeout(() => say(r.l[lang].word, card.querySelector(".say.xl")), 380);
+    setTimeout(async () => {
+      if(tok !== autoTok) return;
+      await sayP(r.l[lang].word, card.querySelector(".say.xl"));
+      if(alive()){ await sleep(900); if(alive()) advance(); }
+    }, 380);
     btn.onclick = advance;
   } else if(act === "leer"){
+    if(prUI.auto) setTimeout(async () => {
+      if(!alive()) return;
+      await sayP(r.l[lang].word); if(!alive()) return;
+      await sleep(600); if(r.l[lang].ex){ if(!alive()) return; await sayP(r.l[lang].ex); }
+      if(alive()){ await sleep(1200); if(alive()) advance(); }
+    }, 450);
     btn.onclick = advance;
   } else {
     const inp = card.querySelector("input.ans"), msg = card.querySelector(".pr-msg");
@@ -618,7 +673,8 @@ function prRun(doc, s){
         ok = true; inp.classList.remove("bad"); inp.classList.add("ok"); inp.disabled = true;
         msg.className = "pr-msg ok";
         msg.innerHTML = res==="ok" ? (failed ? "Bien, ahora sí ✓" : "¡Correcto! ✓") : `Casi: revisa tildes o letras especiales: <b>${esc(r.l[lang].word)}</b>`;
-        say(r.l[lang].word); btn.textContent = "Siguiente →"; btn.focus({preventScroll:true});
+        btn.textContent = "Siguiente →"; btn.focus({preventScroll:true});
+        sayP(r.l[lang].word).then(async () => { if(alive()){ await sleep(900); if(alive()) advance(); } });
       } else {
         failed = true; inp.classList.add("bad");
         msg.className = "pr-msg bad";
@@ -638,7 +694,8 @@ function prRun(doc, s){
   };
   document.onfullscreenchange = () => { if(!document.fullscreenElement && document.body.contains(flow)) prRun(doc, s); };
   $("#pr-tg").onclick = () => { prUI.open = !prUI.open; prRun(doc, s); };
-  $("#pr-stop").onclick = () => { if(document.fullscreenElement) document.exitFullscreen(); s.running = false; save(); prUI.hist = []; document.onkeydown = null; prSetup(doc, s); };
+  $("#pr-auto").onclick = () => { prUI.auto = !prUI.auto; store.set("prAuto", prUI.auto); if(!prUI.auto) speechSynthesis.cancel(); prRun(doc, s); };
+  $("#pr-stop").onclick = () => { autoTok++; if(document.fullscreenElement) document.exitFullscreen(); s.running = false; save(); prUI.hist = []; document.onkeydown = null; prSetup(doc, s); };
   $("#pr-skip").onclick = () => { w.n = s.reps; toast(`✓ «${r.es}» marcada como aprendida`); const n = nextIdx(s, s.cur); if(n>=0) s.cur = n; prUI.hist = []; save(); prRun(doc, s); };
   document.querySelectorAll(".pr-steps li").forEach(li => li.onclick = () => {
     const k = +li.dataset.k; if(s.words[k].n >= s.reps || k===s.cur) return;
@@ -713,6 +770,7 @@ function toast(t){
 
 /* ---------- rutas ---------- */
 async function route(){
+  autoTok++; if(state.fc) state.fc.auto = false; if("speechSynthesis" in window) speechSynthesis.cancel();
   const h = location.hash.replace(/^#\/?/,"");
   try{
     if(h.startsWith("doc/")){
