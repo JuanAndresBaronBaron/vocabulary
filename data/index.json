@@ -515,6 +515,7 @@
 "group": "3000",
 "count": 80,
 "langs": [
+"english",
 "français",
 "dansk"
 ]
@@ -526,7 +527,9 @@
 "group": "3000",
 "count": 81,
 "langs": [
-"français"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -536,7 +539,9 @@
 "group": "3000",
 "count": 81,
 "langs": [
-"français"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -546,7 +551,9 @@
 "group": "3000",
 "count": 51,
 "langs": [
-"français"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -556,7 +563,9 @@
 "group": "3000",
 "count": 72,
 "langs": [
-"français"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -566,7 +575,9 @@
 "group": "3000",
 "count": 26,
 "langs": [
-"français"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -576,7 +587,8 @@
 "group": "3000",
 "count": 24,
 "langs": [
-"français"
+"français",
+"dansk"
 ]
 }
 ]
