@@ -239,7 +239,9 @@
 "group": "3000",
 "count": 76,
 "langs": [
-"english"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -248,7 +250,11 @@
 "title": "Tecnología y medios",
 "group": "3000",
 "count": 104,
-"langs": []
+"langs": [
+"english",
+"français",
+"dansk"
+]
 },
 {
 "id": "w16",
@@ -256,7 +262,11 @@
 "title": "Ciencia, cantidades y medidas (1)",
 "group": "3000",
 "count": 58,
-"langs": []
+"langs": [
+"english",
+"français",
+"dansk"
+]
 },
 {
 "id": "w17",
@@ -264,7 +274,11 @@
 "title": "Ciencia, cantidades y medidas (2)",
 "group": "3000",
 "count": 57,
-"langs": []
+"langs": [
+"english",
+"français",
+"dansk"
+]
 },
 {
 "id": "w18",
@@ -272,7 +286,10 @@
 "title": "Sociedad, gobierno y ley (1)",
 "group": "3000",
 "count": 60,
-"langs": []
+"langs": [
+"english",
+"français"
+]
 },
 {
 "id": "w19",
@@ -280,7 +297,10 @@
 "title": "Sociedad, gobierno y ley (2)",
 "group": "3000",
 "count": 60,
-"langs": []
+"langs": [
+"english",
+"français"
+]
 },
 {
 "id": "w20",
@@ -288,7 +308,9 @@
 "title": "Mente y sentimientos",
 "group": "3000",
 "count": 56,
-"langs": []
+"langs": [
+"english"
+]
 },
 {
 "id": "w21",
@@ -296,7 +318,9 @@
 "title": "Ideas y conceptos (1)",
 "group": "3000",
 "count": 72,
-"langs": []
+"langs": [
+"english"
+]
 },
 {
 "id": "w22",
@@ -304,7 +328,9 @@
 "title": "Ideas y conceptos (2)",
 "group": "3000",
 "count": 72,
-"langs": []
+"langs": [
+"english"
+]
 },
 {
 "id": "w23",
@@ -312,7 +338,9 @@
 "title": "Ideas y conceptos (3)",
 "group": "3000",
 "count": 70,
-"langs": []
+"langs": [
+"english"
+]
 },
 {
 "id": "w24",
