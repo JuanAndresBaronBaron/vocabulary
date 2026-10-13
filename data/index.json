@@ -288,7 +288,8 @@
 "count": 60,
 "langs": [
 "english",
-"français"
+"français",
+"dansk"
 ]
 },
 {
@@ -299,7 +300,8 @@
 "count": 60,
 "langs": [
 "english",
-"français"
+"français",
+"dansk"
 ]
 },
 {
@@ -309,7 +311,8 @@
 "group": "3000",
 "count": 56,
 "langs": [
-"english"
+"english",
+"français"
 ]
 },
 {
@@ -348,7 +351,9 @@
 "title": "Verbos esenciales",
 "group": "3000",
 "count": 35,
-"langs": []
+"langs": [
+"english"
+]
 },
 {
 "id": "w25",
@@ -356,7 +361,9 @@
 "title": "Verbos de movimiento y posición",
 "group": "3000",
 "count": 46,
-"langs": []
+"langs": [
+"english"
+]
 },
 {
 "id": "w26",
