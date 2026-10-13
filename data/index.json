@@ -420,7 +420,8 @@
 "count": 77,
 "langs": [
 "english",
-"français"
+"français",
+"dansk"
 ]
 },
 {
@@ -431,7 +432,8 @@
 "count": 76,
 "langs": [
 "english",
-"français"
+"français",
+"dansk"
 ]
 },
 {
@@ -442,7 +444,8 @@
 "count": 98,
 "langs": [
 "english",
-"français"
+"français",
+"dansk"
 ]
 },
 {
@@ -451,7 +454,10 @@
 "title": "Adjetivos: personalidad y emociones",
 "group": "3000",
 "count": 78,
-"langs": []
+"langs": [
+"english",
+"français"
+]
 },
 {
 "id": "w33",
@@ -459,7 +465,10 @@
 "title": "Adjetivos: valoración y cualidades (1)",
 "group": "3000",
 "count": 71,
-"langs": []
+"langs": [
+"english",
+"français"
+]
 },
 {
 "id": "w34",
@@ -467,7 +476,9 @@
 "title": "Adjetivos: valoración y cualidades (2)",
 "group": "3000",
 "count": 70,
-"langs": []
+"langs": [
+"français"
+]
 },
 {
 "id": "w35",
