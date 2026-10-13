@@ -192,7 +192,7 @@ async function home(){
     <p class="sub">Cada palabra trae imagen, pronunciación aproximada, IPA, ejemplo y botón 🔊 para escucharla. Cambia de idioma arriba.</p>
     <h2>Temas</h2><div class="grid">${temas.map(card).join("")}</div>
     <h2>Las 3000 palabras más importantes</h2>
-    <p class="sub">Lista Oxford 3000, de nivel A1 a B2. Listas para estudiar: ${ready} de ${w.reduce((a,d)=>a+d.count,0)}.</p>
+    <p class="sub">Lista Oxford 3000, de nivel A1 a B2, agrupada por temas. Las ${3000-w.reduce((a,d)=>a+d.count,0)} palabras que ya están en «Temas» (animales, colores, familia…) no se repiten aquí.${ready<w.reduce((a,d)=>a+d.count,0)?` Listas en ${LANGS[lang].name}: ${ready}.`:""}</p>
     <div class="grid">${w.map(card).join("")}</div>`;
 }
 
