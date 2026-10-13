@@ -312,7 +312,8 @@
 "count": 56,
 "langs": [
 "english",
-"français"
+"français",
+"dansk"
 ]
 },
 {
@@ -322,7 +323,9 @@
 "group": "3000",
 "count": 72,
 "langs": [
-"english"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -332,7 +335,9 @@
 "group": "3000",
 "count": 72,
 "langs": [
-"english"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -342,7 +347,9 @@
 "group": "3000",
 "count": 70,
 "langs": [
-"english"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -352,7 +359,9 @@
 "group": "3000",
 "count": 35,
 "langs": [
-"english"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -362,7 +371,9 @@
 "group": "3000",
 "count": 46,
 "langs": [
-"english"
+"english",
+"français",
+"dansk"
 ]
 },
 {
@@ -371,7 +382,9 @@
 "title": "Verbos de comunicación",
 "group": "3000",
 "count": 60,
-"langs": []
+"langs": [
+"français"
+]
 },
 {
 "id": "w27",
@@ -379,7 +392,9 @@
 "title": "Verbos de pensamiento y percepción",
 "group": "3000",
 "count": 72,
-"langs": []
+"langs": [
+"français"
+]
 },
 {
 "id": "w28",
@@ -387,7 +402,9 @@
 "title": "Verbos de la vida diaria",
 "group": "3000",
 "count": 82,
-"langs": []
+"langs": [
+"français"
+]
 },
 {
 "id": "w29",
