@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vocabulario</title>
+<meta name="description" content="Vocabulario en inglés británico, francés y danés con imagen, pronunciación, IPA, ejemplos y audio.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📘</text></svg>">
+<style>
+:root{
+  --bg:#f4f7fb;--card:#fff;--ink:#1d2a38;--muted:#5d6b7a;--line:#dde5ee;
+  --brand:#2e5c8a;--brand-2:#1a3a5c;--cat:#9db8d2;--soft:#eaf1f8;--ok:#2f8f5b;--bad:#c0453a;
+  --shadow:0 1px 2px rgba(20,40,70,.06),0 4px 14px rgba(20,40,70,.06);
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f1720;--card:#17212d;--ink:#e6edf5;--muted:#9aa8b8;--line:#263445;
+    --brand:#7fb0e0;--brand-2:#b9d4ee;--cat:#2a4561;--soft:#1d2b3a;--ok:#4cc38a;--bad:#ef7a6f;
+    --shadow:0 1px 2px rgba(0,0,0,.3)}
+  .img img{background:#fff;border-radius:10px}
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:inherit}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:1100px;margin:0 auto;padding:0 16px}
+header{position:sticky;top:0;z-index:10;background:var(--brand-2);color:#fff}
+@media (prefers-color-scheme:dark){header{background:#0b2238}}
+header .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
+.logo{font-weight:700;font-size:1.15rem;text-decoration:none;margin-right:auto}
+.langs{display:flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
+.langs button{border:0;background:none;color:#fff;padding:6px 12px;border-radius:999px;font-size:.95rem}
+.langs button.on{background:#fff;color:var(--brand-2);font-weight:600}
+main{padding:20px 0 40px}
+h1{font-size:1.6rem;margin:4px 0 6px}
+h2{font-size:1.15rem;margin:28px 0 10px;color:var(--brand)}
+.sub{color:var(--muted);margin:0 0 14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.doc{display:block;text-decoration:none;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow);transition:transform .1s}
+.doc:hover{transform:translateY(-2px);border-color:var(--brand)}
+.doc .n{font-size:.8rem;color:var(--muted)}
+.doc .t{font-weight:600;margin:2px 0 4px}
+.doc .c{font-size:.85rem;color:var(--muted)}
+.doc.off{opacity:.45;pointer-events:none}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 16px}
+.tabs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tabs button{border:0;background:none;padding:7px 14px;border-radius:8px}
+.tabs button.on{background:var(--brand);color:#fff}
+@media (prefers-color-scheme:dark){.tabs button.on{color:#0f1720}}
+input[type=search]{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 11px;font-size:.88rem}
+.chip.on{background:var(--soft);border-color:var(--brand);color:var(--brand);font-weight:600}
+.back{display:inline-block;margin-bottom:6px;color:var(--muted);text-decoration:none}
+.cat{background:var(--cat);color:var(--brand-2);font-weight:700;font-size:.9rem;letter-spacing:.03em;padding:7px 12px;border-radius:8px;margin:18px 0 8px}
+.list{display:grid;gap:8px}
+.row{display:grid;grid-template-columns:92px 1fr;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;box-shadow:var(--shadow)}
+.img{display:flex;align-items:center;justify-content:center}
+.img img{max-width:88px;max-height:88px}
+.row.wide{grid-template-columns:150px 1fr}.row.wide .img img{max-width:146px;max-height:110px}
+.img .ph{width:72px;height:72px;border-radius:12px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--muted)}
+.es{font-size:.9rem;color:var(--muted);font-weight:600}
+.word{font-size:1.3rem;font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.meta{display:flex;flex-wrap:wrap;gap:6px 18px;margin:4px 0;font-size:.92rem}
+.meta b{font-weight:500;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;margin-right:4px}
+.ipa{color:var(--brand);font-family:"Segoe UI","Noto Sans","DejaVu Sans",sans-serif}
+.pron{font-style:italic}
+.ex{margin-top:6px;padding-top:6px;border-top:1px dashed var(--line);font-size:.95rem}
+.ex .tr{color:var(--muted);font-style:italic;font-size:.88rem}
+.lvl{font-size:.72rem;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--muted)}
+.say{border:1px solid var(--line);background:var(--soft);border-radius:999px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem;flex:none}
+.say.sm{width:28px;height:28px;font-size:.85rem;vertical-align:middle;margin-left:4px}
+.say:hover{border-color:var(--brand)}
+.say.playing{background:var(--brand);color:#fff}
+.note{background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:.9rem;color:var(--muted);margin:10px 0}
+.empty{color:var(--muted);padding:30px 0;text-align:center}
+/* tarjetas */
+.fc-wrap{display:flex;flex-direction:column;align-items:center;gap:14px}
+.fc{width:min(100%,460px);min-height:330px;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:22px;text-align:center;cursor:pointer;user-select:none}
+.fc .img img{max-width:240px;max-height:170px}
+.fc .big{font-size:1.8rem;font-weight:700;margin:10px 0 4px}
+.fc .hint{color:var(--muted);font-size:.85rem;margin-top:12px}
+.ctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 16px}
+.btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+@media (prefers-color-scheme:dark){.btn.pri{color:#0f1720}}
+.count{color:var(--muted);font-size:.9rem}
+/* test */
+.q{width:min(100%,560px);margin:0 auto;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:20px;text-align:center}
+.q .img img{max-width:120px;max-height:120px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.opt{border:2px solid var(--line);background:var(--card);border-radius:12px;padding:12px 10px;font-size:1.05rem;font-weight:600}
+.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 14%,var(--card))}
+.opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 14%,var(--card))}
+.score{font-size:.95rem;color:var(--muted);margin-bottom:8px}
+footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
+@media (max-width:560px){
+  .row{grid-template-columns:64px 1fr;gap:10px;padding:10px}
+  .img img{max-width:60px;max-height:60px}.row.wide{grid-template-columns:104px 1fr}.row.wide .img img{max-width:100px;max-height:90px}.img .ph{width:52px;height:52px}
+  .word{font-size:1.15rem}.opts{grid-template-columns:1fr}
+  .langs button{padding:6px 9px;font-size:.88rem}
+}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="logo" href="#/">📘 Vocabulario</a>
+  <div class="langs" id="langs"></div>
+</div></header>
+<main><div class="wrap" id="app"><p class="empty">Cargando…</p></div></main>
+<footer class="wrap">Inglés británico · Francés · Danés — Imágenes: <a href="https://openmoji.org">OpenMoji</a> (CC BY-SA 4.0). Audio: voz del navegador.</footer>
+<script>
+const LANGS = {
+  english:  {label:"🇬🇧 English",  name:"inglés",  code:"en-GB"},
+  "français":{label:"🇫🇷 Français", name:"francés", code:"fr-FR"},
+  dansk:    {label:"🇩🇰 Dansk",    name:"danés",   code:"da-DK"},
+};
+const store = {
+  get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+let lang = store.get("lang","english"); if(!LANGS[lang]) lang="english";
+let rate = store.get("rate",0.9);
+let INDEX = null; const CACHE = {};
+const $ = s => document.querySelector(s);
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ---------- audio ---------- */
+let voices = [];
+function loadVoices(){ voices = speechSynthesis ? speechSynthesis.getVoices() : []; }
+if("speechSynthesis" in window){ loadVoices(); speechSynthesis.onvoiceschanged = () => { loadVoices(); voiceNote(); }; }
+function voiceFor(code){
+  const base = code.slice(0,2);
+  const c = voices.filter(v => v.lang.replace("_","-").toLowerCase().startsWith(base));
+  return c.find(v => v.lang.replace("_","-").toLowerCase()===code.toLowerCase() && /natural|online|google|neural/i.test(v.name))
+      || c.find(v => v.lang.replace("_","-").toLowerCase()===code.toLowerCase()) || c[0] || null;
+}
+function speakable(t){
+  return String(t).replace(/\((m|f|m\.\/f\.|pl)\.?\)/g,"").replace(/\(.*?\)/g,"").replace(/\s\/\s/g,", ").replace(/—/g,"").trim();
+}
+function say(text, btn){
+  if(!("speechSynthesis" in window)) return alert("Tu navegador no permite audio.");
+  speechSynthesis.cancel();
+  document.querySelectorAll(".say.playing").forEach(b=>b.classList.remove("playing"));
+  const u = new SpeechSynthesisUtterance(speakable(text));
+  const code = LANGS[lang].code; u.lang = code; u.rate = rate;
+  const v = voiceFor(code); if(v) u.voice = v;
+  if(btn){ btn.classList.add("playing"); u.onend = u.onerror = () => btn.classList.remove("playing"); }
+  speechSynthesis.speak(u);
+}
+function voiceNote(){
+  const el = $("#voicenote"); if(!el) return;
+  if(!("speechSynthesis" in window)){ el.innerHTML = "Tu navegador no permite audio."; el.hidden=false; return; }
+  if(voices.length && !voiceFor(LANGS[lang].code)){
+    el.innerHTML = `Este dispositivo no tiene una voz en ${LANGS[lang].name}, así que el audio puede sonar con acento equivocado. En Windows: <b>Configuración › Hora e idioma › Voz › Agregar voces</b>. En Android o iPhone: ajustes de texto a voz. Chrome y Edge suelen traer más voces.`;
+    el.hidden = false;
+  } else el.hidden = true;
+}
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-say]"); if(!b) return;
+  e.stopPropagation(); say(b.dataset.say, b);
+});
+const sayBtn = (t, sm) => t ? `<button class="say${sm?" sm":""}" data-say="${esc(t)}" title="Escuchar" aria-label="Escuchar">🔊</button>` : "";
+
+/* ---------- datos ---------- */
+async function getIndex(){ if(!INDEX) INDEX = await (await fetch("data/index.json")).json(); return INDEX; }
+async function getDoc(id){ if(!CACHE[id]) CACHE[id] = await (await fetch(`data/${id}.json`)).json(); return CACHE[id]; }
+
+/* ---------- cabecera ---------- */
+function renderLangs(){
+  $("#langs").innerHTML = Object.entries(LANGS).map(([k,v]) =>
+    `<button class="${k===lang?"on":""}" data-lang="${k}">${v.label}</button>`).join("");
+}
+$("#langs").addEventListener("click", e => {
+  const b = e.target.closest("[data-lang]"); if(!b) return;
+  lang = b.dataset.lang; store.set("lang",lang); renderLangs(); route();
+});
+
+/* ---------- inicio ---------- */
+async function home(){
+  const idx = await getIndex();
+  const card = d => {
+    const ok = d.langs.includes(lang);
+    return `<a class="doc ${ok?"":"off"}" href="#/doc/${d.id}">
+      <div class="n">${d.num?String(d.num).padStart(2,"0")+" · ":""}${d.count} palabras</div>
+      <div class="t">${esc(d.title)}</div>
+      <div class="c">${ok?"Abrir":"En preparación"}</div></a>`;
+  };
+  const temas = idx.filter(d=>d.group==="temas"), w = idx.filter(d=>d.group==="3000");
+  const ready = w.filter(d=>d.langs.includes(lang)).reduce((a,d)=>a+d.count,0);
+  $("#app").innerHTML = `
+    <h1>Vocabulario en ${LANGS[lang].name}</h1>
+    <p class="sub">Cada palabra trae imagen, pronunciación aproximada, IPA, ejemplo y botón 🔊 para escucharla. Cambia de idioma arriba.</p>
+    <h2>Temas</h2><div class="grid">${temas.map(card).join("")}</div>
+    <h2>Las 3000 palabras más importantes</h2>
+    <p class="sub">Lista Oxford 3000, de nivel A1 a B2. Listas para estudiar: ${ready} de ${w.reduce((a,d)=>a+d.count,0)}.</p>
+    <div class="grid">${w.map(card).join("")}</div>`;
+}
+
+/* ---------- documento ---------- */
+const state = {mode:"lista", q:"", lvl:"", fc:{i:0, flip:false, order:null, rev:false}, test:null};
+function entries(doc){
+  return doc.rows.filter(r => r.es && r.l[lang] && (!state.lvl || r.level===state.lvl));
+}
+async function docView(id){
+  const doc = await getDoc(id);
+  const meta = (await getIndex()).find(d=>d.id===id);
+  if(!meta || !meta.langs.includes(lang)){
+    $("#app").innerHTML = `<a class="back" href="#/">← Volver</a><h1>${esc(doc.title)}</h1><p class="empty">Este documento todavía no está listo en ${LANGS[lang].name}.</p>`;
+    return;
+  }
+  const levels = [...new Set(doc.rows.filter(r=>r.level).map(r=>r.level))];
+  $("#app").innerHTML = `
+    <a class="back" href="#/">← Todos los documentos</a>
+    <h1>${doc.num?String(doc.num).padStart(2,"0")+" · ":""}${esc(doc.title)} <span style="color:var(--muted);font-weight:400">en ${LANGS[lang].name}</span></h1>
+    <div class="note" id="voicenote" hidden></div>
+    <div class="toolbar">
+      <div class="tabs" id="modes">
+        <button data-m="lista">Lista</button><button data-m="tarjetas">Tarjetas</button><button data-m="test">Test</button>
+      </div>
+      <button class="chip" id="rate" title="Velocidad del audio"></button>
+      ${levels.length>1?`<button class="chip" data-l="">Todos</button>`+levels.map(l=>`<button class="chip" data-l="${l}">${l}</button>`).join(""):""}
+    </div>
+    <div id="view"></div>`;
+  voiceNote();
+  const sync = () => {
+    document.querySelectorAll("#modes button").forEach(b=>b.classList.toggle("on", b.dataset.m===state.mode));
+    document.querySelectorAll("[data-l]").forEach(b=>b.classList.toggle("on", b.dataset.l===state.lvl));
+    $("#rate").textContent = rate<0.8 ? "🐢 Lento" : "▶ Normal";
+  };
+  $("#modes").onclick = e => { const b=e.target.closest("[data-m]"); if(!b) return; state.mode=b.dataset.m; sync(); draw(doc); };
+  $("#rate").onclick = () => { rate = rate<0.8 ? 0.9 : 0.6; store.set("rate",rate); sync(); };
+  document.querySelectorAll("[data-l]").forEach(b => b.onclick = () => { state.lvl=b.dataset.l; state.fc={i:0,flip:false,order:null,rev:state.fc.rev}; state.test=null; sync(); draw(doc); });
+  sync(); draw(doc);
+}
+function draw(doc){
+  if(state.mode==="lista") lista(doc); else if(state.mode==="tarjetas") tarjetas(doc); else test(doc);
+}
+const imgHtml = r => `<div class="img">${r.img?`<img src="${r.img}" alt="" loading="lazy">`:`<div class="ph">${esc((r.es||"?")[0].toUpperCase())}</div>`}</div>`;
+
+function lista(doc){
+  $("#view").innerHTML = `<input type="search" id="q" placeholder="Buscar en español o en ${LANGS[lang].name}…" value="${esc(state.q)}" style="width:100%;margin-bottom:8px"><div id="items"></div>`;
+  const paint = () => {
+    const q = state.q.trim().toLowerCase();
+    let html = "", pendingCat = null, n = 0;
+    for(const r of doc.rows){
+      if(r.cat){ pendingCat = r.cat; continue; }
+      const d = r.l[lang]; if(!d) continue;
+      if(state.lvl && r.level!==state.lvl) continue;
+      if(q && !(r.es+" "+d.word+" "+d.ex).toLowerCase().includes(q)) continue;
+      if(pendingCat){ html += `<div class="cat">${esc(pendingCat)}</div>`; pendingCat=null; }
+      n++;
+      html += `<div class="row${r.img&&r.img.includes("fam_")?" wide":""}">${imgHtml(r)}<div>
+        <div class="es">${esc(r.es)} ${r.level?`<span class="lvl">${r.level}</span>`:""}</div>
+        <div class="word">${esc(d.word)} ${sayBtn(d.word)}</div>
+        <div class="meta">
+          ${d.forms?`<span><b>Formas</b>${esc(d.forms)}</span>`:""}
+          <span><b>Suena</b><span class="pron">${esc(d.pron)}</span></span>
+          <span><b>IPA</b><span class="ipa">${esc(d.ipa)}</span></span>
+        </div>
+        ${d.ex?`<div class="ex">${esc(d.ex)} ${sayBtn(d.ex,1)}<div class="tr">${esc(d.ex_es)}</div></div>`:""}
+      </div></div>`;
+    }
+    $("#items").innerHTML = n ? `<div class="list">${html}</div>` : `<p class="empty">No hay palabras que coincidan.</p>`;
+  };
+  $("#q").oninput = e => { state.q = e.target.value; paint(); };
+  paint();
+}
+
+function shuffle(a){ a=[...a]; for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]} return a; }
+
+function tarjetas(doc){
+  const list = entries(doc); const s = state.fc;
+  if(!s.order || s.order.length!==list.length) s.order = list.map((_,i)=>i);
+  if(s.i>=list.length) s.i=0;
+  const r = list[s.order[s.i]]; if(!r){ $("#view").innerHTML = `<p class="empty">No hay palabras.</p>`; return; }
+  const d = r.l[lang];
+  const front = s.rev
+    ? `<div class="big">${esc(d.word)}</div>${sayBtn(d.word)}`
+    : `${imgHtml(r)}<div class="big">${esc(r.es)}</div>`;
+  const back = `${imgHtml(r)}<div class="es">${esc(r.es)}</div><div class="big">${esc(d.word)}</div>
+      <div>${sayBtn(d.word)}</div>
+      <div class="meta" style="justify-content:center"><span class="pron">${esc(d.pron)}</span><span class="ipa">${esc(d.ipa)}</span></div>
+      ${d.forms?`<div class="count">${esc(d.forms)}</div>`:""}
+      ${d.ex?`<div class="ex">${esc(d.ex)} ${sayBtn(d.ex,1)}<div class="tr">${esc(d.ex_es)}</div></div>`:""}`;
+  $("#view").innerHTML = `<div class="fc-wrap">
+    <div class="count">${s.i+1} / ${list.length}</div>
+    <div class="fc" id="card">${s.flip?back:front}${s.flip?"":`<div class="hint">Toca la tarjeta para ver la respuesta</div>`}</div>
+    <div class="ctrl">
+      <button class="btn" id="prev">← Anterior</button>
+      <button class="btn pri" id="next">Siguiente →</button>
+    </div>
+    <div class="ctrl">
+      <button class="btn" id="shuf">🔀 Barajar</button>
+      <button class="btn" id="rev">${s.rev?"Mostrar primero: español":"Mostrar primero: "+LANGS[lang].name}</button>
+    </div></div>`;
+  const go = k => { s.i = (s.i+k+list.length)%list.length; s.flip=false; tarjetas(doc); };
+  $("#card").onclick = () => { s.flip=!s.flip; tarjetas(doc); if(s.flip && !s.rev) say(d.word); };
+  $("#prev").onclick = () => go(-1); $("#next").onclick = () => go(1);
+  $("#shuf").onclick = () => { s.order = shuffle(list.map((_,i)=>i)); s.i=0; s.flip=false; tarjetas(doc); };
+  $("#rev").onclick = () => { s.rev=!s.rev; s.flip=false; tarjetas(doc); };
+}
+
+function test(doc){
+  const list = entries(doc);
+  if(list.length<4){ $("#view").innerHTML = `<p class="empty">Se necesitan al menos 4 palabras.</p>`; return; }
+  if(!state.test){ state.test = {qs: shuffle(list).slice(0, Math.min(10,list.length)), i:0, ok:0, done:false}; }
+  const t = state.test;
+  if(t.i>=t.qs.length){
+    $("#view").innerHTML = `<div class="q"><div class="big" style="font-size:1.6rem;font-weight:700">${t.ok} / ${t.qs.length}</div>
+      <p class="sub">${t.ok===t.qs.length?"¡Perfecto! 🎉":t.ok>=t.qs.length*0.7?"¡Muy bien!":"Sigue practicando con las tarjetas."}</p>
+      <button class="btn pri" id="again">Otra ronda</button></div>`;
+    $("#again").onclick = () => { state.test=null; test(doc); };
+    return;
+  }
+  const r = t.qs[t.i], d = r.l[lang];
+  const pool = shuffle(list.filter(x => x!==r && x.l[lang].word!==d.word)).slice(0,3);
+  const opts = shuffle([r,...pool]);
+  $("#view").innerHTML = `<div class="q">
+    <div class="score">Pregunta ${t.i+1} de ${t.qs.length} · Aciertos: ${t.ok}</div>
+    ${imgHtml(r)}<div style="font-size:1.4rem;font-weight:700;margin-top:8px">${esc(r.es)}</div>
+    <div class="sub">¿Cómo se dice en ${LANGS[lang].name}?</div>
+    <div class="opts">${opts.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o.l[lang].word)}</button>`).join("")}</div>
+    <div id="after" style="margin-top:14px"></div></div>`;
+  document.querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    if(t.answered===t.i) return; t.answered=t.i;
+    const pick = opts[+b.dataset.i], good = pick===r;
+    if(good) t.ok++;
+    document.querySelectorAll(".opt").forEach(x => { if(opts[+x.dataset.i]===r) x.classList.add("ok"); });
+    if(!good) b.classList.add("bad");
+    say(d.word);
+    $("#after").innerHTML = `<div class="meta" style="justify-content:center"><span class="pron">${esc(d.pron)}</span><span class="ipa">${esc(d.ipa)}</span>${sayBtn(d.word,1)}</div>
+      <button class="btn pri" id="nextq" style="margin-top:10px">Siguiente →</button>`;
+    $("#nextq").onclick = () => { t.i++; test(doc); };
+  });
+}
+
+/* ---------- rutas ---------- */
+async function route(){
+  const h = location.hash.replace(/^#\/?/,"");
+  try{
+    if(h.startsWith("doc/")){
+      const id = h.slice(4);
+      if(state.doc!==id){ state.doc=id; state.q=""; state.lvl=""; state.fc={i:0,flip:false,order:null,rev:false}; state.test=null; }
+      else { state.test=null; state.fc.order=null; }
+      await docView(id);
+    } else { state.doc=null; await home(); }
+  }catch(e){ $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
+  window.scrollTo(0,0);
+}
+window.addEventListener("hashchange", route);
+renderLangs(); route();
+</script>
+</body>
+</html>

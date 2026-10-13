@@ -1,0 +1,477 @@
+[
+{
+"id": "animales",
+"title": "Animales",
+"group": "temas",
+"count": 58,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "colores",
+"title": "Colores",
+"group": "temas",
+"count": 24,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "familia",
+"title": "La familia",
+"group": "temas",
+"count": 26,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "nacionalidades",
+"title": "Nacionalidades",
+"group": "temas",
+"count": 56,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "paises",
+"title": "Países",
+"group": "temas",
+"count": 56,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "profesiones",
+"title": "Profesiones",
+"group": "temas",
+"count": 45,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "numeros",
+"title": "Números (0–110)",
+"group": "temas",
+"count": 111,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w01",
+"num": 1,
+"title": "Personas y relaciones",
+"group": "3000",
+"count": 55,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w02",
+"num": 2,
+"title": "El cuerpo y la salud",
+"group": "3000",
+"count": 74,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w03",
+"num": 3,
+"title": "Comida y bebida",
+"group": "3000",
+"count": 65,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w04",
+"num": 4,
+"title": "La casa y el hogar",
+"group": "3000",
+"count": 81,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w05",
+"num": 5,
+"title": "Ropa y accesorios",
+"group": "3000",
+"count": 39,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w06",
+"num": 6,
+"title": "La ciudad y los lugares",
+"group": "3000",
+"count": 49,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w07",
+"num": 7,
+"title": "Transporte y viajes",
+"group": "3000",
+"count": 72,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w08",
+"num": 8,
+"title": "El tiempo: calendario y momentos",
+"group": "3000",
+"count": 58,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w09",
+"num": 9,
+"title": "Clima y naturaleza",
+"group": "3000",
+"count": 84,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w10",
+"num": 10,
+"title": "Educación",
+"group": "3000",
+"count": 63,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w11",
+"num": 11,
+"title": "Trabajo y negocios",
+"group": "3000",
+"count": 84,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w12",
+"num": 12,
+"title": "Dinero y compras",
+"group": "3000",
+"count": 69,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w13",
+"num": 13,
+"title": "Ocio, deporte y cultura (1)",
+"group": "3000",
+"count": 77,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "w14",
+"num": 14,
+"title": "Ocio, deporte y cultura (2)",
+"group": "3000",
+"count": 76,
+"langs": [
+"english"
+]
+},
+{
+"id": "w15",
+"num": 15,
+"title": "Tecnología y medios",
+"group": "3000",
+"count": 104,
+"langs": []
+},
+{
+"id": "w16",
+"num": 16,
+"title": "Ciencia, cantidades y medidas (1)",
+"group": "3000",
+"count": 58,
+"langs": []
+},
+{
+"id": "w17",
+"num": 17,
+"title": "Ciencia, cantidades y medidas (2)",
+"group": "3000",
+"count": 57,
+"langs": []
+},
+{
+"id": "w18",
+"num": 18,
+"title": "Sociedad, gobierno y ley (1)",
+"group": "3000",
+"count": 60,
+"langs": []
+},
+{
+"id": "w19",
+"num": 19,
+"title": "Sociedad, gobierno y ley (2)",
+"group": "3000",
+"count": 60,
+"langs": []
+},
+{
+"id": "w20",
+"num": 20,
+"title": "Mente y sentimientos",
+"group": "3000",
+"count": 56,
+"langs": []
+},
+{
+"id": "w21",
+"num": 21,
+"title": "Ideas y conceptos (1)",
+"group": "3000",
+"count": 72,
+"langs": []
+},
+{
+"id": "w22",
+"num": 22,
+"title": "Ideas y conceptos (2)",
+"group": "3000",
+"count": 72,
+"langs": []
+},
+{
+"id": "w23",
+"num": 23,
+"title": "Ideas y conceptos (3)",
+"group": "3000",
+"count": 70,
+"langs": []
+},
+{
+"id": "w24",
+"num": 24,
+"title": "Verbos esenciales",
+"group": "3000",
+"count": 35,
+"langs": []
+},
+{
+"id": "w25",
+"num": 25,
+"title": "Verbos de movimiento y posición",
+"group": "3000",
+"count": 46,
+"langs": []
+},
+{
+"id": "w26",
+"num": 26,
+"title": "Verbos de comunicación",
+"group": "3000",
+"count": 60,
+"langs": []
+},
+{
+"id": "w27",
+"num": 27,
+"title": "Verbos de pensamiento y percepción",
+"group": "3000",
+"count": 72,
+"langs": []
+},
+{
+"id": "w28",
+"num": 28,
+"title": "Verbos de la vida diaria",
+"group": "3000",
+"count": 82,
+"langs": []
+},
+{
+"id": "w29",
+"num": 29,
+"title": "Verbos de cambio y procesos (1)",
+"group": "3000",
+"count": 77,
+"langs": []
+},
+{
+"id": "w30",
+"num": 30,
+"title": "Verbos de cambio y procesos (2)",
+"group": "3000",
+"count": 76,
+"langs": []
+},
+{
+"id": "w31",
+"num": 31,
+"title": "Adjetivos: aspecto y sensaciones",
+"group": "3000",
+"count": 98,
+"langs": []
+},
+{
+"id": "w32",
+"num": 32,
+"title": "Adjetivos: personalidad y emociones",
+"group": "3000",
+"count": 78,
+"langs": []
+},
+{
+"id": "w33",
+"num": 33,
+"title": "Adjetivos: valoración y cualidades (1)",
+"group": "3000",
+"count": 71,
+"langs": []
+},
+{
+"id": "w34",
+"num": 34,
+"title": "Adjetivos: valoración y cualidades (2)",
+"group": "3000",
+"count": 70,
+"langs": []
+},
+{
+"id": "w35",
+"num": 35,
+"title": "Adjetivos: otros (1)",
+"group": "3000",
+"count": 81,
+"langs": []
+},
+{
+"id": "w36",
+"num": 36,
+"title": "Adjetivos: otros (2)",
+"group": "3000",
+"count": 81,
+"langs": []
+},
+{
+"id": "w37",
+"num": 37,
+"title": "Adjetivos: otros (3)",
+"group": "3000",
+"count": 80,
+"langs": []
+},
+{
+"id": "w38",
+"num": 38,
+"title": "Adverbios (1)",
+"group": "3000",
+"count": 81,
+"langs": []
+},
+{
+"id": "w39",
+"num": 39,
+"title": "Adverbios (2)",
+"group": "3000",
+"count": 81,
+"langs": []
+},
+{
+"id": "w40",
+"num": 40,
+"title": "Preposiciones",
+"group": "3000",
+"count": 51,
+"langs": []
+},
+{
+"id": "w41",
+"num": 41,
+"title": "Pronombres y determinantes",
+"group": "3000",
+"count": 72,
+"langs": []
+},
+{
+"id": "w42",
+"num": 42,
+"title": "Conjunciones y conectores",
+"group": "3000",
+"count": 26,
+"langs": []
+},
+{
+"id": "w43",
+"num": 43,
+"title": "Preguntas y exclamaciones",
+"group": "3000",
+"count": 24,
+"langs": []
+}
+]
