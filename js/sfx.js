@@ -74,7 +74,7 @@ function confetti(o = {}){
 }
 
 /* sonidos ligados a lo que pasa en la app */
-bus.on("answer", d => sfx.play(d.ok ? "ok" : "bad"));
+bus.on("answer", d => { if(d && d.where !== "game") sfx.play(d.ok ? "ok" : "bad"); });   /* los minijuegos ponen su propio sonido */
 bus.on("coins", d => { if(d.n > 0 && !d.quiet) sfx.play("coin"); });
 bus.on("gift-open", () => { sfx.play("gift"); confetti(); });
 bus.on("medal", () => { sfx.play("fanfare"); confetti({emoji: "⭐", n: 40}); });
