@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Vocabulario</title>
 <meta name="description" content="Vocabulario en inglés británico, francés y danés con imagen, pronunciación, IPA, ejemplos y audio.">
+<script>
+(function(){var t=null;try{t=JSON.parse(localStorage.getItem("theme"))}catch(e){}
+document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");})();
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#0b2545">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
@@ -17,14 +21,13 @@
   --head:linear-gradient(120deg,#0b2545 0%,#13406e 100%);
   --shadow:0 1px 2px rgba(15,30,50,.06),0 6px 18px rgba(15,30,50,.07);
 }
-@media (prefers-color-scheme:dark){
-  :root{--bg:#0b1119;--card:#141c28;--ink:#e6ebf2;--muted:#93a0b3;--line:#243042;
+html{color-scheme:light}
+:root[data-theme=dark]{color-scheme:dark;--bg:#0b1119;--card:#141c28;--ink:#e6ebf2;--muted:#93a0b3;--line:#243042;
     --brand:#5aa2ff;--brand-2:#bcd6f5;--cat:#16283f;--soft:#132235;--ok:#45cf8b;--bad:#ff7b7b;
     --grad:linear-gradient(120deg,#164a8a 0%,#1f6fd1 55%,#168a80 100%);
     --head:linear-gradient(120deg,#081a30 0%,#0f3156 100%);
     --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.25)}
-  .img img{background:#fff;border-radius:10px}
-}
+[data-theme=dark] .img img{background:#fff;border-radius:10px}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
@@ -73,6 +76,9 @@ input[type=search]{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(
 .ex .tr{color:var(--muted);font-style:italic;font-size:.88rem}
 .lvl{font-size:.72rem;border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--muted)}
 .say{border:1px solid var(--line);background:var(--soft);border-radius:999px;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;font-size:1rem;flex:none}
+.sayg{display:inline-flex;gap:4px;align-items:center;vertical-align:middle}
+.say.tt{font-size:.95rem}
+.sayrow{display:flex;gap:10px;align-items:center;justify-content:center}
 .say.sm{width:28px;height:28px;font-size:.85rem;vertical-align:middle;margin-left:4px}
 .say:hover{border-color:var(--brand)}
 .say.playing{background:var(--grad);color:#fff;border-color:transparent}
@@ -148,7 +154,7 @@ footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
 .pr-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .pr-flow{position:relative;height:520px;border-radius:22px;overflow:hidden;
   background:linear-gradient(120deg,#0f3d75 0%,#1f6fd1 50%,#1a9e94 100%);box-shadow:var(--shadow)}
-@media (prefers-color-scheme:dark){.pr-flow{background:linear-gradient(120deg,#0c2a4f 0%,#14427a 50%,#0f5a55 100%)}}
+[data-theme=dark] .pr-flow{background:linear-gradient(120deg,#0c2a4f 0%,#14427a 50%,#0f5a55 100%)}
 .pr-card{position:absolute;left:50%;top:calc(50% - 14px);width:var(--cw,300px);min-height:420px;margin-left:calc(var(--cw,300px) / -2);
   background:var(--card);border-radius:18px;box-shadow:0 18px 40px rgba(20,20,60,.28);overflow:hidden;
   display:flex;flex-direction:column;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .5s,filter .5s;will-change:transform}
@@ -156,7 +162,7 @@ footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
 .pr-card.side::after{content:"";position:absolute;inset:0;background:rgba(15,20,45,.10)}
 .pr-hero{position:relative;flex:0 0 46%;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--tagc) 20%,#f4f5fb)}
 .pr-hero .img img{background:transparent!important}
-@media (prefers-color-scheme:dark){.pr-hero{background:color-mix(in srgb,var(--tagc) 26%,#dfe3f0)}}
+[data-theme=dark] .pr-hero{background:color-mix(in srgb,var(--tagc) 26%,#dfe3f0)}
 .pr-card.cur .pr-hero{flex:0 0 150px}
 .pr-card.side .pr-hero{flex:0 0 190px}
 .pr-hero .img img{max-width:130px;max-height:120px;filter:drop-shadow(0 6px 10px rgba(0,0,0,.15))}
@@ -307,8 +313,40 @@ dialog label{display:block;font-weight:600;margin:14px 0 6px}
 .ls-foot .msg{flex:1;font-weight:700}.ls-foot .msg small{display:block;font-weight:400;color:var(--ink)}
 .btn.lc{background:var(--lc);border-color:transparent;color:#fff;font-weight:700;padding:11px 22px;box-shadow:0 4px 0 color-mix(in srgb,var(--lc) 60%,#000)}
 .ls-end .big-stars{font-size:2.6rem;color:#d9a21b;letter-spacing:4px}.ls-end .big-stars .e{color:var(--line)}
-@media (prefers-color-scheme:dark){.node.lock,.node.trophy.lock{background:#333a4a;color:#6f7889;box-shadow:0 7px 0 #222836}}
+[data-theme=dark] .node.lock,[data-theme=dark] .node.trophy.lock{background:#333a4a;color:#6f7889;box-shadow:0 7px 0 #222836}
 @media (max-width:560px){.hnav .lb{display:none}.hbtn{padding:6px 10px}.nd{transform:translateX(calc(var(--x) * .7))}.lv-tab{min-width:0;flex:1 1 28%}}
+/* gramática */
+.node.gram{border-radius:22px;background:color-mix(in srgb,var(--lc) 78%,#0b2545);font-size:1.5rem}
+.nd .glbl{position:absolute;top:50%;transform:translateY(-50%);width:150px;font-size:.78rem;font-weight:700;color:var(--lc);line-height:1.25}
+.nd .glbl.r{left:calc(100% + 12px)}.nd .glbl.l{right:calc(100% + 12px);text-align:right}
+.nd .glbl small{display:block;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:.66rem;letter-spacing:.05em}
+.g-card{text-align:left;align-items:stretch;justify-content:flex-start}
+.g-card .tag,.g-card .big,.g-card>.es{text-align:center}
+.g-body,.g-item{text-align:left}
+.g-rule{margin:12px 0 0}
+.g-rule h3,.g-ex h3{font-size:1rem;margin:0 0 4px;color:var(--lc)}
+.g-rule p{margin:0}
+.g-tab{border-collapse:collapse;margin:8px 0 0;font-size:.92rem}
+.g-tab td{border:1px solid var(--line);padding:4px 10px}
+.g-tab tr:first-child td{background:var(--soft)}
+.g-ex{margin-top:14px}
+.g-ex .ex{text-align:left}
+.g-sent{font-size:1.35rem;font-weight:600;line-height:1.5;margin:8px 0}
+.g-gap{display:inline-block;min-width:70px;border-bottom:3px solid var(--line);color:var(--muted);padding:0 4px}
+.g-gap.ok{color:var(--ok);border-color:var(--ok)}.g-gap.bad{color:var(--bad);border-color:var(--bad)}
+.ls-foot .msg small+small{color:var(--muted)}
+.g-item{padding:0;margin-bottom:10px}
+.g-item summary{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;list-style:none}
+.g-item summary::-webkit-details-marker{display:none}
+.g-item summary small{display:block;color:var(--muted);font-size:.85rem}
+.g-item[open] summary{border-bottom:1px solid var(--line)}
+.g-item>:not(summary){margin-left:16px;margin-right:16px}
+.g-item>p:last-child{padding-bottom:14px}
+.g-n{flex:none;width:32px;height:32px;border-radius:10px;background:var(--lc);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}
+.g-ok{margin-left:auto;color:#d9a21b;white-space:nowrap}.g-ok .e{color:var(--line)}
+.lv-links{text-align:center;margin:12px 0 0}
+.lv-links a{color:var(--lc);font-weight:700;text-decoration:none}
+@media (max-width:560px){.nd .glbl{width:110px}.ls-foot .msg{flex-basis:100%}.ls-foot .btn.lc{margin-left:auto}}
 </style>
 </head>
 <body>
@@ -318,6 +356,7 @@ dialog label{display:block;font-weight:600;margin:14px 0 6px}
     <a class="hbtn" href="#/mapa">🗺️<span class="lb"> Mapa</span></a>
     <a class="hbtn" href="#/repaso">🔁<span class="lb"> Repaso</span><span class="b" id="due-b" hidden></span></a>
     <a class="hbtn" href="#/progreso">📈<span class="lb"> Progreso</span></a>
+    <button class="hbtn" id="theme-b" title="Modo claro / oscuro" aria-label="Modo claro / oscuro"></button>
     <button class="hbtn" id="cfg-b" title="Voz y velocidad" aria-label="Voz y velocidad">⚙️</button>
     <button class="hbtn" id="inst" hidden>📲<span class="lb"> Instalar</span></button>
   </nav>
@@ -357,12 +396,12 @@ function voiceFor(code){
 function speakable(t){
   return String(t).replace(/\((m|f|m\.\/f\.|pl)\.?\)/g,"").replace(/\(.*?\)/g,"").replace(/\s\/\s/g,", ").replace(/—/g,"").trim();
 }
-function say(text, btn){
+function say(text, btn, slow){
   if(!("speechSynthesis" in window)) return alert("Tu navegador no permite audio.");
   speechSynthesis.cancel();
   document.querySelectorAll(".say.playing").forEach(b=>b.classList.remove("playing"));
   const u = new SpeechSynthesisUtterance(speakable(text));
-  const code = LANGS[lang].code; u.lang = code; u.rate = rate;
+  const code = LANGS[lang].code; u.lang = code; u.rate = slow ? SLOW() : rate;
   const v = voiceFor(code); if(v) u.voice = v;
   if(btn){ btn.classList.add("playing"); u.onend = u.onerror = () => btn.classList.remove("playing"); }
   speechSynthesis.speak(u);
@@ -396,9 +435,11 @@ function voiceNote(){
 }
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-say]"); if(!b) return;
-  e.stopPropagation(); say(b.dataset.say, b);
+  e.stopPropagation(); say(b.dataset.say, b, b.hasAttribute("data-slow"));
 });
-const sayBtn = (t, sm) => t ? `<button class="say${sm?" sm":""}" data-say="${esc(t)}" title="Escuchar" aria-label="Escuchar">🔊</button>` : "";
+const slowBtn = (t, sm) => `<button class="say tt${sm?" sm":""}" data-say="${esc(t)}" data-slow title="Escuchar despacio" aria-label="Escuchar despacio">🐢</button>`;
+const sayBtn = (t, sm) => t ? `<span class="sayg"><button class="say${sm?" sm":""}" data-say="${esc(t)}" title="Escuchar" aria-label="Escuchar">🔊</button>${slowBtn(t, sm)}</span>` : "";
+const SLOW = () => Math.max(0.35, rate * 0.55);
 
 
 /* ---------- voz y velocidad ---------- */
@@ -580,7 +621,7 @@ async function downloadAll(){
   if(!("caches" in window)){ msg.textContent = "Este navegador no permite guardar la web sin internet."; return; }
   b.disabled = true;
   try{
-    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
+    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_english.json", "data/grammar_français.json", "data/grammar_dansk.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
     let k = 0;
     for(const d of idx){ urls.add(`data/${d.id}.json`); const doc = await getDoc(d.id); doc.rows.forEach(r => r.img && urls.add(r.img)); msg.textContent = `Leyendo documentos… ${++k}/${idx.length}`; }
     const c = await caches.open(CACHE_NAME), list = [...urls];
@@ -596,6 +637,12 @@ let installEv = null;
 addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEv = e; $("#inst").hidden = false; });
 $("#inst").onclick = async () => { if(!installEv) return; installEv.prompt(); await installEv.userChoice; installEv = null; $("#inst").hidden = true; };
 if("serviceWorker" in navigator && (location.protocol==="https:" || location.hostname==="localhost")) navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+/* ---------- tema claro / oscuro ---------- */
+function paintTheme(){ const d = document.documentElement.dataset.theme === "dark"; $("#theme-b").textContent = d ? "☀️" : "🌙"; $("#theme-b").title = d ? "Cambiar a modo claro" : "Cambiar a modo oscuro"; }
+$("#theme-b").onclick = () => { const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; document.documentElement.dataset.theme = t; store.set("theme", t); paintTheme(); };
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", e => { if(!store.get("theme", null)){ document.documentElement.dataset.theme = e.matches ? "dark" : "light"; paintTheme(); } });
+paintTheme();
 
 /* ---------- datos ---------- */
 async function getIndex(){ if(!INDEX) INDEX = await (await fetch("data/index.json")).json(); return INDEX; }
@@ -627,6 +674,7 @@ async function home(){
     <h1>Vocabulario en ${LANGS[lang].name}</h1>
     <p class="sub">Cada palabra trae imagen, pronunciación aproximada, IPA, ejemplo y botón 🔊 para escucharla. Cambia de idioma arriba.</p>
     ${await mapCta()}
+    <p style="margin:6px 0 0"><a href="#/gramatica" style="color:var(--brand);font-weight:600;text-decoration:none">📘 Gramática de ${LANGS[lang].name} por niveles, de A1 a C2 →</a></p>
     ${statsHtml()}
     <h2>Temas</h2><div class="grid">${temas.map(card).join("")}</div>
     <h2>Las 3000 palabras más importantes</h2>
@@ -1111,7 +1159,7 @@ function prCard(r, act, isCur, n, reps, off){
   let body;
   if(act === "escuchar") body = `
       <div class="es2">${esc(r.es)}</div>
-      <button class="say xl" data-say="${esc(d.word)}" aria-label="Escuchar">🔊</button>
+      <div class="sayrow"><button class="say xl" data-say="${esc(d.word)}" aria-label="Escuchar">🔊</button>${slowBtn(d.word)}</div>
       <div class="big">${esc(d.word)}</div>
       <div class="meta"><span class="pron">${esc(d.pron)}</span></div>
       ${d.ex?`<div class="ex">${esc(d.ex)} ${sayBtn(d.ex,1)}<div class="tr">${esc(d.ex_es)}</div></div>`:`<div class="count">Escúchala y repítela en voz alta</div>`}
@@ -1133,7 +1181,7 @@ function prCard(r, act, isCur, n, reps, off){
       <button class="btn pr-next">Saltar →</button>`;
   else if(act === "dictado") body = `
       <div class="es2">${esc(r.es)} · <span style="color:var(--ink)">${esc(d.word)}</span></div>
-      <button class="say xl" data-say="${esc(d.ex)}" aria-label="Escuchar la frase">🔊</button>
+      <div class="sayrow"><button class="say xl" data-say="${esc(d.ex)}" aria-label="Escuchar la frase">🔊</button>${slowBtn(d.ex)}</div>
       <div class="count">Escucha la frase y escríbela completa</div>
       <textarea class="ans" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Escribe lo que oyes…"></textarea>
       <div class="pr-msg"></div>
@@ -1229,16 +1277,16 @@ const LVS = {
   C1:{n:"Avanzado",        c:"#4b5563"}, C2:{n:"Maestría",        c:"#a87a1c"},
 };
 let MAP = null;
-async function getMap(){ if(!MAP) MAP = await (await fetch("data/map.json")).json(); return MAP; }
+async function getMap(){ if(!MAP) MAP = await (await fetch("data/map.json")).json(); await getGram(); return MAP; }
 const mapP = () => store.get("map:"+lang, {});
-const lvLessons = lv => MAP[lv].flatMap(u => u.ls);
+const lvLessons = lv => lvUnits(lv).flatMap(u => u.ls);
 function lvCur(lv, P){ const ls = lvLessons(lv); const i = ls.findIndex(l => !P[l.id]); return i < 0 ? ls.length : i; }
 const starsHtml = n => `${"★".repeat(n)}<span class="e">${"★".repeat(3-n)}</span>`;
 async function mapCta(){
   try{
     await getMap(); const P = mapP();
     const lv = Object.keys(LVS).find(l => lvCur(l, P) < lvLessons(l).length) || "C2";
-    const i = lvCur(lv, P), ls = lvLessons(lv), u = MAP[lv].find(u => u.ls.some(l => l.id === (ls[i]||{}).id));
+    const i = lvCur(lv, P), ls = lvLessons(lv), u = lvUnits(lv).find(u => u.ls.some(l => l.id === (ls[i]||{}).id));
     return `<a class="map-cta" href="#/mapa/${lv}"><span class="ic">🗺️</span><span><b>Camino de aprendizaje · ${lv}</b>
       <small>${i ? `Vas por la lección ${i+1} de ${ls.length}${u?` · ${esc(u.t)}`:""}` : "Lecciones cortas de A1 a C2, una tras otra"}</small></span>
       <span class="go">${i ? "Seguir" : "Empezar"}</span></a>`;
@@ -1256,13 +1304,14 @@ async function mapa(lv){
   }).join("");
   const X = [0, 52, 78, 52, 0, -52, -78, -52];
   let k = 0, html = "";
-  for(const [ui, u] of MAP[lv].entries()){
+  for(const [ui, u] of lvUnits(lv).entries()){
     html += `<div class="unit"><span>Unidad ${ui+1} · <a href="#/doc/${u.doc}">${esc(u.t)}</a></span></div>`;
     for(const l of u.ls){
       const st = P[l.id] || 0, isCur = k === cur, lock = k > cur;
       html += `<div class="nd${isCur && k ? " hb" : ""}" style="--x:${X[k % X.length]}px">
         ${isCur ? `<div class="bubble">${k ? "SIGUIENTE" : "EMPEZAR"}</div>` : ""}
-        <button class="node ${lock?"lock":""} ${isCur?"cur":""}" data-ls="${l.id}" ${isCur?'id="cur-node"':""} aria-label="Lección ${k+1}${lock?" (bloqueada)":""}">${st ? "✓" : lock ? "🔒" : "★"}</button>
+        <button class="node ${l.w?"":"gram"} ${lock?"lock":""} ${isCur?"cur":""}" data-ls="${l.id}" ${isCur?'id="cur-node"':""} aria-label="${l.w?"Lección "+(k+1):"Gramática: "+esc(l.t)}${lock?" (bloqueada)":""}">${st ? "✓" : l.w ? (lock ? "🔒" : "★") : "📘"}</button>
+        ${l.w ? "" : `<div class="glbl ${X[k % X.length] > 0 ? "l" : "r"}"><small>Gramática</small>${esc(l.t)}</div>`}
         ${st ? `<div class="stars">${starsHtml(st)}</div>` : ""}</div>`;
       k++;
     }
@@ -1274,8 +1323,9 @@ async function mapa(lv){
     <div class="lv-tabs">${tabs}</div>
     <div style="--lc:${LVS[lv].c}">
       <div class="lv-head"><h1>Nivel ${lv} · ${LVS[lv].n}</h1>
-        <p>${ls.length} lecciones · ${ls.reduce((a,l)=>a+l.w.length,0)} palabras en ${LANGS[lang].name}. ${done ? `Llevas ${done}.` : "Cada lección: aprendes unas 10 palabras y luego un pequeño test."}</p>
+        <p>${ls.filter(l=>l.w).length} lecciones de vocabulario · ${ls.filter(l=>!l.w).length} de gramática · ${ls.reduce((a,l)=>a+(l.w?l.w.length:0),0)} palabras en ${LANGS[lang].name}. ${done ? `Llevas ${done}.` : "Cada lección: aprendes unas 10 palabras y luego un pequeño test."}</p>
         <div class="lv-bar"><i style="width:${Math.round(100*done/ls.length)}%"></i></div></div>
+      <div class="lv-links"><a href="#/gramatica/${lv}">📘 Ver toda la gramática del nivel ${lv}</a></div>
       <div class="path">${html}</div>
       ${allDone && next ? `<p style="text-align:center"><a class="btn lc" href="#/mapa/${next}" style="text-decoration:none">Ir al nivel ${next} →</a></p>` : ""}
     </div>`;
@@ -1292,6 +1342,7 @@ async function mapa(lv){
 let LS = null;
 async function leccion(id){
   await getMap(); document.onkeydown = null;
+  if(id.startsWith("G-")) return gramLesson(id);
   const lv = id.slice(0, 2); if(!MAP[lv]) return mapa();
   const ui = MAP[lv].findIndex(u => u.ls.some(l => l.id === id)); if(ui < 0) return mapa(lv);
   const unit = MAP[lv][ui], l = unit.ls.find(l => l.id === id);
@@ -1329,7 +1380,7 @@ function lsStep(){
     const opts = lsOpts(st.w, field), right = listen ? r.es : d.word;
     st.right = right;
     body = `<div class="ls-card"><div class="tag">${listen ? "Escucha y elige qué significa" : "¿Cómo se dice en "+LANGS[lang].name+"?"}</div>
-      ${listen ? `<button class="say xl" data-say="${esc(d.word)}" aria-label="Escuchar" style="width:72px;height:72px;font-size:1.8rem">🔊</button>`
+      ${listen ? `<div class="sayrow"><button class="say xl" data-say="${esc(d.word)}" aria-label="Escuchar" style="width:72px;height:72px;font-size:1.8rem">🔊</button>${slowBtn(d.word)}</div>`
                : `${imgHtml(r)}<div class="q">${esc(r.es)}</div>`}
       <div class="opts">${opts.map((o, k) => `<button class="opt" data-o="${esc(o)}"><span style="color:var(--muted);font-weight:400">${k+1}</span> ${esc(o)}</button>`).join("")}</div></div>
       <div id="ls-fb"></div>`;
@@ -1373,7 +1424,7 @@ function lsEnd(){
   const P = mapP(); const prev = P[s.id] || 0; P[s.id] = Math.max(prev, stars); store.set("map:"+lang, P);
   const by = {}; for(const w of s.words) (by[w.doc] = by[w.doc] || []).push(w.r);
   let added = 0; for(const [d, rows] of Object.entries(by)) added += srsAdd(d, rows, 1);
-  logAct(s.words.length); updBadge();
+  logAct(s.words.length || s.nq); updBadge();
   const ls = lvLessons(s.lv), i = ls.findIndex(l => l.id === s.id), nxt = ls[i+1];
   const lvDone = ls.every(l => P[l.id]);
   $("#app").innerHTML = `<div class="ls ls-end" style="--lc:${LVS[s.lv].c}">
@@ -1390,6 +1441,89 @@ function lsEnd(){
   document.onkeydown = e => { if(e.key === "Enter" && nxt){ e.preventDefault(); location.hash = "#/leccion/" + nxt.id; } };
 }
 
+/* ---------- gramática ---------- */
+const GRAM = {};
+async function getGram(){
+  if(!GRAM[lang]) GRAM[lang] = await fetch(`data/grammar_${lang}.json`).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+  return GRAM[lang];
+}
+const gId = (lv, k) => `G-${lv}-${String(k+1).padStart(2,"0")}`;
+function lvUnits(lv){                     /* unidades del nivel con las lecciones de gramática intercaladas */
+  const g = (GRAM[lang] || {})[lv] || [], N = MAP[lv].reduce((a, u) => a + u.ls.length, 0);
+  const at = g.map((_, k) => Math.max(1, Math.round((k + 0.5) * N / g.length)));
+  let n = 0, k = 0;
+  return MAP[lv].map(u => ({...u, ls: u.ls.flatMap(l => {
+    n++; const out = [l];
+    while(k < g.length && at[k] === n){ out.push({id: gId(lv, k), g: k, t: g[k].t}); k++; }
+    return out;
+  })}));
+}
+const md = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+function gramTheory(x){
+  return `${x.rules.map(r => `<div class="g-rule"><h3>${esc(r.h)}</h3><p>${md(r.p)}</p>
+      ${r.tab ? `<table class="g-tab">${r.tab.map(row => `<tr>${row.map(c => `<td>${md(c)}</td>`).join("")}</tr>`).join("")}</table>` : ""}</div>`).join("")}
+    <div class="g-ex"><h3>Ejemplos</h3>${x.ex.map(e => `<div class="ex">${esc(e.t)} ${sayBtn(e.t,1)}<div class="tr">${esc(e.es)}</div></div>`).join("")}</div>`;
+}
+async function gramatica(lv){
+  await getMap(); document.onkeydown = null;
+  const G = GRAM[lang]; if(!LVS[lv]) lv = store.get("mapLv", "A1");
+  const P = mapP();
+  const tabs = Object.entries(LVS).map(([k, v]) => `<a class="lv-tab ${k===lv?"on":""}" style="--lc:${v.c}" href="#/gramatica/${k}"><b>${k}</b><small>${(G[k]||[]).length} temas</small></a>`).join("");
+  const list = (G[lv] || []).map((x, k) => `<details class="panel g-item"><summary><span class="g-n">${k+1}</span><span><b>${esc(x.t)}</b><small>${esc(x.sum)}</small></span>${P[gId(lv,k)] ? `<span class="g-ok">${starsHtml(P[gId(lv,k)])}</span>` : ""}</summary>
+      ${gramTheory(x)}<p style="text-align:right;margin:10px 0 0"><a class="btn lc" style="text-decoration:none" href="#/leccion/${gId(lv,k)}">Practicar este tema</a></p></details>`).join("");
+  $("#app").innerHTML = `<a class="back" href="#/mapa/${lv}">← Mapa</a>
+    <h1>Gramática de ${LANGS[lang].name}</h1>
+    <p class="sub">Todos los temas por nivel, para consultarlos cuando quieras. En el mapa aparecen intercalados entre las lecciones de vocabulario (📘).</p>
+    <div class="lv-tabs">${tabs}</div>
+    <div style="--lc:${LVS[lv].c};margin-top:14px">${list || `<p class="empty">Todavía no hay temas de gramática para este nivel.</p>`}</div>`;
+}
+async function gramLesson(id){
+  const lv = id.slice(2, 4), k = parseInt(id.slice(5)) - 1, x = ((GRAM[lang] || {})[lv] || [])[k];
+  if(!x) return mapa(lv);
+  LS = {id, lv, g:true, x, words:[], steps: shuffle(x.q.map((q, i) => i)).map(i => ({t:"gq", q:x.q[i]})), i:-1, nq:x.q.length, first:new Set(), miss:new Set(), tok:++autoTok};
+  gStep();
+}
+function gStep(){
+  const s = LS, x = s.x, lc = LVS[s.lv].c;
+  const top = pct => `<div class="ls-top"><a class="x" href="#/mapa/${s.lv}" title="Salir" aria-label="Salir">✕</a><div class="ls-prog"><i style="width:${pct}%"></i></div></div>`;
+  if(s.i < 0){
+    $("#app").innerHTML = `<div class="ls" style="--lc:${lc}">${top(0)}
+      <div class="ls-card g-card"><div class="tag">📘 Gramática · ${s.lv}</div><div class="big" style="font-size:1.5rem">${esc(x.t)}</div>
+        <div class="es">${esc(x.sum)}</div><div class="g-body">${gramTheory(x)}</div></div>
+      <div class="ls-foot"><span class="msg"></span><button class="btn lc" id="ls-go">Practicar</button></div></div>`;
+    $("#ls-go").onclick = () => { s.i = 0; gStep(); };
+    document.onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); $("#ls-go").click(); } };
+    return;
+  }
+  if(s.i >= s.steps.length) return lsEnd();
+  const st = s.steps[s.i], q = st.q, right = q.o[q.a];
+  const [pre, post] = q.s.split("___");
+  $("#app").innerHTML = `<div class="ls" style="--lc:${lc}">${top(Math.round(100 * s.i / s.steps.length))}
+    <div class="ls-card"><div class="tag">Completa la frase</div>
+      <div class="g-sent">${esc(pre)}<span class="g-gap" id="gap">____</span>${esc(post ?? "")}</div>
+      <div class="opts">${q.o.map((o, k) => `<button class="opt" data-k="${k}"><span style="color:var(--muted);font-weight:400">${k+1}</span> ${esc(o)}</button>`).join("")}</div></div>
+    <div id="ls-fb"></div></div>`;
+  const full = q.s.replace("___", right);
+  const pick = b => {
+    if(st.done) return; st.done = true;
+    const ok = +b.dataset.k === q.a, key = q.s;
+    $(".ls-card").querySelectorAll(".opt").forEach(o => { o.disabled = true; if(+o.dataset.k === q.a) o.classList.add("ok"); });
+    if(!ok){ b.classList.add("bad"); s.miss.add(key); s.steps.push({t:"gq", q}); } else if(!s.miss.has(key)) s.first.add(key);
+    const gap = $("#gap"); gap.textContent = right; gap.classList.add(ok ? "ok" : "bad");
+    $("#ls-fb").innerHTML = `<div class="ls-foot ${ok?"ok":"bad"}"><span class="msg">${ok ? "¡Correcto!" : "Respuesta correcta: " + esc(right)}
+      <small>${esc(q.es)}</small><small style="margin-top:4px">💡 ${md(q.why)}</small></span>${sayBtn(full)}<button class="btn lc" id="ls-go">Continuar</button></div>`;
+    sayP(full);
+    $("#ls-go").onclick = () => { s.i++; gStep(); };
+    $("#ls-go").focus({preventScroll:true});
+  };
+  $(".ls-card").querySelectorAll(".opt").forEach(b => b.onclick = () => pick(b));
+  document.onkeydown = e => {
+    const n = parseInt(e.key), os = $(".ls-card") ? $(".ls-card").querySelectorAll(".opt") : [];
+    if(n >= 1 && n <= os.length && !st.done) pick(os[n-1]);
+    else if(e.key === "Enter" && st.done){ e.preventDefault(); $("#ls-go") && $("#ls-go").click(); }
+  };
+}
+
 /* ---------- rutas ---------- */
 async function route(){
   autoTok++; if(state.fc) state.fc.auto = false; if("speechSynthesis" in window) speechSynthesis.cancel();
@@ -1401,6 +1535,7 @@ async function route(){
       else { state.test=null; state.fc.order=null; }
       await docView(id);
     } else if(h.startsWith("mapa")){ state.doc=null; await mapa(h.split("/")[1]); }
+    else if(h.startsWith("gramatica")){ state.doc=null; await gramatica(h.split("/")[1]); }
     else if(h.startsWith("leccion/")){ state.doc=null; await leccion(h.slice(8)); }
     else if(h.startsWith("repaso")){ state.doc=null; await repaso(); }
     else if(h.startsWith("progreso")){ state.doc=null; await progreso(); }
