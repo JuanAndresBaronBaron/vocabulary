@@ -34,12 +34,15 @@ body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-syste
 a{color:inherit}
 button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:1100px;margin:0 auto;padding:0 16px}
-header{position:sticky;top:0;z-index:10;background:var(--head);color:#fff;box-shadow:0 2px 12px rgba(5,20,40,.25)}
-header .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
-.logo{font-weight:700;font-size:1.15rem;text-decoration:none;margin-right:auto}
-.langs{display:flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
-.langs button{border:0;background:none;color:#fff;padding:6px 12px;border-radius:999px;font-size:.95rem}
+/* cabecera en dos filas: arriba el nombre, ajustes e idioma (se va al bajar); abajo las secciones (se queda fija) */
+header{position:sticky;top:-48px;z-index:10;background:var(--head);color:#fff;box-shadow:0 2px 12px rgba(5,20,40,.25)}
+header .wrap{display:grid;grid-template-columns:auto 1fr auto auto;grid-template-areas:"logo . tools langs" "nav nav nav nav";align-items:center;gap:6px 10px;padding-top:8px;padding-bottom:8px}
+.logo{grid-area:logo;font-weight:700;font-size:1.15rem;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-height:40px;min-width:40px;border-radius:12px}
+.htools{grid-area:tools;display:flex;gap:6px;align-items:center}
+.langs{grid-area:langs;display:flex;background:rgba(255,255,255,.12);border-radius:999px;padding:0;height:40px}
+.langs button{border:0;background:none;color:#fff;padding:0 13px;height:40px;border-radius:999px;font-size:.95rem;min-width:40px;display:inline-flex;align-items:center;justify-content:center;gap:5px}
 .langs button.on{background:#fff;color:#0b2545;font-weight:600}
+.langs .fl{font-size:1.05rem}
 main{padding:20px 0 40px}
 h1{font-size:1.6rem;margin:4px 0 6px}
 h2{font-size:1.15rem;margin:28px 0 10px;color:var(--brand)}
@@ -109,7 +112,6 @@ footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
   .row{grid-template-columns:64px 1fr;gap:10px;padding:10px}
   .img img{max-width:60px;max-height:60px}.row.wide{grid-template-columns:104px 1fr}.row.wide .img img{max-width:100px;max-height:90px}.img .ph{width:52px;height:52px}
   .word{font-size:1.15rem}.opts{grid-template-columns:1fr}
-  .langs button{padding:6px 9px;font-size:.88rem}
 }
 /* práctica 21 */
 .pr-setup{background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px;max-width:760px}
@@ -198,7 +200,7 @@ footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
 .pr-opt input{accent-color:var(--brand);width:16px;height:16px}
 .pr-opt:has(input:checked){border-color:var(--brand);background:var(--soft);color:var(--brand);font-weight:600}
 .pr-keys{font-size:.8rem;color:var(--muted);text-align:center}
-.pr-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f2f57;color:#fff;padding:10px 18px;border-radius:99px;box-shadow:var(--shadow);font-weight:600;z-index:20;animation:pop .3s}
+.pr-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f2f57;color:#fff;padding:10px 18px;border-radius:99px;box-shadow:var(--shadow);font-weight:600;z-index:20;animation:pop .3s;pointer-events:none;width:max-content;max-width:calc(100vw - 32px);text-align:center}
 @keyframes pop{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 .pr-end{text-align:center;padding:30px 20px}
 .pr-end .big{font-size:2.6rem}
@@ -211,10 +213,17 @@ footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
 }
 
 /* cabecera: accesos */
-.hnav{display:flex;gap:6px;flex-wrap:wrap}
-.hbtn{border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:6px 12px;font-size:.92rem;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center}
+.hnav{grid-area:nav;display:flex;gap:6px;align-items:center}
+.hbtn{position:relative;border:0;background:rgba(255,255,255,.14);color:#fff;border-radius:999px;padding:0 12px;min-height:40px;min-width:40px;font-size:.95rem;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
+.hnav .hbtn{min-height:44px;padding:0 15px;font-size:1rem}
 .hbtn:hover{background:rgba(255,255,255,.26)}
-.hbtn .b{background:#ff6b6b;color:#fff;border-radius:99px;padding:0 6px;font-size:.75rem;margin-left:5px;font-weight:700}
+.hbtn:active{transform:scale(.95)}
+.hnav .hbtn.on{background:#fff;color:#0b2545;font-weight:700;box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.hnav .coin{margin-left:auto}
+.hbtn .b{background:#d64545;color:#fff;border-radius:99px;padding:0 6px;font-size:.75rem;margin-left:5px;font-weight:700;line-height:1.5}
+.hbtn.coin.cbump{animation:cbump .55s ease-out}
+@keyframes cbump{0%{transform:scale(1)}30%{transform:scale(1.22)}60%{transform:scale(.96)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion: reduce){.hbtn.coin.cbump{animation:none}}
 /* progreso */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
 .stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);text-decoration:none;display:block}
@@ -286,7 +295,7 @@ dialog label{display:block;font-weight:600;margin:14px 0 6px}
 .nd .stars{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);font-size:.8rem;letter-spacing:1px;color:#d9a21b;white-space:nowrap}
 .nd .stars .e{color:var(--line)}
 .nd.hb{margin-top:48px}
-.hnav .lb{margin-left:5px}
+.hnav .lb{margin-left:3px}.logo .lt{margin-left:7px}.htools .lb{margin-left:5px}
 .bubble{position:absolute;left:50%;bottom:calc(100% + 14px);transform:translateX(-50%);background:var(--card);color:var(--lc);border:2px solid var(--line);border-radius:12px;padding:6px 12px;font-weight:800;font-size:.85rem;white-space:nowrap;animation:bob 1.4s ease-in-out infinite;pointer-events:none}
 .bubble::after{content:"";position:absolute;left:50%;top:100%;border:8px solid transparent;border-top-color:var(--card);transform:translateX(-50%)}
 @keyframes bob{0%,100%{translate:0 0}50%{translate:0 -5px}}
@@ -314,7 +323,7 @@ dialog label{display:block;font-weight:600;margin:14px 0 6px}
 .btn.lc{background:var(--lc);border-color:transparent;color:#fff;font-weight:700;padding:11px 22px;box-shadow:0 4px 0 color-mix(in srgb,var(--lc) 60%,#000)}
 .ls-end .big-stars{font-size:2.6rem;color:#d9a21b;letter-spacing:4px}.ls-end .big-stars .e{color:var(--line)}
 [data-theme=dark] .node.lock,[data-theme=dark] .node.trophy.lock{background:#333a4a;color:#6f7889;box-shadow:0 7px 0 #222836}
-@media (max-width:560px){.hnav .lb{display:none}.hbtn{padding:6px 10px}.nd{transform:translateX(calc(var(--x) * .7))}.lv-tab{min-width:0;flex:1 1 28%}}
+@media (max-width:560px){.nd{transform:translateX(calc(var(--x) * .7))}.lv-tab{min-width:0;flex:1 1 28%}}
 /* gramática */
 .node.gram{border-radius:22px;background:color-mix(in srgb,var(--lc) 78%,#0b2545);font-size:1.5rem}
 .nd .glbl{position:absolute;top:50%;transform:translateY(-50%);width:150px;font-size:.78rem;font-weight:700;color:var(--lc);line-height:1.25}
@@ -349,9 +358,20 @@ dialog label{display:block;font-weight:600;margin:14px 0 6px}
 @media (max-width:560px){.nd .glbl{width:110px}.ls-foot .msg{flex-basis:100%}.ls-foot .btn.lc{margin-left:auto}}
 /* juego */
 header .wrap{max-width:1320px}
-@media (max-width:1200px){.hnav .lb{display:none}}
-@media (max-width:560px){.hbtn{padding:6px 9px}#inst{display:none!important}.hnav{gap:5px}}
+@media (max-width:819px){.hnav .lb,.htools .lb{display:none}.hnav .hbtn:not(.coin){flex:1 1 0;padding:0 6px;font-size:1.15rem}}
+@media (max-width:560px){
+  header .wrap{grid-template-columns:auto auto 1fr auto;grid-template-areas:"logo tools . langs" "nav nav nav nav";gap:6px}
+  #inst{display:none!important}
+  .htools{gap:4px}.hnav{gap:4px}
+  .hnav .hbtn:not(.coin){min-width:0}
+  .hnav .coin{padding:0 10px}
+  .hbtn .b{position:absolute;top:-4px;right:-4px;margin:0;font-size:.68rem;padding:0 5px;box-shadow:0 0 0 2px #0f3156}
+}
+@media (max-width:680px){.langs .ln{display:none}.langs button{padding:0 9px}}
+@media (max-width:439px){.logo .lt{display:none}.logo{font-size:1.6rem;padding:0 2px}}
+@media (max-width:359px){.htools .hbtn,.langs button{min-width:34px;padding:0 5px}.htools,.hnav{gap:3px}.hnav .coin{padding:0 8px;font-size:.9rem}}
 .hbtn.coin{background:#f2c94c;color:#3a2a00;font-weight:800}
+#coins{margin-left:5px}
 .hbtn.coin:hover{background:#f7d774}
 .hero{position:relative;display:inline-block;width:1.3em;height:1.25em;line-height:1;flex:none}
 .hero span{position:absolute;line-height:1}
@@ -441,24 +461,31 @@ details.adult[open] summary{margin-bottom:10px}
 /* repaso para niños */
 .rv-btns.kid .btn{font-size:1rem;padding:12px 4px}
 .rv-btns.kid .btn span{display:block;font-size:1.8rem}
+/* en el móvil, el personaje y el nombre ocupan poco: así la granja se ve antes */
+@media (max-width:560px){.me{gap:14px;flex-wrap:nowrap;margin:0 0 4px}.me>.hero{font-size:76px!important}.me-info{min-width:0}
+  .me-info input{font-size:1.1rem;width:100%;padding:5px 9px}.me-coins{margin:4px 0 0;font-size:1.1rem}.me-info>.count{display:none}.me-info h1{font-size:1.4rem}}
 @media (max-width:560px){.cal{grid-template-columns:repeat(7,1fr)}.hello{gap:12px}.speech{font-size:1rem}.speech b{font-size:1.15rem}.farm{height:300px}.fi{font-size:2rem}.fi.bg{font-size:2.8rem}}
 </style>
 </head>
 <body>
 <header><div class="wrap">
-  <a class="logo" href="#/">📘 Vocabulario</a>
-  <nav class="hnav">
-    <a class="hbtn" href="#/mapa">🗺️<span class="lb"> Camino</span></a>
-    <a class="hbtn" href="#/repaso">🔁<span class="lb"> Repasar</span><span class="b" id="due-b" hidden></span></a>
-    <a class="hbtn" href="#/granja">🏡<span class="lb"> Granja</span></a>
-    <a class="hbtn" href="#/progreso">🏆<span class="lb"> Premios</span></a>
-    <a class="hbtn coin" href="#/granja" title="Tus monedas">🪙 <span id="coins">0</span></a>
+  <a class="logo" href="#/" title="Inicio" aria-label="Vocabulario: inicio">📘<span class="lt"> Vocabulario</span></a>
+  <div class="htools">
     <button class="hbtn" id="snd-b" title="Sonidos" aria-label="Sonidos">🔔</button>
     <button class="hbtn" id="theme-b" title="Modo claro / oscuro" aria-label="Modo claro / oscuro"></button>
     <button class="hbtn" id="cfg-b" title="Voz y velocidad" aria-label="Voz y velocidad">⚙️</button>
     <button class="hbtn" id="inst" hidden>📲<span class="lb"> Instalar</span></button>
-  </nav>
+  </div>
   <div class="langs" id="langs"></div>
+  <nav class="hnav" aria-label="Secciones">
+    <a class="hbtn" href="#/mapa" data-nav="mapa" title="Camino">🗺️<span class="lb"> Camino</span></a>
+    <a class="hbtn" href="#/repaso" data-nav="repaso" title="Repasar">🔁<span class="lb"> Repasar</span><span class="b" id="due-b" hidden></span></a>
+    <a class="hbtn" href="#/granja" data-nav="granja" title="Mi granja">🏡<span class="lb"> Granja</span></a>
+    <a class="hbtn" href="#/juegos" data-nav="juegos" title="Juegos">🎮<span class="lb"> Juegos</span></a>
+    <a class="hbtn" href="#/album" data-nav="album" title="Álbum de pegatinas">📒<span class="lb"> Álbum</span></a>
+    <a class="hbtn" href="#/progreso" data-nav="progreso" title="Mis premios">🏆<span class="lb"> Premios</span></a>
+    <a class="hbtn coin" href="#/granja" title="Tus monedas">🪙 <span id="coins">0</span></a>
+  </nav>
 </div></header>
 <dialog id="cfg"></dialog>
 <main><div class="wrap" id="app"><p class="empty">Cargando…</p></div></main>
@@ -758,8 +785,8 @@ async function getDoc(id){ if(!CACHE[id]) CACHE[id] = await (await fetch(`data/$
 
 /* ---------- cabecera ---------- */
 function renderLangs(){
-  $("#langs").innerHTML = Object.entries(LANGS).map(([k,v]) =>
-    `<button class="${k===lang?"on":""}" data-lang="${k}">${v.label}</button>`).join("");
+  $("#langs").innerHTML = Object.entries(LANGS).map(([k,v]) => { const [fl, ...n] = v.label.split(" ");
+    return `<button class="${k===lang?"on":""}" data-lang="${k}" title="${esc(n.join(" "))}" aria-label="${esc(n.join(" "))}" aria-pressed="${k===lang}"><span class="fl" aria-hidden="true">${fl}</span><span class="ln">${esc(n.join(" "))}</span></button>`; }).join("");
 }
 $("#langs").addEventListener("click", e => {
   const b = e.target.closest("[data-lang]"); if(!b) return;
@@ -782,9 +809,9 @@ async function home(){
     <div class="hello">${heroHtml(96)}<div class="speech"><b>¡Hola${game().name ? ", " + esc(game().name) : ""}!</b>¿Qué aprendemos hoy en ${LANGS[lang].name}?</div></div>
     <div class="big-acts">
       <a class="ba a1" href="#/mapa">🗺️<b>Camino</b><small>Aprende palabras nuevas</small></a>
-      <a class="ba a2" href="#/repaso">🔁<b>Repasar</b><small>${dueList().length ? dueList().length + " palabras te esperan" : "Todo al día"}</small></a>
+      <a class="ba a2" href="#/repaso">🔁<b>Repasar</b><small>${(n => n === 1 ? "1 palabra te espera" : n ? n + " palabras te esperan" : "Todo al día")(dueList().length)}</small></a>
       <a class="ba a3" href="#/granja">🏡<b>Mi granja</b><small>🪙 ${game().coins} monedas</small></a>
-      <a class="ba a4" href="#/progreso">🏆<b>Premios</b><small>${achList().filter(x=>x.ok).length} medallas</small></a>
+      <a class="ba a4" href="#/progreso">🏆<b>Premios</b><small>${(n => n === 1 ? "1 medalla" : n + " medallas")(achList().filter(x=>x.ok).length)}</small></a>
       ${HOME_ACTS.map(a => `<a class="ba" style="background:${a.color}" href="${a.href}">${a.e}<b>${esc(a.t)}</b><small>${esc(a.sub || "")}</small></a>`).join("")}
     </div>
     ${(await Promise.all(HOME_SLOTS.map(f => Promise.resolve().then(f).catch(e => { console.error(e); return ""; })))).join("")}
@@ -1655,7 +1682,13 @@ async function getShop(){ if(!SHOP.length) SHOP = await fetch("data/game.json").
 const GDEF = {coins:0, earned:0, owned:{zorro:true}, wear:{hero:"zorro"}, ach:{}, name:"", gifts:0, day:""};
 const game = () => { const g = Object.assign(JSON.parse(JSON.stringify(GDEF)), store.get("game", {})); g.owned.zorro = true; return g; };
 function gameSet(g){ store.set("game", g); paintCoins(); }
-function paintCoins(){ const c = $("#coins"); if(c) c.textContent = game().coins; }
+let coinShown = null;
+function paintCoins(){
+  const c = $("#coins"); if(!c) return;
+  const v = game().coins, b = c.closest(".hbtn");
+  if(coinShown !== null && v > coinShown && b){ b.classList.remove("cbump"); void b.offsetWidth; b.classList.add("cbump"); }
+  coinShown = v; c.textContent = v;
+}
 const itemById = id => SHOP.find(x => x.id === id);
 const TYPES = [["hero","🦸","Personajes"],["hat","🎩","Sombreros"],["face","🕶️","Gafas"],["hand","⚽","Juguetes"],["pet","🐶","Mascotas"],["farm","🌻","Granja"]];
 const itemWord = it => it.w[lang] || it.n;
@@ -1694,7 +1727,7 @@ function achList(){
     ["g1","✏️","Primera gramática","Termina una lección de gramática", gr, 1], ["g10","📐","Maestro de reglas","Termina 10 de gramática", gr, 10],
     ["s3","⭐","Tres estrellas","Saca 3 estrellas en 5 lecciones", three, 5], ["s20","🌟","Estrella brillante","Saca 3 estrellas en 20 lecciones", three, 20],
     ["r3","🔥","Racha de 3","Aprende 3 días seguidos", st, 3], ["r7","🚒","Racha de 7","Aprende 7 días seguidos", st, 7], ["r30","🌋","Racha de 30","Aprende 30 días seguidos", st, 30],
-    ["w50","🧠","50 palabras","Ten 50 palabras en tu repaso", words, 50], ["w300","📚","300 palabras","Ten 300 palabras en tu repaso", words, 300],
+    ["w50","📖","50 palabras","Ten 50 palabras en tu repaso", words, 50], ["w300","📚","300 palabras","Ten 300 palabras en tu repaso", words, 300],
     ["m25","💎","Memoria de oro","Domina 25 palabras", mast, 25],
     ["c200","💰","Ahorrador","Gana 200 monedas", g.earned, 200], ["c1000","🏦","Banquero","Gana 1000 monedas", g.earned, 1000],
     ["f5","🌾","Granjero","Ten 5 cosas en tu granja", farm, 5], ["f20","🚜","Gran granjero","Ten 20 cosas en tu granja", farm, 20],
@@ -1854,6 +1887,8 @@ async function route(){
     else { state.doc=null; await home(); }
   }catch(e){ console.error(e); $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
   if(!h.startsWith("mapa")) window.scrollTo(0,0);
+  const sec = {leccion:"mapa", gramatica:"mapa"}[h.split("/")[0]] || h.split("/")[0];
+  document.querySelectorAll(".hnav [data-nav]").forEach(a => { const on = a.dataset.nav === sec; a.classList.toggle("on", on); if(on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
   bus.emit("route", {h});
 }
 window.addEventListener("hashchange", route);
