@@ -6,22 +6,22 @@
 <title>Vocabulario</title>
 <meta name="description" content="Vocabulario en inglés británico, francés y danés con imagen, pronunciación, IPA, ejemplos y audio.">
 <link rel="manifest" href="manifest.webmanifest">
-<meta name="theme-color" content="#33277f">
+<meta name="theme-color" content="#0b2545">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📘</text></svg>">
 <style>
 :root{
-  --bg:#f5f6fb;--card:#fff;--ink:#1c2233;--muted:#5f6880;--line:#e1e5f0;
-  --brand:#5b4ff0;--brand-2:#2b2a6b;--cat:#e7e4ff;--soft:#f0eeff;--ok:#1f9d62;--bad:#d64545;
-  --grad:linear-gradient(120deg,#8f6cf3 0%,#6f8ff5 55%,#58b2ef 100%);
-  --head:linear-gradient(120deg,#33277f 0%,#2d4a9a 100%);
-  --shadow:0 1px 2px rgba(30,30,80,.06),0 6px 18px rgba(30,30,80,.07);
+  --bg:#f3f5f8;--card:#fff;--ink:#16202c;--muted:#5b6778;--line:#dfe4eb;
+  --brand:#1f5fbf;--brand-2:#0f2f57;--cat:#e1ebf7;--soft:#edf3fa;--ok:#1f9d62;--bad:#d64545;
+  --grad:linear-gradient(120deg,#0f3d75 0%,#1f6fd1 55%,#1a9e94 100%);
+  --head:linear-gradient(120deg,#0b2545 0%,#13406e 100%);
+  --shadow:0 1px 2px rgba(15,30,50,.06),0 6px 18px rgba(15,30,50,.07);
 }
 @media (prefers-color-scheme:dark){
-  :root{--bg:#0e1020;--card:#171a2e;--ink:#e8eaf6;--muted:#9aa1bf;--line:#272b45;
-    --brand:#a59bff;--brand-2:#cfcaff;--cat:#272552;--soft:#1f2142;--ok:#45cf8b;--bad:#ff7b7b;
-    --grad:linear-gradient(120deg,#7457e6 0%,#5574e0 55%,#3f97d8 100%);
-    --head:linear-gradient(120deg,#1f1850 0%,#1b2d63 100%);
+  :root{--bg:#0b1119;--card:#141c28;--ink:#e6ebf2;--muted:#93a0b3;--line:#243042;
+    --brand:#5aa2ff;--brand-2:#bcd6f5;--cat:#16283f;--soft:#132235;--ok:#45cf8b;--bad:#ff7b7b;
+    --grad:linear-gradient(120deg,#164a8a 0%,#1f6fd1 55%,#168a80 100%);
+    --head:linear-gradient(120deg,#081a30 0%,#0f3156 100%);
     --shadow:0 1px 2px rgba(0,0,0,.35),0 6px 18px rgba(0,0,0,.25)}
   .img img{background:#fff;border-radius:10px}
 }
@@ -31,12 +31,12 @@ body{background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-syste
 a{color:inherit}
 button{font:inherit;color:inherit;cursor:pointer}
 .wrap{max-width:1100px;margin:0 auto;padding:0 16px}
-header{position:sticky;top:0;z-index:10;background:var(--head);color:#fff;box-shadow:0 2px 12px rgba(20,10,60,.25)}
+header{position:sticky;top:0;z-index:10;background:var(--head);color:#fff;box-shadow:0 2px 12px rgba(5,20,40,.25)}
 header .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:10px;padding-bottom:10px}
 .logo{font-weight:700;font-size:1.15rem;text-decoration:none;margin-right:auto}
 .langs{display:flex;background:rgba(255,255,255,.12);border-radius:999px;padding:3px}
 .langs button{border:0;background:none;color:#fff;padding:6px 12px;border-radius:999px;font-size:.95rem}
-.langs button.on{background:#fff;color:#33277f;font-weight:600}
+.langs button.on{background:#fff;color:#0b2545;font-weight:600}
 main{padding:20px 0 40px}
 h1{font-size:1.6rem;margin:4px 0 6px}
 h2{font-size:1.15rem;margin:28px 0 10px;color:var(--brand)}
@@ -51,7 +51,7 @@ h2{font-size:1.15rem;margin:28px 0 10px;color:var(--brand)}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 16px}
 .tabs{display:flex;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:3px}
 .tabs button{border:0;background:none;padding:7px 14px;border-radius:8px}
-.tabs button.on{background:var(--grad);color:#fff;box-shadow:0 2px 8px rgba(91,79,240,.3)}
+.tabs button.on{background:var(--grad);color:#fff;box-shadow:0 2px 8px rgba(31,95,191,.3)}
 input[type=search]{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);font:inherit}
 .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 11px;font-size:.88rem}
 .chip.on{background:var(--soft);border-color:var(--brand);color:var(--brand);font-weight:600}
@@ -86,7 +86,7 @@ input[type=search]{flex:1;min-width:180px;padding:9px 12px;border:1px solid var(
 .fc .hint{color:var(--muted);font-size:.85rem;margin-top:12px}
 .ctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .btn{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:9px 16px}
-.btn.pri{background:var(--grad);border-color:transparent;color:#fff;font-weight:600;box-shadow:0 3px 10px rgba(91,79,240,.28)}
+.btn.pri{background:var(--grad);border-color:transparent;color:#fff;font-weight:600;box-shadow:0 3px 10px rgba(31,95,191,.28)}
 .btn.pri:hover{filter:brightness(1.06)}
 .btn:disabled{cursor:not-allowed}
 .count{color:var(--muted);font-size:.9rem}
@@ -147,8 +147,8 @@ footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
 .pr-stage{min-width:0}
 .pr-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .pr-flow{position:relative;height:520px;border-radius:22px;overflow:hidden;
-  background:linear-gradient(120deg,#8f6cf3 0%,#7d8ef5 45%,#6fb3f2 100%);box-shadow:var(--shadow)}
-@media (prefers-color-scheme:dark){.pr-flow{background:linear-gradient(120deg,#3b2a78 0%,#2c3f86 50%,#1f5a85 100%)}}
+  background:linear-gradient(120deg,#0f3d75 0%,#1f6fd1 50%,#1a9e94 100%);box-shadow:var(--shadow)}
+@media (prefers-color-scheme:dark){.pr-flow{background:linear-gradient(120deg,#0c2a4f 0%,#14427a 50%,#0f5a55 100%)}}
 .pr-card{position:absolute;left:50%;top:calc(50% - 14px);width:var(--cw,300px);min-height:420px;margin-left:calc(var(--cw,300px) / -2);
   background:var(--card);border-radius:18px;box-shadow:0 18px 40px rgba(20,20,60,.28);overflow:hidden;
   display:flex;flex-direction:column;transition:transform .5s cubic-bezier(.2,.8,.2,1),opacity .5s,filter .5s;will-change:transform}
@@ -192,7 +192,7 @@ footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
 .pr-opt input{accent-color:var(--brand);width:16px;height:16px}
 .pr-opt:has(input:checked){border-color:var(--brand);background:var(--soft);color:var(--brand);font-weight:600}
 .pr-keys{font-size:.8rem;color:var(--muted);text-align:center}
-.pr-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#2b2a6b;color:#fff;padding:10px 18px;border-radius:99px;box-shadow:var(--shadow);font-weight:600;z-index:20;animation:pop .3s}
+.pr-toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#0f2f57;color:#fff;padding:10px 18px;border-radius:99px;box-shadow:var(--shadow);font-weight:600;z-index:20;animation:pop .3s}
 @keyframes pop{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 .pr-end{text-align:center;padding:30px 20px}
 .pr-end .big{font-size:2.6rem}
@@ -242,28 +242,84 @@ input[type=range]{accent-color:var(--brand)}
 .b-bad{border-color:var(--bad)!important;color:var(--bad)}.b-ok{border-color:var(--ok)!important;color:var(--ok)}
 /* diálogo de voz */
 dialog{border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--ink);padding:20px;width:min(92vw,440px);box-shadow:0 20px 60px rgba(0,0,0,.35)}
-dialog::backdrop{background:rgba(10,10,30,.5)}
+dialog::backdrop{background:rgba(5,12,22,.5)}
 dialog h2{margin:0 0 6px}
 dialog label{display:block;font-weight:600;margin:14px 0 6px}
 /* hablar y dictado */
-.mic{width:64px;height:64px;border-radius:50%;border:0;background:var(--grad);color:#fff;font-size:1.6rem;box-shadow:0 4px 14px rgba(91,79,240,.35);flex:none}
-.mic.on{animation:pulse 1s infinite;background:linear-gradient(120deg,#e0475f,#f08a4b)}
-@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(224,71,95,.55)}100%{box-shadow:0 0 0 18px rgba(224,71,95,0)}}
+.mic{width:64px;height:64px;border-radius:50%;border:0;background:var(--grad);color:#fff;font-size:1.6rem;box-shadow:0 4px 14px rgba(31,95,191,.35);flex:none}
+.mic.on{animation:pulse 1s infinite;background:linear-gradient(120deg,#c0392b,#e67e22)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(192,57,43,.55)}100%{box-shadow:0 0 0 18px rgba(192,57,43,0)}}
 .pr-card textarea.ans{width:100%;font:inherit;font-size:1rem;padding:9px 11px;border:2px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);resize:none;height:76px}
 .pr-card textarea.ans:focus{outline:none;border-color:var(--brand)}
 .pr-card textarea.ans.ok{border-color:var(--ok)}.pr-card textarea.ans.bad{border-color:var(--bad)}
 .diff{font-size:.92rem}.diff .x{color:var(--bad);font-weight:700;text-decoration:underline wavy}
 .pr-act.dis{opacity:.5;cursor:not-allowed}
+/* mapa */
+.lv-tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0 6px}
+.lv-tab{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:6px 12px;min-width:84px;text-align:center;text-decoration:none;line-height:1.2}
+.lv-tab b{display:block;font-size:1.1rem;color:var(--lc)}
+.lv-tab small{color:var(--muted);font-size:.74rem}
+.lv-tab.on{border-color:var(--lc);background:color-mix(in srgb,var(--lc) 12%,var(--card))}
+.lv-head{width:min(100%,560px);margin:12px auto 0;background:var(--lc);color:#fff;border-radius:18px;padding:16px 18px;box-shadow:0 6px 0 color-mix(in srgb,var(--lc) 62%,#000)}
+.lv-head h1{margin:0;font-size:1.45rem}
+.lv-head p{margin:4px 0 10px;opacity:.9;font-size:.92rem}
+.lv-bar{height:10px;background:rgba(255,255,255,.25);border-radius:99px;overflow:hidden}
+.lv-bar i{display:block;height:100%;background:#fff;border-radius:99px}
+.path{display:flex;flex-direction:column;align-items:center;padding:6px 0 40px}
+.unit{width:min(100%,560px);display:flex;align-items:center;gap:10px;margin:26px 0 54px;color:var(--muted);font-weight:700;font-size:.9rem}
+.unit::before,.unit::after{content:"";flex:1;height:2px;background:var(--line)}
+.unit a{color:var(--lc);text-decoration:none;white-space:nowrap}
+.unit a:hover{text-decoration:underline}
+.nd{position:relative;margin:0 0 30px;transform:translateX(var(--x))}
+.node{width:74px;height:68px;border-radius:50%;border:0;background:var(--lc);color:#fff;font-size:1.65rem;font-weight:800;box-shadow:0 7px 0 color-mix(in srgb,var(--lc) 60%,#000);transition:transform .08s,box-shadow .08s;display:flex;align-items:center;justify-content:center}
+.node:active{transform:translateY(5px);box-shadow:0 2px 0 color-mix(in srgb,var(--lc) 60%,#000)}
+.node.lock{background:#cdd2db;color:#8a93a3;box-shadow:0 7px 0 #a8b0bd}
+.node.cur{outline:6px solid color-mix(in srgb,var(--lc) 28%,transparent);outline-offset:4px}
+.node.trophy{width:92px;height:84px;font-size:2.3rem;background:#c9962b;box-shadow:0 7px 0 #8a6516}
+.node.trophy.lock{background:#cdd2db;box-shadow:0 7px 0 #a8b0bd;filter:grayscale(1)}
+.nd .stars{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);font-size:.8rem;letter-spacing:1px;color:#d9a21b;white-space:nowrap}
+.nd .stars .e{color:var(--line)}
+.nd.hb{margin-top:48px}
+.hnav .lb{margin-left:5px}
+.bubble{position:absolute;left:50%;bottom:calc(100% + 14px);transform:translateX(-50%);background:var(--card);color:var(--lc);border:2px solid var(--line);border-radius:12px;padding:6px 12px;font-weight:800;font-size:.85rem;white-space:nowrap;animation:bob 1.4s ease-in-out infinite;pointer-events:none}
+.bubble::after{content:"";position:absolute;left:50%;top:100%;border:8px solid transparent;border-top-color:var(--card);transform:translateX(-50%)}
+@keyframes bob{0%,100%{translate:0 0}50%{translate:0 -5px}}
+.map-cta{display:flex;align-items:center;gap:14px;background:var(--grad);color:#fff;border-radius:16px;padding:14px 18px;text-decoration:none;box-shadow:var(--shadow);margin:6px 0 4px}
+.map-cta .ic{font-size:2rem}.map-cta b{display:block;font-size:1.05rem}.map-cta small{opacity:.9}
+.map-cta .go{margin-left:auto;background:#fff;color:#0f3d75;border-radius:99px;padding:6px 14px;font-weight:700;white-space:nowrap}
+/* lección */
+.ls{width:min(100%,560px);margin:0 auto}
+.ls-top{display:flex;align-items:center;gap:12px;margin:6px 0 18px}
+.ls-top .x{border:0;background:none;font-size:1.5rem;color:var(--muted);padding:0 4px;text-decoration:none}
+.ls-prog{flex:1;height:14px;background:var(--line);border-radius:99px;overflow:hidden}
+.ls-prog i{display:block;height:100%;background:var(--lc);border-radius:99px;transition:width .3s}
+.ls-card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);padding:22px;text-align:center;min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.ls-card .img img{max-width:200px;max-height:150px}
+.ls-card .tag{font-size:.78rem;font-weight:700;color:var(--lc);text-transform:uppercase;letter-spacing:.06em}
+.ls-card .es{color:var(--muted);font-size:1.05rem}
+.ls-card .big{font-size:1.9rem;font-weight:800;margin:4px 0}
+.ls-card .q{font-size:1.3rem;font-weight:700}
+.ls-card .opts{width:100%}
+.ls-card .opt{color:var(--ink)}
+.ls-foot{margin-top:16px;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ls-foot.ok{background:color-mix(in srgb,var(--ok) 16%,var(--card));color:var(--ok)}
+.ls-foot.bad{background:color-mix(in srgb,var(--bad) 14%,var(--card));color:var(--bad)}
+.ls-foot .msg{flex:1;font-weight:700}.ls-foot .msg small{display:block;font-weight:400;color:var(--ink)}
+.btn.lc{background:var(--lc);border-color:transparent;color:#fff;font-weight:700;padding:11px 22px;box-shadow:0 4px 0 color-mix(in srgb,var(--lc) 60%,#000)}
+.ls-end .big-stars{font-size:2.6rem;color:#d9a21b;letter-spacing:4px}.ls-end .big-stars .e{color:var(--line)}
+@media (prefers-color-scheme:dark){.node.lock,.node.trophy.lock{background:#333a4a;color:#6f7889;box-shadow:0 7px 0 #222836}}
+@media (max-width:560px){.hnav .lb{display:none}.hbtn{padding:6px 10px}.nd{transform:translateX(calc(var(--x) * .7))}.lv-tab{min-width:0;flex:1 1 28%}}
 </style>
 </head>
 <body>
 <header><div class="wrap">
   <a class="logo" href="#/">📘 Vocabulario</a>
   <nav class="hnav">
-    <a class="hbtn" href="#/repaso">🔁 Repaso<span class="b" id="due-b" hidden></span></a>
-    <a class="hbtn" href="#/progreso">📈 Progreso</a>
+    <a class="hbtn" href="#/mapa">🗺️<span class="lb"> Mapa</span></a>
+    <a class="hbtn" href="#/repaso">🔁<span class="lb"> Repaso</span><span class="b" id="due-b" hidden></span></a>
+    <a class="hbtn" href="#/progreso">📈<span class="lb"> Progreso</span></a>
     <button class="hbtn" id="cfg-b" title="Voz y velocidad" aria-label="Voz y velocidad">⚙️</button>
-    <button class="hbtn" id="inst" hidden>📲 Instalar</button>
+    <button class="hbtn" id="inst" hidden>📲<span class="lb"> Instalar</span></button>
   </nav>
   <div class="langs" id="langs"></div>
 </div></header>
@@ -524,7 +580,7 @@ async function downloadAll(){
   if(!("caches" in window)){ msg.textContent = "Este navegador no permite guardar la web sin internet."; return; }
   b.disabled = true;
   try{
-    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
+    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
     let k = 0;
     for(const d of idx){ urls.add(`data/${d.id}.json`); const doc = await getDoc(d.id); doc.rows.forEach(r => r.img && urls.add(r.img)); msg.textContent = `Leyendo documentos… ${++k}/${idx.length}`; }
     const c = await caches.open(CACHE_NAME), list = [...urls];
@@ -570,6 +626,7 @@ async function home(){
   $("#app").innerHTML = `
     <h1>Vocabulario en ${LANGS[lang].name}</h1>
     <p class="sub">Cada palabra trae imagen, pronunciación aproximada, IPA, ejemplo y botón 🔊 para escucharla. Cambia de idioma arriba.</p>
+    ${await mapCta()}
     ${statsHtml()}
     <h2>Temas</h2><div class="grid">${temas.map(card).join("")}</div>
     <h2>Las 3000 palabras más importantes</h2>
@@ -847,7 +904,7 @@ function nextIdx(s, from){
   return -1;
 }
 
-const TINT = {escuchar:["#dbe9fb","#2f6fd6"], leer:["#d9f2e4","#2f8f5b"], escribir:["#fde7d3","#d36b1f"], hablar:["#f1e0fb","#9b3fc4"], dictado:["#fbe0e8","#c43f66"]};
+const TINT = {escuchar:["#dbe9fb","#2f6fd6"], leer:["#d9f2e4","#2f8f5b"], escribir:["#fde7d3","#d36b1f"], hablar:["#dde3ea","#3b4a5c"], dictado:["#f3e1d6","#9a4a1c"]};
 
 /* la tarjeta actual y las que vienen, simulando la cola */
 function upcoming(s, k){
@@ -1165,6 +1222,174 @@ function toast(t){
   document.body.appendChild(el); setTimeout(() => el.remove(), 2200);
 }
 
+/* ---------- mapa (camino por niveles) ---------- */
+const LVS = {
+  A1:{n:"Principiante",    c:"#2e9e4f"}, A2:{n:"Elemental",      c:"#13887f"},
+  B1:{n:"Intermedio",      c:"#1f6fd1"}, B2:{n:"Intermedio alto", c:"#22409a"},
+  C1:{n:"Avanzado",        c:"#4b5563"}, C2:{n:"Maestría",        c:"#a87a1c"},
+};
+let MAP = null;
+async function getMap(){ if(!MAP) MAP = await (await fetch("data/map.json")).json(); return MAP; }
+const mapP = () => store.get("map:"+lang, {});
+const lvLessons = lv => MAP[lv].flatMap(u => u.ls);
+function lvCur(lv, P){ const ls = lvLessons(lv); const i = ls.findIndex(l => !P[l.id]); return i < 0 ? ls.length : i; }
+const starsHtml = n => `${"★".repeat(n)}<span class="e">${"★".repeat(3-n)}</span>`;
+async function mapCta(){
+  try{
+    await getMap(); const P = mapP();
+    const lv = Object.keys(LVS).find(l => lvCur(l, P) < lvLessons(l).length) || "C2";
+    const i = lvCur(lv, P), ls = lvLessons(lv), u = MAP[lv].find(u => u.ls.some(l => l.id === (ls[i]||{}).id));
+    return `<a class="map-cta" href="#/mapa/${lv}"><span class="ic">🗺️</span><span><b>Camino de aprendizaje · ${lv}</b>
+      <small>${i ? `Vas por la lección ${i+1} de ${ls.length}${u?` · ${esc(u.t)}`:""}` : "Lecciones cortas de A1 a C2, una tras otra"}</small></span>
+      <span class="go">${i ? "Seguir" : "Empezar"}</span></a>`;
+  }catch(e){ return ""; }
+}
+async function mapa(lv){
+  await getMap(); document.onkeydown = null;
+  const P = mapP();
+  if(!LVS[lv]) lv = store.get("mapLv", null) || Object.keys(LVS).find(l => lvCur(l, P) < lvLessons(l).length) || "A1";
+  store.set("mapLv", lv);
+  const ls = lvLessons(lv), cur = lvCur(lv, P), done = ls.filter(l => P[l.id]).length;
+  const tabs = Object.entries(LVS).map(([k, v]) => {
+    const t = lvLessons(k), d = t.filter(l => P[l.id]).length;
+    return `<a class="lv-tab ${k===lv?"on":""}" style="--lc:${v.c}" href="#/mapa/${k}"><b>${k}</b><small>${d===t.length?"✓ completo":`${d}/${t.length}`}</small></a>`;
+  }).join("");
+  const X = [0, 52, 78, 52, 0, -52, -78, -52];
+  let k = 0, html = "";
+  for(const [ui, u] of MAP[lv].entries()){
+    html += `<div class="unit"><span>Unidad ${ui+1} · <a href="#/doc/${u.doc}">${esc(u.t)}</a></span></div>`;
+    for(const l of u.ls){
+      const st = P[l.id] || 0, isCur = k === cur, lock = k > cur;
+      html += `<div class="nd${isCur && k ? " hb" : ""}" style="--x:${X[k % X.length]}px">
+        ${isCur ? `<div class="bubble">${k ? "SIGUIENTE" : "EMPEZAR"}</div>` : ""}
+        <button class="node ${lock?"lock":""} ${isCur?"cur":""}" data-ls="${l.id}" ${isCur?'id="cur-node"':""} aria-label="Lección ${k+1}${lock?" (bloqueada)":""}">${st ? "✓" : lock ? "🔒" : "★"}</button>
+        ${st ? `<div class="stars">${starsHtml(st)}</div>` : ""}</div>`;
+      k++;
+    }
+  }
+  const allDone = cur >= ls.length;
+  html += `<div class="nd" style="--x:0px">${allDone?"":""}<button class="node trophy ${allDone?"":"lock"}" id="trophy" aria-label="Trofeo del nivel">🏆</button></div>`;
+  const next = Object.keys(LVS)[Object.keys(LVS).indexOf(lv)+1];
+  $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
+    <div class="lv-tabs">${tabs}</div>
+    <div style="--lc:${LVS[lv].c}">
+      <div class="lv-head"><h1>Nivel ${lv} · ${LVS[lv].n}</h1>
+        <p>${ls.length} lecciones · ${ls.reduce((a,l)=>a+l.w.length,0)} palabras en ${LANGS[lang].name}. ${done ? `Llevas ${done}.` : "Cada lección: aprendes unas 10 palabras y luego un pequeño test."}</p>
+        <div class="lv-bar"><i style="width:${Math.round(100*done/ls.length)}%"></i></div></div>
+      <div class="path">${html}</div>
+      ${allDone && next ? `<p style="text-align:center"><a class="btn lc" href="#/mapa/${next}" style="text-decoration:none">Ir al nivel ${next} →</a></p>` : ""}
+    </div>`;
+  $("#app").querySelectorAll("[data-ls]").forEach(b => b.onclick = () => {
+    if(b.classList.contains("lock")) return toast("Primero completa la lección anterior");
+    location.hash = "#/leccion/" + b.dataset.ls;
+  });
+  $("#trophy").onclick = () => toast(allDone ? `¡Nivel ${lv} completado! 🏆` : `Completa las ${ls.length} lecciones para ganar el trofeo`);
+  const c = $("#cur-node");
+  if(c) setTimeout(() => c.scrollIntoView({block:"center"}), 30);
+  return true;
+}
+
+let LS = null;
+async function leccion(id){
+  await getMap(); document.onkeydown = null;
+  const lv = id.slice(0, 2); if(!MAP[lv]) return mapa();
+  const ui = MAP[lv].findIndex(u => u.ls.some(l => l.id === id)); if(ui < 0) return mapa(lv);
+  const unit = MAP[lv][ui], l = unit.ls.find(l => l.id === id);
+  const docs = {}; for(const [d] of l.w) docs[d] = await getDoc(d);
+  const words = l.w.map(([d, i]) => ({doc:d, r:docs[d].rows[i]})).filter(x => x.r && x.r.l[lang]);
+  if(!words.length) return mapa(lv);
+  /* distractores: las otras palabras de la lección y, si faltan, del mismo documento */
+  const pool = [...words]; const seen = new Set(words.map(x => x.r.es));
+  for(const r of docs[unit.doc].rows) if(pool.length < 12 && r.es && r.l[lang] && !seen.has(r.es)){ seen.add(r.es); pool.push({doc:unit.doc, r}); }
+  const steps = [...words.map(w => ({t:"learn", w})), ...shuffle(words).map((w, i) => ({t: i % 2 ? "listen" : "pick", w}))];
+  LS = {id, lv, unit, words, pool, steps, i:0, nq:words.length, first:new Set(), miss:new Set(), tok:++autoTok};
+  lsStep();
+}
+function lsOpts(w, field){
+  const val = x => field === "es" ? x.r.es : x.r.l[lang].word;
+  const out = [w], used = new Set([val(w)]);
+  for(const x of shuffle(LS.pool)){ if(out.length >= 4) break; if(!used.has(val(x))){ used.add(val(x)); out.push(x); } }
+  return shuffle(out).map(x => val(x));
+}
+function lsStep(){
+  const s = LS; if(!s) return;
+  if(s.i >= s.steps.length) return lsEnd();
+  const st = s.steps[s.i], r = st.w.r, d = r.l[lang], lc = LVS[s.lv].c;
+  const pct = Math.round(100 * s.i / s.steps.length);
+  let body = "";
+  if(st.t === "learn"){
+    body = `<div class="ls-card"><div class="tag">Palabra nueva</div>${imgHtml(r)}
+      <div class="es">${esc(r.es)}</div><div class="big">${esc(d.word)}</div>
+      <div>${sayBtn(d.word)}</div>
+      <div class="meta" style="justify-content:center"><span class="pron">${esc(d.pron)}</span><span class="ipa">${esc(d.ipa)}</span></div>
+      ${d.ex?`<div class="ex">${esc(d.ex)} ${sayBtn(d.ex,1)}<div class="tr">${esc(d.ex_es)}</div></div>`:""}</div>
+      <div class="ls-foot"><span class="msg"></span><button class="btn lc" id="ls-go">Continuar</button></div>`;
+  } else {
+    const listen = st.t === "listen", field = listen ? "es" : "word";
+    const opts = lsOpts(st.w, field), right = listen ? r.es : d.word;
+    st.right = right;
+    body = `<div class="ls-card"><div class="tag">${listen ? "Escucha y elige qué significa" : "¿Cómo se dice en "+LANGS[lang].name+"?"}</div>
+      ${listen ? `<button class="say xl" data-say="${esc(d.word)}" aria-label="Escuchar" style="width:72px;height:72px;font-size:1.8rem">🔊</button>`
+               : `${imgHtml(r)}<div class="q">${esc(r.es)}</div>`}
+      <div class="opts">${opts.map((o, k) => `<button class="opt" data-o="${esc(o)}"><span style="color:var(--muted);font-weight:400">${k+1}</span> ${esc(o)}</button>`).join("")}</div></div>
+      <div id="ls-fb"></div>`;
+  }
+  $("#app").innerHTML = `<div class="ls" style="--lc:${lc}">
+    <div class="ls-top"><a class="x" href="#/mapa/${s.lv}" title="Salir" aria-label="Salir">✕</a><div class="ls-prog"><i style="width:${pct}%"></i></div></div>
+    ${body}</div>`;
+  const tok = s.tok;
+  if(st.t === "learn"){
+    setTimeout(() => { if(LS === s && autoTok === tok) sayP(d.word, $(".ls-card .say")); }, 250);
+    $("#ls-go").onclick = () => { s.i++; lsStep(); };
+    document.onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); $("#ls-go") && $("#ls-go").click(); } };
+  } else {
+    if(st.t === "listen") setTimeout(() => { if(LS === s && autoTok === tok) sayP(d.word, $(".ls-card .say")); }, 250);
+    const pick = b => {
+      if(st.done) return; st.done = true;
+      const ok = b.dataset.o === st.right;
+      $(".ls-card").querySelectorAll(".opt").forEach(o => { o.disabled = true; if(o.dataset.o === st.right) o.classList.add("ok"); });
+      if(!ok) b.classList.add("bad");
+      const key = st.w.r.es;
+      if(ok){ if(!s.miss.has(key)) s.first.add(key); }
+      else { s.miss.add(key); s.steps.push({t: st.t === "pick" ? "listen" : "pick", w: st.w}); }
+      $("#ls-fb").innerHTML = `<div class="ls-foot ${ok?"ok":"bad"}"><span class="msg">${ok ? "¡Muy bien!" : "Respuesta correcta:"}
+        <small>${esc(d.word)} = ${esc(r.es)}</small></span>${sayBtn(d.word)}<button class="btn lc" id="ls-go">Continuar</button></div>`;
+      if(st.t === "pick" || !ok) sayP(d.word);
+      $("#ls-go").onclick = () => { s.i++; lsStep(); };
+      $("#ls-go").focus({preventScroll:true});
+    };
+    $(".ls-card").querySelectorAll(".opt").forEach(b => b.onclick = () => pick(b));
+    document.onkeydown = e => {
+      if(e.target.tagName === "INPUT") return;
+      const n = parseInt(e.key); const os = $(".ls-card") ? $(".ls-card").querySelectorAll(".opt") : [];
+      if(n >= 1 && n <= os.length && !st.done) pick(os[n-1]);
+      else if(e.key === "Enter" && st.done){ e.preventDefault(); $("#ls-go") && $("#ls-go").click(); }
+    };
+  }
+}
+function lsEnd(){
+  const s = LS; document.onkeydown = null;
+  const acc = s.first.size / s.nq, stars = acc >= .9 ? 3 : acc >= .6 ? 2 : 1;
+  const P = mapP(); const prev = P[s.id] || 0; P[s.id] = Math.max(prev, stars); store.set("map:"+lang, P);
+  const by = {}; for(const w of s.words) (by[w.doc] = by[w.doc] || []).push(w.r);
+  let added = 0; for(const [d, rows] of Object.entries(by)) added += srsAdd(d, rows, 1);
+  logAct(s.words.length); updBadge();
+  const ls = lvLessons(s.lv), i = ls.findIndex(l => l.id === s.id), nxt = ls[i+1];
+  const lvDone = ls.every(l => P[l.id]);
+  $("#app").innerHTML = `<div class="ls ls-end" style="--lc:${LVS[s.lv].c}">
+    <div class="ls-card"><div style="font-size:3rem">${lvDone ? "🏆" : "🎯"}</div>
+      <div class="big">${lvDone ? `¡Nivel ${s.lv} completado!` : "¡Lección completada!"}</div>
+      <div class="big-stars">${starsHtml(stars)}</div>
+      <div class="es">Acertaste a la primera ${s.first.size} de ${s.nq}.${added ? ` ${added} palabras nuevas pasan a tu repaso de mañana.` : ""}</div>
+      <div class="ctrl" style="margin-top:14px">
+        <button class="btn" id="ls-rep">Repetir</button>
+        ${nxt ? `<a class="btn lc" style="text-decoration:none" href="#/leccion/${nxt.id}">Siguiente lección →</a>` : ""}
+        <a class="btn ${nxt?"":"lc"}" style="text-decoration:none" href="#/mapa/${s.lv}">Volver al mapa</a>
+      </div></div></div>`;
+  $("#ls-rep").onclick = () => leccion(s.id);
+  document.onkeydown = e => { if(e.key === "Enter" && nxt){ e.preventDefault(); location.hash = "#/leccion/" + nxt.id; } };
+}
+
 /* ---------- rutas ---------- */
 async function route(){
   autoTok++; if(state.fc) state.fc.auto = false; if("speechSynthesis" in window) speechSynthesis.cancel();
@@ -1175,11 +1400,13 @@ async function route(){
       if(state.doc!==id){ state.doc=id; state.q=""; state.lvl=""; state.fc={i:0,flip:false,order:null,rev:false}; state.test=null; }
       else { state.test=null; state.fc.order=null; }
       await docView(id);
-    } else if(h.startsWith("repaso")){ state.doc=null; await repaso(); }
+    } else if(h.startsWith("mapa")){ state.doc=null; await mapa(h.split("/")[1]); }
+    else if(h.startsWith("leccion/")){ state.doc=null; await leccion(h.slice(8)); }
+    else if(h.startsWith("repaso")){ state.doc=null; await repaso(); }
     else if(h.startsWith("progreso")){ state.doc=null; await progreso(); }
     else { state.doc=null; await home(); }
   }catch(e){ $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
-  window.scrollTo(0,0);
+  if(!h.startsWith("mapa")) window.scrollTo(0,0);
 }
 window.addEventListener("hashchange", route);
 renderLangs(); updBadge(); route();
