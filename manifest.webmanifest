@@ -1,0 +1,15 @@
+{
+  "name": "Vocabulario: inglés, francés y danés",
+  "short_name": "Vocabulario",
+  "description": "Vocabulario en inglés británico, francés y danés con imagen, pronunciación, IPA, ejemplos, audio y repaso espaciado.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0e1020",
+  "theme_color": "#33277f",
+  "lang": "es",
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
