@@ -414,6 +414,7 @@ header .wrap{max-width:1320px}
 .btn.buy{background:#f2c94c;border-color:#d9ae2c;color:#3a2a00;font-weight:800;padding:7px 16px}
 .btn.buy.no{background:var(--soft);border-color:var(--line);color:var(--muted)}
 .miss{color:var(--muted);font-size:.78rem}
+.sc .sb{display:contents}
 #gift{width:min(92vw,380px);text-align:center}
 .gift h2{color:var(--ink)}
 .gbox{font-size:5.5rem;line-height:1.1;animation:shake 1s infinite}
@@ -1688,7 +1689,12 @@ function paintCoins(){
   const v = game().coins, b = c.closest(".hbtn");
   if(coinShown !== null && v > coinShown && b){ b.classList.remove("cbump"); void b.offsetWidth; b.classList.add("cbump"); }
   coinShown = v; c.textContent = v;
+  /* todo lo que enseña monedas en la página de la granja (también tras una medalla, que no emite "coins") */
+  const mc = $(".me-coins b"); if(mc) mc.textContent = v;
+  shopCoins();
 }
+/* otra pestaña ganó o gastó monedas */
+window.addEventListener("storage", e => { if(e.key === "game") paintCoins(); });
 const itemById = id => SHOP.find(x => x.id === id);
 const TYPES = [["hero","🦸","Personajes"],["hat","🎩","Sombreros"],["face","🕶️","Gafas"],["hand","⚽","Juguetes"],["pet","🐶","Mascotas"],["farm","🌻","Granja"]];
 const itemWord = it => it.w[lang] || it.n;
@@ -1781,6 +1787,11 @@ const art = n => n.startsWith("gafas") ? "unas " + n : (FEM.has(n) ? "una " : "u
 
 /* página: mi granja + tienda */
 let shopTab = "farm";
+const buyBtn = (x, coins) => coins >= x.p ? `<button class="btn buy" data-buy="${x.id}">🪙 ${x.p}</button>`
+  : `<button class="btn buy no" disabled>🪙 ${x.p}</button><small class="miss">Te faltan ${x.p - coins}</small>`;
+/* las monedas cambian sin repintar la página (comida de la granja, regalos recogidos): los precios se ponen al día */
+function shopCoins(){ const c = game().coins; document.querySelectorAll(".shop [data-sb]").forEach(el => { const it = itemById(el.dataset.sb); if(it) el.innerHTML = buyBtn(it, c); }); }
+bus.on("coins", shopCoins);
 async function granja(){
   await getShop(); document.onkeydown = null;
   const g = game(), farm = SHOP.filter(x => x.t === "farm" && g.owned[x.id]);
@@ -1790,14 +1801,15 @@ async function granja(){
     return `<button class="fi ${big.has(x.id) ? "bg" : ""}" data-it="${x.id}" style="left:${sx}%;top:${sy}%;z-index:${sy}" aria-label="${esc(x.n)}">${x.e}</button>`;
   }).join("");
   const tabs = TYPES.map(([t, e, n]) => `<button class="${t === shopTab ? "on" : ""}" data-tab="${t}">${e} ${n}</button>`).join("");
+  /* animales que se fueron al refugio (farm.js): siguen siendo suyos, se rescatan desde la granja */
+  const shel = id => { try{ return typeof farmMount === "function" && !!farmMount.care && farmMount.care.inShelter(id); }catch(e){ return false; } };
   const cards = SHOP.filter(x => x.t === shopTab).map(x => {
-    const own = g.owned[x.id], worn = g.wear[x.t] === x.id;
-    const btn = x.t === "farm" ? (own ? `<span class="own">✓ En tu granja</span>` : "")
+    const own = g.owned[x.id], worn = g.wear[x.t] === x.id, sh = x.t === "farm" && own && shel(x.id);
+    const btn = x.t === "farm" ? (own ? (sh ? `<span class="own shl">🏚️ En el refugio</span><button class="btn sm" data-shelter="${x.id}">Ir al refugio</button>` : `<span class="own">✓ En tu granja</span>`) : "")
       : own ? (x.t === "hero" ? (worn ? `<span class="own">✓ Eres tú</span>` : `<button class="btn sm" data-wear="${x.id}">Elegir</button>`)
                               : `<button class="btn sm ${worn ? "on" : ""}" data-wear="${x.id}">${worn ? "Quitármelo" : "Ponérmelo"}</button>`) : "";
-    const buy = own ? "" : (g.coins >= x.p ? `<button class="btn buy" data-buy="${x.id}">🪙 ${x.p}</button>`
-      : `<button class="btn buy no" disabled>🪙 ${x.p}</button><small class="miss">Te faltan ${x.p - g.coins}</small>`);
-    return `<div class="sc ${own ? "own" : ""}"><div class="se">${x.e}</div><div class="sn">${esc(x.n)}</div>
+    const buy = own ? "" : `<span class="sb" data-sb="${x.id}">${buyBtn(x, g.coins)}</span>`;
+    return `<div class="sc ${own ? "own" : ""}${sh ? " shel" : ""}" data-id="${x.id}"><div class="se">${x.e}</div><div class="sn">${esc(x.n)}</div>
       <div class="sw">${esc(itemWord(x))} ${sayBtn(itemWord(x), 1)}</div>${btn}${buy}</div>`;
   }).join("");
   $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
@@ -1824,8 +1836,10 @@ async function granja(){
     tip.style.left = b.style.left; tip.style.top = `calc(${b.style.top} - 54px)`;
     say(itemWord(it));
   });
-  document.querySelectorAll("[data-buy]").forEach(b => b.onclick = () => {
-    const it = itemById(b.dataset.buy), g = game(); if(g.coins < it.p || g.owned[it.id]) return;
+  $(".shop").addEventListener("click", e => {
+    const b = e.target.closest("[data-buy]"); if(!b) return;
+    const it = itemById(b.dataset.buy), g = game(); if(!it || g.owned[it.id]) return;
+    if(g.coins < it.p){ toast(`Te faltan ${it.p - g.coins} 🪙`); return shopCoins(); }
     g.coins -= it.p; g.owned[it.id] = true; if(it.t !== "farm") g.wear[it.t] = it.id; gameSet(g); bus.emit("buy", {item: it});
     toast(`¡Nuevo! ${it.e} ${it.n} = ${itemWord(it)}`); say(itemWord(it)); granja(); setTimeout(checkAch, 800);
   });

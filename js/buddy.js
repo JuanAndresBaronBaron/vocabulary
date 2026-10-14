@@ -388,15 +388,19 @@ function revealNext(){
 }
 
 /* ---------- misiones de hoy ---------- */
-/* copia de las especies de farm.js (ANIM / PLANT / TREE no se pueden leer desde fuera) */
+/* especies: las de farm.js (farmMount.kinds) y, si no está, esta copia */
 const ANIMALS =["gallina", "pato", "conejo", "abeja", "cerdo", "oveja", "cabra", "pavo", "vaca", "burro", "caballo"];
 const PLANTS = ["flor", "girasol", "seta", "zanahoria", "fresa", "maiz", "calabaza", "trigo", "manzana"];
 const TREES = ["arbol", "pino"];
 const FARM_IDS = [...ANIMALS, ...PLANTS, ...TREES, "tienda", "cabana", "casa", "tractor", "fuente", "castillo", "cohete", "molino"];
+const fmKinds = () => { try{ const K = typeof farmMount === "function" && farmMount.kinds; return K && Array.isArray(K.animal) ? K : null; }catch(e){ return null; } };
 function farmCount(){
-  const o = game().owned || {}, n = a => a.filter(id => o[id]).length;
+  const o = game().owned || {}, n = a => a.filter(id => o[id]).length, K = fmKinds();
   const ids = Array.isArray(SHOP) && SHOP.length ? SHOP.filter(x => x.t === "farm").map(x => x.id) : FARM_IDS;
-  return {an: n(ANIMALS), pl: n(PLANTS), tr: n(TREES), all: n(ids)};
+  /* animales en la granja: los del refugio no cuentan (no se les puede dar de comer) */
+  let an = n(K ? K.animal : ANIMALS);
+  try{ if(farmMount.care && typeof farmMount.care.animals === "function") an = farmMount.care.animals().length; }catch(e){}
+  return {an, pl: n(K ? K.plant : PLANTS), tr: n(K ? K.tree : TREES), all: n(ids)};
 }
 const plural = (n, one, many) => n === 1 ? `1 ${one}` : `${n} ${many}`;
 /* ev: evento que la hace avanzar · ok(): si se puede hacer hoy · goal(): cuánto hay que hacer */
@@ -405,13 +409,14 @@ const MDEF = {
   ans:  {ev: "answer",       e: "✅", href: "#/mapa",     learn: true, t: g => `Acierta ${g} respuestas`},
   rev:  {ev: "review-card",  e: "🔁", href: "#/repaso",   learn: true, t: g => `Repasa ${plural(g, "palabra", "palabras")}`, ok: () => dueList().length >= 4, goal: () => Math.min(10, dueList().length)},
   game: {ev: "game-done",    e: "🎮", href: "#/juegos",   t: () => "Juega a un minijuego", ok: () => typeof ROUTES === "object" && typeof ROUTES.juegos === "function"},
-  feed: {ev: "farm-feed",    e: "🌾", href: "#/granja",   t: g => `Da de comer a ${plural(g, "animal", "animales")}`, ok: () => farmCount().an >= 1, goal: () => Math.min(2, farmCount().an)},
+  /* cada animal come como mucho una vez cada 8 h: el objetivo son sus animales (hasta 4) */
+  feed: {ev: "farm-feed",    e: "🍽️", href: "#/granja",   t: g => g === 1 ? "Da de comer a tu animal" : "Da de comer a tus animales", ok: () => farmCount().an >= 1, goal: () => Math.min(4, farmCount().an)},
   harv: {ev: "farm-harvest", e: "🧺", href: "#/granja",   t: g => `Cosecha ${plural(g, "planta", "plantas")}`, ok: () => farmCount().pl >= 1, goal: () => Math.min(2, farmCount().pl)},
-  /* cada animal da 1 producto por comida (cada 3 h) y cada árbol 1 cada 3 h: el objetivo depende de cuántos tiene */
+  /* cada animal da 1 o 2 regalos por comida (como mucho cada 8 h) y cada árbol 1 cada 3 h: el objetivo depende de cuántos tiene */
   coll: {ev: "farm-collect", e: "🥚", href: "#/granja",   t: g => `Recoge ${plural(g, "tesoro", "tesoros")} de la granja`, ok: () => farmCount().an + farmCount().tr >= 1, goal: () => Math.min(3, farmCount().an + farmCount().tr)},
   find: {ev: "farm-find",    e: "🔍", href: "#/granja",   t: g => `Encuentra ${plural(g, "cosa", "cosas")} en la granja`, ok: () => farmCount().all >= 3},
 };
-const BASE_GOAL = {les: 1, ans: 15, rev: 10, game: 1, feed: 2, harv: 2, coll: 3, find: 5};
+const BASE_GOAL = {les: 1, ans: 15, rev: 10, game: 1, feed: 1, harv: 2, coll: 3, find: 5};
 function makeMissions(day){
   const r = rng("buddy|" + day);
   const can = k => { try{ return !MDEF[k].ok || !!MDEF[k].ok(); }catch(e){ return false; } };
