@@ -621,7 +621,7 @@ async function downloadAll(){
   if(!("caches" in window)){ msg.textContent = "Este navegador no permite guardar la web sin internet."; return; }
   b.disabled = true;
   try{
-    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_english.json", "data/grammar_français.json", "data/grammar_dansk.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
+    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_en.json", "data/grammar_fr.json", "data/grammar_da.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
     let k = 0;
     for(const d of idx){ urls.add(`data/${d.id}.json`); const doc = await getDoc(d.id); doc.rows.forEach(r => r.img && urls.add(r.img)); msg.textContent = `Leyendo documentos… ${++k}/${idx.length}`; }
     const c = await caches.open(CACHE_NAME), list = [...urls];
@@ -1444,7 +1444,7 @@ function lsEnd(){
 /* ---------- gramática ---------- */
 const GRAM = {};
 async function getGram(){
-  if(!GRAM[lang]) GRAM[lang] = await fetch(`data/grammar_${lang}.json`).then(r => r.ok ? r.json() : {}).catch(() => ({}));
+  if(!GRAM[lang]) GRAM[lang] = await fetch(`data/grammar_${LANGS[lang].code.slice(0,2)}.json`).then(r => r.ok ? r.json() : {}).catch(() => ({}));
   return GRAM[lang];
 }
 const gId = (lv, k) => `G-${lv}-${String(k+1).padStart(2,"0")}`;
