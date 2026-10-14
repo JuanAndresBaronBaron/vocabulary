@@ -347,15 +347,112 @@ dialog label{display:block;font-weight:600;margin:14px 0 6px}
 .lv-links{text-align:center;margin:12px 0 0}
 .lv-links a{color:var(--lc);font-weight:700;text-decoration:none}
 @media (max-width:560px){.nd .glbl{width:110px}.ls-foot .msg{flex-basis:100%}.ls-foot .btn.lc{margin-left:auto}}
+/* juego */
+header .wrap{max-width:1320px}
+@media (max-width:1200px){.hnav .lb{display:none}}
+@media (max-width:560px){.hbtn{padding:6px 9px}#inst{display:none!important}.hnav{gap:5px}}
+.hbtn.coin{background:#f2c94c;color:#3a2a00;font-weight:800}
+.hbtn.coin:hover{background:#f7d774}
+.hero{position:relative;display:inline-block;width:1.3em;height:1.25em;line-height:1;flex:none}
+.hero span{position:absolute;line-height:1}
+.hero .h-base{left:.15em;top:.2em;font-size:1em}
+.hero .h-hat{left:.37em;top:-.12em;font-size:.55em;transform:rotate(-8deg)}
+.hero .h-face{left:.42em;top:.42em;font-size:.45em}
+.hero .h-hand{right:-.18em;bottom:-.02em;font-size:.42em;transform:rotate(12deg)}
+.hero .h-pet{left:-.22em;bottom:-.04em;font-size:.4em}
+.coin-pop{position:fixed;left:50%;top:84px;transform:translateX(-50%);background:#f2c94c;color:#3a2a00;border-radius:16px;padding:8px 18px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:40;text-align:center;animation:cpop 1.9s ease forwards;pointer-events:none}
+.coin-pop b{font-size:1.4rem;display:block}.coin-pop small{font-weight:700}
+@keyframes cpop{0%{opacity:0;transform:translate(-50%,20px) scale(.7)}15%{opacity:1;transform:translate(-50%,0) scale(1.08)}25%{transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-30px)}}
+.me{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:6px 0 10px}
+.me-info{flex:1;min-width:200px}
+.me-info input{font:inherit;font-size:1.3rem;font-weight:800;border:2px dashed var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:6px 10px;width:min(100%,320px)}
+.me-coins{font-size:1.2rem;margin:8px 0 4px}
+.farm{position:relative;height:340px;border-radius:22px;overflow:hidden;background:linear-gradient(#8fd3ff 0%,#c9ecff 44%,#6cc551 44%,#4fa83a 100%);box-shadow:var(--shadow);user-select:none}
+[data-theme=dark] .farm{background:linear-gradient(#1d3b6b 0%,#2b5a8a 44%,#2f7a2a 44%,#215c1e 100%)}
+.farm .sun{position:absolute;right:20px;top:14px;font-size:2.6rem}
+.farm .cloud{position:absolute;font-size:2.4rem;opacity:.95;animation:drift 30s linear infinite}
+.farm .c1{top:20px;left:-10%}.farm .c2{top:58px;left:-10%;animation-delay:-14s;font-size:1.8rem}
+@keyframes drift{to{left:105%}}
+.fi{position:absolute;border:0;background:none;font-size:2.4rem;padding:0;line-height:1;transform:translate(-50%,-50%);cursor:pointer;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25))}
+.fi.bg{font-size:3.4rem}
+.fi.hop{animation:hop .5s}
+@keyframes hop{0%,100%{transform:translate(-50%,-50%)}40%{transform:translate(-50%,-85%) scale(1.15)}}
+.farm-hero{position:absolute;left:46%;top:46%;z-index:60}
+.farm-empty{position:absolute;left:50%;top:70%;transform:translate(-50%,-50%);background:rgba(255,255,255,.88);color:#16202c;padding:10px 16px;border-radius:14px;font-weight:700;text-align:center;width:min(90%,360px)}
+.farm-tip{position:absolute;transform:translateX(-50%);background:#fff;color:#16202c;border-radius:12px;padding:6px 12px;font-size:1rem;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:99;pointer-events:none}
+.shop-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.shop-tabs button{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;font-weight:700}
+.shop-tabs button.on{border-color:var(--brand);background:var(--soft);color:var(--brand)}
+.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.sc{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:14px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
+.sc.own{border-color:color-mix(in srgb,var(--ok) 55%,var(--line))}
+.sc .se{font-size:3rem;line-height:1.1}
+.sc .sn{font-weight:800}.sc .sn::first-letter{text-transform:uppercase}
+.sc .sw{color:var(--muted);font-size:.9rem;min-height:30px}
+.sc .own{color:var(--ok);font-weight:700;font-size:.9rem}
+.btn.sm{padding:5px 12px;font-size:.88rem}.btn.sm.on{border-color:var(--brand);color:var(--brand)}
+.btn.buy{background:#f2c94c;border-color:#d9ae2c;color:#3a2a00;font-weight:800;padding:7px 16px}
+.btn.buy.no{background:var(--soft);border-color:var(--line);color:var(--muted)}
+.miss{color:var(--muted);font-size:.78rem}
+#gift{width:min(92vw,380px);text-align:center}
+.gift h2{color:var(--ink)}
+.gbox{font-size:5.5rem;line-height:1.1;animation:shake 1s infinite}
+.gbox.open{animation:boom .6s forwards}.gbox.got{animation:gpop .5s}
+@keyframes gpop{0%{transform:scale(.3)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
+.gword{font-size:1.6rem;font-weight:800;margin:4px 0}
+@keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-10deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(6deg)}}
+@keyframes boom{to{transform:scale(1.8);opacity:0}}
+/* inicio para niños */
+.hello{display:flex;align-items:center;gap:18px;margin:4px 0 14px}
+.speech{position:relative;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:12px 16px;font-size:1.15rem;box-shadow:var(--shadow)}
+.speech::before{content:"";position:absolute;left:-12px;top:50%;border:10px solid transparent;border-right-color:var(--line);transform:translateY(-50%)}
+.speech b{display:block;font-size:1.4rem}
+.big-acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
+.ba{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:16px 10px;border-radius:20px;text-decoration:none;color:#fff;font-size:2.4rem;box-shadow:0 6px 0 rgba(0,0,0,.18);transition:transform .1s}
+.ba:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
+.ba b{font-size:1.15rem}.ba small{font-size:.85rem;opacity:.92}
+.ba.a1{background:#2e9e4f}.ba.a2{background:#1f6fd1}.ba.a3{background:#c9962b}.ba.a4{background:#13887f}
+/* premios */
+.kid-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0 14px}
+.ks{background:var(--card);border:2px solid var(--line);border-radius:18px;padding:12px;text-align:center;text-decoration:none;display:flex;flex-direction:column;align-items:center}
+.ks span{font-size:2rem}.ks b{font-size:1.7rem;line-height:1.1}.ks small{color:var(--muted)}
+.cal{display:grid;grid-template-columns:repeat(14,1fr);gap:4px}
+.cd{display:flex;flex-direction:column;align-items:center;gap:3px}
+.cd span{width:100%;aspect-ratio:1;max-width:42px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;font-size:1.15rem}
+.cd.on span{background:#fff3c4}[data-theme=dark] .cd.on span{background:#4a3d12}
+.cd.today span{outline:3px solid var(--brand)}
+.cd small{font-size:.7rem;color:var(--muted);text-transform:uppercase}
+.lvms{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.lvm{display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none}
+.lvm .ring{width:76px;height:76px;border-radius:50%;background:conic-gradient(var(--lc) calc(var(--p)*1%),var(--line) 0);display:flex;align-items:center;justify-content:center}
+.lvm .ring b{width:58px;height:58px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--lc)}
+.lvm.full .ring b{font-size:1.8rem}
+.lvm small{color:var(--muted);font-weight:700}
+.achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.ach{border:2px dashed var(--line);border-radius:16px;padding:12px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
+.ach .ae{font-size:2.3rem;filter:grayscale(1);opacity:.45}
+.ach.ok{border-style:solid;border-color:#d9a21b;background:color-mix(in srgb,#f2c94c 12%,var(--card))}
+.ach.ok .ae{filter:none;opacity:1}
+.ach small{color:var(--muted);font-size:.78rem}
+.ach .done{color:var(--ok);font-style:normal;font-weight:700;font-size:.85rem}
+.abar{width:80%;height:8px;border-radius:99px;background:var(--line);overflow:hidden}.abar i{display:block;height:100%;background:#d9a21b}
+details.adult summary{cursor:pointer;font-weight:700;color:var(--muted)}
+details.adult[open] summary{margin-bottom:10px}
+/* repaso para niños */
+.rv-btns.kid .btn{font-size:1rem;padding:12px 4px}
+.rv-btns.kid .btn span{display:block;font-size:1.8rem}
+@media (max-width:560px){.cal{grid-template-columns:repeat(7,1fr)}.hello{gap:12px}.speech{font-size:1rem}.speech b{font-size:1.15rem}.farm{height:300px}.fi{font-size:2rem}.fi.bg{font-size:2.8rem}}
 </style>
 </head>
 <body>
 <header><div class="wrap">
   <a class="logo" href="#/">📘 Vocabulario</a>
   <nav class="hnav">
-    <a class="hbtn" href="#/mapa">🗺️<span class="lb"> Mapa</span></a>
-    <a class="hbtn" href="#/repaso">🔁<span class="lb"> Repaso</span><span class="b" id="due-b" hidden></span></a>
-    <a class="hbtn" href="#/progreso">📈<span class="lb"> Progreso</span></a>
+    <a class="hbtn" href="#/mapa">🗺️<span class="lb"> Camino</span></a>
+    <a class="hbtn" href="#/repaso">🔁<span class="lb"> Repasar</span><span class="b" id="due-b" hidden></span></a>
+    <a class="hbtn" href="#/granja">🏡<span class="lb"> Granja</span></a>
+    <a class="hbtn" href="#/progreso">🏆<span class="lb"> Premios</span></a>
+    <a class="hbtn coin" href="#/granja" title="Tus monedas">🪙 <span id="coins">0</span></a>
     <button class="hbtn" id="theme-b" title="Modo claro / oscuro" aria-label="Modo claro / oscuro"></button>
     <button class="hbtn" id="cfg-b" title="Voz y velocidad" aria-label="Voz y velocidad">⚙️</button>
     <button class="hbtn" id="inst" hidden>📲<span class="lb"> Instalar</span></button>
@@ -504,10 +601,10 @@ function statsHtml(){
   const m = Object.values(srsAll()), due = m.filter(x=>x.due<=today()).length, mast = m.filter(x=>x.b>=MASTER).length;
   const a = store.get("act", {}), st = streak();
   return `<div class="stats">
-    <a class="stat hl" href="#/repaso"><div class="v">${due}</div><div class="k">Para repasar hoy</div></a>
-    <a class="stat" href="#/progreso"><div class="v">🔥 ${st}</div><div class="k">${st===1?"día":"días"} seguidos</div></a>
-    <a class="stat" href="#/progreso"><div class="v">${a[dayKey(new Date())]||0}</div><div class="k">Repeticiones hoy</div></a>
-    <a class="stat" href="#/progreso"><div class="v">${mast}</div><div class="k">Dominadas de ${m.length} en repaso</div></a>
+    <a class="stat hl" href="#/repaso"><div class="v">🔁 ${due}</div><div class="k">Para repasar hoy</div></a>
+    <a class="stat" href="#/progreso"><div class="v">🔥 ${st}</div><div class="k">${st===1?"día seguido":"días seguidos"}</div></a>
+    <a class="stat" href="#/granja"><div class="v">🪙 ${game().coins}</div><div class="k">Monedas</div></a>
+    <a class="stat" href="#/progreso"><div class="v">💎 ${mast}</div><div class="k">Palabras que ya no olvidas</div></a>
   </div>`;
 }
 const inDays = n => n<=0 ? "hoy otra vez" : n===1 ? "mañana" : n<30 ? `en ${n} días` : n<60 ? "en 1 mes" : `en ${Math.round(n/30)} meses`;
@@ -518,18 +615,20 @@ async function repaso(){
   const idx = await getIndex(), ready = idx.filter(d => d.langs.includes(lang));
   const due = dueList();
   $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
-    <h1>Repaso espaciado <span style="color:var(--muted);font-weight:400">en ${LANGS[lang].name}</span></h1>
-    <p class="sub">Cada palabra vuelve justo antes de que se te olvide: mañana, a los 3 días, a la semana, a las 2 semanas, al mes… Si la fallas, vuelve a empezar. Así repasas poco cada día y recuerdas mucho.</p>
-    ${statsHtml()}
-    <div class="panel">${due.length
-      ? `<h2>Hoy te tocan ${due.length} palabra${due.length>1?"s":""}</h2><button class="btn pri" id="rv-go">▶ Empezar el repaso</button>`
-      : `<h2>No tienes nada pendiente hoy 🎉</h2><p class="sub" style="margin:0">Añade palabras nuevas abajo, o vuelve mañana.</p>`}</div>
-    <div class="panel"><h2>Añadir palabras nuevas</h2>
+    <div class="hello">${heroHtml(90)}<div class="speech">${due.length
+      ? `<b>¡${due.length} palabra${due.length>1?"s":""} te ${due.length>1?"esperan":"espera"}!</b>Ya las viste antes. Vamos a ver si te acuerdas. Cada palabra que sepas te da 🪙.`
+      : `<b>¡Todo repasado por hoy! 🎉</b>Vuelve mañana: las palabras vuelven justo cuando se te van a olvidar.`}</div></div>
+    <div class="panel" style="text-align:center">${due.length
+      ? `<button class="btn lc" id="rv-go" style="--lc:#1f6fd1;font-size:1.2rem;padding:14px 30px">▶ ¡Vamos a repasar!</button>`
+      : `<a class="btn lc" href="#/mapa" style="--lc:#2e9e4f;text-decoration:none;font-size:1.1rem;padding:12px 26px">🗺️ Aprender palabras nuevas</a>`}</div>
+    <details class="panel adult"><summary>👨‍👩‍👦 Para mayores: añadir palabras al repaso</summary>
+      <p class="sub">El repaso es espaciado: cada palabra vuelve mañana, a los 3 días, a la semana, a las 2 semanas, al mes… Si se falla, vuelve a empezar. Las palabras entran solas al terminar lecciones del camino, una Práctica 21 o al fallar en el Test.</p>
+      <h2>Añadir palabras nuevas</h2>
       <p class="sub">También entran solas cuando terminas una Práctica 21 (vuelven mañana) o fallas una pregunta del Test.</p>
       <div class="pr-row"><select id="rv-doc">${ready.map(d=>`<option value="${d.id}">${d.num?String(d.num).padStart(2,"0")+" · ":""}${esc(d.title)}</option>`).join("")}</select>
       <select id="rv-n"><option value="5">5 palabras</option><option value="10" selected>10 palabras</option><option value="20">20 palabras</option><option value="999">Todas</option></select>
       <button class="btn" id="rv-add">➕ Añadir</button></div>
-      <div class="count" id="rv-msg" style="margin-top:8px"></div></div>`;
+      <div class="count" id="rv-msg" style="margin-top:8px"></div></details>`;
   if($("#rv-go")) $("#rv-go").onclick = rvStart;
   $("#rv-add").onclick = async () => {
     const id = $("#rv-doc").value, doc = await getDoc(id), m = srsAll();
@@ -542,16 +641,17 @@ async function rvStart(){
   const due = dueList(), ids = [...new Set(due.map(x => x.d))];
   await Promise.all(ids.map(id => getDoc(id).catch(()=>null)));
   const q = shuffle(due.map(x => { const doc = CACHE[x.d], r = doc && doc.rows.find(r => r.es===x.e && r.l[lang]); return r ? {id:x.d, r} : null; }).filter(Boolean));
-  rv = {q, i:0, flip:false, done:0, total:q.length};
+  rv = {q, i:0, flip:false, done:0, total:q.length, coins:0};
   rvDraw();
 }
 function rvDraw(){
   if(!rv) return;
   if(rv.i >= rv.q.length){
-    $("#app").innerHTML = `<div class="pr-setup pr-end" style="margin:0 auto"><div class="big">🎉</div><h2>¡Repaso terminado!</h2>
-      <p class="sub">Repasaste ${rv.total} palabra${rv.total>1?"s":""}. Racha: 🔥 ${streak()} día${streak()===1?"":"s"}.</p>
-      <div class="pr-row" style="justify-content:center"><a class="btn pri" href="#/progreso" style="text-decoration:none">Ver mi progreso</a><button class="btn" id="rv-back">Volver al repaso</button></div></div>`;
-    $("#rv-back").onclick = repaso; rv = null; document.onkeydown = null; return;
+    award(10, "¡Repaso terminado!");
+    $("#app").innerHTML = `<div class="pr-setup pr-end" style="margin:0 auto">${heroHtml(90)}<h2>¡Repaso terminado! 🎉</h2>
+      <p class="sub">Repasaste ${rv.total} palabra${rv.total>1?"s":""} y ganaste 🪙 ${rv.coins + 10}. Racha: 🔥 ${streak()} día${streak()===1?"":"s"}.</p>
+      <div class="pr-row" style="justify-content:center"><a class="btn pri" href="#/granja" style="text-decoration:none">🏡 Ir a mi granja</a><a class="btn" href="#/mapa" style="text-decoration:none">🗺️ Seguir el camino</a></div></div>`;
+    rv = null; document.onkeydown = null; return;
   }
   const {id, r} = rv.q[rv.i], d = r.l[lang], x = srsAll()[srsK(id, r)];
   const pct = Math.round(100 * rv.done / Math.max(1, rv.total));
@@ -563,19 +663,20 @@ function rvDraw(){
       <div class="meta" style="justify-content:center"><span class="pron">${esc(d.pron)}</span><span class="ipa">${esc(d.ipa)}</span></div>
       ${d.forms?`<div class="count">${esc(d.forms)}</div>`:""}
       ${d.ex?`<div class="ex">${esc(d.ex)} ${sayBtn(d.ex,1)}<div class="tr">${esc(d.ex_es)}</div></div>`:""}
-      <div class="rv-btns">
-        <button class="btn b-bad" data-g="0">No la sabía<small>${inDays(srsNext(x,0))}</small></button>
-        <button class="btn" data-g="1">Difícil<small>${inDays(srsNext(x,1))}</small></button>
-        <button class="btn b-ok" data-g="2">La sabía<small>${inDays(srsNext(x,2))}</small></button></div>`
-    : `<div class="hint">¿Cómo se dice en ${LANGS[lang].name}? Piénsalo (o dilo en voz alta) y mira la respuesta.</div>
-       <button class="btn pri" id="rv-show" style="margin-top:16px">Mostrar respuesta</button>`}
-    </div><div class="pr-keys" style="margin-top:8px">Atajos: Espacio para ver la respuesta · 1, 2, 3 para responder</div></div>`;
+      <div class="count" style="margin-top:12px">¿La sabías?</div>
+      <div class="rv-btns kid" style="margin-top:6px">
+        <button class="btn b-bad" data-g="0" title="Vuelve ${inDays(srsNext(x,0))}"><span>😕</span>No</button>
+        <button class="btn" data-g="1" title="Vuelve ${inDays(srsNext(x,1))}"><span>🤔</span>Más o menos</button>
+        <button class="btn b-ok" data-g="2" title="Vuelve ${inDays(srsNext(x,2))}"><span>😄</span>¡Sí!</button></div>`
+    : `<div class="hint" style="font-size:1rem">¿Cómo se dice en ${LANGS[lang].name}? Dilo en voz alta y luego mira.</div>
+       <button class="btn lc" id="rv-show" style="--lc:#1f6fd1;margin-top:16px;font-size:1.1rem">👀 Ver la respuesta</button>`}
+    </div></div>`;
   const tok = ++autoTok;
   if(rv.flip){
     (async () => { await sayP(d.word, $(".fc .say")); if(tok===autoTok && prUI.ex && d.ex){ await sleep(400); if(tok===autoTok) sayP(d.ex); } })();
     document.querySelectorAll("[data-g]").forEach(b => b.onclick = () => {
       autoTok++; speechSynthesis && speechSynthesis.cancel();
-      const g = +b.dataset.g; srsGrade(id, r, g);
+      const g = +b.dataset.g; srsGrade(id, r, g); if(g){ award(g, "", true); rv.coins += g; }
       if(g===0) rv.q.push(rv.q[rv.i]); else rv.done++;
       rv.i++; rv.flip = false; rvDraw();
     });
@@ -588,7 +689,7 @@ function rvDraw(){
   };
 }
 
-async function progreso(){
+async function progreso(el){
   const idx = await getIndex(), m = Object.values(srsAll()), a = store.get("act", {});
   const days = []; for(let k=13; k>=0; k--){ const d = new Date(); d.setDate(d.getDate()-k); days.push({k:dayKey(d), n:a[dayKey(d)]||0, lbl:d.toLocaleDateString("es",{weekday:"short"})}); }
   const max = Math.max(1, ...days.map(x=>x.n));
@@ -599,9 +700,9 @@ async function progreso(){
       <td>${o.m} / ${d.count}</td><td style="width:40%"><div class="mbar"><i class="m" style="width:${pm}%"></i><i class="l" style="width:${pl}%"></i></div></td></tr>`;
   }).join("");
   const total = days.reduce((s,x)=>s+x.n,0);
-  $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
+  (el || $("#app")).innerHTML = `${el ? "" : `<a class="back" href="#/">← Inicio</a>
     <h1>Tu progreso <span style="color:var(--muted);font-weight:400">en ${LANGS[lang].name}</span></h1>
-    ${statsHtml()}
+    ${statsHtml()}`}
     <div class="panel"><h2>Últimos 14 días</h2><div class="count">${total} repeticiones en total. La racha cuenta los días seguidos con al menos una práctica, test o repaso.</div>
       <div class="days">${days.map(x=>`<i class="${x.n?"on":""}" style="height:${Math.max(5, 100*x.n/max)}%" title="${x.k}: ${x.n}"></i>`).join("")}</div>
       <div class="dlbl"><span>${days[0].lbl}</span><span>hoy</span></div></div>
@@ -621,7 +722,7 @@ async function downloadAll(){
   if(!("caches" in window)){ msg.textContent = "Este navegador no permite guardar la web sin internet."; return; }
   b.disabled = true;
   try{
-    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_en.json", "data/grammar_fr.json", "data/grammar_da.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
+    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_en.json", "data/grammar_fr.json", "data/grammar_da.json", "data/game.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
     let k = 0;
     for(const d of idx){ urls.add(`data/${d.id}.json`); const doc = await getDoc(d.id); doc.rows.forEach(r => r.img && urls.add(r.img)); msg.textContent = `Leyendo documentos… ${++k}/${idx.length}`; }
     const c = await caches.open(CACHE_NAME), list = [...urls];
@@ -671,11 +772,17 @@ async function home(){
   const temas = idx.filter(d=>d.group==="temas"), w = idx.filter(d=>d.group==="3000"), adv = idx.filter(d=>d.group==="avanzado");
   const ready = w.filter(d=>d.langs.includes(lang)).reduce((a,d)=>a+d.count,0);
   $("#app").innerHTML = `
-    <h1>Vocabulario en ${LANGS[lang].name}</h1>
-    <p class="sub">Cada palabra trae imagen, pronunciación aproximada, IPA, ejemplo y botón 🔊 para escucharla. Cambia de idioma arriba.</p>
+    <div class="hello">${heroHtml(96)}<div class="speech"><b>¡Hola${game().name ? ", " + esc(game().name) : ""}!</b>¿Qué aprendemos hoy en ${LANGS[lang].name}?</div></div>
+    <div class="big-acts">
+      <a class="ba a1" href="#/mapa">🗺️<b>Camino</b><small>Aprende palabras nuevas</small></a>
+      <a class="ba a2" href="#/repaso">🔁<b>Repasar</b><small>${dueList().length ? dueList().length + " palabras te esperan" : "Todo al día"}</small></a>
+      <a class="ba a3" href="#/granja">🏡<b>Mi granja</b><small>🪙 ${game().coins} monedas</small></a>
+      <a class="ba a4" href="#/progreso">🏆<b>Premios</b><small>${achList().filter(x=>x.ok).length} medallas</small></a>
+    </div>
     ${await mapCta()}
     <p style="margin:6px 0 0"><a href="#/gramatica" style="color:var(--brand);font-weight:600;text-decoration:none">📘 Gramática de ${LANGS[lang].name} por niveles, de A1 a C2 →</a></p>
-    ${statsHtml()}
+    <h2 style="margin-top:34px">📚 Todas las palabras</h2>
+    <p class="sub">Toca 🔊 para oír una palabra y 🐢 para oírla despacio.</p>
     <h2>Temas</h2><div class="grid">${temas.map(card).join("")}</div>
     <h2>Las 3000 palabras más importantes</h2>
     <p class="sub">Lista Oxford 3000, de nivel A1 a B2, agrupada por temas. Las ${3000-w.reduce((a,d)=>a+d.count,0)} palabras que ya están en «Temas» (animales, colores, familia…) no se repiten aquí.${ready<w.reduce((a,d)=>a+d.count,0)?` Listas en ${LANGS[lang].name}: ${ready}.`:""}</p>
@@ -822,6 +929,7 @@ function test(doc){
   if(!state.test){ state.test = {qs: shuffle(list).slice(0, Math.min(10,list.length)), i:0, ok:0, done:false}; }
   const t = state.test;
   if(t.i>=t.qs.length){
+    if(!t.paid){ t.paid = true; if(t.ok) award(t.ok, "¡Test terminado!"); }
     $("#view").innerHTML = `<div class="q"><div class="big" style="font-size:1.6rem;font-weight:700">${t.ok} / ${t.qs.length}</div>
       <p class="sub">${t.ok===t.qs.length?"¡Perfecto! 🎉":t.ok>=t.qs.length*0.7?"¡Muy bien!":"Sigue practicando con las tarjetas."}</p>
       <button class="btn pri" id="again">Otra ronda</button></div>`;
@@ -1253,6 +1361,7 @@ function dictCheck(ans, ref){
 }
 
 function prEnd(doc, s, total){
+  award(15, "¡Práctica completada!");
   const all = doc.rows.filter(r => r.es && r.l[lang]);
   $("#view").innerHTML = `<div class="pr-setup pr-end">
     <div class="big">🎉</div><h2>¡Práctica completada!</h2>
@@ -1422,22 +1531,25 @@ function lsEnd(){
   const s = LS; document.onkeydown = null;
   const acc = s.first.size / s.nq, stars = acc >= .9 ? 3 : acc >= .6 ? 2 : 1;
   const P = mapP(); const prev = P[s.id] || 0; P[s.id] = Math.max(prev, stars); store.set("map:"+lang, P);
+  const coins = prev ? 5 : 10 + 5 * stars; award(coins, prev ? "¡Lección repetida!" : "¡Lección completada!");
   const by = {}; for(const w of s.words) (by[w.doc] = by[w.doc] || []).push(w.r);
   let added = 0; for(const [d, rows] of Object.entries(by)) added += srsAdd(d, rows, 1);
   logAct(s.words.length || s.nq); updBadge();
   const ls = lvLessons(s.lv), i = ls.findIndex(l => l.id === s.id), nxt = ls[i+1];
   const lvDone = ls.every(l => P[l.id]);
   $("#app").innerHTML = `<div class="ls ls-end" style="--lc:${LVS[s.lv].c}">
-    <div class="ls-card"><div style="font-size:3rem">${lvDone ? "🏆" : "🎯"}</div>
+    <div class="ls-card">${heroHtml(84)}
       <div class="big">${lvDone ? `¡Nivel ${s.lv} completado!` : "¡Lección completada!"}</div>
       <div class="big-stars">${starsHtml(stars)}</div>
-      <div class="es">Acertaste a la primera ${s.first.size} de ${s.nq}.${added ? ` ${added} palabras nuevas pasan a tu repaso de mañana.` : ""}</div>
+      <div class="gword">+${coins} 🪙</div>
+      <div class="es">Acertaste a la primera ${s.first.size} de ${s.nq}.${added ? ` Mañana repasarás estas ${added} palabras.` : ""}</div>
       <div class="ctrl" style="margin-top:14px">
         <button class="btn" id="ls-rep">Repetir</button>
         ${nxt ? `<a class="btn lc" style="text-decoration:none" href="#/leccion/${nxt.id}">Siguiente lección →</a>` : ""}
         <a class="btn ${nxt?"":"lc"}" style="text-decoration:none" href="#/mapa/${s.lv}">Volver al mapa</a>
       </div></div></div>`;
   $("#ls-rep").onclick = () => leccion(s.id);
+  setTimeout(giftCheck, 1500);
   document.onkeydown = e => { if(e.key === "Enter" && nxt){ e.preventDefault(); location.hash = "#/leccion/" + nxt.id; } };
 }
 
@@ -1524,11 +1636,194 @@ function gStep(){
   };
 }
 
+/* ---------- juego: monedas, personaje, granja y premios ---------- */
+let SHOP = [];
+async function getShop(){ if(!SHOP.length) SHOP = await fetch("data/game.json").then(r => r.json()).catch(() => []); return SHOP; }
+const GDEF = {coins:0, earned:0, owned:{zorro:true}, wear:{hero:"zorro"}, ach:{}, name:"", gifts:0, day:""};
+const game = () => { const g = Object.assign(JSON.parse(JSON.stringify(GDEF)), store.get("game", {})); g.owned.zorro = true; return g; };
+function gameSet(g){ store.set("game", g); paintCoins(); }
+function paintCoins(){ const c = $("#coins"); if(c) c.textContent = game().coins; }
+const itemById = id => SHOP.find(x => x.id === id);
+const TYPES = [["hero","🦸","Personajes"],["hat","🎩","Sombreros"],["face","🕶️","Gafas"],["hand","⚽","Juguetes"],["pet","🐶","Mascotas"],["farm","🌻","Granja"]];
+const itemWord = it => it.w[lang] || it.n;
+function heroHtml(size = 110, g = game()){
+  const w = g.wear, E = id => (itemById(id) || {}).e || "";
+  return `<div class="hero" style="font-size:${size}px" aria-hidden="true">
+    ${w.pet ? `<span class="h-pet">${E(w.pet)}</span>` : ""}<span class="h-base">${E(w.hero) || "🦊"}</span>
+    ${w.hat ? `<span class="h-hat">${E(w.hat)}</span>` : ""}${w.face ? `<span class="h-face">${E(w.face)}</span>` : ""}
+    ${w.hand ? `<span class="h-hand">${E(w.hand)}</span>` : ""}</div>`;
+}
+function coinPop(n, why){
+  const el = document.createElement("div"); el.className = "coin-pop";
+  el.innerHTML = `<b>+${n} 🪙</b>${why ? `<small>${esc(why)}</small>` : ""}`;
+  document.body.appendChild(el); setTimeout(() => el.remove(), 1900);
+}
+function award(n, why, quiet){
+  const g = game(); const day = dayKey(new Date());
+  if(g.day !== day){ g.day = day; g.coins += 10; g.earned += 10; if(!quiet) setTimeout(() => coinPop(10, "¡Regalo del día!"), 2000); }
+  g.coins += n; g.earned += n; gameSet(g);
+  if(n && !quiet) coinPop(n, why);
+  setTimeout(checkAch, 1200);
+}
+/* medallas */
+function allMapP(){ const all = {}; for(const L of Object.keys(LANGS)) Object.assign(all, ...Object.entries(store.get("map:"+L, {})).map(([k, v]) => ({[L+k]: v}))); return all; }
+function achList(){
+  const g = game(), P = allMapP(), keys = Object.keys(P);
+  const les = keys.filter(k => !k.includes("G-")).length, gr = keys.filter(k => k.includes("G-")).length;
+  const three = Object.values(P).filter(v => v === 3).length;
+  const words = Object.keys(srsAll()).length, mast = Object.values(srsAll()).filter(x => x.b >= MASTER).length;
+  const farm = SHOP.filter(x => x.t === "farm" && g.owned[x.id]).length, things = Object.keys(g.owned).length - 1;
+  const st = streak();
+  const A = [
+    ["l1","🥇","Primera lección","Termina tu primera lección", les, 1], ["l10","📗","Explorador","Termina 10 lecciones", les, 10],
+    ["l50","📘","Aventurero","Termina 50 lecciones", les, 50], ["l150","📙","Sabio","Termina 150 lecciones", les, 150],
+    ["g1","✏️","Primera gramática","Termina una lección de gramática", gr, 1], ["g10","📐","Maestro de reglas","Termina 10 de gramática", gr, 10],
+    ["s3","⭐","Tres estrellas","Saca 3 estrellas en 5 lecciones", three, 5], ["s20","🌟","Estrella brillante","Saca 3 estrellas en 20 lecciones", three, 20],
+    ["r3","🔥","Racha de 3","Aprende 3 días seguidos", st, 3], ["r7","🚒","Racha de 7","Aprende 7 días seguidos", st, 7], ["r30","🌋","Racha de 30","Aprende 30 días seguidos", st, 30],
+    ["w50","🧠","50 palabras","Ten 50 palabras en tu repaso", words, 50], ["w300","📚","300 palabras","Ten 300 palabras en tu repaso", words, 300],
+    ["m25","💎","Memoria de oro","Domina 25 palabras", mast, 25],
+    ["c200","💰","Ahorrador","Gana 200 monedas", g.earned, 200], ["c1000","🏦","Banquero","Gana 1000 monedas", g.earned, 1000],
+    ["f5","🌾","Granjero","Ten 5 cosas en tu granja", farm, 5], ["f20","🚜","Gran granjero","Ten 20 cosas en tu granja", farm, 20],
+    ["t10","🎽","Con estilo","Consigue 10 premios de la tienda", things, 10],
+  ];
+  return A.map(([id, e, t, d, v, goal]) => ({id, e, t, d, v: Math.min(v, goal), goal, ok: v >= goal}));
+}
+let achBusy = false;
+function checkAch(){
+  if(achBusy) return; achBusy = true;
+  const g = game(), fresh = achList().filter(a => a.ok && !g.ach[a.id]);
+  if(fresh.length){
+    for(const a of fresh) g.ach[a.id] = dayKey(new Date());
+    g.coins += 20 * fresh.length; g.earned += 20 * fresh.length; gameSet(g);
+    fresh.forEach((a, i) => setTimeout(() => { toast(`${a.e} ¡Nueva medalla: ${a.t}! +20 🪙`); }, 400 + i * 2400));
+  }
+  achBusy = false;
+}
+/* regalos: uno cada 5 lecciones terminadas */
+function giftCheck(){
+  const g = game(), n = Object.keys(allMapP()).length, due = Math.floor(n / 5);
+  if(due <= g.gifts) return false;
+  g.gifts = due;
+  const pool = SHOP.filter(x => !g.owned[x.id] && x.p > 0 && x.p <= 120);
+  const it = pool.length ? pool[Math.floor(Math.random() * pool.length)] : null;
+  if(it){ g.owned[it.id] = true; } else { g.coins += 50; g.earned += 50; }
+  gameSet(g); showGift(it); return true;
+}
+function showGift(it){
+  let d = $("#gift"); if(!d){ d = document.createElement("dialog"); d.id = "gift"; document.body.appendChild(d); }
+  d.innerHTML = `<div class="gift"><div class="gbox" id="gbox">🎁</div><h2>¡Tienes un regalo!</h2><p class="sub">Por terminar 5 lecciones más.</p>
+    <button class="btn lc" id="gopen" style="--lc:#1f6fd1">Abrir el regalo</button></div>`;
+  d.showModal();
+  $("#gopen").onclick = () => {
+    $("#gbox").classList.add("open");
+    setTimeout(() => {
+      d.innerHTML = `<div class="gift"><div class="gbox got">${it ? it.e : "🪙"}</div>
+        <h2>${it ? `¡Es ${esc(art(it.n))}!` : "¡50 monedas!"}</h2>
+        ${it ? `<p class="gword">${esc(itemWord(it))} ${sayBtn(itemWord(it))}</p><p class="sub">Así se dice en ${LANGS[lang].name}. ${it.t === "farm" ? "Ya está en tu granja." : "Ya está en tu armario."}</p>` : `<p class="sub">Ya tienes todos los regalos pequeños. ¡Compra algo grande en la tienda!</p>`}
+        <div class="ctrl" style="justify-content:center">
+          ${it && it.t !== "farm" ? `<button class="btn lc" id="gwear" style="--lc:#1f6fd1">Ponérmelo</button>` : ""}
+          <button class="btn" id="gclose">¡Genial!</button></div></div>`;
+      if(it) setTimeout(() => say(itemWord(it)), 300);
+      $("#gclose").onclick = () => d.close();
+      if($("#gwear")) $("#gwear").onclick = () => { const g = game(); g.wear[it.t] = it.id; gameSet(g); d.close(); location.hash = "#/granja"; };
+    }, 650);
+  };
+}
+const FEM = new Set(["rana","gorra","corona","cometa","guitarra","pelota de baloncesto","varita mágica","videoconsola","copa","tortuga","gallina","abeja","oveja","cabra","vaca","flor","seta","zanahoria","fresa","calabaza","manzana","tienda de campaña","cabaña","casa","fuente","gafas","gafas de sol","gafas de bucear"]);
+const art = n => n.startsWith("gafas") ? "unas " + n : (FEM.has(n) ? "una " : "un ") + n;
+
+/* página: mi granja + tienda */
+let shopTab = "farm";
+async function granja(){
+  await getShop(); document.onkeydown = null;
+  const g = game(), farm = SHOP.filter(x => x.t === "farm" && g.owned[x.id]);
+  const big = new Set(["casa","castillo","cabana","tienda","tractor","molino","fuente","cohete","arbol","pino"]);
+  const items = farm.map((x, i) => {
+    const sx = (i * 41 + 7) % 86 + 3, sy = 52 + (i * 29 + 11) % 36;
+    return `<button class="fi ${big.has(x.id) ? "bg" : ""}" data-it="${x.id}" style="left:${sx}%;top:${sy}%;z-index:${sy}" aria-label="${esc(x.n)}">${x.e}</button>`;
+  }).join("");
+  const tabs = TYPES.map(([t, e, n]) => `<button class="${t === shopTab ? "on" : ""}" data-tab="${t}">${e} ${n}</button>`).join("");
+  const cards = SHOP.filter(x => x.t === shopTab).map(x => {
+    const own = g.owned[x.id], worn = g.wear[x.t] === x.id;
+    const btn = x.t === "farm" ? (own ? `<span class="own">✓ En tu granja</span>` : "")
+      : own ? (x.t === "hero" ? (worn ? `<span class="own">✓ Eres tú</span>` : `<button class="btn sm" data-wear="${x.id}">Elegir</button>`)
+                              : `<button class="btn sm ${worn ? "on" : ""}" data-wear="${x.id}">${worn ? "Quitármelo" : "Ponérmelo"}</button>`) : "";
+    const buy = own ? "" : (g.coins >= x.p ? `<button class="btn buy" data-buy="${x.id}">🪙 ${x.p}</button>`
+      : `<button class="btn buy no" disabled>🪙 ${x.p}</button><small class="miss">Te faltan ${x.p - g.coins}</small>`);
+    return `<div class="sc ${own ? "own" : ""}"><div class="se">${x.e}</div><div class="sn">${esc(x.n)}</div>
+      <div class="sw">${esc(itemWord(x))} ${sayBtn(itemWord(x), 1)}</div>${btn}${buy}</div>`;
+  }).join("");
+  $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
+    <div class="me">${heroHtml(120, g)}
+      <div class="me-info"><input id="me-name" maxlength="20" placeholder="Escribe tu nombre" value="${esc(g.name)}" aria-label="Tu nombre">
+        <div class="me-coins">🪙 <b>${g.coins}</b> monedas</div>
+        <div class="count">Ganas monedas al terminar lecciones, repasar y conseguir medallas.</div></div></div>
+    <h2>🏡 Mi granja</h2>
+    <div class="farm" id="farm"><span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>
+      <div class="farm-hero">${heroHtml(54, g)}</div>${items}
+      ${farm.length ? "" : `<div class="farm-empty">Tu granja está vacía. ¡Compra animales y plantas en la tienda!</div>`}
+      <div class="farm-tip" id="farm-tip" hidden></div></div>
+    ${farm.length ? `<p class="count" style="text-align:center">Toca un animal o una planta para oír cómo se dice en ${LANGS[lang].name}.</p>` : ""}
+    <h2>🛒 Tienda</h2>
+    <div class="shop-tabs">${tabs}</div>
+    <div class="shop">${cards}</div>`;
+  $("#me-name").onchange = e => { const g = game(); g.name = e.target.value.trim(); gameSet(g); };
+  document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { shopTab = b.dataset.tab; granja(); });
+  document.querySelectorAll("[data-it]").forEach(b => b.onclick = () => {
+    const it = itemById(b.dataset.it), tip = $("#farm-tip");
+    b.classList.remove("hop"); void b.offsetWidth; b.classList.add("hop");
+    tip.hidden = false; tip.innerHTML = `${it.e} <b>${esc(itemWord(it))}</b> = ${esc(it.n)}`;
+    tip.style.left = b.style.left; tip.style.top = `calc(${b.style.top} - 54px)`;
+    say(itemWord(it));
+  });
+  document.querySelectorAll("[data-buy]").forEach(b => b.onclick = () => {
+    const it = itemById(b.dataset.buy), g = game(); if(g.coins < it.p || g.owned[it.id]) return;
+    g.coins -= it.p; g.owned[it.id] = true; if(it.t !== "farm") g.wear[it.t] = it.id; gameSet(g);
+    toast(`¡Nuevo! ${it.e} ${it.n} = ${itemWord(it)}`); say(itemWord(it)); granja(); setTimeout(checkAch, 800);
+  });
+  document.querySelectorAll("[data-wear]").forEach(b => b.onclick = () => {
+    const it = itemById(b.dataset.wear), g = game();
+    g.wear[it.t] = (g.wear[it.t] === it.id && it.t !== "hero") ? null : it.id; gameSet(g); granja();
+  });
+}
+
+/* página: mis premios */
+async function premios(){
+  await getMap(); await getShop(); document.onkeydown = null;
+  const g = game(), a = store.get("act", {}), st = streak(), P = mapP();
+  const m = Object.values(srsAll()), mast = m.filter(x => x.b >= MASTER).length, due = dueList().length;
+  const days = []; for(let k = 13; k >= 0; k--){ const d = new Date(); d.setDate(d.getDate() - k); days.push({n: a[dayKey(d)] || 0, l: d.toLocaleDateString("es", {weekday: "narrow"}), today: k === 0}); }
+  const lv = Object.entries(LVS).map(([k, v]) => {
+    const ls = lvLessons(k), d = ls.filter(l => P[l.id]).length, pct = Math.round(100 * d / ls.length);
+    return `<a class="lvm ${pct === 100 ? "full" : ""}" href="#/mapa/${k}" style="--lc:${v.c};--p:${pct}"><span class="ring"><b>${pct === 100 ? "🏅" : k}</b></span><small>${pct}%</small></a>`;
+  }).join("");
+  const ach = achList(), got = ach.filter(x => x.ok).length;
+  $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
+    <div class="me">${heroHtml(96, g)}<div class="me-info"><h1 style="margin:0">Mis premios</h1>
+      <div class="sub" style="margin:4px 0 0">¡Mira todo lo que has conseguido${g.name ? ", " + esc(g.name) : ""}!</div></div></div>
+    <div class="kid-stats">
+      <a class="ks" href="#/granja"><span>🪙</span><b>${g.coins}</b><small>monedas</small></a>
+      <div class="ks"><span>🔥</span><b>${st}</b><small>${st === 1 ? "día seguido" : "días seguidos"}</small></div>
+      <div class="ks"><span>📚</span><b>${m.length}</b><small>palabras aprendidas</small></div>
+      <div class="ks"><span>💎</span><b>${mast}</b><small>palabras que ya no olvidas</small></div>
+      <div class="ks"><span>🏅</span><b>${got}</b><small>de ${ach.length} medallas</small></div>
+    </div>
+    <div class="panel"><h2>📅 Mis días de estudio</h2><p class="sub">Cada día que aprendes ganas una estrella. ¡No rompas la racha!</p>
+      <div class="cal">${days.map(x => `<div class="cd ${x.n ? "on" : ""} ${x.today ? "today" : ""}"><span>${x.n ? "⭐" : ""}</span><small>${x.today ? "hoy" : x.l}</small></div>`).join("")}</div></div>
+    <div class="panel"><h2>🗺️ Mis niveles</h2><p class="sub">Completa todas las lecciones de un nivel para ganar su medalla.</p><div class="lvms">${lv}</div></div>
+    <div class="panel"><h2>🏅 Mis medallas</h2><div class="achs">${ach.map(x => `<div class="ach ${x.ok ? "ok" : ""}"><span class="ae">${x.e}</span><b>${esc(x.t)}</b><small>${esc(x.d)}</small>
+      ${x.ok ? `<i class="done">✓ ¡Conseguida!</i>` : `<div class="abar"><i style="width:${Math.round(100 * x.v / x.goal)}%"></i></div><small>${x.v} / ${x.goal}</small>`}</div>`).join("")}</div></div>
+    <details class="panel adult"><summary>👨‍👩‍👦 Para mayores: detalle por documento e instalación</summary><div id="adult"></div></details>`;
+  const det = document.querySelector("details.adult");
+  det.ontoggle = () => { if(det.open && !$("#adult").innerHTML) progreso($("#adult")); };
+}
+
 /* ---------- rutas ---------- */
 async function route(){
   autoTok++; if(state.fc) state.fc.auto = false; if("speechSynthesis" in window) speechSynthesis.cancel();
   const h = location.hash.replace(/^#\/?/,"");
   try{
+    await getShop();
     if(h.startsWith("doc/")){
       const id = h.slice(4);
       if(state.doc!==id){ state.doc=id; state.q=""; state.lvl=""; state.fc={i:0,flip:false,order:null,rev:false}; state.test=null; }
@@ -1538,13 +1833,14 @@ async function route(){
     else if(h.startsWith("gramatica")){ state.doc=null; await gramatica(h.split("/")[1]); }
     else if(h.startsWith("leccion/")){ state.doc=null; await leccion(h.slice(8)); }
     else if(h.startsWith("repaso")){ state.doc=null; await repaso(); }
-    else if(h.startsWith("progreso")){ state.doc=null; await progreso(); }
+    else if(h.startsWith("progreso")){ state.doc=null; await premios(); }
+    else if(h.startsWith("granja")){ state.doc=null; await granja(); }
     else { state.doc=null; await home(); }
   }catch(e){ $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
   if(!h.startsWith("mapa")) window.scrollTo(0,0);
 }
 window.addEventListener("hashchange", route);
-renderLangs(); updBadge(); route();
+renderLangs(); updBadge(); paintCoins(); route();
 </script>
 </body>
 </html>
