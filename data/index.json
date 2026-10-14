@@ -591,5 +591,485 @@
 "français",
 "dansk"
 ]
+},
+{
+"id": "a44",
+"num": 44,
+"title": "Personas y relaciones",
+"group": "avanzado",
+"count": 82,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a45",
+"num": 45,
+"title": "El cuerpo y la salud",
+"group": "avanzado",
+"count": 94,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a46",
+"num": 46,
+"title": "Comida, casa y ropa (1)",
+"group": "avanzado",
+"count": 61,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a47",
+"num": 47,
+"title": "Comida, casa y ropa (2)",
+"group": "avanzado",
+"count": 60,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a48",
+"num": 48,
+"title": "Ciudad, lugares y viajes",
+"group": "avanzado",
+"count": 96,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a49",
+"num": 49,
+"title": "Trabajo y negocios (1)",
+"group": "avanzado",
+"count": 54,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a50",
+"num": 50,
+"title": "Trabajo y negocios (2)",
+"group": "avanzado",
+"count": 54,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a51",
+"num": 51,
+"title": "Educación y tiempo",
+"group": "avanzado",
+"count": 85,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a52",
+"num": 52,
+"title": "Naturaleza y medio ambiente",
+"group": "avanzado",
+"count": 74,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a53",
+"num": 53,
+"title": "Tecnología y medios",
+"group": "avanzado",
+"count": 63,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a54",
+"num": 54,
+"title": "Ocio, deporte, arte y cultura",
+"group": "avanzado",
+"count": 89,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a55",
+"num": 55,
+"title": "Dinero y economía",
+"group": "avanzado",
+"count": 59,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a56",
+"num": 56,
+"title": "Sociedad, política y ley (1)",
+"group": "avanzado",
+"count": 71,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a57",
+"num": 57,
+"title": "Sociedad, política y ley (2)",
+"group": "avanzado",
+"count": 71,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a58",
+"num": 58,
+"title": "Sociedad, política y ley (3)",
+"group": "avanzado",
+"count": 70,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a59",
+"num": 59,
+"title": "Ciencia, cantidades y medidas",
+"group": "avanzado",
+"count": 92,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a60",
+"num": 60,
+"title": "Mente, sentimientos y carácter (1)",
+"group": "avanzado",
+"count": 64,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a61",
+"num": 61,
+"title": "Mente, sentimientos y carácter (2)",
+"group": "avanzado",
+"count": 63,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a62",
+"num": 62,
+"title": "Ideas y conceptos (1)",
+"group": "avanzado",
+"count": 76,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a63",
+"num": 63,
+"title": "Ideas y conceptos (2)",
+"group": "avanzado",
+"count": 76,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a64",
+"num": 64,
+"title": "Ideas y conceptos (3)",
+"group": "avanzado",
+"count": 76,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a65",
+"num": 65,
+"title": "Ideas y conceptos (4)",
+"group": "avanzado",
+"count": 73,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a66",
+"num": 66,
+"title": "Verbos esenciales y de movimiento",
+"group": "avanzado",
+"count": 100,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a67",
+"num": 67,
+"title": "Verbos de comunicación (1)",
+"group": "avanzado",
+"count": 59,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a68",
+"num": 68,
+"title": "Verbos de comunicación (2)",
+"group": "avanzado",
+"count": 59,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a69",
+"num": 69,
+"title": "Verbos de pensamiento y percepción",
+"group": "avanzado",
+"count": 89,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a70",
+"num": 70,
+"title": "Verbos de la vida diaria",
+"group": "avanzado",
+"count": 96,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a71",
+"num": 71,
+"title": "Verbos de cambio, trabajo y procesos (1)",
+"group": "avanzado",
+"count": 95,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a72",
+"num": 72,
+"title": "Verbos de cambio, trabajo y procesos (2)",
+"group": "avanzado",
+"count": 95,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a73",
+"num": 73,
+"title": "Verbos de cambio, trabajo y procesos (3)",
+"group": "avanzado",
+"count": 95,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a74",
+"num": 74,
+"title": "Adjetivos: aspecto y sensaciones",
+"group": "avanzado",
+"count": 82,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a75",
+"num": 75,
+"title": "Adjetivos: personalidad y emociones (1)",
+"group": "avanzado",
+"count": 63,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a76",
+"num": 76,
+"title": "Adjetivos: personalidad y emociones (2)",
+"group": "avanzado",
+"count": 62,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a77",
+"num": 77,
+"title": "Adjetivos: valoración y cualidades (1)",
+"group": "avanzado",
+"count": 76,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a78",
+"num": 78,
+"title": "Adjetivos: valoración y cualidades (2)",
+"group": "avanzado",
+"count": 76,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a79",
+"num": 79,
+"title": "Adjetivos: valoración y cualidades (3)",
+"group": "avanzado",
+"count": 75,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a80",
+"num": 80,
+"title": "Adjetivos: otros (1)",
+"group": "avanzado",
+"count": 91,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a81",
+"num": 81,
+"title": "Adjetivos: otros (2)",
+"group": "avanzado",
+"count": 90,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a82",
+"num": 82,
+"title": "Adverbios",
+"group": "avanzado",
+"count": 98,
+"langs": [
+"english",
+"français",
+"dansk"
+]
+},
+{
+"id": "a83",
+"num": 83,
+"title": "Preposiciones, conectores y expresiones",
+"group": "avanzado",
+"count": 52,
+"langs": [
+"english",
+"français",
+"dansk"
+]
 }
 ]
