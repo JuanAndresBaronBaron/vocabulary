@@ -453,6 +453,7 @@ details.adult[open] summary{margin-bottom:10px}
     <a class="hbtn" href="#/granja">🏡<span class="lb"> Granja</span></a>
     <a class="hbtn" href="#/progreso">🏆<span class="lb"> Premios</span></a>
     <a class="hbtn coin" href="#/granja" title="Tus monedas">🪙 <span id="coins">0</span></a>
+    <button class="hbtn" id="snd-b" title="Sonidos" aria-label="Sonidos">🔔</button>
     <button class="hbtn" id="theme-b" title="Modo claro / oscuro" aria-label="Modo claro / oscuro"></button>
     <button class="hbtn" id="cfg-b" title="Voz y velocidad" aria-label="Voz y velocidad">⚙️</button>
     <button class="hbtn" id="inst" hidden>📲<span class="lb"> Instalar</span></button>
@@ -476,6 +477,11 @@ let lang = store.get("lang","english"); if(!LANGS[lang]) lang="english";
 let rate = store.get("rate",0.9);
 let INDEX = null; const CACHE = {};
 const $ = s => document.querySelector(s);
+/* conexión con los módulos js/*.js: eventos, rutas y huecos de la portada */
+const bus = {h:{}, on(e, f){ (this.h[e] = this.h[e] || []).push(f); }, emit(e, d){ (this.h[e] || []).forEach(f => { try{ f(d); }catch(err){ console.error(err); } }); }};
+const ROUTES = {};      /* ROUTES["juegos"] = async partes => {...}   (#/juegos/…) */
+const HOME_ACTS = [];   /* {href, e, t, sub, color} botones grandes extra de la portada */
+const HOME_SLOTS = [];  /* async () => html, se pinta bajo los botones grandes */
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 
 /* ---------- audio ---------- */
@@ -647,7 +653,7 @@ async function rvStart(){
 function rvDraw(){
   if(!rv) return;
   if(rv.i >= rv.q.length){
-    award(10, "¡Repaso terminado!");
+    award(10, "¡Repaso terminado!"); bus.emit("review-done", {n: rv.total});
     $("#app").innerHTML = `<div class="pr-setup pr-end" style="margin:0 auto">${heroHtml(90)}<h2>¡Repaso terminado! 🎉</h2>
       <p class="sub">Repasaste ${rv.total} palabra${rv.total>1?"s":""} y ganaste 🪙 ${rv.coins + 10}. Racha: 🔥 ${streak()} día${streak()===1?"":"s"}.</p>
       <div class="pr-row" style="justify-content:center"><a class="btn pri" href="#/granja" style="text-decoration:none">🏡 Ir a mi granja</a><a class="btn" href="#/mapa" style="text-decoration:none">🗺️ Seguir el camino</a></div></div>`;
@@ -677,6 +683,7 @@ function rvDraw(){
     document.querySelectorAll("[data-g]").forEach(b => b.onclick = () => {
       autoTok++; speechSynthesis && speechSynthesis.cancel();
       const g = +b.dataset.g; srsGrade(id, r, g); if(g){ award(g, "", true); rv.coins += g; }
+      bus.emit("review-card", {grade: g, es: r.es, word: d.word});
       if(g===0) rv.q.push(rv.q[rv.i]); else rv.done++;
       rv.i++; rv.flip = false; rvDraw();
     });
@@ -722,7 +729,7 @@ async function downloadAll(){
   if(!("caches" in window)){ msg.textContent = "Este navegador no permite guardar la web sin internet."; return; }
   b.disabled = true;
   try{
-    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_en.json", "data/grammar_fr.json", "data/grammar_da.json", "data/game.json", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
+    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_en.json", "data/grammar_fr.json", "data/grammar_da.json", "data/game.json", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
     let k = 0;
     for(const d of idx){ urls.add(`data/${d.id}.json`); const doc = await getDoc(d.id); doc.rows.forEach(r => r.img && urls.add(r.img)); msg.textContent = `Leyendo documentos… ${++k}/${idx.length}`; }
     const c = await caches.open(CACHE_NAME), list = [...urls];
@@ -778,7 +785,9 @@ async function home(){
       <a class="ba a2" href="#/repaso">🔁<b>Repasar</b><small>${dueList().length ? dueList().length + " palabras te esperan" : "Todo al día"}</small></a>
       <a class="ba a3" href="#/granja">🏡<b>Mi granja</b><small>🪙 ${game().coins} monedas</small></a>
       <a class="ba a4" href="#/progreso">🏆<b>Premios</b><small>${achList().filter(x=>x.ok).length} medallas</small></a>
+      ${HOME_ACTS.map(a => `<a class="ba" style="background:${a.color}" href="${a.href}">${a.e}<b>${esc(a.t)}</b><small>${esc(a.sub || "")}</small></a>`).join("")}
     </div>
+    ${(await Promise.all(HOME_SLOTS.map(f => Promise.resolve().then(f).catch(e => { console.error(e); return ""; })))).join("")}
     ${await mapCta()}
     <p style="margin:6px 0 0"><a href="#/gramatica" style="color:var(--brand);font-weight:600;text-decoration:none">📘 Gramática de ${LANGS[lang].name} por niveles, de A1 a C2 →</a></p>
     <h2 style="margin-top:34px">📚 Todas las palabras</h2>
@@ -949,6 +958,7 @@ function test(doc){
     if(t.answered===t.i) return; t.answered=t.i;
     const pick = opts[+b.dataset.i], good = pick===r;
     if(good) t.ok++;
+    bus.emit("answer", {ok: good, es: r.es, word: r.l[lang].word, where: "test"});
     srsGrade(state.doc, r, good ? 2 : 0);
     document.querySelectorAll(".opt").forEach(x => { if(opts[+x.dataset.i]===r) x.classList.add("ok"); });
     if(!good) b.classList.add("bad");
@@ -1201,13 +1211,13 @@ function prRun(doc, s){
       if(ok) return advance();
       const res = dictCheck(inp.value, ex);
       if(res.ok){
-        ok = true; inp.classList.remove("bad"); inp.classList.add("ok"); inp.readOnly = true;
+        ok = true; inp.classList.remove("bad"); inp.classList.add("ok"); inp.readOnly = true; bus.emit("answer", {ok: true, where: "practice"});
         msg.className = "pr-msg ok"; msg.innerHTML = res.perfect ? "¡Perfecto! ✓" : `Casi perfecto ✓ <div class="diff">${res.html}</div>`;
         btn.textContent = "Siguiente →"; btn.focus({preventScroll:true});
         card.querySelector(".tr").hidden = false;
         if(prUI.auto && res.perfect) (async () => { const t3 = ++autoTok; await sleep(1200); if(t3===autoTok && prUI.auto && document.body.contains(flow)) advance(); })();
       } else {
-        fails++; inp.classList.add("bad"); msg.className = "pr-msg bad";
+        fails++; inp.classList.add("bad"); msg.className = "pr-msg bad"; bus.emit("answer", {ok: false, where: "practice"});
         msg.innerHTML = `${res.hits} de ${res.total} palabras bien. En rojo lo que falta o cambia:<div class="diff">${res.html}</div>`;
         if(fails >= 2){ btn.textContent = "Seguir →"; ok = true; card.querySelector(".tr").hidden = false; }
         sayP(ex, card.querySelector(".say.xl"));
@@ -1221,14 +1231,14 @@ function prRun(doc, s){
       if(ok) return advance();
       const res = checkAnswer(inp.value, r.l[lang].word);
       if(res === "ok" || res === "accents"){
-        ok = true; inp.classList.remove("bad"); inp.classList.add("ok"); inp.disabled = true;
+        ok = true; inp.classList.remove("bad"); inp.classList.add("ok"); inp.disabled = true; bus.emit("answer", {ok: true, es: r.es, word: r.l[lang].word, where: "practice"});
         msg.className = "pr-msg ok";
         msg.innerHTML = res==="ok" ? (failed ? "Bien, ahora sí ✓" : "¡Correcto! ✓") : `Casi: revisa tildes o letras especiales: <b>${esc(r.l[lang].word)}</b>`;
         btn.textContent = "Siguiente →"; btn.focus({preventScroll:true});
         const exEl = card.querySelector(".ex"); if(exEl) exEl.hidden = false;
         play().then(ok2 => { if(ok2) autoNext(); });
       } else {
-        failed = true; inp.classList.add("bad");
+        failed = true; inp.classList.add("bad"); bus.emit("answer", {ok: false, es: r.es, word: r.l[lang].word, where: "practice"});
         msg.className = "pr-msg bad";
         msg.innerHTML = `Era <b>${esc(r.l[lang].word)}</b>. Escríbela para seguir.`;
         inp.select();
@@ -1507,6 +1517,7 @@ function lsStep(){
     const pick = b => {
       if(st.done) return; st.done = true;
       const ok = b.dataset.o === st.right;
+      bus.emit("answer", {ok, es: r.es, word: d.word, where: "lesson"});
       $(".ls-card").querySelectorAll(".opt").forEach(o => { o.disabled = true; if(o.dataset.o === st.right) o.classList.add("ok"); });
       if(!ok) b.classList.add("bad");
       const key = st.w.r.es;
@@ -1535,6 +1546,7 @@ function lsEnd(){
   const by = {}; for(const w of s.words) (by[w.doc] = by[w.doc] || []).push(w.r);
   let added = 0; for(const [d, rows] of Object.entries(by)) added += srsAdd(d, rows, 1);
   logAct(s.words.length || s.nq); updBadge();
+  bus.emit("lesson-done", {id: s.id, lv: s.lv, stars, first: !prev, grammar: !!s.g, words: s.words.map(w => ({doc: w.doc, es: w.r.es, word: w.r.l[lang].word}))});
   const ls = lvLessons(s.lv), i = ls.findIndex(l => l.id === s.id), nxt = ls[i+1];
   const lvDone = ls.every(l => P[l.id]);
   $("#app").innerHTML = `<div class="ls ls-end" style="--lc:${LVS[s.lv].c}">
@@ -1619,6 +1631,7 @@ function gStep(){
   const pick = b => {
     if(st.done) return; st.done = true;
     const ok = +b.dataset.k === q.a, key = q.s;
+    bus.emit("answer", {ok, where: "grammar"});
     $(".ls-card").querySelectorAll(".opt").forEach(o => { o.disabled = true; if(+o.dataset.k === q.a) o.classList.add("ok"); });
     if(!ok){ b.classList.add("bad"); s.miss.add(key); s.steps.push({t:"gq", q}); } else if(!s.miss.has(key)) s.first.add(key);
     const gap = $("#gap"); gap.textContent = right; gap.classList.add(ok ? "ok" : "bad");
@@ -1663,6 +1676,7 @@ function award(n, why, quiet){
   if(g.day !== day){ g.day = day; g.coins += 10; g.earned += 10; if(!quiet) setTimeout(() => coinPop(10, "¡Regalo del día!"), 2000); }
   g.coins += n; g.earned += n; gameSet(g);
   if(n && !quiet) coinPop(n, why);
+  bus.emit("coins", {n, why, quiet: !!quiet});
   setTimeout(checkAch, 1200);
 }
 /* medallas */
@@ -1695,7 +1709,7 @@ function checkAch(){
   if(fresh.length){
     for(const a of fresh) g.ach[a.id] = dayKey(new Date());
     g.coins += 20 * fresh.length; g.earned += 20 * fresh.length; gameSet(g);
-    fresh.forEach((a, i) => setTimeout(() => { toast(`${a.e} ¡Nueva medalla: ${a.t}! +20 🪙`); }, 400 + i * 2400));
+    fresh.forEach((a, i) => setTimeout(() => { toast(`${a.e} ¡Nueva medalla: ${a.t}! +20 🪙`); bus.emit("medal", a); }, 400 + i * 2400));
   }
   achBusy = false;
 }
@@ -1715,7 +1729,7 @@ function showGift(it){
     <button class="btn lc" id="gopen" style="--lc:#1f6fd1">Abrir el regalo</button></div>`;
   d.showModal();
   $("#gopen").onclick = () => {
-    $("#gbox").classList.add("open");
+    $("#gbox").classList.add("open"); bus.emit("gift-open", {item: it});
     setTimeout(() => {
       d.innerHTML = `<div class="gift"><div class="gbox got">${it ? it.e : "🪙"}</div>
         <h2>${it ? `¡Es ${esc(art(it.n))}!` : "¡50 monedas!"}</h2>
@@ -1759,14 +1773,15 @@ async function granja(){
         <div class="me-coins">🪙 <b>${g.coins}</b> monedas</div>
         <div class="count">Ganas monedas al terminar lecciones, repasar y conseguir medallas.</div></div></div>
     <h2>🏡 Mi granja</h2>
-    <div class="farm" id="farm"><span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>
+    <div id="farm-host">${typeof farmMount === "function" ? "" : `<div class="farm" id="farm"><span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>
       <div class="farm-hero">${heroHtml(54, g)}</div>${items}
       ${farm.length ? "" : `<div class="farm-empty">Tu granja está vacía. ¡Compra animales y plantas en la tienda!</div>`}
       <div class="farm-tip" id="farm-tip" hidden></div></div>
-    ${farm.length ? `<p class="count" style="text-align:center">Toca un animal o una planta para oír cómo se dice en ${LANGS[lang].name}.</p>` : ""}
+    ${farm.length ? `<p class="count" style="text-align:center">Toca un animal o una planta para oír cómo se dice en ${LANGS[lang].name}.</p>` : ""}`}</div>
     <h2>🛒 Tienda</h2>
     <div class="shop-tabs">${tabs}</div>
     <div class="shop">${cards}</div>`;
+  if(typeof farmMount === "function") farmMount($("#farm-host"));
   $("#me-name").onchange = e => { const g = game(); g.name = e.target.value.trim(); gameSet(g); };
   document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { shopTab = b.dataset.tab; granja(); });
   document.querySelectorAll("[data-it]").forEach(b => b.onclick = () => {
@@ -1778,7 +1793,7 @@ async function granja(){
   });
   document.querySelectorAll("[data-buy]").forEach(b => b.onclick = () => {
     const it = itemById(b.dataset.buy), g = game(); if(g.coins < it.p || g.owned[it.id]) return;
-    g.coins -= it.p; g.owned[it.id] = true; if(it.t !== "farm") g.wear[it.t] = it.id; gameSet(g);
+    g.coins -= it.p; g.owned[it.id] = true; if(it.t !== "farm") g.wear[it.t] = it.id; gameSet(g); bus.emit("buy", {item: it});
     toast(`¡Nuevo! ${it.e} ${it.n} = ${itemWord(it)}`); say(itemWord(it)); granja(); setTimeout(checkAch, 800);
   });
   document.querySelectorAll("[data-wear]").forEach(b => b.onclick = () => {
@@ -1835,12 +1850,19 @@ async function route(){
     else if(h.startsWith("repaso")){ state.doc=null; await repaso(); }
     else if(h.startsWith("progreso")){ state.doc=null; await premios(); }
     else if(h.startsWith("granja")){ state.doc=null; await granja(); }
+    else if(ROUTES[h.split("/")[0]]){ state.doc=null; document.onkeydown = null; await ROUTES[h.split("/")[0]](h.split("/").slice(1)); }
     else { state.doc=null; await home(); }
-  }catch(e){ $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
+  }catch(e){ console.error(e); $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
   if(!h.startsWith("mapa")) window.scrollTo(0,0);
+  bus.emit("route", {h});
 }
 window.addEventListener("hashchange", route);
-renderLangs(); updBadge(); paintCoins(); route();
+document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); bus.emit("boot"); route(); });
 </script>
+<script src="js/sfx.js"></script>
+<script src="js/farm.js"></script>
+<script src="js/games.js"></script>
+<script src="js/buddy.js"></script>
+<script src="js/album.js"></script>
 </body>
 </html>
