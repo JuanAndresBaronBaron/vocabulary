@@ -1,6 +1,6 @@
 /* App sin internet: la página y los datos van primero a la red (siempre la última versión)
    y, sin conexión, salen de la caché; las imágenes salen de la caché y si no, de la red. */
-const CACHE = "vocab-v2";
+const CACHE = "vocab-v3";
 const SHELL = ["./", "index.html", "data/index.json", "data/map.json", "manifest.webmanifest", "icons/icon-192.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
