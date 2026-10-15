@@ -409,7 +409,7 @@ function paintNav(){
   w.innerHTML = `<button type="button" class="sv-nb" id="sv-nb" title="Entrar con Google">${G}<span>Entrar con Google</span></button>`
     + `<button type="button" class="sv-inf" id="sv-inf" aria-label="¿Para qué sirve?" aria-expanded="false" aria-controls="sv-tip">i</button>`
     + `<span class="sv-tip" id="sv-tip" role="tooltip">${TIP}</span>`;
-  coin.before(w);
+  placeNav(w, coin);
   const inf = w.querySelector(".sv-inf");
   inf.onclick = e => { e.stopPropagation(); const o = w.classList.toggle("open"); inf.setAttribute("aria-expanded", o); };
   w.querySelector(".sv-nb").onclick = e => {
@@ -428,6 +428,14 @@ function paintNav(){
   };
   if(online()) loadGis().catch(() => {});   /* así la ventana de Google se abre en el mismo toque */
 }
+/* en el móvil el menú está lleno: el botón va en su propia fila al principio de la página (no flota encima) */
+const NARROW = window.matchMedia("(max-width:819px)");
+function placeNav(w, coin){
+  w = w || $s("sv-nav"); if(!w) return;
+  if(NARROW.matches){ const m = document.querySelector("main"); if(m && w.parentNode !== m) m.prepend(w); }
+  else { coin = coin || document.querySelector(".hnav .coin"); if(coin && w.nextSibling !== coin) coin.before(w); }
+}
+try{ NARROW.addEventListener("change", () => placeNav()); }catch(e){}
 document.addEventListener("click", e => {
   const w = $s("sv-nav"); if(w && w.classList.contains("open") && !w.contains(e.target)){ w.classList.remove("open"); const i = $s("sv-inf"); if(i) i.setAttribute("aria-expanded", "false"); }
 });
@@ -543,7 +551,7 @@ const CSS = `
 .sv-nav.open .sv-tip{display:block}
 @media (hover:hover){.sv-inf:hover+.sv-tip,.sv-inf:focus-visible+.sv-tip{display:block}}
 @media (prefers-reduced-motion: reduce){.sv-nb{animation:none}}
-@media (max-width:819px){html.sv-gnav main{padding-top:58px}.sv-nav{position:absolute;right:16px;top:calc(100% + 8px);margin:0}.sv-nb{box-shadow:0 3px 10px rgba(5,20,40,.35)}}
+@media (max-width:819px){main>.sv-nav{display:flex;justify-content:flex-end;max-width:100%;margin:10px 16px 0}.sv-nb{border-color:#1f5fbf;box-shadow:0 2px 6px rgba(5,20,40,.2)}}
 @media (max-width:420px){.sv-rem{flex-direction:column;gap:6px}.sv-b{flex-basis:100%}}
 `;
 function css(){ if(document.getElementById("css-sync")) return; const s = document.createElement("style"); s.id = "css-sync"; s.textContent = CSS; document.head.appendChild(s); }

@@ -70,7 +70,11 @@ const TREE = {arbol: "pera", pino: "nido"};
 const BUILD = {tienda: "camp", cabana: "smoke", casa: "light", tractor: "drive", fuente: "spray", castillo: "fire", cohete: "launch"};
 const BIG = new Set(["tienda", "cabana", "casa", "tractor", "fuente", "castillo", "cohete", "molino"]);
 /* hacia dónde mira el emoji sin voltear: 1 = izquierda, -1 = derecha */
-const FACE = {oveja: -1, caballo: -1, tractor: -1};
+const FACE0 = {oveja: -1, caballo: -1, tractor: -1};
+/* los dibujos de cuerpo entero (img/pj) miran todos a la izquierda */
+const FACE = new Proxy(FACE0, {get: (o, k) => (typeof pjHas === "function" && pjHas(k)) ? 1 : o[k]});
+/* el animal dibujado (o su emoji si no hay dibujo) */
+const pj = (it, c) => typeof pjImg === "function" ? pjImg(it, c) : (it && it.e) || "";
 
 /* productos: francés con artículo, danés con en/et · c: monedas al recogerlo (los de los animales, 1: ver «Economía») */
 const PROD = {
@@ -257,7 +261,7 @@ function patchShop(ids){
     const it = itemById(id); if(!it) return;
     document.querySelectorAll(".shop .sc").forEach(sc => {
       const n = sc.querySelector(".sn"), e = sc.querySelector(".se");
-      if(!n || !e || n.textContent !== it.n || e.textContent !== it.e) return;
+      if(!n || !e || (sc.dataset.id ? sc.dataset.id !== id : (n.textContent !== it.n || e.textContent !== it.e))) return;
       sc.classList.add("own");
       sc.querySelectorAll(".btn.buy, .miss").forEach(x => x.remove());
       if(!sc.querySelector(".own")){ const o = document.createElement("span"); o.className = "own"; o.textContent = "✓ En tu granja"; sc.appendChild(o); }
@@ -318,17 +322,17 @@ HOME_SLOTS.push(async () => {
   if(!hung.length && !shel.length) return "";
   cssCare();
   const one = hung.length === 1 ? itemById(hung[0]) : null;
-  const title = hung.length ? (one ? `${one.e} ${cap(elA(hung[0]))} tiene hambre` : "🐄 Tus animales tienen hambre") : "🏚️ Animales en el refugio";
+  const title = hung.length ? (one ? `${cap(elA(hung[0]))} tiene hambre` : "🐄 Tus animales tienen hambre") : "🏚️ Animales en el refugio";
   const sick = hung.filter(id => heartsS(s, id) === 0);
   const sub = !hung.length ? "" : sick.length ? `🤒 ${cap(joinY(sick.map(elA)))} ${sick.length === 1 ? (ANIM[sick[0]].f ? "está malita" : "está malito") : "están malitos"}: ¡${hung.length === 1 ? "dale" : "dales"} de comer pronto!`
     : one ? `¡Dale de comer para que esté ${ANIM[hung[0]].f ? "contenta" : "contento"}! ❤️` : `¡Dales de comer para que estén contentos! ❤️`;
-  const faces = hung.map(id => { const it = itemById(id), h = heartsS(s, id); return it ? `<span class="fm-hcf${h === 0 ? " sk" : ""}"><span class="fm-hce" aria-hidden="true">${it.e}</span><span class="fm-hch" role="img" aria-label="${h} de 3 corazones">${h === 0 ? "🤒" : ""}${heartsHtml(h)}</span><small>${esc(it.n)}</small></span>` : ""; }).join("");
+  const faces = hung.map(id => { const it = itemById(id), h = heartsS(s, id); return it ? `<span class="fm-hcf${h === 0 ? " sk" : ""}"><span class="fm-hce" aria-hidden="true">${pj(it)}</span><span class="fm-hch" role="img" aria-label="${h} de 3 corazones">${h === 0 ? "🤒" : ""}${heartsHtml(h)}</span><small>${esc(it.n)}</small></span>` : ""; }).join("");
   const fresh = shel.filter(id => !s.shelter[id].seen), old = shel.filter(id => s.shelter[id].seen);
   const shTxt = [
     fresh.length ? `😢 ${cap(joinY(fresh.map(elA)))} tenía${fresh.length > 1 ? "n" : ""} mucha hambre y se ${fresh.length > 1 ? "fueron" : "fue"} al refugio. Allí ${fresh.length > 1 ? "los" : ANIM[fresh[0]].f ? "la" : "lo"} cuidan bien. ¡Puedes traer${fresh.length > 1 ? "los" : ANIM[fresh[0]].f ? "la" : "lo"} de vuelta!` : "",
-    old.length ? `🏚️ En el refugio: ${old.map(id => itemById(id).e).join(" ")} ¡Te esperan!` : ""].filter(Boolean).map(t => `<p class="fm-hs">${t}</p>`).join("");
+    old.length ? `🏚️ En el refugio: ${old.map(id => pj(itemById(id), "pj-sm")).join(" ")} ¡Te esperan!` : ""].filter(Boolean).map(t => `<p class="fm-hs">${t}</p>`).join("");
   return `<section class="panel fm-home" id="fm-home" aria-label="Tus animales">
-    <h2>${esc(title)}</h2>${sub ? `<p class="fm-hsub">${sub}</p>` : ""}
+    <h2>${one ? pj(one, "pj-sm") + " " : ""}${esc(title)}</h2>${sub ? `<p class="fm-hsub">${sub}</p>` : ""}
     ${faces ? `<div class="fm-hcs">${faces}</div>` : ""}${shTxt}
     <a class="btn lc fm-hgo" href="#/granja" style="--lc:#0f7a72"${hung.length ? "" : " data-shel"}>${hung.length ? (one ? "🍽️ ¡A darle de comer!" : "🍽️ ¡A darles de comer!") : "🏚️ Ir al refugio"}</a></section>`;
 });
@@ -489,7 +493,7 @@ function mount(host){
   function render(id, force){
     const el = els[id], it = itemById(id); if(!el || !it) return;
     if(el._busy && !force) return;
-    const k = kindOf(id); let badge = "", c = "", g = it.e, lbl = it.n;
+    const k = kindOf(id); let badge = "", c = "", g = k === "animal" ? pj(it) : it.e, lbl = it.n;
     if(k === "animal"){
       /* corazones encima: 🍽️ si tiene hambre, 🤒 si está malito (con 3❤️ puede comer, pero no tiene hambre) */
       const h = Math.max(0, hearts(id)), eat = needy(id);
@@ -622,7 +626,7 @@ function mount(host){
   }
   function openHelp(){
     play("tap");
-    const he = (itemById(game().wear.hero) || {}).e || "🦊";
+    const he = pj(itemById(game().wear.hero) || itemById("zorro"), "pj-sm") || "🦊";
     const d = dlg(`<h2>¿Cómo se juega? 🏡</h2><ul class="fm-help-l">
       <li><span>👆</span>Toca una cosa: oirás cómo se dice en ${LANGS[lang].name}.</li>
       <li><span>🍽️</span>¿Tiene hambre? Tócalo y dale su comida. Luego te pregunta su nombre: ¡si aciertas, regalo doble! 🎁🎁</li>
@@ -752,7 +756,7 @@ function mount(host){
     if(k === "animal") return tapAnimal(id);
     if(k === "plant") return tapPlant(id);
     if(k === "build") return tapBuild(id);
-    hop(el); play("tap"); bubble(wordBub(it.e, iw(it), it.n), el); speak(iw(it));
+    hop(el); play("tap"); bubble(wordBub(pj(it), iw(it), it.n), el); speak(iw(it));
   }
   function tapAnimal(id){
     const it = itemById(id), el = els[id], A = ANIM[id];
@@ -760,7 +764,7 @@ function mount(host){
     if(hungry(id)){ play("tap"); cls(el, "wig", 700); walkNear(id); openFeed(id); return; }
     const woke = asleep(id); awake[id] = now() + 30000;
     hop(el); heart(el); play(A.moo ? "moo" : "pop");
-    bubble(wordBub(it.e, iw(it), it.n, woke ? "¡Me has despertado! 🥱" : fullTxt(id)), el); speak(iw(it));
+    bubble(wordBub(pj(it), iw(it), it.n, woke ? "¡Me has despertado! 🥱" : fullTxt(id)), el); speak(iw(it));
     render(id); resume(id, 2600);
   }
   const fullTxt = id => `¡Está lleno! 😋 Podrá comer en ${fmtLeft(HMS(FULL_H) - sinceFed(s, id))}`;
@@ -784,7 +788,7 @@ function mount(host){
   /* tocar un animal con hambre: elegir su comida de la despensa */
   function openFeed(id){
     const it = itemById(id), A = ANIM[id], right = A.eats, R = FOOD[right], h = Math.max(0, hearts(id));
-    const d = dlg(`<div class="fm-qe" aria-hidden="true"><span class="${h === 0 ? "fm-qsk" : ""}">${it.e}</span><span class="fm-qb">${h === 0 ? "🤒" : "🍽️"}</span></div>
+    const d = dlg(`<div class="fm-qe" aria-hidden="true"><span class="${h === 0 ? "fm-qsk" : ""}">${pj(it)}</span><span class="fm-qb">${h === 0 ? "🤒" : "🍽️"}</span></div>
       <div class="fm-qh"><span class="fm-hpill" role="img" aria-label="${h} de 3 corazones">${heartsHtml(h)}</span></div>
       <div class="fm-fb"></div>
       <p class="fm-qm" aria-live="polite"></p>
@@ -834,7 +838,7 @@ function mount(host){
   function giveFood(id, fid){
     const it = itemById(id), el = els[id], A = ANIM[id]; if(!el || !A || inShelterS(s, id)) return;
     freeze(id);
-    if(!hungry(id)){ hop(el); play("tap"); bubble(wordBub(it.e, iw(it), it.n, fullTxt(id)), el); speak(iw(it)); resume(id, 2600); return; }
+    if(!hungry(id)){ hop(el); play("tap"); bubble(wordBub(pj(it), iw(it), it.n, fullTxt(id)), el); speak(iw(it)); resume(id, 2600); return; }
     if(fid !== A.eats){ cls(el, "no", 500); play("bad"); bubble(msg(puaj(id, fid)), el, 4500); resume(id, 2600); return; }
     if(!((s.pan[fid] || 0) > 0)){ resume(id, 1200); openPantry(fid); return; }
     walkNear(id);
@@ -872,7 +876,7 @@ function mount(host){
     /* lo que se promete es lo que pasa: con muchos regalos suyos en el suelo (PROD_MAX) ya no caen más */
     const room = PROD_MAX - Object.values(s.prod).filter(P => P.a === id).length;
     const prize = room <= 0 ? "🥚 Primero recoge sus regalos del suelo" : res.keys.length ? "Si aciertas: 🎁🎁 ¡regalo doble!" : "Si aciertas: 🎁 un regalo";
-    d.innerHTML = `<div class="fm-qe" aria-hidden="true"><span>${it.e}</span><span class="fm-qb">💬</span></div>
+    d.innerHTML = `<div class="fm-qe" aria-hidden="true"><span>${pj(it)}</span><span class="fm-qb">💬</span></div>
       <div class="fm-qh"><span class="fm-hpill" role="img" aria-label="3 de 3 corazones">${heartsHtml(3)}</span></div>
       <p class="fm-qt">¡Gracias! 😋 Ahora dime: ¿cómo me llamo en ${LANGS[lang].name}?</p>
       <p class="fm-qs">${prize}</p>
@@ -894,7 +898,7 @@ function mount(host){
       } else {
         b.classList.add("bad"); play("bad"); speak(right);
         const okB = d.querySelector(`.fm-opt[data-fo="${id}"]`); if(okB){ okB.disabled = false; okB.classList.add("ok"); okB.onclick = null; }
-        m.className = "fm-qm info"; m.innerHTML = `Me llamo <b>«${esc(right)}»</b> ${it.e}<br>${res.keys.length ? "🎁 ¡Te dejo un regalo!" : res.weak ? "Estaba muy débil y hoy no hay regalo. ¡Dame de comer cada día! 💪" : "🥚 ¡Recoge mis regalos del suelo!"}`;
+        m.className = "fm-qm info"; m.innerHTML = `Me llamo <b>«${esc(right)}»</b> ${pj(it, "pj-sm")}<br>${res.keys.length ? "🎁 ¡Te dejo un regalo!" : res.weak ? "Estaba muy débil y hoy no hay regalo. ¡Dame de comer cada día! 💪" : "🥚 ¡Recoge mis regalos del suelo!"}`;
         x.textContent = "Seguir ➜"; x.classList.add("lc"); x.style.setProperty("--lc", "#1f6fd1");
       }
     });
@@ -915,7 +919,7 @@ function mount(host){
     let n = 0;
     for(const key of res.keys) if(s.prod[key] && !layer.querySelector(`[data-pk="${key}"]`)){ const i = n++; later(() => { if(s.prod[key] && !layer.querySelector(`[data-pk="${key}"]`)){ makeProd(key, true); play("pop"); } }, i * 300); }
     if(ANIM[id].moo) play("moo");
-    bubble(wordBub(it.e, iw(it), it.n, n > 1 ? "¡Gracias! Te dejo 2 regalos 🎁🎁" : n ? "¡Gracias! Te dejo un regalo 🎁" : res.weak ? "¡Gracias! ¡Ya me siento mejor! 💪" : "¡Gracias! Recoge mis regalos 🥚"), el, 3400);
+    bubble(wordBub(pj(it), iw(it), it.n, n > 1 ? "¡Gracias! Te dejo 2 regalos 🎁🎁" : n ? "¡Gracias! Te dejo un regalo 🎁" : res.weak ? "¡Gracias! ¡Ya me siento mejor! 💪" : "¡Gracias! Recoge mis regalos 🥚"), el, 3400);
     resume(id, 3000); tasks();
   }
   /* guarda un producto junto a su animal o árbol (como mucho 2 a la vez) */
@@ -957,7 +961,7 @@ function mount(host){
     hop(el); play("tap");
     if(p.s >= 2){   /* árbol grande */
       const t = topOf(el, .3); for(let i = 0; i < 3; i++) later(() => fx("🍃", t.x + rnd(-6, 6), t.y + rnd(0, 8), "fm-leaf", 1600), i * 160);
-      bubble(wordBub(it.e, w, it.n, hasProd(id) ? "Mira lo que hay en el suelo 👇" : "Pronto dará un regalo 🎁"), el); speak(w); return;
+      bubble(wordBub(pj(it), w, it.n, hasProd(id) ? "Mira lo que hay en el suelo 👇" : "Pronto dará un regalo 🎁"), el); speak(w); return;
     }
     const can = canWater(id) || s.drops > 0;
     bubble(wordBub(`${p.s <= 0 ? "🌱" : "🌿"}<small>→</small>${it.e}`, w, it.n, can ? "¡Riégame! 💧" : `Crece… vuelve en ${fmtLeft(WATER - (now() - plant(id).w))}`), el); speak(w);
@@ -987,7 +991,7 @@ function mount(host){
     later(() => {
       render(id, true); cls(el, "grow", 750);
       const ripe = plant(id).s >= 2;
-      if(ripe){ play("ok"); burst(el, "✨", 6); bubble(wordBub(it.e, iw(it), it.n, TREE[id] ? "¡Ha crecido un montón! 🌳" : "✨ ¡Ya está lista! ¡Cosecha!"), el); speak(iw(it)); if(TREE[id]) checkTrees(); }
+      if(ripe){ play("ok"); burst(el, "✨", 6); bubble(wordBub(pj(it), iw(it), it.n, TREE[id] ? "¡Ha crecido un montón! 🌳" : "✨ ¡Ya está lista! ¡Cosecha!"), el); speak(iw(it)); if(TREE[id]) checkTrees(); }
       else bubble(msg(`💧 ¡Glu, glu! ¡Está creciendo!${free ? "" : "<br>Usaste 1 💧 extra."}`), el, 2600);
       tasks();
     }, 800);
@@ -997,7 +1001,7 @@ function mount(host){
     walkNear(id);
     upd(st => { st.pl[id].s = 0; });
     flyTo(el, it.e); burst(el, "✨", 6);
-    bubble(wordBub(it.e, w, it.n, "¡Cosechado! 🧺"), el); speak(w);
+    bubble(wordBub(pj(it), w, it.n, "¡Cosechado! 🧺"), el); speak(w);
     award(PLANT[id] || 3, `¡${cap(artEs(it.n))}!`);
     el._busy = true; cls(el, "pluck", 460);
     later(() => { el._busy = false; render(id, true); cls(el, "grow", 750); tasks(); }, 470);
@@ -1017,9 +1021,9 @@ function mount(host){
     if(el._busy) return;
     if(act === "light" && (ph === "night" || ph === "dusk")){
       upd(st => st.light = !lit()); render(id, true); hop(el); play(lit() ? "pop" : "tap");
-      bubble(wordBub(it.e, w, it.n, lit() ? "💡 ¡Luz encendida!" : "🌙 Luz apagada"), el); speak(w); return;
+      bubble(wordBub(pj(it), w, it.n, lit() ? "💡 ¡Luz encendida!" : "🌙 Luz apagada"), el); speak(w); return;
     }
-    bubble(wordBub(it.e, w, it.n), el); speak(w);
+    bubble(wordBub(pj(it), w, it.n), el); speak(w);
     if(act === "launch") return launch(el);
     if(act === "drive") return drive(el, id);
     hop(el);
@@ -1156,8 +1160,8 @@ function mount(host){
     F.res.push(ok); if(ok) F.ok++; F.round++;
     emit("farm-find", {ok});
     const dd = fb.querySelector(".fm-dots"); if(dd) dd.outerHTML = dots();
-    if(ok){ play("ok"); hop(el); burst(el, "⭐", 5); bubble(wordBub(it.e, w, it.n, "¡Muy bien! ✅"), el, 1400); }
-    else { play("bad"); cls(el, "no", 500); cls(tEl, "hl", 2300); bubble(wordBub(it.e, w, it.n, "¡Casi! ¡Está aquí! 👇"), tEl || el, 2300); speak(w); }
+    if(ok){ play("ok"); hop(el); burst(el, "⭐", 5); bubble(wordBub(pj(it), w, it.n, "¡Muy bien! ✅"), el, 1400); }
+    else { play("bad"); cls(el, "no", 500); cls(tEl, "hl", 2300); bubble(wordBub(pj(it), w, it.n, "¡Casi! ¡Está aquí! 👇"), tEl || el, 2300); speak(w); }
     later(nextRound, ok ? 1300 : 2500);
   }
   function endFind(){
@@ -1182,7 +1186,7 @@ function mount(host){
   /* ---------- despensa, refugio y avisos ---------- */
   /* comidas que hacen falta: las de sus animales (también los del refugio) y las que ya tiene */
   const neededFoods = () => Object.keys(FOOD).filter(k => ownedAnimals().some(id => ANIM[id].eats === k) || (s.pan[k] || 0) > 0);
-  const eatersOf = k => ownedAnimals().filter(id => ANIM[id].eats === k).map(id => (itemById(id) || {}).e || "").join("");
+  const eatersOf = k => ownedAnimals().filter(id => ANIM[id].eats === k).map(id => pj(itemById(id), "pj-sm")).join("");
   function openPantry(focus){
     if(dlgOpen()) return;
     play("tap");
@@ -1236,7 +1240,7 @@ function mount(host){
       const ids = Object.keys(s.shelter).filter(id => itemById(id));
       list.innerHTML = ids.length ? ids.map(id => {
         const it = itemById(id), w = iw(it), F = FOOD[ANIM[id].eats];
-        return `<div class="fm-prow" data-sh="${id}"><span class="fm-pe2" aria-hidden="true">${it.e}</span>
+        return `<div class="fm-prow" data-sh="${id}"><span class="fm-pe2" aria-hidden="true">${pj(it)}</span>
           <span class="fm-pt"><span class="fm-pw"><b>${esc(w)}</b><button type="button" class="say" data-say="${esc(w)}" aria-label="Escuchar ${esc(w)}" title="Escuchar">🔊</button></span>
             <small>${esc(it.n)} · come ${F.e} ${esc(F.n)}</small></span>
           <span class="fm-pbs one"><button type="button" class="fm-pb res" data-rescue="${id}">🏡 Traer a casa · 🪙 ${rescuePrice(it)}</button></span></div>`;
@@ -1253,7 +1257,7 @@ function mount(host){
       upd(st => { delete st.shelter[id]; st.fed[id] = now() - HMS(RESCUE_H); });
       emit("farm-rescue", {item: it});
       play("gift"); speak(iw(it));
-      m.className = "fm-qm ok"; m.innerHTML = `${it.e} ¡${cap(elA(id))} vuelve a casa! 🏡`;
+      m.className = "fm-qm ok"; m.innerHTML = `${pj(it, "pj-sm")} ¡${cap(elA(id))} vuelve a casa! 🏡`;
       comeBack(id); back.push(id); paint();
     });
     d.addEventListener("close", () => {
@@ -1261,7 +1265,7 @@ function mount(host){
       const id = back[back.length - 1], el = els[id], it = itemById(id), F = FOOD[ANIM[id].eats];
       if(!el) return;
       freeze(id); cls(el, "hl", 2500); resume(id, 2800);
-      later(() => bubble(wordBub(it.e, iw(it), it.n, `¡Gracias por rescatarme! Tengo hambre: dame ${F.e} ${F.n}`), el, 4500), 300);
+      later(() => bubble(wordBub(pj(it), iw(it), it.n, `¡Gracias por rescatarme! Tengo hambre: dame ${F.e} ${F.n}`), el, 4500), 300);
     });
   }
   /* vuelve del refugio: aparece en la granja */
@@ -1297,7 +1301,7 @@ function mount(host){
     upd(st => ids.forEach(id => st.shelter[id].seen = true));
     const pl = ids.length > 1, lo = pl ? "los" : ANIM[ids[0]].f ? "la" : "lo";
     const d = dlg(`<div class="fm-wel">🏚️</div><h2>${pl ? "Se fueron al refugio" : `${cap(elA(ids[0]))} se fue al refugio`}</h2>
-      <div class="fm-dep" aria-hidden="true">${ids.map(id => itemById(id).e).join(" ")}</div>
+      <div class="fm-dep" aria-hidden="true">${ids.map(id => pj(itemById(id))).join(" ")}</div>
       <p class="fm-sub">${pl ? `${cap(joinY(ids.map(elA)))} tenían` : "Tenía"} mucha hambre 😢. En el refugio ${lo} cuidan muy bien. ¡No te preocupes!</p>
       <p class="fm-sub">Puedes traer${lo} de vuelta: toca el cartel <b>🏚️ Refugio</b>.</p>
       <div class="fm-dbtns"><button type="button" class="btn lc fm-go" style="--lc:#0f7a72">🏚️ Ver el refugio</button><button type="button" class="btn fm-x">Vale</button></div>`);
@@ -1311,7 +1315,7 @@ function mount(host){
     const an = Object.keys(els).filter(id => ANIM[id]); if(!an.length) return 0;
     const days = Math.max(2, Math.floor(away / HMS(24))), n = an.filter(id => needy(id)).length;
     const d = dlg(`<div class="fm-wel">🥰</div><h2>¡Te echaban de menos!</h2>
-      <div class="fm-dep" aria-hidden="true">${an.map(id => itemById(id).e).join(" ")}</div>
+      <div class="fm-dep" aria-hidden="true">${an.map(id => pj(itemById(id))).join(" ")}</div>
       <p class="fm-sub">Hace ${days} días que no venías.${n ? "<br>Tienen hambre: ¡dales de comer! 🍽️" : "<br>¡Qué bien que has vuelto!"}</p>
       <button type="button" class="btn lc fm-ok" style="--lc:#1f6fd1">¡Hola, animales! 👋</button>`);
     d.querySelector(".fm-ok").onclick = () => d.close();
@@ -1610,7 +1614,7 @@ function mount(host){
     if(!first && away >= HMS(MISS_H)) intro.push(() => missYou());
     if(fresh.length){
       const id = fresh[fresh.length - 1], it = itemById(id), k = kindOf(id);
-      intro.push(() => { if(!els[id]) return 0; bubble(wordBub(it.e, iw(it), it.n, k === "animal" ? "¡Nuevo! Tiene hambre 🍽️" : k === "plant" ? "¡Nuevo! Riégalo 💧" : "¡Nuevo! Tócalo ✨"), els[id], 4500); return 4600; });
+      intro.push(() => { if(!els[id]) return 0; bubble(wordBub(pj(it), iw(it), it.n, k === "animal" ? "¡Nuevo! Tiene hambre 🍽️" : k === "plant" ? "¡Nuevo! Riégalo 💧" : "¡Nuevo! Tócalo ✨"), els[id], 4500); return 4600; });
     } else if(news > 0) intro.push(() => { bubble(msg(`📚 ¡Ganaste ${news} 💧 de agua extra por aprender!<br>Pulsa «Regar» para usarla.`), hero, 5000); return 5100; });
   }
   goShel = false;
@@ -1722,6 +1726,11 @@ function css(){
 .fm-stage.watering .fm-it:not(.k-plant),.fm-stage.watering .fm-prod{filter:saturate(.55) brightness(.92)}
 .fm-body{position:relative;display:block;transform:scaleX(var(--fx,1));transition:transform .2s}
 .fm-e{position:relative;display:block;line-height:1.05;transform-origin:50% 90%;filter:drop-shadow(0 2px 1px rgba(0,0,0,.18))}
+.fm-e .pj{display:block;width:1.4em;height:1.15em}
+@media (min-width:561px){.fm-e .pj{width:1.6em;height:1.3em}}
+.fm-qe .pj{display:block;width:1.35em;height:1.15em}
+.fm-hce .pj,.fm-pe2 .pj{display:block;margin:0 auto}
+.fm-dep .pj{width:1.2em;height:1.05em}
 .fm-sh{position:absolute;left:50%;bottom:-.04em;width:.9em;height:.2em;border-radius:50%;background:rgba(0,0,0,.2);transform:translateX(-50%);pointer-events:none}
 .fm-it.fly .fm-e{translate:0 -.45em;animation:fmHover 1.3s ease-in-out infinite}
 .fm-it.fly .fm-sh{width:.5em;opacity:.6}
