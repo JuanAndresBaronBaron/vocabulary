@@ -62,7 +62,7 @@ function hasProgress(keys){ const s = S.summary(keys); return s.earned >= 30 || 
 
 /* ---------- estado guardado ---------- */
 const DEF = {fileId: null, remoteModified: null, baseHash: null, lastPushedHash: null, localDirty: false,
-  connectedAt: null, lastSync: null, hint: null, reconnect: null, choice: false};
+  connectedAt: null, lastSync: null, lastPull: null, hint: null, reconnect: null, choice: false, tapAt: 0};
 function meta(){ const m = S.metaGet(M.sync, null); return Object.assign({}, DEF, isObj(m) ? m : {}); }
 function setMeta(p){ const m = Object.assign(meta(), p); S.metaSet(M.sync, m); return m; }
 const connected = () => !!meta().connectedAt;
@@ -116,9 +116,13 @@ function askToken(interactive){
 let lastSilent = 0;
 function markReconnect(){ dropTok(); if(connected() && !meta().reconnect) setMeta({reconnect: now()}); }
 function clearReconnect(){ if(meta().reconnect) setMeta({reconnect: null}); }
+/* ¿hay un toque del usuario en curso? Entonces el navegador SÍ dejaría abrir la ventana de Google: el intento
+   automático no se hace para no abrir nada solo mientras el niño juega (solo se abre desde tapInTap/chip/botones) */
+const activeTap = () => { try{ return !!(navigator.userActivation && navigator.userActivation.isActive); }catch(e){ return false; } };
 async function ensureTok(){
   if(tokOk()) return;
   if(meta().reconnect && now() - lastSilent < T.silentGap) throw new SErr("reconnect");
+  if(activeTap()){ markReconnect(); throw new SErr("reconnect"); }
   lastSilent = now();
   try{ await askToken(false); }
   catch(e){ if(e && e.code === "offline") throw e; markReconnect(); throw new SErr("reconnect"); }
@@ -254,7 +258,7 @@ async function run(why){
   let remote = null;
   if(m.fileId){ try{ remote = await getMeta(m.fileId); }catch(e){ if(!e || e.code !== "gone") throw e; } }
   if(!remote) remote = await findFile();
-  lastCheck = now();
+  lastCheck = now(); m = setMeta({lastPull: now()});
   if(!remote){ await push(null, keys, lh, hidden); return; }
   if(remote.id !== m.fileId) m = setMeta({fileId: remote.id});
   const rh = (remote.appProperties && remote.appProperties.hash) || null;
@@ -279,6 +283,7 @@ async function run(why){
 /* primera vez en este aparato (o pendiente de elegir) */
 async function firstSync(){
   const remote = await findFile();
+  setMeta({lastPull: now()});
   const keys = S.collect(true), lh = hashKeys(keys);
   if(!remote){ setMeta({connectedAt: meta().connectedAt || now(), choice: false}); await push(null, keys, lh, false); return; }
   const p = S.parse(await download(remote.id));
@@ -314,14 +319,14 @@ function schedule(){
 }
 const dirtyNow = () => { const m = meta(); return !!m.connectedAt && !m.choice && localHash() !== m.baseHash; };
 ["coins", "lesson-done", "review-done", "farm-feed", "farm-harvest", "farm-collect", "buy", "game-done", "medal", "gift-open", "album-complete", "route"]
-  .forEach(ev => bus.on(ev, () => { if(connected()) schedule(); }));
+  .forEach(ev => bus.on(ev, () => { if(connected()){ schedule(); paintChip(); } }));
 let pollI = 0;
 function startPoll(){
   if(pollI) return;
   pollI = setInterval(() => {
     if(!connected() || !visible()) return;
     if(dirtyNow()) schedule();
-    paintStatus();
+    paintStatus(); paintChip(); preGis();
   }, T.poll);
 }
 let lastVis = 0;
@@ -333,6 +338,63 @@ document.addEventListener("visibilitychange", () => {
 window.addEventListener("pagehide", () => { if(dirtyNow()) sync("hide"); });
 window.addEventListener("online", () => { if(connected()) sync("online"); });
 window.addEventListener("offline", () => { if(connected()) setPhase("offline"); });
+
+/* ---------- renovar el permiso dentro de un toque del niño ----------
+   El permiso de Google dura ~1 hora y renovarlo abre (y cierra sola) una ventanita de Google, que el navegador
+   solo deja abrir dentro de un toque. Así que se renueva:
+   - con el chip «☁️ Guardar» de la cabecera (cuando hace falta y hay algo sin subir o hace más de 1 h que no se mira)
+   - de paso, en toques que el niño ya hace fuera de una pregunta (fin de lección, abrir la granja, «Camino»),
+     como mucho una vez cada 50 min y solo si el permiso caduca en 5 min o ya caducó. */
+const TAP_GAP = 50 * MIN, SOON = 5 * MIN;
+const tokLeft = () => isObj(tok) && typeof tok.exp === "number" ? tok.exp - now() : -1;
+/* llamar SIEMPRE desde dentro de un manejador de click: requestAccessToken se llama en el mismo toque */
+function renewInTap(force){
+  const m = meta();
+  if(!m.connectedAt || m.choice || !online() || !gisReady()) return null;
+  if(!force && (tokLeft() > SOON || now() - (m.tapAt || 0) < TAP_GAP)) return null;
+  setMeta({tapAt: now()}); lastSilent = now();
+  const p = askToken(false);   /* con GIS ya cargado, la ventana se pide aquí mismo, dentro del toque */
+  return p.then(() => { clearReconnect(); if(phase === "reconnect") setPhase("busy"); paintChip(); return sync("tap"); })
+    .catch(e => { if(e && e.code !== "superseded" && !tokOk()) markReconnect(); paintChip(); throw e; });
+}
+/* el script de Google se tiene preparado cuando el permiso va a hacer falta pronto */
+function preGis(){
+  const m = meta();
+  if(m.connectedAt && !m.choice && online() && !gisReady() && (m.reconnect || tokLeft() < 10 * MIN)) loadGis().catch(() => {});
+}
+const OPP = '.ls-end a, .ls-end button, a[href="#/granja"], a.ba[href="#/mapa"], .hnav a[data-nav="mapa"]';
+document.addEventListener("click", e => {
+  const a = e.target.closest && e.target.closest(OPP); if(!a) return;
+  const p = renewInTap(false); if(p) p.catch(() => {});
+}, true);
+
+/* chip «☁️ Guardar» junto a las monedas */
+function chipWanted(){
+  const m = meta();
+  if(!m.connectedAt || m.choice || tokOk() || !(m.reconnect || phase === "reconnect")) return false;
+  return dirtyNow() || !m.lastPull || now() - m.lastPull > 60 * MIN;
+}
+function paintChip(){
+  const want = chipWanted();
+  let c = $s("sv-chip");
+  if(!want){ if(c) c.remove(); return; }
+  preGis();
+  if(c) return;
+  const coin = document.querySelector(".hnav .coin"); if(!coin) return;
+  css();
+  c = document.createElement("button");
+  c.type = "button"; c.id = "sv-chip"; c.className = "sv-chip";
+  c.title = "Guardar tu partida en Google"; c.innerHTML = `<b aria-hidden="true">☁️</b><span>Guardar</span>`;
+  c.onclick = () => {
+    c.disabled = true;
+    const p = renewInTap(true);
+    if(!p){ c.disabled = false; try{ toast(online() ? "☁️ Un momento y vuelve a tocar" : "📴 Sin internet: se guardará luego"); }catch(e){} if(online()) loadGis().catch(() => {}); return; }
+    p.then(() => { if(!chipWanted()) try{ toast("☁️ ¡Partida guardada!"); }catch(e){} })
+     .catch(() => { try{ toast("☁️ No se pudo guardar ahora. Prueba luego."); }catch(e){} })
+     .finally(() => { const x = $s("sv-chip"); if(x) x.disabled = false; paintChip(); });
+  };
+  coin.before(c);
+}
 
 /* ---------- entrar y salir ---------- */
 const AUTH_MSG = {
@@ -356,7 +418,7 @@ async function connect(){
     .catch(e => { if(!connected()) msg("No se pudo hablar con Google Drive. Inténtalo otra vez en un rato.", "bad"); onErr(e); if(!connected()) setPhase("off"); });
 }
 function disconnect(){
-  const t = tok && tok.t;
+  const t = tok && tok.t; const c = $s("sv-chip"); if(c) c.remove();
   dropTok(); S.metaDel(M.sync); choice = null;
   clearTimeout(pushT); pushT = 0; clearTimeout(retryT);
   if(t && online()){
@@ -423,6 +485,15 @@ const CSS = `
 .sv-rem .sv-row{margin:0;align-items:center}
 .sv-rem .btn.lc{min-height:46px;display:inline-flex;align-items:center;text-decoration:none}
 .sv-later{min-height:44px;background:none;border:0;color:var(--muted);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer;padding:0 10px}
+.sv-chip{flex:none;min-height:44px;min-width:44px;padding:0 14px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:#1a7f9e;color:#fff;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;animation:svpulse 2.4s ease-in-out infinite;-webkit-tap-highlight-color:transparent}
+.sv-chip span{margin-left:6px}
+.sv-chip:disabled{opacity:.7;animation:none}
+.hnav .sv-chip{margin-left:auto}.hnav .sv-chip+.coin{margin-left:0}
+.sv-chip:focus-visible{outline:3px solid #fff;outline-offset:2px}
+@keyframes svpulse{0%,100%{box-shadow:0 0 0 0 rgba(90,200,230,.55)}50%{box-shadow:0 0 0 7px rgba(90,200,230,0)}}
+@media (prefers-reduced-motion: reduce){.sv-chip{animation:none}}
+@media (max-width:819px){.sv-chip{position:absolute;right:16px;top:calc(100% + 8px);box-shadow:0 3px 10px rgba(5,20,40,.35)}
+  @keyframes svpulse{0%,100%{box-shadow:0 3px 10px rgba(5,20,40,.35),0 0 0 0 rgba(90,200,230,.55)}50%{box-shadow:0 3px 10px rgba(5,20,40,.35),0 0 0 7px rgba(90,200,230,0)}}}
 @media (max-width:420px){.sv-rem{flex-direction:column;gap:6px}.sv-b{flex-basis:100%}}
 `;
 function css(){ if(document.getElementById("css-sync")) return; const s = document.createElement("style"); s.id = "css-sync"; s.textContent = CSS; document.head.appendChild(s); }
@@ -476,13 +547,15 @@ function paintStatus(){
   const ok = $s("sv-ok"); if(ok && phase === "ok") ok.textContent = `✅ Sincronizado con Google · última vez ${agoMin(meta().lastSync)}`;
 }
 function paint(){
-  cfgPaint();
+  cfgPaint(); paintChip();
   const d = $s("sv-dyn"); if(!d) return;
   const focus = document.activeElement && d.contains(document.activeElement) ? document.activeElement.id : "";
   d.innerHTML = statusHtml();
   const on = (id, f) => { const b = $s(id); if(b) b.onclick = f; };
   on("sv-g", connect); on("sv-re", connect); on("sv-out", disconnect);
-  on("sv-now", () => { msg(""); lastSilent = 0; sync("manual"); });
+  on("sv-now", () => { msg(""); lastSilent = 0;
+    if(!tokOk()){ const p = renewInTap(true); if(p){ p.catch(e => { if(e && e.code !== "superseded") msg(AUTH_MSG[e.code] || AUTH_MSG.gis, "bad"); }); return; } }
+    sync("manual"); });
   if(focus && $s(focus)) $s(focus).focus({preventScroll: true});
   paintSafe();
   if(phase === "choice" && choice) choiceBox();
@@ -652,7 +725,8 @@ bus.on("boot", () => {
   if(!connected()) return;
   startPoll();
   lastVis = now();
-  sync("boot");
+  preGis();
+  sync("boot").then(paintChip);
 });
 bus.on("route", d => {
   if(!String((d && d.h) || "").startsWith("progreso")) return;
@@ -662,7 +736,7 @@ bus.on("route", d => {
 
 /* para pruebas y para los mayores curiosos */
 window.vocabSync = Object.freeze({
-  sync: why => sync(why || "manual"), connect, disconnect, due, hash: localHash, hashKeys, score,
+  sync: why => sync(why || "manual"), connect, disconnect, due, hash: localHash, hashKeys, score, renewInTap, chipWanted,
   get state(){ return {phase, errCode, meta: meta(), tokOk: tokOk(), choice: !!choice}; },
   _delays(o){ Object.assign(T, o || {}); if(pollI){ clearInterval(pollI); pollI = 0; startPoll(); } if(pushT){ clearTimeout(pushT); pushT = 0; schedule(); } },
   _idle: () => chain,
