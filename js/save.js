@@ -12,9 +12,11 @@
    las claves del inventario de abajo; las demás no se tocan nunca. */
 (() => {
 "use strict";
+const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 
 const APP = "vocabulary", VER = 1;
-const MAX = 5 * 1024 * 1024;          /* tamaño máximo de un archivo o código (localStorage suele dar ~5 MB) */
+const MAX = 16 * 1024 * 1024;         /* tamaño máximo de un archivo o código: muy por encima de lo que cabe en
+                                         localStorage (~5 MB) aunque el JSON escape comillas y la ñ ocupe 2 bytes */
 const DAY = 864e5;
 const now = () => Date.now();          /* las pruebas pueden mover el reloj sustituyendo Date.now */
 
@@ -53,26 +55,35 @@ function typeOf(k){
   if(m && L.includes(m[2])) return "*";
   return null;
 }
-/* las claves de la app que hay ahora en localStorage, con su texto tal cual */
-function collect(){
-  const out = {};
+/* ¿el texto v vale para la clave k? (lo mismo comprueban la copia y la carga, así siempre se puede cargar lo guardado) */
+function valid(k, v){
+  const t = typeOf(k); if(!t || typeof v !== "string") return false;
+  let p; try{ p = JSON.parse(v); }catch(e){ return false; }
+  return t !== "o" || isObj(p);
+}
+/* las claves de la app que hay ahora en localStorage, con su texto tal cual
+   (good: solo las que se pueden volver a cargar; skipped cuenta las dañadas que se dejan fuera) */
+let skipped = 0;
+function collect(good){
+  const out = {}; if(good) skipped = 0;
   try{
     for(let i = 0; i < localStorage.length; i++){
       const k = localStorage.key(i);
-      if(typeOf(k)){ const v = localStorage.getItem(k); if(v !== null) out[k] = v; }
+      if(typeOf(k)){ const v = localStorage.getItem(k); if(v === null) continue;
+        if(good && !valid(k, v)){ skipped++; continue; } out[k] = v; }
     }
   }catch(e){}
   return out;
 }
-const snapshot = () => ({app: APP, v: VER, saved: new Date(now()).toISOString(), keys: collect()});
+const snapshot = () => ({app: APP, v: VER, saved: new Date(now()).toISOString(), keys: collect(true)});
 const metaGet = (k, d) => { try{ const v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); }catch(e){ return d; } };
 const metaSet = (k, v) => { try{ localStorage.setItem(k, JSON.stringify(v)); return true; }catch(e){ return false; } };
 const metaDel = k => { try{ localStorage.removeItem(k); }catch(e){} };
 
 /* ---------- leer y comprobar una partida ---------- */
-const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 const fail = err => ({ok: false, err});
-/* devuelve {ok, data:{saved, keys}, ignored} o {ok:false, err} */
+/* devuelve {ok, data:{saved, keys}, ignored, bad} o {ok:false, err}. Solo se rechaza la partida entera si falla su
+   estructura (app, v, keys); un dato suelto dañado se salta y se cuenta en bad */
 function parse(text){
   if(typeof text !== "string" || !text.trim()) return fail("El archivo está vacío.");
   if(text.length > MAX) return fail("Es demasiado grande para ser una partida de Vocabulario.");
@@ -81,17 +92,15 @@ function parse(text){
   if(typeof o.v !== "number" || !(o.v >= 1)) return fail("La partida está dañada (falta la versión). No se ha cambiado nada.");
   if(o.v > VER) return fail("Esta partida es de una versión más nueva de la app. Recarga la página para actualizarla y prueba otra vez.");
   if(!isObj(o.keys)) return fail("La partida está dañada (no tiene datos). No se ha cambiado nada.");
-  const keys = {}; let ignored = 0;
+  const keys = {}; let ignored = 0, bad = 0;
   for(const [k, v] of Object.entries(o.keys)){
-    const t = typeOf(k);
-    if(!t){ ignored++; continue; }
-    if(typeof v !== "string") return fail(`La partida está dañada (dato «${k}»). No se ha cambiado nada.`);
-    let p; try{ p = JSON.parse(v); }catch(e){ return fail(`La partida está dañada (dato «${k}»). No se ha cambiado nada.`); }
-    if(t === "o" && !isObj(p)) return fail(`La partida está dañada (dato «${k}»). No se ha cambiado nada.`);
+    if(!typeOf(k)){ ignored++; continue; }
+    if(!valid(k, v)){ bad++; continue; }
     keys[k] = v;
   }
+  if(bad && !Object.keys(keys).length) return fail("La partida está dañada (ningún dato se puede leer). No se ha cambiado nada.");
   const t = Date.parse(o.saved);
-  return {ok: true, data: {saved: isFinite(t) ? t : null, keys}, ignored};
+  return {ok: true, data: {saved: isFinite(t) ? t : null, keys}, ignored, bad};
 }
 
 /* ---------- resumen para comparar ---------- */
@@ -128,7 +137,11 @@ function apply(keys, mode){
     if(mode === "load") metaSet(META.last, now());
     else { const u = metaGet(META.undo, null); if(u && u.last) metaSet(META.last, u.last); else metaDel(META.last); metaDel(META.undo); }
   }catch(e){
-    try{ writeAll(before); }catch(e2){}
+    try{ writeAll(before); }catch(e2){
+      /* tampoco se pudo volver atrás: se conserva la copia para deshacer y se avisa */
+      if(lastBefore === null) metaDel(META.last); else metaSet(META.last, lastBefore);
+      return mode === "load" ? "rollback" : "No se pudo terminar de volver a la partida de antes porque el navegador no tiene sitio. Libera espacio y pulsa otra vez «↩️ Deshacer».";
+    }
     if(mode === "load") metaDel(META.undo);
     return "No hay sitio en el navegador para esta partida. No se ha cambiado nada.";
   }
@@ -197,6 +210,7 @@ const isIOS = () => { try{ const u = navigator.userAgent || ""; return /iPad|iPh
 const standalone = () => { try{ return navigator.standalone === true || matchMedia("(display-mode: standalone)").matches; }catch(e){ return false; } };
 
 /* ---------- fechas ---------- */
+const fmtShort = t => { const d = new Date(t); return d.toLocaleDateString("es", {day: "numeric", month: "short", year: "numeric"}) + " " + d.toLocaleTimeString("es", {hour: "2-digit", minute: "2-digit"}); };
 const fmtDate = t => { const d = new Date(t); return d.toLocaleDateString("es", {day: "numeric", month: "long", year: "numeric"}) + ", " + d.toLocaleTimeString("es", {hour: "2-digit", minute: "2-digit"}); };
 const ago = t => { const d = Math.floor((new Date(now()).setHours(0, 0, 0, 0) - new Date(t).setHours(0, 0, 0, 0)) / DAY);
   return d <= 0 ? "hoy" : d === 1 ? "ayer" : `hace ${d} días`; };
@@ -222,7 +236,7 @@ const CSS = `
 .sv-cmp{width:100%;border-collapse:collapse;font-size:.93rem;margin:0 0 10px}
 .sv-cmp th,.sv-cmp td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
 .sv-cmp th{color:var(--muted);font-weight:700;font-size:.82rem}
-.sv-cmp td:nth-child(n+2){font-weight:700;white-space:nowrap}
+.sv-cmp td:nth-child(n+2){font-weight:700;overflow-wrap:anywhere}
 .sv-cmp td:first-child{width:42%}
 .sv-warn{border:1px solid #d9a21b;background:color-mix(in srgb,#f2c94c 16%,var(--card));color:var(--ink);border-radius:10px;padding:9px 12px;margin:0 0 10px;font-size:.92rem}
 .sv-safe{margin:6px 0 8px;font-size:.92rem;color:var(--muted)}
@@ -282,7 +296,8 @@ function paintSafe(){
     : "ℹ️ No sabemos si este navegador protege los datos. Guarda una copia de vez en cuando.";
   const io = $s("sv-ios");
   if(io){ const show = isIOS() && !standalone(); io.hidden = !show;
-    if(show) io.innerHTML = "📱 <b>En iPhone o iPad</b>, Safari borra los datos de las webs que no se abren en 7 días. Para evitarlo: guarda aquí la partida, añade la app con <b>Compartir › «Añadir a pantalla de inicio»</b>, ábrela desde ese icono y carga allí la partida (la app del icono tiene sus propios datos)."; }
+    if(show) io.innerHTML = "📱 <b>En iPhone o iPad</b>, el navegador puede borrar los datos de las webs que no se abren en 7 días. Para evitarlo: guarda aquí la partida, añade la app a la <b>pantalla de inicio</b> (en Safari: <b>Compartir › «Añadir a pantalla de inicio»</b>), ábrela desde ese icono y carga allí la partida (la app del icono tiene sus propios datos).";
+      if(show){ const l = $s("sv-last"); if(l && io.previousElementSibling !== l) l.after(io); } }
 }
 const msg = (t, k) => { const m = $s("sv-msg"); if(m){ m.textContent = t; m.className = "sv-msg" + (k ? " " + k : ""); } };
 function markSaved(){ metaSet(META.last, now()); const l = $s("sv-last"); if(l) l.innerHTML = lastHtml(); }
@@ -292,18 +307,20 @@ function confirmBox(p, mode){
   const a = summary(collect()), b = summary(p.data.keys);
   const used = langs().filter(L => a.per[L].lessons || a.per[L].words || b.per[L].lessons || b.per[L].words);
   const by = (s, f) => used.length ? used.map(L => `${flag(L)} ${s.per[L][f]}`).join(" · ") : "0";
-  const fewer = b.coins < a.coins || total(b, "lessons") < total(a, "lessons") || total(b, "words") < total(a, "words") || b.animals < a.animals;
+  const less = [[b.coins < a.coins, "monedas"], [b.animals < a.animals, "animales"], [total(b, "lessons") < total(a, "lessons"), "lecciones"],
+    [total(b, "words") < total(a, "words"), "palabras"]].filter(x => x[0]).map(x => x[1]);
+  const fewer = less.length ? less.slice(0, -1).join(", ") + (less.length > 1 ? " y " : "") + less[less.length - 1] : "";
   const undo = mode === "undo";
   box.innerHTML = `<div class="sv-box" role="group" aria-labelledby="sv-c-h">
     <h3 id="sv-c-h">${undo ? "↩️ ¿Volver a la partida de antes?" : "📂 ¿Cargar esta partida?"}</h3>
     <table class="sv-cmp"><thead><tr><th></th><th>Ahora en este aparato</th><th>${undo ? "Partida de antes" : "En la partida"}</th></tr></thead><tbody>
-      <tr><td>📅 Guardada</td><td>—</td><td>${p.data.saved ? esc(fmtDate(p.data.saved)) : "—"}</td></tr>
+      <tr><td>📅 Guardada</td><td>—</td><td>${p.data.saved ? esc(fmtShort(p.data.saved)) : "—"}</td></tr>
       <tr><td>🪙 Monedas</td><td>${a.coins}</td><td>${b.coins}</td></tr>
       <tr><td>🐄 Animales de la granja</td><td>${a.animals}</td><td>${b.animals}</td></tr>
       <tr><td>🗺️ Lecciones del camino</td><td>${by(a, "lessons")}</td><td>${by(b, "lessons")}</td></tr>
       <tr><td>🔁 Palabras en repaso</td><td>${by(a, "words")}</td><td>${by(b, "words")}</td></tr>
     </tbody></table>
-    ${fewer ? `<p class="sv-warn">⚠️ ${undo ? "La partida de antes" : "Esta partida"} tiene menos progreso en algo que lo que hay ahora.</p>` : ""}
+    ${fewer ? `<p class="sv-warn">⚠️ ${undo ? "La partida de antes" : "Esta partida"} tiene menos ${fewer} que lo que hay ahora.</p>` : ""}
     <p style="margin:0 0 10px"><b>Esto reemplazará la partida de este aparato.</b> ${undo ? "" : "Antes guardaremos una copia por si quieres deshacerlo."}</p>
     <div class="sv-row" style="margin:0"><button class="btn pri sv-b" id="sv-yes" type="button">${undo ? "↩️ Sí, volver a la de antes" : "✅ Sí, cargar esta partida"}</button><button class="btn sv-b" id="sv-no" type="button">Cancelar</button></div></div>`;
   box.hidden = false;
@@ -311,6 +328,12 @@ function confirmBox(p, mode){
   $s("sv-yes").onclick = () => {
     $s("sv-yes").disabled = $s("sv-no").disabled = true;
     const err = apply(p.data.keys, mode);
+    if(err === "rollback"){
+      box.hidden = true; box.innerHTML = "";
+      const sec = $s("sv-box"); if(sec){ const w = document.createElement("div"); w.innerHTML = blockHtml(); sec.replaceWith(w.firstElementChild); wire(); }
+      msg("El navegador se quedó sin sitio a mitad de la carga y la partida puede estar incompleta. Pulsa «↩️ Deshacer» para volver a la de antes.", "bad");
+      return;
+    }
     if(err){ msg(err, "bad"); box.hidden = true; box.innerHTML = ""; } else msg("Cargando la partida…", "ok");
   };
   try{ box.scrollIntoView({block: "nearest", behavior: "smooth"}); }catch(e){}
@@ -320,13 +343,15 @@ function offer(text, mode){
   const p = parse(text);
   const box = $s("sv-confirm"); if(box){ box.hidden = true; box.innerHTML = ""; }
   if(!p.ok){ msg(p.err, "bad"); return; }
-  msg(p.ignored ? `(Se han ignorado ${p.ignored} datos que no son de esta app.)` : "");
+  msg([p.ignored ? `Se han ignorado ${p.ignored} datos que no son de esta app.` : "",
+    p.bad ? `${p.bad === 1 ? "Un dato estaba dañado y se ha saltado" : `${p.bad} datos estaban dañados y se han saltado`}; lo demás sí se puede cargar.` : ""].filter(Boolean).join(" "));
   confirmBox(p, mode);
 }
 
 function wire(){
   const text = () => JSON.stringify(snapshot());
-  $s("sv-save").onclick = () => { try{ download(fileName(), text()); markSaved(); msg(`✓ Guardado «${fileName()}». Mira en Descargas y guárdalo en un sitio seguro.`, "ok"); }catch(e){ console.error(e); msg("No se pudo guardar el archivo. Prueba con «Copiar código».", "bad"); } };
+  const skipNote = () => skipped ? ` (${skipped === 1 ? "un dato dañado no se ha podido incluir" : `${skipped} datos dañados no se han podido incluir`}; lo demás está completo.)` : "";
+  $s("sv-save").onclick = () => { try{ download(fileName(), text()); markSaved(); msg(`✓ Guardado «${fileName()}». Mira en Descargas y guárdalo en un sitio seguro.` + skipNote(), "ok"); }catch(e){ console.error(e); msg("No se pudo guardar el archivo. Prueba con «Copiar código».", "bad"); } };
   const sh = $s("sv-share");
   if(shareFile("{}")){
     sh.hidden = false;
@@ -334,7 +359,7 @@ function wire(){
       const f = shareFile(text());
       if(!f){ $s("sv-save").click(); return; }
       try{ await navigator.share({files: [f], title: "Partida de Vocabulario"}); markSaved(); msg("✓ Partida enviada.", "ok"); }
-      catch(e){ if(e && e.name === "AbortError") return; download(fileName(), text()); markSaved(); msg(`✓ No se pudo enviar, así que se ha descargado «${fileName()}».`, "ok"); }
+      catch(e){ if(e && e.name === "AbortError"){ msg("No se ha enviado nada."); return; } download(fileName(), text()); markSaved(); msg(`✓ No se pudo enviar, así que se ha descargado «${fileName()}».`, "ok"); }
     };
   }
   const fi = $s("sv-file");
@@ -353,9 +378,12 @@ function wire(){
     try{ if(navigator.clipboard && navigator.clipboard.writeText){ await navigator.clipboard.writeText(code); ok = true; } }catch(e){}
     ta.value = code; out.hidden = false;
     $s("sv-out-l").textContent = ok ? `Tu código (${code.length} letras):` : "Tu código: mantén pulsado (o Ctrl+C) para copiarlo";
-    markSaved();
-    if(ok) msg(`✓ Código copiado (${code.length} letras). Pégalo en un mensaje o una nota para guardarlo.`, "ok");
-    else { msg("El navegador no deja copiar solo: copia el código del cuadro a mano."); ta.focus(); ta.select(); }
+    if(ok){ markSaved(); msg(`✓ Código copiado (${code.length} letras). Pégalo en un mensaje o una nota para guardarlo.` + skipNote(), "ok"); }
+    else {
+      /* solo cuenta como copia cuando el mayor lo copia de verdad del cuadro */
+      ta.oncopy = () => { markSaved(); msg("✓ Código copiado. Pégalo en un mensaje o una nota para guardarlo." + skipNote(), "ok"); };
+      msg("El navegador no deja copiar solo: copia el código del cuadro a mano."); ta.focus(); ta.select();
+    }
   };
   $s("sv-in-go").onclick = async () => {
     let t; try{ t = await decode($s("sv-in").value); }catch(e){ msg(e.message, "bad"); return; }
@@ -433,7 +461,7 @@ function due(){
   if(typeof last === "number" && isFinite(last)) return t - last >= 7 * DAY;
   return t - firstSeen() >= 3 * DAY;
 }
-HOME_SLOTS.push(async () => {
+HOME_SLOTS.unshift(async () => {   /* el primero de la portada: sale poco y así el niño lo ve sin bajar */
   if(shownVisit || !due()) return "";
   shownVisit = true; css();
   return `<section class="panel sv-rem" id="sv-rem" aria-label="Guardar la partida">
@@ -453,7 +481,7 @@ document.addEventListener("click", e => {
 bus.on("boot", () => {
   firstSeen(); askPersist();
   let f = null; try{ f = sessionStorage.getItem(FLASH); sessionStorage.removeItem(FLASH); }catch(e){}
-  if(f) setTimeout(() => { try{ toast(f); }catch(e){} }, 400);
+  if(f){ goAdult = true; setTimeout(() => { try{ toast(f); }catch(e){} }, 400); }   /* tras cargar o deshacer: abrir Para mayores */
 });
 bus.on("route", d => {
   if(!String((d && d.h) || "").startsWith("progreso")){ return; }
