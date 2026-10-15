@@ -1,7 +1,7 @@
 /* App sin internet: la página y los datos van primero a la red (siempre la última versión)
    y, sin conexión, salen de la caché; las imágenes salen de la caché y si no, de la red. */
-const CACHE = "vocab-v7";
-const SHELL = ["./", "index.html", "data/index.json", "data/map.json", "data/game.json", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js", "js/save.js", "manifest.webmanifest", "icons/icon-192.png"];
+const CACHE = "vocab-v8";
+const SHELL = ["./", "index.html", "data/index.json", "data/map.json", "data/game.json", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js", "js/save.js", "js/sync.js", "manifest.webmanifest", "icons/icon-192.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {})); self.skipWaiting(); });
 self.addEventListener("activate", e => e.waitUntil(self.clients.claim()));
 self.addEventListener("fetch", e => {

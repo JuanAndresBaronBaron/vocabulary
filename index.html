@@ -748,7 +748,7 @@ async function progreso(el){
       <div class="legend"><span><i style="background:var(--ok)"></i>Dominadas (repaso cada 14 días o más)</span><span><i style="background:var(--brand);opacity:.6"></i>Aprendiendo</span></div>
       <table class="ptable"><thead><tr><th>Documento</th><th>Dominadas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
     <div class="panel"><h2>📲 En el móvil y sin internet</h2>
-      <p class="sub">Puedes instalar esta web como una app: en Android o en Chrome, botón «Instalar» arriba o menú ⋮ › «Instalar aplicación»; en iPhone, Safari › Compartir › «Añadir a pantalla de inicio». Tu progreso se guarda en cada dispositivo.</p>
+      <p class="sub">Puedes instalar esta web como una app: en Android o en Chrome, botón «Instalar» arriba o menú ⋮ › «Instalar aplicación»; en iPhone, Safari › Compartir › «Añadir a pantalla de inicio». Tu progreso se guarda en cada dispositivo (y en Google si lo conectas arriba).</p>
       <button class="btn pri" id="off-dl">⬇️ Descargar todo para usar sin internet</button> <span class="count" id="off-msg">${store.get("offline",false)?"Ya descargado en este dispositivo. Puedes volver a descargarlo para actualizarlo.":""}</span></div>`;
   $("#off-dl").onclick = downloadAll;
 }
@@ -760,7 +760,7 @@ async function downloadAll(){
   if(!("caches" in window)){ msg.textContent = "Este navegador no permite guardar la web sin internet."; return; }
   b.disabled = true;
   try{
-    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_en.json", "data/grammar_fr.json", "data/grammar_da.json", "data/game.json", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js", "js/save.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
+    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_en.json", "data/grammar_fr.json", "data/grammar_da.json", "data/game.json", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js", "js/save.js", "js/sync.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
     let k = 0;
     for(const d of idx){ urls.add(`data/${d.id}.json`); const doc = await getDoc(d.id); doc.rows.forEach(r => r.img && urls.add(r.img)); msg.textContent = `Leyendo documentos… ${++k}/${idx.length}`; }
     const c = await caches.open(CACHE_NAME), list = [...urls];
@@ -1917,5 +1917,6 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/buddy.js"></script>
 <script src="js/album.js"></script>
 <script src="js/save.js"></script>
+<script src="js/sync.js"></script>
 </body>
 </html>
