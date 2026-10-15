@@ -758,7 +758,7 @@ async function downloadAll(){
   if(!("caches" in window)){ msg.textContent = "Este navegador no permite guardar la web sin internet."; return; }
   b.disabled = true;
   try{
-    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_en.json", "data/grammar_fr.json", "data/grammar_da.json", "data/game.json", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
+    const idx = await getIndex(), urls = new Set(["./", "index.html", "data/index.json", "data/map.json", "data/grammar_en.json", "data/grammar_fr.json", "data/grammar_da.json", "data/game.json", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js", "js/save.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png"]);
     let k = 0;
     for(const d of idx){ urls.add(`data/${d.id}.json`); const doc = await getDoc(d.id); doc.rows.forEach(r => r.img && urls.add(r.img)); msg.textContent = `Leyendo documentos… ${++k}/${idx.length}`; }
     const c = await caches.open(CACHE_NAME), list = [...urls];
