@@ -396,6 +396,43 @@ function paintChip(){
   coin.before(c);
 }
 
+/* botón «Entrar con Google» en el menú hasta que se conecte, con ⓘ que explica para qué sirve */
+const TIP = "Para no perder tu avance (monedas, granja, lecciones y repasos), entra con Google. La partida se guarda sola y puedes seguir en otro móvil, tablet u ordenador.";
+function paintNav(){
+  let w = $s("sv-nav");
+  document.documentElement.classList.toggle("sv-gnav", !connected());
+  if(connected()){ if(w) w.remove(); return; }
+  if(w) return;
+  const coin = document.querySelector(".hnav .coin"); if(!coin) return;
+  css();
+  w = document.createElement("span"); w.id = "sv-nav"; w.className = "sv-nav";
+  w.innerHTML = `<button type="button" class="sv-nb" id="sv-nb" title="Entrar con Google">${G}<span>Entrar con Google</span></button>`
+    + `<button type="button" class="sv-inf" id="sv-inf" aria-label="¿Para qué sirve?" aria-expanded="false" aria-controls="sv-tip">i</button>`
+    + `<span class="sv-tip" id="sv-tip" role="tooltip">${TIP}</span>`;
+  coin.before(w);
+  const inf = w.querySelector(".sv-inf");
+  inf.onclick = e => { e.stopPropagation(); const o = w.classList.toggle("open"); inf.setAttribute("aria-expanded", o); };
+  w.querySelector(".sv-nb").onclick = e => {
+    const b = e.currentTarget; if(b.disabled) return;
+    w.classList.remove("open");
+    if(!online()){ try{ toast(AUTH_MSG.offline); }catch(x){} return; }
+    if(!gisReady()){ try{ toast("☁️ Un momento y vuelve a tocar"); }catch(x){} loadGis().catch(() => {}); return; }
+    b.disabled = true;
+    connect().finally(() => {
+      b.disabled = false;
+      if(!connected()){ try{ toast("No se ha terminado de entrar en Google. Puedes intentarlo otra vez."); }catch(x){} return; }
+      paintNav();
+      if(meta().choice) go();
+      else try{ toast("✅ ¡Conectado! Tu partida se guarda sola en Google."); }catch(x){}
+    });
+  };
+  if(online()) loadGis().catch(() => {});   /* así la ventana de Google se abre en el mismo toque */
+}
+document.addEventListener("click", e => {
+  const w = $s("sv-nav"); if(w && w.classList.contains("open") && !w.contains(e.target)){ w.classList.remove("open"); const i = $s("sv-inf"); if(i) i.setAttribute("aria-expanded", "false"); }
+});
+document.addEventListener("keydown", e => { if(e.key === "Escape"){ const w = $s("sv-nav"); if(w) w.classList.remove("open"); } });
+
 /* ---------- entrar y salir ---------- */
 const AUTH_MSG = {
   closed: "No se ha terminado de entrar en Google. Puedes intentarlo otra vez.",
@@ -494,6 +531,19 @@ const CSS = `
 @media (prefers-reduced-motion: reduce){.sv-chip{animation:none}}
 @media (max-width:819px){.sv-chip{position:absolute;right:16px;top:calc(100% + 8px);box-shadow:0 3px 10px rgba(5,20,40,.35)}
   @keyframes svpulse{0%,100%{box-shadow:0 3px 10px rgba(5,20,40,.35),0 0 0 0 rgba(90,200,230,.55)}50%{box-shadow:0 3px 10px rgba(5,20,40,.35),0 0 0 7px rgba(90,200,230,0)}}}
+.sv-nav{position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;margin-left:auto}
+.hnav .sv-nav+.coin{margin-left:0}
+.sv-nb{min-height:44px;padding:0 14px 0 10px;border-radius:999px;border:2px solid rgba(255,255,255,.6);background:#fff;color:#0b2545;font:inherit;font-weight:700;font-size:.98rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;animation:svpulse 2.4s ease-in-out infinite}
+.sv-nb svg{width:20px;height:20px;flex:none}
+.sv-nb:disabled{opacity:.7;animation:none}
+.sv-inf{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:#1f5fbf;color:#fff;font:700 1.15rem/1 Georgia,serif;font-style:italic;cursor:pointer;flex:none}
+.sv-nb:focus-visible,.sv-inf:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.sv-tip{display:none;position:absolute;right:0;top:calc(100% + 10px);z-index:60;width:min(300px,calc(100vw - 32px));padding:12px 14px;border-radius:12px;background:#0f2f57;color:#fff;font-size:.95rem;font-weight:500;line-height:1.4;white-space:normal;box-shadow:0 8px 24px rgba(5,20,40,.4);text-align:left}
+.sv-tip::before{content:"";position:absolute;right:16px;top:-7px;border:7px solid transparent;border-top:0;border-bottom-color:#0f2f57}
+.sv-nav.open .sv-tip{display:block}
+@media (hover:hover){.sv-inf:hover+.sv-tip,.sv-inf:focus-visible+.sv-tip{display:block}}
+@media (prefers-reduced-motion: reduce){.sv-nb{animation:none}}
+@media (max-width:819px){html.sv-gnav main{padding-top:58px}.sv-nav{position:absolute;right:16px;top:calc(100% + 8px);margin:0}.sv-nb{box-shadow:0 3px 10px rgba(5,20,40,.35)}}
 @media (max-width:420px){.sv-rem{flex-direction:column;gap:6px}.sv-b{flex-basis:100%}}
 `;
 function css(){ if(document.getElementById("css-sync")) return; const s = document.createElement("style"); s.id = "css-sync"; s.textContent = CSS; document.head.appendChild(s); }
@@ -547,7 +597,7 @@ function paintStatus(){
   const ok = $s("sv-ok"); if(ok && phase === "ok") ok.textContent = `✅ Sincronizado con Google · última vez ${agoMin(meta().lastSync)}`;
 }
 function paint(){
-  cfgPaint(); paintChip();
+  cfgPaint(); paintChip(); paintNav();
   const d = $s("sv-dyn"); if(!d) return;
   const focus = document.activeElement && d.contains(document.activeElement) ? document.activeElement.id : "";
   d.innerHTML = statusHtml();
@@ -722,6 +772,7 @@ document.addEventListener("click", e => {
 bus.on("boot", () => {
   const f = S.takeFlash();
   if(f){ if(f.adult) goAdult = true; setTimeout(() => { try{ toast(f.t); }catch(e){} }, 400); }
+  paintNav();
   if(!connected()) return;
   startPoll();
   lastVis = now();
