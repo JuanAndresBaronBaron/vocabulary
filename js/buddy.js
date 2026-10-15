@@ -248,7 +248,7 @@ function syncBuddy(h){
   b.root.classList.remove("out");
   if(on){
     b.me.innerHTML = heroHtml(heroSize());
-    b.peek.innerHTML = `<span aria-hidden="true">${esc((itemById(game().wear.hero) || {}).e || "🦊")}</span>`;
+    { const hi = itemById(game().wear.hero) || itemById("zorro"); b.peek.innerHTML = `<span aria-hidden="true">${typeof pjImg === "function" && hi ? pjImg(hi) : esc((hi || {}).e || "🦊")}</span>`; }
     watch(true); queueDodge();
   } else { watch(false); b.root.classList.remove("tuck"); b.peek.classList.remove("tuck"); }
 }

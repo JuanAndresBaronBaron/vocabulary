@@ -383,6 +383,16 @@ header .wrap{max-width:1320px}
 .hero .h-face{left:.42em;top:.42em;font-size:.45em}
 .hero .h-hand{right:-.18em;bottom:-.02em;font-size:.42em;transform:rotate(12deg)}
 .hero .h-pet{left:-.22em;bottom:-.04em;font-size:.4em}
+/* personajes y animales de cuerpo entero (img/pj): caja fija parecida a la del emoji para no mover nada */
+.pj{display:inline-block;width:1.3em;height:1.1em;object-fit:contain;object-position:50% 100%;vertical-align:-.18em;-webkit-user-drag:none;user-select:none}
+.pj.pj-sm{width:1.25em;height:1.05em;vertical-align:-.25em}
+.hero.pjh .h-base{left:0;top:0;width:100%;height:100%;font-size:1em}
+.hero.pjh .h-base .pj{display:block;width:100%;height:100%}
+.hero.pjh .h-hat{font-size:.4em;transform:translate(-50%,-80%) rotate(-10deg);transform-origin:50% 100%}
+.hero.pjh .h-face{font-size:.3em;transform:translate(-50%,-50%)}
+.hero.pjh .h-hand{left:-.06em;right:auto;bottom:-.03em;font-size:.32em;transform:rotate(-12deg)}
+.hero.pjh .h-pet{left:auto;right:-.2em;bottom:-.02em;font-size:.48em}
+.hero.pjh .h-pet .pj{display:block}
 .coin-pop{position:fixed;left:50%;top:84px;transform:translateX(-50%);background:#f2c94c;color:#3a2a00;border-radius:16px;padding:8px 18px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:40;text-align:center;animation:cpop 1.9s ease forwards;pointer-events:none}
 .coin-pop b{font-size:1.4rem;display:block}.coin-pop small{font-weight:700}
 @keyframes cpop{0%{opacity:0;transform:translate(-50%,20px) scale(.7)}15%{opacity:1;transform:translate(-50%,0) scale(1.08)}25%{transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-30px)}}
@@ -1682,7 +1692,25 @@ function gStep(){
 
 /* ---------- juego: monedas, personaje, granja y premios ---------- */
 let SHOP = [];
-async function getShop(){ if(!SHOP.length) SHOP = await fetch("data/game.json").then(r => r.json()).catch(() => []); return SHOP; }
+let SPR = {};   /* data/sprites.json: tamaño y dónde está la cabeza de cada personaje de cuerpo entero (img/pj) */
+async function getShop(){
+  if(!SHOP.length){
+    const [sh, sp] = await Promise.all([fetch("data/game.json").then(r => r.json()).catch(() => []), fetch("data/sprites.json").then(r => r.json()).catch(() => ({}))]);
+    SHOP = sh; SPR = sp && typeof sp === "object" ? sp : {};
+  }
+  return SHOP;
+}
+/* un personaje o animal de cuerpo entero; sin dibujo (o si no carga) se queda su emoji */
+const pjHas = id => !!(SPR && SPR[id]);
+function pjImg(it, cls){
+  if(!it) return "";
+  if(!pjHas(it.id)) return it.e || "";
+  return `<img class="pj${cls ? " " + cls : ""}" src="img/pj/${it.id}.png" alt="" draggable="false" data-e="${it.e || ""}">`;
+}
+document.addEventListener("error", e => {
+  const im = e.target; if(!im || im.tagName !== "IMG" || !im.classList.contains("pj")) return;
+  const sp = document.createElement("span"); sp.className = "pj-fb"; sp.textContent = im.dataset.e || ""; im.replaceWith(sp);
+}, true);
 const GDEF = {coins:0, earned:0, owned:{zorro:true}, wear:{hero:"zorro"}, ach:{}, name:"", gifts:0, day:""};
 const game = () => { const g = Object.assign(JSON.parse(JSON.stringify(GDEF)), store.get("game", {})); g.owned.zorro = true; return g; };
 function gameSet(g){ store.set("game", g); paintCoins(); }
@@ -1703,6 +1731,18 @@ const TYPES = [["hero","🦸","Personajes"],["hat","🎩","Sombreros"],["face","
 const itemWord = it => it.w[lang] || it.n;
 function heroHtml(size = 110, g = game()){
   const w = g.wear, E = id => (itemById(id) || {}).e || "";
+  const hid = itemById(w.hero) ? w.hero : "zorro", S = SPR[hid];
+  if(S && S.w && S.h){
+    /* caja de 1.3em × 1.25em: el dibujo va abajo y centrado; el sombrero y las gafas siguen a su cabeza */
+    const BW = 1.3, BH = 1.25, r = S.w / S.h, rw = r > BW / BH ? BW : BH * r, rh = rw / r, ox = (BW - rw) / 2, oy = BH - rh;
+    const at = (p, dx, dy) => `left:${((ox + (p[0] + dx) * rw) / BW * 100).toFixed(1)}%;top:${((oy + (p[1] + dy) * rh) / BH * 100).toFixed(1)}%`;
+    const head = S.head || [.25, .1], eye = S.eye || [head[0], head[1] + .12];
+    return `<div class="hero pjh" style="font-size:${size}px" aria-hidden="true">
+    <span class="h-base">${pjImg(itemById(hid))}</span>
+    ${w.pet ? `<span class="h-pet">${pjImg(itemById(w.pet))}</span>` : ""}
+    ${w.hat ? `<span class="h-hat" style="${at(head, 0, .02)}">${E(w.hat)}</span>` : ""}${w.face ? `<span class="h-face" style="${at(eye, 0, 0)}">${E(w.face)}</span>` : ""}
+    ${w.hand ? `<span class="h-hand">${E(w.hand)}</span>` : ""}</div>`;
+  }
   return `<div class="hero" style="font-size:${size}px" aria-hidden="true">
     ${w.pet ? `<span class="h-pet">${E(w.pet)}</span>` : ""}<span class="h-base">${E(w.hero) || "🦊"}</span>
     ${w.hat ? `<span class="h-hat">${E(w.hat)}</span>` : ""}${w.face ? `<span class="h-face">${E(w.face)}</span>` : ""}
@@ -1773,7 +1813,7 @@ function showGift(it){
   $("#gopen").onclick = () => {
     $("#gbox").classList.add("open"); bus.emit("gift-open", {item: it});
     setTimeout(() => {
-      d.innerHTML = `<div class="gift"><div class="gbox got">${it ? it.e : "🪙"}</div>
+      d.innerHTML = `<div class="gift"><div class="gbox got">${it ? pjImg(it) : "🪙"}</div>
         <h2>${it ? `¡Es ${esc(art(it.n))}!` : "¡50 monedas!"}</h2>
         ${it ? `<p class="gword">${esc(itemWord(it))} ${sayBtn(itemWord(it))}</p><p class="sub">Así se dice en ${LANGS[lang].name}. ${it.t === "farm" ? "Ya está en tu granja." : "Ya está en tu armario."}</p>` : `<p class="sub">Ya tienes todos los regalos pequeños. ¡Compra algo grande en la tienda!</p>`}
         <div class="ctrl" style="justify-content:center">
@@ -1801,7 +1841,7 @@ async function granja(){
   const big = new Set(["casa","castillo","cabana","tienda","tractor","molino","fuente","cohete","arbol","pino"]);
   const items = farm.map((x, i) => {
     const sx = (i * 41 + 7) % 86 + 3, sy = 52 + (i * 29 + 11) % 36;
-    return `<button class="fi ${big.has(x.id) ? "bg" : ""}" data-it="${x.id}" style="left:${sx}%;top:${sy}%;z-index:${sy}" aria-label="${esc(x.n)}">${x.e}</button>`;
+    return `<button class="fi ${big.has(x.id) ? "bg" : ""}" data-it="${x.id}" style="left:${sx}%;top:${sy}%;z-index:${sy}" aria-label="${esc(x.n)}">${pjImg(x)}</button>`;
   }).join("");
   const tabs = TYPES.map(([t, e, n]) => `<button class="${t === shopTab ? "on" : ""}" data-tab="${t}">${e} ${n}</button>`).join("");
   /* animales que se fueron al refugio (farm.js): siguen siendo suyos, se rescatan desde la granja */
@@ -1812,7 +1852,7 @@ async function granja(){
       : own ? (x.t === "hero" ? (worn ? `<span class="own">✓ Eres tú</span>` : `<button class="btn sm" data-wear="${x.id}">Elegir</button>`)
                               : `<button class="btn sm ${worn ? "on" : ""}" data-wear="${x.id}">${worn ? "Quitármelo" : "Ponérmelo"}</button>`) : "";
     const buy = own ? "" : `<span class="sb" data-sb="${x.id}">${buyBtn(x, g.coins)}</span>`;
-    return `<div class="sc ${own ? "own" : ""}${sh ? " shel" : ""}" data-id="${x.id}"><div class="se">${x.e}</div><div class="sn">${esc(x.n)}</div>
+    return `<div class="sc ${own ? "own" : ""}${sh ? " shel" : ""}" data-id="${x.id}"><div class="se">${pjImg(x)}</div><div class="sn">${esc(x.n)}</div>
       <div class="sw">${esc(itemWord(x))} ${sayBtn(itemWord(x), 1)}</div>${btn}${buy}</div>`;
   }).join("");
   $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
@@ -1835,7 +1875,7 @@ async function granja(){
   document.querySelectorAll("[data-it]").forEach(b => b.onclick = () => {
     const it = itemById(b.dataset.it), tip = $("#farm-tip");
     b.classList.remove("hop"); void b.offsetWidth; b.classList.add("hop");
-    tip.hidden = false; tip.innerHTML = `${it.e} <b>${esc(itemWord(it))}</b> = ${esc(it.n)}`;
+    tip.hidden = false; tip.innerHTML = `${pjImg(it, "pj-sm")} <b>${esc(itemWord(it))}</b> = ${esc(it.n)}`;
     tip.style.left = b.style.left; tip.style.top = `calc(${b.style.top} - 54px)`;
     say(itemWord(it));
   });
