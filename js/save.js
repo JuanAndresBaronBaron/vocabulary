@@ -210,6 +210,7 @@ const CSS = `
 .sv-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
 .sv-b{min-height:46px;font:inherit;font-weight:600;padding:10px 16px;flex:1 1 180px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-align:center;color:var(--ink)}
 .sv-b.pri{color:#fff}
+.sv [hidden],.sv-rem [hidden]{display:none!important}
 .sv-file{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
 .sv textarea{width:100%;min-height:76px;box-sizing:border-box;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--ink);font:.82rem/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;padding:10px;word-break:break-all;resize:vertical}
 .sv-lbl{display:block;font-weight:700;margin:6px 0 6px}
@@ -354,7 +355,7 @@ function wire(){
     $s("sv-out-l").textContent = ok ? `Tu código (${code.length} letras):` : "Tu código: mantén pulsado (o Ctrl+C) para copiarlo";
     markSaved();
     if(ok) msg(`✓ Código copiado (${code.length} letras). Pégalo en un mensaje o una nota para guardarlo.`, "ok");
-    else { msg("El navegador no deja copiar solo: copia el código del cuadro a mano.", "bad"); ta.focus(); ta.select(); }
+    else { msg("El navegador no deja copiar solo: copia el código del cuadro a mano."); ta.focus(); ta.select(); }
   };
   $s("sv-in-go").onclick = async () => {
     let t; try{ t = await decode($s("sv-in").value); }catch(e){ msg(e.message, "bad"); return; }
