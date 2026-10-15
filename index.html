@@ -540,33 +540,80 @@ function voiceFor(code){
 function speakable(t){
   return String(t).replace(/\((m|f|m\.\/f\.|pl)\.?\)/g,"").replace(/\(.*?\)/g,"").replace(/\s\/\s/g,", ").replace(/—/g,"").trim();
 }
+/* audios grabados (ElevenLabs): audio/<en|fr|da>.json dice qué archivo tiene cada palabra;
+   si una palabra no tiene audio o no carga, habla la voz del navegador como siempre */
+const CLIP_AB = {english:"en", "français":"fr", dansk:"da"};
+const clipMaps = {};
+function loadClips(l){
+  if(clipMaps[l] || !CLIP_AB[l]) return;
+  clipMaps[l] = {};
+  fetch(`audio/${CLIP_AB[l]}.json`).then(r => r.ok ? r.json() : {}).then(m => { clipMaps[l] = m || {}; }).catch(() => {});
+}
+loadClips(lang);
+const clipFor = t => { const m = clipMaps[lang]; return m && m[speakable(t)]; };
+let clipEl = null, clipEnd = null;
+function stopClip(){
+  if(clipEl){ try{ clipEl.pause(); }catch(e){} clipEl = null; }
+  if(clipEnd){ const f = clipEnd; clipEnd = null; f(); }
+}
+if("speechSynthesis" in window){
+  const cancel0 = speechSynthesis.cancel.bind(speechSynthesis);
+  try{ speechSynthesis.cancel = () => { stopClip(); cancel0(); }; }catch(e){}
+}
+/* toca el audio grabado; done(true) al acabar, done(false) si no se pudo (y entonces habla el navegador) */
+function playClip(text, slow, done){
+  const id = clipFor(text); if(!id) return false;
+  const a = new Audio(`audio/${CLIP_AB[lang]}/${id}.mp3`);
+  a.preservesPitch = true;
+  a.playbackRate = slow ? 0.7 : Math.min(1.25, Math.max(0.75, rate / 0.9));
+  clipEl = a;
+  let fin = false;
+  const end = ok => { if(fin) return; fin = true; if(clipEl === a) clipEl = null; if(clipEnd === endOk) clipEnd = null; done(ok); };
+  const endOk = () => end(true);
+  clipEnd = endOk;
+  a.onended = () => end(true);
+  a.onerror = () => end(false);
+  a.play().catch(() => end(false));
+  return true;
+}
 function say(text, btn, slow){
-  if(!("speechSynthesis" in window)) return alert("Tu navegador no permite audio.");
-  speechSynthesis.cancel();
+  if(!("speechSynthesis" in window) && !clipFor(text)) return alert("Tu navegador no permite audio.");
+  if("speechSynthesis" in window) speechSynthesis.cancel(); else stopClip();
   document.querySelectorAll(".say.playing").forEach(b=>b.classList.remove("playing"));
-  const u = new SpeechSynthesisUtterance(speakable(text));
-  const code = LANGS[lang].code; u.lang = code; u.rate = slow ? SLOW() : rate;
-  const v = voiceFor(code); if(v) u.voice = v;
-  if(btn){ btn.classList.add("playing"); u.onend = u.onerror = () => btn.classList.remove("playing"); }
-  speechSynthesis.speak(u);
+  if(btn) btn.classList.add("playing");
+  const off = () => { if(btn) btn.classList.remove("playing"); };
+  const tts = () => {
+    if(!("speechSynthesis" in window)) return off();
+    const u = new SpeechSynthesisUtterance(speakable(text));
+    const code = LANGS[lang].code; u.lang = code; u.rate = slow ? SLOW() : rate;
+    const v = voiceFor(code); if(v) u.voice = v;
+    u.onend = u.onerror = off;
+    speechSynthesis.speak(u);
+  };
+  if(!playClip(text, slow, ok => ok ? off() : tts())) tts();
 }
 /* audio encadenado para las secuencias automáticas */
 let autoTok = 0;
 const sleep = ms => new Promise(res => setTimeout(res, ms));
 function sayP(text, btn){
   return new Promise(res => {
-    if(!("speechSynthesis" in window) || !text) return res();
-    speechSynthesis.cancel();
+    if(!text || (!("speechSynthesis" in window) && !clipFor(text))) return res();
+    if("speechSynthesis" in window) speechSynthesis.cancel(); else stopClip();
     document.querySelectorAll(".say.playing").forEach(b=>b.classList.remove("playing"));
-    const u = new SpeechSynthesisUtterance(speakable(text));
-    const code = LANGS[lang].code; u.lang = code; u.rate = rate;
-    const v = voiceFor(code); if(v) u.voice = v;
     let done = false;
     const fin = () => { if(done) return; done = true; if(btn) btn.classList.remove("playing"); res(); };
     if(btn) btn.classList.add("playing");
-    u.onend = u.onerror = fin;
-    setTimeout(fin, 1500 + speakable(text).length * 110 / rate);
-    setTimeout(() => speechSynthesis.speak(u), 30);
+    const tts = () => {
+      if(!("speechSynthesis" in window)) return fin();
+      const u = new SpeechSynthesisUtterance(speakable(text));
+      const code = LANGS[lang].code; u.lang = code; u.rate = rate;
+      const v = voiceFor(code); if(v) u.voice = v;
+      u.onend = u.onerror = fin;
+      setTimeout(fin, 1500 + speakable(text).length * 110 / rate);
+      setTimeout(() => speechSynthesis.speak(u), 30);
+    };
+    if(playClip(text, false, ok => ok ? fin() : (done ? 0 : tts()))) setTimeout(fin, 8000);
+    else tts();
   });
 }
 function voiceNote(){
@@ -804,7 +851,7 @@ function renderLangs(){
 }
 $("#langs").addEventListener("click", e => {
   const b = e.target.closest("[data-lang]"); if(!b) return;
-  lang = b.dataset.lang; store.set("lang",lang); renderLangs(); updBadge(); route();
+  lang = b.dataset.lang; store.set("lang",lang); loadClips(lang); renderLangs(); updBadge(); route();
 });
 
 /* ---------- inicio ---------- */
