@@ -40,6 +40,15 @@ const STYLE = `
 .fab.open .fab-it{opacity:1;pointer-events:auto}
 .fab-back{position:fixed;inset:0;z-index:29;background:rgba(5,20,40,.25);opacity:0;pointer-events:none;transition:opacity .25s}
 .fab-back.on{opacity:1;pointer-events:auto}
+.fab-fly{position:fixed;left:0;top:0;z-index:32;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:var(--head);border:3px solid #fff;
+  color:#fff;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(5,20,40,.35);pointer-events:none}
+.fab-say{position:absolute;right:72px;bottom:8px;width:max-content;max-width:min(240px,calc(100vw - 110px));background:#fff;color:#0b2545;border:3px solid #1f5fbf;
+  border-radius:16px;padding:7px 12px;font-weight:800;font-size:.98rem;line-height:1.25;box-shadow:0 8px 22px rgba(5,20,40,.25);pointer-events:none;
+  transform-origin:100% 80%;animation:fab-say-in .45s cubic-bezier(.3,1.6,.5,1)}
+.fab-say::after{content:"";position:absolute;right:-9px;bottom:14px;width:12px;height:12px;background:#fff;border-right:3px solid #1f5fbf;border-top:3px solid #1f5fbf;transform:rotate(45deg)}
+.fab-say.out{animation:fab-say-out .3s ease-in forwards}
+@keyframes fab-say-in{0%{transform:scale(0) rotate(-8deg);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes fab-say-out{to{transform:scale(0);opacity:0}}
 @media (prefers-reduced-motion:reduce){.fab *{transition:none!important}}
 `;
 const $ = s => document.querySelector(s);
@@ -114,11 +123,66 @@ addEventListener("hashchange", close);
 
 // visible solo cuando la fila de arriba de la cabecera ya no se ve
 const top = () => { const l = $(".logo"); return l ? l.getBoundingClientRect().bottom < 4 : scrollY > 60; };
-let shown = false;
+const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+// de dónde sale la estrella: el centro de la fila de arriba (ajustes e idiomas), aunque ya esté por encima de la pantalla
+function home(){
+  const r = ($("#langs") || $(".htools") || $(".logo"))?.getBoundingClientRect();
+  return r ? {x: r.left + r.width / 2, y: Math.max(26, r.top + r.height / 2)} : {x: innerWidth - 60, y: 26};
+}
+function spot(){ const r = main.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2}; }
+let flying = null;
+function fly(from, to, done){   // estrella que viaja en curva dejando estrellitas
+  flying?.cancel(); document.querySelectorAll(".fab-fly").forEach(e => e.remove());
+  if(calm()){ done(); return; }
+  const f = document.createElement("div"); f.className = "fab-fly"; f.textContent = "⭐"; document.body.appendChild(f);
+  const mx = (from.x + to.x) / 2 - 80, my = Math.min(from.y, to.y) + Math.abs(to.y - from.y) * .25;
+  const pt = t => ({x: (1-t)*(1-t)*from.x + 2*(1-t)*t*mx + t*t*to.x, y: (1-t)*(1-t)*from.y + 2*(1-t)*t*my + t*t*to.y});
+  const frames = [];
+  for(let i = 0; i <= 12; i++){ const t = i / 12, p = pt(t);
+    frames.push({transform: `translate(${p.x}px,${p.y}px) rotate(${t * 540}deg) scale(${1 + Math.sin(t * Math.PI) * .5})`}); }
+  const a = f.animate(frames, {duration: 850, easing: "cubic-bezier(.45,.05,.35,1)"}); flying = a;
+  const trail = setInterval(() => {
+    const t = Math.min(1, (a.currentTime || 0) / 850), p = pt(t), sp = document.createElement("span");
+    sp.className = "fab-spark"; sp.textContent = SPARK[Math.floor(t * 12) % SPARK.length];
+    sp.style.left = (p.x - 9) + "px"; sp.style.top = (p.y - 9) + "px";
+    sp.style.setProperty("--dx", (Math.random() * 30 - 15) + "px"); sp.style.setProperty("--dy", (10 + Math.random() * 25) + "px");
+    document.body.appendChild(sp); setTimeout(() => sp.remove(), 750);
+  }, 60);
+  a.onfinish = a.oncancel = () => { clearInterval(trail); f.remove(); if(flying === a){ flying = null; done(); } };
+}
+// globito que explica para qué sirve (las primeras veces que aparece)
+const SAYS = ["¡Aquí guardé el idioma y los ajustes! ⭐", "Toca la estrella para cambiar de idioma 🇬🇧🇫🇷🇩🇰", "¡Tus ajustes viven aquí! ⭐"];
+let sayT = 0;
+function say(){
+  let n = 0; try{ n = +localStorage.getItem("fab:says") || 0; }catch(e){}
+  if(n >= 4 || root.classList.contains("open")) return;
+  try{ localStorage.setItem("fab:says", n + 1); }catch(e){}
+  root.querySelector(".fab-say")?.remove();
+  const b = document.createElement("div"); b.className = "fab-say"; b.textContent = SAYS[n % SAYS.length]; root.appendChild(b);
+  clearTimeout(sayT); sayT = setTimeout(hush, 3200);
+}
+function hush(){ const b = root.querySelector(".fab-say"); if(!b) return; b.classList.add("out"); setTimeout(() => b.remove(), 320); }
+let shown = false, first = true;
 function check(){
   const s = top(); if(s === shown) return; shown = s;
-  root.classList.toggle("hid", !s); if(!s) close();
-  if(s){ root.classList.add("pop"); setTimeout(() => root.classList.remove("pop"), 600); }
+  if(s){
+    const quick = first && scrollY > 400;   // si la página abre ya abajo (p. ej. el camino), sin viaje
+    first = false;
+    const land = () => { if(!shown) return; root.classList.remove("hid"); root.classList.add("pop"); snd("pop"); sparks(main, 8);
+      setTimeout(() => root.classList.remove("pop"), 600); say(); };
+    if(quick) land(); else { snd("whoosh"); fly(home(), spotTarget(), land); }
+  } else {
+    first = false; close(); hush();
+    const from = spot(), was = !root.classList.contains("hid");
+    root.classList.add("hid");
+    if(was) fly(from, home(), () => {});
+  }
 }
+// dónde va a quedar (aunque el botón aún esté oculto con escala 0)
+function spotTarget(){
+  const cs = getComputedStyle(root), r = parseFloat(cs.right) || 14, b = parseFloat(cs.bottom) || 14;
+  return {x: innerWidth - r - 30, y: innerHeight - b - 30};
+}
+main.title = "Idioma y ajustes";
 addEventListener("scroll", check, {passive:true}); addEventListener("resize", check); check();
 })();
