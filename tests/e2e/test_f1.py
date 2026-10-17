@@ -696,18 +696,26 @@ def test_glass_lite_and_header_yield():
             cdp.send("Emulation.setEmulatedMedia", {"features": []})
             if got[0] != solid or got[1] != "none":
                 probs.append(f"{scheme} + Reducir transparencia: .glass.lite = {got} (se esperaba {solid})")
-            hdr = "() => { const h = document.querySelector('header'); return h ? getComputedStyle(h).backdropFilter : 'none'; }"
+            # F2: la cabecera de dos filas pasó a barras flotantes de vidrio (barra de pestañas, bandera, monedas y
+            # engranaje; en modo foco, la ✕). Se mira cada superficie que se ve: con desenfoque en el camino y sin él
+            # en la granja y durante una partida
+            hdr = """() => ['#tabbar', '#lang-b', '.tb-group', '#fx-x'].map(s => document.querySelector(s))
+              .filter(el => el && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden')
+              .map(el => [el.id || el.className, getComputedStyle(el).backdropFilter])"""
             C.goto(page, "#/mapa")
-            if page.evaluate(hdr) == "none":
-                probs.append(f"{scheme}: en el camino la cabecera debería llevar vidrio con desenfoque")
+            got = page.evaluate(hdr)
+            if len(got) < 3 or any(b == "none" for _, b in got):
+                probs.append(f"{scheme}: en el camino las barras deberían llevar vidrio con desenfoque: {got}")
             C.goto(page, "#/granja")
-            if page.evaluate(hdr) != "none":
-                probs.append(f"{scheme}: en la granja la cabecera sigue con desenfoque: {page.evaluate(hdr)}")
+            got = page.evaluate(hdr)
+            if not got or any(b != "none" for _, b in got):
+                probs.append(f"{scheme}: en la granja las barras siguen con desenfoque: {got}")
             C.goto(page, "#/juegos/lluvia")
             page.locator(".gm-go").click(force=True)
             page.wait_for_function("() => !!document.documentElement.dataset.gmPlay", timeout=5000)
-            if page.evaluate(hdr) != "none":
-                probs.append(f"{scheme}: durante la partida la cabecera sigue con desenfoque: {page.evaluate(hdr)}")
+            got = page.evaluate(hdr)
+            if not got or any(b != "none" for _, b in got):
+                probs.append(f"{scheme}: durante la partida las barras siguen con desenfoque: {got}")
             probs += C.errors(page)
         finally:
             page.context.close()

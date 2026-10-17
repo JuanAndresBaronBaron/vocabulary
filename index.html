@@ -156,9 +156,9 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* versión ligera (sin desenfoque, más opaca): granja, juegos, o html[data-glass=lite]. Con :where() pesa lo mismo que
    .glass, así los modos de abajo (sin transparencia, más contraste, data-glass=off) la pisan siempre por orden */
 .glass:where(.lite),:where(:root[data-glass=lite]) .glass{-webkit-backdrop-filter:none;backdrop-filter:none;
-  background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),rgba(255,255,255,.9)}
+  background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),var(--g-lite,rgba(255,255,255,.9))}
 :where(:root[data-theme=dark]) .glass:where(.lite),:where(:root[data-theme=dark][data-glass=lite]) .glass{
-  background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),rgba(28,28,30,.9)}
+  background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),var(--g-lite-d,rgba(28,28,30,.9))}
 
 /* ---------- vidrio sobre contenido: botones de acción (sin desenfoque, tinte opaco) ---------- */
 .glass-btn{--g-rim1:rgba(255,255,255,.75);--g-rim2:rgba(255,255,255,.12);
@@ -222,36 +222,193 @@ kbd{display:inline-flex;align-items:center;justify-content:center;min-width:1.7e
   .glass-btn,.btn-fill{border:2px solid ButtonText;background:ButtonFace;color:ButtonText;box-shadow:none}
   .glass::before,.glass-btn::before,.glass-btn::after{display:none}
   .ico{fill:currentColor;forced-color-adjust:auto}}
-/* cabecera en dos filas: arriba el nombre, ajustes e idioma (se va al bajar); abajo las secciones (se queda fija) */
-header{position:sticky;top:-48px;z-index:10;color:var(--label);padding-top:var(--safe-t);box-shadow:0 .5px 0 var(--sep);
-  background:rgba(242,242,247,.72);-webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%)}
-:root[data-theme=dark] header{background:rgba(22,22,24,.72)}
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){header{background:rgba(242,242,247,.97)}:root[data-theme=dark] header{background:rgba(22,22,24,.97)}}
-/* en la granja y durante una partida (ya mueven mucho) la cabecera va sin desenfoque, casi opaca (vidrio ligero) */
-:root[data-gm-play] header{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(242,242,247,.97)}
-:root[data-theme=dark][data-gm-play] header{background:rgba(22,22,24,.97)}
-:root:has(.fm-stage) header{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(242,242,247,.97)}
-:root[data-theme=dark]:has(.fm-stage) header{background:rgba(22,22,24,.97)}
-:root[data-glass=off] header,:root[data-glass=lite] header,:root[data-contrast=more] header{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--bg)}
-@media (prefers-reduced-transparency:reduce){:root[data-theme] header,header{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--bg)}}
-@media (prefers-contrast:more){:root[data-theme] header,header{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--bg)}}
-header .wrap{display:grid;grid-template-columns:auto 1fr auto auto;grid-template-areas:"logo . tools langs" "nav nav nav nav";align-items:center;gap:6px 10px;padding-top:8px;padding-bottom:8px}
-.logo{grid-area:logo;font-weight:700;font-size:1.15rem;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-height:40px;min-width:40px;border-radius:12px}
-.htools{grid-area:tools;display:flex;gap:6px;align-items:center}
-.langs{grid-area:langs;display:flex;background:var(--fill);border-radius:999px;padding:2px;height:44px}
-.langs button{border:0;background:none;color:var(--label);padding:0 13px;height:40px;border-radius:999px;font-size:.95rem;min-width:40px;display:inline-flex;align-items:center;justify-content:center;gap:5px}
-.langs button.on{background:var(--card-hi);color:var(--label);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.14),0 0 0 .5px rgba(0,0,0,.04)}
-.langs .fl{font-size:1.05rem}
-main{padding:20px 0 40px}
+/* ===================== Armazón de navegación (F2) =====================
+   · Barra superior header.topbar: a la izquierda la bandera del idioma (#lang-b, abre el menú #lang-m); a la derecha
+     [data-sync-slot] (sync.js monta ahí su pastilla) y el grupo de vidrio .tb-group con las monedas ([data-coins-pill],
+     el número en #coins) y Ajustes ([data-open=ajustes] → window.openSettings()).
+   · Barra de pestañas nav.tabbar (role=tablist): 5 a.tab[data-nav] con icono relleno de 26 px y nombre de 12/600; la
+     activa con aria-selected=true, en azul y con la «gota» de vidrio. Abajo en el móvil; desde 820 px, arriba y centrada.
+     No se encoge. Insignias .tb-badge (número azul o punto).
+   · #tabhead: título grande y segmentos (.seg, role=tablist) de la pestaña, solo en su raíz.
+   · Modo foco html[data-focus] (lección, repaso en marcha, partida): sin barras; .focusbar con la ✕ y el contador de
+     monedas [data-coin-target]. html[data-tab] y html[data-sec] dicen la pestaña y la sección actuales. */
+:root{--bar-top:calc(var(--safe-t) + 8px);--topbar-h:calc(var(--safe-t) + 60px);--tabbar-h:62px;--tabbar-b:max(12px,var(--safe-b));
+  --drop:rgba(120,120,128,.15);--drop-hi:inset 0 1px 0 rgba(255,255,255,.75);--edge:rgba(242,242,247,.9);--tab-ink:#0F4FB0}
+:root[data-theme=dark]{--drop:rgba(255,255,255,.08);--drop-hi:inset 0 1px 0 rgba(255,255,255,.16);--edge:rgba(0,0,0,.86);--tab-ink:var(--brand-ink)}
+html{scroll-padding-top:calc(var(--topbar-h) + 8px);scroll-padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 8px)}
+main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
+/* barra superior: tres botones de vidrio sobre un borde que funde el contenido que pasa por debajo */
+.topbar{position:fixed;z-index:var(--z-bar);top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:var(--bar-top) max(16px,var(--safe-r)) 8px max(16px,var(--safe-l));pointer-events:none}
+.topbar::after{content:"";position:absolute;z-index:-1;inset:0 0 -14px;pointer-events:none;
+  background:linear-gradient(180deg,var(--edge) 0,var(--edge) calc(var(--safe-t) + 6px),rgba(242,242,247,0) 100%)}
+:root[data-theme=dark] .topbar::after{background:linear-gradient(180deg,var(--edge) 0,var(--edge) calc(var(--safe-t) + 6px),rgba(0,0,0,0) 100%)}
+:root[data-tab=granja] .topbar::after{display:none}
+.topbar>*{pointer-events:auto}
+.tb-flag{flex:none;width:var(--tap);height:var(--tap);padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+.flag{display:block;width:28px;height:28px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 .5px rgba(0,0,0,.18);flex:none}
+.flag svg{display:block;width:100%;height:100%}
+.tb-right{display:flex;align-items:center;gap:8px;min-width:0}
+.tb-slot{display:flex;align-items:center;gap:8px}
+.tb-slot:empty{display:none}
+.tb-slot .sv-chip{position:static;margin:0;box-shadow:none}
+.tb-group{display:flex;align-items:center;height:var(--tap);border-radius:var(--r-pill);flex:none}
+.tb-coins{display:flex;align-items:center;gap:6px;height:var(--tap);min-width:var(--tap);padding:0 10px 0 11px;border:0;background:none;border-radius:var(--r-pill);
+  font:800 calc(1.1875rem*var(--k))/1 var(--f-round);font-variant-numeric:tabular-nums;color:var(--gold-ink);white-space:nowrap;cursor:pointer}
+.coin-ico{display:block;width:22px;height:22px;flex:none}
+.tb-sep{flex:none;width:1px;height:20px;background:var(--sep)}
+.tb-gear{flex:none;width:var(--tap);height:var(--tap);padding:0;border:0;background:none;border-radius:50%;display:grid;place-items:center;color:var(--label);cursor:pointer}
+/* menú de idioma (vidrio, radio 20): los tres idiomas con su bandera y ✓ en el elegido */
+.lang-m{position:fixed;z-index:calc(var(--z-bar) + 5);top:calc(var(--bar-top) + var(--tap) + 8px);left:max(16px,var(--safe-l));
+  width:min(280px,calc(100vw - 32px));padding:6px;border-radius:var(--r-menu)}
+.lang-m[hidden]{display:none}
+.lm-i{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--row);padding:6px 12px;border:0;background:none;border-radius:14px;
+  color:var(--label);font:600 var(--fs-body)/1.2 var(--f-text);text-align:left;cursor:pointer}
+.lm-i+.lm-i{box-shadow:0 -.5px 0 var(--sep)}
+.lm-i:hover{background:var(--fill2)}
+.lm-t{flex:1;min-width:0}.lm-t small{display:block;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
+.lm-i .lm-chk{flex:none;color:var(--brand-ink);visibility:hidden}
+.lm-i[aria-checked=true] .lm-chk{visibility:visible}
+/* barra de pestañas flotante */
+.tabbar{position:fixed;z-index:var(--z-bar);left:max(16px,var(--safe-l));right:max(16px,var(--safe-r));bottom:var(--tabbar-b);
+  max-width:520px;height:var(--tabbar-h);margin:0 auto;padding:4px;display:flex;border-radius:calc(var(--tabbar-h) / 2)}
+.tab{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  border-radius:calc(var(--tabbar-h) / 2 - 4px);color:var(--label);text-decoration:none;font:600 var(--fs-tab)/1.17 var(--f-text);letter-spacing:-.1px;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.tab .ico{width:26px;height:26px}
+.tab .tl{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab[aria-selected=true]{color:var(--tab-ink);background:var(--drop);box-shadow:var(--drop-hi)}
+.tab[aria-selected=true] .ico{color:var(--brand-tint)}
+.tab[aria-selected=true]::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;opacity:.8;
+  background:linear-gradient(135deg,var(--g-rim1) 0%,var(--g-rim2) 28%,rgba(255,255,255,.04) 55%,var(--g-rim2) 78%,var(--g-rim1) 100%);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
+  mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
+.tab:focus-visible{outline-offset:-3px}
+.tb-badge{position:absolute;top:3px;left:calc(50% + 5px);min-width:20px;height:20px;padding:0 6px;border-radius:10px;
+  background:var(--brand-fill);color:#fff;font:700 calc(.8125rem*var(--k))/20px var(--f-text);font-variant-numeric:tabular-nums;text-align:center;
+  box-shadow:0 0 0 2px var(--g-solid);pointer-events:none}
+.tb-badge.dot{top:6px;left:calc(50% + 9px);min-width:0;width:10px;height:10px;padding:0}
+.tb-badge[hidden]{display:none}
+/* en la granja la barra va sin desenfoque: casi opaca para que los textos de debajo no se mezclen con los nombres */
+.tabbar{--g-lite:rgba(255,255,255,.96);--g-lite-d:rgba(28,28,30,.96)}
+.tabbar.lite .tab[aria-selected=true]{background:rgba(120,120,128,.10)}
+:root[data-theme=dark] .tabbar.lite .tab[aria-selected=true]{background:var(--drop)}
+@media (prefers-contrast:more){.tab[aria-selected=true]::before{display:none}.tab[aria-selected=true]{box-shadow:inset 0 0 0 2px var(--brand-tint)}}
+:root[data-contrast=more] .tab[aria-selected=true]::before{display:none}
+:root[data-contrast=more] .tab[aria-selected=true]{box-shadow:inset 0 0 0 2px var(--brand-tint)}
+@media (forced-colors:active){.tab[aria-selected=true]{outline:2px solid Highlight}.tb-badge{border:1px solid CanvasText}}
+/* tableta grande y ordenador: la barra flota arriba y centrada, en la fila de la bandera y las monedas */
+@media (min-width:820px){
+  main{padding-bottom:48px}
+  html{scroll-padding-bottom:16px}
+  .tabbar{top:var(--bar-top);bottom:auto;left:50%;right:auto;width:max-content;max-width:calc(100vw - 2 * 168px);height:var(--tap);margin:0;
+    transform:translateX(-50%);border-radius:calc(var(--tap) / 2)}
+  .tab{flex:0 1 auto;flex-direction:row;gap:6px;padding:0 13px;border-radius:calc(var(--tap) / 2 - 4px);font-size:calc(.875rem*var(--k))}
+  .tab .ico{width:20px;height:20px}
+  .tb-badge{position:static;margin-left:2px}
+  .tb-badge.dot{margin-left:0}
+}
+@media (min-width:820px) and (max-width:979px){.tab{gap:5px;padding:0 9px;font-size:calc(.8125rem*var(--k))}}
+/* título grande y segmentos de la pestaña (solo en su raíz; las pantallas no pintan otro título grande) */
+.tabhead{padding-top:2px}
+.tabhead[hidden]{display:none}
+.th-t{margin:0 0 12px;color:var(--label)}
+.seg{display:flex;gap:2px;width:100%;max-width:560px;min-height:var(--tap);padding:2px;margin:0 0 18px;border-radius:var(--r-pill);background:var(--fill2)}
+.seg-i{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;padding:0 6px;border:0;background:none;border-radius:var(--r-pill);
+  color:var(--label);font:600 var(--fs-note)/1.15 var(--f-text);text-align:center;text-decoration:none;white-space:nowrap;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.seg-i[aria-selected=true],.seg-i[aria-checked=true]{background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}
+:root[data-theme=dark] .seg-i[aria-selected=true],:root[data-theme=dark] .seg-i[aria-checked=true]{background:#636366;color:#fff}
+.seg-i:focus-visible{outline-offset:-2px}
+@media (prefers-contrast:more){.seg-i[aria-selected=true],.seg-i[aria-checked=true]{outline:2px solid var(--label);outline-offset:-2px}}
+@media (forced-colors:active){.seg-i[aria-selected=true],.seg-i[aria-checked=true]{outline:2px solid Highlight}}
+/* solo para el lector de pantalla */
+.vh{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+/* las pantallas que aún llevan «← Inicio»: sobra con la barra de pestañas */
+.back[href="#/"]{display:none!important}
+/* modo foco: sin barras; ✕ de vidrio arriba a la izquierda y el contador pequeño de monedas a la derecha */
+.focusbar{display:none}
+:root[data-focus] .topbar,:root[data-focus] .tabbar,:root[data-focus] .lang-m,:root[data-focus] .tabhead{display:none}
+:root[data-focus] .focusbar{position:fixed;z-index:var(--z-bar);top:var(--bar-top);left:max(16px,var(--safe-l));right:max(16px,var(--safe-r));
+  height:var(--tap);display:flex;align-items:center;justify-content:space-between;gap:12px;pointer-events:none}
+.focusbar>*{pointer-events:auto}
+.fx-x{flex:none;width:var(--tap);height:var(--tap);border-radius:50%;display:grid;place-items:center;color:var(--label);text-decoration:none}
+.fx-coins{display:flex;align-items:center;gap:5px;min-height:32px;padding:0 2px;font:800 calc(1.0625rem*var(--k))/1 var(--f-round);
+  font-variant-numeric:tabular-nums;color:var(--gold-ink);white-space:nowrap}
+.fx-coins .coin-ico{width:20px;height:20px}
+:root[data-focus] main{padding:calc(var(--bar-top) + var(--tap) + 12px) 0 calc(var(--safe-b) + 32px)}
+html[data-focus]{scroll-padding-top:calc(var(--bar-top) + var(--tap) + 8px);scroll-padding-bottom:16px}
+/* la fila de arriba de la lección y de la partida va en la misma línea que la ✕ y las monedas (su ✕ propia sobra) */
+:root[data-focus] .ls-top,:root[data-focus] .gm-top{margin-top:calc(-1 * (var(--tap) + 12px));min-height:var(--tap);padding:0 92px 0 56px}
+:root[data-focus] .ls-top .x,:root[data-focus] .gm-x,:root[data-focus] .back[href="#/repaso"],:root[data-focus] .gm .back[href="#/juegos"]{display:none!important}
+/* la cápsula de avisos sale debajo de las barras de arriba */
+html #m-toasts{inset:calc(var(--bar-top) + var(--tap) + 8px) 0 auto 0}
+/* hoja de Ajustes provisional (dialog#cfg con M.openSheet; la definitiva la pone window.openSettings de otro módulo) */
+#cfg.m-sheet{max-width:600px}
+.st-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px}
+dialog .st-top h2{margin:0}
+.st-sec{margin:0 0 22px}
+.st-h{margin:0 16px 6px;font:600 var(--fs-note)/1.33 var(--f-text);color:rgba(60,60,67,.9)}
+:root[data-theme=dark] .st-h{color:var(--label2)}
+#cfg .note{background:none;border:0;padding:0;color:var(--label2)}
+.btn[hidden],.glass-btn[hidden]{display:none}
+:root[data-theme=dark] #cfg .note{color:rgba(235,235,245,.78)}
+.st-g{background:var(--card);border-radius:var(--r-card);overflow:hidden}
+:root[data-theme=dark] .st-g{background:var(--card-2)}
+.st-r{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:var(--row);margin:0;padding:10px 16px;border:0;background:none;
+  color:var(--label);font:400 var(--fs-body)/1.3 var(--f-text);text-align:left;text-decoration:none}
+dialog label.st-r{margin:0;font-weight:400}
+.st-r+.st-r::before{content:"";position:absolute;top:0;left:16px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
+.st-r.col{flex-direction:column;align-items:stretch;gap:8px}
+.st-r[hidden]{display:none}
+button.st-r{cursor:pointer}
+.st-l{flex:1;min-width:0}
+.st-l small{display:block;font:400 var(--fs-note)/1.33 var(--f-text);color:var(--label2)}
+.st-ic{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;background:var(--brand-fill)}
+.st-ic.tl{background:#008198}.st-ic.gr{background:#8E8E93}
+.st-r.col select,.st-r.col input[type=range]{width:100%}
+dialog .st-r.col>label{margin:0;font:600 var(--fs-sub)/1.3 var(--f-text)}
+.st-r[data-sync-cfg]:empty{display:none}
+.st-r .dlbl{margin:0}
+.st-btn{color:var(--brand-ink);font-weight:600}
+.st-sw{appearance:none;-webkit-appearance:none;flex:none;position:relative;width:51px;height:31px;margin:0;border-radius:16px;
+  background:rgba(120,120,128,.32);cursor:pointer;transition:background var(--d-fast,160ms) ease}
+.st-sw::after{content:"";position:absolute;left:2px;top:2px;width:27px;height:27px;border-radius:50%;background:#fff;
+  box-shadow:0 3px 8px rgba(0,0,0,.15),0 3px 1px rgba(0,0,0,.06);transition:translate var(--d-base,260ms) var(--sp-snappy,ease)}
+.st-sw:checked{background:var(--ok-fill)}
+.st-sw:checked::after{translate:20px 0}
+.st-sw:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
+.st-g .seg{margin:0;max-width:none}
+.st-cred{padding:14px 16px;font:400 var(--fs-note)/1.45 var(--f-text);color:var(--label2)}
+.st-cred a{color:var(--brand-ink)}
+.st-g .off-dl .pr-row{gap:8px}
+.st-g .sv-cfg{margin:0}
+/* Aprender › Palabras: los temas en tarjetas */
+.doc{display:flex;flex-direction:column;gap:2px;min-height:var(--row);text-decoration:none;color:var(--label);background:var(--card);
+  border:1px solid transparent;border-radius:var(--r-card);padding:14px 16px}
+.doc:hover{border-color:var(--brand-ink)}
+.doc .n{font:400 var(--fs-min)/1.38 var(--f-text);color:var(--label2)}
+.doc .t{margin:0;font:600 var(--fs-head)/1.26 var(--f-text)}
+.doc .c{font:600 var(--fs-note)/1.33 var(--f-text);color:var(--brand-ink)}
+.doc.off .c{color:var(--label2)}
+.pal h2{margin:26px 0 6px}
+.pal h2:first-child{margin-top:4px}
+.pal .sub{font:400 var(--fs-note)/1.4 var(--f-text);color:var(--label2);margin:0 0 12px}
+.pal-priv{margin:28px 0 0;text-align:center;font:400 var(--fs-min)/1.38 var(--f-text)}
+.pal-priv a,.home-priv a{color:var(--label2)}
+.home-priv{margin:24px 0 0;text-align:center;font:400 var(--fs-min)/1.38 var(--f-text)}
+/* «Reducir movimiento»: el del aparato y el de Ajustes (html[data-motion=calm]) hacen lo mismo. Aquí, para todo:
+   animaciones y transiciones cortas (≤150 ms) y sin bucles; las reglas propias de cada pantalla y módulo para el
+   aparato se copian para data-motion=calm en <style id="css-calm"> (calmCss() más abajo). */
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:150ms!important;animation-delay:0s!important;
+  animation-iteration-count:1!important;transition-duration:150ms!important;transition-delay:0s!important;scroll-behavior:auto!important}}
+:root[data-motion=calm] *,:root[data-motion=calm] *::before,:root[data-motion=calm] *::after{animation-duration:150ms!important;
+  animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:150ms!important;transition-delay:0s!important;
+  scroll-behavior:auto!important}
 h1{font:700 1.75rem/1.2 var(--f-round);margin:4px 0 6px}
 h2{font:700 1.25rem/1.25 var(--f-round);margin:28px 0 10px;color:var(--label)}
 .sub{color:var(--muted);margin:0 0 14px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
-.doc{display:block;text-decoration:none;background:var(--card);border:1px solid transparent;border-radius:var(--r-card);padding:14px;box-shadow:var(--shadow);transition:transform .1s}
-.doc:hover{transform:translateY(-2px);border-color:var(--brand)}
-.doc .n{font-size:.8rem;color:var(--muted)}
-.doc .t{font-weight:600;margin:2px 0 4px}
-.doc .c{font-size:.85rem;color:var(--muted)}
 .doc.off{opacity:.45;pointer-events:none}
 .toolbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 16px}
 .tabs{display:flex;background:var(--fill2);border:0;border-radius:12px;padding:3px}
@@ -309,7 +466,6 @@ input[type=search]{flex:1;min-width:180px;padding:10px 14px;border:1px solid var
 .opt.ok span,.opt.bad span{color:inherit!important}
 .opt.bad{border-color:transparent;background:var(--miss-fill);color:var(--miss-on)}
 .score{font-size:.95rem;color:var(--muted);margin-bottom:8px}
-footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
 @media (max-width:560px){
   .row{grid-template-columns:64px 1fr;gap:10px;padding:10px}
   .img img{max-width:60px;max-height:60px}.row.wide{grid-template-columns:104px 1fr}.row.wide .img img{max-width:100px;max-height:90px}.img .ph{width:52px;height:52px}
@@ -399,8 +555,6 @@ footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
 .pr-opt input{accent-color:var(--brand);width:16px;height:16px}
 .pr-opt:has(input:checked){border-color:var(--brand);background:var(--soft);color:var(--brand);font-weight:600}
 .pr-keys{font-size:.8rem;color:var(--muted);text-align:center}
-.pr-toast{position:fixed;left:50%;bottom:calc(24px + var(--safe-b));transform:translateX(-50%);background:var(--label);color:var(--bg);padding:10px 18px;border-radius:99px;box-shadow:var(--shadow);font-weight:600;z-index:20;animation:pop .3s;pointer-events:none;width:max-content;max-width:calc(100vw - 32px);text-align:center}
-@keyframes pop{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 .pr-end{text-align:center;padding:30px 20px}
 .pr-end .big{font-size:2.6rem}
 @media (max-width:820px){
@@ -411,18 +565,6 @@ footer{color:var(--muted);font-size:.8rem;padding:20px 0 40px;text-align:center}
   .pr-card.cur .pr-hero{flex-basis:120px}.pr-hero .img img{max-height:96px;max-width:110px}
 }
 
-/* cabecera: accesos */
-.hnav{grid-area:nav;display:flex;gap:6px;align-items:center}
-.hbtn{position:relative;border:0;background:var(--fill);color:var(--label);border-radius:999px;padding:0 12px;min-height:40px;min-width:40px;font-size:.95rem;text-decoration:none;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent}
-.hnav .hbtn{min-height:44px;padding:0 15px;font-size:1rem}
-.hbtn:hover{background:rgba(120,120,128,.26)}
-.hbtn:active{transform:scale(.95)}
-.hnav .hbtn.on{background:var(--brand-fill);color:#fff;font-weight:700}
-.hnav .coin{margin-left:auto}
-.hbtn .b{background:var(--brand-fill);color:#fff;border-radius:99px;padding:0 6px;font-size:.75rem;margin-left:5px;font-weight:700;line-height:1.5}
-.hbtn.coin.cbump{animation:cbump .55s ease-out}
-@keyframes cbump{0%{transform:scale(1)}30%{transform:scale(1.22)}60%{transform:scale(.96)}100%{transform:scale(1)}}
-@media (prefers-reduced-motion: reduce){.hbtn.coin.cbump{animation:none}}
 /* progreso */
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
 .stat{background:var(--card);border:1px solid transparent;border-radius:var(--r-card);padding:12px 14px;box-shadow:var(--shadow);text-decoration:none;display:block}
@@ -501,7 +643,6 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .nd .stars{position:absolute;left:50%;bottom:-22px;transform:translateX(-50%);font-size:.8rem;letter-spacing:1px;color:var(--gold-ink);white-space:nowrap}
 .nd .stars .e{color:var(--line)}
 .nd.hb{margin-top:48px}
-.hnav .lb{margin-left:3px}.logo .lt{margin-left:7px}.htools .lb{margin-left:5px}
 .bubble{position:absolute;left:50%;bottom:calc(100% + 14px);transform:translateX(-50%);background:var(--card);color:var(--lc);border:2px solid var(--line);border-radius:12px;padding:6px 12px;font-weight:800;font-size:.85rem;white-space:nowrap;animation:bob 1.4s ease-in-out 3;pointer-events:none}
 @media (prefers-reduced-motion:reduce){.bubble{animation:none}}
 .bubble::after{content:"";position:absolute;left:50%;top:100%;border:8px solid transparent;border-top-color:var(--card);transform:translateX(-50%)}
@@ -564,23 +705,6 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .lv-links{text-align:center;margin:12px 0 0}
 .lv-links a{color:var(--lc);font-weight:700;text-decoration:none}
 @media (max-width:560px){.nd .glbl{width:110px}.ls-foot .msg{flex-basis:100%}.ls-foot .btn.lc{margin-left:auto}}
-/* juego */
-header .wrap{max-width:1320px}
-@media (max-width:819px){.hnav .lb,.htools .lb{display:none}.hnav .hbtn:not(.coin){flex:1 1 0;padding:0 6px;font-size:1.15rem}}
-@media (max-width:560px){
-  header .wrap{grid-template-columns:auto auto 1fr auto;grid-template-areas:"logo tools . langs" "nav nav nav nav";gap:6px}
-  #inst{display:none!important}
-  .htools{gap:4px}.hnav{gap:4px}
-  .hnav .hbtn:not(.coin){min-width:0}
-  .hnav .coin{padding:0 10px}
-  .hbtn .b{position:absolute;top:-4px;right:-4px;margin:0;font-size:.68rem;padding:0 5px;box-shadow:0 0 0 2px var(--bg)}
-}
-@media (max-width:680px){.langs .ln{display:none}.langs button{padding:0 9px}}
-@media (max-width:439px){.logo .lt{display:none}.logo{font-size:1.6rem;padding:0 2px}}
-@media (max-width:359px){.htools .hbtn,.langs button{min-width:34px;padding:0 5px}.htools,.hnav{gap:3px}.hnav .coin{padding:0 8px;font-size:.9rem}}
-.hbtn.coin{background:var(--gold);color:var(--gold-on);font-weight:800;font-variant-numeric:tabular-nums}
-#coins{margin-left:5px}
-.hbtn.coin:hover{background:var(--gold);filter:brightness(1.05)}
 .hero{position:relative;display:inline-block;width:1.3em;height:1.25em;line-height:1;flex:none}
 .hero span{position:absolute;line-height:1}
 .hero .h-base{left:.15em;top:.2em;font-size:1em}
@@ -598,9 +722,6 @@ header .wrap{max-width:1320px}
 .hero.pjh .h-hand{left:-.06em;right:auto;bottom:-.03em;font-size:.32em;transform:rotate(-12deg)}
 .hero.pjh .h-pet{left:auto;right:-.2em;bottom:-.02em;font-size:.48em}
 .hero.pjh .h-pet .pj{display:block}
-.coin-pop{position:fixed;left:50%;top:calc(84px + var(--safe-t));transform:translateX(-50%);background:var(--gold);color:var(--gold-on);border-radius:16px;padding:8px 18px;box-shadow:0 8px 24px rgba(0,0,0,.25);z-index:40;text-align:center;animation:cpop 1.9s ease forwards;pointer-events:none}
-.coin-pop b{font-size:1.4rem;display:block}.coin-pop small{font-weight:700}
-@keyframes cpop{0%{opacity:0;transform:translate(-50%,20px) scale(.7)}15%{opacity:1;transform:translate(-50%,0) scale(1.08)}25%{transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-30px)}}
 .me{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:6px 0 10px}
 .me-info{flex:1;min-width:200px}
 .me-info input{font:inherit;font-size:1.3rem;font-weight:800;border:2px dashed var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:6px 10px;width:min(100%,320px)}
@@ -766,29 +887,28 @@ details.adult[open] summary{margin-bottom:10px}
 <symbol id="i-sparkle-fill" viewBox="0 0 256 256"><path d="M208,144a15.78,15.78,0,0,1-10.42,14.94L146,178l-19,51.62a15.92,15.92,0,0,1-29.88,0L78,178l-51.62-19a15.92,15.92,0,0,1,0-29.88L78,110l19-51.62a15.92,15.92,0,0,1,29.88,0L146,110l51.62,19A15.78,15.78,0,0,1,208,144ZM152,48h16V64a8,8,0,0,0,16,0V48h16a8,8,0,0,0,0-16H184V16a8,8,0,0,0-16,0V32H152a8,8,0,0,0,0,16Zm88,32h-8V72a8,8,0,0,0-16,0v8h-8a8,8,0,0,0,0,16h8v8a8,8,0,0,0,16,0V96h8a8,8,0,0,0,0-16Z"/></symbol>
 <symbol id="i-x-circle-fill" viewBox="0 0 256 256"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm37.66,130.34a8,8,0,0,1-11.32,11.32L128,139.31l-26.34,26.35a8,8,0,0,1-11.32-11.32L116.69,128,90.34,101.66a8,8,0,0,1,11.32-11.32L128,116.69l26.34-26.35a8,8,0,0,1,11.32,11.32L139.31,128Z"/></symbol>
 <symbol id="i-target-fill" viewBox="0 0 256 256"><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32L167.6,99.71h0l-37.71,37.71-23.95,23.95a40,40,0,0,0,62-35.67,8,8,0,1,1,16-.9,56,56,0,0,1-95.5,42.79h0a56,56,0,0,1,73.13-84.43L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"/></symbol>
+<symbol id="i-graduation-cap-fill" viewBox="0 0 256 256"><path d="M176,207.24a119,119,0,0,0,16-7.73V240a8,8,0,0,1-16,0Zm11.76-88.43-56-29.87a8,8,0,0,0-7.52,14.12L171,128l17-9.06Zm64-29.87-120-64a8,8,0,0,0-7.52,0l-120,64a8,8,0,0,0,0,14.12L32,117.87v48.42a15.91,15.91,0,0,0,4.06,10.65C49.16,191.53,78.51,216,128,216a130,130,0,0,0,48-8.76V130.67L171,128l-43,22.93L43.83,106l0,0L25,96,128,41.07,231,96l-18.78,10-.06,0L188,118.94a8,8,0,0,1,4,6.93v73.64a115.63,115.63,0,0,0,27.94-22.57A15.91,15.91,0,0,0,224,166.29V117.87l27.76-14.81a8,8,0,0,0,0-14.12Z"/></symbol>
+<symbol id="i-graduation-cap-bold" viewBox="0 0 256 256"><path d="M249.8,85.49l-116-64a12,12,0,0,0-11.6,0l-116,64a12,12,0,0,0,0,21l21.8,12v47.76a19.89,19.89,0,0,0,5.09,13.32C46.63,194.7,77,220,128,220a136.88,136.88,0,0,0,40-5.75V240a12,12,0,0,0,24,0V204.12a119.53,119.53,0,0,0,30.91-24.51A19.89,19.89,0,0,0,228,166.29V118.53l21.8-12a12,12,0,0,0,0-21ZM128,45.71,219.16,96,186,114.3a1.88,1.88,0,0,1-.18-.12l-52-28.69a12,12,0,0,0-11.6,21l39,21.49L128,146.3,36.84,96ZM128,196c-40.42,0-64.65-19.07-76-31.27v-33l70.2,38.74a12,12,0,0,0,11.6,0L168,151.64v37.23A110.46,110.46,0,0,1,128,196Zm76-31.27a93.21,93.21,0,0,1-12,10.81V138.39l12-6.62Z"/></symbol>
 </svg>
-<header><div class="wrap">
-  <a class="logo" href="#/" title="Inicio" aria-label="Vocabulario: inicio">📘<span class="lt"> Vocabulario</span></a>
-  <div class="htools">
-    <button class="hbtn" id="snd-b" title="Sonidos" aria-label="Sonidos">🔔</button>
-    <button class="hbtn" id="theme-b" title="Modo claro / oscuro" aria-label="Modo claro / oscuro"></button>
-    <button class="hbtn" id="cfg-b" title="Voz y velocidad" aria-label="Voz y velocidad">⚙️</button>
-    <button class="hbtn" id="inst" hidden>📲<span class="lb"> Instalar</span></button>
+<header class="topbar" id="topbar">
+  <button type="button" class="tb-flag glass" id="lang-b" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-m" aria-label="Idioma"></button>
+  <div class="tb-right">
+    <div class="tb-slot" data-sync-slot></div>
+    <div class="tb-group glass">
+      <button type="button" class="tb-coins" data-coins-pill data-coin-target aria-label="Monedas. Abrir la tienda"><svg class="coin-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFCC00"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7A000" stroke-opacity=".8"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B39000" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7.8 13.06 10.54 15.99 10.7 13.71 12.56 14.47 15.4 12 13.8 9.53 15.4 10.29 12.56 8.01 10.7 10.94 10.54Z" fill="#A88700" fill-opacity=".8"/><path d="M6.4 8.2a7 7 0 0 1 4.4-3.4" stroke="#fff" stroke-opacity=".85" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg><span id="coins">0</span></button>
+      <span class="tb-sep" aria-hidden="true"></span>
+      <button type="button" class="tb-gear" data-open="ajustes" aria-label="Ajustes" title="Ajustes"><svg class="ico" width="24" height="24" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-gear-six-bold"></use></svg></button>
+    </div>
   </div>
-  <div class="langs" id="langs"></div>
-  <nav class="hnav" aria-label="Secciones">
-    <a class="hbtn" href="#/mapa" data-nav="mapa" title="Camino">🗺️<span class="lb"> Camino</span></a>
-    <a class="hbtn" href="#/repaso" data-nav="repaso" title="Repasar">🔁<span class="lb"> Repasar</span><span class="b" id="due-b" hidden></span></a>
-    <a class="hbtn" href="#/granja" data-nav="granja" title="Mi granja">🏡<span class="lb"> Granja</span></a>
-    <a class="hbtn" href="#/juegos" data-nav="juegos" title="Juegos">🎮<span class="lb"> Juegos</span></a>
-    <a class="hbtn" href="#/album" data-nav="album" title="Álbum de pegatinas">📒<span class="lb"> Álbum</span></a>
-    <a class="hbtn" href="#/progreso" data-nav="progreso" title="Mis premios">🏆<span class="lb"> Premios</span></a>
-    <a class="hbtn coin" href="#/granja" title="Tus monedas">🪙 <span id="coins">0</span></a>
-  </nav>
-</div></header>
-<dialog id="cfg"></dialog>
-<main><div class="wrap" id="app"><p class="empty">Cargando…</p></div></main>
-<footer class="wrap">Inglés británico · Francés · Danés — Imágenes: <a href="https://openmoji.org">OpenMoji</a> (CC BY-SA 4.0). Iconos: <a href="https://phosphoricons.com">Phosphor</a> (<a href="icons/PHOSPHOR-LICENSE">MIT</a>). Letra: <a href="https://github.com/googlefonts/nunito">Nunito</a> (<a href="fonts/OFL.txt">OFL</a>). Audio: ElevenLabs y voz del navegador. · <b>Vocabulary</b> · <a href="privacy.html">Privacy Policy / Privacidad</a></footer>
+</header>
+<div class="lang-m glass" id="lang-m" role="menu" aria-label="Idioma que aprendes" hidden></div>
+<nav class="tabbar glass" id="tabbar" role="tablist" aria-label="Secciones"></nav>
+<div class="focusbar" id="focusbar">
+  <a class="fx-x glass" id="fx-x" href="#/" aria-label="Salir"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-x-bold"></use></svg></a>
+  <span class="fx-coins" data-coin-target><svg class="coin-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFCC00"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7A000" stroke-opacity=".8"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B39000" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7.8 13.06 10.54 15.99 10.7 13.71 12.56 14.47 15.4 12 13.8 9.53 15.4 10.29 12.56 8.01 10.7 10.94 10.54Z" fill="#A88700" fill-opacity=".8"/><path d="M6.4 8.2a7 7 0 0 1 4.4-3.4" stroke="#fff" stroke-opacity=".85" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg><span data-coins-n>0</span><span class="vh"> monedas</span></span>
+</div>
+<dialog id="cfg" aria-labelledby="cfg-tt"></dialog>
+<main><div class="wrap tabhead" id="tabhead" hidden></div><div class="wrap" id="app"><p class="empty">Cargando…</p></div></main>
 <script>
 const LANGS = {
   english:  {label:"🇬🇧 English",  name:"inglés",  code:"en-GB"},
@@ -928,37 +1048,71 @@ const sayBtn = (t, sm) => t ? `<span class="sayg"><button class="say${sm?" sm":"
 const SLOW = () => Math.max(0.35, rate * 0.55);
 
 
-/* ---------- voz y velocidad ---------- */
+/* ---------- Ajustes (hoja provisional) ----------
+   window.openSettings(after, from) abre los Ajustes. El engranaje de la barra superior la busca en el momento del toque,
+   así que un módulo puede poner la hoja definitiva con window.openSettings = (after, from) => {…} y todo lo que abre
+   Ajustes (el engranaje y «⚙️ Voz» de las fichas) pasa a abrir la suya. after() se llama al cerrarla (p. ej. para pintar
+   la velocidad nueva); from es el botón que la abrió (la hoja sale desde él). Esta provisional (dialog#cfg, con
+   M.openSheet) tiene lo que estaba en la cabecera: sonidos, voz y velocidad, apariencia, instalar, descargar todo, el
+   enlace a Google (sync.js lo pone en [data-sync-cfg]) y los créditos (creditsHtml()). */
 const SAMPLE = {english:"Hello! This is how I sound.", "français":"Bonjour ! Voici ma voix.", dansk:"Hej! Sådan lyder min stemme."};
-function openCfg(after){
+/* créditos y privacidad (antes en el pie de página) */
+function creditsHtml(){
+  return `Inglés británico · Francés · Danés — Imágenes: <a href="https://openmoji.org">OpenMoji</a> (CC BY-SA 4.0). Iconos: <a href="https://phosphoricons.com">Phosphor</a> (<a href="icons/PHOSPHOR-LICENSE">MIT</a>). Letra: <a href="https://github.com/googlefonts/nunito">Nunito</a> (<a href="fonts/OFL.txt">OFL</a>). Audio: ElevenLabs y voz del navegador. · <b>Vocabulary</b> · <a href="privacy.html">Privacy Policy / Privacidad</a>`;
+}
+const isStandalone = () => { try{ return navigator.standalone === true || matchMedia("(display-mode: standalone)").matches; }catch(e){ return false; } };
+function installRow(){
+  const ic = n => `<span class="st-ic${n ? " gr" : ""}">${ico(n ? "check" : "download-simple", "bold", 18)}</span>`;
+  if(isStandalone()) return `<div class="st-r">${ic(1)}<span class="st-l">La app ya está instalada</span></div>`;
+  if(installEv) return `<button type="button" class="st-r st-btn" id="cfg-inst">${ic(0)}<span class="st-l">Instalar la app</span></button>`;
+  const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  return `<div class="st-r">${ic(0)}<span class="st-l">Instalar la app<small>${ios ? "En Safari: Compartir › «Añadir a pantalla de inicio»." : "En Chrome o Edge: menú ⋮ › «Instalar aplicación»."}</small></span></div>`;
+}
+function openCfg(after, from){
   const d = $("#cfg"), code = LANGS[lang].code, base = code.slice(0,2);
   const vs = voices.filter(v => v.lang.replace("_","-").toLowerCase().startsWith(base));
   const cur = (voiceFor(code)||{}).name;
-  d.innerHTML = `<h2>Voz y velocidad</h2><div class="count">Para el ${LANGS[lang].name}. Se guarda en este dispositivo.</div>
-    <label for="cfg-v">Voz</label>
-    ${vs.length ? `<select id="cfg-v" style="width:100%">${vs.map(v=>`<option value="${esc(v.name)}" ${v.name===cur?"selected":""}>${esc(v.name)} (${esc(v.lang)})</option>`).join("")}</select>`
-      : `<div class="note">Este dispositivo no tiene voces en ${LANGS[lang].name}. En Windows: Configuración › Hora e idioma › Voz › Agregar voces. En el móvil: ajustes de texto a voz.</div>`}
-    <label for="cfg-r">Velocidad: <span id="cfg-rv"></span></label>
-    <input type="range" id="cfg-r" min="0.5" max="1.3" step="0.05" value="${rate}" style="width:100%">
-    <div class="dlbl"><span>🐢 Más lenta</span><span>Más rápida 🐇</span></div>
-    <div class="dlab" id="cfg-thl">Apariencia</div>
-    <div class="tabs" id="cfg-th" role="radiogroup" aria-labelledby="cfg-thl">${[["auto","Automático"],["light","Claro"],["dark","Oscuro"]].map(([k,t]) =>
-      `<button type="button" role="radio" data-th="${k}" aria-checked="${themeMode()===k}" class="${themeMode()===k?"on":""}">${t}</button>`).join("")}</div>
-    <div class="pr-row" style="margin-top:18px"><button class="btn" id="cfg-t">🔊 Probar</button><button class="btn pri" id="cfg-x" style="margin-left:auto">Listo</button></div>`;
+  d.innerHTML = `<div class="st-top"><h2 class="t-2" id="cfg-tt">Ajustes</h2><button type="button" class="glass-btn glass-btn--sm glass-btn--pri" id="cfg-x">Listo</button></div>
+    <section class="st-sec" aria-labelledby="cfg-h1"><h3 class="st-h" id="cfg-h1">Sonido y voz</h3><div class="st-g">
+      <label class="st-r" for="cfg-snd"><span class="st-ic">${ico("speaker-high", "bold", 18)}</span><span class="st-l">Sonidos</span>
+        <input type="checkbox" role="switch" class="st-sw" id="cfg-snd" ${sfx.muted ? "" : "checked"}></label>
+      <div class="st-r col"><label for="cfg-v">Voz para el ${LANGS[lang].name}</label>
+        ${vs.length ? `<select id="cfg-v">${vs.map(v=>`<option value="${esc(v.name)}" ${v.name===cur?"selected":""}>${esc(v.name)} (${esc(v.lang)})</option>`).join("")}</select>`
+          : `<div class="note" style="margin:0">Este dispositivo no tiene voces en ${LANGS[lang].name}. En Windows: Configuración › Hora e idioma › Voz › Agregar voces. En el móvil: ajustes de texto a voz.</div>`}</div>
+      <div class="st-r col"><label for="cfg-r">Velocidad: <span id="cfg-rv"></span></label>
+        <input type="range" id="cfg-r" min="0.5" max="1.3" step="0.05" value="${rate}">
+        <div class="dlbl"><span>🐢 Más lenta</span><span>Más rápida 🐇</span></div></div>
+      <button type="button" class="st-r st-btn" id="cfg-t"><span class="st-ic tl">${ico("play", "bold", 18)}</span><span class="st-l">Probar la voz</span></button>
+    </div></section>
+    <section class="st-sec" aria-labelledby="cfg-thl"><h3 class="st-h" id="cfg-thl">Apariencia</h3>
+      <div class="seg" id="cfg-th" role="radiogroup" aria-labelledby="cfg-thl">${[["auto","Automático"],["light","Claro"],["dark","Oscuro"]].map(([k,t]) =>
+        `<button type="button" class="seg-i" role="radio" data-th="${k}" aria-checked="${themeMode()===k}" tabindex="${themeMode()===k?0:-1}">${t}</button>`).join("")}</div></section>
+    <section class="st-sec" aria-labelledby="cfg-h3"><h3 class="st-h" id="cfg-h3">Para mayores</h3><div class="st-g">
+      ${installRow()}
+      <div class="st-r col" id="cfg-off"></div>
+      <div class="st-r col" data-sync-cfg></div></div></section>
+    <section class="st-sec" aria-labelledby="cfg-h4"><h3 class="st-h" id="cfg-h4">Créditos</h3><div class="st-g"><p class="st-cred">${creditsHtml()}</p></div></section>`;
   const rv = () => $("#cfg-rv").textContent = `${(+rate).toFixed(2).replace(/0$/,"")}×` + (rate<0.75?" (lenta)":rate<=1?" (normal)":" (rápida)");
   rv();
+  $("#cfg-snd").onchange = e => { if(sfx.muted === e.target.checked) sfx.toggle(); };
   $("#cfg-r").oninput = e => { rate = +e.target.value; store.set("rate", rate); rv(); };
   if($("#cfg-v")) $("#cfg-v").onchange = e => store.set("voice:"+lang, e.target.value);
   $("#cfg-t").onclick = () => say(SAMPLE[lang]);
-  d.querySelectorAll("[data-th]").forEach(b => b.onclick = () => {
-    setTheme(b.dataset.th);
-    d.querySelectorAll("[data-th]").forEach(x => { const on = x.dataset.th === themeMode(); x.classList.toggle("on", on); x.setAttribute("aria-checked", on); });
-  });
-  $("#cfg-x").onclick = () => d.close();
+  const th = [...d.querySelectorAll("[data-th]")];
+  th.forEach(b => b.onclick = () => { setTheme(b.dataset.th); paintTheme(); });
+  $("#cfg-th").onkeydown = e => {
+    const i = th.indexOf(document.activeElement), k = {ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1}[e.key];
+    if(i < 0 || !k) return;
+    e.preventDefault(); const b = th[(i + k + th.length) % th.length]; b.focus(); b.click();
+  };
+  const ib = $("#cfg-inst");
+  if(ib) ib.onclick = async () => { if(!installEv) return; const ev = installEv; installEv = null; ev.prompt(); try{ await ev.userChoice; }catch(e){} ib.outerHTML = installRow(); };
+  offlinePanel($("#cfg-off"));
+  $("#cfg-x").onclick = () => { if(window.M) M.closeSheet(d); else d.close(); };
   d.onclose = () => { voiceNote(); if(after) after(); };
-  d.showModal();
+  if(window.M) M.openSheet(d, {from}); else d.showModal();
 }
-$("#cfg-b").onclick = () => openCfg();
+window.openSettings = (after, from) => openCfg(after, from);
 
 /* ---------- repaso espaciado, actividad y progreso ---------- */
 const today = () => { const d = new Date(); return Math.floor((d - d.getTimezoneOffset()*60000) / 864e5); };
@@ -992,7 +1146,7 @@ function streak(){
   while(a[dayKey(d)]){ s++; d.setDate(d.getDate()-1); }
   return s;
 }
-function updBadge(){ const b = $("#due-b"); if(!b) return; const n = dueList().length; b.textContent = n; b.hidden = !n; }
+function updBadge(){ const n = dueList().length; tabBadge("aprender", n, n === 1 ? "1 palabra para repasar" : `${n} palabras para repasar`); }
 function statsHtml(){
   const m = Object.values(srsAll()), due = m.filter(x=>x.due<=today()).length, mast = m.filter(x=>x.b>=MASTER).length;
   const a = store.get("act", {}), st = streak();
@@ -1010,8 +1164,7 @@ async function repaso(){
   rv = null; document.onkeydown = null;
   const idx = await getIndex(), ready = idx.filter(d => d.langs.includes(lang));
   const due = dueList();
-  $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
-    <div class="hello">${heroHtml(90)}<div class="speech">${due.length
+  $("#app").innerHTML = `<div class="hello">${heroHtml(90)}<div class="speech">${due.length
       ? `<b>¡${due.length} palabra${due.length>1?"s":""} te ${due.length>1?"esperan":"espera"}!</b>Ya las viste antes. Vamos a ver si te acuerdas. Cada palabra que sepas te da 🪙.`
       : `<b>¡Todo repasado por hoy! 🎉</b>Vuelve mañana: las palabras vuelven justo cuando se te van a olvidar.`}</div></div>
     <div class="panel" style="text-align:center">${due.length
@@ -1038,7 +1191,7 @@ async function rvStart(){
   await Promise.all(ids.map(id => getDoc(id).catch(()=>null)));
   const q = shuffle(due.map(x => { const doc = CACHE[x.d], r = doc && doc.rows.find(r => r.es===x.e && r.l[lang]); return r ? {id:x.d, r} : null; }).filter(Boolean));
   rv = {q, i:0, flip:false, done:0, total:q.length, coins:0};
-  rvDraw();
+  rvDraw(); updFocus(); scrollTo(0, 0);
 }
 function rvDraw(){
   if(!rv) return;
@@ -1047,7 +1200,7 @@ function rvDraw(){
     $("#app").innerHTML = `<div class="pr-setup pr-end" style="margin:0 auto">${heroHtml(90)}<h2>¡Repaso terminado! 🎉</h2>
       <p class="sub">Repasaste ${rv.total} palabra${rv.total>1?"s":""} y ganaste 🪙 ${rv.coins + 10}. Racha: 🔥 ${streak()} día${streak()===1?"":"s"}.</p>
       <div class="pr-row" style="justify-content:center"><a class="btn pri" href="#/granja" style="text-decoration:none">🏡 Ir a mi granja</a><a class="btn" href="#/mapa" style="text-decoration:none">🗺️ Seguir el camino</a></div></div>`;
-    rv = null; document.onkeydown = null; return;
+    rv = null; document.onkeydown = null; updFocus(); return;
   }
   const {id, r} = rv.q[rv.i], d = r.l[lang], x = srsAll()[srsK(id, r)];
   const pct = Math.round(100 * rv.done / Math.max(1, rv.total));
@@ -1097,8 +1250,7 @@ async function progreso(el){
       <td>${o.m} / ${d.count}</td><td style="width:40%"><div class="mbar"><i class="m" style="width:${pm}%"></i><i class="l" style="width:${pl}%"></i></div></td></tr>`;
   }).join("");
   const total = days.reduce((s,x)=>s+x.n,0);
-  (el || $("#app")).innerHTML = `${el ? "" : `<a class="back" href="#/">← Inicio</a>
-    <h1>Tu progreso <span style="color:var(--muted);font-weight:400">en ${LANGS[lang].name}</span></h1>
+  (el || $("#app")).innerHTML = `${el ? "" : `<h1>Tu progreso <span style="color:var(--muted);font-weight:400">en ${LANGS[lang].name}</span></h1>
     ${statsHtml()}`}
     <div class="panel"><h2>Últimos 14 días</h2><div class="count">${total} repeticiones en total. La racha cuenta los días seguidos con al menos una práctica, test o repaso.</div>
       <div class="days">${days.map(x=>`<i class="${x.n?"on":""}" style="height:${Math.max(5, 100*x.n/max)}%" title="${x.k}: ${x.n}"></i>`).join("")}</div>
@@ -1107,7 +1259,7 @@ async function progreso(el){
       <div class="legend"><span><i style="background:var(--ok)"></i>Dominadas (repaso cada 14 días o más)</span><span><i style="background:var(--brand);opacity:.6"></i>Aprendiendo</span></div>
       <table class="ptable"><thead><tr><th>Documento</th><th>Dominadas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
     <div class="panel"><h2>📲 En el móvil y sin internet</h2>
-      <p class="sub">Puedes instalar esta web como una app: en Android o en Chrome, botón «Instalar» arriba o menú ⋮ › «Instalar aplicación»; en iPhone, Safari › Compartir › «Añadir a pantalla de inicio». Tu progreso se guarda en cada dispositivo (y en Google si lo conectas arriba).</p>
+      <p class="sub">Puedes instalar esta web como una app: en Android o en Chrome, Ajustes (el engranaje) › «Instalar la app» o menú ⋮ › «Instalar aplicación»; en iPhone, Safari › Compartir › «Añadir a pantalla de inicio». Tu progreso se guarda en cada dispositivo (y en Google si lo conectas).</p>
       <div id="off-panel"></div></div>`;
   offlinePanel($("#off-panel"));
 }
@@ -1116,10 +1268,10 @@ async function progreso(el){
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v14", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v15", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
-  "js/save.js", "js/sync.js", "js/fab.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
+  "js/save.js", "js/sync.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
@@ -1276,8 +1428,9 @@ async function downloadAll(){
   }
 }
 let installEv = null;
-addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEv = e; $("#inst").hidden = false; });
-$("#inst").onclick = async () => { if(!installEv) return; installEv.prompt(); await installEv.userChoice; installEv = null; $("#inst").hidden = true; };
+/* el aviso de instalar se guarda y se usa desde Ajustes › Para mayores › «Instalar la app» */
+addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEv = e; });
+addEventListener("appinstalled", () => { installEv = null; });
 if("serviceWorker" in navigator && window.isSecureContext) navigator.serviceWorker.register("sw.js").catch(e => console.warn("No se pudo instalar el modo sin internet:", e.message));
 
 /* ---------- tema: Automático (sin clave "theme": sigue al sistema), Claro u Oscuro ----------
@@ -1300,15 +1453,10 @@ function setTheme(mode){
   else { try{ localStorage.removeItem("theme"); }catch(e){} }
   applyTheme();
 }
+/* Ajustes › Apariencia (si está abierta) marca lo elegido */
 function paintTheme(){
-  const b = $("#theme-b"); if(!b) return;
-  const d = document.documentElement.dataset.theme === "dark", auto = themeMode() === "auto";
-  b.textContent = d ? "☀️" : "🌙";
-  b.title = (d ? "Cambiar a modo claro" : "Cambiar a modo oscuro") + (auto ? " (ahora: automático)" : "");
-  b.setAttribute("aria-label", b.title);
+  document.querySelectorAll("#cfg-th [data-th]").forEach(x => { const on = x.dataset.th === themeMode(); x.setAttribute("aria-checked", on); x.tabIndex = on ? 0 : -1; });
 }
-/* el botón alterna lo que se ve; si lo elegido coincide con el sistema, vuelve a Automático */
-$("#theme-b").onclick = () => { const t = document.documentElement.dataset.theme === "dark" ? "light" : "dark"; setTheme(t === sysTheme() ? "auto" : t); };
 darkMQ.addEventListener("change", () => { if(themeMode() === "auto") applyTheme(); });
 addEventListener("storage", e => { if(e.key === "theme" || e.key === null) applyTheme(); });
 applyTheme();
@@ -1317,28 +1465,219 @@ applyTheme();
 async function getIndex(){ if(!INDEX) INDEX = await (await fetch("data/index.json")).json(); return INDEX; }
 async function getDoc(id){ if(!CACHE[id]) CACHE[id] = await (await fetch(`data/${id}.json`)).json(); return CACHE[id]; }
 
-/* ---------- cabecera ---------- */
-function renderLangs(){
-  $("#langs").innerHTML = Object.entries(LANGS).map(([k,v]) => { const [fl, ...n] = v.label.split(" ");
-    return `<button class="${k===lang?"on":""}" data-lang="${k}" title="${esc(n.join(" "))}" aria-label="${esc(n.join(" "))}" aria-pressed="${k===lang}"><span class="fl" aria-hidden="true">${fl}</span><span class="ln">${esc(n.join(" "))}</span></button>`; }).join("");
+/* ---------- armazón de navegación: pestañas, segmentos, barra superior y modo foco ----------
+   TABS: las pestañas de la barra, en orden. Cada una: id (data-nav y #tab-<id>), t (nombre), ic (icono Phosphor
+   relleno), root (adónde va la primera vez), title (título grande en su raíz; null = sin título), secs (primer trozo
+   de las rutas que son suyas) y segs (segmentos de arriba; solo se pintan si hay 2 o más): t, h (ruta) y secs.
+   Un módulo puede añadir una pestaña o un segmento al cargar, antes de que arranque la app:
+     TABS.find(t => t.id === "premios").segs.push({t: "Mi zorro", h: "#/zorro", secs: ["zorro"]});
+   y registrar su ruta en ROUTES["zorro"]. Las rutas que no son de ninguna pestaña dejan marcada la de antes. */
+const TABS = [
+  {id:"hoy", t:"Hoy", ic:"house", root:"#/", title:"Hoy", secs:[""]},
+  {id:"aprender", t:"Aprender", ic:"graduation-cap", root:"#/mapa", title:"Aprender", secs:["repaso", "mapa", "palabras", "gramatica", "doc", "leccion"],
+    segs:[{t:"Repasar", h:"#/repaso", secs:["repaso"]}, {t:"Camino", h:"#/mapa", secs:["mapa", "leccion"]},
+          {t:"Palabras", h:"#/palabras", secs:["palabras", "doc"]}, {t:"Gramática", h:"#/gramatica", secs:["gramatica"]}]},
+  {id:"jugar", t:"Jugar", ic:"game-controller", root:"#/juegos", title:"Jugar", secs:["juegos", "album"],
+    segs:[{t:"Juegos", h:"#/juegos", secs:["juegos"]}, {t:"Álbum", h:"#/album", secs:["album"]}]},
+  {id:"granja", t:"Granja", ic:"barn", root:"#/granja", title:null, secs:["granja"]},
+  {id:"premios", t:"Premios", ic:"trophy", root:"#/progreso", title:"Premios", secs:["progreso"], segs:[{t:"Medallas", h:"#/progreso", secs:["progreso"]}]},
+];
+const hashPath = (hash = location.hash) => hash.replace(/^#\/?/, "").split("?")[0];
+const secOf = h => String(h || "").split("/")[0];
+const tabOf = h => TABS.find(t => t.secs.includes(secOf(h))) || null;
+const segOf = (t, h) => (t && t.segs || []).find(s => s.secs.includes(secOf(h))) || null;
+const lessonLv = id => { const m = /^(?:G-)?([A-C][12])\b/.exec(id || ""); return m ? m[1] : ""; };
+/* la raíz de lo que se ve: una ficha vuelve a Palabras, una partida o una página del álbum a su lista y una lección a
+   su nivel del camino. #/mapa/<nivel> y #/gramatica/<nivel> ya son raíz. */
+function rootOf(h){
+  const [a, b] = String(h || "").split("/");
+  if(a === "doc") return "palabras";
+  if(a === "leccion") return lessonLv(b) ? "mapa/" + lessonLv(b) : "mapa";
+  if((a === "juegos" || a === "album") && b) return a;
+  return String(h || "");
 }
-$("#langs").addEventListener("click", e => {
-  const b = e.target.closest("[data-lang]"); if(!b) return;
-  lang = b.dataset.lang; store.set("lang",lang); loadClips(lang); renderLangs(); updBadge(); route();
-});
+const isRootPath = h => rootOf(h) === h;
+/* cada pestaña recuerda su última pantalla y su scroll (solo en esta sesión: sessionStorage, fuera de la partida) */
+const TABMEM = (() => { try{ const m = JSON.parse(sessionStorage.getItem("vocab:tabs")); return m && typeof m === "object" ? m : {}; }catch(e){ return {}; } })();
+let memT = 0;
+const memSave = () => { clearTimeout(memT); memT = setTimeout(() => { try{ sessionStorage.setItem("vocab:tabs", JSON.stringify(TABMEM)); }catch(e){} }, 250); };
+/* lo que se recuerda de una ruta: de una lección, su nivel del camino; de una partida, el menú de juegos */
+const memHash = h => secOf(h) === "leccion" || (secOf(h) === "juegos" && h.includes("/")) ? "#/" + rootOf(h) : "#/" + h;
+let curTab = null, tabRestore = null, ROUTE_RESTORE = false, focusOn = "", lastInput = 0;
+["pointerdown", "wheel", "keydown", "touchstart"].forEach(t => addEventListener(t, () => { lastInput = Date.now(); }, {capture: true, passive: true}));
+
+function renderTabbar(){
+  const nav = $("#tabbar"); if(!nav) return;
+  nav.innerHTML = TABS.map(t => `<a class="tab" role="tab" id="tab-${t.id}" data-nav="${t.id}" href="${esc(t.root)}" aria-selected="false" tabindex="-1">${ico(t.ic, "fill", 26)}<span class="tl">${esc(t.t)}</span><span class="tb-badge"${t.id === "aprender" ? ' id="due-b"' : ""} aria-hidden="true" hidden></span></a>`).join("");
+}
+/* aviso en una pestaña: v = número (más de 9 sale «9+»), true = punto azul, 0/false = nada. label es lo que lee el
+   lector de pantalla junto al nombre («6 palabras para repasar»). Da un saltito (M.bump) cuando cambia. Siempre azul. */
+const BADGES = {};
+function tabBadge(id, v, label){
+  const a = document.getElementById("tab-" + id), b = a && a.querySelector(".tb-badge"); if(!b) return;
+  const n = typeof v === "number" ? Math.max(0, Math.floor(v) || 0) : !!v;
+  const key = n === true ? "dot" : String(n || 0), old = BADGES[id];
+  b.hidden = !n; b.classList.toggle("dot", n === true);
+  b.textContent = typeof n === "number" && n ? (n > 9 ? "9+" : String(n)) : "";
+  const t = TABS.find(x => x.id === id);
+  if(n && label) a.setAttribute("aria-label", `${t ? t.t : id}, ${label}`); else a.removeAttribute("aria-label");
+  BADGES[id] = key;
+  if(old !== undefined && old !== key && n && window.M) M.bump(b);
+}
+/* lo que se ve de la barra: pestaña marcada, adónde lleva cada una, vidrio ligero en la granja y en las partidas */
+function paintTabs(h){
+  const t = tabOf(h); if(t) curTab = t.id;
+  const root = document.documentElement;
+  root.dataset.tab = curTab || ""; root.dataset.sec = secOf(h);
+  for(const x of TABS){
+    const a = document.getElementById("tab-" + x.id); if(!a) continue;
+    const on = x.id === curTab, m = TABMEM[x.id];
+    a.setAttribute("aria-selected", on); a.tabIndex = on ? 0 : -1;
+    a.setAttribute("href", on ? "#/" + rootOf(h) : m && m.h ? m.h : x.root);
+  }
+  const lite = curTab === "granja" || /^juegos\//.test(h) || root.hasAttribute("data-gm-play");
+  ["#tabbar", "#lang-b", ".tb-group", "#lang-m", "#fx-x"].forEach(s => { const el = $(s); if(el) el.classList.toggle("lite", lite); });
+}
+/* título grande y segmentos, solo en la raíz de la pestaña (y nunca en modo foco) */
+function paintHead(h){
+  const el = $("#tabhead"); if(!el) return;
+  const t = tabOf(h), segs = t && t.segs && t.segs.length > 1 ? t.segs : null;
+  if(!t || focusOn || !isRootPath(h) || (!t.title && !segs)){ el.hidden = true; el.innerHTML = ""; return; }
+  const cur = segOf(t, h), key = `${t.id}|${cur ? cur.h : ""}`;
+  if(el.dataset.k !== key || !el.innerHTML){
+    el.dataset.k = key;
+    el.innerHTML = `${t.title ? `<h1 class="th-t t-lt">${esc(t.title)}</h1>` : ""}${segs ? `<div class="seg" role="tablist" aria-label="${esc(t.t)}">${segs.map(s =>
+      `<a class="seg-i" role="tab" href="${esc(s.h)}" aria-selected="${s === cur}" tabindex="${s === cur ? 0 : -1}">${esc(s.t)}</a>`).join("")}</div>` : ""}`;
+  }
+  el.hidden = false;
+}
+/* modo foco (html[data-focus]): lección, repaso en marcha o partida (games.js marca html[data-gm-play]). Sin barras,
+   con la ✕ (vuelve a la raíz de la pestaña) y el contador de monedas. */
+function updFocus(){
+  const h = hashPath(), root = document.documentElement;
+  const f = secOf(h) === "leccion" ? "leccion" : rv && secOf(h) === "repaso" ? "repaso" : root.hasAttribute("data-gm-play") ? "juego" : "";
+  const x = $("#fx-x");
+  if(x) x.setAttribute("href", f === "leccion" ? "#/" + rootOf(h) : f === "repaso" ? "#/repaso" : f === "juego" ? "#/juegos" : "#/");
+  if(f === focusOn) return;
+  focusOn = f;
+  if(f){ root.dataset.focus = f; langMenu(false); } else delete root.dataset.focus;
+  paintHead(h); paintTabs(h);
+}
+new MutationObserver(updFocus).observe(document.documentElement, {attributes: true, attributeFilter: ["data-gm-play"]});
+/* vuelve al scroll que tenía la pestaña (la página puede tardar en crecer: se reintenta un poco si no tocan) */
+function restoreScroll(y){
+  const t0 = Date.now(), go = () => { if(lastInput > t0) return; if(Math.abs(scrollY - y) > 2) scrollTo(0, y); };
+  scrollTo(0, y); requestAnimationFrame(go); setTimeout(go, 150); setTimeout(go, 450);
+}
+function topSmooth(){ try{ scrollTo({top: 0, behavior: window.M && M.rm() ? "auto" : "smooth"}); }catch(e){ scrollTo(0, 0); } }
+function navTo(hash){ if(location.hash === hash || (hash === "#/" && !hashPath())) route(); else location.hash = hash; }
+/* tocar una pestaña: la otra vuelve a donde se quedó; la que ya está marcada sube arriba o vuelve a su raíz */
+function goTab(id){
+  const t = TABS.find(x => x.id === id); if(!t) return;
+  const h = hashPath();
+  if(curTab === id && tabOf(h) === t){
+    const r = rootOf(h);
+    if(r !== h) navTo("#/" + r); else topSmooth();
+    return;
+  }
+  const m = TABMEM[id], ok = m && typeof m.h === "string" && tabOf(hashPath(m.h)) === t;
+  const to = ok ? m.h : t.root;
+  tabRestore = ok && m.y > 0 ? m.y : null;
+  navTo(to);
+}
+/* flechas en una lista de pestañas o segmentos (el foco se mueve; Intro o Espacio la abre) */
+function rovingKeys(e, items){
+  const i = items.indexOf(document.activeElement); if(i < 0) return;
+  const k = {ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1}[e.key];
+  let j = k ? (i + k + items.length) % items.length : e.key === "Home" ? 0 : e.key === "End" ? items.length - 1 : -1;
+  if(e.key === " "){ e.preventDefault(); e.stopPropagation(); items[i].click(); return; }
+  if(j < 0) return;
+  e.preventDefault(); e.stopPropagation(); items[j].focus();
+}
+function wireNav(){
+  const bar = $("#tabbar");
+  bar.addEventListener("click", e => {
+    const a = e.target.closest(".tab"); if(!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
+    e.preventDefault(); goTab(a.dataset.nav);
+  });
+  bar.addEventListener("keydown", e => rovingKeys(e, [...bar.querySelectorAll(".tab")]));
+  const head = $("#tabhead");
+  head.addEventListener("click", e => {
+    const a = e.target.closest(".seg-i"); if(!a || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return;
+    e.preventDefault();
+    const to = a.getAttribute("href");
+    if(a.getAttribute("aria-selected") === "true" && isRootPath(hashPath())) topSmooth(); else navTo(to);
+  });
+  head.addEventListener("keydown", e => { const s = e.target.closest(".seg"); if(s) rovingKeys(e, [...s.querySelectorAll(".seg-i")]); });
+  /* barra superior: idioma, monedas (la tienda de la granja) y Ajustes */
+  $("#lang-b").addEventListener("click", e => { e.stopPropagation(); langMenu(); });
+  $("[data-coins-pill]").addEventListener("click", () => {
+    if(window.vocabFarm && typeof vocabFarm.openShop === "function") vocabFarm.openShop(); else location.hash = "#/granja";
+  });
+  $("[data-open=ajustes]").addEventListener("click", e => { if(typeof window.openSettings === "function") window.openSettings(null, e.currentTarget); });
+  /* ✕ del modo foco: a la raíz de la pestaña (si ya es esa ruta, se vuelve a pintar: así se cierra el repaso) */
+  $("#fx-x").addEventListener("click", e => { e.preventDefault(); navTo(e.currentTarget.getAttribute("href")); });
+  /* el scroll de cada pestaña */
+  addEventListener("scroll", () => {
+    if(!curTab || focusOn) return;
+    const m = TABMEM[curTab]; if(!m || m.h !== memHash(hashPath())) return;
+    m.y = Math.round(scrollY); memSave();
+  }, {passive: true});
+}
+
+/* ---------- barra superior: menú de idioma ---------- */
+const FLAGS = {
+  english: `<svg viewBox="0 0 60 60" aria-hidden="true" focusable="false"><rect width="60" height="60" fill="#012169"/><path d="M0 0 60 60M60 0 0 60" stroke="#fff" stroke-width="12"/><path d="M0 0 60 60M60 0 0 60" stroke="#C8102E" stroke-width="4"/><path d="M30 0v60M0 30h60" stroke="#fff" stroke-width="18"/><path d="M30 0v60M0 30h60" stroke="#C8102E" stroke-width="10"/></svg>`,
+  "français": `<svg viewBox="0 0 60 60" aria-hidden="true" focusable="false"><rect width="20" height="60" fill="#002395"/><rect x="20" width="20" height="60" fill="#fff"/><rect x="40" width="20" height="60" fill="#ED2939"/></svg>`,
+  dansk: `<svg viewBox="0 0 60 60" aria-hidden="true" focusable="false"><rect width="60" height="60" fill="#C8102E"/><path d="M0 30h60M24 0v60" stroke="#fff" stroke-width="8"/></svg>`,
+};
+const LANG_ES = {english: ["Inglés", "English"], "français": ["Francés", "Français"], dansk: ["Danés", "Dansk"]};
+function renderLangs(){
+  const b = $("#lang-b"), m = $("#lang-m"); if(!b || !m) return;
+  b.innerHTML = `<span class="flag">${FLAGS[lang] || ""}</span>`;
+  b.setAttribute("aria-label", `Idioma: ${LANGS[lang].name}. Cambiar idioma`); b.title = `Idioma: ${LANGS[lang].name}`;
+  m.innerHTML = Object.keys(LANGS).map(k => `<button type="button" class="lm-i" role="menuitemradio" data-lang="${esc(k)}" aria-checked="${k === lang}" tabindex="-1">
+    <span class="flag">${FLAGS[k] || ""}</span><span class="lm-t">${esc((LANG_ES[k] || [k])[0])}<small lang="${esc(LANGS[k].code)}">${esc((LANG_ES[k] || [, ""])[1])}</small></span>${ico("check", "bold", 22, "lm-chk")}</button>`).join("");
+}
+function langMenu(open){
+  const m = $("#lang-m"), b = $("#lang-b"); if(!m || !b) return;
+  if(open === undefined) open = m.hidden;
+  if(open === !m.hidden) return;
+  m.hidden = !open; b.setAttribute("aria-expanded", open);
+  if(!open) return;
+  if(window.M){
+    m.style.transformOrigin = "22px 0";
+    try{ m.animate(M.rm() ? [{opacity: 0}, {opacity: 1}] : [{opacity: 0, transform: "scale(.86)"}, {opacity: 1, transform: "none"}],
+      {duration: M.rm() ? 150 : 260, easing: M.rm() ? "ease-out" : (M.snappy ? M.snappy.easing : "ease-out")}); }catch(e){}
+  }
+  const cur = m.querySelector('[aria-checked="true"]') || m.querySelector(".lm-i"); if(cur) cur.focus({preventScroll: true});
+}
+function setLang(k){
+  if(!LANGS[k] || k === lang) return;
+  lang = k; store.set("lang", lang); loadClips(lang); renderLangs(); updBadge();
+  bus.emit("lang", {lang});
+  route();
+}
+function wireLangs(){
+  const m = $("#lang-m"), b = $("#lang-b");
+  m.addEventListener("click", e => {
+    const it = e.target.closest("[data-lang]"); if(!it) return;
+    langMenu(false); b.focus({preventScroll: true});
+    setLang(it.dataset.lang);
+  });
+  m.addEventListener("keydown", e => {
+    const items = [...m.querySelectorAll(".lm-i")], i = items.indexOf(document.activeElement);
+    if(e.key === "Escape" || e.key === "Tab"){ if(e.key === "Escape") e.preventDefault(); langMenu(false); b.focus({preventScroll: true}); return; }
+    const k = {ArrowDown: 1, ArrowUp: -1}[e.key];
+    if(k){ e.preventDefault(); items[(i + k + items.length) % items.length].focus(); }
+    else if(e.key === "Home" || e.key === "End"){ e.preventDefault(); items[e.key === "Home" ? 0 : items.length - 1].focus(); }
+  });
+  document.addEventListener("pointerdown", e => { if(!m.hidden && !m.contains(e.target) && !b.contains(e.target)) langMenu(false); }, true);
+  document.addEventListener("keydown", e => { if(e.key === "Escape" && !m.hidden){ langMenu(false); b.focus({preventScroll: true}); } });
+}
 
 /* ---------- inicio ---------- */
 async function home(){
-  const idx = await getIndex();
-  const card = d => {
-    const ok = d.langs.includes(lang);
-    return `<a class="doc ${ok?"":"off"}" href="#/doc/${d.id}">
-      <div class="n">${d.num?String(d.num).padStart(2,"0")+" · ":""}${d.count} palabras</div>
-      <div class="t">${esc(d.title)}</div>
-      <div class="c">${ok?"Abrir":"En preparación"}</div></a>`;
-  };
-  const temas = idx.filter(d=>d.group==="temas"), w = idx.filter(d=>d.group==="3000"), adv = idx.filter(d=>d.group==="avanzado");
-  const ready = w.filter(d=>d.langs.includes(lang)).reduce((a,d)=>a+d.count,0);
   $("#app").innerHTML = `
     <div class="hello">${heroHtml(96)}<div class="speech"><b>¡Hola${game().name ? ", " + esc(game().name) : ""}!</b>¿Qué aprendemos hoy en ${LANGS[lang].name}?</div></div>
     <div class="big-acts">
@@ -1351,15 +1690,31 @@ async function home(){
     ${(await Promise.all(HOME_SLOTS.map(f => Promise.resolve().then(f).catch(e => { console.error(e); return ""; })))).join("")}
     ${await mapCta()}
     <p style="margin:6px 0 0"><a href="#/gramatica" style="color:var(--brand);font-weight:600;text-decoration:none">📘 Gramática de ${LANGS[lang].name} por niveles, de A1 a C2 →</a></p>
-    <h2 style="margin-top:34px">📚 Todas las palabras</h2>
-    <p class="sub">Toca 🔊 para oír una palabra y 🐢 para oírla despacio.</p>
-    <h2>Temas</h2><div class="grid">${temas.map(card).join("")}</div>
+    <p class="home-priv"><a href="privacy.html">Privacidad</a></p>`;
+}
+
+/* ---------- Aprender › Palabras: todos los temas ---------- */
+async function palabras(){
+  const idx = await getIndex(); document.onkeydown = null;
+  const card = d => {
+    const ok = d.langs.includes(lang);
+    return `<a class="doc ${ok?"":"off"}" href="#/doc/${d.id}"${ok ? "" : ' aria-disabled="true" tabindex="-1"'}>
+      <div class="n">${d.num?String(d.num).padStart(2,"0")+" · ":""}${d.count} palabras</div>
+      <div class="t">${esc(d.title)}</div>
+      <div class="c">${ok?"Abrir":"En preparación"}</div></a>`;
+  };
+  const temas = idx.filter(d=>d.group==="temas"), w = idx.filter(d=>d.group==="3000"), adv = idx.filter(d=>d.group==="avanzado");
+  const ready = w.filter(d=>d.langs.includes(lang)).reduce((a,d)=>a+d.count,0);
+  $("#app").innerHTML = `<div class="pal">
+    <h2>Temas</h2>
+    <p class="sub">Toca un tema para ver sus palabras. En cada palabra, 🔊 la dice y 🐢 la dice despacio.</p>
+    <div class="grid">${temas.map(card).join("")}</div>
     <h2>Las 3000 palabras más importantes</h2>
     <p class="sub">Lista Oxford 3000, de nivel A1 a B2, agrupada por temas. Las ${3000-w.reduce((a,d)=>a+d.count,0)} palabras que ya están en «Temas» (animales, colores, familia…) no se repiten aquí.${ready<w.reduce((a,d)=>a+d.count,0)?` Listas en ${LANGS[lang].name}: ${ready}.`:""}</p>
     <div class="grid">${w.map(card).join("")}</div>
     ${adv.length ? `<h2>Nivel avanzado: B2, C1 y C2</h2>
     <p class="sub">${adv.reduce((a,d)=>a+d.count,0)} palabras más: las del Oxford 5000 que no están en las 3000 (B2 y C1) y una selección de vocabulario C2, agrupadas por temas.</p>
-    <div class="grid">${adv.map(card).join("")}</div>` : ""}`;
+    <div class="grid">${adv.map(card).join("")}</div>` : ""}</div>`;
 }
 
 /* ---------- documento ---------- */
@@ -1371,12 +1726,12 @@ async function docView(id){
   const doc = await getDoc(id);
   const meta = (await getIndex()).find(d=>d.id===id);
   if(!meta || !meta.langs.includes(lang)){
-    $("#app").innerHTML = `<a class="back" href="#/">← Volver</a><h1>${esc(doc.title)}</h1><p class="empty">Este documento todavía no está listo en ${LANGS[lang].name}.</p>`;
+    $("#app").innerHTML = `<a class="back" href="#/palabras">← Palabras</a><h1>${esc(doc.title)}</h1><p class="empty">Este documento todavía no está listo en ${LANGS[lang].name}.</p>`;
     return;
   }
   const levels = [...new Set(doc.rows.filter(r=>r.level).map(r=>r.level))];
   $("#app").innerHTML = `
-    <a class="back" href="#/">← Todos los documentos</a>
+    <a class="back" href="#/palabras">← Palabras</a>
     <h1>${doc.num?String(doc.num).padStart(2,"0")+" · ":""}${esc(doc.title)} <span style="color:var(--muted);font-weight:400">en ${LANGS[lang].name}</span></h1>
     <div class="note" id="voicenote" hidden></div>
     <div class="toolbar">
@@ -1395,7 +1750,7 @@ async function docView(id){
     $("#rate").textContent = `⚙️ Voz · ${rate.toFixed(2).replace(/0$/,"")}×`;
   };
   $("#modes").onclick = e => { const b=e.target.closest("[data-m]"); if(!b) return; autoTok++; state.fc.auto=false; state.mode=b.dataset.m; sync(); draw(doc); };
-  $("#rate").onclick = () => openCfg(sync);
+  $("#rate").onclick = e => window.openSettings(sync, e.currentTarget);
   $("#to-srs").onclick = () => { const n = srsAdd(doc.id, entries(doc), 0); toast(n ? `➕ ${n} palabra${n>1?"s":""} añadida${n>1?"s":""} al repaso` : "Ya estaban todas en el repaso"); };
   document.querySelectorAll("[data-l]").forEach(b => b.onclick = () => { state.lvl=b.dataset.l; state.fc={i:0,flip:false,order:null,rev:state.fc.rev}; state.test=null; sync(); draw(doc); });
   sync(); draw(doc);
@@ -1972,10 +2327,12 @@ function prEnd(doc, s, total){
   $("#pr-again").onclick = () => { s.words.forEach(w=>w.n=0); s.cur=0; s.running=true; store.set(prKey(doc.id), s); prRun(doc, s); };
 }
 
-function toast(t){
-  document.querySelectorAll(".pr-toast").forEach(x=>x.remove());
-  const el = document.createElement("div"); el.className = "pr-toast"; el.textContent = t;
-  document.body.appendChild(el); setTimeout(() => el.remove(), 2200);
+/* aviso corto en la cápsula de arriba (M.toast); un emoji al principio del texto pasa a ser su icono (🪙 = la moneda) */
+const LEAD_EMOJI = /^((?:\p{Extended_Pictographic}|\p{Regional_Indicator})(?:\uFE0F|\u200D\p{Extended_Pictographic}|[\u{1F3FB}-\u{1F3FF}]|\p{Regional_Indicator})*)\s*/u;
+function toast(t, icon){
+  t = String(t ?? "").trim(); if(!t || !window.M) return;
+  if(!icon){ const m = LEAD_EMOJI.exec(t); if(m && m[0].length < t.length){ icon = m[1]; t = t.slice(m[0].length); } }
+  M.toast(t, icon ? {icon: icon === "🪙" ? "coin" : icon} : {});
 }
 
 /* ---------- mapa (camino por niveles) ---------- */
@@ -2027,8 +2384,7 @@ async function mapa(lv){
   const allDone = cur >= ls.length;
   html += `<div class="nd" style="--x:0px">${allDone?"":""}<button class="node trophy ${allDone?"":"lock"}" id="trophy" aria-label="Trofeo del nivel">🏆</button></div>`;
   const next = Object.keys(LVS)[Object.keys(LVS).indexOf(lv)+1];
-  $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
-    <div class="lv-tabs">${tabs}</div>
+  $("#app").innerHTML = `<div class="lv-tabs">${tabs}</div>
     <div style="--lc:${LVS[lv].c}">
       <div class="lv-head"><h1>Nivel ${lv} · ${LVS[lv].n}</h1>
         <p>${ls.filter(l=>l.w).length} lecciones de vocabulario · ${ls.filter(l=>!l.w).length} de gramática · ${ls.reduce((a,l)=>a+(l.w?l.w.length:0),0)} palabras en ${LANGS[lang].name}. ${done ? `Llevas ${done}.` : "Cada lección: aprendes unas 10 palabras y luego un pequeño test."}</p>
@@ -2043,7 +2399,7 @@ async function mapa(lv){
   });
   $("#trophy").onclick = () => toast(allDone ? `¡Nivel ${lv} completado! 🏆` : `Completa las ${ls.length} lecciones para ganar el trofeo`);
   const c = $("#cur-node");
-  if(c) setTimeout(() => c.scrollIntoView({block:"center"}), 30);
+  if(c && !ROUTE_RESTORE) setTimeout(() => c.scrollIntoView({block:"center"}), 30);
   return true;
 }
 
@@ -2184,8 +2540,7 @@ async function gramatica(lv){
   const tabs = Object.entries(LVS).map(([k, v]) => `<a class="lv-tab ${k===lv?"on":""}" style="--lc:${v.c}" href="#/gramatica/${k}"><b>${k}</b><small>${(G[k]||[]).length} temas</small></a>`).join("");
   const list = (G[lv] || []).map((x, k) => `<details class="panel g-item"><summary><span class="g-n">${k+1}</span><span><b>${esc(x.t)}</b><small>${esc(x.sum)}</small></span>${P[gId(lv,k)] ? `<span class="g-ok">${starsHtml(P[gId(lv,k)])}</span>` : ""}</summary>
       ${gramTheory(x)}<p style="text-align:right;margin:10px 0 0"><a class="btn lc" style="text-decoration:none" href="#/leccion/${gId(lv,k)}">Practicar este tema</a></p></details>`).join("");
-  $("#app").innerHTML = `<a class="back" href="#/mapa/${lv}">← Mapa</a>
-    <h1>Gramática de ${LANGS[lang].name}</h1>
+  $("#app").innerHTML = `<h1>Gramática de ${LANGS[lang].name}</h1>
     <p class="sub">Todos los temas por nivel, para consultarlos cuando quieras. En el mapa aparecen intercalados entre las lecciones de vocabulario (📘).</p>
     <div class="lv-tabs">${tabs}</div>
     <div style="--lc:${LVS[lv].c};margin-top:14px">${list || `<p class="empty">Todavía no hay temas de gramática para este nivel.</p>`}</div>`;
@@ -2262,15 +2617,21 @@ document.addEventListener("error", e => {
 const GDEF = {coins:0, earned:0, owned:{zorro:true}, wear:{hero:"zorro"}, ach:{}, name:"", gifts:0, day:""};
 const game = () => { const g = Object.assign(JSON.parse(JSON.stringify(GDEF)), store.get("game", {})); g.owned.zorro = true; return g; };
 function gameSet(g){ store.set("game", g); paintCoins(); }
-let coinShown = null;
-function paintCoins(){
-  const c = $("#coins"); if(!c) return;
-  const v = game().coins, b = c.closest(".hbtn");
-  if(coinShown !== null && v > coinShown && b){ b.classList.remove("cbump"); void b.offsetWidth; b.classList.add("cbump"); }
-  coinShown = v; c.textContent = v;
+/* las monedas a la vista: la pastilla de arriba (#coins dentro de [data-coins-pill]) y el contador del modo foco
+   ([data-coins-n]). Mientras vuelan monedas (award con from) el número espera a que lleguen (coinHold). */
+let coinShown = null, coinHold = 0;
+function paintCoins(o = {}){
+  const v = game().coins;
   /* todo lo que enseña monedas en la página de la granja (también tras una medalla, que no emite "coins") */
   const mc = $(".me-coins b"); if(mc) mc.textContent = v;
   shopCoins();
+  if(coinHold > 0 && !o.force) return;
+  const up = coinShown !== null && v > coinShown;
+  coinShown = v;
+  const c = $("#coins"); if(c) c.textContent = v;
+  document.querySelectorAll("[data-coins-n]").forEach(el => { el.textContent = v; });
+  const pill = $("[data-coins-pill]"); if(pill) pill.setAttribute("aria-label", `${v} ${v === 1 ? "moneda" : "monedas"}. Abrir la tienda`);
+  if(up && !o.quiet && window.M) M.bump(M.coinTarget());
 }
 /* otra pestaña ganó o gastó monedas */
 window.addEventListener("storage", e => { if(e.key === "game") paintCoins(); });
@@ -2296,17 +2657,25 @@ function heroHtml(size = 110, g = game()){
     ${w.hat ? `<span class="h-hat">${E(w.hat)}</span>` : ""}${w.face ? `<span class="h-face">${E(w.face)}</span>` : ""}
     ${w.hand ? `<span class="h-hand">${E(w.hand)}</span>` : ""}</div>`;
 }
-function coinPop(n, why){
-  const el = document.createElement("div"); el.className = "coin-pop";
-  el.innerHTML = `<b>+${n} 🪙</b>${why ? `<small>${esc(why)}</small>` : ""}`;
-  document.body.appendChild(el); setTimeout(() => el.remove(), 1900);
-}
-function award(n, why, quiet){
+/* ganar monedas. why sale en la cápsula de avisos («¡Misión cumplida! +15»). from (opcional, solo cómo se ve): el
+   elemento desde el que vuelan las monedas hasta el contador (M.coins, con una nota por moneda); sin él, solo el aviso
+   y el saltito del contador. El bus "coins" lleva fly: true cuando ya suenan las notas (sfx.js no repite el sonido). */
+function award(n, why, quiet, from){
   const g = game(); const day = dayKey(new Date());
-  if(g.day !== day){ g.day = day; g.coins += 10; g.earned += 10; if(!quiet) setTimeout(() => coinPop(10, "¡Regalo del día!"), 2000); }
-  g.coins += n; g.earned += n; gameSet(g);
-  if(n && !quiet) coinPop(n, why);
-  bus.emit("coins", {n, why, quiet: !!quiet});
+  if(g.day !== day){ g.day = day; g.coins += 10; g.earned += 10; if(!quiet) setTimeout(() => toast("¡Regalo del día! +10", "coin"), 2000); }
+  g.coins += n; g.earned += n;
+  const fly = !!(n > 0 && !quiet && from && window.M && typeof M.coins === "function");
+  if(fly) coinHold++;
+  gameSet(g);
+  if(n && !quiet){
+    if(fly){
+      let done = false;
+      const land = () => { if(done) return; done = true; coinHold = Math.max(0, coinHold - 1); paintCoins({quiet: true}); };
+      Promise.resolve(M.coins(n, from, why)).then(land, land);
+      setTimeout(land, 2500);
+    } else toast(why ? `${why} +${n}` : `+${n}`, "coin");
+  }
+  bus.emit("coins", {n, why, quiet: !!quiet, fly});
   setTimeout(checkAch, 1200);
 }
 /* medallas */
@@ -2403,8 +2772,7 @@ async function granja(){
     return `<div class="sc ${own ? "own" : ""}${sh ? " shel" : ""}" data-id="${x.id}"><div class="se">${pjImg(x)}</div><div class="sn">${esc(x.n)}</div>
       <div class="sw">${esc(itemWord(x))} ${sayBtn(itemWord(x), 1)}</div>${btn}${buy}</div>`;
   }).join("");
-  $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
-    <div class="me">${heroHtml(120, g)}
+  $("#app").innerHTML = `<div class="me">${heroHtml(120, g)}
       <div class="me-info"><input id="me-name" maxlength="20" placeholder="Escribe tu nombre" value="${esc(g.name)}" aria-label="Tu nombre">
         <div class="me-coins">🪙 <b>${g.coins}</b> monedas</div>
         <div class="count">Ganas monedas al terminar lecciones, repasar y conseguir medallas.</div></div></div>
@@ -2414,7 +2782,7 @@ async function granja(){
       ${farm.length ? "" : `<div class="farm-empty">Tu granja está vacía. ¡Compra animales y plantas en la tienda!</div>`}
       <div class="farm-tip" id="farm-tip" hidden></div></div>
     ${farm.length ? `<p class="count" style="text-align:center">Toca un animal o una planta para oír cómo se dice en ${LANGS[lang].name}.</p>` : ""}`}</div>
-    <h2>🛒 Tienda</h2>
+    <h2 id="shop" tabindex="-1">🛒 Tienda</h2>
     <div class="shop-tabs">${tabs}</div>
     <div class="shop">${cards}</div>`;
   if(typeof farmMount === "function") farmMount($("#farm-host"));
@@ -2451,8 +2819,7 @@ async function premios(){
     return `<a class="lvm ${pct === 100 ? "full" : ""}" href="#/mapa/${k}" style="--lc:${v.c};--p:${pct}"><span class="ring"><b>${pct === 100 ? "🏅" : k}</b></span><small>${pct}%</small></a>`;
   }).join("");
   const ach = achList(), got = ach.filter(x => x.ok).length;
-  $("#app").innerHTML = `<a class="back" href="#/">← Inicio</a>
-    <div class="me">${heroHtml(96, g)}<div class="me-info"><h1 style="margin:0">Mis premios</h1>
+  $("#app").innerHTML = `<div class="me">${heroHtml(96, g)}<div class="me-info"><h1 style="margin:0">Mis premios</h1>
       <div class="sub" style="margin:4px 0 0">¡Mira todo lo que has conseguido${g.name ? ", " + esc(g.name) : ""}!</div></div></div>
     <div class="kid-stats">
       <a class="ks" href="#/granja"><span>🪙</span><b>${g.coins}</b><small>monedas</small></a>
@@ -2471,10 +2838,41 @@ async function premios(){
   det.ontoggle = () => { if(det.open && !$("#adult").innerHTML) progreso($("#adult")); };
 }
 
+/* ---------- «Reducir movimiento» de Ajustes (html[data-motion=calm]) = el del aparato ----------
+   Las reglas de cada hoja de estilos para @media (prefers-reduced-motion: reduce) se copian con :root[data-motion=calm]
+   delante en <style id="css-calm">: las de esta página y las que inyectan los módulos (se vuelve a copiar cuando entra
+   un <style> nuevo en el <head>). La regla general (≤150 ms y sin bucles) está en el CSS de arriba. */
+function calmCss(){
+  const PRE = ":root[data-motion=calm]", RMQ = /prefers-reduced-motion\s*:\s*reduce/;
+  const split = sel => { const out = []; let d = 0, cur = ""; for(const ch of sel){ if(ch === "(" || ch === "[") d++; else if(ch === ")" || ch === "]") d--; if(ch === "," && !d){ out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out.map(x => x.trim()).filter(Boolean); };
+  const pre = sel => split(sel).map(x => { const m = /^(?::root|html)(?![\w-])/.exec(x); return m ? PRE + x.slice(m[0].length) : `${PRE} ${x}`; }).join(",");
+  const head = r => r.cssText.slice(0, r.cssText.indexOf("{")).trim();
+  const copy = list => { let o = ""; for(const r of list){ if(r.selectorText !== undefined && r.style) o += `${pre(r.selectorText)}{${r.style.cssText}}`; else if(r.cssRules) o += `${head(r)}{${copy(r.cssRules)}}`; else o += r.cssText; } return o; };
+  const walk = list => { let o = ""; for(const r of list){
+    if(r.media && r.cssRules && RMQ.test(r.media.mediaText)) o += copy(r.cssRules);
+    else if(r.cssRules && r.selectorText === undefined && !/^@(-webkit-)?keyframes/i.test(r.cssText)){ const i = walk(r.cssRules); if(i) o += `${head(r)}{${i}}`; }
+  } return o; };
+  let css = "";
+  for(const sh of document.styleSheets){
+    if(sh.ownerNode && sh.ownerNode.id === "css-calm") continue;
+    let rules = null; try{ rules = sh.cssRules; }catch(e){}
+    if(rules) try{ css += walk(rules); }catch(e){ console.warn("[calm]", e); }
+  }
+  let el = document.getElementById("css-calm");
+  if(!el){ el = document.createElement("style"); el.id = "css-calm"; document.head.appendChild(el); }
+  if(el.textContent !== css) el.textContent = css;
+}
+{ let t = 0; new MutationObserver(() => { clearTimeout(t); t = setTimeout(calmCss, 30); }).observe(document.head, {childList: true}); }
+
 /* ---------- rutas ---------- */
 async function route(){
   autoTok++; if(state.fc) state.fc.auto = false; if("speechSynthesis" in window) speechSynthesis.cancel();
-  const h = location.hash.replace(/^#\/?/,"");
+  const h = location.hash.replace(/^#\/?/,""), hp = hashPath();
+  /* la pestaña se marca al momento (cambiar de pestaña es instantáneo); el título, los segmentos y el modo foco, con la
+     pantalla nueva. Si se vuelve a una pestaña, su scroll de antes (tabRestore lo pone goTab). */
+  const restoreY = tabRestore; tabRestore = null; ROUTE_RESTORE = restoreY != null;
+  langMenu(false); paintTabs(hp);
+  const t = tabOf(hp); if(t){ TABMEM[t.id] = {h: memHash(hp), y: restoreY || 0}; memSave(); }
   try{
     await getShop();
     if(h.startsWith("doc/")){
@@ -2488,16 +2886,21 @@ async function route(){
     else if(h.startsWith("repaso")){ state.doc=null; await repaso(); }
     else if(h.startsWith("progreso")){ state.doc=null; await premios(); }
     else if(h.startsWith("granja")){ state.doc=null; await granja(); }
+    else if(h.startsWith("palabras")){ state.doc=null; await palabras(); }
     else if(ROUTES[h.split("/")[0]]){ state.doc=null; document.onkeydown = null; await ROUTES[h.split("/")[0]](h.split("/").slice(1)); }
     else { state.doc=null; await home(); }
   }catch(e){ console.error(e); $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
-  if(!h.startsWith("mapa")) window.scrollTo(0,0);
-  const sec = {leccion:"mapa", gramatica:"mapa"}[h.split("/")[0]] || h.split("/")[0];
-  document.querySelectorAll(".hnav [data-nav]").forEach(a => { const on = a.dataset.nav === sec; a.classList.toggle("on", on); if(on) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+  /* si mientras se pintaba se fue a otra ruta, la nueva se encarga de las barras y del scroll */
+  if(hashPath() === hp){
+    paintTabs(hp); updFocus(); paintHead(hp);
+    if(restoreY != null) restoreScroll(restoreY); else if(!h.startsWith("mapa")) window.scrollTo(0,0);
+  }
+  ROUTE_RESTORE = false;
   bus.emit("route", {h});
 }
 window.addEventListener("hashchange", route);
-document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); bus.emit("boot"); route(); });
+renderTabbar(); wireNav(); renderLangs(); wireLangs();
+document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmCss(); bus.emit("boot"); route(); });
 </script>
 <script src="js/motion.js"></script>
 <script src="js/gestures.js"></script>
@@ -2508,6 +2911,5 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/album.js"></script>
 <script src="js/save.js"></script>
 <script src="js/sync.js"></script>
-<script src="js/fab.js"></script>
 </body>
 </html>

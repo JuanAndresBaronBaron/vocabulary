@@ -1,6 +1,7 @@
-/* Efectos de sonido sintetizados (sin archivos) y confeti.
+/* Efectos de sonido sintetizados (sin archivos).
    API: sfx.play(nombre) · nombres: tap, pop, coin, ok, bad, gift, fanfare, whoosh, eat, moo · sfx.note(i) (monedas)
-        confetti(opciones?) · sfx.muted / sfx.toggle() */
+        sfx.muted / sfx.toggle() (el interruptor está en Ajustes) · confetti({x, y}) quedan unas chispas (M.burst):
+        el confeti de verdad (M.confetti) solo sale al terminar una lección. */
 const sfx = (() => {
   let ctx = null;
   const ac = () => {
@@ -40,13 +41,11 @@ const sfx = (() => {
   };
   const api = {
     get muted(){ return store.get("mute", false); },
-    toggle(){ store.set("mute", !api.muted); paint(); if(!api.muted) api.play("pop"); },
+    toggle(){ store.set("mute", !api.muted); if(!api.muted) api.play("pop"); bus.emit("mute", {muted: api.muted}); },
     play(n){ if(api.muted || !S[n]) return; try{ S[n](); }catch(e){} },
     /* nota i de una escala pentatónica (cada moneda de M.coins un poco más aguda), en el mismo AudioContext */
     note(i = 0){ if(api.muted) return; try{ if(navigator.userActivation && !navigator.userActivation.hasBeenActive) return; tone(1046.5 * Math.pow(2, STEP[Math.abs(i | 0) % STEP.length] / 12), .005, .17, "triangle", .07); }catch(e){} },
   };
-  function paint(){ const b = document.getElementById("snd-b"); if(b){ b.textContent = api.muted ? "🔕" : "🔔"; b.title = api.muted ? "Activar sonidos" : "Quitar sonidos"; } }
-  document.addEventListener("DOMContentLoaded", () => { paint(); const b = document.getElementById("snd-b"); if(b) b.onclick = api.toggle; });
   /* desbloquear el audio en el primer toque (móviles), sin sonar: al soltar el dedo, en el clic o con una tecla, que es
      cuando el navegador lo permite (al apoyar el dedo todavía no) */
   const unlock = () => { if(!api.muted) ac(); if(ctx && ctx.state === "running") ["pointerup", "click", "keydown"].forEach(t => removeEventListener(t, unlock, true)); };
@@ -54,35 +53,23 @@ const sfx = (() => {
   return api;
 })();
 
+/* Antes cada premio tiraba confeti de pantalla completa. Ahora solo lo hace el fin de lección (M.confetti); quien
+   llame a confetti() (juegos, álbum, granja) recibe unas chispas en el punto que indique, o en el centro */
 function confetti(o = {}){
-  try{ if(window.M && typeof window.M.rm === "function" ? window.M.rm() : matchMedia("(prefers-reduced-motion: reduce)").matches) return; }catch(e){}
-  const cv = document.createElement("canvas"), dpr = Math.min(2, devicePixelRatio || 1);
-  cv.className = "confetti"; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
-  Object.assign(cv.style, {position: "fixed", inset: "0", width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 999});
-  document.body.appendChild(cv);
-  const c = cv.getContext("2d"); c.scale(dpr, dpr);
-  const cols = ["#FFCC00", "#1E6EF4", "#008198"];   /* oro, azul y verde azulado */
-  const emo = o.emoji || null, N = o.n || 110, x0 = o.x ?? innerWidth / 2, y0 = o.y ?? innerHeight * .35;
-  const P = Array.from({length: N}, () => ({x: x0, y: y0, vx: (Math.random() - .5) * 14, vy: -Math.random() * 13 - 3,
-    r: Math.random() * 6 + 4, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: cols[Math.floor(Math.random() * cols.length)]}));
-  let t = 0;
-  (function f(){
-    c.clearRect(0, 0, innerWidth, innerHeight); t++;
-    for(const p of P){
-      p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va;
-      c.save(); c.translate(p.x, p.y); c.rotate(p.a); c.globalAlpha = Math.max(0, 1 - t / 110);
-      if(emo){ c.font = `${p.r * 3}px serif`; c.fillText(emo, -p.r, p.r); } else { c.fillStyle = p.c; c.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2); }
-      c.restore();
-    }
-    if(t < 110) requestAnimationFrame(f); else cv.remove();
-  })();
+  try{
+    if(!window.M || typeof M.burst !== "function") return;
+    const x = isFinite(o.x) ? o.x : innerWidth / 2, y = isFinite(o.y) ? o.y : innerHeight * .35;
+    M.burst(x, y, {n: Math.max(8, Math.min(18, Math.round((o.n || 60) / 6)))});
+  }catch(e){}
 }
+const sparkAt = sel => { try{ const el = document.querySelector(sel); if(el && el.getClientRects().length && window.M) M.burst(el, {n: 14}); }catch(e){} };
 
 /* sonidos ligados a lo que pasa en la app */
 bus.on("answer", d => { if(d && d.ok && d.where !== "game") sfx.play("ok"); });   /* solo al acertar; al fallar, nada. Los minijuegos ponen el suyo */
-bus.on("coins", d => { if(d.n > 0 && !d.quiet) sfx.play("coin"); });
-bus.on("gift-open", () => { sfx.play("gift"); confetti(); });
-bus.on("medal", () => { sfx.play("fanfare"); confetti({emoji: "⭐", n: 40}); });
-bus.on("lesson-done", d => { sfx.play("fanfare"); confetti(d.stars === 3 ? {emoji: "⭐", n: 50} : {}); });
-bus.on("buy", () => { sfx.play("coin"); confetti({n: 60}); });
-bus.on("review-done", () => { sfx.play("fanfare"); confetti(); });
+/* si las monedas vuelan (M.coins), cada una ya suena con sfx.note: aquí no se repite el sonido */
+bus.on("coins", d => { if(d && d.n > 0 && !d.quiet && !d.fly) sfx.play("coin"); });
+bus.on("gift-open", () => { sfx.play("gift"); sparkAt("#gbox"); });
+bus.on("medal", () => { sfx.play("fanfare"); });
+bus.on("lesson-done", () => { sfx.play("fanfare"); try{ if(window.M) M.confetti({n: 60}); }catch(e){} });
+bus.on("buy", () => { sfx.play("coin"); });
+bus.on("review-done", () => { sfx.play("fanfare"); });
