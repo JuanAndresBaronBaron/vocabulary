@@ -257,6 +257,14 @@ def test_segments_and_large_title():
     }
     try:
         C.seed(page)
+        # F3b: con pendientes, #/repaso ya es la primera tarjeta en modo foco (sin título ni segmentos); el título y los
+        # segmentos de Repasar se miran en «Todo repasado» (sin pendientes)
+        C.goto(page, "#/repaso")
+        if page.evaluate(seg):
+            probs.append("#/repaso con pendientes (modo foco) no debería llevar título grande ni segmentos")
+        page.evaluate("""() => { const k = 'srs:english', m = JSON.parse(localStorage.getItem(k)), t = today();
+          for (const x of Object.values(m)) if (x.due <= t) x.due = t + 1; localStorage.setItem(k, JSON.stringify(m)); }""")
+        C.goto(page, "#/", reload=True)
         for h, (title, items, on) in want.items():
             C.goto(page, h)
             s = page.evaluate(seg)
@@ -443,16 +451,16 @@ def test_focus_mode():
             st = page.evaluate(look)
             if "#/" + C.current_hash(page) != back or st["focus"] or not st["tab"]:
                 probs.append(f"{h}: al tocar la ✕ queda en #/{C.current_hash(page)} con foco {st['focus']!r}")
-        # repaso: solo mientras se repasa
+        # repaso (F3b, js/review.js): con pendientes #/repaso ya es la primera tarjeta, en modo foco; la ✕ abre
+        # «¿Paramos aquí?» y «Salir» vuelve a donde estaba (los juegos)
         C.goto(page, "#/repaso")
-        if page.evaluate(look)["focus"]:
-            probs.append("#/repaso sin empezar ya está en modo foco")
-        page.locator("#rv-go").click()
         page.wait_for_function("() => document.documentElement.dataset.focus === 'repaso'", timeout=4000)
         st = page.evaluate(look)
-        if st["tab"] or st["href"] != "#/repaso":
+        if st["tab"] or st["href"] != "#/juegos":
             probs.append(f"repaso en marcha: {st}")
         page.locator("#fx-x").click()
+        page.wait_for_selector("dialog#rv-pause[open]", timeout=3000)
+        page.locator("#rv-pz-out").click()
         page.wait_for_function("() => !document.documentElement.dataset.focus", timeout=4000)
         probs += C.errors(page)
     finally:

@@ -294,7 +294,9 @@ def test_focus_x_goes_back_where_it_was():
         C.settle(page, 300)
         if page.evaluate("document.getElementById('fx-x').getAttribute('href')") != "#/":
             probs.append(f"repaso desde Hoy: la ✕ lleva a {page.evaluate('document.getElementById(`fx-x`).getAttribute(`href`)')}")
-        page.locator("#fx-x").click()
+        page.locator("#fx-x").click()   # F3b: en el repaso la ✕ abre «¿Paramos aquí?»; «Salir» vuelve
+        page.wait_for_selector("dialog#rv-pause[open]", timeout=3000)
+        page.locator("#rv-pz-out").click()
         page.wait_for_function("() => !document.documentElement.dataset.focus", timeout=5000)
         C.settle(page, 300)
         if C.current_hash(page) != "" or page.evaluate("document.documentElement.dataset.tab") != "hoy":

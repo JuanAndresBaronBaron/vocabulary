@@ -49,6 +49,12 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   segmentos y del refugio, hojas opacas a toda altura y centradas en el ordenador, «Reducir movimiento» en el fondo de
   las hojas, la hoja corta del aviso de Google, Voz y velocidad sin tecnicismos, el título de cada pantalla, créditos
   y privacidad en español, Hoy en móviles bajos, el borde de la granja y el accesorio a lo ancho.
+- `test_f3_repaso.py` (F3b, `js/review.js`): `#/repaso` directo a la primera tarjeta en modo foco, girar (350 ms, con
+  «Reducir movimiento» un fundido), las notas 2 · 1 · 0 comparadas con lo que escribe el `srsGrade` de siempre (y
+  `srsGrade`/`srsNext` iguales a los del commit 1721796), deslizar con PointerEvents sintéticos igual que los botones,
+  la pista del gesto en el segundo giro, los tres escalones de «Pista», «Dilo primero» con un `SpeechRecognition`
+  simulado (acierto que puntúa solo, fallo que nunca pone 0, los 7 s de `listen()`, sin permiso), sin reconocedor sin
+  micrófono, el final que paga una vez y va a Hoy, «Todo repasado», «¿Paramos aquí?» con el accesorio y la auditoría.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

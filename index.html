@@ -743,14 +743,6 @@ input[type=search]{flex:1;min-width:180px;padding:10px 14px;border:1px solid var
 .panel h2{margin-top:0}
 select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);max-width:100%}
 input[type=range]{accent-color:var(--brand)}
-/* repaso */
-.rv{width:min(100%,520px);margin:0 auto}
-.rv .fc{cursor:default;min-height:380px}
-.rv .ans-word{font-size:1.9rem;font-weight:800;color:var(--brand);margin:4px 0}
-.rv-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;margin-top:16px}
-.rv-btns .btn{padding:11px 6px;font-weight:600}
-.rv-btns small{display:block;font-weight:400;color:var(--muted);font-size:.75rem}
-.b-bad{border-color:var(--miss)!important;color:var(--miss-ink)}.b-ok{border-color:var(--ok)!important;color:var(--ok-ink)}
 /* diálogo de voz */
 dialog{border:0;border-radius:var(--r-card);background:var(--card);color:var(--label);padding:20px;width:min(92vw,440px);box-shadow:0 20px 60px rgba(0,0,0,.3)}
 dialog::backdrop{background:rgba(0,0,0,.35)}
@@ -943,9 +935,6 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .abar{width:80%;height:8px;border-radius:99px;background:var(--line);overflow:hidden}.abar i{display:block;height:100%;background:var(--gold)}
 details.adult summary{cursor:pointer;font-weight:700;color:var(--muted)}
 details.adult[open] summary{margin-bottom:10px}
-/* repaso para niños */
-.rv-btns.kid .btn{font-size:1rem;padding:12px 4px}
-.rv-btns.kid .btn span{display:block;font-size:1.8rem}
 /* en el móvil, el personaje y el nombre ocupan poco: así la granja se ve antes */
 @media (max-width:560px){.me{gap:14px;flex-wrap:nowrap;margin:0 0 4px}.me>.hero{font-size:76px!important}.me-info{min-width:0}
   .me-info input{font-size:1.1rem;width:100%;padding:5px 9px}.me-coins{margin:4px 0 0;font-size:1.1rem}.me-info>.count{display:none}.me-info h1{font-size:1.4rem}}
@@ -1307,89 +1296,10 @@ function statsHtml(){
 }
 const inDays = n => n<=0 ? "hoy otra vez" : n===1 ? "mañana" : n<30 ? `en ${n} días` : n<60 ? "en 1 mes" : `en ${Math.round(n/30)} meses`;
 
+/* el repaso (Aprender › Repasar, #/repaso) está en js/review.js: repaso(), rvStart(), rvDraw() y «Dilo primero», con
+   su ruta en ROUTES. Aquí queda su estado, porque lo miran el modo foco, Hoy y el accesorio «Seguir»: rv = null o
+   {q: [{id, r}], i, done, total, coins, …}; abierto mientras i < q.length (rvOpen()). */
 let rv = null;
-async function repaso(){
-  /* un repaso abierto (se salió con «atrás» o por el accesorio «Seguir») sigue donde estaba; la ✕ lo cierra antes */
-  if(rv && rv.q && rv.i < rv.q.length){ document.onkeydown = null; rvDraw(); updFocus(); scrollTo(0, 0); return; }
-  rv = null; document.onkeydown = null;
-  const idx = await getIndex(), ready = idx.filter(d => d.langs.includes(lang));
-  const due = dueList();
-  $("#app").innerHTML = `<div class="hello">${heroHtml(90)}<div class="speech">${due.length
-      ? `<b>¡${due.length} palabra${due.length>1?"s":""} te ${due.length>1?"esperan":"espera"}!</b>Ya las viste antes. Vamos a ver si te acuerdas. Cada palabra que sepas te da 🪙.`
-      : `<b>¡Todo repasado por hoy! 🎉</b>Vuelve mañana: las palabras vuelven justo cuando se te van a olvidar.`}</div></div>
-    <div class="panel" style="text-align:center">${due.length
-      ? `<button class="btn lc" id="rv-go" style="--lc:#1E6EF4;font-size:1.2rem;padding:14px 30px">▶ ¡Vamos a repasar!</button>`
-      : `<a class="btn lc" href="#/mapa" style="--lc:#008932;text-decoration:none;font-size:1.1rem;padding:12px 26px">🗺️ Aprender palabras nuevas</a>`}</div>
-    <details class="panel adult"><summary>👨‍👩‍👦 Para mayores: añadir palabras al repaso</summary>
-      <p class="sub">El repaso es espaciado: cada palabra vuelve mañana, a los 3 días, a la semana, a las 2 semanas, al mes… Si se falla, vuelve a empezar. Las palabras entran solas al terminar lecciones del camino, una Práctica 21 o al fallar en el Test.</p>
-      <h2>Añadir palabras nuevas</h2>
-      <p class="sub">También entran solas cuando terminas una Práctica 21 (vuelven mañana) o fallas una pregunta del Test.</p>
-      <div class="pr-row"><select id="rv-doc">${ready.map(d=>`<option value="${d.id}">${d.num?String(d.num).padStart(2,"0")+" · ":""}${esc(d.title)}</option>`).join("")}</select>
-      <select id="rv-n"><option value="5">5 palabras</option><option value="10" selected>10 palabras</option><option value="20">20 palabras</option><option value="999">Todas</option></select>
-      <button class="btn" id="rv-add">➕ Añadir</button></div>
-      <div class="count" id="rv-msg" style="margin-top:8px"></div></details>`;
-  if($("#rv-go")) $("#rv-go").onclick = rvStart;
-  $("#rv-add").onclick = async () => {
-    const id = $("#rv-doc").value, doc = await getDoc(id), m = srsAll();
-    const fresh = doc.rows.filter(r => r.es && r.l[lang] && !m[srsK(id, r)]).slice(0, +$("#rv-n").value);
-    if(!fresh.length){ $("#rv-msg").textContent = "Ese documento ya está entero en tu repaso."; return; }
-    srsAdd(id, fresh, 0); repaso().then(() => $("#rv-msg").textContent = `Añadidas: ${fresh.map(r=>r.es).join(", ")}.`);
-  };
-  /* desde Hoy («Empezar» o «Repasar N») el repaso empieza directamente */
-  if(rvGo){ rvGo = false; if(due.length) await rvStart(); }
-}
-async function rvStart(){
-  const due = dueList(), ids = [...new Set(due.map(x => x.d))];
-  await Promise.all(ids.map(id => getDoc(id).catch(()=>null)));
-  const q = shuffle(due.map(x => { const doc = CACHE[x.d], r = doc && doc.rows.find(r => r.es===x.e && r.l[lang]); return r ? {id:x.d, r} : null; }).filter(Boolean));
-  rv = {q, i:0, flip:false, done:0, total:q.length, coins:0};
-  rvDraw(); updFocus(); scrollTo(0, 0);
-}
-function rvDraw(){
-  if(!rv) return;
-  if(rv.i >= rv.q.length){
-    award(10, "¡Repaso terminado!"); bus.emit("review-done", {n: rv.total});
-    $("#app").innerHTML = `<div class="pr-setup pr-end" style="margin:0 auto">${heroHtml(90)}<h2>¡Repaso terminado! 🎉</h2>
-      <p class="sub">Repasaste ${rv.total} palabra${rv.total>1?"s":""} y ganaste 🪙 ${rv.coins + 10}. Racha: 🔥 ${streak()} día${streak()===1?"":"s"}.</p>
-      <div class="pr-row" style="justify-content:center"><a class="btn pri" href="#/granja" style="text-decoration:none">🏡 Ir a mi granja</a><a class="btn" href="#/mapa" style="text-decoration:none">🗺️ Seguir el camino</a></div></div>`;
-    rv = null; document.onkeydown = null; updFocus(); return;
-  }
-  const {id, r} = rv.q[rv.i], d = r.l[lang], x = srsAll()[srsK(id, r)];
-  const pct = Math.round(100 * rv.done / Math.max(1, rv.total));
-  $("#app").innerHTML = `<a class="back" href="#/repaso">← Salir del repaso</a>
-    <div class="rv"><div class="count" style="text-align:center">Quedan ${rv.q.length - rv.i} · ${pct}% hecho</div>
-    <div class="pr-bar"><i style="width:${pct}%"></i></div>
-    <div class="fc">${imgHtml(r)}<div class="big">${esc(r.es)}</div>
-    ${rv.flip ? `<div class="ans-word">${esc(d.word)}</div><div>${sayBtn(d.word)}</div>
-      <div class="meta" style="justify-content:center"><span class="pron">${esc(d.pron)}</span><span class="ipa">${esc(d.ipa)}</span></div>
-      ${d.forms?`<div class="count">${esc(d.forms)}</div>`:""}
-      ${d.ex?`<div class="ex">${esc(d.ex)} ${sayBtn(d.ex,1)}<div class="tr">${esc(d.ex_es)}</div></div>`:""}
-      <div class="count" style="margin-top:12px">¿La sabías?</div>
-      <div class="rv-btns kid" style="margin-top:6px">
-        <button class="btn b-bad" data-g="0" title="Vuelve ${inDays(srsNext(x,0))}"><span>😕</span>No</button>
-        <button class="btn" data-g="1" title="Vuelve ${inDays(srsNext(x,1))}"><span>🤔</span>Más o menos</button>
-        <button class="btn b-ok" data-g="2" title="Vuelve ${inDays(srsNext(x,2))}"><span>😄</span>¡Sí!</button></div>`
-    : `<div class="hint" style="font-size:1rem">¿Cómo se dice en ${LANGS[lang].name}? Dilo en voz alta y luego mira.</div>
-       <button class="btn lc" id="rv-show" style="--lc:#1E6EF4;margin-top:16px;font-size:1.1rem">👀 Ver la respuesta</button>`}
-    </div></div>`;
-  const tok = ++autoTok;
-  if(rv.flip){
-    (async () => { await sayP(d.word, $(".fc .say")); if(tok===autoTok && prUI.ex && d.ex){ await sleep(400); if(tok===autoTok) sayP(d.ex); } })();
-    document.querySelectorAll("[data-g]").forEach(b => b.onclick = () => {
-      autoTok++; speechSynthesis && speechSynthesis.cancel();
-      const g = +b.dataset.g; srsGrade(id, r, g); if(g){ award(g, "", true); rv.coins += g; }
-      bus.emit("review-card", {grade: g, es: r.es, word: d.word});
-      if(g===0) rv.q.push(rv.q[rv.i]); else rv.done++;
-      rv.i++; rv.flip = false; rvDraw();
-    });
-  } else $("#rv-show").onclick = () => { rv.flip = true; rvDraw(); };
-  document.onkeydown = e => {
-    if(!rv || !location.hash.startsWith("#/repaso")){ document.onkeydown = null; return; }
-    if(e.target.closest && e.target.closest("input,select,textarea")) return;
-    if(!rv.flip && (e.key===" " || e.key==="Enter")){ e.preventDefault(); $("#rv-show").click(); }
-    else if(rv.flip && "123".includes(e.key) && e.key.length===1){ const b = document.querySelector(`[data-g="${+e.key-1}"]`); if(b) b.click(); }
-  };
-}
 
 async function progreso(el){
   const idx = await getIndex(), m = Object.values(srsAll()), a = store.get("act", {});
@@ -1421,7 +1331,7 @@ async function progreso(el){
 const OFF_SHELL = "vocab-shell-v16", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
-  "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
+  "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
@@ -1745,7 +1655,7 @@ function setFocusFrom(v){ focusFrom = v || null; try{ if(v) sessionStorage.setIt
 function focusBack(f, h){
   if(f === "juego") return "#/juegos";
   if(focusFrom && tabOf(hashPath(focusFrom)) && secOf(hashPath(focusFrom)) !== "leccion") return focusFrom;
-  return f === "leccion" ? "#/" + rootOf(h) : f === "repaso" ? "#/repaso" : "#/";
+  return f === "leccion" ? "#/" + rootOf(h) : "#/";   /* el repaso (sin pantalla de antes) sale a Hoy */
 }
 function updFocus(){
   const h = hashPath(), root = document.documentElement;
@@ -1874,11 +1784,13 @@ function wireNav(){
     if(window.vocabFarm && typeof vocabFarm.openShop === "function") vocabFarm.openShop(); else location.hash = "#/granja";
   });
   $("[data-open=ajustes]").addEventListener("click", e => { if(typeof window.openSettings === "function") window.openSettings(null, e.currentTarget); });
-  /* ✕ del modo foco: en una partida, la pausa de games.js («¿Paramos aquí?»); si no, a la raíz de la pestaña (si ya es
-     esa ruta, se vuelve a pintar: así se cierra el repaso) */
+  /* ✕ del modo foco: en una partida, la pausa de games.js («¿Paramos aquí?»); en el repaso, la hoja de js/review.js;
+     si no, vuelve a donde estaba antes de entrar (o a la raíz de la pestaña) */
   $("#fx-x").addEventListener("click", e => {
     e.preventDefault();
     if(focusOn === "juego" && window.vocabGames && typeof vocabGames.pause === "function" && vocabGames.pause(e.currentTarget)) return;
+    /* en el repaso, «¿Paramos aquí?» de js/review.js (Salir deja el repaso abierto para el accesorio «Seguir») */
+    if(focusOn === "repaso" && window.vocabReview && typeof vocabReview.exit === "function" && vocabReview.exit(e.currentTarget)) return;
     if(focusOn === "repaso") rv = null;
     const to = e.currentTarget.getAttribute("href"), y = HASHY[to];
     if(to !== location.hash && y > 0) tabRestore = y;
@@ -1964,7 +1876,6 @@ function wireLangs(){
    (Misiones y Palabra del día), los HOME_SLOTS como filas compactas (2 como mucho) y «Privacidad». HOME_ACTS se
    conserva para los módulos que aún lo llenan, pero ya no se pinta: lo de cada sección está en su pestaña. */
 let homeOffer = null;   /* lo que ofrece la tarjeta de Hoy ({kind: "repaso"} o {kind: "leccion", id}): el accesorio no lo repite */
-let rvGo = false;       /* «Empezar» o «Repasar» en Hoy: #/repaso arranca el repaso sin pasar por su pantalla de inicio */
 const lcFirst = t => String(t || "").charAt(0).toLowerCase() + String(t || "").slice(1);
 const nPal = n => n === 1 ? "1 palabra" : `${n} palabras`;
 const rvOpen = () => !!(rv && rv.q && rv.i < rv.q.length);
@@ -2064,16 +1975,12 @@ async function home(){
     <div class="hm-side">${row}${mis || wotd ? `<div class="hm-pair">${mis}${wotd}</div>` : ""}<div class="hm-slots" id="hm-slots"></div></div>
     <p class="hm-priv"><a href="privacy.html#es">Privacidad</a></p></div>`;
   $("#hm-slots").append(...slots);
-  const go = $("#hm-go"), rev = $("#hm-rev");
-  if(na.kind === "repaso" && !na.resume) go.addEventListener("click", () => { rvGo = true; });
-  if(rev) rev.addEventListener("click", () => { rvGo = true; });
   if(B && typeof B.wire === "function") B.wire();
   /* un solo reclamo: la pieza de Misiones salta si hay una misión recién cumplida; si no, el zorro saluda (una vez, y
      otra solo si se vuelve pasados 2 minutos). Con «Reducir movimiento», nada se mueve. */
   const jumped = !!(B && typeof B.attention === "function" && B.attention());
   if(!jumped && !(window.M && M.rm()) && Date.now() - waveAt > 120000){ waveAt = Date.now(); $("#hm-fox").classList.add("wave"); }
 }
-bus.on("route", d => { if(!String((d && d.h) || "").startsWith("repaso")) rvGo = false; });
 
 /* ---------- accesorio «Seguir» ----------
    Cápsula de vidrio sobre la barra de pestañas, solo si hay algo empezado: una lección guardada a medias
@@ -3301,7 +3208,7 @@ function calmCss(){
 /* ---------- rutas ---------- */
 /* las rutas que existen: las de aquí y las de los módulos (ROUTES). Una que no existe (un enlace viejo o mal escrito)
    se cambia por Hoy en el historial, y así la pestaña, el título y el modo foco son los de Hoy */
-const KNOWN = ["", "doc", "mapa", "gramatica", "leccion", "repaso", "progreso", "granja", "palabras"];
+const KNOWN = ["", "doc", "mapa", "gramatica", "leccion", "progreso", "granja", "palabras"];   /* #/repaso: ROUTES.repaso (js/review.js) */
 const knownRoute = hp => KNOWN.includes(secOf(hp)) || Object.prototype.hasOwnProperty.call(ROUTES, secOf(hp));
 let prevHp = null, mapScrolled = false;
 async function route(){
@@ -3327,7 +3234,6 @@ async function route(){
     } else if(h.startsWith("mapa")){ state.doc=null; await mapa(h.split("/")[1]); }
     else if(h.startsWith("gramatica")){ state.doc=null; await gramatica(h.split("/")[1]); }
     else if(h.startsWith("leccion/")){ state.doc=null; await leccion(h.slice(8)); }
-    else if(h.startsWith("repaso")){ state.doc=null; await repaso(); }
     else if(h.startsWith("progreso")){ state.doc=null; await premios(); }
     else if(h.startsWith("granja")){ state.doc=null; await granja(); }
     else if(h.startsWith("palabras")){ state.doc=null; await palabras(); }
@@ -3358,5 +3264,6 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/sync.js"></script>
 <script src="js/gate.js"></script>
 <script src="js/settings.js"></script>
+<script src="js/review.js"></script>
 </body>
 </html>
