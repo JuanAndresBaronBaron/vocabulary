@@ -81,11 +81,12 @@ class _Quiet(SimpleHTTPRequestHandler):
 
 
 class Server:
-    """Servidor en un puerto libre de 127.0.0.1 para una carpeta. .url es la base sin barra final."""
+    """Servidor en un puerto libre de 127.0.0.1 para una carpeta. .url es la base sin barra final.
+    handler: otra subclase de _Quiet (por defecto, _Quiet)."""
 
-    def __init__(self, root=None, host="127.0.0.1"):
+    def __init__(self, root=None, host="127.0.0.1", handler=None):
         self.root = Path(root or ROOT).resolve()
-        handler = functools.partial(_Quiet, directory=str(self.root))
+        handler = functools.partial(handler or _Quiet, directory=str(self.root))
         self.httpd = ThreadingHTTPServer((host, 0), handler)
         self.httpd.daemon_threads = True
         self.host = host
@@ -246,14 +247,16 @@ def _attach(page, base):
 
 
 def new_context(kind="phone", color_scheme="light", reduced_motion="no-preference", now=FIXED_NOW, root=None,
-                host="127.0.0.1", sw=False, block_external=True, **kw):
+                host="127.0.0.1", sw=False, block_external=True, server=None, **kw):
     """Contexto de navegador para 'phone' (390×844 táctil, ×2) o 'desk' (1280×800).
     color_scheme: 'light' | 'dark' · reduced_motion: 'reduce' | 'no-preference' · now: datetime, ms o None (hora real)
     sw: False bloquea el service worker (más estable); True lo deja (sirve en localhost: host="localhost").
+    server: un Server propio (p. ej. para pararlo y probar sin conexión: context.set_offline no corta las peticiones
+    del service worker); por defecto, el compartido de serve(root, host).
     El resto de **kw va a browser.new_context (p. ej. offline=True no: usa context.set_offline)."""
     if kind not in KINDS:
         raise ValueError(f"kind debe ser phone o desk, no {kind!r}")
-    srv = serve(root, host)
+    srv = server or serve(root, host)
     opts = dict(KINDS[kind])
     opts.update(color_scheme=color_scheme, reduced_motion=reduced_motion, locale=LOCALE, timezone_id=TZ,
                 user_agent=_ua(kind), service_workers="allow" if sw else "block")

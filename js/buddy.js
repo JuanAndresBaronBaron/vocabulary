@@ -54,7 +54,7 @@ const STYLE = `
 .bd-say{position:absolute;left:calc(100% + 12px);bottom:42%;width:max-content;max-width:min(230px,calc(100vw - 112px));background:var(--card);color:var(--ink);border:2px solid var(--brand);border-radius:16px;padding:8px 13px;font-weight:800;font-size:1rem;line-height:1.25;box-shadow:0 8px 22px rgba(5,20,40,.22);pointer-events:none;white-space:pre-line;transform-origin:0 100%;animation:bd-pop .38s cubic-bezier(.3,1.5,.5,1)}
 .bd-say::after{content:"";position:absolute;left:-8px;bottom:12px;width:12px;height:12px;background:inherit;border-left:2px solid;border-bottom:2px solid;border-color:inherit;transform:rotate(45deg)}
 .bd-say.ok{border-color:var(--ok)}
-.bd-say.bad{border-color:#FFCC00}
+.bd-say.bad{border-color:var(--sep)}
 .bd-say.gold{border-color:#FFCC00;background:color-mix(in srgb,#FFCC00 18%,var(--card))}
 .bd.tuck{transform:translateX(calc(-100% - 10px + 16px))}
 .bd.tuck .bd-x,.bd.tuck:not(.out) .bd-say{display:none}

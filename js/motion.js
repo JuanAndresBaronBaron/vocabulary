@@ -108,11 +108,11 @@ const STYLE = () => tokens() + `
 #m-toasts{position:fixed;inset:calc(env(safe-area-inset-top,0px) + 8px) 0 auto 0;width:auto;height:auto;max-width:none;max-height:none;margin:0;padding:0 16px;border:0;background:transparent;overflow:visible;justify-content:center;pointer-events:none;z-index:30;color:inherit}
 #m-toasts:not([popover]){display:flex}
 #m-toasts:popover-open{display:flex}
-#m-toasts .m-toast{pointer-events:auto;display:flex;align-items:center;gap:8px;box-sizing:border-box;min-height:44px;max-width:min(520px,100%);padding:10px 18px;border-radius:999px;font:600 1.0625rem/1.3 system-ui,-apple-system,"Inter",Roboto,sans-serif;color:#000;text-align:left;cursor:default;-webkit-user-select:none;user-select:none}
+#m-toasts .m-toast{pointer-events:auto;display:flex;align-items:center;gap:8px;box-sizing:border-box;min-height:44px;max-width:min(520px,100%);padding:10px 18px;border-radius:999px;font:600 var(--fs-sub,1.0625rem)/1.3 var(--f-text,system-ui,-apple-system,"Inter",Roboto,sans-serif);color:var(--label,#000);text-align:left;cursor:default;-webkit-user-select:none;user-select:none}
 #m-toasts .m-ti{flex:none;display:grid;place-items:center;width:24px;height:24px;font-size:1.25rem;line-height:1}
 #m-toasts .m-ti svg{display:block;width:24px;height:24px}
 #m-toasts .m-own{background:rgb(255 255 255/.74);border:1px solid rgb(255 255 255/.6);background-clip:padding-box;box-shadow:inset 0 1px 0 rgb(255 255 255/.65),0 0 0 .5px rgb(0 0 0/.08),0 6px 20px rgb(11 37 69/.14);-webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%)}
-${DARKQ("#m-toasts .m-toast", "color:#fff")}
+${DARKQ("#m-toasts .m-toast", "color:var(--label,#fff)")}
 ${DARKQ("#m-toasts .m-own", "background:rgb(28 28 30/.68);border-color:rgb(255 255 255/.22);box-shadow:inset 0 1px 0 rgb(255 255 255/.22),0 6px 20px rgb(0 0 0/.4)")}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){#m-toasts .m-own{background:rgb(255 255 255/.96)}${DARK("#m-toasts .m-own")}{background:rgb(28 28 30/.96)}}
 :root[data-glass=off] #m-toasts .m-own{background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none}
@@ -140,6 +140,16 @@ dialog.m-sheet .m-grab{position:sticky;top:0;z-index:1;display:block;height:24px
 dialog.m-sheet .m-grab::before{content:"";position:absolute;left:50%;top:8px;width:36px;height:5px;margin-left:-18px;border-radius:3px;background:#C7C7CC}
 ${DARKQ("dialog.m-sheet .m-grab::before", "background:#636366")}
 dialog.m-sheet [data-sheet-grab]{touch-action:none}
+/* hoja de vidrio flotante (con el .glass de index.html): tinte alto para leer bien y sin el borde de ::before, que se
+   iría con el scroll de la hoja; sin transparencia, con más contraste o sin desenfoque, opaca */
+dialog.m-sheet.glass{background:linear-gradient(180deg,var(--g-top,rgb(255 255 255/.5)) 0%,rgb(255 255 255/0) 120px),rgb(255 255 255/.86);
+  box-shadow:var(--g-hi,inset 0 1px 0 rgb(255 255 255/.95)),0 0 0 .5px var(--g-edge,rgb(0 0 0/.07)),0 12px 40px rgb(0 0 0/.18)}
+${DARKQ("dialog.m-sheet.glass", "background:linear-gradient(180deg,rgb(255 255 255/.08) 0%,rgb(255 255 255/0) 120px),rgb(28 28 30/.86)")}
+dialog.m-sheet.glass::before{display:none}
+:root[data-glass=off] dialog.m-sheet.glass,:root[data-contrast=more] dialog.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}
+@media (prefers-reduced-transparency:reduce){:root[data-theme] dialog.m-sheet.glass,dialog.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-contrast:more){:root[data-theme] dialog.m-sheet.glass,dialog.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:root[data-theme] dialog.m-sheet.glass,dialog.m-sheet.glass{background:var(--card,#fff)}}
 @media (prefers-reduced-motion:reduce){
   dialog.m-sheet,dialog.m-sheet:not([open]){translate:none;transition:opacity 150ms ease;transition:opacity 150ms ease,display 150ms allow-discrete,overlay 150ms allow-discrete}
   dialog.m-sheet:not([open]){opacity:0}
@@ -550,6 +560,7 @@ function prep(d){
   let s = SHEETS.get(d); if(s) return s;
   s = {from: null, closing: null}; SHEETS.set(d, s);
   d.classList.add("m-sheet");
+  if(hasGlass()) d.classList.add("glass");            /* vidrio flotante (SPEC: las hojas son de vidrio) */
   d.addEventListener("cancel", e => { if(!d.classList.contains("m-sheet")) return; e.preventDefault(); closeSheet(d); });
   let downOut = false;
   d.addEventListener("pointerdown", e => { downOut = e.target === d && outside(d, e); if(!downOut) grab(d, e); });

@@ -821,7 +821,7 @@ function mount(host){
       const b = e.target.closest("[data-food]"); if(!b) return;
       const k = b.dataset.food;
       if(k !== right){
-        tried.add(k); b.classList.add("bad"); cls(b, "shake", 500); play("bad");
+        tried.add(k); b.classList.add("bad");
         m.className = "fm-qm warm"; m.innerHTML = puaj(id, k); return seeMsg();   /* no se gasta: así aprende qué come cada uno */
       }
       if(!((s.pan[k] || 0) > 0)) return;
@@ -839,7 +839,7 @@ function mount(host){
     const it = itemById(id), el = els[id], A = ANIM[id]; if(!el || !A || inShelterS(s, id)) return;
     freeze(id);
     if(!hungry(id)){ hop(el); play("tap"); bubble(wordBub(pj(it), iw(it), it.n, fullTxt(id)), el); speak(iw(it)); resume(id, 2600); return; }
-    if(fid !== A.eats){ cls(el, "no", 500); play("bad"); bubble(msg(puaj(id, fid)), el, 4500); resume(id, 2600); return; }
+    if(fid !== A.eats){ cls(el, "no", 500); bubble(msg(puaj(id, fid)), el, 4500); resume(id, 2600); return; }
     if(!((s.pan[fid] || 0) > 0)){ resume(id, 1200); openPantry(fid); return; }
     walkNear(id);
     const res = eatNow(id);
@@ -896,7 +896,7 @@ function mount(host){
         x.textContent = "¡Genial!";
         later(() => { try{ d.close(); }catch(e){} }, 1700);
       } else {
-        b.classList.add("bad"); play("bad"); speak(right);
+        b.classList.add("bad"); speak(right);
         const okB = d.querySelector(`.fm-opt[data-fo="${id}"]`); if(okB){ okB.disabled = false; okB.classList.add("ok"); okB.onclick = null; }
         m.className = "fm-qm info"; m.innerHTML = `Me llamo <b>«${esc(right)}»</b> ${pj(it, "pj-sm")}<br>${res.keys.length ? "🎁 ¡Te dejo un regalo!" : res.weak ? "Estaba muy débil y hoy no hay regalo. ¡Dame de comer cada día! 💪" : "🥚 ¡Recoge mis regalos del suelo!"}`;
         x.textContent = "Seguir ➜"; x.classList.add("lc"); x.style.setProperty("--lc", "#1E6EF4");
@@ -1161,7 +1161,7 @@ function mount(host){
     emit("farm-find", {ok});
     const dd = fb.querySelector(".fm-dots"); if(dd) dd.outerHTML = dots();
     if(ok){ play("ok"); hop(el); burst(el, "⭐", 5); bubble(wordBub(pj(it), w, it.n, "¡Muy bien! ✅"), el, 1400); }
-    else { play("bad"); cls(el, "no", 500); cls(tEl, "hl", 2300); bubble(wordBub(pj(it), w, it.n, "¡Casi! ¡Está aquí! 👇"), tEl || el, 2300); speak(w); }
+    else { cls(tEl, "hl", 2300); bubble(wordBub(pj(it), w, it.n, "¡Casi! ¡Está aquí! 👇"), tEl || el, 2300); speak(w); }
     later(nextRound, ok ? 1300 : 2500);
   }
   function endFind(){
@@ -1919,10 +1919,9 @@ function css(){
 .fm-food b{font-size:1.15rem;font-weight:800;overflow-wrap:anywhere}
 .fm-food small{color:var(--muted);font-weight:700;font-size:.85rem}
 .fm-food:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
-.fm-food.bad{border-color:#FFCC00;background:color-mix(in srgb,#FFCC00 14%,var(--card))}
+.fm-food.bad{border-color:var(--miss);background:color-mix(in srgb,var(--miss) 16%,var(--card))}
 .fm-food.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--card));box-shadow:0 4px 0 color-mix(in srgb,var(--ok) 60%,#000)}
 .fm-food.new{border-color:var(--ok);animation:fmHint .9s ease-in-out infinite}
-.fm-food.shake{animation:fmShake .45s ease}
 .fm-food:disabled:not(.ok){opacity:.5}
 .fm-nofood{background:var(--soft);border-radius:16px;padding:10px 12px;margin:8px 0 0}
 .fm-nofood p{margin:0 0 10px;font-weight:700;line-height:1.35}

@@ -54,6 +54,21 @@ def _open_settings(page):
     return False
 
 
+def _open_sticker(page):
+    """Abre la tarjeta grande de una pegatina conseguida del álbum (un diálogo modal). Devuelve True si quedó abierta."""
+    C.goto(page, f"#/album/{R.ALBUM_DONE}")
+    st = page.locator(".al-st.got")
+    if not st.count():
+        return False
+    st.first.click(force=True)
+    try:
+        page.wait_for_selector("dialog.al-dlg[open]", timeout=3000)
+        page.wait_for_timeout(700)               # la tarjeta entra girando
+        return True
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def _audit_screen(page, res, key):
     page.evaluate(_FINISH)
     page.wait_for_timeout(60)
@@ -72,8 +87,9 @@ _AUDIT = None
 
 
 def _audit_all():
-    """Todas las rutas (móvil y escritorio, claro y oscuro, con la partida sembrada), la hoja de Ajustes y Hoy el primer
-    día. Se calcula una vez y la usan las tres pruebas de abajo."""
+    """Todas las rutas (móvil y escritorio, claro y oscuro, con la partida sembrada), la hoja de Ajustes, la tarjeta grande
+    de una pegatina (diálogo modal: también su ::backdrop) y Hoy el primer día. Se calcula una vez y la usan las tres
+    pruebas de abajo."""
     global _AUDIT
     if _AUDIT is not None:
         return _AUDIT
@@ -89,6 +105,9 @@ def _audit_all():
                 C.goto(page, "")
                 if _open_settings(page):
                     _audit_screen(page, res, f"{kind}-{scheme}-ajustes")
+                    page.keyboard.press("Escape")
+                if _open_sticker(page):
+                    _audit_screen(page, res, f"{kind}-{scheme}-pegatina")
                     page.keyboard.press("Escape")
             finally:
                 page.context.close()
@@ -120,6 +139,9 @@ def test_audit_detects_problems():
             <p id="t-org" style="background:#e67e22;color:#000;margin:0">Naranja</p>
             <div id="t-bf" style="-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);width:20px;height:20px"></div>`;
           document.body.appendChild(d);
+          const st = document.createElement("style"); st.textContent = "#t-dlg::backdrop{backdrop-filter:blur(3px)}";
+          const dl = document.createElement("dialog"); dl.id = "t-dlg"; dl.textContent = "Hola";
+          document.body.append(st, dl); dl.showModal();
         }""")
         a = page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})
         page.evaluate("() => { document.documentElement.dataset.glass = 'off'; }")
@@ -142,6 +164,8 @@ def test_audit_detects_problems():
         miss.append("no ve el naranja #e67e22")
     if not has(b["backdrop"], "t-bf"):
         miss.append("no ve el backdrop-filter")
+    if not any("#t-dlg::backdrop" in x for x in b["backdrop"]):
+        miss.append("no ve el backdrop-filter del ::backdrop de un diálogo abierto")
     assert not miss, "la auditoría falla: " + "; ".join(miss) + f"\n{json.dumps(a, ensure_ascii=False)[:1500]}"
 
 
@@ -165,11 +189,13 @@ def test_palette_no_banned_colors():
 
 
 def test_glass_off_no_backdrop_filter():
-    """Con html[data-glass=off] ningún elemento (ni ::before/::after) tiene backdrop-filter; con el vidrio puesto sí hay."""
+    """Con html[data-glass=off] ningún elemento (ni ::before/::after, ni el ::backdrop de un diálogo abierto) tiene
+    backdrop-filter; con el vidrio puesto sí hay."""
     res = _audit_all()
     bad = {k: v["glass_off"] for k, v in res.items() if v["glass_off"]}
     on = sum(v["glass_on"] for v in res.values())
     assert not bad, "con data-glass=off sigue habiendo backdrop-filter:\n" + _fmt(bad)
+    assert any(k.endswith("-pegatina") for k in res), "no se pudo abrir la tarjeta grande de una pegatina del álbum"
     assert on > 0, "con el vidrio puesto no hay ningún backdrop-filter: la prueba no estaría mirando nada"
 
 
@@ -184,8 +210,8 @@ def _sw():
 
 
 def test_sw_shell_entries_200():
-    """Cada entrada de SHELL en sw.js responde 200, sin repetidas, y en SHELL están todos los scripts, el manifiesto y
-    los iconos que usa index.html (también js/motion.js y js/gestures.js, que cargan antes que los módulos)."""
+    """Cada entrada de SHELL en sw.js responde 200, sin repetidas, y en SHELL están todos los scripts, el manifiesto, los
+    iconos y las letras que usa index.html (también js/motion.js y js/gestures.js, que cargan antes que los módulos)."""
     shell, version = _sw()
     srv = C.serve()
     bad = []
@@ -202,7 +228,8 @@ def test_sw_shell_entries_200():
     scripts = re.findall(r'<script[^>]+src="([^"]+)"', html)
     links = re.findall(r'<link[^>]+rel="(?:manifest|apple-touch-icon|icon)"[^>]*href="([^"]+)"', html)
     man = json.loads((C.ROOT / "manifest.webmanifest").read_text(encoding="utf-8"))
-    need = [u for u in scripts + links + [i["src"] for i in man.get("icons", [])] if not re.match(r"(data|https?):", u)]
+    fonts = re.findall(r'url\((fonts/[^)"\']+)\)', html)
+    need = [u for u in scripts + links + fonts + [i["src"] for i in man.get("icons", [])] if not re.match(r"(data|https?):", u)]
     missing = [u for u in need if u not in shell]
     assert not missing, f"index.html o el manifiesto usan ficheros que no están en SHELL: {missing}"
     order = [s for s in scripts if s.startswith("js/")]
@@ -217,14 +244,43 @@ _FAKE_INDEX = ("<!doctype html><meta charset=utf-8><title>Version vieja</title>"
                "<h1 id=version-vieja>VERSION VIEJA</h1>")
 
 
+_DATA_IN_CACHES = """async () => { const out = {};
+  for (const n of await caches.keys()) { const c = await caches.open(n);
+    for (const r of await c.keys()) { const p = new URL(r.url).pathname;
+      if (/^\\/data\\/.+\\.json$/.test(p)) (out[n] = out[n] || []).push(p); } }
+  return out; }"""
+
+
 def test_offline_serves_new_version():
     """Con una caché vieja «vocab-v1» que tiene un index.html falso: el sw nuevo se instala, borra vocab-v1 (pasando sus
-    dibujos a vocab-media) y, sin conexión, la recarga sirve el index.html bueno y las rutas pintan, aunque la caché
-    vieja vuelva a aparecer."""
+    dibujos a vocab-media); lo que el niño abrió con red (temas, gramática, lección) sigue guardado después de una
+    versión nueva de la app (VERSION + 1); y sin conexión de verdad (el servidor parado) la recarga sirve el index.html
+    bueno, esas rutas pintan aunque la caché vieja vuelva a aparecer, y un tema que nunca se abrió no sale de ninguna
+    parte (control: la prueba de verdad está sin red)."""
     shell, version = _sw()
     img = "img/" + sorted(p.name for p in (C.ROOT / "img").glob("*.png"))[0]
-    ctx = C.new_context("phone", sw=True, host="localhost")
+    st = {"bump": False}
+
+    class Handler(C._Quiet):
+        """El servidor de siempre; con st["bump"] sirve sw.js con VERSION + 1, como al publicar una versión nueva."""
+
+        def do_GET(self):
+            if st["bump"] and self.path.split("?")[0] == "/sw.js":
+                src = (C.ROOT / "sw.js").read_text(encoding="utf-8")
+                body = re.sub(r"const VERSION = (\d+);", lambda m: f"const VERSION = {int(m.group(1)) + 1};", src).encode()
+                self.send_response(200)
+                self.send_header("Content-Type", "text/javascript; charset=utf-8")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+                return
+            super().do_GET()
+
+    srv = C.Server(C.ROOT, "localhost", handler=Handler)
+    ctx = C.new_context("phone", sw=True, server=srv)
     page = ctx.new_page()
+    stopped = False
+    visit = ["#/mapa", f"#/doc/{R.TOPIC}", f"#/gramatica/{R.GRAM_LEVEL}", f"#/leccion/{R.LESSON}", "#/granja", "#/progreso", "#/"]
     try:
         base = C.base_url(page)
         page.goto(base + "/__blank", wait_until="domcontentloaded")
@@ -251,29 +307,69 @@ def test_offline_serves_new_version():
         good = page.evaluate("""async n => { const r = await (await caches.open(n)).match("index.html");
                                 return r ? await r.text() : ""; }""", shell_name)
         assert "version-vieja" not in good and 'id="app"' in good, "el index.html del shell no es el bueno"
-        for h in ("#/mapa", "#/granja", "#/progreso", "#/"):   # con red, para que sus dibujos queden guardados
+        for h in visit:                     # con red, para que sus datos y dibujos queden guardados
             C.goto(page, h)
+        page.wait_for_timeout(300)
+        before = page.evaluate(_DATA_IN_CACHES)
+        shell_paths = {"/" + u for u in shell}
+        opened = sorted(p for ps in before.values() for p in ps if p not in shell_paths)
+        need = [f"/data/{R.TOPIC}.json", "/data/grammar_en.json"]
+        assert all(p in opened for p in need), f"no se guardaron los datos abiertos con red {need}: {before}"
+        in_shell = sorted(p for p in before.get(shell_name, []) if p not in shell_paths)
+        assert not in_shell, f"datos que no son del shell guardados en {shell_name} (se borrarían al actualizar): {in_shell}"
+
+        # versión nueva de la app: el shell nuevo sustituye al viejo y los datos abiertos siguen
+        st["bump"] = True
+        page.evaluate("() => navigator.serviceWorker.getRegistration().then(r => r.update())")
+        new_shell = f"vocab-shell-v{version + 1}"
+        t0 = time.time()
+        while time.time() - t0 < 20:
+            keys = page.evaluate("() => caches.keys()")
+            if new_shell in keys and shell_name not in keys:
+                break
+            page.wait_for_timeout(250)
+        assert new_shell in keys and shell_name not in keys, f"la versión nueva no se activó: {keys}"
+        after = page.evaluate(_DATA_IN_CACHES)
+        kept = {p for ps in after.values() for p in ps}
+        lost = [p for p in opened if p not in kept]
+        assert not lost, f"al actualizar la app se perdieron datos abiertos con red: {lost}"
+        # un tema que nunca se abrió (control negativo: sin red no puede salir)
+        never = next(f"data/{f.name}" for f in sorted((C.ROOT / "data").glob("*.json"), reverse=True)
+                     if f"/data/{f.name}" not in kept and f"/data/{f.name}" not in shell_paths)
+        media = set(page.evaluate("async () => (await (await caches.open('vocab-media')).keys()).map(r => new URL(r.url).pathname)"))
+
         # si volviera a haber una caché vieja con el index.html falso, el shell gana
         page.evaluate("""async fake => { const v1 = await caches.open("vocab-v1"), h = {headers: {"content-type": "text/html"}};
           await v1.put("index.html", new Response(fake, h)); await v1.put("./", new Response(fake, h)); }""", _FAKE_INDEX)
-        C.clear_errors(page)
+        # sin conexión de verdad: el servidor parado (set_offline no corta las peticiones del service worker)
+        srv.stop()
+        stopped = True
         ctx.set_offline(True)
+        C.clear_errors(page)
         C.reload(page)
         assert page.locator("#version-vieja").count() == 0, "sin conexión sale el index.html viejo"
         assert page.locator("#app").count() == 1, f"sin conexión no sale la app: {page.title()!r}"
         shown = {}
-        for h in ("#/mapa", "#/granja", "#/progreso", "#/"):
+        for h in visit:
             shown[h] = C.goto(page, h)
             txt = page.locator("#app").inner_text()
-            assert "No se pudo cargar" not in txt and "Cargando" not in txt[:40], f"sin conexión {h} no pinta: {txt[:120]!r}"
-        errs = C.errors(page)
+            assert "No se pudo cargar" not in txt and "Cargando" not in txt[:40] and txt.strip(), \
+                f"sin conexión {h} no pinta: {txt[:120]!r}"
+        # sin red, Chrome pide los dibujos perezosos desde más lejos: los de más abajo que no se vieron con red no están
+        # (eso es lo esperado sin «Descargar todo»); cualquier otro fallo sí cuenta
+        unseen = re.compile(r"^console: Failed to load resource: net::ERR_FAILED @ https?://[^/]+(/(?:img|audio)/\S+)$")
+        errs = [e for e in C.errors(page) if not ((m := unseen.match(e)) and m.group(1) not in media)]
+        miss = page.evaluate("u => fetch(u).then(r => 'ok ' + r.status, e => 'falla')", never)
     finally:
         try:
             ctx.set_offline(False)
         except Exception:  # noqa: BLE001
             pass
         ctx.close()
-    assert shown == {"#/mapa": "mapa", "#/granja": "granja", "#/progreso": "progreso", "#/": ""}, f"rutas sin conexión: {shown}"
+        if not stopped:
+            srv.stop()
+    assert shown == {h: C._norm(h) for h in visit}, f"rutas sin conexión: {shown}"
+    assert miss == "falla", f"sin conexión, {never} (nunca abierto) responde «{miss}»: la prueba no estaría sin red"
     assert not errs, "errores sin conexión:\n  " + "\n  ".join(errs)
 
 
@@ -505,7 +601,8 @@ def test_reduced_motion_goes_through_M():
 
 def test_rain_reacts_on_release():
     """La lluvia de palabras: apoyar el dedo en una burbuja no hace nada (ni sonido); al soltarlo cuenta, suena y vibra
-    (G.haptic('success')). Al fallar suena, pero no vibra."""
+    (G.haptic('success')). Al fallar cuenta, pero ni suena el sonido de fallo ni vibra (sonido solo cuando pasa algo
+    bueno)."""
     doc = json.loads((C.ROOT / "data" / f"{R.TOPIC}.json").read_text(encoding="utf-8"))
     es2w = {}
     for row in doc["rows"]:
@@ -566,6 +663,237 @@ def test_rain_reacts_on_release():
     assert mid == [0, []], f"al apoyar el dedo ya pasó algo (respuestas, sonidos): {mid}"
     assert good[0] == [True] and "pop" in good[1] and good[2] == ["success"] and good[3] == "1", \
         f"al soltar sobre la buena: respuestas={good[0]} sonidos={good[1]} vibración={good[2]} puntos={good[3]}"
-    assert bad[0] == [False] and "bad" in bad[1] and bad[2] == [], \
+    assert bad[0] == [False] and "bad" not in bad[1] and bad[2] == [], \
         f"al soltar sobre una mala: respuestas={bad[0]} sonidos={bad[1]} vibración={bad[2]}"
+    assert not errs, "errores:\n  " + "\n  ".join(errs)
+
+
+# ---------------------------------------------------------------- arreglos de las revisiones de F1
+def test_glass_lite_and_header_yield():
+    """El vidrio ligero (.glass.lite) se vuelve opaco con data-glass=off, Aumentar contraste y Reducir transparencia, en
+    claro y oscuro; y la cabecera va sin desenfoque en la granja y durante una partida."""
+    probs = []
+    for scheme, solid in (("light", "rgb(255, 255, 255)"), ("dark", "rgb(44, 44, 46)")):
+        page = C.new_page("phone", color_scheme=scheme)
+        try:
+            C.seed(page)
+            page.evaluate("""() => { const d = document.createElement("div"); d.className = "glass lite"; d.id = "t-lite";
+              d.textContent = "Regar"; d.style.cssText = "position:fixed;left:20px;top:200px;padding:12px"; document.body.appendChild(d); }""")
+            look = "() => { const cs = getComputedStyle(document.getElementById('t-lite')); return [cs.backgroundColor, cs.backdropFilter]; }"
+            base = page.evaluate(look)
+            if base[1] != "none" or base[0] == solid:
+                probs.append(f"{scheme}: .glass.lite sin más tendría que ser translúcido y sin desenfoque: {base}")
+            for attr in ("glass=off", "contrast=more"):
+                k, v = attr.split("=")
+                page.evaluate("([k, v]) => { document.documentElement.dataset[k] = v; }", [k, v])
+                got = page.evaluate(look)
+                page.evaluate("k => { delete document.documentElement.dataset[k]; }", k)
+                if got[0] != solid or got[1] != "none":
+                    probs.append(f"{scheme} + data-{attr}: .glass.lite = {got} (se esperaba {solid} sin desenfoque)")
+            cdp = page.context.new_cdp_session(page)
+            cdp.send("Emulation.setEmulatedMedia", {"features": [{"name": "prefers-reduced-transparency", "value": "reduce"}]})
+            got = page.evaluate(look)
+            cdp.send("Emulation.setEmulatedMedia", {"features": []})
+            if got[0] != solid or got[1] != "none":
+                probs.append(f"{scheme} + Reducir transparencia: .glass.lite = {got} (se esperaba {solid})")
+            hdr = "() => { const h = document.querySelector('header'); return h ? getComputedStyle(h).backdropFilter : 'none'; }"
+            C.goto(page, "#/mapa")
+            if page.evaluate(hdr) == "none":
+                probs.append(f"{scheme}: en el camino la cabecera debería llevar vidrio con desenfoque")
+            C.goto(page, "#/granja")
+            if page.evaluate(hdr) != "none":
+                probs.append(f"{scheme}: en la granja la cabecera sigue con desenfoque: {page.evaluate(hdr)}")
+            C.goto(page, "#/juegos/lluvia")
+            page.locator(".gm-go").click(force=True)
+            page.wait_for_function("() => !!document.documentElement.dataset.gmPlay", timeout=5000)
+            if page.evaluate(hdr) != "none":
+                probs.append(f"{scheme}: durante la partida la cabecera sigue con desenfoque: {page.evaluate(hdr)}")
+            probs += C.errors(page)
+        finally:
+            page.context.close()
+    assert not probs, "vidrio ligero:\n  " + "\n  ".join(probs)
+
+
+_GHOST_SETUP = """() => {
+  const host = document.createElement("div"); host.id = "t-host";
+  host.style.cssText = "position:fixed;left:40px;top:300px;width:300px;height:160px;background:#ddd;z-index:99";
+  const btn = document.createElement("button"); btn.id = "t-btn"; btn.textContent = "Continuar";
+  btn.style.cssText = "position:fixed;left:60px;top:520px;width:140px;height:48px;z-index:99";
+  const cb = document.createElement("input"); cb.type = "checkbox"; cb.id = "t-cb"; cb.style.cssText = "position:fixed;left:60px;top:600px;z-index:99";
+  document.body.append(host, btn, cb);
+  window.__log = [];
+  btn.addEventListener("click", () => __log.push("btn"));
+  host.addEventListener("click", () => __log.push("host"));
+  G.swipe(host, {onLeft: () => { __log.push("left"); btn.click(); cb.click(); __log.push("cb " + cb.checked); },
+                 onRight: () => { __log.push("right"); setTimeout(() => btn.click(), 100); }});
+  G.hold(host, {onHold: () => __log.push("hold"), onRelease: () => { __log.push("release"); btn.click(); }});
+}"""
+
+
+def test_ghost_click_only_real():
+    """Tras deslizar o mantener, G se traga solo el clic fantasma que genera el navegador donde acabó el gesto: un
+    el.click() del propio código (p. ej. «deslizar = Continuar», también un poco después) y un toque normal siempre llegan."""
+    probs = []
+    page = C.new_page("phone")
+    try:
+        C.goto(page, "")
+        page.evaluate(_GHOST_SETUP)
+        cdp = page.context.new_cdp_session(page)
+
+        def touch(kind, pts):
+            cdp.send("Input.dispatchTouchEvent", {"type": kind, "touchPoints": pts})
+
+        def swipe(x0, dx):
+            touch("touchStart", [{"x": x0, "y": 380}])
+            for i in range(1, 11):
+                touch("touchMove", [{"x": x0 + i * dx / 10, "y": 380}])
+                page.wait_for_timeout(16)
+            touch("touchEnd", [])
+            page.wait_for_timeout(450)
+
+        def take():
+            return page.evaluate("() => __log.splice(0)")
+
+        swipe(300, -200)
+        got = take()
+        if got != ["left", "btn", "cb true"]:
+            probs.append(f"dedo: deslizar a la izquierda con btn.click() y cb.click() dentro: {got}")
+        swipe(80, 200)
+        got = take()
+        if got != ["right", "btn"]:
+            probs.append(f"dedo: deslizar a la derecha con btn.click() 100 ms después: {got}")
+        touch("touchStart", [{"x": 200, "y": 380}])
+        page.wait_for_timeout(700)
+        touch("touchEnd", [])
+        page.wait_for_timeout(450)
+        got = take()
+        if got != ["hold", "release", "btn"]:
+            probs.append(f"dedo: mantener con btn.click() al soltar (y sin clic en la superficie): {got}")
+        page.locator("#t-btn").tap()
+        page.wait_for_timeout(100)
+        got = take()
+        if got != ["btn"]:
+            probs.append(f"dedo: un toque normal después: {got}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    page = C.new_page("desk")
+    try:
+        C.goto(page, "")
+        page.evaluate(_GHOST_SETUP)
+        page.mouse.move(300, 380)
+        page.mouse.down()
+        for i in range(1, 11):
+            page.mouse.move(300 - i * 20, 380)
+            page.wait_for_timeout(16)
+        page.mouse.up()
+        page.wait_for_timeout(450)
+        got = page.evaluate("() => __log.splice(0)")
+        if got != ["left", "btn", "cb true"]:
+            probs.append(f"ratón: deslizar (el clic del ratón al soltar se traga, los del código no): {got}")
+        page.mouse.click(130, 544)
+        page.wait_for_timeout(100)
+        got = page.evaluate("() => __log.splice(0)")
+        if got != ["btn"]:
+            probs.append(f"ratón: un clic normal después: {got}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "clic fantasma:\n  " + "\n  ".join(probs)
+
+
+def test_icons_in_sprite():
+    """Cada ico("nombre", "estilo") del código tiene su <symbol id="i-nombre-estilo"> en el sprite; si se pide un estilo
+    que no está, ico() usa el otro, y si falta el icono avisa en la consola (nunca un botón sin icono en silencio)."""
+    html = (C.ROOT / "index.html").read_text(encoding="utf-8")
+    ids = set(re.findall(r'<symbol id="i-([\w-]+)"', html))
+    missing = []
+    for f in [C.ROOT / "index.html", *sorted((C.ROOT / "js").glob("*.js"))]:
+        for i, line in enumerate(f.read_text(encoding="utf-8").splitlines(), 1):
+            for m in re.finditer(r"""\bico\(\s*["']([\w-]+)["']\s*(?:,\s*["'](\w+)["'])?""", line):
+                k = f"{m.group(1)}-{m.group(2) or 'bold'}"
+                if k not in ids:
+                    missing.append(f"{f.name}:{i}: i-{k}")
+    assert not missing, "iconos que no están en el sprite:\n  " + "\n  ".join(missing)
+    page = C.new_page("desk")
+    warns = []
+    page.on("console", lambda m: warns.append(m.text) if m.type == "warning" else None)
+    try:
+        C.goto(page, "")
+        got = page.evaluate("""() => [ico("x", "fill"), ico("trophy", "bold"), ico("no-existe")]
+          .map(s => /href="#([\\w-]+)"/.exec(s)[1])""")
+        errs = C.errors(page)
+    finally:
+        page.context.close()
+    assert got[:2] == ["i-x-bold", "i-trophy-bold"], f"ico() no cambia al estilo que hay: {got}"
+    assert any("no-existe" in w for w in warns), f"ico() no avisa de un icono que falta: {warns}"
+    assert not errs, "errores:\n  " + "\n  ".join(errs)
+
+
+def test_failure_gray_and_silent():
+    """Fallar es gris y callado: el bus «answer» con ok:false no suena; los puntos de fallo, la comida equivocada, el
+    globo del zorro y la lista de falladas no son dorados; y no queda ningún sonido «bad» ni temblor de fallo en el código."""
+    src = {f.name: f.read_text(encoding="utf-8") for f in [C.ROOT / "index.html", *sorted((C.ROOT / "js").glob("*.js"))]}
+    calls = [f"{n}: {m.group(0)}" for n, t in src.items() for m in re.finditer(r"""\b(?:snd|play)\(\s*["']bad["']\s*\)""", t)]
+    assert not calls, "sonidos de fallo que quedan:\n  " + "\n  ".join(calls)
+    assert "gm-shake" not in src["games.js"], "games.js todavía hace temblar las opciones falladas (gm-shake)"
+    page = C.new_page("phone")
+    try:
+        C.seed(page)
+        C.goto(page, "#/juegos")
+        C.goto(page, "#/granja")
+        page.evaluate("""() => { window.__snd = []; const p = sfx.play; sfx.play = n => { __snd.push(n); return p.call(sfx, n); }; }""")
+        page.evaluate("""() => { bus.emit("answer", {ok: false, where: "lesson"}); bus.emit("answer", {ok: true, where: "lesson"}); }""")
+        snd = page.evaluate("() => __snd.slice()")
+        cols = page.evaluate("""() => {
+          const box = document.createElement("div"); box.style.cssText = "position:fixed;left:0;top:0;width:300px";
+          box.innerHTML = `<div class="gm-dots"><i class="meh" id="t1"></i></div><button class="fm-food bad" id="t2">x</button>
+            <div class="bd-say bad" id="t3">x</div><div class="gm-wc gm-miss" id="t4">x</div>`;
+          document.body.appendChild(box);
+          const cs = id => getComputedStyle(document.getElementById(id));
+          return {"puntos": cs("t1").backgroundColor, "comida (borde)": cs("t2").borderTopColor,
+                  "comida (fondo)": cs("t2").backgroundColor, "zorro": cs("t3").borderTopColor, "falladas": cs("t4").borderTopColor};
+        }""")
+        errs = C.errors(page)
+    finally:
+        page.context.close()
+    assert snd == ["ok"], f"al fallar en una lección no debe sonar nada (y al acertar «ok»): {snd}"
+
+    def golden(c):
+        m = [float(x) for x in re.findall(r"[\d.]+", c)[:3]]
+        mx, mn = max(m), min(m)
+        sat = (mx - mn) / mx if mx else 0
+        return sat > .35 and m[0] > m[2] + 40 and m[1] > m[2] + 30      # amarillo u oro
+    gold = {k: v for k, v in cols.items() if golden(v)}
+    assert not gold, f"estados de fallo en dorado (tienen que ser grises): {gold}"
+    assert not errs, "errores:\n  " + "\n  ".join(errs)
+
+
+def test_type_caps_and_capsules_fit():
+    """Con el texto más grande de iOS (base 23 px) la palabra de la lección no se sale de su tarjeta y los títulos tienen
+    tope; las cápsulas «Conseguir · 40» caben en una línea en una tarjeta estrecha."""
+    page = C.new_page("phone")
+    try:
+        C.goto(page, "")
+        r = page.evaluate("""() => {
+          const root = document.documentElement; root.style.fontSize = "23px"; root.style.setProperty("--k", ".9412");
+          const box = document.createElement("div"); box.style.cssText = "position:fixed;left:16px;top:80px;width:358px;z-index:99";
+          box.innerHTML = `<div class="card" style="padding:16px"><div class="t-word" id="t-w" lang="en-GB">grandmother</div>
+              <div class="t-lt" id="t-lt">Hoy</div></div>
+            <div style="display:grid;grid-template-columns:repeat(2,minmax(150px,1fr));gap:12px;margin-top:12px">
+              <div class="card" style="padding:12px"><button class="btn-fill btn-fill--gold" id="t-b1">${ico("coin", "fill", 20)} Conseguir · 40</button></div>
+              <div class="card" style="padding:12px"><button class="glass-btn glass-btn--sm" id="t-b2">Conseguir · 140</button></div></div>`;
+          document.body.appendChild(box);
+          const w = document.getElementById("t-w"), cs = id => getComputedStyle(document.getElementById(id));
+          const out = {word: [w.scrollWidth, w.clientWidth, parseFloat(cs("t-w").fontSize)], lt: parseFloat(cs("t-lt").fontSize),
+                       b1: document.getElementById("t-b1").getBoundingClientRect().height, b2: document.getElementById("t-b2").getBoundingClientRect().height};
+          root.style.fontSize = ""; root.style.removeProperty("--k");
+          return out;
+        }""")
+        errs = C.errors(page)
+    finally:
+        page.context.close()
+    assert r["word"][0] <= r["word"][1], f"la palabra se sale de la tarjeta: {r['word']}"
+    assert r["word"][2] <= 56 and r["lt"] <= 48, f"los títulos no tienen tope: palabra {r['word'][2]} px, título {r['lt']} px"
+    assert r["b1"] <= 46 and r["b2"] <= 46, f"las cápsulas se parten en dos líneas: {r['b1']} px y {r['b2']} px de alto"
     assert not errs, "errores:\n  " + "\n  ".join(errs)

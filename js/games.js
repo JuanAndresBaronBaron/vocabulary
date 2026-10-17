@@ -222,9 +222,7 @@ const CSS = `
 .gm-mc.ok{animation:gm-yay .55s}
 .gm-mc.ok::after{content:"✓";position:absolute;right:-6px;top:-6px;width:28px;height:28px;border-radius:50%;background:var(--ok-fill);color:#fff;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.25);z-index:2}
 .gm-mc.no .gm-mc-face{border-color:var(--bad)}
-.gm-mc.no{animation:gm-shake .4s}
 @keyframes gm-yay{40%{transform:scale(1.1) rotate(2deg)}}
-@keyframes gm-shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
 /* lluvia */
 .gm-catch{display:flex;align-items:center;justify-content:center;gap:12px;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:8px 10px 8px 16px;box-shadow:var(--shadow);margin-bottom:10px;min-height:64px}
 .gm-catch-l{color:var(--muted);font-weight:800;font-size:1.05rem}
@@ -246,7 +244,7 @@ const CSS = `
 .gm-bub-w{background:rgba(6,22,42,.8);color:#fff;font-weight:800;border-radius:999px;padding:3px 10px;font-size:.95rem;max-width:calc(var(--bs) + 28px);text-align:center;line-height:1.15;pointer-events:none}
 .gm-bub.pop .gm-bub-i{animation:gm-burst .32s forwards}
 .gm-bub.pop .gm-bub-w{opacity:0;transition:opacity .2s}
-.gm-bub.bad .gm-bub-i{border-color:var(--bad);background:#d5dbe3;animation:gm-shake .4s}
+.gm-bub.bad .gm-bub-i{border-color:var(--bad);background:#d5dbe3}
 .gm-bub.bad .gm-bub-i img{opacity:.55}
 .gm-bub.gone{opacity:0;transition:opacity .35s}
 @keyframes gm-burst{50%{transform:scale(1.3)}100%{transform:scale(1.6);opacity:0}}
@@ -285,7 +283,7 @@ const CSS = `
 .gm-bal-s{display:block;width:2px;height:54px;background:color-mix(in srgb,var(--ink) 40%,transparent);margin-top:8px;border-radius:2px;transform-origin:top;animation:gm-string 3.2s ease-in-out infinite;animation-delay:calc(var(--d) * -3)}
 .gm-bal.pop .gm-bal-b{animation:gm-burst .3s forwards}
 .gm-bal.pop .gm-bal-s{animation:gm-drop .6s forwards}
-.gm-bal.no .gm-bal-b{animation:gm-shake .4s;filter:grayscale(.85);opacity:.45}
+.gm-bal.no .gm-bal-b{filter:grayscale(.85);opacity:.45}
 .gm-bal.no .gm-bal-s{opacity:.35}
 .gm-bal.dim{opacity:.4;transition:opacity .3s}
 .gm-bang{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);font-size:3rem;pointer-events:none;animation:gm-bang .55s forwards}
@@ -297,7 +295,7 @@ const CSS = `
 .gm-reveal{position:absolute;left:10px;right:10px;top:10px;margin:0 auto;width:fit-content;max-width:calc(100% - 20px);text-align:center;z-index:4;background:#1f8a57;color:#fff;font-weight:900;font-size:1.15rem;line-height:1.2;border-radius:999px;padding:8px 18px;box-shadow:0 6px 16px rgba(0,0,0,.25);animation:gm-in .3s both;pointer-events:none}
 .gm-dots{display:flex;gap:6px;justify-content:center;margin:12px 0 0;flex-wrap:wrap}
 .gm-dots i{width:14px;height:14px;border-radius:50%;background:var(--line)}
-.gm-dots i.ok{background:var(--ok)}.gm-dots i.meh{background:#FFCC00}.gm-dots i.now{outline:3px solid var(--brand);outline-offset:2px}
+.gm-dots i.ok{background:var(--ok)}.gm-dots i.meh{background:var(--miss)}.gm-dots i.now{outline:3px solid var(--brand);outline-offset:2px}
 /* letras */
 .gm-lt{background:var(--card);border:2px solid var(--line);border-radius:22px;box-shadow:var(--shadow);padding:18px 14px 20px;text-align:center;max-width:620px;margin:0 auto;position:relative}
 .gm-lt-pic{width:132px;height:132px;margin:0 auto;border-radius:26px;background:var(--gm-tile);display:flex;align-items:center;justify-content:center;border:3px solid var(--line);box-shadow:0 5px 0 var(--line);animation:gm-in .4s both}
@@ -311,7 +309,7 @@ const CSS = `
 .gm-slot.next{border-color:var(--brand);box-shadow:0 0 0 3px color-mix(in srgb,var(--brand) 20%,transparent)}
 .gm-slot.good{border-style:solid;border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--card));color:var(--ok-ink)}
 .gm-slot.hint{border-style:solid;border-color:#FFCC00;background:color-mix(in srgb,#FFCC00 22%,var(--card));color:color-mix(in srgb,#A16A00 70%,var(--ink))}
-.gm-slot.wrong{border-style:solid;border-color:var(--bad);color:var(--bad);animation:gm-shake .4s}
+.gm-slot.wrong{border-style:solid;border-color:var(--bad);color:var(--bad)}
 .gm-slot.win{animation:gm-hop .5s calc(var(--i) * 70ms) both}
 .gm-slot.drop{transform:scale(1.12);border-color:var(--brand)}
 @keyframes gm-hop{40%{transform:translateY(-12px)}}
@@ -351,7 +349,7 @@ const CSS = `
 .gm-wc b{display:block;line-height:1.15}
 .gm-wc small{display:block;color:var(--muted);font-size:.8rem}
 .gm-wc i{font-style:normal;font-size:.95rem;opacity:.8}
-.gm-wc.gm-miss{border-color:color-mix(in srgb,#FFCC00 60%,var(--line))}
+.gm-wc.gm-miss{border-color:var(--miss)}
 .gm-end-b{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:20px}
 .gm-big{min-height:54px;font-size:1.12rem!important;padding:12px 24px!important;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-weight:800;border-width:2px}
 @media (max-width:560px){
@@ -733,7 +731,7 @@ function lluvia(app, P, withIntro){
       setTarget();
     } else {
       b.dead = true; b.el.classList.add("bad"); lives--; streak = 0; answer(false, target);
-      missed.add(target.k); snd("bad");
+      missed.add(target.k);
       floatTxt(b, `✗ ${b.it.es}`, true);
       const L = $("#gm-lives");
       if(L){ const hs = L.querySelectorAll("i"); const h = hs[lives]; if(h){ h.classList.add("lost", "hurt"); } }
@@ -746,7 +744,7 @@ function lluvia(app, P, withIntro){
     if(run.raf){ cancelAnimationFrame(run.raf); run.raf = 0; }
     bubbles.forEach(b => { b.el.disabled = true; });
     sky.insertAdjacentHTML("beforeend", `<div class="gm-over"><span>${timeUp ? "⏰" : "💔"}</span>${timeUp ? "¡Se acabó el tiempo!" : "¡Sin vidas!"}</div>`);
-    snd(timeUp ? "whoosh" : "bad");
+    snd("whoosh");
     later(run, () => {
       const stars = score >= 12 ? 3 : score >= 6 ? 2 : 1;
       const uniq = []; const seen = new Set();
@@ -849,7 +847,7 @@ function globos(app, P, withIntro){
       }, 1900);
     } else {
       if(first) answer(false, cur);
-      first = false; b.disabled = true; b.classList.add("no"); snd("bad");
+      first = false; b.disabled = true; b.classList.add("no");
       const lt = $("#gm-ltxt"); if(lt) lt.innerHTML = `Ese es <b style="font-size:1.1rem;color:var(--ink)">${esc(o.es)}</b>. ¡Escucha otra vez!`;
       later(run, () => speak(cur.word), 450);
     }
@@ -971,7 +969,7 @@ function letras(app, P, withIntro){
       $("#gm-next").onclick = nx;
       later(run, nx, 2600);
     } else {
-      S.errs++; snd("bad"); S.busy = true; if(S.errs === 1) answer(false, S.it);
+      S.errs++; S.busy = true; if(S.errs === 1) answer(false, S.it);
       const wrong = [];
       S.ans.forEach((ch, i) => { if(S.tiles[S.slots[i]].ch !== ch) wrong.push(i); else if(!S.lock[i]) S.lock[i] = "good"; });
       paint(); wrong.forEach(i => els[i].classList.add("wrong"));

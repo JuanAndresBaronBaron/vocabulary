@@ -18,7 +18,8 @@
        sesión; nunca con html[data-gm-play], dentro de [data-no-hint] ni en una hoja abierta. Cuenta las veces en
        localStorage "vocab:ui" → {hints: {id: n}} (sin tocar lo demás). G.learned(id) la retira para siempre; lo hacen
        solos la ✕ y usar el gesto en ese elemento.
-   - G.swallowClick(ms = 350): se traga los clics que llegan justo después de un gesto (swipe, hold y drag ya lo hacen).
+   - G.swallowClick(ms = 350, x, y): se traga el clic fantasma que llega justo después de un gesto, donde acabó (x, y);
+       swipe, hold y drag ya lo hacen. Nunca se traga un el.click() del código ni un clic de teclado.
    Umbrales: arranque 10 px con el dedo y 4 con ratón; eje si |dx| > 1,2·|dy|; swipe y drag ignoran lo que empieza a
    <24 px de los bordes izquierdo y derecho (es el gesto de atrás del sistema). En los elementos con gesto: sin menú de
    «guardar imagen», sin lupa ni selección de texto, imágenes no arrastrables y sin menú contextual.
@@ -79,14 +80,25 @@ ${DARK(".g-hint-h", "color:var(--brand-tint,#0091FF)")}
 `;
 if(!DOC.getElementById("css-gestures")){ const st = DOC.createElement("style"); st.id = "css-gestures"; st.textContent = STYLE; DOC.head.appendChild(st); }
 
-/* ---------- clic fantasma ---------- */
-let SW = 0;
+/* ---------- clic fantasma ----------
+   Solo el clic que el navegador genera al soltar el dedo o el ratón donde acabó el gesto (a <40 px), y uno solo.
+   Pasan siempre los clics del código (el.click() en onLeft/onRelease…, isTrusted falso) y los del teclado (detail 0). */
+const GHOST_R = 40;
+let SW = 0, SWX = NaN, SWY = NaN;
 addEventListener("click", e => {
-  if(now() >= SW) return;
+  if(now() >= SW || !e.isTrusted || e.detail === 0) return;
+  if(Number.isFinite(SWX) && Math.hypot(e.clientX - SWX, e.clientY - SWY) > GHOST_R) return;
   const t = e.target; if(t && t.closest && t.closest("[data-g-haptic]")) return;
+  SW = 0;
   e.preventDefault(); e.stopImmediatePropagation();
 }, true);
-const swallowClick = (ms = GHOST_MS) => { SW = Math.max(SW, now() + ms); };
+/* x, y: dónde acabó el gesto (sin ellos, cualquier clic de la persona durante ms) */
+const swallowClick = (ms = GHOST_MS, x, y) => {
+  SW = Math.max(SW, now() + ms);
+  const pt = Number.isFinite(x) && Number.isFinite(y);
+  SWX = pt ? x : NaN; SWY = pt ? y : NaN;
+};
+const swallowAt = e => swallowClick(GHOST_MS, e && e.clientX, e && e.clientY);
 
 /* ---------- quién se queda cada dedo (gestos anidados: gana el primero que arranca) ---------- */
 const CLAIM = new Map();
@@ -154,7 +166,7 @@ function swipe(el, o = {}){
   const up = e => {
     if(!S || e.pointerId !== S.id) return;
     const s = S; stop(); if(!s.on) return;
-    s.tr.add(e); swallowClick();
+    s.tr.add(e); swallowAt(e);
     const raw = e.clientX - s.x0, v = s.tr.v(), dx = shape(raw, s.w);
     const go = Math.abs(raw) >= s.th || (Math.abs(v.x) >= VTRIG && Math.sign(v.x) === Math.sign(raw));
     const fn = go ? (raw < 0 ? o.onLeft : o.onRight) : null, info = {dx, raw, v: v.x, vy: v.y, dir: raw < 0 ? "left" : "right", el, e};
@@ -197,12 +209,12 @@ function hold(el, o = {}){
   const up = e => {
     if(!S || e.pointerId !== S.id) return;
     const s = S; s.x = e.clientX; s.y = e.clientY; stop();
-    if(s.held){ swallowClick(); call(o.onRelease, info(s, e)); }
+    if(s.held){ swallowAt(e); call(o.onRelease, info(s, e)); }
   };
   const cancel = e => {
     if(!S || e.pointerId !== S.id) return;
     const s = S; stop();
-    if(s.held){ swallowClick(); if(typeof o.onCancel === "function") call(o.onCancel, info(s, e)); else call(o.onRelease, Object.assign(info(s, e), {cancelled: true})); }
+    if(s.held){ swallowAt(e); if(typeof o.onCancel === "function") call(o.onCancel, info(s, e)); else call(o.onRelease, Object.assign(info(s, e), {cancelled: true})); }
   };
   el.addEventListener("pointerdown", down, {passive: true});
   return () => { el.removeEventListener("pointerdown", down, {passive: true}); stop(); };
@@ -271,7 +283,7 @@ function drag(el, o = {}){
   const up = e => {
     if(!S || e.pointerId !== S.id) return;
     const s = S; stop(); if(!s.on) return;
-    s.tr.add(e); swallowClick();
+    s.tr.add(e); swallowAt(e);
     el.classList.remove("g-dragging");
     const ok = call(o.onDrop, info(s, e)) === true;
     if(ok) learnOn(el);
@@ -280,7 +292,7 @@ function drag(el, o = {}){
   const cancel = e => {
     if(!S || e.pointerId !== S.id) return;
     const s = S; stop(); if(!s.on) return;
-    swallowClick(); el.classList.remove("g-dragging");
+    swallowAt(e); el.classList.remove("g-dragging");
     dropGhost(s.ghost, false, {x: 0, y: 0});
     call(o.onCancel, info(s, e));
   };
