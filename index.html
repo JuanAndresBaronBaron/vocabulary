@@ -401,8 +401,81 @@ dialog .st-r.col>label{margin:0;font:600 var(--fs-sub)/1.3 var(--f-text)}
 .pal h2:first-child{margin-top:4px}
 .pal .sub{font:400 var(--fs-note)/1.4 var(--f-text);color:var(--label2);margin:0 0 12px}
 .pal-priv{margin:28px 0 0;text-align:center;font:400 var(--fs-min)/1.38 var(--f-text)}
-.pal-priv a,.home-priv a{color:var(--label2)}
-.home-priv{margin:24px 0 0;text-align:center;font:400 var(--fs-min)/1.38 var(--f-text)}
+.pal-priv a{color:var(--label2)}
+/* ===================== Hoy (F2) =====================
+   Una sola pantalla sin scroll (390×844 con la barra de pestañas): .hm-hero, la tarjeta principal sólida (el zorro con
+   su frase, el título y el subtítulo de nextAction() y «▶ Empezar»); .hm-row, la fila compacta de 52 px («Repasar N» y lo
+   que devuelven los HOME_SLOTS con homeRow()); .hm-pair, las dos piezas de buddy.js (Misiones y Palabra del día); y
+   «Privacidad». Columna de 600 px como mucho; desde 820 px, dos columnas centradas (sin estirar las piezas). */
+:root[data-tab=hoy][data-sec=""] #tabhead,:root[data-tab=hoy][data-sec=""] #app{max-width:632px}
+.hm{display:flex;flex-direction:column;gap:12px}
+.hm-side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.hm-hero{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;column-gap:10px;padding:16px;text-align:center}
+.hm-fox{flex:none;display:flex;transform-origin:50% 92%}
+.hm-say{position:relative;flex:0 1 auto;min-width:0;margin:0 0 0 6px;padding:6px 14px;border-radius:16px;background:var(--card-2);color:var(--label);
+  font:600 var(--fs-sub)/1.2 var(--f-text);text-align:left;overflow-wrap:anywhere}
+.hm-say::before{content:"";position:absolute;left:-6px;top:50%;margin-top:-7px;border:7px solid transparent;border-left:0;border-right:6px solid var(--card-2)}
+.hm-t{flex-basis:100%;margin:10px 0 0;font:700 var(--fs-t2)/1.2 var(--f-round);color:var(--label);text-wrap:balance;overflow-wrap:anywhere}
+.hm-sub{flex-basis:100%;margin:2px 0 0;font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
+.hm-go{margin-top:14px}
+/* el zorro saluda una vez al entrar (el único reclamo de la pantalla) y da un saltito al ganar monedas */
+.hm-fox.wave{animation:hm-wave 1.1s cubic-bezier(.4,0,.3,1) .3s 1 both}
+.hm-fox.hop{animation:hm-hop .5s cubic-bezier(.3,.9,.4,1) 1}
+@keyframes hm-wave{0%,100%{rotate:0deg}15%{rotate:-9deg}35%{rotate:8deg}55%{rotate:-6deg}75%{rotate:3deg}}
+@keyframes hm-hop{0%,100%{translate:0 0}40%{translate:0 -14px}}
+@media (prefers-reduced-motion:reduce){.hm-fox.wave,.hm-fox.hop{animation:none}}
+/* fila compacta (homeRow): icono en círculo, texto, número opcional y flecha */
+.hm-row{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--row);margin:0;padding:6px 12px 6px 10px;border:0;border-radius:calc(var(--row) / 2);
+  color:var(--label);text-decoration:none;text-align:left;font:600 var(--fs-head)/1.2 var(--f-text);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.hm-ric{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--brand-fill);color:#fff;font-size:18px;line-height:1}
+.hm-ric.teal{background:#008198}.hm-ric.gold{background:var(--gold);color:var(--gold-on)}.hm-ric.gray{background:#8E8E93}.hm-ric.emo{background:var(--fill2);font-size:20px}
+.hm-rt{flex:1;min-width:0;overflow-wrap:anywhere}
+.hm-rt small{display:block;margin-top:1px;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
+.hm-badge{flex:none;min-width:28px;height:24px;padding:0 8px;border-radius:12px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-ink);
+  font:800 var(--fs-note)/1 var(--f-round);font-variant-numeric:tabular-nums}
+.hm-chev{flex:none;color:var(--label3)}
+:root[data-theme=dark] .hm-chev{color:rgba(235,235,245,.45)}
+.hm-pair{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+/* HOME_SLOTS: como mucho 2, y si no hay nada no ocupan sitio. Lo que no sea una fila de homeRow() (un .panel o una
+   tarjeta de otro módulo) se compacta aquí: en fila, con el título pequeño, sin el párrafo y con los botones justos */
+.hm-slots{display:flex;flex-direction:column;gap:8px}
+.hm-slots:empty{display:none}
+.hm-slot{min-width:0}
+.hm-slots .hm-slot>:not(.hm-row){display:flex;flex-direction:row;align-items:center;gap:10px;margin:0;padding:8px 14px;border:0;border-radius:var(--r-card);box-shadow:none}
+.hm-slots .hm-slot>:not(.hm-row)>[aria-hidden=true]:first-child{flex:none;display:grid;place-items:center;width:32px;height:32px;border-radius:50%;font-size:22px;line-height:1}
+.hm-slots .hm-slot>:not(.hm-row)>*{min-width:0}
+.hm-slots .hm-slot>:not(.hm-row) :is(h2,h3){margin:0 0 2px;font:600 var(--fs-note)/1.25 var(--f-text);color:var(--label)}
+.hm-slots .hm-slot>:not(.hm-row) p{display:none}
+.hm-slots .hm-slot>:not(.hm-row) :is(.btn,button){min-height:var(--tap);padding:0 12px;font-size:var(--fs-note);box-shadow:none}
+.hm-slots .hm-slot>:not(.hm-row) div:has(>:is(.btn,button)){margin:0;gap:0 6px}
+.hm-priv{margin:-6px 0 0;text-align:center;font:400 var(--fs-min)/1.38 var(--f-text)}
+.hm-priv a{display:inline-flex;align-items:center;min-height:var(--tap);padding:0 12px;color:var(--label2);text-decoration:none}
+@media (min-width:820px){
+  :root[data-tab=hoy][data-sec=""] #tabhead,:root[data-tab=hoy][data-sec=""] #app{max-width:1000px}
+  .hm{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+  .hm-hero{align-self:stretch;align-content:center;padding:24px}
+  .hm-fox .hero{font-size:72px!important}
+  .hm-side,.hm-pair{gap:16px}
+  .hm-priv{grid-column:1/-1}
+}
+/* accesorio «Seguir» (algo empezado: una lección guardada o un repaso abierto): cápsula de vidrio sobre la barra de
+   pestañas con un anillo de progreso. En el ordenador, abajo y centrado. */
+.acc{position:fixed;z-index:var(--z-acc);left:50%;bottom:calc(var(--tabbar-b) + var(--tabbar-h) + 10px);transform:translateX(-50%);
+  display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);min-height:var(--tap-bar);padding:0 20px 0 7px;border-radius:var(--r-pill);
+  color:var(--label);text-decoration:none;font:600 var(--fs-sub)/1.2 var(--f-text);white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.acc[hidden],:root[data-focus] .acc{display:none}
+.acc-ring{position:relative;flex:none;width:34px;height:34px;display:grid;place-items:center;color:var(--brand-tint)}
+.acc-rs{position:absolute;inset:0;width:100%;height:100%;rotate:-90deg}
+.acc-ring circle{fill:none;stroke-width:3.5}
+.acc-bg{stroke:var(--fill)}
+.acc-fg{stroke:var(--teal);stroke-linecap:round;transition:stroke-dasharray var(--d-base,260ms) ease}
+.acc-t{overflow:hidden;text-overflow:ellipsis}
+.acc-t b{font-weight:700}
+:root[data-acc]:not([data-focus]) main{padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 38px + var(--tap-bar))}
+@media (min-width:820px){
+  .acc{bottom:calc(16px + var(--safe-b))}
+  :root[data-acc]:not([data-focus]) main{padding-bottom:calc(64px + var(--tap-bar))}
+}
 /* «Reducir movimiento»: el del aparato y el de Ajustes (html[data-motion=calm]) hacen lo mismo. Aquí, para todo:
    animaciones y transiciones cortas (≤150 ms) y sin bucles; las reglas propias de cada pantalla y módulo para el
    aparato se copian para data-motion=calm en <style id="css-calm"> (calmCss() más abajo). */
@@ -653,9 +726,6 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 @media (prefers-reduced-motion:reduce){.bubble{animation:none}}
 .bubble::after{content:"";position:absolute;left:50%;top:100%;border:8px solid transparent;border-top-color:var(--card);transform:translateX(-50%)}
 @keyframes bob{0%,100%{translate:0 0}50%{translate:0 -5px}}
-.map-cta{display:flex;align-items:center;gap:14px;background:var(--brand-fill);color:#fff;border-radius:20px;padding:14px 18px;text-decoration:none;box-shadow:var(--shadow);margin:6px 0 4px}
-.map-cta .ic{font-size:2rem}.map-cta b{display:block;font-size:1.05rem}.map-cta small{opacity:1}
-.map-cta .go{margin-left:auto;background:#fff;color:var(--brand-fill);border-radius:99px;padding:6px 14px;font-weight:700;white-space:nowrap}
 /* lección */
 .ls{width:min(100%,560px);margin:0 auto}
 .ls-top{display:flex;align-items:center;gap:12px;margin:6px 0 18px}
@@ -774,11 +844,6 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .speech{position:relative;background:var(--card);border:2px solid var(--line);border-radius:var(--r-card);padding:12px 16px;font-size:1.15rem;box-shadow:var(--shadow)}
 .speech::before{content:"";position:absolute;left:-12px;top:50%;border:10px solid transparent;border-right-color:var(--line);transform:translateY(-50%)}
 .speech b{display:block;font-size:1.4rem}
-.big-acts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:14px}
-.ba{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;padding:16px 10px;border-radius:20px;text-decoration:none;color:#fff;font-size:2.4rem;box-shadow:0 6px 0 rgba(0,0,0,.18);transition:transform .1s}
-.ba:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.18)}
-.ba b{font-size:1.15rem}.ba small{font-size:.85rem}
-.ba.a1{background:#008932}.ba.a2{background:var(--brand-fill)}.ba.a3{background:#A16A00}.ba.a4{background:#008198}
 /* premios */
 .kid-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0 14px}
 .ks{background:var(--card);border:2px solid transparent;border-radius:var(--r-card);padding:12px;text-align:center;text-decoration:none;display:flex;flex-direction:column;align-items:center}
@@ -905,6 +970,10 @@ details.adult[open] summary{margin-bottom:10px}
 <symbol id="i-cloud-slash-bold" viewBox="0 0 256 256"><path d="M56.88,31.93A12,12,0,1,0,39.12,48.07L71.79,84A68,68,0,0,0,72,220h88a91.26,91.26,0,0,0,30.66-5.24l8.46,9.31a12,12,0,0,0,17.76-16.14ZM160,196H72a44,44,0,0,1-1.8-87.95A91.91,91.91,0,0,0,68,128a12,12,0,0,0,24,0,68.22,68.22,0,0,1,2.66-18.84l77.88,85.67A68.67,68.67,0,0,1,160,196Zm92-68a91.32,91.32,0,0,1-17.53,54,12,12,0,1,1-19.41-14.11,68,68,0,0,0-89.57-98.53,12,12,0,0,1-12.2-20.66A92,92,0,0,1,252,128Z"/></symbol>
 <symbol id="i-wifi-slash-bold" viewBox="0 0 256 256"><path d="M216.88,207.93a12,12,0,1,1-17.76,16.14L147.78,167.6a56.06,56.06,0,0,0-52.71,7.1,12,12,0,0,1-14.14-19.4,79.35,79.35,0,0,1,41.92-15.12L103.51,118.9a104.18,104.18,0,0,0-40.06,19.55,12,12,0,0,1-14.9-18.81A128.46,128.46,0,0,1,85.61,99.21l-17.31-19a151.14,151.14,0,0,0-36.68,22.28A12,12,0,1,1,16.39,83.91a175.52,175.52,0,0,1,35-22.38L39.12,48.07A12,12,0,1,1,56.88,31.93ZM128,188a16,16,0,1,0,16,16A16,16,0,0,0,128,188Zm64.55-49.55a12,12,0,0,0,14.9-18.81A127.27,127.27,0,0,0,170,99.05a12,12,0,0,0-7.87,22.67A103.62,103.62,0,0,1,192.55,138.45Zm47.06-54.54A176.33,176.33,0,0,0,128,44c-3.94,0-7.93.13-11.86.39a12,12,0,1,0,1.59,24c3.4-.23,6.86-.34,10.27-.34a152.24,152.24,0,0,1,96.38,34.46,12,12,0,1,0,15.23-18.55Z"/></symbol>
 <symbol id="i-warning-circle-bold" viewBox="0 0 256 256"><path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm-12-80V80a12,12,0,0,1,24,0v52a12,12,0,0,1-24,0Zm28,40a16,16,0,1,1-16-16A16,16,0,0,1,144,172Z"/></symbol>
+<symbol id="i-basket-bold" viewBox="0 0 256 256"><path d="M140,128v40a12,12,0,0,1-24,0V128a12,12,0,0,1,24,0Zm28.06-1.19-4,40a12,12,0,0,0,10.75,13.13c.4,0,.81.06,1.2.06a12,12,0,0,0,11.93-10.81l4-40a12,12,0,0,0-23.88-2.38Zm-80.12,0a12,12,0,0,0-23.88,2.38l4,40A12,12,0,0,0,80,180c.39,0,.8,0,1.2-.06a12,12,0,0,0,10.75-13.13Zm156-37.22-15.07,113A20.06,20.06,0,0,1,209,220H47a20.06,20.06,0,0,1-19.82-17.36l-15.07-113A12,12,0,0,1,24,76H66.55L119,16.1a12,12,0,0,1,18.06,0L189.45,76H232a12,12,0,0,1,11.89,13.59ZM98.45,76h59.1L128,42.22Zm119.84,24H37.71l12.8,96h155Z"/></symbol>
+<symbol id="i-egg-bold" viewBox="0 0 256 256"><path d="M190,57.34C171.06,29,147.88,12,128,12S84.94,29,66,57.34C46.94,86,36,120.46,36,152a92,92,0,0,0,184,0C220,120.46,209.06,86,190,57.34ZM128,220a68.07,68.07,0,0,1-68-68c0-61.12,46.19-116,68-116s68,54.88,68,116A68.07,68.07,0,0,1,128,220Z"/></symbol>
+<symbol id="i-magnifying-glass-bold" viewBox="0 0 256 256"><path d="M232.49,215.51,185,168a92.12,92.12,0,1,0-17,17l47.53,47.54a12,12,0,0,0,17-17ZM44,112a68,68,0,1,1,68,68A68.07,68.07,0,0,1,44,112Z"/></symbol>
+<symbol id="i-treasure-chest-bold" viewBox="0 0 256 256"><path d="M184,36H72A60.07,60.07,0,0,0,12,96v96a20,20,0,0,0,20,20H224a20,20,0,0,0,20-20V96A60.07,60.07,0,0,0,184,36Zm36,60v4H192V60.91A36.05,36.05,0,0,1,220,96Zm-92,60a12,12,0,0,0,12-12V124h28v64H88V124h28v20A12,12,0,0,0,128,156Zm12-56V96a12,12,0,0,0-24,0v4H88V60h80v40ZM64,60.91V100H36V96A36.05,36.05,0,0,1,64,60.91ZM36,124H64v64H36Zm156,64V124h28v64Z"/></symbol>
 </svg>
 <header class="topbar" id="topbar">
   <button type="button" class="tb-flag glass" id="lang-b" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-m" aria-label="Idioma"></button>
@@ -1159,6 +1228,8 @@ const inDays = n => n<=0 ? "hoy otra vez" : n===1 ? "mañana" : n<30 ? `en ${n} 
 
 let rv = null;
 async function repaso(){
+  /* un repaso abierto (se salió con «atrás» o por el accesorio «Seguir») sigue donde estaba; la ✕ lo cierra antes */
+  if(rv && rv.q && rv.i < rv.q.length){ document.onkeydown = null; rvDraw(); updFocus(); scrollTo(0, 0); return; }
   rv = null; document.onkeydown = null;
   const idx = await getIndex(), ready = idx.filter(d => d.langs.includes(lang));
   const due = dueList();
@@ -1183,6 +1254,8 @@ async function repaso(){
     if(!fresh.length){ $("#rv-msg").textContent = "Ese documento ya está entero en tu repaso."; return; }
     srsAdd(id, fresh, 0); repaso().then(() => $("#rv-msg").textContent = `Añadidas: ${fresh.map(r=>r.es).join(", ")}.`);
   };
+  /* desde Hoy («Empezar» o «Repasar N») el repaso empieza directamente */
+  if(rvGo){ rvGo = false; if(due.length) await rvStart(); }
 }
 async function rvStart(){
   const due = dueList(), ids = [...new Set(due.map(x => x.d))];
@@ -1614,7 +1687,7 @@ function wireNav(){
   });
   $("[data-open=ajustes]").addEventListener("click", e => { if(typeof window.openSettings === "function") window.openSettings(null, e.currentTarget); });
   /* ✕ del modo foco: a la raíz de la pestaña (si ya es esa ruta, se vuelve a pintar: así se cierra el repaso) */
-  $("#fx-x").addEventListener("click", e => { e.preventDefault(); navTo(e.currentTarget.getAttribute("href")); });
+  $("#fx-x").addEventListener("click", e => { e.preventDefault(); if(focusOn === "repaso") rv = null; navTo(e.currentTarget.getAttribute("href")); });
   /* el scroll de cada pestaña */
   addEventListener("scroll", () => {
     if(!curTab || focusOn) return;
@@ -1674,22 +1747,166 @@ function wireLangs(){
   document.addEventListener("keydown", e => { if(e.key === "Escape" && !m.hidden){ langMenu(false); b.focus({preventScroll: true}); } });
 }
 
-/* ---------- inicio ---------- */
-async function home(){
-  $("#app").innerHTML = `
-    <div class="hello">${heroHtml(96)}<div class="speech"><b>¡Hola${game().name ? ", " + esc(game().name) : ""}!</b>¿Qué aprendemos hoy en ${LANGS[lang].name}?</div></div>
-    <div class="big-acts">
-      <a class="ba a1" href="#/mapa">🗺️<b>Camino</b><small>Aprende palabras nuevas</small></a>
-      <a class="ba a2" href="#/repaso">🔁<b>Repasar</b><small>${(n => n === 1 ? "1 palabra te espera" : n ? n + " palabras te esperan" : "Todo al día")(dueList().length)}</small></a>
-      <a class="ba a3" href="#/granja">🏡<b>Mi granja</b><small>🪙 ${game().coins} monedas</small></a>
-      <a class="ba a4" href="#/progreso">🏆<b>Premios</b><small>${(n => n === 1 ? "1 medalla" : n + " medallas")(achList().filter(x=>x.ok).length)}</small></a>
-      ${HOME_ACTS.map(a => `<a class="ba" style="background:${a.color}" href="${a.href}">${a.e}<b>${esc(a.t)}</b><small>${esc(a.sub || "")}</small></a>`).join("")}
-    </div>
-    ${(await Promise.all(HOME_SLOTS.map(f => Promise.resolve().then(f).catch(e => { console.error(e); return ""; })))).join("")}
-    ${await mapCta()}
-    <p style="margin:6px 0 0"><a href="#/gramatica" style="color:var(--brand);font-weight:600;text-decoration:none">📘 Gramática de ${LANGS[lang].name} por niveles, de A1 a C2 →</a></p>
-    <p class="home-priv"><a href="privacy.html">Privacidad</a></p>`;
+/* ---------- Hoy ----------
+   Una sola pantalla sin scroll: la tarjeta principal (el zorro con una frase, lo que toca según nextAction() y
+   «▶ Empezar»), la fila «Repasar N» si hay pendientes y la tarjeta no es ya el repaso, las dos piezas de buddy.js
+   (Misiones y Palabra del día), los HOME_SLOTS como filas compactas (2 como mucho) y «Privacidad». HOME_ACTS se
+   conserva para los módulos que aún lo llenan, pero ya no se pinta: lo de cada sección está en su pestaña. */
+let homeOffer = null;   /* lo que ofrece la tarjeta de Hoy ({kind: "repaso"} o {kind: "leccion", id}): el accesorio no lo repite */
+let rvGo = false;       /* «Empezar» o «Repasar» en Hoy: #/repaso arranca el repaso sin pasar por su pantalla de inicio */
+const lcFirst = t => String(t || "").charAt(0).toLowerCase() + String(t || "").slice(1);
+const nPal = n => n === 1 ? "1 palabra" : `${n} palabras`;
+const rvOpen = () => !!(rv && rv.q && rv.i < rv.q.length);
+/* la lección guardada a medias (sessionStorage "vocab:ls" = {id, i, first, miss, n?, lang?}; la escribe la lección) */
+function lsSaved(){
+  try{
+    const v = JSON.parse(sessionStorage.getItem("vocab:ls"));
+    return v && typeof v === "object" && typeof v.id === "string" && v.id && (!v.lang || v.lang === lang) ? v : null;
+  }catch(e){ return null; }
 }
+/* la siguiente lección del camino: la del nivel que enseña el mapa (mapLv) si le quedan, si no la del primer nivel
+   sin terminar. {done: true} si ya no queda ninguna en ningún nivel. */
+async function nextLesson(){
+  await getMap();
+  const P = mapP(), open = l => lvCur(l, P) < lvLessons(l).length, saved = store.get("mapLv", null);
+  const lv = LVS[saved] && open(saved) ? saved : Object.keys(LVS).find(open);
+  if(!lv) return {done: true};
+  const ls = lvLessons(lv), i = lvCur(lv, P), l = ls[i], u = lvUnits(lv).find(u => u.ls.some(x => x.id === l.id)) || {t: ""};
+  return {lv, i, l, u, first: !Object.keys(P).length};
+}
+/* qué toca ahora: el repaso si hay 10 o más palabras pendientes; si no, la siguiente lección del camino; y si ya está
+   todo, una partida. Devuelve {kind: "repaso"|"leccion"|"juego"|"camino", id?, lv?, title, sub, say, href, btn, resume} */
+async function nextAction(){
+  const due = dueList().length, nm = game().name ? ", " + game().name : "";
+  if(due >= 10){
+    const left = rvOpen() ? rv.q.length - rv.i : 0;
+    return left ? {kind: "repaso", title: "Repaso", sub: `Te ${left === 1 ? "queda 1 palabra" : `quedan ${left} palabras`}`, say: "¡Sigamos repasando!", href: "#/repaso", btn: "Seguir", resume: true}
+      : {kind: "repaso", title: "Repaso", sub: `${nPal(due)} te esperan`, say: `¡Hola${nm}! Vamos a repasar`, href: "#/repaso", btn: "Empezar", resume: false};
+  }
+  let L = null; try{ L = await nextLesson(); }catch(e){ console.error(e); }
+  if(!L) return {kind: "camino", title: "El camino", sub: "Lecciones cortas, una tras otra", say: `¡Hola${nm}! ¿Aprendemos?`, href: "#/mapa", btn: "Empezar", resume: false};
+  if(L.done) return {kind: "juego", title: "Juega una partida", sub: "Repasa tus palabras jugando", say: "¡Lo has aprendido todo!", href: "#/juegos", btn: "Jugar", resume: false};
+  const {lv, i, l, u} = L, sv = lsSaved(), resume = !!(sv && sv.id === l.id), lvTxt = lv === "A1" ? "" : `Nivel ${lv} · `;
+  const base = {kind: "leccion", id: l.id, lv, href: "#/leccion/" + l.id, btn: resume ? "Seguir" : "Empezar", resume};
+  if(!l.w){
+    const x = ((GRAM[lang] || {})[lv] || [])[l.g];
+    return {...base, title: `Gramática · ${l.t}`, sub: resume ? "¡Ya la empezaste!" : lvTxt + (x && x.q ? `${x.q.length} frases para completar` : "Una regla y unas frases"),
+      say: resume ? "¡Sigamos donde lo dejaste!" : "¡Hoy toca gramática!"};
+  }
+  let n = l.w.length;
+  try{
+    await Promise.all([...new Set(l.w.map(([d]) => d))].map(d => getDoc(d)));
+    n = l.w.filter(([d, k]) => { const r = (CACHE[d].rows || [])[k]; return r && r.es && r.l && r.l[lang]; }).length || n;
+  }catch(e){}
+  return {...base, title: `Lección ${i + 1}${u.t ? " · " + u.t : ""}`, sub: resume ? "¡Ya la empezaste!" : lvTxt + nPal(n),
+    say: resume ? "¡Sigamos donde lo dejaste!" : L.first ? `¡Hola${nm}! ¿Empezamos?` : `¡Hola${nm}! Hoy toca ${lcFirst(u.t) || "aprender"}`};
+}
+/* fila compacta de Hoy (52 px) para los HOME_SLOTS: {t, sub?, icon? (Phosphor) | e? (emoji o dibujo), tone?: "teal" |
+   "gold" | "gray", badge?, href? (enlace; sin él es un <button>), id?, label? (para el lector de pantalla)} */
+function homeRow(o){
+  o = o || {};
+  const ic = o.icon ? `<span class="hm-ric${o.tone ? " " + esc(o.tone) : ""}" aria-hidden="true">${ico(o.icon, "bold", 18)}</span>`
+    : o.e ? `<span class="hm-ric emo" aria-hidden="true">${esc(o.e)}</span>` : "";
+  const inner = `${ic}<span class="hm-rt">${esc(o.t)}${o.sub ? `<small>${esc(o.sub)}</small>` : ""}</span>${o.badge || o.badge === 0 ? `<span class="hm-badge" aria-hidden="true">${esc(o.badge)}</span>` : ""}${o.href ? ico("caret-right", "bold", 16, "hm-chev") : ""}`;
+  const at = `${o.id ? ` id="${esc(o.id)}"` : ""}${o.label ? ` aria-label="${esc(o.label)}"` : ""}`;
+  return o.href ? `<a class="card hm-row" href="${esc(o.href)}"${at}>${inner}</a>` : `<button type="button" class="card hm-row"${at}>${inner}</button>`;
+}
+/* HOME_SLOTS: funciones (con .id opcional) que devuelven nada ("" / null / false), un objeto para homeRow(), HTML o un
+   nodo. Se pintan en orden debajo de las piezas, como mucho 2; las que no devuelven nada no ocupan sitio. */
+const SLOT_MAX = 2;
+function slotEl(v, f){
+  if(v == null || v === false) return null;
+  const box = document.createElement("div"); box.className = "hm-slot";
+  if(typeof Node !== "undefined" && v instanceof Node) box.append(v);
+  else if(typeof v === "object"){ if(!v.t) return null; box.innerHTML = homeRow(v); }
+  else { const s = String(v).trim(); if(!s) return null; box.innerHTML = s; }
+  if(!box.firstChild) return null;
+  if(f && f.id) box.dataset.slot = String(f.id);
+  return box;
+}
+async function homeSlots(){
+  const vals = await Promise.all(HOME_SLOTS.map(f => Promise.resolve().then(() => typeof f === "function" ? f() : f).catch(e => { console.error(e); return ""; })));
+  const out = [];
+  vals.forEach((v, i) => { if(out.length < SLOT_MAX){ const el = slotEl(v, HOME_SLOTS[i]); if(el) out.push(el); } });
+  return out;
+}
+let waveAt = 0;
+async function home(){
+  const hp = hashPath(), B = window.vocabBuddy || null;
+  const [na, slots, wotd] = await Promise.all([nextAction(), homeSlots(),
+    B && typeof B.wotdPiece === "function" ? Promise.resolve().then(() => B.wotdPiece()).catch(e => { console.error(e); return ""; }) : ""]);
+  if(hashPath() !== hp) return;   /* mientras tanto se fue a otra pantalla */
+  homeOffer = na.kind === "repaso" ? {kind: "repaso"} : na.kind === "leccion" ? {kind: "leccion", id: na.id} : null;
+  const due = dueList().length, mis = B && typeof B.misPiece === "function" ? B.misPiece() : "";
+  const row = due && na.kind !== "repaso" && !rvOpen() ? homeRow({icon: "arrow-counter-clockwise", t: "Repasar", badge: due, href: "#/repaso", id: "hm-rev",
+    label: `Repasar, ${due === 1 ? "1 palabra te espera" : due + " palabras te esperan"}`}) : "";
+  $("#app").innerHTML = `<div class="hm" id="hm">
+    <section class="card hm-hero" aria-labelledby="hm-t">
+      <div class="hm-fox" id="hm-fox">${heroHtml(56)}</div>
+      <p class="hm-say">${esc(na.say)}</p>
+      <h2 class="hm-t" id="hm-t">${esc(na.title)}</h2>
+      <p class="hm-sub">${esc(na.sub)}</p>
+      <a class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block hm-go" id="hm-go" href="${esc(na.href)}" data-kind="${na.kind}">${ico("play", "fill", 20)}${esc(na.btn)}</a>
+    </section>
+    <div class="hm-side">${row}${mis || wotd ? `<div class="hm-pair">${mis}${wotd}</div>` : ""}<div class="hm-slots" id="hm-slots"></div></div>
+    <p class="hm-priv"><a href="privacy.html">Privacidad</a></p></div>`;
+  $("#hm-slots").append(...slots);
+  const go = $("#hm-go"), rev = $("#hm-rev");
+  if(na.kind === "repaso" && !na.resume) go.addEventListener("click", () => { rvGo = true; });
+  if(rev) rev.addEventListener("click", () => { rvGo = true; });
+  if(B && typeof B.wire === "function") B.wire();
+  /* un solo reclamo: la pieza de Misiones salta si hay una misión recién cumplida; si no, el zorro saluda (una vez, y
+     otra solo si se vuelve pasados 2 minutos). Con «Reducir movimiento», nada se mueve. */
+  const jumped = !!(B && typeof B.attention === "function" && B.attention());
+  if(!jumped && !(window.M && M.rm()) && Date.now() - waveAt > 120000){ waveAt = Date.now(); $("#hm-fox").classList.add("wave"); }
+}
+bus.on("route", d => { if(!String((d && d.h) || "").startsWith("repaso")) rvGo = false; });
+
+/* ---------- accesorio «Seguir» ----------
+   Cápsula de vidrio sobre la barra de pestañas, solo si hay algo empezado: una lección guardada a medias
+   (sessionStorage "vocab:ls") o un repaso abierto en memoria con tarjetas por hacer. «Seguir · Lección 4» o
+   «Seguir · Repaso», con un anillo de progreso; al tocarlo, sigue. En Hoy no sale si la tarjeta principal ya ofrece lo
+   mismo, ni en modo foco. window.vocabAccessory.refresh() lo vuelve a mirar (la lección lo llama al guardar o terminar). */
+const ACC = {st: null, tok: 0};
+async function accState(){
+  if(rvOpen()) return {kind: "repaso", label: "Repaso", aria: "Seguir con el repaso", p: rv.done / Math.max(1, rv.total), href: "#/repaso"};
+  const s = lsSaved(); if(!s) return null;
+  try{ await getMap(); }catch(e){ return null; }
+  const lv = lessonLv(s.id); if(!LVS[lv] || !MAP[lv]) return null;
+  const ls = lvLessons(lv), k = ls.findIndex(l => l.id === s.id); if(k < 0) return null;
+  const l = ls[k], miss = Array.isArray(s.miss) ? s.miss.length : 0, i = Math.max(0, +s.i || 0);
+  const x = !l.w && ((GRAM[lang] || {})[lv] || [])[l.g];
+  const n = +s.n > 0 ? +s.n : l.w ? 2 * l.w.length + miss : x && x.q ? x.q.length + miss : 0;
+  return {kind: "leccion", id: s.id, label: l.w ? `Lección ${k + 1}` : "Gramática", aria: l.w ? `Seguir con la lección ${k + 1}` : `Seguir con la gramática: ${l.t}`,
+    p: n ? Math.min(1, i / n) : 0, href: "#/leccion/" + s.id};
+}
+function accEl(){
+  let a = document.getElementById("acc"); if(a) return a;
+  a = document.createElement("a"); a.id = "acc"; a.className = "acc glass"; a.hidden = true; a.href = "#/";
+  a.innerHTML = `<span class="acc-ring" aria-hidden="true"><svg class="acc-rs" viewBox="0 0 36 36"><circle class="acc-bg" cx="18" cy="18" r="15"/><circle class="acc-fg" cx="18" cy="18" r="15" pathLength="100" stroke-dasharray="0 100"/></svg>${ico("play", "fill", 14)}</span><span class="acc-t"></span>`;
+  const bar = document.getElementById("tabbar"); if(bar) bar.after(a); else document.body.append(a);
+  return a;
+}
+async function accRefresh(){
+  const tok = ++ACC.tok, st = await accState().catch(e => { console.error(e); return null; });
+  if(tok !== ACC.tok) return ACC.st;
+  ACC.st = st;
+  const a = accEl(), h = hashPath(), root = document.documentElement;
+  const same = !!(st && h === "" && homeOffer && homeOffer.kind === st.kind && (st.kind === "repaso" || homeOffer.id === st.id));
+  const show = !!st && !focusOn && !same;
+  if(st){
+    a.setAttribute("href", st.href); a.setAttribute("aria-label", `${st.aria}. Vas por el ${Math.round(st.p * 100)} %`);
+    a.querySelector(".acc-t").innerHTML = `Seguir · <b>${esc(st.label)}</b>`;
+    a.querySelector(".acc-fg").setAttribute("stroke-dasharray", `${(st.p * 100).toFixed(1)} 100`);
+  }
+  a.classList.toggle("lite", curTab === "granja" || /^juegos\//.test(h) || root.hasAttribute("data-gm-play"));
+  a.hidden = !show; root.toggleAttribute("data-acc", show);
+  return st;
+}
+bus.on("route", () => { accRefresh(); });
+/* el repaso abierto es de un idioma: al cambiar de idioma se cierra */
+bus.on("lang", () => { rv = null; accRefresh(); });
+window.vocabAccessory = {refresh: accRefresh, get state(){ return ACC.st; }};
 
 /* ---------- Aprender › Palabras: todos los temas ---------- */
 async function palabras(){
@@ -2345,16 +2562,6 @@ const mapP = () => store.get("map:"+lang, {});
 const lvLessons = lv => lvUnits(lv).flatMap(u => u.ls);
 function lvCur(lv, P){ const ls = lvLessons(lv); const i = ls.findIndex(l => !P[l.id]); return i < 0 ? ls.length : i; }
 const starsHtml = n => `${"★".repeat(n)}<span class="e">${"★".repeat(3-n)}</span>`;
-async function mapCta(){
-  try{
-    await getMap(); const P = mapP();
-    const lv = Object.keys(LVS).find(l => lvCur(l, P) < lvLessons(l).length) || "C2";
-    const i = lvCur(lv, P), ls = lvLessons(lv), u = lvUnits(lv).find(u => u.ls.some(l => l.id === (ls[i]||{}).id));
-    return `<a class="map-cta" href="#/mapa/${lv}"><span class="ic">🗺️</span><span><b>Camino de aprendizaje · ${lv}</b>
-      <small>${i ? `Vas por la lección ${i+1} de ${ls.length}${u?` · ${esc(u.t)}`:""}` : "Lecciones cortas de A1 a C2, una tras otra"}</small></span>
-      <span class="go">${i ? "Seguir" : "Empezar"}</span></a>`;
-  }catch(e){ return ""; }
-}
 async function mapa(lv){
   await getMap(); document.onkeydown = null;
   const P = mapP();

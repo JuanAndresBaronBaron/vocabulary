@@ -7,7 +7,7 @@
    - Plantas que crecen con la regadera y se cosechan; árboles que dan fruta o nidos.
    - Edificios con sorpresa (cohete, tractor, fuente, castillo, casa, cabaña, tienda).
    - Juego «¿Dónde está…?».
-   - Fuera de la granja: tarjeta de la portada (HOME_SLOTS) y un punto azul en la pestaña «Granja» si algún animal tiene hambre.
+   - Fuera de la granja: un punto azul en la pestaña «Granja» si algún animal tiene hambre (Hoy ya no lleva aviso de hambre).
    Estado: store "farm:state". Emite: farm-feed {item, food}, farm-harvest {item}, farm-collect {product}, farm-find {ok},
    farm-buy {food, n, cost}, farm-rescue {item}, coins {n < 0} al gastar.
    Para otros módulos: farmMount.kinds (listas de especies), farmMount.care (consultas de solo lectura) y
@@ -338,31 +338,6 @@ window.vocabFarm = Object.assign(window.vocabFarm || {}, {
     else location.hash = "#/granja";
   },
 });
-
-/* portada: «Tus animales tienen hambre» con sus caras y un botón a la granja */
-HOME_SLOTS.push(async () => {
-  const s = careState(), hung = needyS(s), shel = Object.keys(s.shelter).filter(id => itemById(id));
-  if(!onFarmS(s).length && !shel.length) return "";
-  if(!hung.length && !shel.length) return "";
-  cssCare();
-  const one = hung.length === 1 ? itemById(hung[0]) : null;
-  const title = hung.length ? (one ? `${cap(elA(hung[0]))} tiene hambre` : "🐄 Tus animales tienen hambre") : "🏚️ Animales en el refugio";
-  const sick = hung.filter(id => heartsS(s, id) === 0);
-  const sub = !hung.length ? "" : sick.length ? `🤒 ${cap(joinY(sick.map(elA)))} ${sick.length === 1 ? (ANIM[sick[0]].f ? "está malita" : "está malito") : "están malitos"}: ¡${hung.length === 1 ? "dale" : "dales"} de comer pronto!`
-    : one ? `¡Dale de comer para que esté ${ANIM[hung[0]].f ? "contenta" : "contento"}! ❤️` : `¡Dales de comer para que estén contentos! ❤️`;
-  const faces = hung.map(id => { const it = itemById(id), h = heartsS(s, id); return it ? `<span class="fm-hcf${h === 0 ? " sk" : ""}"><span class="fm-hce" aria-hidden="true">${pj(it)}</span><span class="fm-hch" role="img" aria-label="${h} de 3 corazones">${h === 0 ? "🤒" : ""}${heartsHtml(h)}</span><small>${esc(it.n)}</small></span>` : ""; }).join("");
-  const fresh = shel.filter(id => !s.shelter[id].seen), old = shel.filter(id => s.shelter[id].seen);
-  const shTxt = [
-    fresh.length ? `😢 ${cap(joinY(fresh.map(elA)))} tenía${fresh.length > 1 ? "n" : ""} mucha hambre y se ${fresh.length > 1 ? "fueron" : "fue"} al refugio. Allí ${fresh.length > 1 ? "los" : ANIM[fresh[0]].f ? "la" : "lo"} cuidan bien. ¡Puedes traer${fresh.length > 1 ? "los" : ANIM[fresh[0]].f ? "la" : "lo"} de vuelta!` : "",
-    old.length ? `🏚️ En el refugio: ${old.map(id => pj(itemById(id), "pj-sm")).join(" ")} ¡Te esperan!` : ""].filter(Boolean).map(t => `<p class="fm-hs">${t}</p>`).join("");
-  return `<section class="panel fm-home" id="fm-home" aria-label="Tus animales">
-    <h2>${one ? pj(one, "pj-sm") + " " : ""}${esc(title)}</h2>${sub ? `<p class="fm-hsub">${sub}</p>` : ""}
-    ${faces ? `<div class="fm-hcs">${faces}</div>` : ""}${shTxt}
-    <a class="btn lc fm-hgo" href="#/granja" style="--lc:#008198"${hung.length ? "" : " data-shel"}>${hung.length ? (one ? "🍽️ ¡A darle de comer!" : "🍽️ ¡A darles de comer!") : "🏚️ Ir al refugio"}</a></section>`;
-});
-/* «Ir al refugio» de la portada: al montar la granja se abre el refugio */
-let goShel = false;
-document.addEventListener("click", e => { if(e.target.closest && e.target.closest(".fm-hgo[data-shel]")) goShel = true; });
 
 /* ---------- montaje ---------- */
 function mount(host){
@@ -1645,14 +1620,12 @@ function mount(host){
   else {
     intro.push(() => s.cnew ? novelty() : 0);
     intro.push(() => departed() ? undefined : 0);
-    if(goShel) intro.push(() => { if(shelOpened || !Object.keys(s.shelter).length) return 0; openShelter(); });   /* vino desde «Ir al refugio» */
     if(!first && away >= HMS(MISS_H)) intro.push(() => missYou());
     if(fresh.length){
       const id = fresh[fresh.length - 1], it = itemById(id), k = kindOf(id);
       intro.push(() => { if(!els[id]) return 0; bubble(wordBub(pj(it), iw(it), it.n, k === "animal" ? "¡Nuevo! Tiene hambre 🍽️" : k === "plant" ? "¡Nuevo! Riégalo 💧" : "¡Nuevo! Tócalo ✨"), els[id], 4500); return 4600; });
     } else if(news > 0) intro.push(() => { bubble(msg(`📚 ¡Ganaste ${news} 💧 de agua extra por aprender!<br>Pulsa «Regar» para usarla.`), hero, 5000); return 5100; });
   }
-  goShel = false;
   later(nextIntro, 450);
   return api;
 }
@@ -1686,22 +1659,11 @@ farmMount.care = Object.freeze({
 farmMount.debug.tick = () => { if(cur && cur.alive()) cur.tick(); navBadge(); };
 
 /* ---------- estilos ---------- */
-/* fuera de la granja: tarjeta de la portada y etiqueta «En el refugio» de la tienda */
+/* fuera de la granja: etiqueta «En el refugio» de la tienda */
 function cssCare(){
   if(document.getElementById("css-farm-care")) return;
   const st = document.createElement("style"); st.id = "css-farm-care";
   st.textContent = `
-.fm-home{border:2px solid #FFCC00}
-.fm-home h2{margin:0 0 4px;font-size:1.25rem}
-.fm-hsub{margin:0 0 10px;color:var(--muted);font-weight:700;line-height:1.35}
-.fm-hcs{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px}
-.fm-hcf{display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--soft);border-radius:16px;padding:9px 10px 7px;min-width:78px}
-.fm-hce{font-size:2.4rem;line-height:1.05}
-.fm-hcf.sk .fm-hce{rotate:-10deg;scale:1.06 .84;filter:grayscale(.4)}
-.fm-hch{display:inline-flex;align-items:center;gap:1px;font-size:.78rem;line-height:1;padding:3px 6px;border-radius:99px;background:#0f2f57;white-space:nowrap}
-.fm-hcf small{font-weight:700;color:var(--muted);font-size:.82rem}
-.fm-hs{margin:0 0 10px;font-weight:700;line-height:1.4}
-.fm-hgo{display:flex;align-items:center;justify-content:center;min-height:52px;text-decoration:none;font-size:1.1rem;border-radius:16px;width:100%;text-align:center}
 .sc.shel{border-color:#FFCC00}
 .sc .own.shl{color:var(--gold-ink)}
 [data-theme=dark] .sc .own.shl{color:#FFCC00}
@@ -1763,7 +1725,7 @@ function css(){
 .fm-e .pj{display:block;width:1.4em;height:1.15em}
 @media (min-width:561px){.fm-e .pj{width:1.6em;height:1.3em}}
 .fm-qe .pj{display:block;width:1.35em;height:1.15em}
-.fm-hce .pj,.fm-pe2 .pj{display:block;margin:0 auto}
+.fm-pe2 .pj{display:block;margin:0 auto}
 .fm-dep .pj{width:1.2em;height:1.05em}
 .fm-sh{position:absolute;left:50%;bottom:-.04em;width:.9em;height:.2em;border-radius:50%;background:rgba(0,0,0,.2);transform:translateX(-50%);pointer-events:none}
 .fm-it.fly .fm-e{translate:0 -.45em;animation:fmHover 1.3s ease-in-out infinite}
