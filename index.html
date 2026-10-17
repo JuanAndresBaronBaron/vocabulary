@@ -1339,7 +1339,7 @@ async function progreso(el){
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v15", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v16", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
@@ -1686,8 +1686,14 @@ function wireNav(){
     if(window.vocabFarm && typeof vocabFarm.openShop === "function") vocabFarm.openShop(); else location.hash = "#/granja";
   });
   $("[data-open=ajustes]").addEventListener("click", e => { if(typeof window.openSettings === "function") window.openSettings(null, e.currentTarget); });
-  /* ✕ del modo foco: a la raíz de la pestaña (si ya es esa ruta, se vuelve a pintar: así se cierra el repaso) */
-  $("#fx-x").addEventListener("click", e => { e.preventDefault(); if(focusOn === "repaso") rv = null; navTo(e.currentTarget.getAttribute("href")); });
+  /* ✕ del modo foco: en una partida, la pausa de games.js («¿Paramos aquí?»); si no, a la raíz de la pestaña (si ya es
+     esa ruta, se vuelve a pintar: así se cierra el repaso) */
+  $("#fx-x").addEventListener("click", e => {
+    e.preventDefault();
+    if(focusOn === "juego" && window.vocabGames && typeof vocabGames.pause === "function" && vocabGames.pause(e.currentTarget)) return;
+    if(focusOn === "repaso") rv = null;
+    navTo(e.currentTarget.getAttribute("href"));
+  });
   /* el scroll de cada pestaña */
   addEventListener("scroll", () => {
     if(!curTab || focusOn) return;
@@ -1744,7 +1750,8 @@ function wireLangs(){
     else if(e.key === "Home" || e.key === "End"){ e.preventDefault(); items[e.key === "Home" ? 0 : items.length - 1].focus(); }
   });
   document.addEventListener("pointerdown", e => { if(!m.hidden && !m.contains(e.target) && !b.contains(e.target)) langMenu(false); }, true);
-  document.addEventListener("keydown", e => { if(e.key === "Escape" && !m.hidden){ langMenu(false); b.focus({preventScroll: true}); } });
+  /* (durante una partida, html[data-gm-play], las teclas son del juego: Esc es su pausa) */
+  document.addEventListener("keydown", e => { if(e.key === "Escape" && !m.hidden && !document.documentElement.hasAttribute("data-gm-play")){ langMenu(false); b.focus({preventScroll: true}); } });
 }
 
 /* ---------- Hoy ----------
@@ -2992,7 +2999,8 @@ async function granja(){
     <div class="shop">${cards}</div>`;
   if(typeof farmMount === "function") farmMount($("#farm-host"));
   $("#me-name").onchange = e => { const g = game(); g.name = e.target.value.trim(); gameSet(g); };
-  document.querySelectorAll("[data-tab]").forEach(b => b.onclick = () => { shopTab = b.dataset.tab; granja(); });
+  /* solo las pestañas de la tienda: <html> también lleva data-tab (la pestaña de la barra) */
+  $("#app").querySelectorAll(".shop-tabs [data-tab]").forEach(b => b.onclick = () => { shopTab = b.dataset.tab; granja(); });
   document.querySelectorAll("[data-it]").forEach(b => b.onclick = () => {
     const it = itemById(b.dataset.it), tip = $("#farm-tip");
     b.classList.remove("hop"); void b.offsetWidth; b.classList.add("hop");

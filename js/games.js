@@ -56,11 +56,13 @@ function stop(){
   if(r.keys && document.onkeydown === r.keys) document.onkeydown = null;
   document.querySelectorAll(".gm-ghost").forEach(x => x.remove());
   playMark(null);
+  pauseClose();
 }
-function begin(root){ stop(); RUN = {alive: true, timers: [], raf: 0, clean: [], root, keys: null}; playMark(hparts()[1] || "juego"); return RUN; }
+function begin(root){ stop(); RUN = {alive: true, timers: [], raf: 0, clean: [], root, keys: null, paused: false, held: []}; playMark(hparts()[1] || "juego"); return RUN; }
 const live = run => !!run && run.alive && RUN === run && run.root.isConnected;
-function later(run, fn, ms){ const id = setTimeout(() => { if(live(run)) fn(); }, ms); run.timers.push(id); return id; }
-function keys(run, fn){ run.keys = e => { if(!live(run)){ document.onkeydown = null; return; } fn(e); }; document.onkeydown = run.keys; }
+/* con la partida en pausa, lo que tocaba hacer espera a que siga */
+function later(run, fn, ms){ const id = setTimeout(() => { if(!live(run)) return; if(run.paused) run.held.push(fn); else fn(); }, ms); run.timers.push(id); return id; }
+function keys(run, fn){ run.keys = e => { if(!live(run)){ document.onkeydown = null; return; } if(run.paused) return; fn(e); }; document.onkeydown = run.keys; }
 const hparts = () => location.hash.replace(/^#\/?/, "").split("/");
 const here = (my, g) => { const h = hparts(); return my === NAV && h[0] === "juegos" && (g === undefined || (h[1] || "") === g); };
 /* lectura segura del almacenamiento (por si alguna clave está estropeada) */
@@ -70,6 +72,75 @@ const playMark = g => { try{ if(g) document.documentElement.dataset.gmPlay = g; 
 
 addEventListener("hashchange", () => { if(!/^#\/?juegos/.test(location.hash)){ NAV++; stop(); } });
 bus.on("route", d => { if(!String((d && d.h) || "").startsWith("juegos")){ NAV++; stop(); } });
+
+/* ---------- pausa: Esc o la ✕ del modo foco mientras se juega (html[data-gm-play]) ----------
+   Hoja «¿Paramos aquí?» con «Seguir» (destacado) y «Salir». Mientras está abierta la partida se para: la lluvia no
+   cae, lo que tocaba hacer espera (later) y las teclas del juego no cuentan. Cerrarla de cualquier forma (Seguir, Esc,
+   tocar fuera o bajarla) sigue la partida; «Salir» vuelve a los juegos. window.vocabGames.pause(desde) → true si la abrió. */
+let PZ = null;   /* {d, run, exit} */
+function pauseSheet(){
+  if(PZ && PZ.d.isConnected) return PZ;
+  const d = document.createElement("dialog");
+  d.id = "gm-pause"; d.className = "gm-pz-d"; d.setAttribute("aria-labelledby", "gm-pz-t");
+  d.dataset.noRenew = ""; d.dataset.noHint = "";
+  d.innerHTML = `<div class="gm-pz">
+    <span class="gm-pz-ic" aria-hidden="true">${typeof ico === "function" ? ico("pause", "bold", 28) : "Ⅱ"}</span>
+    <h2 class="gm-pz-t" id="gm-pz-t">¿Paramos aquí?</h2>
+    <div class="gm-pz-b">
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="gm-pz-go" autofocus>${typeof ico === "function" ? ico("play", "fill", 20) : ""}Seguir</button>
+      <button type="button" class="glass-btn glass-btn--lg glass-btn--block" id="gm-pz-out">Salir</button></div></div>`;
+  document.body.appendChild(d);
+  PZ = {d, run: null, exit: false};
+  d.addEventListener("click", e => {
+    if(e.target.closest("#gm-pz-go")) pauseClose(true);
+    else if(e.target.closest("#gm-pz-out")){ PZ.exit = true; location.hash = "#/juegos"; }
+  });
+  d.addEventListener("close", () => {
+    const run = PZ.run; PZ.run = null;
+    if(d.open || !run) return;
+    if(PZ.exit || !live(run)){ PZ.exit = false; return; }
+    resume(run);
+  });
+  return PZ;
+}
+function pause(from){
+  const run = RUN;
+  if(!live(run) || run.paused || !document.documentElement.hasAttribute("data-gm-play")) return false;
+  css();
+  const p = pauseSheet(), d = p.d;
+  if(d.open) return true;
+  run.paused = true; p.run = run; p.exit = false;
+  try{ if("speechSynthesis" in window) speechSynthesis.cancel(); }catch(e){}
+  try{
+    if(window.M && typeof M.openSheet === "function") M.openSheet(d, {from: from && from.nodeType === 1 ? from : null});
+    else d.showModal();
+  }catch(e){ try{ d.showModal(); }catch(e2){ d.setAttribute("open", ""); } }
+  d.classList.add("lite");   /* en los juegos, el vidrio sin desenfoque */
+  return true;
+}
+function resume(run){
+  if(!run.paused) return;
+  run.paused = false;
+  const held = run.held.splice(0);
+  held.forEach(fn => { if(live(run) && !run.paused) fn(); else run.held.push(fn); });
+}
+/* cerrar la hoja: animada (Seguir) o al momento (al salir del juego) */
+function pauseClose(animated){
+  if(!PZ || !PZ.d.open) return;
+  if(!animated) PZ.exit = true;
+  if(animated && window.M && typeof M.closeSheet === "function" && PZ.d.classList.contains("m-sheet")) M.closeSheet(PZ.d);
+  else PZ.d.close();
+}
+/* Esc durante una partida: la pausa (con una hoja ya abierta, Esc es de esa hoja) */
+document.addEventListener("keydown", e => {
+  if(e.key !== "Escape" || e.defaultPrevented || !live(RUN) || !document.documentElement.hasAttribute("data-gm-play")) return;
+  if(document.querySelector("dialog[open]")) return;
+  e.preventDefault(); e.stopPropagation();
+  pause(null);
+}, true);
+window.vocabGames = window.vocabGames || {};
+window.vocabGames.pause = pause;
+Object.defineProperty(window.vocabGames, "paused", {configurable: true, enumerable: true, get: () => !!(RUN && RUN.paused)});
 
 /* ---------- palabras ---------- */
 const ARTS = {
@@ -396,6 +467,13 @@ const CSS = `
 .gm-short .gm-tiles{width:100%}
 .gm-short .gm-lt-acts{margin-top:10px}
 .gm-short .gm-lt-acts .btn{min-height:46px}
+/* hoja de pausa (M.openSheet): sólida y sin desenfoque, como todo el vidrio de los juegos */
+dialog#gm-pause{max-width:420px}
+dialog#gm-pause.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}
+.gm-pz{display:flex;flex-direction:column;align-items:center;text-align:center;padding:4px 4px 8px}
+.gm-pz-ic{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:4px 0 12px;color:var(--brand-tint,#1E6EF4);background:var(--fill,rgba(120,120,128,.16))}
+.gm-pz-t{margin:0 0 20px;font:700 var(--fs-t2,1.5rem)/1.2 var(--f-round,system-ui);color:var(--label,#000)}
+.gm-pz-b{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px}
 @media (prefers-reduced-motion: reduce){
   .gm *,.gm-intro *{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0s!important}
   .gm-mc-in{transition:none}
@@ -462,7 +540,7 @@ function intro(run, g, go){
   };
   b.onclick = goNow;
   keys(run, e => {
-    if(e.key === "Escape"){ e.preventDefault(); location.hash = "#/juegos"; return; }
+    if(e.key === "Escape") return;   /* Esc es la pausa (el oyente de arriba), nunca salir de golpe */
     if((e.key === "Enter" || e.key === " ") && !(e.target.closest && e.target.closest("a"))){ e.preventDefault(); goNow(); }
   });
   try{ b.focus({preventScroll: true}); }catch(e){}
@@ -756,7 +834,7 @@ function lluvia(app, P, withIntro){
   function frame(now){
     if(!live(run) || ended){ return; }
     const dt = Math.min(.05, Math.max(0, (now - last) / 1000)); last = now;
-    if(running && !document.hidden){
+    if(running && !document.hidden && !run.paused){
       t += dt;
       tb.style.transform = `scaleX(${Math.max(0, 1 - t / DUR)})`;
       if(DUR - t < 10) $("#gm-tbar") && $("#gm-tbar").classList.add("low");

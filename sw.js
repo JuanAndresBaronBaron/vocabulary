@@ -9,7 +9,7 @@
    están, de la red (y se guardan). Las cachés viejas (vocab-v1 de «Descargar todo», vocab-vNN del sw anterior) pasan
    sus imágenes, audios y datos a vocab-media entrada a entrada y después se borran; si no cabe, se borran igual (todo
    se puede volver a bajar). */
-const VERSION = 15;
+const VERSION = 16;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
 const SHELL = [

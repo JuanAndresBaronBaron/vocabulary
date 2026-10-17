@@ -30,6 +30,18 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   `M.rm()` en todos los módulos, la lluvia de palabras que reacciona al soltar el dedo (sonido y `G.haptic` solo al
   acertar), el vidrio ligero que cede a los modos de accesibilidad, el clic fantasma (solo el del navegador), los iconos
   del sprite, fallar en gris y sin sonido, y títulos y cápsulas que caben con el texto más grande.
+- `test_f2a.py` (armazón de navegación): barra de 5 pestañas, insignias, memoria de cada pestaña, segmentos y título
+  grande, barra de arriba (idioma, monedas, Ajustes), modo foco, monedas que vuelan y suenan una vez, movimiento
+  tranquilo y lo que se quita (cabecera, pie, estrella y zorro flotantes).
+- `test_f2_ajustes.py` (F2b): la Puerta de mayores, los enlaces externos, la hoja de Ajustes y sus páginas,
+  Accesibilidad en `vocab:ui` (fuera de la partida), el bloque de Google en Para mayores y la pastilla «Guardar».
+- `test_f2_hoy.py` (F2c): Hoy sin scroll, la tarjeta de `nextAction()`, «Repasar N», Misiones y Palabra del día,
+  Privacidad y el accesorio «Seguir».
+- `test_f2_nav.py` (F2 entero): `aria-selected` en cada ruta, tocar la pestaña activa, la memoria de cada pestaña,
+  los segmentos, las insignias con partidas sembradas a propósito (pendientes, un animal con hambre, pegatinas nuevas),
+  la barra arriba a 1280 px y abajo a 390 px, el modo foco, el menú de idioma, la tienda desde las monedas, Ajustes,
+  lo que se quitó (fab.js, zorro flotante, `<footer>`), la pausa de las partidas (Esc y la ✕: «¿Paramos aquí?» con
+  Seguir · Salir, y el juego parado), `sw.js` y una vuelta por todo que deja la partida igual que la de la base.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

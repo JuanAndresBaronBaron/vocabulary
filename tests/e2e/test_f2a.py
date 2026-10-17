@@ -428,6 +428,9 @@ def test_focus_mode():
                 probs.append(f"{h}: contador de monedas {st['coin']} (monedas {st['coins']}, destino {st['target']})")
             n0 = page.evaluate(_ROUTE_N)
             page.locator("#fx-x").click()
+            if f == "juego":                 # en una partida, la ✕ es la pausa: «Salir» vuelve a los juegos
+                page.wait_for_selector("dialog#gm-pause[open]", timeout=3000)
+                page.locator("#gm-pz-out").click()
             _wait_route(page, n0)
             st = page.evaluate(look)
             if "#/" + C.current_hash(page) != back or st["focus"] or not st["tab"]:
@@ -573,16 +576,18 @@ def test_calm_motion_matches_reduced_motion():
 
 
 def test_sw_version_and_no_fab():
-    """sw.js va por la versión 15, sin js/fab.js, y OFF_SHELL de index.html coincide."""
+    """sw.js va por la versión 15 o más (F1 era la 14), sin js/fab.js, y OFF_SHELL de index.html coincide."""
     sw = (C.REPO / "sw.js").read_text(encoding="utf-8")
     html = (C.REPO / "index.html").read_text(encoding="utf-8")
     probs = []
-    if not re.search(r"const VERSION = 15;", sw):
-        probs.append("sw.js no está en la versión 15")
+    m = re.search(r"const VERSION = (\d+);", sw)
+    v = int(m.group(1)) if m else 0
+    if v < 15:
+        probs.append(f"sw.js está en la versión {v} (F2 sube a 15 o más)")
     if "fab.js" in sw or "fab.js" in html:
         probs.append("sigue habiendo referencias a js/fab.js")
     if (C.REPO / "js" / "fab.js").exists():
         probs.append("js/fab.js sigue en el repo")
-    if 'OFF_SHELL = "vocab-shell-v15"' not in html:
-        probs.append("OFF_SHELL no es vocab-shell-v15")
+    if f'OFF_SHELL = "vocab-shell-v{v}"' not in html:
+        probs.append(f"OFF_SHELL no es vocab-shell-v{v}")
     assert not probs, "\n".join(probs)
