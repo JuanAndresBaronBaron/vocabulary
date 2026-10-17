@@ -19,6 +19,10 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
 const rnd = n => { try{ const a = new Uint32Array(1); crypto.getRandomValues(a); return a[0] % n; }catch(e){ return Math.floor(Math.random() * n); } };
 const shuffle = a => { for(let i = a.length - 1; i > 0; i--){ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+/* el candado: ico() de index.html o, en una página sin el sprite (privacy.html), el mismo dibujo de Phosphor en línea */
+const LOCK = '<path d="M208,76H180V56A52,52,0,0,0,76,56V76H48A20,20,0,0,0,28,96V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V96A20,20,0,0,0,208,76ZM100,56a28,28,0,0,1,56,0V76H100ZM204,204H52V100H204Zm-60-52a16,16,0,1,1-16-16A16,16,0,0,1,144,152Z"/>';
+const lock = z => typeof ico === "function" ? ico("lock", "bold", z)
+  : `<svg class="ico" width="${z}" height="${z}" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false">${LOCK}</svg>`;
 
 function passed(){
   try{ const t = +sessionStorage.getItem(KEY); return t > 0 && Date.now() < t && t - Date.now() <= MS; }catch(e){ return false; }
@@ -77,7 +81,7 @@ function pick(b){
   g.fails++;
   if(g.fails >= TRIES){
     g.ok = false; g.res(false); close(g);
-    setTimeout(() => { try{ if(window.M) M.toast("Esto es para mayores. ¡Pide ayuda a uno!", {icon: ico("lock", "bold", 22)}); }catch(e){} }, 120);
+    setTimeout(() => { try{ if(window.M) M.toast("Esto es para mayores. ¡Pide ayuda a uno!", {icon: lock(22)}); }catch(e){} }, 120);
     return;
   }
   g.q = question(g.q);
@@ -95,7 +99,7 @@ function build(){
   d.setAttribute("aria-labelledby", "gt-t"); d.setAttribute("aria-describedby", "gt-why gt-q");
   d.dataset.noRenew = ""; d.dataset.noHint = "";
   d.innerHTML = `<div class="gt-in">
-    <div class="gt-ic" aria-hidden="true">${ico("lock", "bold", 28)}</div>
+    <div class="gt-ic" aria-hidden="true">${lock(28)}</div>
     <h2 class="gt-t" id="gt-t">Para mayores</h2>
     <p class="gt-why" id="gt-why"></p>
     <p class="gt-q" id="gt-q"></p>

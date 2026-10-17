@@ -14,10 +14,16 @@
   h2{color:#1f5fbf;font-size:1.15rem;margin-top:1.6em}
   @media (prefers-color-scheme:dark){h2{color:#7fb2ff}}
   hr{border:0;border-top:1px solid #8893a3;margin:2em 0}
+  header .back{display:inline-flex;align-items:center;min-height:44px;margin:-10px 0 4px -4px;padding:0 4px;color:#fff;font-weight:600;text-decoration:none}
+  header .back:focus-visible{outline:2px solid #fff;outline-offset:2px;border-radius:8px}
+  /* la Puerta de mayores (js/gate.js) para los enlaces a otras webs: los colores de la app */
+  :root{--card:#fff;--label:#000;--label2:rgba(60,60,67,.76);--fill:rgba(120,120,128,.16);--sep:rgba(60,60,67,.29);--brand-fill:#1E6EF4;--brand-ink:#185CCF}
+  @media (prefers-color-scheme:dark){:root{--card:#1C1C1E;--label:#fff;--label2:rgba(235,235,245,.7);--fill:rgba(120,120,128,.32);--sep:rgba(84,84,88,.65);--brand-ink:#409CFF}}
+  #gate .glass-btn{min-height:44px;padding:0 22px;border:0;border-radius:999px;background:var(--fill);color:var(--label);font:600 1.0625rem/1 system-ui,-apple-system,sans-serif;cursor:pointer}
 </style>
 </head>
 <body>
-<header><h1>Vocabulary – Privacy Policy</h1></header>
+<header><a class="back" href="./" aria-label="Volver a Vocabulary">‹ Vocabulary</a><h1>Vocabulary – Privacy Policy</h1></header>
 <main>
 <p><b>Last updated:</b> 17 October 2026</p>
 <p>Vocabulary (<a href="./">juanandresbaronbaron.github.io/vocabulary</a>) is a free, static website for learning British English, French and Danish vocabulary. It has no server and no user accounts of its own.</p>
@@ -56,5 +62,7 @@
 <p><b>Atajos.</b> Los atajos de la pantalla Hoy se calculan con un registro de uso (qué juegos y temas se usan más) que solo vive en este aparato, sin horas exactas, y no se sube a ningún sitio. Con la partida solo se guardan los atajos que fijes u ocultes.</p>
 <p><b>Para mayores.</b> Entrar con Google, los ajustes para mayores y los enlaces a otras webs piden antes una pequeña cuenta para mayores.</p>
 </main>
+<script src="js/motion.js"></script>
+<script src="js/gate.js"></script>
 </body>
 </html>
