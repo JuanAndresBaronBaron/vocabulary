@@ -372,6 +372,20 @@ def test_badges_on_segments_and_shelter():
           return a ? {b: a.dataset.badge, label: a.getAttribute('aria-label') || '', after: getComputedStyle(a, '::after').content} : null; }""")
         if not s or s["b"] not in ("9+", "12") or "repasar" not in s["label"].lower() or s["after"] in ("none", "normal"):
             probs.append(f"segmento Repasar: {s}")
+        # cada nombre (con su aviso, que en el móvil es un punto) cabe en su segmento y la fila no se sale, también con
+        # texto grande
+        for text in ("", "large"):
+            if text:
+                page.evaluate("vocabUI.set('text', 'large')")
+                page.wait_for_timeout(300)
+            fit = page.evaluate("""() => { const seg = document.querySelector('#tabhead .seg');
+              return {row: seg.scrollWidth - seg.clientWidth, out: [...seg.querySelectorAll('.seg-i')].filter(a => {
+                const b = a.getBoundingClientRect(), r = document.createRange(); r.selectNodeContents(a); const t = r.getBoundingClientRect();
+                const af = getComputedStyle(a, '::after'), aw = af.content !== 'none' ? parseFloat(af.width) + 4 : 0;
+                return t.left < b.left - .5 || t.right + aw > b.right + .5; }).map(a => a.dataset.t)}; }""")
+            if fit["row"] > 0 or fit["out"]:
+                probs.append(f"segmentos de Aprender ({text or 'texto normal'}): no caben {fit}")
+        page.evaluate("vocabUI.set('text', null)")
         page.evaluate("tabBadge('jugar', true, '2 pegatinas nuevas', '#/album')")
         C.goto(page, "#/juegos")
         s = page.evaluate("""() => { const a = document.querySelector('#tabhead .seg-i[href="#/album"]');
