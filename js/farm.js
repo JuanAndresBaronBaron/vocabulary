@@ -334,7 +334,7 @@ HOME_SLOTS.push(async () => {
   return `<section class="panel fm-home" id="fm-home" aria-label="Tus animales">
     <h2>${one ? pj(one, "pj-sm") + " " : ""}${esc(title)}</h2>${sub ? `<p class="fm-hsub">${sub}</p>` : ""}
     ${faces ? `<div class="fm-hcs">${faces}</div>` : ""}${shTxt}
-    <a class="btn lc fm-hgo" href="#/granja" style="--lc:#0f7a72"${hung.length ? "" : " data-shel"}>${hung.length ? (one ? "🍽️ ¡A darle de comer!" : "🍽️ ¡A darles de comer!") : "🏚️ Ir al refugio"}</a></section>`;
+    <a class="btn lc fm-hgo" href="#/granja" style="--lc:#008198"${hung.length ? "" : " data-shel"}>${hung.length ? (one ? "🍽️ ¡A darle de comer!" : "🍽️ ¡A darles de comer!") : "🏚️ Ir al refugio"}</a></section>`;
 });
 /* «Ir al refugio» de la portada: al montar la granja se abre el refugio */
 let goShel = false;
@@ -437,8 +437,8 @@ function mount(host){
       <div class="fm-hint" hidden></div>
     </div>
     <div class="fm-bar">
-      <button type="button" class="btn lc fm-tb" data-fm="water" style="--lc:#1f6fd1"><span class="ic">💧</span><span class="lb">Regar</span><b class="fm-badge" hidden></b></button>
-      <button type="button" class="btn lc fm-tb" data-fm="find" style="--lc:#2e9e4f"><span class="ic">🔍</span><span class="lb">¿Dónde está?</span></button>
+      <button type="button" class="btn lc fm-tb" data-fm="water" style="--lc:#1E6EF4"><span class="ic">💧</span><span class="lb">Regar</span><b class="fm-badge" hidden></b></button>
+      <button type="button" class="btn lc fm-tb" data-fm="find" style="--lc:#008932"><span class="ic">🔍</span><span class="lb">¿Dónde está?</span></button>
       <button type="button" class="btn lc fm-tb fm-help" data-fm="help" style="--lc:#46566c" aria-label="Ayuda" title="Ayuda">?</button>
     </div>
     <div class="fm-pan" role="group" aria-label="Despensa"></div>
@@ -638,7 +638,7 @@ function mount(host){
       <li><span>🔍</span>«¿Dónde está?»: escucha la palabra y toca esa cosa.</li>
       <li><span>✋</span>Arrastra las cosas con el dedo. Toca el suelo y ${he} irá allí.</li>
       <li><span>📚</span>Las lecciones te dan 🪙 y agua extra 💧.</li></ul>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1f6fd1">¡Entendido!</button>`);
+      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">¡Entendido!</button>`);
     d.querySelector(".fm-ok").onclick = () => d.close();
   }
   const giftTxt = g => Object.keys(g || {}).filter(k => FOOD[k]).map(k => `<span class="fm-nw">${FOOD[k].e}×${g[k]}</span>`).join(" ");
@@ -652,7 +652,7 @@ function mount(host){
         <li><span>🧺</span>Cuando se acabe la comida, compra más en la «Despensa» con tus 🪙.</li>
         <li><span>💧</span>${gift ? "Pulsa «Regar» y toca la flor para que crezca." : "Pulsa «Regar» y toca una planta para que crezca."}</li>
         <li><span>🪙</span>Recoge huevos, leche y cosechas: ¡ganas monedas!</li></ul>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1f6fd1">¡A jugar!</button>`);
+      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">¡A jugar!</button>`);
     d.querySelector(".fm-ok").onclick = () => d.close();
     play(gift ? "gift" : "pop");
     if(gift){ try{ confetti({n: 70}); }catch(e){} }
@@ -668,7 +668,7 @@ function mount(host){
         <li><span class="fm-hl3">❤️❤️❤️</span>Los corazones dicen si está contento. ¡Dale de comer cada día!</li>
         <li><span>🧺</span>Compra más comida en la «Despensa» con tus 🪙.</li>
         <li><span>🏚️</span>Si pasa 5 días sin comer, se va al «Refugio». ¡Pero puedes rescatarlo!</li></ul>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1f6fd1">¡A dar de comer!</button>`);
+      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">¡A dar de comer!</button>`);
     d.querySelector(".fm-ok").onclick = () => d.close();
     play("gift");
     d.addEventListener("close", () => { if(!isOn()) return; const id = Object.keys(els).find(i => ANIM[i] && hungry(i)); if(id){ freeze(id); cls(els[id], "hl", 2500); resume(id, 2700); } });
@@ -899,7 +899,7 @@ function mount(host){
         b.classList.add("bad"); play("bad"); speak(right);
         const okB = d.querySelector(`.fm-opt[data-fo="${id}"]`); if(okB){ okB.disabled = false; okB.classList.add("ok"); okB.onclick = null; }
         m.className = "fm-qm info"; m.innerHTML = `Me llamo <b>«${esc(right)}»</b> ${pj(it, "pj-sm")}<br>${res.keys.length ? "🎁 ¡Te dejo un regalo!" : res.weak ? "Estaba muy débil y hoy no hay regalo. ¡Dame de comer cada día! 💪" : "🥚 ¡Recoge mis regalos del suelo!"}`;
-        x.textContent = "Seguir ➜"; x.classList.add("lc"); x.style.setProperty("--lc", "#1f6fd1");
+        x.textContent = "Seguir ➜"; x.classList.add("lc"); x.style.setProperty("--lc", "#1E6EF4");
       }
     });
   }
@@ -1052,7 +1052,7 @@ function mount(host){
   }
   function fireworks(el){
     const t = topOf(el); play("fanfare");
-    for(let i = 0; i < 5; i++) later(() => { fx("", t.x + rnd(-14, 14), Math.max(6, t.y - rnd(4, 20)), "fm-fw", 1150, {"--c": pick(["#f2c94c", "#5aa2ff", "#45cf8b"])}); play("pop"); }, i * 320);
+    for(let i = 0; i < 5; i++) later(() => { fx("", t.x + rnd(-14, 14), Math.max(6, t.y - rnd(4, 20)), "fm-fw", 1150, {"--c": pick(["#FFCC00", "#5aa2ff", "#45cf8b"])}); play("pop"); }, i * 320);
   }
   function campfire(id){
     if(layer.querySelector(".fm-fire")) return;
@@ -1193,7 +1193,7 @@ function mount(host){
     const d = dlg(`<div class="fm-wel">🧺</div><h2>La despensa</h2>
       <p class="fm-sub">Compra comida para tus animales.<br>Tienes <b class="fm-pc">🪙 ${coinsNow()}</b></p>
       <div class="fm-pl"></div>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1f6fd1">¡Listo!</button>`);
+      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">¡Listo!</button>`);
     d.classList.add("fm-pand");
     const list = d.querySelector(".fm-pl");
     /* los botones que no puede pagar salen en gris con «Te faltan N» (como en la tienda) */
@@ -1233,7 +1233,7 @@ function mount(host){
     const d = dlg(`<div class="fm-wel">🏚️</div><h2>El refugio</h2>
       <p class="fm-sub">Aquí cuidan a los animales que pasaron mucha hambre. ¡Puedes traerlos de vuelta a tu granja!</p>
       <div class="fm-pl"></div><p class="fm-qm" aria-live="polite"></p>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1f6fd1">Cerrar</button>`);
+      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">Cerrar</button>`);
     d.classList.add("fm-shd");
     const list = d.querySelector(".fm-pl"), m = d.querySelector(".fm-qm"), back = [];
     function paint(){
@@ -1304,7 +1304,7 @@ function mount(host){
       <div class="fm-dep" aria-hidden="true">${ids.map(id => pj(itemById(id))).join(" ")}</div>
       <p class="fm-sub">${pl ? `${cap(joinY(ids.map(elA)))} tenían` : "Tenía"} mucha hambre 😢. En el refugio ${lo} cuidan muy bien. ¡No te preocupes!</p>
       <p class="fm-sub">Puedes traer${lo} de vuelta: toca el cartel <b>🏚️ Refugio</b>.</p>
-      <div class="fm-dbtns"><button type="button" class="btn lc fm-go" style="--lc:#0f7a72">🏚️ Ver el refugio</button><button type="button" class="btn fm-x">Vale</button></div>`);
+      <div class="fm-dbtns"><button type="button" class="btn lc fm-go" style="--lc:#008198">🏚️ Ver el refugio</button><button type="button" class="btn fm-x">Vale</button></div>`);
     d.querySelector(".fm-go").onclick = () => { d.close(); later(openShelter, 200); };
     d.querySelector(".fm-x").onclick = () => d.close();
     play("whoosh");
@@ -1317,7 +1317,7 @@ function mount(host){
     const d = dlg(`<div class="fm-wel">🥰</div><h2>¡Te echaban de menos!</h2>
       <div class="fm-dep" aria-hidden="true">${an.map(id => pj(itemById(id))).join(" ")}</div>
       <p class="fm-sub">Hace ${days} días que no venías.${n ? "<br>Tienen hambre: ¡dales de comer! 🍽️" : "<br>¡Qué bien que has vuelto!"}</p>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1f6fd1">¡Hola, animales! 👋</button>`);
+      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">¡Hola, animales! 👋</button>`);
     d.querySelector(".fm-ok").onclick = () => d.close();
     play("pop");
     d.addEventListener("close", () => { if(!isOn()) return; an.forEach((id, i) => later(() => { const el = els[id]; if(el && hearts(id) > 0){ hop(el); heart(el); } }, 150 + i * 140)); });
@@ -1335,7 +1335,7 @@ function mount(host){
     const ks = neededFoods();
     if(!ks.length){ panEl.hidden = true; panEl._h = ""; return; }
     panEl.hidden = false;
-    const html = `<button type="button" class="btn lc fm-tb fm-pbtn" data-fm="pan" style="--lc:#0f7a72"><span class="ic">🧺</span><span class="lb">Despensa</span></button>
+    const html = `<button type="button" class="btn lc fm-tb fm-pbtn" data-fm="pan" style="--lc:#008198"><span class="ic">🧺</span><span class="lb">Despensa</span></button>
       <span class="fm-fcs">${ks.map(k => { const n = s.pan[k] || 0, F = FOOD[k];
         return `<button type="button" class="fm-fc${n ? "" : " zero"}${foodMode === k ? " on" : ""}" data-pfood="${k}" aria-label="${esc(F.n)}: ${n === 1 ? "1 ración" : n + " raciones"}${n ? "" : ". Toca para comprar"}" title="${esc(F.n)}"><span aria-hidden="true">${F.e}</span><b>${n}</b></button>`; }).join("")}</span>`;
     if(panEl._h !== html){ panEl._h = html; panEl.innerHTML = html; }
@@ -1656,7 +1656,7 @@ function cssCare(){
   if(document.getElementById("css-farm-care")) return;
   const st = document.createElement("style"); st.id = "css-farm-care";
   st.textContent = `
-.fm-home{border:2px solid #e0a82e}
+.fm-home{border:2px solid #FFCC00}
 .fm-home h2{margin:0 0 4px;font-size:1.25rem}
 .fm-hsub{margin:0 0 10px;color:var(--muted);font-weight:700;line-height:1.35}
 .fm-hcs{display:flex;flex-wrap:wrap;gap:10px;margin:0 0 12px}
@@ -1667,9 +1667,9 @@ function cssCare(){
 .fm-hcf small{font-weight:700;color:var(--muted);font-size:.82rem}
 .fm-hs{margin:0 0 10px;font-weight:700;line-height:1.4}
 .fm-hgo{display:flex;align-items:center;justify-content:center;min-height:52px;text-decoration:none;font-size:1.1rem;border-radius:16px;width:100%;text-align:center}
-.sc.shel{border-color:#d9a21b}
-.sc .own.shl{color:#8a5a00}
-[data-theme=dark] .sc .own.shl{color:#f2c94c}
+.sc.shel{border-color:#FFCC00}
+.sc .own.shl{color:var(--gold-ink)}
+[data-theme=dark] .sc .own.shl{color:#FFCC00}
 .hbtn .fm-nb[hidden]{display:none}
 .sc [data-shelter]{min-height:44px;padding:8px 14px}`;
   document.head.appendChild(st);
@@ -1683,8 +1683,8 @@ function css(){
 .fm{position:relative;margin:4px 0 6px}
 .fm-stage{--hz:50%;position:relative;height:340px;border-radius:22px;overflow:hidden;box-shadow:var(--shadow);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;isolation:isolate;cursor:pointer;touch-action:manipulation;
   --sky1:#2f86d9;--sky2:#7cc3f2;--sky3:#d2efff;--h1:#5aa84a;--h2:#7db86e;--g1:#66bd4c;--g2:#3c9431;--g3:#2f7d27;--path:#d9b67c;--path2:#c39a5c;--fence:#8a5a2b;--cloud:#fff;--cloudo:.95}
-.fm-stage[data-ph=dawn]{--sky1:#1d4a80;--sky2:#6b9cc8;--sky3:#f2c46c;--h1:#4b8e44;--h2:#6a9c68;--g1:#5aab48;--g2:#37862f;--g3:#2b6f25;--cloud:#fff1d6}
-.fm-stage[data-ph=dusk]{--sky1:#0f2a52;--sky2:#3a6390;--sky3:#e8963b;--h1:#3c6f3c;--h2:#4f7660;--g1:#4d9640;--g2:#2f7429;--g3:#255f21;--path:#b8925c;--path2:#9c7a48;--fence:#6e4823;--cloud:#f0cf9c}
+.fm-stage[data-ph=dawn]{--sky1:#1d4a80;--sky2:#6b9cc8;--sky3:#FFE08A;--h1:#4b8e44;--h2:#6a9c68;--g1:#5aab48;--g2:#37862f;--g3:#2b6f25;--cloud:#fff1d6}
+.fm-stage[data-ph=dusk]{--sky1:#0f2a52;--sky2:#3a6390;--sky3:#FFD866;--h1:#3c6f3c;--h2:#4f7660;--g1:#4d9640;--g2:#2f7429;--g3:#255f21;--path:#b8925c;--path2:#9c7a48;--fence:#6e4823;--cloud:#f0cf9c}
 .fm-stage[data-ph=night]{--sky1:#040c1c;--sky2:#0a2040;--sky3:#173a5f;--h1:#16402a;--h2:#1b3a37;--g1:#1f4f2a;--g2:#163c1f;--g3:#102f17;--path:#5e5038;--path2:#4b3f2b;--fence:#3f2c1b;--cloud:#5d7192;--cloudo:.6}
 [data-theme=dark] .fm-stage{box-shadow:0 0 0 1px var(--line),var(--shadow)}
 .fm-sky{position:absolute;inset:0;background:linear-gradient(var(--sky1) 0%,var(--sky2) calc(var(--hz) * .56),var(--sky3) var(--hz))}
@@ -1693,9 +1693,9 @@ function css(){
 .fm-stars i{position:absolute;border-radius:50%;background:#fff;box-shadow:0 0 6px 1px rgba(255,255,255,.8);animation:fmTw 2.6s ease-in-out infinite}
 .fm-sun,.fm-moon{position:absolute;display:none;border:0;padding:0;border-radius:50%;transform:translate(-50%,-50%);z-index:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .fm-stage:not([data-ph=night]) .fm-sun,.fm-stage[data-ph=night] .fm-moon{display:block}
-.fm-sun{width:56px;height:56px;background:radial-gradient(circle at 40% 38%,#fffbe0 0,#ffe066 45%,#f5b800 100%);box-shadow:0 0 0 9px rgba(255,214,80,.22),0 0 46px 16px rgba(255,200,60,.45)}
+.fm-sun{width:56px;height:56px;background:radial-gradient(circle at 40% 38%,#fffbe0 0,#ffe066 45%,#f5b800 100%);box-shadow:0 0 0 9px rgba(255,214,80,.22),0 0 46px 16px rgba(255,204,0,.45)}
 .fm-sun::before{content:"";position:absolute;inset:-20px;border-radius:50%;background:repeating-conic-gradient(rgba(255,215,90,.55) 0 7deg,transparent 7deg 22deg);-webkit-mask:radial-gradient(circle,transparent 48%,#000 50%,transparent 71%);mask:radial-gradient(circle,transparent 48%,#000 50%,transparent 71%);animation:fmSpin 40s linear infinite;z-index:-1}
-.fm-stage[data-ph=dawn] .fm-sun,.fm-stage[data-ph=dusk] .fm-sun{background:radial-gradient(circle at 40% 38%,#fff2c8 0,#ffc24d 45%,#ee8a1c 100%);box-shadow:0 0 0 9px rgba(255,170,60,.22),0 0 50px 20px rgba(255,160,50,.45)}
+.fm-stage[data-ph=dawn] .fm-sun,.fm-stage[data-ph=dusk] .fm-sun{background:radial-gradient(circle at 40% 38%,#fff2c8 0,#FFD84D 45%,#F5B800 100%);box-shadow:0 0 0 9px rgba(255,204,0,.22),0 0 50px 20px rgba(255,196,0,.45)}
 .fm-moon{width:44px;height:44px;background:radial-gradient(circle at 62% 38%,rgba(0,0,0,.07) 0 5px,transparent 6px),radial-gradient(circle at 36% 64%,rgba(0,0,0,.06) 0 4px,transparent 5px),radial-gradient(circle at 35% 35%,#fffdf2,#ece4c2 62%,#d6cca2);box-shadow:0 0 26px 8px rgba(240,232,190,.35)}
 .fm-cloud{position:absolute;left:-30%;width:96px;height:30px;border:0;padding:0;border-radius:30px;background:var(--cloud);opacity:var(--cloudo);animation:fmDrift 90s linear infinite;z-index:2;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .fm-cloud::before,.fm-cloud::after{content:"";position:absolute;background:var(--cloud);border-radius:50%}
@@ -1737,7 +1737,7 @@ function css(){
 .fm-it.walk .fm-e{animation:fmWalk .42s ease-in-out infinite alternate}
 .fm-it.hopper.walk .fm-e{animation:fmBunny .5s ease-out infinite}
 .fm-it.ripe .fm-e{animation:fmRipe 1.6s ease-in-out infinite;filter:drop-shadow(0 0 6px rgba(255,224,110,.95)) drop-shadow(0 2px 1px rgba(0,0,0,.18))}
-.fm-it.lit::before{content:"";position:absolute;left:50%;top:40%;width:190%;height:160%;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(255,213,92,.65),rgba(255,213,92,0));pointer-events:none}
+.fm-it.lit::before{content:"";position:absolute;left:50%;top:40%;width:190%;height:160%;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(255,214,0,.65),rgba(255,214,0,0));pointer-events:none}
 .fm-it.lit .fm-e{filter:drop-shadow(0 0 10px rgba(255,214,90,.95))!important}
 .fm-stage[data-ph] .fm-it.ripe .fm-e{filter:drop-shadow(0 0 7px rgba(255,224,110,.95)) drop-shadow(0 2px 1px rgba(0,0,0,.18))}
 .fm-stage[data-ph=night] .fm-it .fm-e,.fm-stage[data-ph=night] .fm-hb{filter:brightness(.8) saturate(.85) drop-shadow(0 2px 1px rgba(0,0,0,.25))}
@@ -1771,7 +1771,7 @@ function css(){
 .fm-hp{position:absolute;left:50%;bottom:calc(100% - 4px);transform:translateX(-50%);display:flex;align-items:center;gap:2px;font-size:12px;line-height:1;padding:3px 6px;border-radius:99px;background:rgba(11,37,69,.8);box-shadow:0 1px 3px rgba(0,0,0,.3);white-space:nowrap;pointer-events:none;z-index:1}
 .fm-hp>span{letter-spacing:-1px}
 .fm-hp i{font-style:normal;font-size:14px;line-height:1;margin:-2px 1px -2px -1px}
-.fm-hp.need{box-shadow:0 0 0 2px #f2c94c,0 1px 4px rgba(0,0,0,.35);animation:fmBob 1.6s ease-in-out infinite}
+.fm-hp.need{box-shadow:0 0 0 2px #FFCC00,0 1px 4px rgba(0,0,0,.35);animation:fmBob 1.6s ease-in-out infinite}
 .fm-hp.sk{box-shadow:0 0 0 2px #9fc3ea,0 1px 4px rgba(0,0,0,.35)}
 .fm-it.er .fm-zz{left:auto;right:60%}
 .fm-it.sad .fm-e{filter:saturate(.55) drop-shadow(0 2px 1px rgba(0,0,0,.18))}
@@ -1788,7 +1788,7 @@ function css(){
 .fm-shel{position:absolute;left:8px;top:calc(var(--hz) - 52px);z-index:6;display:flex;align-items:center;gap:6px;min-height:46px;padding:4px 12px 4px 7px;border:2px solid rgba(255,255,255,.8);border-radius:14px;background:rgba(11,37,69,.84);color:#fff;font:inherit;font-weight:800;font-size:.95rem;line-height:1;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.28);-webkit-tap-highlight-color:transparent}
 .fm-shel[hidden]{display:none}
 .fm-she{font-size:1.45rem;line-height:1}
-.fm-shb{position:absolute;top:-9px;right:-9px;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:#d64545;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}
+.fm-shb{position:absolute;top:-9px;right:-9px;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:#1E6EF4;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}
 .fm-shb[hidden]{display:none}
 .fm-shel.has{animation:fmNudge 2.6s ease-in-out infinite}
 .fm-shel:focus-visible{outline:3px solid #fff;outline-offset:2px}
@@ -1815,8 +1815,8 @@ function css(){
 .fm-drip{font-size:1.1rem;animation:fmDrip .7s ease-in forwards}
 .fm-sp{font-size:.9rem}
 .fm-puff{width:16px;height:16px;border-radius:50%;background:rgba(235,240,245,.9);animation:fmPuff 1.4s ease-out forwards}
-.fm-fire{transform:translate(-50%,-100%);font-size:1.8rem;transform-origin:50% 100%;animation:fmFire .35s ease-in-out infinite alternate;filter:drop-shadow(0 0 10px rgba(255,170,40,.9))}
-.fm-fw{width:6px;height:6px;border-radius:50%;background:#fff;color:var(--c,#f2c94c);box-shadow:0 -28px 0 2px currentColor,20px -20px 0 2px #5aa2ff,28px 0 0 2px currentColor,20px 20px 0 2px #45cf8b,0 28px 0 2px currentColor,-20px 20px 0 2px #5aa2ff,-28px 0 0 2px currentColor,-20px -20px 0 2px #45cf8b;animation:fmFw 1.1s ease-out forwards}
+.fm-fire{transform:translate(-50%,-100%);font-size:1.8rem;transform-origin:50% 100%;animation:fmFire .35s ease-in-out infinite alternate;filter:drop-shadow(0 0 10px rgba(255,204,0,.9))}
+.fm-fw{width:6px;height:6px;border-radius:50%;background:#fff;color:var(--c,#FFCC00);box-shadow:0 -28px 0 2px currentColor,20px -20px 0 2px #5aa2ff,28px 0 0 2px currentColor,20px 20px 0 2px #45cf8b,0 28px 0 2px currentColor,-20px 20px 0 2px #5aa2ff,-28px 0 0 2px currentColor,-20px -20px 0 2px #45cf8b;animation:fmFw 1.1s ease-out forwards}
 .fm-leaf{font-size:1.1rem;animation:fmLeaf 1.6s ease-in forwards}
 .fm-burst{font-size:1.2rem;animation:fmBurst .9s ease-out forwards}
 .fm-bfly{font-size:1.6rem;animation:fmBfly 2.6s ease-in-out forwards,fmFlap .18s ease-in-out infinite alternate}
@@ -1843,10 +1843,10 @@ function css(){
 .fm-ft{display:flex;flex-direction:column;line-height:1.1;min-width:0;gap:2px}
 .fm-ft small{color:#5b6778;font-weight:700;font-size:.82rem}
 .fm-ft b{font-size:1.35rem;color:#0f3d75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fm-ft em{font-style:normal;font-weight:800;color:#8a6516}.fm-ft em.m{color:#5b6778;font-size:.8rem;font-weight:700}
+.fm-ft em{font-style:normal;font-weight:800;color:var(--gold-ink)}.fm-ft em.m{color:#5b6778;font-size:.8rem;font-weight:700}
 .fm-dots{display:flex;gap:4px;margin-top:2px}
 .fm-dots i{width:10px;height:10px;border-radius:50%;background:#dfe4eb}
-.fm-dots i.ok{background:#1f9d62}.fm-dots i.no{background:#d64545}.fm-dots i.now{background:#fff;box-shadow:0 0 0 2px #1f6fd1}
+.fm-dots i.ok{background:var(--ok)}.fm-dots i.no{background:var(--miss)}.fm-dots i.now{background:#fff;box-shadow:0 0 0 2px #1E6EF4}
 .fm-fq{flex:none;width:44px;height:44px;border:0;border-radius:12px;background:#edf3fa;color:#46566c;font-size:1.1rem;font-weight:800}
 .fm-fa{flex:none;min-height:44px;border:0;border-radius:12px;background:#2e9e4f;color:#fff;font-weight:800;padding:0 12px;box-shadow:0 3px 0 #1e6e36}
 .fm-hint{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:3050;background:rgba(11,37,69,.9);color:#fff;border-radius:999px;padding:5px 6px 5px 16px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap;width:max-content;max-width:calc(100% - 16px);box-sizing:border-box;line-height:1.2;cursor:default;box-shadow:0 6px 16px rgba(0,0,0,.3)}
@@ -1865,8 +1865,8 @@ function css(){
 .fm-tasks{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:44px}
 .fm-chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 14px;font-weight:700;font-size:.98rem}
 .fm-chip b{font-size:1.1rem}
-.fm-chip.c-h{border-color:#c9962b}.fm-chip.c-p{border-color:#13887f}.fm-chip.c-w{border-color:#1f6fd1}.fm-chip.c-r{border-color:#2e9e4f}
-.fm-chip.c-f{border-color:#c9962b;background:color-mix(in srgb,#f2c94c 18%,var(--card))}.fm-chip.c-s{border-color:#46566c}
+.fm-chip.c-h{border-color:#FFCC00}.fm-chip.c-p{border-color:#13887f}.fm-chip.c-w{border-color:#1E6EF4}.fm-chip.c-r{border-color:#2e9e4f}
+.fm-chip.c-f{border-color:#FFCC00;background:color-mix(in srgb,#FFCC00 18%,var(--card))}.fm-chip.c-s{border-color:#46566c}
 /* despensa en la barra */
 .fm-pan{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
 .fm-bar,.fm-pan,.fm-tasks{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
@@ -1900,7 +1900,7 @@ function css(){
 .fm-opt.hint{border-color:var(--ok);animation:fmHint .9s ease-in-out infinite}
 .fm-or .say{width:58px;height:auto;min-height:58px;border-radius:16px;font-size:1.35rem;flex:none}
 .fm-qm{min-height:1.6em;font-weight:700;font-size:1.12rem;margin:12px 0 8px}
-.fm-qm.ok{color:var(--ok)}.fm-qm.bad{color:var(--bad)}
+.fm-qm.ok{color:var(--ok-ink)}.fm-qm.bad{color:var(--bad)}
 .fm-dlg .fm-x{min-height:44px}
 .fm-dlg .btn.lc{min-height:50px;font-size:1.1rem}
 .fm-help-l{list-style:none;padding:0;margin:8px 0 14px;text-align:left;display:grid;gap:7px}
@@ -1919,15 +1919,15 @@ function css(){
 .fm-food b{font-size:1.15rem;font-weight:800;overflow-wrap:anywhere}
 .fm-food small{color:var(--muted);font-weight:700;font-size:.85rem}
 .fm-food:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
-.fm-food.bad{border-color:#d9a21b;background:color-mix(in srgb,#f2c94c 14%,var(--card))}
+.fm-food.bad{border-color:#FFCC00;background:color-mix(in srgb,#FFCC00 14%,var(--card))}
 .fm-food.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--card));box-shadow:0 4px 0 color-mix(in srgb,var(--ok) 60%,#000)}
 .fm-food.new{border-color:var(--ok);animation:fmHint .9s ease-in-out infinite}
 .fm-food.shake{animation:fmShake .45s ease}
 .fm-food:disabled:not(.ok){opacity:.5}
 .fm-nofood{background:var(--soft);border-radius:16px;padding:10px 12px;margin:8px 0 0}
 .fm-nofood p{margin:0 0 10px;font-weight:700;line-height:1.35}
-.fm-buyq,.fm-pb{border:0;border-radius:14px;background:#f2c94c;color:#3a2a00;font:inherit;font-weight:900;font-size:1.02rem;min-height:48px;padding:8px 14px;box-shadow:0 4px 0 #b88a14;cursor:pointer}
-.fm-buyq:active,.fm-pb:active{transform:translateY(3px);box-shadow:0 1px 0 #b88a14}
+.fm-buyq,.fm-pb{border:0;border-radius:14px;background:#FFCC00;color:#3D2B00;font:inherit;font-weight:900;font-size:1.02rem;min-height:48px;padding:8px 14px;box-shadow:0 4px 0 #B38F00;cursor:pointer}
+.fm-buyq:active,.fm-pb:active{transform:translateY(3px);box-shadow:0 1px 0 #B38F00}
 .fm-buyq:disabled{opacity:.5}
 .fm-pb{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
 .fm-pb small{font-size:.8rem;font-weight:800}
@@ -1935,11 +1935,11 @@ function css(){
 .fm-pb.no:active{box-shadow:0 1px 0 var(--line)}
 .fm-rm{grid-column:1/-1;margin:0;min-height:0;font-size:1rem;line-height:1.35;text-align:center}
 .fm-rm:empty{display:none}
-.fm-pb.res{background:#1f6fd1;color:#fff;box-shadow:0 4px 0 #154b8f}
+.fm-pb.res{background:#1E6EF4;color:#fff;box-shadow:0 4px 0 #154b8f}
 .fm-pb.res:active{box-shadow:0 1px 0 #154b8f}
 .fm-nw{white-space:nowrap}
-.fm-qm.warm{color:#8a5a00}.fm-qm.info{color:var(--brand)}
-[data-theme=dark] .fm-qm.warm{color:#f2c94c}
+.fm-qm.warm{color:var(--gold-ink)}.fm-qm.info{color:var(--brand)}
+[data-theme=dark] .fm-qm.warm{color:#FFCC00}
 .fm-pl{display:grid;gap:10px;margin:8px 0 4px;text-align:left}
 .fm-prow{display:grid;grid-template-columns:52px 1fr;gap:8px 12px;align-items:center;background:var(--soft);border:2px solid transparent;border-radius:16px;padding:10px 12px}
 .fm-prow.focus{border-color:#13887f}

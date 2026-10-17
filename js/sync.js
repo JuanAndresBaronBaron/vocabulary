@@ -492,7 +492,7 @@ const CSS = `
 .sv h2{margin:0 0 6px;font-size:1.1rem}
 .sv .sub{margin:0 0 10px}
 .sv-st{margin:0 0 4px;font-weight:700;font-size:1rem}
-.sv-st.ok{color:var(--ok)}.sv-st.bad{color:var(--bad)}
+.sv-st.ok{color:var(--ok-ink)}.sv-st.bad{color:var(--bad)}
 .sv-acc{margin:0 0 10px;color:var(--muted);font-size:.92rem;overflow-wrap:anywhere}
 .sv-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
 .sv-b{min-height:46px;font:inherit;font-weight:600;padding:10px 16px;flex:1 1 180px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;color:var(--ink);max-width:100%;box-sizing:border-box}
@@ -506,7 +506,7 @@ const CSS = `
 .sv [hidden],.sv-rem [hidden]{display:none!important}
 .sv-msg{margin:4px 0 10px;font-weight:600}
 .sv-msg:empty{display:none}
-.sv-msg.ok{color:var(--ok)}.sv-msg.bad{color:var(--bad)}
+.sv-msg.ok{color:var(--ok-ink)}.sv-msg.bad{color:var(--bad)}
 .sv-box{scroll-margin-top:120px;border:2px solid var(--brand);border-radius:14px;padding:14px;margin:0 0 12px;background:var(--soft)}
 .sv-box h3{margin:0 0 8px;font-size:1.02rem}
 .sv-cmp{width:100%;border-collapse:collapse;font-size:.93rem;margin:0 0 10px;table-layout:fixed}
@@ -514,8 +514,8 @@ const CSS = `
 .sv-cmp th{color:var(--muted);font-weight:700;font-size:.82rem}
 .sv-cmp td:nth-child(n+2){font-weight:700}
 .sv-cmp td:first-child{width:40%}
-.sv-cmp .win{color:var(--ok)}
-.sv-warn{border:1px solid #d9a21b;background:color-mix(in srgb,#f2c94c 16%,var(--card));color:var(--ink);border-radius:10px;padding:9px 12px;margin:0 0 10px;font-size:.92rem}
+.sv-cmp .win{color:var(--ok-ink)}
+.sv-warn{border:1px solid #FFCC00;background:color-mix(in srgb,#FFCC00 16%,var(--card));color:var(--ink);border-radius:10px;padding:9px 12px;margin:0 0 10px;font-size:.92rem}
 .sv-safe{margin:6px 0 8px;font-size:.92rem;color:var(--muted)}
 .sv-undo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
 .sv-undo .sv-b{flex:1 1 220px}

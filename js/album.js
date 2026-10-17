@@ -120,35 +120,35 @@ const face = r => r.img ? `<img src="${esc(r.img)}" alt="" loading="lazy" decodi
 const CSS = `
 .al-st[hidden],.al-sec[hidden],.al-grp[hidden],.al-empty[hidden],.btn.al-pall[hidden]{display:none!important}
 .al-cover{position:relative;overflow:hidden;border-radius:24px;padding:20px 22px 18px 40px;margin:6px 0 16px;color:#fff;
-  background:linear-gradient(135deg,#0f3d75 0%,#1f6fd1 58%,#13887f 100%);box-shadow:0 7px 0 rgba(8,30,60,.28),var(--shadow)}
-[data-theme=dark] .al-cover{background:linear-gradient(135deg,#0c2a4f 0%,#14427a 58%,#0f5a55 100%);box-shadow:0 7px 0 rgba(0,0,0,.45),var(--shadow)}
+  background:var(--brand-fill);box-shadow:0 7px 0 rgba(8,30,60,.28),var(--shadow)}
+[data-theme=dark] .al-cover{background:#0B2545;box-shadow:0 7px 0 rgba(0,0,0,.45),var(--shadow)}
 .al-cover::before{content:"";position:absolute;left:0;top:0;bottom:0;width:22px;background:rgba(4,16,34,.32);border-right:2px dashed rgba(255,255,255,.35)}
 .al-cv-top{position:relative;display:flex;align-items:center;gap:14px;z-index:1}
 .al-cv-ic{font-size:3.3rem;line-height:1;filter:drop-shadow(0 4px 4px rgba(0,0,0,.25));flex:none}
 .al-cover h1{margin:0;font-size:1.7rem;line-height:1.15}
 .al-cover p{margin:4px 0 0;opacity:.92;font-size:1rem}
 .al-cv-st{position:relative;z-index:1;margin-top:14px;max-width:560px}
-.al-cv-big{font-size:1.22rem}.al-cv-big b{font-size:1.6rem;color:#f7d774}
+.al-cv-big{font-size:1.22rem}.al-cv-big b{font-size:1.6rem;color:#FFE066}
 .al-bar{height:14px;border-radius:99px;background:rgba(255,255,255,.22);overflow:hidden;margin:8px 0 10px}
-.al-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#f7d774,#f2c94c);transition:width .6s}
+.al-bar i{display:block;height:100%;border-radius:99px;background:var(--gold);transition:width .6s}
 .al-chips{display:flex;flex-wrap:wrap;gap:8px}
-.al-chip{background:rgba(255,255,255,.16);border-radius:99px;padding:5px 12px;font-weight:700;font-size:.92rem;white-space:nowrap}
+.al-chip{background:rgba(0,0,0,.2);border-radius:99px;padding:5px 12px;font-weight:700;font-size:.92rem;white-space:nowrap}
 .al-chip.hot{background:#23803f;color:#fff}
 .al-deco{position:absolute;right:18px;top:16px;width:200px;height:150px;pointer-events:none}
 .al-deco span{position:absolute;width:62px;height:62px;border-radius:14px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:2.1rem;box-shadow:0 6px 12px rgba(0,0,0,.25)}
 .al-deco span:nth-child(1){left:10px;top:4px;transform:rotate(-9deg)}
 .al-deco span:nth-child(2){left:86px;top:30px;transform:rotate(7deg)}
-.al-deco span:nth-child(3){left:20px;top:80px;transform:rotate(5deg);background:linear-gradient(135deg,#fff6d1,#f2c94c 45%,#fff3c4 60%,#d9a21b)}
+.al-deco span:nth-child(3){left:20px;top:80px;transform:rotate(5deg);background:linear-gradient(135deg,#fff6d1,#FFCC00 45%,#FFF5CC 60%,#FFCC00)}
 .al-deco span:nth-child(4){left:120px;top:96px;transform:rotate(-6deg);background:rgba(255,255,255,.18);border:3px dashed rgba(255,255,255,.55);box-shadow:none;color:rgba(255,255,255,.8);font-weight:900;font-size:1.8rem}
 @media (max-width:860px){.al-deco{display:none}}
 .al-hello{display:flex;align-items:center;gap:14px;margin:0 0 14px}
 .al-hello .speech b{font-size:1.2rem}
-.al-news{background:var(--card);border:2px solid #d9a21b;border-radius:18px;padding:12px 14px;margin:0 0 16px;box-shadow:var(--shadow)}
+.al-news{background:var(--card);border:2px solid #FFCC00;border-radius:18px;padding:12px 14px;margin:0 0 16px;box-shadow:var(--shadow)}
 .al-news>b{display:block;margin-bottom:8px;font-size:1.05rem}
 .al-news-l{display:flex;flex-wrap:wrap;gap:8px}
-.al-nw{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:6px 14px;border-radius:99px;background:color-mix(in srgb,#f2c94c 18%,var(--card));border:2px solid color-mix(in srgb,#d9a21b 60%,var(--line));text-decoration:none;font-weight:800}
+.al-nw{display:inline-flex;align-items:center;gap:8px;min-height:46px;padding:6px 14px;border-radius:99px;background:color-mix(in srgb,#FFCC00 18%,var(--card));border:2px solid color-mix(in srgb,#FFCC00 60%,var(--line));text-decoration:none;font-weight:800}
 .al-nw span{background:#23803f;color:#fff;border-radius:99px;padding:1px 8px;font-size:.85rem;white-space:nowrap}
-.al-nw:hover{border-color:#d9a21b}
+.al-nw:hover{border-color:#FFCC00}
 .al-tabs{display:flex;gap:6px;padding:0 10px;position:relative;z-index:1}
 .al-tab{position:relative;flex:1 1 0;min-width:0;white-space:nowrap;min-height:56px;border:2px solid var(--line);border-bottom:0;border-top:5px solid var(--tc);
   background:var(--soft);border-radius:16px 16px 0 0;padding:6px 8px;margin-bottom:-2px;color:var(--muted);font-weight:800;
@@ -174,9 +174,9 @@ const CSS = `
 .al-th-t{font-size:.98rem;line-height:1.2;overflow-wrap:anywhere}
 .al-th-n{font-weight:900;color:var(--cn);font-size:1.02rem}
 .al-th-n small{color:var(--muted);font-weight:700}
-.al-th-gold{font-size:.8rem;font-weight:800;color:#86600f}
-[data-theme=dark] .al-th-gold{color:#f2c94c}
-.al-th.full{border-color:#d9a21b;background:color-mix(in srgb,#f2c94c 12%,var(--card));box-shadow:0 4px 0 #d9a21b}
+.al-th-gold{font-size:.8rem;font-weight:800;color:var(--gold-ink)}
+[data-theme=dark] .al-th-gold{color:#FFCC00}
+.al-th.full{border-color:#FFCC00;background:color-mix(in srgb,#FFCC00 12%,var(--card));box-shadow:0 4px 0 #B38F00}
 .al-th-stamp{position:absolute;left:8px;top:8px;font-size:1.5rem;transform:rotate(-12deg)}
 .al-new-b{position:absolute;top:-11px;right:-6px;background:#23803f;color:#fff;white-space:nowrap;font-weight:900;font-size:.8rem;border-radius:99px;padding:3px 9px;box-shadow:0 3px 8px rgba(0,0,0,.22);animation:al-bob 1.6s ease-in-out infinite}
 @keyframes al-bob{0%,100%{translate:0 0}50%{translate:0 -4px}}
@@ -188,14 +188,14 @@ const CSS = `
 .al-ph-sub{opacity:.95;font-size:1rem;margin-top:2px}
 .al-ph-sub b{font-size:1.15rem}
 .al-ph .al-bar{margin:8px 0 0}
-.al-stamp{position:absolute;right:-6px;top:-16px;z-index:3;transform:rotate(11deg);background:#fff3c4;color:#6b4f00;border:3px dashed #c9962b;border-radius:14px;padding:6px 12px;font-weight:900;font-size:.95rem;line-height:1.1;text-align:center;box-shadow:0 6px 14px rgba(0,0,0,.25);display:none}
+.al-stamp{position:absolute;right:-6px;top:-16px;z-index:3;transform:rotate(11deg);background:#FFF5CC;color:#6b4f00;border:3px dashed #B38F00;border-radius:14px;padding:6px 12px;font-weight:900;font-size:.95rem;line-height:1.1;text-align:center;box-shadow:0 6px 14px rgba(0,0,0,.25);display:none}
 .al-stamp.on{display:block}
 .al-stamp.thump{animation:al-thump .7s cubic-bezier(.2,1.4,.4,1) both}
 @keyframes al-thump{0%{transform:rotate(11deg) scale(3);opacity:0}60%{transform:rotate(11deg) scale(.9);opacity:1}100%{transform:rotate(11deg) scale(1)}}
 .al-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 12px}
 .al-f{display:flex;flex-wrap:wrap;gap:6px}
 .al-f button{min-height:44px;border:2px solid var(--line);background:var(--card);border-radius:99px;padding:6px 14px;font-weight:800;color:var(--muted)}
-.al-f button.on{border-color:var(--brand);background:var(--soft);color:var(--brand)}
+.al-f button.on{border-color:transparent;background:var(--brand-fill);color:#fff}
 .al-f button small{font-weight:700;opacity:.85}
 .btn.al-pall{margin-left:auto;min-height:48px;background:#23803f;border:0;color:#fff;font-weight:900;font-size:1.02rem;padding:10px 18px;border-radius:99px;box-shadow:0 4px 0 #165a2b;animation:al-glow 1.8s ease-in-out infinite}
 .btn.al-pall:active{transform:translateY(3px);box-shadow:0 1px 0 #165a2b}
@@ -213,7 +213,7 @@ const CSS = `
 .al-rv:hover{border-color:var(--brand)}
 .al-st,.al-th,.al-tab,.al-nb,.al-f button,.al-x,.al-nw{touch-action:manipulation}
 .al-bigstamp{position:fixed;inset:0;z-index:998;display:flex;align-items:center;justify-content:center;pointer-events:none}
-.al-bigstamp>div{display:flex;flex-direction:column;align-items:center;gap:4px;background:#fff3c4;color:#5a4100;border:5px dashed #c9962b;border-radius:28px;
+.al-bigstamp>div{display:flex;flex-direction:column;align-items:center;gap:4px;background:#FFF5CC;color:#5a4100;border:5px dashed #B38F00;border-radius:28px;
   padding:18px 28px;box-shadow:0 14px 40px rgba(0,0,0,.35);transform:rotate(-6deg);animation:al-bigin .7s cubic-bezier(.2,1.5,.4,1) both}
 .al-bigstamp span{font-size:4.2rem;line-height:1}
 .al-bigstamp b{font-size:1.9rem;font-weight:900;white-space:nowrap}
@@ -244,7 +244,7 @@ const CSS = `
 .al-lb{display:flex;flex-direction:column;justify-content:center;padding:6px 2px 0;line-height:1.15;min-height:2.7em}
 .al-lb b{font-size:.92rem;overflow-wrap:anywhere}
 .al-lb small{font-size:.72rem;color:#5b6778;overflow-wrap:anywhere}
-.al-st.gold{background:linear-gradient(135deg,#fff6d1 0%,#f2c94c 30%,#fff3c4 50%,#d9a21b 75%,#f7d774 100%)}
+.al-st.gold{background:linear-gradient(135deg,#FFF6D1 0%,#FFCC00 30%,#FFF5CC 50%,#E6B800 75%,#FFE066 100%)}
 .al-st.gold .al-face{background:#fffaf0}
 .al-st.gold .al-face::after{content:"";position:absolute;top:-10%;bottom:-10%;left:-70%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);transform:skewX(-16deg);animation:al-sheen 3.6s ease-in-out infinite;animation-delay:var(--d,0s);pointer-events:none}
 @keyframes al-sheen{0%{transform:skewX(-16deg) translateX(0)}55%,100%{transform:skewX(-16deg) translateX(420%)}}
@@ -260,7 +260,7 @@ const CSS = `
 .al-st.lock .al-lb b{color:var(--muted);font-size:.8rem}
 .al-st.lock:hover{transform:translateY(-2px);box-shadow:none;border-color:var(--brand)}
 .al-pack{position:absolute;inset:-4px;z-index:4;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#fff;
-  background:linear-gradient(135deg,#1f6fd1,#13887f);box-shadow:inset 0 0 0 3px rgba(255,255,255,.75),0 6px 14px rgba(15,30,50,.25);transform-origin:0 0;pointer-events:none}
+  background:linear-gradient(135deg,#1E6EF4,#008198);box-shadow:inset 0 0 0 3px rgba(255,255,255,.75),0 6px 14px rgba(15,30,50,.25);transform-origin:0 0;pointer-events:none}
 .al-pack::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,.13) 0 9px,transparent 9px 18px)}
 .al-pack::after{content:"";position:absolute;right:0;bottom:0;width:28px;height:28px;background:linear-gradient(135deg,transparent 50%,#fff 50%);border-top-left-radius:8px;box-shadow:-3px -3px 5px rgba(0,0,0,.18)}
 .al-pack>*{position:relative}
@@ -272,7 +272,7 @@ const CSS = `
 .al-st.peeling{animation:al-stick .7s .18s both}
 @keyframes al-stick{0%{transform:rotate(var(--r))}35%{transform:rotate(0deg) scale(1.2)}70%{transform:rotate(calc(var(--r) * -1)) scale(.95)}100%{transform:rotate(var(--r))}}
 .al-rib{position:absolute;top:-12px;left:50%;z-index:3;transform:translateX(-50%) rotate(-4deg);background:#23803f;color:#fff;font-weight:900;font-size:.74rem;padding:2px 9px;border-radius:7px;white-space:nowrap;box-shadow:0 3px 6px rgba(0,0,0,.2);animation:al-pop .45s cubic-bezier(.2,1.6,.4,1) both}
-.al-rib.g{background:#f2c94c;color:#3a2a00}
+.al-rib.g{background:#FFCC00;color:#3D2B00}
 @keyframes al-pop{from{opacity:0;scale:.3}to{opacity:1;scale:1}}
 .al-st.newgold{animation:al-goldup 1.2s .35s both}
 @keyframes al-goldup{0%{transform:rotate(var(--r));box-shadow:0 0 0 0 rgba(242,201,76,.9)}40%{transform:rotate(0deg) scale(1.2);box-shadow:0 0 0 14px rgba(242,201,76,.35)}100%{transform:rotate(var(--r));box-shadow:0 0 0 22px rgba(242,201,76,0)}}
@@ -297,12 +297,12 @@ const CSS = `
 .al-cf{grid-area:1/1;-webkit-backface-visibility:hidden;backface-visibility:hidden;background:var(--card);color:var(--ink);border:9px solid #fff;border-radius:26px;padding:16px 16px 18px;
   box-shadow:0 8px 0 rgba(0,0,0,.3);display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px;min-width:0}
 [data-theme=dark] .al-cf{border-color:#dfe6ef}
-.al-card.gold .al-cf{border-color:transparent;background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,#f7d774,#c9962b 30%,#fff3c4 50%,#c9962b 75%,#f7d774) border-box}
+.al-card.gold .al-cf{border-color:transparent;background:linear-gradient(var(--card),var(--card)) padding-box,linear-gradient(135deg,#FFE066,#E6B800 30%,#FFF5CC 50%,#E6B800 75%,#FFE066) border-box}
 .al-front{justify-content:center}
 .al-back{transform:rotateY(180deg);align-items:stretch;text-align:left;justify-content:flex-start}
 .al-cf-top{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:28px;padding-right:44px}
 .al-n2{font-weight:900;color:var(--muted);font-size:.9rem}
-.al-gtag{background:#f2c94c;color:#3a2a00;border-radius:99px;padding:2px 10px;font-weight:900;font-size:.82rem}
+.al-gtag{background:#FFCC00;color:#3D2B00;border-radius:99px;padding:2px 10px;font-weight:900;font-size:.82rem}
 .al-ntag{background:color-mix(in srgb,var(--brand) 14%,var(--card));color:var(--brand);border-radius:99px;padding:2px 10px;font-weight:800;font-size:.82rem}
 .al-cf-img{position:relative;width:min(100%,230px);aspect-ratio:1.3;border-radius:20px;background:#f1f5fa;display:flex;align-items:center;justify-content:center;overflow:hidden;flex:none}
 .al-cf-img img{max-width:80%;max-height:84%;object-fit:contain;background:transparent!important}
@@ -328,7 +328,7 @@ const CSS = `
 .al-br .lbl{font-weight:900;margin-bottom:6px}
 .al-dots{display:flex;gap:8px;justify-content:center}
 .al-dots i{width:40px;height:40px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;font-style:normal;font-size:1.2rem;color:color-mix(in srgb,var(--muted) 70%,var(--ink))}
-.al-dots i.on{background:#f2c94c;color:#3a2a00;box-shadow:0 3px 0 #c9962b}
+.al-dots i.on{background:#FFCC00;color:#3D2B00;box-shadow:0 3px 0 #B38F00}
 .al-br p{margin:8px 0 0;color:var(--muted);font-weight:600}
 .al-back .btn.lc{align-self:center;margin-top:10px;text-decoration:none}
 .al-dnav{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:14px}
@@ -343,7 +343,7 @@ const CSS = `
 .al-lk-a .btn{text-decoration:none;min-height:48px;display:inline-flex;align-items:center}
 .btn.al-ls{background:#13887f;border-color:transparent;color:#fff;font-weight:800;text-decoration:none;padding:11px 18px;box-shadow:0 4px 0 #0b5a54}
 .ba.al-ba-new{position:relative;animation:al-hglow 1.8s ease-in-out infinite}
-.ba.al-ba-new .al-bdot{position:absolute;top:-8px;right:-6px;background:#f2c94c;color:#3a2a00;font-size:.9rem;font-weight:900;border-radius:99px;min-width:30px;height:30px;padding:0 8px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.25)}
+.ba.al-ba-new .al-bdot{position:absolute;top:-8px;right:-6px;background:#FFCC00;color:#3D2B00;font-size:.9rem;font-weight:900;border-radius:99px;min-width:30px;height:30px;padding:0 8px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.25)}
 @keyframes al-hglow{0%,100%{box-shadow:0 6px 0 rgba(0,0,0,.18),0 0 0 0 rgba(242,201,76,.75)}50%{box-shadow:0 6px 0 rgba(0,0,0,.18),0 0 0 9px rgba(242,201,76,0)}}
 @media (max-width:560px){
   .al-cover{padding:16px 14px 16px 32px;border-radius:20px}.al-cover::before{width:16px}
@@ -430,7 +430,7 @@ async function cover(nav){
       </div>
     </section>
     ${N ? "" : `<div class="al-hello">${heroHtml(80)}<div class="speech"><b>¡Tu álbum está vacío!</b>Aprende palabras en el Camino y aparecerán aquí como pegatinas.
-      <div style="margin-top:10px"><a class="btn lc" href="#/mapa" style="--lc:#23803f;text-decoration:none;display:inline-block">🗺️ Ir al Camino</a></div></div></div>`}
+      <div style="margin-top:10px"><a class="btn lc" href="#/mapa" style="--lc:#008932;text-decoration:none;display:inline-block">🗺️ Ir al Camino</a></div></div></div>`}
     ${news.length ? `<div class="al-news"><b>✨ ¡Tienes pegatinas nuevas para pegar!</b><div class="al-news-l">${news.map(x =>
       `<a class="al-nw" href="#/album/${esc(x.d.id)}">${emo(x.d)} ${esc(x.d.title)} <span>✨ ${x.nw}</span></a>`).join("")}</div></div>` : ""}
     ${N ? `<p class="sub" style="margin:0 0 12px">⭐ Las pegatinas <b>doradas</b> son palabras que ya no olvidas. ${dueList().length
@@ -753,7 +753,7 @@ function backHtml(s){
     <div class="al-fi"><span>La has repasado</span><b>${s.reps} ${plural(s.reps, "vez", "veces")}</b></div>
     <div class="al-br"><div class="lbl">✨ Brillo</div><div class="al-dots" aria-label="Brillo ${Math.min(s.box, MASTER)} de ${MASTER}">${dots}</div>
       <p>${s.gold ? "¡Es dorada! Esta palabra ya no se te olvida." : `Acierta ${left} ${plural(left, "repaso", "repasos")} más y será dorada.`}</p></div>
-    ${due ? `<a class="btn lc" href="#/repaso" style="--lc:#1f6fd1">🔁 Repasar ahora</a>` : ""}
+    ${due ? `<a class="btn lc" href="#/repaso" style="--lc:#1E6EF4">🔁 Repasar ahora</a>` : ""}
   </div>`;
 }
 function openCard(s){
@@ -830,7 +830,7 @@ function openLocked(s){
       <p class="al-lk-t">Aprende esta palabra en el <b>Camino</b> para conseguirla.</p>
       <div class="al-cf-es">🔎 Pista: ${num ? "es un número" : `en español empieza por «${esc(first)}»`}</div>
       <div class="al-lk-w" id="al-lk-w">Buscando en el Camino…</div>
-      <div class="al-lk-a" id="al-lk-a"><a class="btn lc" href="#/mapa" style="--lc:#23803f">🗺️ Ir al Camino</a></div>
+      <div class="al-lk-a" id="al-lk-a"><a class="btn lc" href="#/mapa" style="--lc:#008932">🗺️ Ir al Camino</a></div>
     </div></div></div>`;
   OPEN_T = now(); show(d);
   const tok = CARD;
@@ -840,10 +840,10 @@ function openLocked(s){
     if(!x){ w.textContent = "Sigue aprendiendo en el Camino y la encontrarás."; return; }
     if(x.open){
       w.textContent = `Está en el nivel ${x.lv}, lección ${x.num}. ¡Ya puedes aprenderla!`;
-      a.innerHTML = `<a class="btn lc" href="#/leccion/${esc(x.id)}" style="--lc:#23803f">▶ Aprenderla ahora</a><a class="btn" href="#/mapa/${esc(x.lv)}">🗺️ Ver el Camino</a>`;
+      a.innerHTML = `<a class="btn lc" href="#/leccion/${esc(x.id)}" style="--lc:#008932">▶ Aprenderla ahora</a><a class="btn" href="#/mapa/${esc(x.lv)}">🗺️ Ver el Camino</a>`;
     } else {
       w.textContent = `Está más adelante, en el nivel ${x.lv} (lección ${x.num}). ¡Sigue el Camino!`;
-      a.innerHTML = `<a class="btn lc" href="#/mapa/${esc(x.lv)}" style="--lc:#23803f">🗺️ Ir al nivel ${esc(x.lv)}</a>`;
+      a.innerHTML = `<a class="btn lc" href="#/mapa/${esc(x.lv)}" style="--lc:#008932">🗺️ Ir al nivel ${esc(x.lv)}</a>`;
     }
   }).catch(() => {});
 }
@@ -857,7 +857,7 @@ ROUTES["album"] = async parts => {
 };
 /* atrás del navegador con la tarjeta abierta: se cierra en el acto, sin esperar a que se pinte la ruta nueva */
 window.addEventListener("hashchange", () => { if(DLG && DLG.open) closeDlg(); });
-HOME_ACTS.push({href: "#/album", e: "📒", t: "Álbum", color: "#13887f",
+HOME_ACTS.push({href: "#/album", e: "📒", t: "Álbum", color: "#008198",
   get sub(){ try{ const n = newTotal(); return n ? `✨ ${n} ${plural(n, "nueva", "nuevas")}` : "Colecciona pegatinas"; }catch(e){ return "Colecciona pegatinas"; } }});
 
 function decorateHome(){

@@ -5,7 +5,7 @@
 (() => {
 const STYLE = `
 .fab{position:fixed;right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(14px + env(safe-area-inset-bottom,0px));z-index:30;width:0;height:0}
-.fab-main{position:absolute;right:0;bottom:0;width:60px;height:60px;border-radius:50%;border:3px solid #fff;background:var(--head);color:#fff;font-size:1.6rem;
+.fab-main{position:absolute;right:0;bottom:0;width:60px;height:60px;border-radius:50%;border:3px solid #fff;background:var(--brand-fill);color:#fff;font-size:1.6rem;
   box-shadow:0 8px 22px rgba(5,20,40,.35);display:flex;align-items:center;justify-content:center;transition:transform .3s cubic-bezier(.3,1.4,.5,1),opacity .25s}
 .fab-main span{display:inline-block;transition:transform .45s cubic-bezier(.3,1.6,.5,1)}
 .fab:not(.open):not(.hid) .fab-main{animation:fab-bob 2.6s ease-in-out infinite}
@@ -40,7 +40,7 @@ const STYLE = `
 .fab.open .fab-it{opacity:1;pointer-events:auto}
 .fab-back{position:fixed;inset:0;z-index:29;background:rgba(5,20,40,.25);opacity:0;pointer-events:none;transition:opacity .25s}
 .fab-back.on{opacity:1;pointer-events:auto}
-.fab-fly{position:fixed;left:0;top:0;z-index:32;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:var(--head);border:3px solid #fff;
+.fab-fly{position:fixed;left:0;top:0;z-index:32;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;background:var(--brand-fill);border:3px solid #fff;
   color:#fff;font-size:1.3rem;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 22px rgba(5,20,40,.35);pointer-events:none}
 .fab-say{position:absolute;right:72px;bottom:8px;width:max-content;max-width:min(240px,calc(100vw - 110px));background:#fff;color:#0b2545;border:3px solid #1f5fbf;
   border-radius:16px;padding:7px 12px;font-weight:800;font-size:.98rem;line-height:1.25;box-shadow:0 8px 22px rgba(5,20,40,.25);pointer-events:none;
