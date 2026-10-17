@@ -394,28 +394,32 @@ def test_language_menu_changes_language():
 
 
 def test_coin_pill_opens_shop():
-    """La pastilla de monedas abre la tienda de la granja (h2#shop a la vista y con el foco), desde otra pestaña y desde
-    la propia granja."""
+    """La pastilla de monedas abre la tienda de la granja, desde otra pestaña y desde la propia granja.
+    (F4b: la tienda ya no es una sección de la página, h2#shop, sino la hoja de la granja, dialog#fm-shop, que abre
+    window.vocabFarm.openShop(); desde otra pestaña va antes a #/granja.)"""
     page = C.new_page("phone")
     probs = []
-    shop = """() => { const h = document.getElementById('shop'), r = h && h.getBoundingClientRect();
-      return {hash: location.hash, focus: document.activeElement && document.activeElement.id, top: r ? Math.round(r.top) : null, vh: innerHeight}; }"""
+    shop = """() => { const d = document.getElementById('fm-shop'), h = d && d.querySelector('.m-head h2'), r = h && h.getBoundingClientRect();
+      return {hash: location.hash, open: !!(d && d.open), focus: !!(d && d.contains(document.activeElement)), top: r ? Math.round(r.top) : null, vh: innerHeight}; }"""
     try:
         C.seed(page)
         C.goto(page, "#/progreso")
         n0 = page.evaluate(_ROUTE_N)
         page.locator("[data-coins-pill]").click()
         _wait_route(page, n0)
-        page.wait_for_function("() => document.activeElement && document.activeElement.id === 'shop'", timeout=4000)
+        page.wait_for_function("() => { const d = document.getElementById('fm-shop'); return d && d.open; }", timeout=6000)
+        page.wait_for_timeout(400)
         st = page.evaluate(shop)
-        if st["hash"] != "#/granja" or st["top"] is None or not (0 <= st["top"] < st["vh"]):
+        if st["hash"] != "#/granja" or not st["open"] or not st["focus"] or st["top"] is None or not (0 <= st["top"] < st["vh"]):
             probs.append(f"desde Premios: {st}")
-        page.evaluate("scrollTo(0, 0); document.activeElement && document.activeElement.blur()")
-        page.wait_for_timeout(200)
+        page.locator("#fm-shop [data-x]").click()
+        page.wait_for_function("() => !document.getElementById('fm-shop').open", timeout=3000)
+        page.wait_for_timeout(300)
         page.locator("[data-coins-pill]").click()
-        page.wait_for_function("() => document.activeElement && document.activeElement.id === 'shop'", timeout=4000)
+        page.wait_for_function("() => document.getElementById('fm-shop').open", timeout=4000)
+        page.wait_for_timeout(400)
         st = page.evaluate(shop)
-        if st["top"] is None or not (0 <= st["top"] < st["vh"]):
+        if not st["open"] or not st["focus"] or st["top"] is None or not (0 <= st["top"] < st["vh"]):
             probs.append(f"desde la granja: {st}")
         probs += C.errors(page)
     finally:
@@ -426,23 +430,29 @@ def test_coin_pill_opens_shop():
 def test_farm_clicks_stay_put():
     """Regresión: <html> lleva data-tab (la pestaña de la barra) y la tienda de la granja buscaba document [data-tab]:
     tras abrir la granja, cualquier toque volvía a pintar la granja (con la tienda vacía), también en otras pantallas.
-    Ahora un toque en la granja no cambia la tienda y, fuera de ella, no la trae."""
+    Ahora un toque en la granja no cambia la tienda ni vuelve a montar la escena y, fuera de ella, no la trae.
+    (F4b: la tienda es la hoja de la granja, dialog#fm-shop, sin pestañas: solo cosas de la granja y comida.)"""
     page = C.new_page("phone")
     probs = []
     try:
         C.seed(page)
         C.goto(page, "#/granja")
-        n0 = page.locator(".shop .sc").count()
-        page.locator("#app h2", has_text="Mi granja").click()
+        page.evaluate("() => { document.querySelector('#app .fm-stage').__keep = 1; vocabFarm.openShop(); }")
+        page.wait_for_selector("#fm-shop[open] .shop .sc", timeout=4000)
+        n0 = page.locator("#fm-shop .shop .sc").count()
+        page.locator("#fm-shop .m-head h2").click()
         page.wait_for_timeout(500)
-        st = page.evaluate("""() => ({cards: document.querySelectorAll('.shop .sc').length, on: [...document.querySelectorAll('.shop-tabs button.on')].map(b => b.dataset.tab),
-          html: typeof document.documentElement.onclick})""")
-        if n0 < 5 or st["cards"] != n0 or not st["on"] or st["html"] != "object":
-            probs.append(f"un toque en la granja cambia la tienda: {n0} tarjetas → {st}")
-        page.locator(".shop-tabs [data-tab]:not(.on)").first.click()
-        page.wait_for_timeout(400)
-        if page.locator(".shop .sc").count() == 0:
-            probs.append("las pestañas de la tienda ya no cambian de sección")
+        st = page.evaluate("""() => ({cards: document.querySelectorAll('#fm-shop .shop .sc').length, open: document.getElementById('fm-shop').open,
+          keep: !!document.querySelector('#app .fm-stage').__keep, html: typeof document.documentElement.onclick})""")
+        if n0 < 5 or st["cards"] != n0 or not st["open"] or not st["keep"] or st["html"] != "object":
+            probs.append(f"un toque en la tienda la cambia: {n0} tarjetas → {st}")
+        page.locator("#fm-shop [data-x]").click()
+        page.wait_for_function("() => !document.getElementById('fm-shop').open", timeout=3000)
+        page.wait_for_timeout(300)
+        page.mouse.click(200, 300)   # un toque en el cielo de la escena
+        page.wait_for_timeout(500)
+        if not page.evaluate("() => !!document.querySelector('#app .fm-stage') && !!document.querySelector('#app .fm-stage').__keep"):
+            probs.append("un toque en la escena vuelve a montar la granja")
         C.goto(page, "#/mapa")
         page.mouse.click(20, 420)   # un toque en el camino fuera de los nodos (en el centro está la lección 1)
         page.wait_for_timeout(600)

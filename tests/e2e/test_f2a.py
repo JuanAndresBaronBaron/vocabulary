@@ -376,10 +376,15 @@ def test_topbar_coins_and_settings():
         page.locator("[data-coins-pill]").click()
         _wait_route(page, n0)
         page.wait_for_timeout(900)
-        sh = page.evaluate("""() => { const h = document.getElementById('shop'); const r = h && h.getBoundingClientRect();
-          return {hash: location.hash, focus: document.activeElement && document.activeElement.id, top: r ? Math.round(r.top) : null, vh: innerHeight}; }""")
-        if sh["hash"] != "#/granja" or sh["focus"] != "shop" or sh["top"] is None or not (0 <= sh["top"] < sh["vh"]):
+        # F4b: la tienda es la hoja de la granja (dialog#fm-shop), no una sección h2#shop de la página
+        sh = page.evaluate("""() => { const d = document.getElementById('fm-shop'), h = d && d.querySelector('.m-head h2'), r = h && h.getBoundingClientRect();
+          return {hash: location.hash, open: !!(d && d.open), focus: !!(d && d.contains(document.activeElement)), top: r ? Math.round(r.top) : null, vh: innerHeight}; }""")
+        if sh["hash"] != "#/granja" or not sh["open"] or not sh["focus"] or sh["top"] is None or not (0 <= sh["top"] < sh["vh"]):
             probs.append(f"las monedas no abren la tienda: {sh}")
+        if sh["open"]:
+            page.locator("#fm-shop [data-x]").click()
+            page.wait_for_function("() => !document.getElementById('fm-shop').open", timeout=3000)
+            page.wait_for_timeout(300)
         # el engranaje abre la hoja de Ajustes
         page.locator(".topbar [aria-label=Ajustes]").click()
         page.wait_for_selector("dialog#ajustes[open]", timeout=3000)

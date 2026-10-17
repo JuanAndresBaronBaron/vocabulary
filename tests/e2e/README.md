@@ -87,6 +87,17 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   Palabras › ficha › Preguntas; Gramática › Practicar; «Salir» a media lección y seguir con la cápsula; respuestas de la lección y de Preguntas que
   no se parten a media palabra (texto normal y grande, antes y después de contestar); francés y danés
   en cada pantalla de Aprender (y en el repaso y la lección); y una vuelta por todo F3 que deja la partida como la base.
+- `test_f4_granja.py` (F4b, `js/farm.js` con `ROUTES.granja`): la escena a pantalla completa sin scroll, título, ficha,
+  tareas, bienvenida ni ayuda; el dock de vidrio ligero con Regar · Comida · Tienda; la hoja de la tienda (dos alturas)
+  con solo cosas de la granja y comida, comprar una vez sin volver a montar la granja y la pastilla de monedas que la
+  abre (también desde otra pestaña); arrastrar la comida = tocarla y tocar el animal = elegirla en su globo (la misma
+  partida); arrastrar la regadera = «Regar» y tocar; acariciar sin tocar `s.fed`; mantener pulsado y mover (se guarda en
+  `farm:state.pos` y sigue al recargar); la mano de la primera vez (3 vueltas, quieta con «Reducir movimiento»);
+  «¿Cómo me llamo?» con «Dilo» (reconocedor simulado: acertar entra en el repaso como `srsGrade(…, 2)`, no entender
+  nunca es fallo; sin reconocedor se toca; la mala en gris con ✗); la frase del hambre en inglés, francés y danés con
+  su voz (`speechSynthesis` simulado; una vez por animal y visita, y callada si ya suena algo); `.fm-season` y
+  `farm-mounted`; contraste y paleta (capturas `F4b-granja-*` en `capturas/F4`) y la partida exportada como la base.
+  Desde F4b, `test_f4_shop.py` compra lo de la granja en esa hoja y los trajes en una tienda de prueba (como Mi zorro).
 - `test_f4_shop.py` (F4-0, `js/shop.js`, `window.vocabShop`): comprar resta el precio una vez y emite `buy` una vez
   (también con doble toque; la pieza pasa a «En tu granja», sale en la escena, suena la palabra y «¡Nuevo! …», sin
   repintar la página); un traje comprado se pone; sin monedas no compra (cápsula gris «Te faltan N», aviso amable, sin

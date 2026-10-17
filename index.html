@@ -2095,55 +2095,8 @@ function showGift(it){
 const FEM = new Set(["rana","gorra","corona","cometa","guitarra","pelota de baloncesto","varita mágica","videoconsola","copa","tortuga","gallina","abeja","oveja","cabra","vaca","flor","seta","zanahoria","fresa","calabaza","manzana","tienda de campaña","cabaña","casa","fuente","gafas","gafas de sol","gafas de bucear"]);
 const art = n => n.startsWith("gafas") ? "unas " + n : (FEM.has(n) ? "una " : "un ") + n;
 
-/* página: mi granja + tienda. Las piezas de la tienda, comprar y ponerse son de js/shop.js (window.vocabShop): card()
-   pinta cada pieza y bind() compra, pone o quita y va al refugio, repintando solo esa pieza (y los precios de las
-   demás); aquí, tras un cambio, se ponen al día el personaje de arriba y la escena (sale lo comprado o el traje nuevo) */
-let shopTab = "farm";
-async function granja(){
-  await getShop(); document.onkeydown = null;
-  const g = game(), farm = SHOP.filter(x => x.t === "farm" && g.owned[x.id]);
-  const big = new Set(["casa","castillo","cabana","tienda","tractor","molino","fuente","cohete","arbol","pino"]);
-  const items = farm.map((x, i) => {
-    const sx = (i * 41 + 7) % 86 + 3, sy = 52 + (i * 29 + 11) % 36;
-    return `<button class="fi ${big.has(x.id) ? "bg" : ""}" data-it="${x.id}" style="left:${sx}%;top:${sy}%;z-index:${sy}" aria-label="${esc(x.n)}">${pjImg(x)}</button>`;
-  }).join("");
-  const tabs = TYPES.map(([t, e, n]) => `<button class="${t === shopTab ? "on" : ""}" data-tab="${t}">${e} ${n}</button>`).join("");
-  /* animales que se fueron al refugio (farm.js): siguen siendo suyos; su pieza lleva a «Ir al refugio» */
-  const mode = shopTab === "farm" ? "farm" : "zorro";
-  const cards = vocabShop.items(shopTab).map(x => vocabShop.card(x, {mode})).join("");
-  $("#app").innerHTML = `<div class="me">${heroHtml(120, g)}
-      <div class="me-info"><input id="me-name" maxlength="20" placeholder="Escribe tu nombre" value="${esc(g.name)}" aria-label="Tu nombre">
-        <div class="me-coins">🪙 <b>${g.coins}</b> monedas</div>
-        <div class="count">Ganas monedas al terminar lecciones, repasar y conseguir medallas.</div></div></div>
-    <h2>🏡 Mi granja</h2>
-    <div id="farm-host">${typeof farmMount === "function" ? "" : `<div class="farm" id="farm"><span class="sun">☀️</span><span class="cloud c1">☁️</span><span class="cloud c2">☁️</span>
-      <div class="farm-hero">${heroHtml(54, g)}</div>${items}
-      ${farm.length ? "" : `<div class="farm-empty">Tu granja está vacía. ¡Compra animales y plantas en la tienda!</div>`}
-      <div class="farm-tip" id="farm-tip" hidden></div></div>
-    ${farm.length ? `<p class="count" style="text-align:center">Toca un animal o una planta para oír cómo se dice en ${LANGS[lang].name}.</p>` : ""}`}</div>
-    <h2 id="shop" tabindex="-1">🛒 Tienda</h2>
-    <div class="shop-tabs">${tabs}</div>
-    <div class="shop">${cards}</div>`;
-  if(typeof farmMount === "function") farmMount($("#farm-host"));
-  $("#me-name").onchange = e => { const g = game(); g.name = e.target.value.trim(); gameSet(g); };
-  /* solo las pestañas de la tienda: <html> también lleva data-tab (la pestaña de la barra) */
-  $("#app").querySelectorAll(".shop-tabs [data-tab]").forEach(b => b.onclick = () => { shopTab = b.dataset.tab; granja(); });
-  document.querySelectorAll("[data-it]").forEach(b => b.onclick = () => {
-    const it = itemById(b.dataset.it), tip = $("#farm-tip");
-    b.classList.remove("hop"); void b.offsetWidth; b.classList.add("hop");
-    tip.hidden = false; tip.innerHTML = `${pjImg(it, "pj-sm")} <b>${esc(itemWord(it))}</b> = ${esc(it.n)}`;
-    tip.style.left = b.style.left; tip.style.top = `calc(${b.style.top} - 54px)`;
-    say(itemWord(it));
-  });
-  /* comprar, ponerse o quitarse: la pieza se repinta sola; aquí, el personaje de arriba y la escena (lo comprado sale
-     en la granja y el personaje de la granja lleva lo nuevo), sin volver a pintar la página ni perder el sitio */
-  vocabShop.bind($("#app .shop"), {onChange: e => {
-    if(e.type !== "buy" && e.type !== "wear") return;
-    const me = $("#app .me > .hero"); if(me) me.outerHTML = heroHtml(120);
-    if(typeof farmMount === "function"){ if($("#farm-host")) farmMount($("#farm-host")); }
-    else granja();   /* sin js/farm.js, la granja quieta de aquí arriba se vuelve a pintar entera, como antes */
-  }});
-}
+/* página: la granja es ROUTES.granja (js/farm.js): la escena a pantalla completa, su dock y su tienda (solo cosas de la
+   granja, con js/shop.js); el nombre se cambia en Ajustes */
 
 /* página: mis premios */
 async function premios(){
@@ -2214,7 +2167,7 @@ function calmCss(){
 /* ---------- rutas ---------- */
 /* las rutas que existen: las de aquí y las de los módulos (ROUTES). Una que no existe (un enlace viejo o mal escrito)
    se cambia por Hoy en el historial, y así la pestaña, el título y el modo foco son los de Hoy */
-const KNOWN = ["", "leccion", "progreso", "granja"];   /* #/repaso: ROUTES.repaso (js/review.js); #/mapa, #/palabras, #/doc y #/gramatica: js/learn.js */
+const KNOWN = ["", "leccion", "progreso"];   /* #/repaso: ROUTES.repaso (js/review.js); #/granja: js/farm.js; #/mapa, #/palabras, #/doc y #/gramatica: js/learn.js */
 const knownRoute = hp => KNOWN.includes(secOf(hp)) || Object.prototype.hasOwnProperty.call(ROUTES, secOf(hp));
 let prevHp = null, mapScrolled = false;
 async function route(){
@@ -2235,7 +2188,6 @@ async function route(){
     await getShop();
     if(h.startsWith("leccion/")) await leccion(h.slice(8));
     else if(h.startsWith("progreso")) await premios();
-    else if(h.startsWith("granja")) await granja();
     else if(ROUTES[secOf(hp)]){ document.onkeydown = null; await ROUTES[secOf(hp)](h.split("/").slice(1)); }
     else await home();
   }catch(e){ console.error(e); $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
