@@ -61,6 +61,15 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   la pista del gesto en el segundo giro, los tres escalones de «Pista», «Dilo primero» con un `SpeechRecognition`
   simulado (acierto que puntúa solo, fallo que nunca pone 0, los 7 s de `listen()`, sin permiso), sin reconocedor sin
   micrófono, el final que paga una vez y va a Hoy, «Todo repasado», «¿Paramos aquí?» con el accesorio y la auditoría.
+- `test_f3_aprender.py` (F3c, `js/learn.js`): la pastilla de nivel (menú con los 6 niveles, teclado, `mapLv` como
+  antes: el Camino lo guarda y Gramática no), «Mi lección» (sale, baja con scroll y se va; ↑ muy abajo; vidrio
+  ligero), mantener pulsado un nodo hecho (vistazo con estrellas, palabras y «Repetir», sin abrir la lección al
+  soltar), tocar nodos (bloqueado con aviso, hecho y actual abren su lección), `#/palabras` con sus tres grupos,
+  anillos contados en `srs:<idioma>` y Avanzado plegado (recordado en la sesión), la ficha en Tarjetas con sus
+  segmentos (modo recordado por tema), la fila que se despliega (IPA solo con la opción) y que al deslizarla con
+  PointerEvents sintéticos escribe lo mismo que `srsAdd(id, [fila], 0)`, Preguntas igual que `srsGrade` (fallo gris,
+  sin temblor, paga una vez), Escribir con `prPrefs`, `prAuto`, `prEx` y `pr:<tema>:<idioma>` de siempre, Gramática que
+  despliega y «Practicar», URL directas (y `#/doc` sin tema → `#/palabras`) y la partida igual tras recorrerlo todo.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

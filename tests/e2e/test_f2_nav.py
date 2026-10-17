@@ -444,7 +444,7 @@ def test_farm_clicks_stay_put():
         if page.locator(".shop .sc").count() == 0:
             probs.append("las pestañas de la tienda ya no cambian de sección")
         C.goto(page, "#/mapa")
-        page.mouse.click(200, 420)
+        page.mouse.click(20, 420)   # un toque en el camino fuera de los nodos (en el centro está la lección 1)
         page.wait_for_timeout(600)
         if page.locator("#app #farm-host").count() or C.current_hash(page) != "mapa":
             probs.append(f"tras la granja, un toque en el camino pinta la granja (#/{C.current_hash(page)})")
