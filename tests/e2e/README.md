@@ -98,6 +98,16 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   otra pantalla con `onChange` y `off()`; piezas que caben, botones de 44 px y contraste/paleta en móvil y escritorio,
   claro y oscuro (capturas `F4-0-tienda-*` en `capturas/F4`); la partida exportada como la base y `js/shop.js` en
   `SHELL` y `OFF_APP`.
+- `test_f4_juegos.py` (F4a, `js/games.js` y `js/lince.js`): el menú sin las piezas viejas, tarjetas sólidas con el
+  récord en estrellas de oro, la pastilla «Tema: … ▾» con su hoja («Mis palabras» primero; se guarda en
+  `games:topic`), la explicación solo la primera vez (en `vocab:ui`, fuera de la partida), el «?» con la partida en
+  pausa y la tarjeta corta al recargar, mantener pulsada una tarjeta (vistazo) y tocar para jugar, los 5 juegos hasta
+  el resultado con `award` una vez desde «+N» y las monedas volando, fallos grises con ✗ en todos, Esc y la ✕ abren la
+  pausa (y en Lince la pausa espera), Oído de lince (8 rondas, audio grabado interceptando `HTMLMediaElement.play`,
+  verde/gris, las dos palabras al fallar, altavoz y tortuga a 0,7, teclas 1/2, récord, francés y danés),
+  `data/lince.json` válido (≥ 12 pares por idioma, palabras del corpus con audio y dibujo), sin bucles infinitos, la
+  fila de arriba que cabe en el móvil, contraste/paleta (capturas `F4a-juegos-*` y `F4a-lince-*` en `capturas/F4`) y
+  la partida exportada como la base.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

@@ -73,3 +73,5 @@ def all_routes(only=None):
 
 # F2 (armazón de navegación): Aprender › Palabras, la lista de temas que antes estaba en la portada
 add("palabras", "#/palabras", "Aprender › Palabras (temas, las 3000 y avanzado)")
+# F4a: Oído de lince (js/lince.js), el juego nuevo de Juegos
+add("juego-lince", "#/juegos/lince", "Juego Oído de lince (inicio de partida)")
