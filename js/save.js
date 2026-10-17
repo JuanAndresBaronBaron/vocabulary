@@ -22,6 +22,7 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
      game (monedas, personaje, compras) · act (actividad por día) · lang · rate · theme · mute (sfx.js) · mapLv ·
      prEx · prAuto · prPrefs (prácticas) · farm:state (farm.js) · games:best · games:topic · games:day (games.js) ·
      buddy:hide · buddy:missions · buddy:wotd (buddy.js) · album:tab (album.js)
+     season (fiestas: puertas, pegatinas y ventanitas por año, js/season.js)
    Por idioma (<lang> = una clave de LANGS: english, français, dansk):
      srs:<lang> (repaso) · map:<lang> (lecciones del camino) · voice:<lang> · album:seen|done|uniq|orph:<lang>
    Prácticas por documento: pr:<docId>:<lang>
@@ -37,6 +38,7 @@ const EXACT = {
   lang: "*", rate: "*", theme: "*", mute: "*", mapLv: "*", prEx: "*", prAuto: "*",
   "games:best": "*", "games:topic": "*", "games:day": "*",
   "buddy:hide": "*", "buddy:missions": "*", "buddy:wotd": "*", "album:tab": "*",
+  season: "o",
 };
 const PER_LANG = {"srs:": "o", "map:": "o", "voice:": "*", "album:seen:": "*", "album:done:": "*", "album:uniq:": "*", "album:orph:": "*"};
 const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft"];

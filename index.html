@@ -1044,7 +1044,8 @@ const OFF_SHELL = "vocab-shell-v18", OFF_MEDIA = "vocab-media";   /* los mismos 
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
-  "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2"];
+  "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2",
+  "js/season.js", "data/season.json"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
 const OFF_IMG_MB = 7.5, OFF_IMG_N = 970;          /* dibujos y personajes (los que ya están no se vuelven a pedir) */
@@ -1277,6 +1278,7 @@ function rootOf(h){
   if(a === "doc") return "palabras";
   if(a === "leccion") return lessonLv(b) ? "mapa/" + lessonLv(b) : "mapa";
   if((a === "juegos" || a === "album") && b) return a;
+  if(a === "temporada") return "";   /* la temporada (js/season.js) es una pantalla de Hoy */
   return String(h || "");
 }
 const isRootPath = h => rootOf(h) === h;
@@ -2100,5 +2102,6 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/gate.js"></script>
 <script src="js/settings.js"></script>
 <script src="js/review.js"></script>
+<script src="js/season.js"></script>
 </body>
 </html>

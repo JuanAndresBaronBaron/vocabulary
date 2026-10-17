@@ -20,6 +20,7 @@ const SHELL = [
   "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png",
   "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2",
+  "js/season.js", "data/season.json",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */
 const MEDIA_RE = /\.(png|jpe?g|gif|webp|svg|mp3|m4a|ogg|wav)$/i;
