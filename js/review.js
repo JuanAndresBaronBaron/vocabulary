@@ -217,8 +217,9 @@ ${DARK(".rv-pic", "background:#F2F2F7;border-radius:var(--r-md);padding:6px")}
 .rv-chip .ico{color:var(--gold-deep)}
 .rv-more:empty{display:none}
 .rv-more{justify-content:center;margin-top:16px}
-.rv-more .btn.al-ls{display:inline-flex;align-items:center;min-height:var(--tap);padding:0 16px;border:0;border-radius:var(--r-pill);background:var(--card);
+.rv-more .btn.al-ls{display:inline-flex;align-items:center;gap:8px;min-height:var(--tap);padding:0 16px;border:0;border-radius:var(--r-pill);background:var(--card);
   color:var(--brand-ink);box-shadow:none;font:600 var(--fs-sub)/1.2 var(--f-text);text-decoration:none}
+.rv-more .btn.al-ls .ico{color:var(--gold-deep)}
 .rv-end-go{margin-top:24px;max-width:460px}
 .rv-fox .hero{animation:rv-hop .7s var(--sp-bouncy,ease-out) .1s 1 both}
 dialog#rv-pause{max-width:420px}
@@ -227,7 +228,8 @@ dialog#rv-pause.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filte
 .rv-pz-ic{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:4px 0 12px;color:var(--brand-tint);background:var(--fill)}
 .rv-pz-t{margin:0 0 6px;font:700 var(--fs-t2)/1.2 var(--f-round);color:var(--label)}
 .rv-pz-p{margin:0 0 20px;color:var(--label2);font:400 var(--fs-sub)/1.3 var(--f-text)}
-.rv-pz-b{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px}
+.rv-pz-b{display:flex;gap:12px;width:100%;max-width:440px}
+.rv-pz-b>*{flex:1}
 @keyframes rv-in{from{opacity:0;scale:.9}to{opacity:1;scale:1}}
 @keyframes rv-hop{0%{translate:0 0}35%{translate:0 -14px}70%{translate:0 0}85%{translate:0 -4px}100%{translate:0 0}}
 @media (prefers-reduced-motion:reduce){
@@ -604,8 +606,8 @@ function pauseSheet(){
     <h2 class="rv-pz-t" id="rv-pz-t">¿Paramos aquí?</h2>
     <p class="rv-pz-p">Luego sigues donde lo dejaste.</p>
     <div class="rv-pz-b">
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="rv-pz-go" autofocus>${ico("play", "fill", 20)}Seguir</button>
-      <button type="button" class="glass-btn glass-btn--lg glass-btn--block" id="rv-pz-out">Salir</button></div></div>`;
+      <button type="button" class="glass-btn glass-btn--lg" id="rv-pz-out">Salir</button>
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="rv-pz-go" autofocus>${ico("play", "fill", 20)}Seguir</button></div></div>`;
   DOC.body.appendChild(d);
   d.addEventListener("click", e => {
     if(e.target.closest("#rv-pz-go")){ if(W.M && W.M.closeSheet) W.M.closeSheet(d); else d.close(); }

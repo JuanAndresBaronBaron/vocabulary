@@ -892,7 +892,7 @@ bus.on("lesson-done", d => {
       for(const w of words){ const k = w.doc + "|" + w.es; if(m[k] && !seen[k]) cnt[w.doc] = (cnt[w.doc] || new Set()).add(k); }
       const docs = Object.entries(cnt).sort((a, b) => b[1].size - a[1].size); if(!docs.length) return;
       const n = docs.reduce((s, [, v]) => s + v.size, 0);
-      host.insertAdjacentHTML("beforeend", `<a class="btn al-ls" href="#/album/${esc(docs[0][0])}">📒 ¡${n} ${plural(n, "pegatina nueva", "pegatinas nuevas")}!</a>`);
+      host.insertAdjacentHTML("beforeend", `<a class="btn al-ls" href="#/album/${esc(docs[0][0])}">${ico("sparkle", "fill", 18)}¡${n} ${plural(n, "pegatina nueva", "pegatinas nuevas")}!</a>`);
     }catch(e){ console.error(e); }
   }, 60);
 });
@@ -903,7 +903,7 @@ bus.on("review-done", () => {
       const host = document.querySelector(".pr-end .pr-row"); if(!host || host.querySelector(".al-ls")) return;
       const m = srsAll(), seen = getSeen();
       const n = Object.entries(m).filter(([k, x]) => x && (x.b || 0) >= MASTER && seen[k] !== 2).length;
-      if(n) host.insertAdjacentHTML("beforeend", `<a class="btn al-ls" href="#/album">⭐ ¡${n} ${plural(n, "pegatina dorada nueva", "pegatinas doradas nuevas")}!</a>`);
+      if(n) host.insertAdjacentHTML("beforeend", `<a class="btn al-ls" href="#/album">${ico("star", "fill", 18)}¡${n} ${plural(n, "pegatina dorada nueva", "pegatinas doradas nuevas")}!</a>`);
     }catch(e){ console.error(e); }
   }, 60);
 });

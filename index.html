@@ -1115,7 +1115,7 @@ async function progreso(el){
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v16", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v17", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
