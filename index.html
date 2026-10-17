@@ -762,7 +762,7 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .lv-tabs{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0 6px}
 .lv-tab{border:2px solid var(--line);background:var(--card);border-radius:14px;padding:6px 12px;min-width:84px;text-align:center;text-decoration:none;line-height:1.2}
 .lv-tab b{display:block;font-size:1.1rem;color:var(--lc)}
-:root[data-theme=dark] :is(.lv-tab b,.unit a,.bubble,.ls-card .tag,.nd .glbl,.g-rule h3,.g-ex h3,.lv-links a,.lvm .ring b){color:color-mix(in srgb,var(--lc) 55%,#fff)}
+:root[data-theme=dark] :is(.lv-tab b,.unit a,.bubble,.nd .glbl,.g-rule h3,.g-ex h3,.lv-links a,.lvm .ring b){color:color-mix(in srgb,var(--lc) 55%,#fff)}
 :is(.unit a,.nd .glbl,.lv-links a,.lv-tab b){color:color-mix(in srgb,var(--lc) 80%,#000)}
 .lv-tab small{color:var(--muted);font-size:.74rem}
 .lv-tab.on{border-color:var(--lc);background:color-mix(in srgb,var(--lc) 12%,var(--card))}
@@ -790,27 +790,9 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 @media (prefers-reduced-motion:reduce){.bubble{animation:none}}
 .bubble::after{content:"";position:absolute;left:50%;top:100%;border:8px solid transparent;border-top-color:var(--card);transform:translateX(-50%)}
 @keyframes bob{0%,100%{translate:0 0}50%{translate:0 -5px}}
-/* lección */
-.ls{width:min(100%,560px);margin:0 auto}
-.ls-top{display:flex;align-items:center;gap:12px;margin:6px 0 18px}
-.ls-top .x{border:0;background:none;font-size:1.5rem;color:var(--muted);padding:0 4px;text-decoration:none}
-.ls-prog{flex:1;height:14px;background:var(--line);border-radius:99px;overflow:hidden}
-.ls-prog i{display:block;height:100%;background:var(--teal);border-radius:99px;transition:width .3s}
-.ls-card{background:var(--card);border:1px solid transparent;border-radius:var(--r-card);box-shadow:var(--shadow);padding:22px;text-align:center;min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
-.ls-card .img img{max-width:200px;max-height:150px}
-.ls-card .tag{font-size:.78rem;font-weight:700;color:var(--lc);text-transform:uppercase;letter-spacing:.06em}
-.ls-card .es{color:var(--muted);font-size:1.05rem}
-.ls-card .big{font-size:1.9rem;font-weight:800;margin:4px 0}
-.ls-card .q{font-size:1.3rem;font-weight:700}
-.ls-card .opts{width:100%}
-.ls-card .opt{color:var(--ink)}
-.ls-foot{margin-top:16px;border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
-.ls-foot.ok{background:color-mix(in srgb,var(--ok) 16%,var(--card));color:var(--ok-ink)}
-.ls-foot.bad{background:var(--card);color:var(--miss-ink)}
-.ls-foot .msg{flex:1;font-weight:700}.ls-foot .msg small{display:block;font-weight:400;color:var(--ink)}
+/* lección: sus estilos van con js/lesson.js (<style id="css-lesson">) */
 /* el botón principal es siempre azul (un solo color para lo que se toca); --lc queda para cabeceras y adornos del nivel o juego */
 .btn.lc{background:var(--brand-fill);border-color:transparent;color:#fff;font-weight:700;padding:11px 22px;box-shadow:0 4px 0 color-mix(in srgb,var(--brand-fill) 60%,#000)}
-.ls-end .big-stars{font-size:2.6rem;color:var(--gold);-webkit-text-stroke:1px var(--gold-deep);letter-spacing:4px}.ls-end .big-stars .e{color:var(--line)}
 [data-theme=dark] .node.lock,[data-theme=dark] .node.trophy.lock{background:#333a4a;color:#6f7889;box-shadow:0 7px 0 #222836}
 @media (max-width:560px){.nd{transform:translateX(calc(var(--x) * .7))}.lv-tab{min-width:0;flex:1 1 28%}}
 /* gramática */
@@ -818,9 +800,7 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .nd .glbl{position:absolute;top:50%;transform:translateY(-50%);width:150px;font-size:.78rem;font-weight:700;color:color-mix(in srgb,var(--lc) 85%,#000);line-height:1.25}
 .nd .glbl.r{left:calc(100% + 12px)}.nd .glbl.l{right:calc(100% + 12px);text-align:right}
 .nd .glbl small{display:block;color:var(--muted);font-weight:600;text-transform:uppercase;font-size:.66rem;letter-spacing:.05em}
-.g-card{text-align:left;align-items:stretch;justify-content:flex-start}
-.g-card .tag,.g-card .big,.g-card>.es{text-align:center}
-.g-body,.g-item{text-align:left}
+.g-item{text-align:left}
 .g-rule{margin:12px 0 0}
 .g-rule h3,.g-ex h3{font-size:1rem;margin:0 0 4px;color:var(--lc)}
 .g-rule p{margin:0}
@@ -829,10 +809,6 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .g-tab tr:first-child td{background:var(--soft)}
 .g-ex{margin-top:14px}
 .g-ex .ex{text-align:left}
-.g-sent{font-size:1.35rem;font-weight:600;line-height:1.5;margin:8px 0}
-.g-gap{display:inline-block;min-width:70px;border-bottom:3px solid var(--line);color:var(--muted);padding:0 4px}
-.g-gap.ok{color:var(--ok-ink);border-color:var(--ok)}.g-gap.bad{color:var(--bad);border-color:var(--bad)}
-.ls-foot .msg small+small{color:var(--muted)}
 .g-item{padding:0;margin-bottom:10px}
 .g-item summary{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;list-style:none}
 .g-item summary::-webkit-details-marker{display:none}
@@ -844,7 +820,7 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .g-ok{margin-left:auto;color:var(--gold-ink);white-space:nowrap}.g-ok .e{color:var(--line)}
 .lv-links{text-align:center;margin:12px 0 0}
 .lv-links a{color:var(--lc);font-weight:700;text-decoration:none}
-@media (max-width:560px){.nd .glbl{width:110px}.ls-foot .msg{flex-basis:100%}.ls-foot .btn.lc{margin-left:auto}}
+@media (max-width:560px){.nd .glbl{width:110px}}
 .hero{position:relative;display:inline-block;width:1.3em;height:1.25em;line-height:1;flex:none}
 .hero span{position:absolute;line-height:1}
 .hero .h-base{left:.15em;top:.2em;font-size:1em}
@@ -1330,7 +1306,7 @@ async function progreso(el){
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
 const OFF_SHELL = "vocab-shell-v16", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
-  "data/sprites.json", "js/motion.js", "js/gestures.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
+  "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
@@ -2730,115 +2706,9 @@ async function mapa(lv){
   return true;
 }
 
-let LS = null;
-async function leccion(id){
-  await getMap(); document.onkeydown = null;
-  if(id.startsWith("G-")) return gramLesson(id);
-  /* una lección que no existe (enlace viejo, id cambiado u otro idioma sin ella): al camino, por el router, así no se
-     queda en modo foco y el historial queda bien */
-  const toMap = l => { location.replace("#/mapa" + (l && MAP[l] ? "/" + l : "")); };
-  const lv = id.slice(0, 2); if(!MAP[lv]) return toMap();
-  const ui = MAP[lv].findIndex(u => u.ls.some(l => l.id === id)); if(ui < 0) return toMap(lv);
-  const unit = MAP[lv][ui], l = unit.ls.find(l => l.id === id);
-  const docs = {}; for(const [d] of l.w) docs[d] = await getDoc(d);
-  const words = l.w.map(([d, i]) => ({doc:d, r:docs[d].rows[i]})).filter(x => x.r && x.r.l[lang]);
-  if(!words.length) return toMap(lv);
-  /* distractores: las otras palabras de la lección y, si faltan, del mismo documento */
-  const pool = [...words]; const seen = new Set(words.map(x => x.r.es));
-  for(const r of docs[unit.doc].rows) if(pool.length < 12 && r.es && r.l[lang] && !seen.has(r.es)){ seen.add(r.es); pool.push({doc:unit.doc, r}); }
-  const steps = [...words.map(w => ({t:"learn", w})), ...shuffle(words).map((w, i) => ({t: i % 2 ? "listen" : "pick", w}))];
-  LS = {id, lv, unit, words, pool, steps, i:0, nq:words.length, first:new Set(), miss:new Set(), tok:++autoTok};
-  lsStep();
-}
-function lsOpts(w, field){
-  const val = x => field === "es" ? x.r.es : x.r.l[lang].word;
-  const out = [w], used = new Set([val(w)]);
-  for(const x of shuffle(LS.pool)){ if(out.length >= 4) break; if(!used.has(val(x))){ used.add(val(x)); out.push(x); } }
-  return shuffle(out).map(x => val(x));
-}
-function lsStep(){
-  const s = LS; if(!s) return;
-  if(s.i >= s.steps.length) return lsEnd();
-  const st = s.steps[s.i], r = st.w.r, d = r.l[lang], lc = LVS[s.lv].c;
-  const pct = Math.round(100 * s.i / s.steps.length);
-  let body = "";
-  if(st.t === "learn"){
-    body = `<div class="ls-card"><div class="tag">Palabra nueva</div>${imgHtml(r)}
-      <div class="es">${esc(r.es)}</div><div class="big">${esc(d.word)}</div>
-      <div>${sayBtn(d.word)}</div>
-      <div class="meta" style="justify-content:center"><span class="pron">${esc(d.pron)}</span><span class="ipa">${esc(d.ipa)}</span></div>
-      ${d.ex?`<div class="ex">${esc(d.ex)} ${sayBtn(d.ex,1)}<div class="tr">${esc(d.ex_es)}</div></div>`:""}</div>
-      <div class="ls-foot"><span class="msg"></span><button class="btn lc" id="ls-go">Continuar</button></div>`;
-  } else {
-    const listen = st.t === "listen", field = listen ? "es" : "word";
-    const opts = lsOpts(st.w, field), right = listen ? r.es : d.word;
-    st.right = right;
-    body = `<div class="ls-card"><div class="tag">${listen ? "Escucha y elige qué significa" : "¿Cómo se dice en "+LANGS[lang].name+"?"}</div>
-      ${listen ? `<div class="sayrow"><button class="say xl" data-say="${esc(d.word)}" aria-label="Escuchar" style="width:72px;height:72px;font-size:1.8rem">🔊</button>${slowBtn(d.word)}</div>`
-               : `${imgHtml(r)}<div class="q">${esc(r.es)}</div>`}
-      <div class="opts">${opts.map((o, k) => `<button class="opt" data-o="${esc(o)}"><span style="color:var(--muted);font-weight:400">${k+1}</span> ${esc(o)}</button>`).join("")}</div></div>
-      <div id="ls-fb"></div>`;
-  }
-  $("#app").innerHTML = `<div class="ls" style="--lc:${lc}">
-    <div class="ls-top"><a class="x" href="#/mapa/${s.lv}" title="Salir" aria-label="Salir">✕</a><div class="ls-prog"><i style="width:${pct}%"></i></div></div>
-    ${body}</div>`;
-  const tok = s.tok;
-  if(st.t === "learn"){
-    setTimeout(() => { if(LS === s && autoTok === tok) sayP(d.word, $(".ls-card .say")); }, 250);
-    $("#ls-go").onclick = () => { s.i++; lsStep(); };
-    document.onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); $("#ls-go") && $("#ls-go").click(); } };
-  } else {
-    if(st.t === "listen") setTimeout(() => { if(LS === s && autoTok === tok) sayP(d.word, $(".ls-card .say")); }, 250);
-    const pick = b => {
-      if(st.done) return; st.done = true;
-      const ok = b.dataset.o === st.right;
-      bus.emit("answer", {ok, es: r.es, word: d.word, where: "lesson"});
-      $(".ls-card").querySelectorAll(".opt").forEach(o => { o.disabled = true; if(o.dataset.o === st.right) o.classList.add("ok"); });
-      if(!ok) b.classList.add("bad");
-      const key = st.w.r.es;
-      if(ok){ if(!s.miss.has(key)) s.first.add(key); }
-      else { s.miss.add(key); s.steps.push({t: st.t === "pick" ? "listen" : "pick", w: st.w}); }
-      $("#ls-fb").innerHTML = `<div class="ls-foot ${ok?"ok":"bad"}"><span class="msg">${ok ? "¡Muy bien!" : "Respuesta correcta:"}
-        <small>${esc(d.word)} = ${esc(r.es)}</small></span>${sayBtn(d.word)}<button class="btn lc" id="ls-go">Continuar</button></div>`;
-      if(st.t === "pick" || !ok) sayP(d.word);
-      $("#ls-go").onclick = () => { s.i++; lsStep(); };
-      $("#ls-go").focus({preventScroll:true});
-    };
-    $(".ls-card").querySelectorAll(".opt").forEach(b => b.onclick = () => pick(b));
-    document.onkeydown = e => {
-      if(e.target.tagName === "INPUT") return;
-      const n = parseInt(e.key); const os = $(".ls-card") ? $(".ls-card").querySelectorAll(".opt") : [];
-      if(n >= 1 && n <= os.length && !st.done) pick(os[n-1]);
-      else if(e.key === "Enter" && st.done){ e.preventDefault(); $("#ls-go") && $("#ls-go").click(); }
-    };
-  }
-}
-function lsEnd(){
-  const s = LS; document.onkeydown = null;
-  const acc = s.first.size / s.nq, stars = acc >= .9 ? 3 : acc >= .6 ? 2 : 1;
-  const P = mapP(); const prev = P[s.id] || 0; P[s.id] = Math.max(prev, stars); store.set("map:"+lang, P);
-  const coins = prev ? 5 : 10 + 5 * stars; award(coins, prev ? "¡Lección repetida!" : "¡Lección completada!");
-  const by = {}; for(const w of s.words) (by[w.doc] = by[w.doc] || []).push(w.r);
-  let added = 0; for(const [d, rows] of Object.entries(by)) added += srsAdd(d, rows, 1);
-  logAct(s.words.length || s.nq); updBadge();
-  bus.emit("lesson-done", {id: s.id, lv: s.lv, stars, first: !prev, grammar: !!s.g, words: s.words.map(w => ({doc: w.doc, es: w.r.es, word: w.r.l[lang].word}))});
-  const ls = lvLessons(s.lv), i = ls.findIndex(l => l.id === s.id), nxt = ls[i+1];
-  const lvDone = ls.every(l => P[l.id]);
-  $("#app").innerHTML = `<div class="ls ls-end" style="--lc:${LVS[s.lv].c}">
-    <div class="ls-card">${heroHtml(84)}
-      <div class="big">${lvDone ? `¡Nivel ${s.lv} completado!` : "¡Lección completada!"}</div>
-      <div class="big-stars">${starsHtml(stars)}</div>
-      <div class="gword">+${coins} 🪙</div>
-      <div class="es">Acertaste a la primera ${s.first.size} de ${s.nq}.${added ? ` Mañana repasarás estas ${added} palabras.` : ""}</div>
-      <div class="ctrl" style="margin-top:14px">
-        <button class="btn" id="ls-rep">Repetir</button>
-        ${nxt ? `<a class="btn lc" style="text-decoration:none" href="#/leccion/${nxt.id}">Siguiente lección →</a>` : ""}
-        <a class="btn ${nxt?"":"lc"}" style="text-decoration:none" href="#/mapa/${s.lv}">Volver al mapa</a>
-      </div></div></div>`;
-  $("#ls-rep").onclick = () => leccion(s.id);
-  setTimeout(giftCheck, 1500);
-  document.onkeydown = e => { if(e.key === "Enter" && nxt){ e.preventDefault(); location.hash = "#/leccion/" + nxt.id; } };
-}
+/* la lección del camino (#/leccion/<id>, también la de gramática G-…) y su final están en js/lesson.js: leccion(id),
+   lsStep(), lsEnd(), gramLesson(id), gStep() y window.vocabLesson (lo guardado en sessionStorage "vocab:ls" y la guarda
+   de salida que route() mira antes de nada) */
 
 /* ---------- gramática ---------- */
 const GRAM = {};
@@ -2875,53 +2745,7 @@ async function gramatica(lv){
     <div class="lv-tabs">${tabs}</div>
     <div style="--lc:${LVS[lv].c};margin-top:14px">${list || `<p class="empty">Todavía no hay temas de gramática para este nivel.</p>`}</div>`;
 }
-async function gramLesson(id){
-  const lv = id.slice(2, 4), k = parseInt(id.slice(5)) - 1, x = ((GRAM[lang] || {})[lv] || [])[k];
-  if(!x){ location.replace("#/mapa" + (LVS[lv] ? "/" + lv : "")); return; }
-  LS = {id, lv, g:true, x, words:[], steps: shuffle(x.q.map((q, i) => i)).map(i => ({t:"gq", q:x.q[i]})), i:-1, nq:x.q.length, first:new Set(), miss:new Set(), tok:++autoTok};
-  gStep();
-}
-function gStep(){
-  const s = LS, x = s.x, lc = LVS[s.lv].c;
-  const top = pct => `<div class="ls-top"><a class="x" href="#/mapa/${s.lv}" title="Salir" aria-label="Salir">✕</a><div class="ls-prog"><i style="width:${pct}%"></i></div></div>`;
-  if(s.i < 0){
-    $("#app").innerHTML = `<div class="ls" style="--lc:${lc}">${top(0)}
-      <div class="ls-card g-card"><div class="tag">📘 Gramática · ${s.lv}</div><div class="big" style="font-size:1.5rem">${esc(x.t)}</div>
-        <div class="es">${esc(x.sum)}</div><div class="g-body">${gramTheory(x)}</div></div>
-      <div class="ls-foot"><span class="msg"></span><button class="btn lc" id="ls-go">Practicar</button></div></div>`;
-    $("#ls-go").onclick = () => { s.i = 0; gStep(); };
-    document.onkeydown = e => { if(e.key === "Enter"){ e.preventDefault(); $("#ls-go").click(); } };
-    return;
-  }
-  if(s.i >= s.steps.length) return lsEnd();
-  const st = s.steps[s.i], q = st.q, right = q.o[q.a];
-  const [pre, post] = q.s.split("___");
-  $("#app").innerHTML = `<div class="ls" style="--lc:${lc}">${top(Math.round(100 * s.i / s.steps.length))}
-    <div class="ls-card"><div class="tag">Completa la frase</div>
-      <div class="g-sent">${esc(pre)}<span class="g-gap" id="gap">____</span>${esc(post ?? "")}</div>
-      <div class="opts">${q.o.map((o, k) => `<button class="opt" data-k="${k}"><span style="color:var(--muted);font-weight:400">${k+1}</span> ${esc(o)}</button>`).join("")}</div></div>
-    <div id="ls-fb"></div></div>`;
-  const full = q.s.replace("___", right);
-  const pick = b => {
-    if(st.done) return; st.done = true;
-    const ok = +b.dataset.k === q.a, key = q.s;
-    bus.emit("answer", {ok, where: "grammar"});
-    $(".ls-card").querySelectorAll(".opt").forEach(o => { o.disabled = true; if(+o.dataset.k === q.a) o.classList.add("ok"); });
-    if(!ok){ b.classList.add("bad"); s.miss.add(key); s.steps.push({t:"gq", q}); } else if(!s.miss.has(key)) s.first.add(key);
-    const gap = $("#gap"); gap.textContent = right; gap.classList.add(ok ? "ok" : "bad");
-    $("#ls-fb").innerHTML = `<div class="ls-foot ${ok?"ok":"bad"}"><span class="msg">${ok ? "¡Correcto!" : "Respuesta correcta: " + esc(right)}
-      <small>${esc(q.es)}</small><small style="margin-top:4px">💡 ${md(q.why)}</small></span>${sayBtn(full)}<button class="btn lc" id="ls-go">Continuar</button></div>`;
-    sayP(full);
-    $("#ls-go").onclick = () => { s.i++; gStep(); };
-    $("#ls-go").focus({preventScroll:true});
-  };
-  $(".ls-card").querySelectorAll(".opt").forEach(b => b.onclick = () => pick(b));
-  document.onkeydown = e => {
-    const n = parseInt(e.key), os = $(".ls-card") ? $(".ls-card").querySelectorAll(".opt") : [];
-    if(n >= 1 && n <= os.length && !st.done) pick(os[n-1]);
-    else if(e.key === "Enter" && st.done){ e.preventDefault(); $("#ls-go") && $("#ls-go").click(); }
-  };
-}
+/* la práctica de un tema (#/leccion/G-<nivel>-<nn>) es una lección más: gramLesson(id) y gStep() en js/lesson.js */
 
 /* ---------- juego: monedas, personaje, granja y premios ---------- */
 let SHOP = [];
@@ -3212,6 +3036,7 @@ const KNOWN = ["", "doc", "mapa", "gramatica", "leccion", "progreso", "granja", 
 const knownRoute = hp => KNOWN.includes(secOf(hp)) || Object.prototype.hasOwnProperty.call(ROUTES, secOf(hp));
 let prevHp = null, mapScrolled = false;
 async function route(){
+  if(window.vocabLesson && vocabLesson.blocks(hashPath())) return;   /* lección a medias: «¿Paramos aquí?» (js/lesson.js) */
   if(!knownRoute(hashPath())){ location.replace("#/"); return; }
   autoTok++; if(state.fc) state.fc.auto = false; if("speechSynthesis" in window) speechSynthesis.cancel();
   const h = location.hash.replace(/^#\/?/,""), hp = hashPath(), from = prevHp; prevHp = hp;
@@ -3255,6 +3080,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 </script>
 <script src="js/motion.js"></script>
 <script src="js/gestures.js"></script>
+<script src="js/lesson.js"></script>
 <script src="js/sfx.js"></script>
 <script src="js/farm.js"></script>
 <script src="js/games.js"></script>

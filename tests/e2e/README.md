@@ -49,6 +49,12 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   segmentos y del refugio, hojas opacas a toda altura y centradas en el ordenador, «Reducir movimiento» en el fondo de
   las hojas, la hoja corta del aviso de Google, Voz y velocidad sin tecnicismos, el título de cada pantalla, créditos
   y privacidad en español, Hoy en móviles bajos, el borde de la granja y el accesorio a lo ancho.
+- `test_f3_leccion.py` (F3a, `js/lesson.js`): acertar pasa solo ≤ 1,2 s tras el audio y nunca antes de 0,9 s (audio
+  simulado), fallar en gris con ✗ y la buena en verde sin temblor, vibración ni sonido triste, deslizar con
+  PointerEvents sintéticos igual que «Continuar», recargar a mitad sigue donde estaba, Atrás a mitad pregunta
+  «¿Paramos aquí?» (guarda de salida) y «Salir» borra `vocab:ls`, el accesorio «Seguir · Lección N», el final (estrellas
+  de una en una, monedas una vez, «Mañana repasas N palabras», confeti), la gramática, «Cómo suena» y el camino y el
+  repaso guardados igual que en la versión anterior (commit 3396fc7) para la misma secuencia.
 - `test_f3_repaso.py` (F3b, `js/review.js`): `#/repaso` directo a la primera tarjeta en modo foco, girar (350 ms, con
   «Reducir movimiento» un fundido), las notas 2 · 1 · 0 comparadas con lo que escribe el `srsGrade` de siempre (y
   `srsGrade`/`srsNext` iguales a los del commit 1721796), deslizar con PointerEvents sintéticos igual que los botones,

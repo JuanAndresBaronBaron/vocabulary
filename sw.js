@@ -15,7 +15,7 @@ const MEDIA_CACHE = "vocab-media";
 const SHELL = [
   "./", "index.html", "privacy.html", "manifest.webmanifest",
   "data/index.json", "data/map.json", "data/game.json", "data/sprites.json",
-  "js/motion.js", "js/gestures.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
+  "js/motion.js", "js/gestures.js", "js/lesson.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js",
   "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png",

@@ -1,6 +1,7 @@
 /* Módulo buddy: misiones de hoy, palabra del día, cofre y el zorro del camino.
    El zorro ya no flota en una esquina: vive dentro del contenido (tarjeta de Hoy, camino) y sus frases de logros
-   (misión cumplida, 5 o 10 aciertos seguidos) salen en la cápsula de avisos de arriba (M.toast). Nada de frases sueltas.
+   (misión cumplida) salen en la cápsula de avisos de arriba (M.toast). Nada de frases sueltas. Los aciertos seguidos
+   de la lección los celebra ella misma (el chip de la llama de js/lesson.js).
    - Hoy: home() de index.html pinta las dos piezas que da este módulo. «Misiones» (misPiece(): la siguiente misión y 3
      puntos; al tocarla, la hoja #bd-mis-s con las 3 misiones de hoy, su progreso, «Recoger · 15» y el cofre de +25).
      «Palabra del día» (wotdPiece(): dibujo y palabra; al tocarla gira en 3D, enseña la traducción y suena; detrás,
@@ -164,16 +165,6 @@ function css(){
   const s = document.createElement("style"); s.id = "css-buddy"; s.textContent = STYLE; document.head.appendChild(s);
 }
 css();
-
-/* ---------- aciertos seguidos (lección y gramática) ---------- */
-let streakN = 0;
-function onStreak(d){
-  if(!d) return;
-  if(!d.ok){ streakN = 0; return; }
-  streakN++;
-  if(streakN === 5) cheer("¡5 seguidas! ¡Imparable!", "🚀");
-  else if(streakN === 10) cheer("¡10 seguidas! ¡Eres una máquina!", "🤖");
-}
 
 /* tras responder, que se vea el botón «Continuar» / «Siguiente» sin quedar debajo de la barra de arriba */
 function revealNext(){
@@ -567,19 +558,17 @@ function mapDeco(){
 /* ---------- eventos ---------- */
 bus.on("route", d => {
   const h = String((d && d.h) || "");
-  clearLater(); streakN = 0; if(!h.startsWith("juegos/")) pendMis = [];
+  clearLater(); if(!h.startsWith("juegos/")) pendMis = [];
   if(h.startsWith("mapa")){ try{ mapDeco(); }catch(e){ console.error(e); } }
   else if(!h.startsWith("leccion")) walk = null;
 });
 bus.on("answer", d => {
-  if(d && (d.where === "lesson" || d.where === "grammar")) onStreak(d);
   bump("answer", d);
   if(d && ["lesson", "grammar", "test"].includes(d.where)) later(revealNext, 140);
 });
 bus.on("lesson-done", d => {
   /* solo la primera vez: al repetir una lección antigua no cruza medio mapa */
   walk = d && d.id && d.first !== false ? {id: d.id, lv: d.lv, t: Date.now()} : null;
-  streakN = 0;
   bump("lesson-done", d);
 });
 bus.on("review-card", d => bump("review-card", d));
