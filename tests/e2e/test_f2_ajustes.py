@@ -1,5 +1,6 @@
-"""F2b (plan-doc §Ajustes y Puerta de mayores): la Puerta de mayores (window.adultGate: una suma en letras con 4
-respuestas, nueva en cada intento, 3 fallos y fuera, se recuerda 10 minutos), la hoja de Ajustes al estilo de iPhone
+"""F2b (plan-doc §Ajustes y Puerta de mayores): la Puerta de mayores (window.adultGate: una suma de dos cifras con
+llevada en letras, que se contesta con un teclado numérico, nueva en cada intento, 3 fallos y un minuto de espera, se
+recuerda 5 minutos y se olvida al cerrar Ajustes), la hoja de Ajustes al estilo de iPhone
 (window.openSettings: Sonido, Voz y velocidad, Apariencia, Accesibilidad y Para mayores con Google, instalar, descargar
 todo, IPA, créditos y privacidad), las preferencias de este aparato en "vocab:ui" (fuera de la partida) y la pastilla
 «Guardar» de js/sync.js cuando el permiso de Google caducó."""
@@ -9,26 +10,53 @@ import json
 
 import common as C
 
-NUM = {"tres": 3, "cuatro": 4, "cinco": 5, "seis": 6, "siete": 7, "ocho": 8, "nueve": 9}
+UNI = {"uno": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5, "seis": 6, "siete": 7, "ocho": 8, "nueve": 9}
+TENS = {"treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60, "setenta": 70, "ochenta": 80, "noventa": 90}
+VEINTI = {w: 20 + i for i, w in enumerate(["veinte", "veintiuno", "veintidós", "veintitrés", "veinticuatro", "veinticinco",
+                                           "veintiséis", "veintisiete", "veintiocho", "veintinueve"])}
 NOW_MS = int(C.FIXED_NOW.timestamp() * 1000)
 MIN = 60_000
 
 # lo que enseña la Puerta abierta
 _GATE = """() => { const d = document.getElementById('gate'); if (!d) return {open: false};
-  const b = d.querySelector('#gt-q b'), as = [...d.querySelectorAll('#gt-as .gt-a')];
-  return {open: d.open, q: b ? b.textContent : '', opts: as.map(x => +x.dataset.v), h: as.map(x => x.offsetHeight),
+  const b = d.querySelector('#gt-q b'), ks = [...d.querySelectorAll('#gt-ks .gt-k')];
+  return {open: d.open, q: b ? b.textContent : '', keys: ks.map(x => x.dataset.k), h: ks.map(x => x.offsetHeight),
+    off: ks.filter(x => x.disabled).map(x => x.dataset.k), field: d.querySelector('#gt-f').textContent, qShown: !d.querySelector('#gt-q').hidden,
     msg: d.querySelector('#gt-msg').textContent, why: d.querySelector('#gt-why').textContent,
     title: (document.getElementById(d.getAttribute('aria-labelledby')) || {}).textContent,
     inside: d.contains(document.activeElement)}; }"""
 _PAGE = "() => window.vocabSettings ? vocabSettings.page : null"
 _UI = "() => { try { return JSON.parse(localStorage.getItem('vocab:ui')); } catch (e) { return 'roto'; } }"
-_PASS = "() => sessionStorage.setItem('vocab:gate', String(Date.now() + 10 * 60e3))"
+_PASS = "() => sessionStorage.setItem('vocab:gate', String(Date.now() + adultGate.MS))"
+
+
+def _num(words):
+    """21-99 en letras («cuarenta y siete», «veintiséis») → número."""
+    w = words.strip()
+    if w in VEINTI:
+        return VEINTI[w]
+    if " y " in w:
+        t, u = w.split(" y ")
+        return TENS[t] + UNI[u]
+    return TENS[w]
+
+
+def _nums(q):
+    a, b = q.split(" más ")
+    return _num(a), _num(b)
 
 
 def _sum(q):
-    a, mas, b = q.split(" ")
-    assert mas == "más", f"la pregunta no es una suma en letras: {q!r}"
-    return NUM[a] + NUM[b]
+    assert " más " in q, f"la pregunta no es una suma en letras: {q!r}"
+    a, b = _nums(q)
+    return a + b
+
+
+def _type(page, n):
+    """Escribe n con el teclado de la Puerta y toca OK."""
+    for ch in str(n):
+        page.locator(f'#gt-ks .gt-k[data-k="{ch}"]').click()
+    page.locator('#gt-ks .gt-k[data-k="ok"]').click()
 
 
 def _open_settings(page):
@@ -45,8 +73,7 @@ def _wait_page(page, name, timeout=4000):
 def _answer(page, right):
     g = page.evaluate(_GATE)
     s = _sum(g["q"])
-    v = s if right else next(x for x in g["opts"] if x != s)
-    page.locator(f'#gt-as .gt-a[data-v="{v}"]').click()
+    _type(page, s if right else s + 1)
     return g
 
 
@@ -56,9 +83,11 @@ def _gate_closed(page):
 
 # ---------------------------------------------------------------- Puerta de mayores
 def test_gate_blocks_wrong_and_lets_right_in():
-    """Ajustes › Para mayores pasa por la Puerta: una suma de dos números entre 3 y 9 en letras, 4 respuestas grandes
-    (una buena), un fallo no deja entrar y trae otra suma, acertar entra y se recuerda en sessionStorage; 3 fallos la
-    cierran con un aviso amable, y Esc o «Cancelar» dan false. Es un dialog con su título y el foco dentro."""
+    """Ajustes › Para mayores pasa por la Puerta: una suma de dos números de dos cifras con llevada, en letras, que se
+    contesta con un teclado numérico (0-9, borrar y OK, teclas grandes); un fallo no deja entrar y trae otra suma,
+    acertar entra (con el foco en el título de la página nueva) y se recuerda 5 minutos en sessionStorage, y cerrar
+    Ajustes la olvida; 3 fallos la cierran con un aviso amable y un minuto de espera (se abre sin teclado), y Esc o
+    «Cancelar» dan false. Es un dialog con su título y el foco dentro."""
     page = C.new_page("phone")
     probs = []
     try:
@@ -80,10 +109,21 @@ def test_gate_blocks_wrong_and_lets_right_in():
         except (KeyError, ValueError, AssertionError) as e:
             probs.append(f"pregunta rara: {g['q']!r} ({e})")
             s = None
-        if s is not None and (len(set(g["opts"])) != 4 or s not in g["opts"] or not all(4 <= x <= 20 for x in g["opts"])):
-            probs.append(f"respuestas {g['opts']} para {g['q']!r}")
-        if min(g["h"] or [0]) < 72:
-            probs.append(f"las respuestas son pequeñas: {g['h']}")
+        if s is not None:
+            a, b = _nums(g["q"])
+            if not (36 <= a <= 89 and 36 <= b <= 89 and a % 10 and b % 10 and a % 10 + b % 10 >= 10):
+                probs.append(f"la suma no es de dos cifras con llevada: {g['q']!r}")
+        if g["keys"] != ["1", "2", "3", "4", "5", "6", "7", "8", "9", "del", "0", "ok"] or g["off"] != ["ok"] or g["field"] != "?":
+            probs.append(f"el teclado: {g['keys']}, desactivadas {g['off']}, campo {g['field']!r}")
+        if min(g["h"] or [0]) < 56:
+            probs.append(f"las teclas son pequeñas: {g['h']}")
+        # borrar: escribe 12, borra una y queda 1
+        page.locator('#gt-ks .gt-k[data-k="1"]').click()
+        page.locator('#gt-ks .gt-k[data-k="2"]').click()
+        page.locator('#gt-ks .gt-k[data-k="del"]').click()
+        if page.evaluate(_GATE)["field"] != "1":
+            probs.append(f"borrar no quita la última cifra: {page.evaluate(_GATE)['field']!r}")
+        page.locator('#gt-ks .gt-k[data-k="del"]').click()
         # un fallo: no entra, otra suma y un mensaje amable
         g0 = _answer(page, right=False)
         page.wait_for_timeout(200)
@@ -97,10 +137,14 @@ def test_gate_blocks_wrong_and_lets_right_in():
         _gate_closed(page)
         _wait_page(page, "mayores")
         left = page.evaluate("+sessionStorage.getItem('vocab:gate') - Date.now()")
-        if not (9 * MIN < left <= 10 * MIN):
-            probs.append(f"la Puerta no se recuerda 10 minutos: quedan {left} ms")
+        if not (4 * MIN < left <= 5 * MIN):
+            probs.append(f"la Puerta no se recuerda 5 minutos: quedan {left} ms")
         if page.locator("#aj-tt").text_content() != "Para mayores":
             probs.append(f"título de la sub-página: {page.locator('#aj-tt').text_content()!r}")
+        page.wait_for_timeout(300)
+        foc = page.evaluate("() => { const a = document.activeElement; return {id: a && a.id, inside: document.getElementById('ajustes').contains(a)}; }")
+        if not foc["inside"] or foc["id"] != "aj-tt":
+            probs.append(f"tras la Puerta el foco no está en el título de Para mayores: {foc}")
         # volver y entrar otra vez: ya no pregunta
         page.locator("#aj-back").click()
         _wait_page(page, "root")
@@ -111,7 +155,9 @@ def test_gate_blocks_wrong_and_lets_right_in():
         page.locator("#aj-done").click()
         page.wait_for_function("() => !document.getElementById('ajustes').open", timeout=3000)
         page.wait_for_timeout(300)
-        # tres fallos: false, se cierra y avisa
+        if page.evaluate("sessionStorage.getItem('vocab:gate')") is not None:
+            probs.append("cerrar Ajustes no vuelve a cerrar la Puerta")
+        # tres fallos: false, se cierra, avisa y espera un minuto
         page.evaluate("() => { adultGate.forget(); window.__g = 'esperando'; adultGate({reason: 'Prueba.'}).then(v => { window.__g = v; }); }")
         page.wait_for_selector("#gate[open]", timeout=3000)
         C.settle(page, 200)
@@ -125,6 +171,18 @@ def test_gate_blocks_wrong_and_lets_right_in():
         page.wait_for_timeout(400)
         if "para mayores" not in page.evaluate("document.getElementById('m-toasts').textContent").lower():
             probs.append("tras tres fallos no sale el aviso amable")
+        wait = page.evaluate("adultGate.waiting()")
+        if not (50_000 < wait <= 60_000):
+            probs.append(f"tras tres fallos no hay un minuto de espera: {wait} ms")
+        page.wait_for_timeout(300)
+        page.evaluate("() => { window.__g = 'esperando'; adultGate({}).then(v => { window.__g = v; }); }")
+        page.wait_for_selector("#gate[open]", timeout=3000)
+        C.settle(page, 200)
+        g = page.evaluate(_GATE)
+        if g["qShown"] or len(g["off"]) != 12 or "un minuto" not in g["msg"]:
+            probs.append(f"durante la espera la Puerta deja contestar: {g}")
+        page.locator("#gt-x").click()
+        _gate_closed(page)
         # Esc y Cancelar: false
         for how in ("Escape", "cancelar"):
             page.wait_for_timeout(250)
@@ -214,14 +272,15 @@ def test_settings_sheet_rows():
             page.locator("label[for=aj-snd]").click()
             if page.evaluate("sfx.muted") != m0 or page.evaluate("document.getElementById('aj-snd').checked") == m0:
                 probs.append(f"{kind}: el interruptor de Sonido no vuelve a su sitio")
-            # Voz y velocidad: la de siempre, dentro de la hoja
+            # Voz y velocidad: la de siempre, dentro de la hoja (es corta: se queda a la altura que tenía la hoja)
+            d0 = page.evaluate("document.getElementById('ajustes').dataset.detent")
             page.locator("#aj-voz").click()
             _wait_page(page, "voz")
             v = page.evaluate("""() => { const d = document.getElementById('ajustes');
               return {r: !!d.querySelector('#cfg-r'), t: !!d.querySelector('#cfg-t'), tt: document.getElementById('aj-tt').textContent,
                 detent: d.dataset.detent, back: getComputedStyle(document.getElementById('aj-back')).visibility,
                 cfg: (document.getElementById('cfg') || {}).open || false}; }""")
-            if v != {"r": True, "t": True, "tt": "Voz y velocidad", "detent": "large", "back": "visible", "cfg": False}:
+            if v != {"r": True, "t": True, "tt": "Voz y velocidad", "detent": d0, "back": "visible", "cfg": False}:
                 probs.append(f"{kind}: Voz y velocidad {v}")
             page.evaluate("() => { const r = document.querySelector('#ajustes #cfg-r'); r.value = '0.6'; r.dispatchEvent(new Event('input', {bubbles: true})); }")
             if abs(page.evaluate("rate") - 0.6) > 1e-6:
@@ -282,8 +341,11 @@ def test_appearance_auto_removes_theme():
 
 
 A11Y = [("glass", "off"), ("motion", "calm"), ("contrast", "more"), ("text", "large")]
-_FX = """() => { const d = document.getElementById('ajustes'), cs = getComputedStyle(document.documentElement);
-  return {blur: getComputedStyle(d).backdropFilter, rm: M.rm(), sep: cs.getPropertyValue('--sep').trim(),
+# (la hoja a toda altura ya es opaca: el vidrio se mira en una superficie .glass de prueba fuera de la hoja)
+_FX = """() => { const cs = getComputedStyle(document.documentElement);
+  let g = document.getElementById('t-glass'); if (!g) { g = document.createElement('div'); g.id = 't-glass'; g.className = 'glass';
+    g.style.cssText = 'position:fixed;left:0;top:0;width:40px;height:40px'; document.body.appendChild(g); }
+  return {blur: getComputedStyle(g).backdropFilter, rm: M.rm(), sep: cs.getPropertyValue('--sep').trim(),
     fs: parseFloat(getComputedStyle(document.querySelector('#ajustes .aj-hint')).fontSize)}; }"""
 
 
@@ -412,7 +474,7 @@ def test_google_block_in_adults_page():
           return {box: !!d.querySelector('[data-sync-block] #sv-box'), n: document.querySelectorAll('#sv-box').length,
             g: (d.querySelector('#sv-g') || {}).textContent || '', inst: /Instalar|instalada/.test((d.querySelector('#aj-inst') || {}).textContent || ''),
             off: !!d.querySelector('#aj-off #off-dl'), ipa: !!d.querySelector('#aj-ipa[role=switch]'),
-            cred: /Phosphor/.test(t) && /Nunito/.test(t), priv: !!d.querySelector('a#aj-priv[href="privacy.html"]'), atajos: /atajo/i.test(t)}; }""")
+            cred: /Phosphor/.test(t) && /Nunito/.test(t), priv: !!d.querySelector('a#aj-priv[href="privacy.html#es"]'), atajos: /atajo/i.test(t)}; }""")
         want = {"box": True, "n": 1, "g": r["g"], "inst": True, "off": True, "ipa": True, "cred": True, "priv": True, "atajos": False}
         if r != want or "Entrar con Google" not in r["g"]:
             probs.append(f"Para mayores: {r}")
@@ -442,7 +504,10 @@ def test_google_block_in_adults_page():
             probs.append(f"el foco no está en «Entrar con Google»: {page.evaluate('document.activeElement && document.activeElement.id')!r}")
         page.locator("#aj-done").click()
         page.wait_for_function("() => !document.getElementById('ajustes').open", timeout=3000)
-        # tras cargar una partida (adult:true), con la Puerta pasada: se abre Para mayores
+        # tras cargar una partida (adult:true), con la Puerta pasada: se abre Para mayores. Al cerrar Ajustes la Puerta
+        # se olvida; una carga de verdad se hace dentro de Para mayores y recarga con Ajustes abierta (la Puerta sigue)
+        page.wait_for_function("() => !adultGate.passed()", timeout=3000)
+        page.evaluate(_PASS)
         page.evaluate("sessionStorage.setItem('vocab:save-flash', JSON.stringify({t: '✓ ¡Partida cargada!', adult: true}))")
         C.reload(page)
         try:

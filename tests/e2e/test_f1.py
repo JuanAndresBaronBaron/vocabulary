@@ -698,13 +698,14 @@ def test_glass_lite_and_header_yield():
                 probs.append(f"{scheme} + Reducir transparencia: .glass.lite = {got} (se esperaba {solid})")
             # F2: la cabecera de dos filas pasó a barras flotantes de vidrio (barra de pestañas, bandera, monedas y
             # engranaje; en modo foco, la ✕). Se mira cada superficie que se ve: con desenfoque en el camino y sin él
-            # en la granja y durante una partida
+            # en la granja y durante una partida. La bandera va siempre sin desenfoque (como mucho 3 superficies con
+            # desenfoque a la vez, plan §Rendimiento: la barra de pestañas, el grupo de las monedas y el accesorio)
             hdr = """() => ['#tabbar', '#lang-b', '.tb-group', '#fx-x'].map(s => document.querySelector(s))
               .filter(el => el && el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden')
               .map(el => [el.id || el.className, getComputedStyle(el).backdropFilter])"""
             C.goto(page, "#/mapa")
             got = page.evaluate(hdr)
-            if len(got) < 3 or any(b == "none" for _, b in got):
+            if len(got) < 3 or any(b == "none" for n, b in got if n != "lang-b"):
                 probs.append(f"{scheme}: en el camino las barras deberían llevar vidrio con desenfoque: {got}")
             C.goto(page, "#/granja")
             got = page.evaluate(hdr)

@@ -864,9 +864,9 @@ window.addEventListener("hashchange", () => { if(DLG && DLG.open) closeDlg(); })
 HOME_ACTS.push({href: "#/album", e: "📒", t: "Álbum", color: "#008198",
   get sub(){ try{ const n = newTotal(); return n ? `✨ ${n} ${plural(n, "nueva", "nuevas")}` : "Colecciona pegatinas"; }catch(e){ return "Colecciona pegatinas"; } }});
 
-/* punto azul en la pestaña «Jugar» (tabBadge de index.html) si hay pegatinas nuevas sin ver */
+/* punto azul en la pestaña «Jugar» y en su segmento «Álbum» (tabBadge de index.html) si hay pegatinas nuevas sin ver */
 function tabDot(n){
-  try{ if(typeof tabBadge === "function") tabBadge("jugar", n > 0, n > 0 ? `${n} ${plural(n, "pegatina nueva", "pegatinas nuevas")}` : ""); }catch(e){}
+  try{ if(typeof tabBadge === "function") tabBadge("jugar", n > 0, n > 0 ? `${n} ${plural(n, "pegatina nueva", "pegatinas nuevas")}` : "", "#/album"); }catch(e){}
 }
 function decorateHome(){
   let n = 0; try{ n = newTotal(); }catch(e){}

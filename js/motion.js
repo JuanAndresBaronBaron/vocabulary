@@ -142,14 +142,33 @@ ${DARKQ("dialog.m-sheet .m-grab::before", "background:#636366")}
 dialog.m-sheet [data-sheet-grab]{touch-action:none}
 /* hoja de vidrio flotante (con el .glass de index.html): tinte alto para leer bien y sin el borde de ::before, que se
    iría con el scroll de la hoja; sin transparencia, con más contraste o sin desenfoque, opaca */
-dialog.m-sheet.glass{background:linear-gradient(180deg,var(--g-top,rgb(255 255 255/.5)) 0%,rgb(255 255 255/0) 120px),rgb(255 255 255/.86);
+dialog.m-sheet.glass{background:linear-gradient(180deg,var(--g-top,rgb(255 255 255/.5)) 0%,rgb(255 255 255/0) 120px),rgb(255 255 255/.94);
   box-shadow:var(--g-hi,inset 0 1px 0 rgb(255 255 255/.95)),0 0 0 .5px var(--g-edge,rgb(0 0 0/.07)),0 12px 40px rgb(0 0 0/.18)}
-${DARKQ("dialog.m-sheet.glass", "background:linear-gradient(180deg,rgb(255 255 255/.08) 0%,rgb(255 255 255/0) 120px),rgb(28 28 30/.86)")}
+${DARKQ("dialog.m-sheet.glass", "background:linear-gradient(180deg,rgb(255 255 255/.08) 0%,rgb(255 255 255/0) 120px),rgb(28 28 30/.94)")}
 dialog.m-sheet.glass::before{display:none}
 :root[data-glass=off] dialog.m-sheet.glass,:root[data-contrast=more] dialog.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}
 @media (prefers-reduced-transparency:reduce){:root[data-theme] dialog.m-sheet.glass,dialog.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-contrast:more){:root[data-theme] dialog.m-sheet.glass,dialog.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){:root[data-theme] dialog.m-sheet.glass,dialog.m-sheet.glass{background:var(--card,#fff)}}
+/* hoja a toda altura (data-detent=large) y todas desde 820 px: opacas, sin desenfoque (como en iOS al estirarla) */
+:root dialog.m-sheet.glass[data-detent=large]{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-theme=dark] dialog.m-sheet.glass[data-detent=large]{background:#1C1C1E}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) dialog.m-sheet.glass[data-detent=large]{background:#1C1C1E}}
+/* tableta grande y ordenador: hoja de formulario centrada (como en iPadOS), tan alta como su contenido, sin agarre;
+   se cierra con su botón, con Esc o tocando fuera */
+@media (min-width:820px){
+  dialog.m-sheet{inset:0;margin:auto;width:calc(100% - 48px);max-width:560px;height:fit-content;max-height:min(760px,calc(100dvh - 96px));padding-top:20px}
+  dialog.m-sheet .m-grab{display:none}
+  :root dialog.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-theme=dark] dialog.m-sheet.glass{background:#1C1C1E}
+  @media (prefers-color-scheme:dark){:root:not([data-theme=light]) dialog.m-sheet.glass{background:#1C1C1E}}
+}
+/* la cabecera de todas las hojas: título centrado (19, semibold) y, a la derecha, «Listo» gris; a la izquierda, «‹ Atrás»
+   si hace falta. Los lados a 16 px, como el contenido. Azul solo cuando hay algo que confirmar */
+.m-head{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:52px;margin:0 0 4px}
+.m-head>h2{grid-column:2;margin:0;font:600 var(--fs-head,1.1875rem)/1.2 var(--f-text,system-ui);color:var(--label,#000);text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-head>.m-head-x{grid-column:3;justify-self:end}
 @media (prefers-reduced-motion:reduce){
   dialog.m-sheet,dialog.m-sheet:not([open]){translate:none;transition:opacity 150ms ease;transition:opacity 150ms ease,display 150ms allow-discrete,overlay 150ms allow-discrete}
   dialog.m-sheet:not([open]){opacity:0}

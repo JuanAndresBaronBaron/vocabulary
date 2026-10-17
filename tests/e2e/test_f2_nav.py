@@ -20,7 +20,7 @@ _H = 3600 * 1000
 # lo que se ve de la barra de pestañas
 _BAR = """() => { const nav = document.getElementById('tabbar'), r = nav.getBoundingClientRect();
   const vis = el => !!el && !!el.getClientRects().length && getComputedStyle(el).display !== 'none' && getComputedStyle(el).visibility !== 'hidden';
-  return {role: nav.getAttribute('role'), shown: vis(nav), top: r.top, bottom: r.bottom, left: r.left, right: r.right,
+  return {role: (nav.querySelector('[role=tablist]') || nav).getAttribute('role'), land: nav.tagName === 'NAV' && !nav.hasAttribute('role'), shown: vis(nav), top: r.top, bottom: r.bottom, left: r.left, right: r.right,
     vw: innerWidth, vh: innerHeight,
     tabs: [...nav.querySelectorAll('[role=tab]')].map(a => ({id: a.dataset.nav, sel: a.getAttribute('aria-selected'), href: a.getAttribute('href')}))}; }"""
 # barras y modo foco
@@ -107,8 +107,8 @@ def test_tabs_selected_on_every_route():
                 C.goto(page, r["hash"])
                 b = page.evaluate(_BAR)
                 exp = _expect_tab(r["name"])
-                if b["role"] != "tablist":
-                    probs.append(f"{kind} {r['name']}: el nav tiene role={b['role']}")
+                if b["role"] != "tablist" or not b["land"]:
+                    probs.append(f"{kind} {r['name']}: la lista de pestañas tiene role={b['role']} (nav como punto de referencia: {b['land']})")
                 if [t["id"] for t in b["tabs"]] != TABS:
                     probs.append(f"{kind} {r['name']}: pestañas {[t['id'] for t in b['tabs']]}")
                 sel = [t["id"] for t in b["tabs"] if t["sel"] == "true"]
@@ -628,7 +628,7 @@ def test_pause_and_privacy_gate_audit():
             # privacy.html: un enlace a otra web abre la Puerta y no sale de la página
             page.goto(C.base_url(page) + "/privacy.html")
             page.evaluate("window.open = u => { window.__opened = u; return null; }")
-            page.locator("a[href^='https://github.com']").click()
+            page.locator("a[href^='https://github.com']").first.click()   # el de «avisar de un fallo» (hay más en Créditos)
             page.wait_for_selector("dialog#gate[open]", timeout=3000)
             page.wait_for_timeout(500)
             page.evaluate(_FINISH)

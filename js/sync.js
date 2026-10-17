@@ -390,7 +390,7 @@ function paintChip(){
   const slot = document.querySelector("[data-sync-slot]"); if(!slot) return;
   css();
   c = document.createElement("button");
-  c.type = "button"; c.id = "sv-chip"; c.className = "glass-btn glass-btn--pri glass-btn--sm sv-chip"; c.dataset.noRenew = "";
+  c.type = "button"; c.id = "sv-chip"; c.className = "glass sv-chip";   /* vidrio de la barra, sin relleno azul (el azul destacado es de «Empezar») */ c.dataset.noRenew = "";
   c.title = "Guardar tu partida en Google"; c.setAttribute("aria-label", "Guardar tu partida en Google");
   c.innerHTML = `${ico("cloud-arrow-up", "bold", 20)}<span class="sv-chip-t" aria-hidden="true">Guardar</span>`;
   c.onclick = () => {
@@ -403,7 +403,7 @@ function paintChip(){
      .finally(() => { const x = $s("sv-chip"); if(x) x.disabled = false; paintChip(); });
   };
   slot.appendChild(c);
-  try{ if(window.M && typeof M.bump === "function") M.bump(c); }catch(e){}
+  try{ if(window.M && typeof window.M.bump === "function") window.M.bump(c); }catch(e){}   /* (M aquí es S.META) */
 }
 
 /* lo que no debe hacer un niño solo (entrar o salir de Google, cambiar o borrar una partida) pasa por la Puerta de
@@ -482,16 +482,14 @@ const CSS = `
 .sv-cmp td:nth-child(n+2){font-weight:600}
 .sv-cmp td:first-child{width:40%}
 .sv-undo{margin-top:12px}
-.sv-rem{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;margin:0 0 12px}
-.sv-rem-ic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--brand-fill);color:#fff}
-.sv-rem-tx{flex:1;min-width:0}
-.sv-rem h2{margin:0;font:600 var(--fs-head,1.1875rem)/1.26 var(--f-text,system-ui);color:var(--label)}
-.sv-rem p{margin:2px 0 10px;font:400 var(--fs-note,.9375rem)/1.35 var(--f-text,system-ui);color:var(--label2)}
-.sv-rem-b{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.sv-later{min-height:44px;padding:0 10px;border:0;background:none;color:var(--label2);font:600 var(--fs-sub,1.0625rem)/1.2 var(--f-text,system-ui);cursor:pointer}
+/* hoja corta para el niño desde la fila de Hoy: «Enséñale esto a un mayor» · «Soy mayor» (la Puerta) · «Ahora no» */
+dialog#sv-kid{max-width:440px}
+.sv-kid{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 4px 4px;text-align:center}
+.sv-kid-ic{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--brand-fill);color:#fff}
+.sv-kid p{margin:0;max-width:32ch;font:400 var(--fs-sub,1.0625rem)/1.4 var(--f-text,system-ui);color:var(--label2)}
+.sv-kid-b{display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;margin-top:4px}
 .sv-chip{flex:none}
 .sv-chip:disabled{opacity:.7}
-@media (min-width:820px) and (max-width:1099px){.sv-chip{width:var(--tap,44px);padding:0}.sv-chip-t{display:none}}
 `;
 function css(){ if(document.getElementById("css-sync")) return; const s = document.createElement("style"); s.id = "css-sync"; s.textContent = CSS; document.head.appendChild(s); }
 const G = `<svg viewBox="0 0 48 48" aria-hidden="true" data-brand="google"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
@@ -517,7 +515,7 @@ const okText = () => `Sincronizado · ${agoMin(meta().lastSync)}`;
 function statusHtml(){
   const m = meta();
   if(!m.connectedAt) return `<div class="st-g ics">${btn("sv-g", G, "gg", "Entrar con Google", "La partida se guarda sola y se puede seguir en otro aparato.")}</div>
-    <p class="st-foot">La app solo usa una carpeta privada suya en tu Google Drive: no puede ver tus archivos. <a href="privacy.html">Privacidad</a></p>`;
+    <p class="st-foot">La app solo usa una carpeta privada suya en tu Google Drive: no puede ver tus archivos. <a href="privacy.html#es">Privacidad</a></p>`;
   const acc = m.hint ? esc(m.hint) : "Conectado con Google";
   const now_ = btn("sv-now", ico("arrows-clockwise", "bold", 18), "", "Guardar ahora", "");
   const out = btn("sv-out", ico("sign-out", "bold", 18), "gr", "Salir de Google", "", "sv-quiet");
@@ -669,7 +667,7 @@ document.addEventListener("click", e => {
   const a = e.target.closest && e.target.closest("[data-sv-go]"); if(!a) return;
   e.preventDefault();
   const d = a.closest("dialog");
-  if(d && d.open && d.id !== "ajustes"){ if(window.M && d.classList.contains("m-sheet")) M.closeSheet(d); else d.close(); }
+  if(d && d.open && d.id !== "ajustes"){ if(window.M && d.classList.contains("m-sheet")) window.M.closeSheet(d); else d.close(); }
   go({from: d ? null : a});
 });
 bus.on("settings", d => {
@@ -700,22 +698,37 @@ function due(){
   if(m.reconnect && t - m.reconnect > 3 * DAY) return "reconnect";
   return "";
 }
-const remSlot = async () => {   /* el primero de la portada: sale poco y así el niño lo ve sin bajar */
+/* el primero de la portada: una fila compacta («Guarda tu partida · Enséñaselo a un mayor») que abre una hoja corta
+   para el niño; desde ahí, «Soy mayor» lleva a la Puerta y a Google, y «Ahora no» lo deja para dentro de 2 días */
+let remKind = "";
+const remSlot = async () => {
   const d = shownVisit ? "" : due(); if(!d) return "";
-  shownVisit = true; css();
-  return `<section class="card sv-rem" id="sv-rem" aria-labelledby="sv-rem-t">
-    <span class="sv-rem-ic" aria-hidden="true">${ico("cloud-arrow-up", "bold", 22)}</span>
-    <div class="sv-rem-tx"><h2 id="sv-rem-t">${d === "connect" ? "Pide a un mayor que guarde tu partida" : "Pide a un mayor que vuelva a conectar Google"}</h2>
-      <p>Así nunca pierdes tus monedas, tu granja ni tus lecciones.</p>
-      <div class="sv-rem-b"><button type="button" class="glass-btn glass-btn--sm" data-sv-go>Avisar a un mayor</button><button class="sv-later" id="sv-later" type="button">Ahora no</button></div></div>
-  </section>`;
+  shownVisit = true; remKind = d; css();
+  return {t: d === "connect" ? "Guarda tu partida" : "Vuelve a conectar Google", sub: "Enséñaselo a un mayor", icon: "cloud-arrow-up", tone: "gray",
+    id: "sv-rem", chev: true, popup: true};
 };
 remSlot.id = "sync";
 HOME_SLOTS.unshift(remSlot);
+function kidSheet(from){
+  css();
+  let d = $s("sv-kid");
+  if(!d){ d = document.createElement("dialog"); d.id = "sv-kid"; d.setAttribute("aria-labelledby", "sv-kid-t"); document.body.appendChild(d); }
+  const re = remKind === "reconnect";
+  d.innerHTML = `<div class="m-head"><h2 id="sv-kid-t">${re ? "Vuelve a conectar Google" : "Guarda tu partida"}</h2></div>
+    <div class="sv-kid"><span class="sv-kid-ic" aria-hidden="true">${ico("cloud-arrow-up", "bold", 28)}</span>
+      <p>Enséñale esto a un mayor. Con Google, tus monedas, tu granja y tus lecciones se guardan siempre.</p>
+      <div class="sv-kid-b"><button type="button" class="glass-btn glass-btn--pri glass-btn--block" data-sv-go>Soy mayor</button>
+        <button type="button" class="glass-btn glass-btn--block" id="sv-later">Ahora no</button></div></div>`;
+  if(window.M && typeof window.M.openSheet === "function") window.M.openSheet(d, {from});
+  else { try{ d.showModal(); }catch(e){ d.setAttribute("open", ""); } }
+}
 document.addEventListener("click", e => {
-  if(!e.target.closest || !e.target.closest("#sv-later")) return;
+  if(!e.target.closest) return;
+  const row = e.target.closest("#sv-rem"); if(row){ e.preventDefault(); kidSheet(row); return; }
+  if(!e.target.closest("#sv-later")) return;
   S.metaSet(M.snooze, now() + 2 * DAY);
-  const r = $s("sv-rem"); if(r) r.remove();
+  const d = $s("sv-kid"); if(d && d.open){ if(window.M && d.classList.contains("m-sheet")) window.M.closeSheet(d); else d.close(); }
+  const r = $s("sv-rem"), box = r && r.closest(".hm-slot"); if(box) box.remove(); else if(r) r.remove();
 });
 
 /* ---------- arranque ---------- */

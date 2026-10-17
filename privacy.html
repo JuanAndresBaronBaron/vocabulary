@@ -14,6 +14,9 @@
   h2{color:#1f5fbf;font-size:1.15rem;margin-top:1.6em}
   @media (prefers-color-scheme:dark){h2{color:#7fb2ff}}
   hr{border:0;border-top:1px solid #8893a3;margin:2em 0}
+  .es-link{margin:0 0 4px}
+  .es-link a{display:inline-flex;align-items:center;min-height:44px;font-weight:600}
+  h2[id]{scroll-margin-top:16px}
   header .back{display:inline-flex;align-items:center;min-height:44px;margin:-10px 0 4px -4px;padding:0 4px;color:#fff;font-weight:600;text-decoration:none}
   header .back:focus-visible{outline:2px solid #fff;outline-offset:2px;border-radius:8px}
   /* la Puerta de mayores (js/gate.js) para los enlaces a otras webs: los colores de la app */
@@ -25,6 +28,7 @@
 <body>
 <header><a class="back" href="./" aria-label="Volver a Vocabulary">‹ Vocabulary</a><h1>Vocabulary – Privacy Policy</h1></header>
 <main>
+<p class="es-link" lang="es"><a href="#es">Leer en español ↓</a></p>
 <p><b>Last updated:</b> 17 October 2026</p>
 <p>Vocabulary (<a href="./">juanandresbaronbaron.github.io/vocabulary</a>) is a free, static website for learning British English, French and Danish vocabulary. It has no server and no user accounts of its own.</p>
 
@@ -55,12 +59,15 @@
 <p>Questions: open an issue at <a href="https://github.com/JuanAndresBaronBaron/vocabulary/issues">github.com/JuanAndresBaronBaron/vocabulary</a>.</p>
 
 <hr>
-<h2>Resumen en español</h2>
+<h2 id="es" lang="es">Resumen en español</h2>
 <p>La app guarda tu progreso solo en tu navegador. Si eliges «Entrar con Google», guarda un único archivo con tu partida en una carpeta oculta de <b>tu</b> Google Drive y no puede ver nada más de tu Drive. No usamos publicidad, analítica ni cookies de seguimiento, y no compartimos datos con nadie. Puedes quitar el acceso cuando quieras en myaccount.google.com/permissions.</p>
 <p><b>Hablar.</b> Los ejercicios de «Hablar» usan el reconocimiento de voz del propio navegador: en Chrome lo procesa Google y en Safari lo procesa Apple, con sus propias políticas. La app solo recibe las palabras reconocidas para comprobar la respuesta; no graba ni guarda el audio. Todo se puede hacer también tocando, sin micrófono.</p>
 <p><b>Grabaciones y fotos.</b> Las funciones que graban la voz o hacen fotos las guardan solo en este aparato. No se suben a Google ni a ningún otro sitio, y un mayor las puede borrar en Ajustes › Para mayores.</p>
 <p><b>Atajos.</b> Los atajos de la pantalla Hoy se calculan con un registro de uso (qué juegos y temas se usan más) que solo vive en este aparato, sin horas exactas, y no se sube a ningún sitio. Con la partida solo se guardan los atajos que fijes u ocultes.</p>
 <p><b>Para mayores.</b> Entrar con Google, los ajustes para mayores y los enlaces a otras webs piden antes una pequeña cuenta para mayores.</p>
+<hr>
+<h2 id="credits">Credits / Créditos</h2>
+<p class="credits">Inglés británico · Francés · Danés — Imágenes: <a href="https://openmoji.org">OpenMoji</a> (CC BY-SA 4.0). Iconos: <a href="https://phosphoricons.com">Phosphor</a> (<a href="icons/PHOSPHOR-LICENSE" target="_blank" rel="noopener">MIT</a>). Letra: <a href="https://github.com/googlefonts/nunito">Nunito</a> (<a href="fonts/OFL.txt" target="_blank" rel="noopener">OFL</a>). Audio: ElevenLabs y voz del navegador.</p>
 </main>
 <script src="js/motion.js"></script>
 <script src="js/gate.js"></script>
