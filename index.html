@@ -1124,7 +1124,7 @@ async function progreso(el){
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
 const OFF_SHELL = "vocab-shell-v18", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
-  "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
+  "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/buddy.js", "js/album.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
@@ -1273,6 +1273,7 @@ async function downloadAll(){
     });
     Object.keys(sprites || {}).forEach(k => /^[\w-]+$/.test(k) && imgs.add(`img/pj/${k}.png`));
     if(window.vocabShop) vocabShop.images().forEach(u => imgs.add(u));   /* los dibujos de la tienda (img/shop) */
+    if(window.vocabGames && vocabGames.images) vocabGames.images().forEach(u => imgs.add(u));   /* los de Juegos (img/games y temas) */
     const second = [...[...imgs].map(u => [u, media]), ...ids.map(id => [`audio/${ab}/${id}.mp3`, media])];
     job.total = first.length + second.length;
     await pool(second, ([u, c]) => one(u, c, true, false));
@@ -2259,6 +2260,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/shop.js"></script>
 <script src="js/farm.js"></script>
 <script src="js/games.js"></script>
+<script src="js/lince.js"></script>
 <script src="js/buddy.js"></script>
 <script src="js/album.js"></script>
 <script src="js/save.js"></script>
