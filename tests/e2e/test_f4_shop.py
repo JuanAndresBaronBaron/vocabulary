@@ -34,7 +34,9 @@ _HOOKS = """() => {
   if (window.sfx) { const p0 = sfx.play.bind(sfx); sfx.play = n => { __sfx.push(n); return p0(n); }; }
 }"""
 _GAME = "() => JSON.parse(localStorage.getItem('game'))"
-_CARD = """id => { const c = document.querySelector(`#app .sc[data-id="${id}"]`); if (!c) return null;
+# el sombrero del personaje tal como se pinta (heroHtml de index.html)
+_HAT = "() => { const d = document.createElement('div'); d.innerHTML = heroHtml(60); const h = d.querySelector('.h-hat'); return h ? h.textContent : null; }"
+_CARD = """id => { const c = document.querySelector(`#app .sc[data-id="${id}"], #tst-cards .sc[data-id="${id}"]`); if (!c) return null;
   const b = c.querySelector('.sx button'), own = c.querySelector('span.own');
   return {st: c.dataset.st, cls: c.className, btn: b ? b.textContent.replace(/\\s+/g, ' ').trim() : null,
     buy: b ? b.dataset.buy || null : null, wear: b ? b.dataset.wear || null : null, shelter: b ? b.dataset.shelter || null : null,
@@ -54,14 +56,43 @@ def _keys(coins=None, farm=None, game=None):
     return {k: json.dumps(v, ensure_ascii=False, separators=(",", ":")) for k, v in data.items()}
 
 
+# F4b: la granja ya no tiene la tienda entera con pestañas. Las cosas de la granja se compran en su hoja (dialog#fm-shop,
+# dentro de #app: vocabFarm.openShop()); personajes, sombreros, gafas, juguetes y mascotas irán a Premios › Mi zorro
+# (F4c), así que aquí se prueban en una tienda de prueba con las mismas piezas (vocabShop.card en modo 'zorro' y
+# vocabShop.bind), como la montará Mi zorro.
+_ZORRO = """t => { const old = document.getElementById('tst-z'); if (old) old.remove();
+  const h = document.createElement('div'); h.id = 'tst-z'; h.className = 'shop'; h.dataset.tab = t;
+  h.innerHTML = vocabShop.items(t).map(x => vocabShop.card(x, {mode: 'zorro'})).join('');
+  document.getElementById('app').prepend(h); vocabShop.bind(h); }"""
+
+
+def _tab(page, tab):
+    """Enseña las piezas de un tipo: "farm" en la hoja de la granja; otro tipo, en la tienda de prueba de #/progreso."""
+    if tab == "farm":
+        if C.current_hash(page) != "granja":
+            C.goto(page, "#/granja")
+            page.evaluate(_HOOKS)
+        page.evaluate("() => vocabFarm.openShop()")
+        page.wait_for_selector("#fm-shop[open] .shop .sc", timeout=6000)
+        # a toda altura: en el móvil se abre a media pantalla y crece al bajar, y así las piezas no se mueven al tocarlas
+        page.evaluate("() => { document.getElementById('fm-shop').dataset.detent = 'large'; }")
+        page.wait_for_timeout(400)
+    else:
+        if C.current_hash(page) != "progreso":
+            C.goto(page, "#/progreso")
+            page.evaluate(_HOOKS)
+        page.evaluate(_ZORRO, tab)
+    page.locator("#app .shop").first.scroll_into_view_if_needed()
+
+
 def _open(page, keys=None, tab="farm"):
+    """tab: "farm" (la hoja de la granja abierta), otro tipo (tienda de prueba) o None (solo la granja, sin hoja)."""
     C.seed(page, keys)
-    C.goto(page, "#/granja")
-    page.evaluate(_HOOKS)
-    if tab != "farm":
-        page.locator(f"#app .shop-tabs [data-tab={tab}]").click()
-        page.wait_for_function("t => document.querySelector('#app .shop-tabs button.on')?.dataset.tab === t", arg=tab, timeout=3000)
-    page.locator("#app .shop").scroll_into_view_if_needed()
+    if tab is None:
+        C.goto(page, "#/granja")
+        page.evaluate(_HOOKS)
+        return
+    _tab(page, tab)
 
 
 def _tap(page, sel, times=1, gap=120):
@@ -89,7 +120,7 @@ def test_buy_subtracts_once_and_emits_once():
     probs = []
     try:
         _open(page)
-        page.evaluate("() => { document.querySelector('#app .shop').__keep = 1; document.querySelector('#me-name').__keep = 1; }")
+        page.evaluate("() => { document.querySelector('#app .shop').__keep = 1; document.querySelector('#app .fm-stage').__keep = 1; }")
         c0 = page.evaluate(_GAME)["coins"]
         st = _card(page, "cerdo")
         if not st or st["buy"] != "cerdo" or "Conseguir" not in st["btn"] or "35" not in st["btn"] or st["dis"]:
@@ -104,8 +135,8 @@ def test_buy_subtracts_once_and_emits_once():
             probs.append("el cerdo no es suyo tras comprarlo")
         if "cerdo" in g["wear"].values():
             probs.append(f"una cosa de la granja no se pone: wear = {g['wear']}")
-        h = page.evaluate("() => ({buys: __buys, said: __said, toasts: __toasts, keep: !!document.querySelector('#app .shop').__keep && !!document.querySelector('#me-name').__keep, "
-                          "pill: document.getElementById('coins').textContent, me: document.querySelector('.me-coins b').textContent})")
+        h = page.evaluate("() => ({buys: __buys, said: __said, toasts: __toasts, keep: !!document.querySelector('#app .shop').__keep && !!document.querySelector('#app .fm-stage').__keep, "
+                          "pill: document.getElementById('coins').textContent, me: document.querySelector('#fm-shop [data-fm-coins]').textContent})")
         if h["buys"] != ["cerdo"]:
             probs.append(f"bus 'buy' emitido {h['buys']} (se esperaba una vez)")
         if "pig" not in h["said"]:
@@ -115,7 +146,7 @@ def test_buy_subtracts_once_and_emits_once():
         if not h["keep"]:
             probs.append("la página se volvió a pintar al comprar")
         if h["pill"] != str(c0 - 35) or h["me"] != str(c0 - 35):
-            probs.append(f"las monedas a la vista no bajan: pastilla {h['pill']}, granja {h['me']}")
+            probs.append(f"las monedas a la vista no bajan: pastilla {h['pill']}, hoja de la granja {h['me']}")
         st = _card(page, "cerdo")
         if not st or st["st"] != "own" or not st["own"] or "En tu granja" not in st["own"] or st["sb"] or st["buy"]:
             probs.append(f"pieza del cerdo tras comprar: {st}")
@@ -153,9 +184,12 @@ def test_buy_outfit_wears_it_and_double_tap_is_safe():
             probs.append(f"pieza del sombrero: {s}")
         if not gorra or gorra["st"] != "wear" or gorra["btn"] != "Ponérmela" or "worn" in gorra["cls"]:
             probs.append(f"pieza de la gorra (ya no la lleva): {gorra}")
-        hats = page.evaluate("() => ({me: document.querySelector('#app .me > .hero .h-hat')?.textContent, farm: document.querySelector('#farm-host .fm-hero .h-hat')?.textContent})")
-        if hats["me"] != "🎩" or hats["farm"] != "🎩":
-            probs.append(f"el personaje no lleva el sombrero nuevo: {hats}")
+        # (F4b: ya no hay personaje encima de la tienda; se mira heroHtml() y el de la escena de la granja)
+        me = page.evaluate(_HAT)
+        C.goto(page, "#/granja")
+        farm = page.evaluate("() => document.querySelector('#farm-host .fm-hero .h-hat')?.textContent")
+        if me != "🎩" or farm != "🎩":
+            probs.append(f"el personaje no lleva el sombrero nuevo: {me} / granja {farm}")
         probs += C.errors(page)
     finally:
         page.context.close()
@@ -222,14 +256,14 @@ def test_wear_toggles():
         st = _card(page, "gorra")
         if not st or st["st"] != "wear" or st["btn"] != "Ponérmela" or "worn" in st["cls"]:
             probs.append(f"gorra quitada: {st}")
-        if page.evaluate("() => !!document.querySelector('#app .me > .hero .h-hat')"):
+        if page.evaluate(_HAT):
             probs.append("el personaje sigue con sombrero")
         page.wait_for_timeout(700)
         _tap(page, '#app .sc[data-id="gorra"] [data-wear]')
         page.wait_for_timeout(350)
         if page.evaluate(_GAME)["wear"].get("hat") != "gorra":
             probs.append(f"«Ponérmela» no la pone: {page.evaluate(_GAME)['wear']}")
-        if page.evaluate("() => document.querySelector('#app .me > .hero .h-hat')?.textContent") != "🧢":
+        if page.evaluate(_HAT) != "🧢":
             probs.append("el personaje no lleva la gorra otra vez")
         r1 = page.evaluate("() => vocabShop.wear('gorra')")
         r2 = page.evaluate("() => vocabShop.wear('gorra')")
@@ -342,13 +376,8 @@ def test_farm_selectors_and_shelter():
             shl: q('.shop .sc.shel[data-id=conejo] span.own.shl'), farm: SHOP.filter(x => x.t === 'farm').length}; }""")
         if s["sc"] != s["farm"] or s["se"] != s["sc"] or s["sn"] != s["sc"] or not s["sb"] or s["buy"] != s["sb"] or not s["own"] or s["shelter"] != 1 or s["shl"] != 1:
             probs.append(f"selectores de la tienda (granja): {s}")
-        page.locator("#app .shop-tabs [data-tab=hand]").click()
-        page.wait_for_timeout(300)
-        if not page.locator(".shop .sc[data-id] [data-wear]").count():
+        if "data-wear=" not in page.evaluate("() => vocabShop.card('balon', {mode: 'zorro'})"):
             probs.append("no hay [data-wear] en Juguetes")
-        page.locator("#app .shop-tabs [data-tab=farm]").click()
-        page.wait_for_timeout(300)
-        page.evaluate(_HOOKS)
         _tap(page, '#app .sc[data-id="conejo"] [data-shelter]')
         page.wait_for_selector("dialog.fm-shd[open]", timeout=4000)
         page.wait_for_timeout(300)
@@ -359,7 +388,7 @@ def test_farm_selectors_and_shelter():
         st = _card(page, "conejo")
         if not st or st["st"] != "own" or "shel" in st["cls"] or "En tu granja" not in (st["own"] or "") or st["shelter"]:
             probs.append(f"tras rescatarlo, la pieza del conejo: {st}")
-        page.locator("dialog.fm-shd .fm-ok").click()
+        page.locator("dialog.fm-shd [data-x]").click()
         probs += C.errors(page)
     finally:
         page.context.close()
@@ -375,7 +404,7 @@ def test_shelter_from_a_sheet_and_from_elsewhere():
     page = C.new_page("phone")
     probs = []
     try:
-        _open(page, keys)
+        _open(page, keys, tab=None)
         page.evaluate("""() => { const d = document.createElement('dialog'); d.id = 'tst-sheet';
           d.innerHTML = '<div class="shop">' + vocabShop.items('farm').map(x => vocabShop.card(x, {mode: 'farm'})).join('') + '</div>';
           document.body.appendChild(d); window.__chg = []; vocabShop.bind(d.querySelector('.shop'), {onChange: e => __chg.push(e.type)}); M.openSheet(d); }""")
@@ -385,7 +414,7 @@ def test_shelter_from_a_sheet_and_from_elsewhere():
         st = page.evaluate("() => ({sheet: document.getElementById('tst-sheet').open, chg: __chg, n: document.querySelectorAll('dialog[open]').length})")
         if st["sheet"] or st["chg"] != ["shelter"] or st["n"] != 1:
             probs.append(f"desde una hoja: {st}")
-        page.locator("dialog.fm-shd .fm-ok").click()
+        page.locator("dialog.fm-shd [data-x]").click()
         page.wait_for_timeout(300)
         C.goto(page, "#/progreso")
         page.evaluate("() => vocabShop.goShelter()")
@@ -406,7 +435,13 @@ def test_welcome_gift_updates_cards():
     try:
         C.goto(page, "")
         page.evaluate("() => { localStorage.clear(); sessionStorage.clear(); }")
-        C.goto(page, "#/granja", reload=True)
+        C.goto(page, "", reload=True)
+        # (F4b: la granja ya no pinta piezas en la página; estas se pintan antes de entrar, fuera de #app)
+        page.evaluate("""() => { const h = document.createElement('div'); h.id = 'tst-cards'; h.className = 'shop';
+          h.innerHTML = vocabShop.items('farm').map(x => vocabShop.card(x, {mode: 'farm'})).join(''); document.body.appendChild(h); }""")
+        if (_card(page, "gallina") or {}).get("st") == "own":
+            probs.append("la gallina ya era suya antes del regalo")
+        C.goto(page, "#/granja")
         page.wait_for_timeout(400)
         g, gal, flo, pat = page.evaluate(_GAME), _card(page, "gallina"), _card(page, "flor"), _card(page, "pato")
         if not (g and g["owned"].get("gallina") and g["owned"].get("flor")):
@@ -519,8 +554,7 @@ def test_cards_fit_and_read():
             try:
                 _open(page, _keys(coins=45))
                 for tab in ("farm", "hero", "hat", "face", "hand", "pet"):
-                    page.locator(f"#app .shop-tabs [data-tab={tab}]").click()
-                    page.wait_for_function("t => document.querySelector('#app .shop-tabs button.on')?.dataset.tab === t", arg=tab, timeout=3000)
+                    _tab(page, tab)
                     C.settle(page, quiet_ms=150)
                     bad = page.evaluate("""() => { const out = [];
                       for (const b of document.querySelectorAll('#app .shop .shp-b')) { const r = b.getBoundingClientRect();
@@ -540,7 +574,8 @@ def test_cards_fit_and_read():
                     probs += [f"{kind}-{scheme}-{tab} paleta: {x}" for x in a["palette"] if "shop" in x or "shp" in x]
                     if tab in ("farm", "hat"):
                         page.evaluate("() => document.querySelector('#app .shop').scrollIntoView({block: 'start'})")
-                        page.evaluate("() => scrollBy(0, -70)")
+                        if tab == "hat":
+                            page.evaluate("() => scrollBy(0, -70)")
                         page.wait_for_timeout(150)
                         C.shot(page, f"F4-0-tienda-{tab}-{kind}-{scheme}", out, full_page=False)
                 probs += C.errors(page)
@@ -564,9 +599,8 @@ def test_export_unchanged_and_sw():
         d = C.diff_exports(base, snap)
         if d:
             probs.append("al arrancar la partida no es la de la base:\n  " + "\n  ".join(d))
-        C.goto(page, "#/granja")
         for tab in ("hero", "hat", "face", "hand", "pet", "farm"):
-            page.locator(f"#app .shop-tabs [data-tab={tab}]").click()
+            _tab(page, tab)
             page.wait_for_timeout(200)
         page.evaluate("() => { vocabShop.refreshPrices(); vocabShop.sync(); vocabShop.items('zorro').map(x => vocabShop.card(x)); }")
         C.goto(page, "")

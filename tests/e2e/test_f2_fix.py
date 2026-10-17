@@ -591,8 +591,9 @@ def test_title_live_region_credits_privacy():
 
 def test_short_phones_fit_and_farm_fade():
     """Hoy cabe sin scroll en un iPhone SE (375×667) y en un Android de 360×740 con la partida sembrada (con un solo
-    HOME_SLOT). En la granja, la escena llega hasta arriba sin el borde que funde, y al bajar más allá de ella el
-    borde vuelve (html[data-fm-past]) para que nada se lea a través de la barra."""
+    HOME_SLOT). En la granja, la escena llega hasta arriba sin el borde que funde.
+    (F4b: la escena ocupa toda la pantalla y la página ya no baja, así que el borde no vuelve nunca: sin html[data-fm-past]
+    y sin scroll.)"""
     probs = []
     for w, h in ((375, 667), (360, 740)):
         page = C.new_page("phone")
@@ -617,8 +618,9 @@ def test_short_phones_fit_and_farm_fade():
         page.wait_for_timeout(400)
         b = page.evaluate("document.documentElement.hasAttribute('data-fm-past')")
         fade = page.evaluate("getComputedStyle(document.querySelector('.topbar'), '::after').display")
-        if a or not b or fade == "none":
-            probs.append(f"granja: borde que funde arriba {a}, al bajar {b} ({fade})")
+        y = page.evaluate("scrollY")
+        if a or b or fade != "none" or y:
+            probs.append(f"granja: borde que funde arriba {a}, al intentar bajar {b} ({fade}), scrollY {y}")
         probs += C.errors(page)
     finally:
         page.context.close()

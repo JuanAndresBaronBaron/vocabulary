@@ -46,7 +46,7 @@ BASE = [
     {"name": "album", "hash": "#/album", "what": "Álbum de pegatinas"},
     {"name": f"album-{ALBUM_DONE}", "hash": f"#/album/{ALBUM_DONE}", "what": "Página del álbum completa"},
     {"name": "album-familia", "hash": "#/album/familia", "what": "Página del álbum con pegatinas nuevas"},
-    {"name": "granja", "hash": "#/granja", "what": "Granja y tienda"},
+    {"name": "granja", "hash": "#/granja", "what": "Granja (escena a pantalla completa; la tienda es su hoja)"},
     {"name": "progreso", "hash": "#/progreso", "what": "Premios"},
 ]
 

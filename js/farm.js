@@ -1,18 +1,37 @@
-/* Módulo farm: granja viva e interactiva (#/granja).
-   index.html llama a farmMount(host) al pintar la página de la granja.
-   - Escenario con cielo según la hora (amanecer, día, atardecer, noche), nubes, sol/luna, estrellas y luciérnagas.
-   - Objetos comprados en la tienda: se arrastran (ratón o dedo) y la posición se guarda.
-   - Animales que pasean y dan productos. Comen comida de la despensa (se compra con monedas);
-     sus corazones bajan con el tiempo real y, tras 5 días sin comer, se van al refugio (nunca mueren).
-   - Plantas que crecen con la regadera y se cosechan; árboles que dan fruta o nidos.
-   - Edificios con sorpresa (cohete, tractor, fuente, castillo, casa, cabaña, tienda).
-   - Juego «¿Dónde está…?».
+/* Módulo farm: la granja viva (#/granja). ROUTES.granja pinta la página y monta la escena con farmMount(host).
+   - La escena ocupa toda la pantalla, también bajo la barra de estado (sin título ni ficha del personaje). Quedan la barra
+     de arriba y la de pestañas, ligeras (sin desenfoque). Cielo según la hora (amanecer, día, atardecer, noche), nubes,
+     sol o luna, estrellas y luciérnagas.
+   - Abajo, en el sitio del accesorio «Seguir» (que en la granja no sale), un dock de vidrio ligero: Regar · Comida · Tienda.
+     Comida abre una bandeja sólida con la comida comprada; Tienda abre una hoja (dos alturas en el móvil) con solo las cosas
+     de la granja (piezas de js/shop.js: vocabShop.card(…, {mode: "farm"}) y vocabShop.bind) y la comida. Comprar no vuelve
+     a montar la granja: lo nuevo aparece en la escena. La pastilla de monedas de arriba abre la misma hoja.
+   - Gestos (siempre hay un toque que hace lo mismo):
+       tocar un animal = acariciarlo (corazones, su nombre y su voz; no come) o, si tiene hambre, el globo para darle de comer;
+       arrastrar una comida de la bandeja hasta un animal = darle de comer (lo mismo que tocar la comida y luego el animal);
+       arrastrar la regadera del dock hasta una planta = regarla (lo mismo que «Regar» y tocar la planta);
+       mantener pulsada 500 ms una cosa = levantarla (crece un poco, sombra y vibración); arrastrar = moverla (se guarda en
+       farm:state.pos); soltar sin moverla = se queda donde está.
+   - Hambre y tareas: un globo encima de cada animal con hambre enseña la comida que pide; el más urgente dice en el idioma
+     «I'm hungry!» / «J'ai faim !» / «Jeg er sulten!» (con «¡Tengo hambre!» pequeño y en gris) y lo dice en voz alta una vez
+     por animal y visita (al tocarlo, o al entrar si no suena nada). Gotas sobre las plantas con sed y chispas en las que
+     están listas. El globo de comer y «¿Cómo me llamo?» salen junto al animal (no tapan la granja).
+   - Después de comer: «¿Cómo me llamo?» con 3 opciones para tocar y, si hay micrófono (canListen()), «Dilo»: lo que el
+     reconocedor no entiende nunca cuenta como fallo (se puede tocar). Si la palabra está en el corpus del idioma (CORPUS,
+     sacado de data/*.json), acertar la pone en el repaso con srsGrade(tema, {es}, 2), como una lección: solo si es nueva
+     o ya le toca (así darle de comer cada día no la infla). También al acertar en «¿Dónde está…?».
+   - La primera vez (farm:state.wpend) o con comida de regalo (cnew), una mano animada enseña a arrastrar la comida
+     hasta el animal (3 veces; quieta con «Reducir movimiento»).
+   - Animales que pasean y dan regalos; plantas que crecen con agua y se cosechan; árboles con fruta o nidos; edificios
+     con sorpresa; «¿Dónde está…?» (tocando al personaje); refugio a mitad de precio a los 5 días sin comer (nunca mueren).
    - Fuera de la granja: un punto azul en la pestaña «Granja» si algún animal tiene hambre o si alguno se fue al refugio y
-     aún no lo ha visto; ese mismo aviso del refugio sale también en Hoy como fila compacta (HOME_SLOTS, id "granja").
-   Estado: store "farm:state". Emite: farm-feed {item, food}, farm-harvest {item}, farm-collect {product}, farm-find {ok},
-   farm-buy {food, n, cost}, farm-rescue {item}, coins {n < 0} al gastar.
-   Para otros módulos: farmMount.kinds (listas de especies), farmMount.care (consultas de solo lectura) y
-   window.vocabFarm.openShop() (abre la tienda de la granja: lo usa el botón de las monedas de arriba). */
+     aún no lo ha visto; ese aviso del refugio también sale en Hoy (HOME_SLOTS, id "granja").
+   - Capa vacía <div class="fm-season"> (toda la pantalla, encima del suelo y debajo de los animales, sin recibir toques)
+     para las temporadas (js/season.js); al montar: bus "farm-mounted" {stage, season, world, hz}.
+   Estado: store "farm:state". Emite: farm-mounted, farm-feed {item, food}, farm-harvest {item}, farm-collect {product},
+   farm-find {ok}, farm-buy {food, n, cost}, farm-rescue {item}, coins {n < 0} al gastar.
+   Para otros módulos: farmMount.kinds (especies), farmMount.care (consultas de solo lectura) y window.vocabFarm:
+   openShop({food, from}) (abre la hoja de la tienda; desde otra pestaña va antes a #/granja), closeShop(), stage. */
 function farmMount(host){ return farmMount._mount ? farmMount._mount(host) : null; }
 /* pruebas: phase "dawn" | "day" | "dusk" | "night" fuerza la hora del cielo;
    shift (ms) adelanta el reloj de la granja (simular días); tick() repasa la granja montada al momento */
@@ -22,17 +41,17 @@ farmMount.debug = {phase: null, shift: 0, tick(){}};
 "use strict";
 
 /* ---------- comida y cuidado: precios y tiempos ----------
-   Economía: una lección da ~10–25 🪙 (y el primer premio del día +10). Cada animal come 1 ración al día (5–8 🪙)
-   y deja 1 regalo de 1 🪙 (2 si acierta su nombre): mantener 5 animales cuesta ≈ 21–26 🪙/día y los 11 ≈ 47–58 🪙/día,
-   o sea 1–2 lecciones. Los regalos de los animales valen poco a propósito: si valieran más que la comida, la granja
-   se pagaría sola y no haría falta aprender. */
+   Economía: una lección da ~10–25 monedas (y el primer premio del día +10). Cada animal come 1 ración al día (5–8) y deja
+   1 regalo de 1 moneda (2 si acierta su nombre): mantener 5 animales cuesta ≈ 21–26 al día y los 11 ≈ 47–58, o sea
+   1–2 lecciones. Los regalos de los animales valen poco a propósito: si valieran más que la comida, la granja se pagaría
+   sola y no haría falta aprender. */
 const HOUR = 36e5;
 const CARE_V    = 1;              /* versión del cuidado guardada en el estado (migración de granjas antiguas) */
 const FULL_H    = 8;              /* tras comer: «¡Está lleno!» durante 8 h (no se gasta comida) */
-const HEART_H   = [24, 48, 72];   /* sin comer: 3❤️ → 2❤️ a las 24 h → 1❤️ (triste) a las 48 h → 0❤️ (enfermo 🤒) a las 72 h */
-const SHELTER_H = 120;            /* a las 120 h (5 días) sin comer se va al refugio 🏚️ */
-const ARRIVE_H  = 24;             /* recién llegados (y todos al actualizar): comieron hace 24 h → 2❤️ */
-const RESCUE_H  = 48;             /* rescatado del refugio: comió hace 48 h → 1❤️ */
+const HEART_H   = [24, 48, 72];   /* sin comer: 3 corazones → 2 a las 24 h → 1 (triste) a las 48 h → 0 (malito) a las 72 h */
+const SHELTER_H = 120;            /* a las 120 h (5 días) sin comer se va al refugio */
+const ARRIVE_H  = 24;             /* recién llegados (y todos al actualizar): comieron hace 24 h → 2 corazones */
+const RESCUE_H  = 48;             /* rescatado del refugio: comió hace 48 h → 1 corazón */
 const MISS_H    = 48;             /* sin venir a la granja 2 días: «¡Te echaban de menos!» */
 const PAN_MAX   = 30;             /* raciones como mucho de cada comida */
 const PROD_MAX  = 3;              /* regalos de un mismo animal esperando en el suelo */
@@ -46,11 +65,26 @@ const FOOD = {
   maiz:      {e: "🌽", n: "maíz",      a: "el", c: 8, w: {english: "maize",  "français": "le maïs",    dansk: "en majs"}},
   nectar:    {e: "🌼", n: "néctar",    a: "el", c: 7, w: {english: "nectar", "français": "le nectar",  dansk: "en nektar"}},
 };
+/* «La granja te habla»: lo que dice un animal con hambre (en el idioma que aprende, con la voz de ese idioma) */
+const PHRASE = {english: "I'm hungry!", "français": "J'ai faim !", dansk: "Jeg er sulten!"};
+const PHRASE_ES = "¡Tengo hambre!";
+/* las cosas de la granja que están en el corpus de cada idioma: id → "tema|es" (la clave del repaso, srsK). Sacado de
+   data/*.json: la palabra del idioma sin artículo es la misma y una de las partes del «es» de la fila es su nombre
+   (así «maïs» no casa con «pero», ni «ko» con «cola»). Lo que no está aquí no toca el repaso. */
+const CORPUS = (() => {
+  const all = {gallina: "animales|Gallina", pato: "animales|Pato", conejo: "animales|Conejo", abeja: "animales|Abeja",
+    cerdo: "animales|Cerdo", oveja: "animales|Oveja", cabra: "animales|Cabra", pavo: "animales|Pavo", vaca: "animales|Vaca",
+    burro: "animales|Burro", caballo: "animales|Caballo", flor: "w09|flor", zanahoria: "w03|zanahoria", trigo: "a46|trigo",
+    manzana: "w03|manzana", arbol: "w09|árbol", tienda: "w07|tienda de campaña", castillo: "w06|castillo", cohete: "w17|cohete"};
+  return {english: Object.assign({}, all, {casa: "w04|casa"}),
+    "français": Object.assign({}, all, {cabana: "a46|cabaña, camarote", casa: "w04|casa, hogar"}),
+    dansk: Object.assign({}, all, {cabana: "a46|cabaña, camarote", casa: "w04|casa"})};
+})();
 
 /* ---------- datos ---------- */
 const KEY = "farm:state";
 const WATER = 2 * HOUR, TREE_T = 3 * HOUR, MAX_DROPS = 12, ROUNDS = 5, FIND_PAID = 5;
-const G = {x0: 5, x1: 95, y0: 58, y1: 95};   /* suelo, en % del escenario (punto de apoyo de cada cosa) */
+const GND = {x0: 5, x1: 95, y0: 58, y1: 95};   /* suelo, en % del mundo (punto de apoyo de cada cosa) */
 
 /* p: producto · eats: su comida · f: femenino (para «a la vaca» / «al cerdo») · sp: velocidad (px/s) · r: radio de paseo (%) */
 const ANIM = {
@@ -105,10 +139,15 @@ const GREET = {
   dusk:  {es: "¡Buenas tardes!",  english: "Good evening!", "français": "Bonsoir !", dansk: "God aften!"},
   night: {es: "¡Buenas noches!",  english: "Good night!",   "français": "Bonne nuit !", dansk: "Godnat!"},
 };
+/* la moneda (la misma que la de js/shop.js y la de arriba) */
+const COIN = `<svg class="coin-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFCC00"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7A000" stroke-opacity=".8"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B39000" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7.8 13.06 10.54 15.99 10.7 13.71 12.56 14.47 15.4 12 13.8 9.53 15.4 10.29 12.56 8.01 10.7 10.94 10.54Z" fill="#A88700" fill-opacity=".8"/></svg>`;
+/* la mano que enseña a arrastrar (Phosphor hand-pointing fill, MIT) */
+const HAND = `<svg viewBox="0 0 256 256" aria-hidden="true" focusable="false"><path fill="currentColor" d="M224,104v50.93c0,46.2-36.85,84.55-83,85.06A83.71,83.71,0,0,1,80.6,215.4C58.79,192.33,34.15,136,34.15,136a16,16,0,0,1,6.53-22.23c7.66-4,17.1-.84,21.4,6.62l21,36.44a6.09,6.09,0,0,0,6,3.09l.12,0A8.19,8.19,0,0,0,96,151.74V32a16,16,0,0,1,16.77-16c8.61.4,15.23,7.82,15.23,16.43V104a8,8,0,0,0,8.53,8,8.17,8.17,0,0,0,7.47-8.25V88a16,16,0,0,1,16.77-16c8.61.4,15.23,7.82,15.23,16.43V112a8,8,0,0,0,8.53,8,8.17,8.17,0,0,0,7.47-8.25v-7.28c0-8.61,6.62-16,15.23-16.43A16,16,0,0,1,224,104Z"/></svg>`;
 
 /* ---------- utilidades ---------- */
 const now = () => { const d = farmMount.debug, sh = d ? Number(d.shift) : 0; return Date.now() + (isFinite(sh) ? sh : 0); };
 const RM = () => { try{ return window.M && typeof window.M.rm === "function" ? window.M.rm() : matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };   /* M.rm() de js/motion.js */
+const GS = () => window.G && typeof window.G.drag === "function" ? window.G : null;   /* js/gestures.js */
 const rnd = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const r1 = v => Math.round(v * 10) / 10;
@@ -117,11 +156,14 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 const play = n => { try{ if(typeof sfx !== "undefined") sfx.play(n); }catch(e){} };
 const speak = t => { try{ if(t && "speechSynthesis" in window) say(t); }catch(e){} };
 const emit = (e, d) => { try{ bus.emit(e, d); }catch(err){} };
+const note = (t, icon) => { try{ if(window.M && typeof M.toast === "function") M.toast(t, icon ? {icon} : {}); }catch(e){} };
 const okPos = p => !!p && typeof p === "object" && isFinite(p.x) && isFinite(p.y);
 const kindOf = id => ANIM[id] ? "animal" : PLANT[id] !== undefined ? "plant" : BUILD[id] ? "build" : "deco";
 const owned = () => { const g = game(); return SHOP.filter(x => x.t === "farm" && g.owned[x.id]); };
 const iw = it => itemWord(it);
 const pw = p => (p.w && p.w[lang]) || p.n;
+const code = () => (LANGS[lang] && LANGS[lang].code) || "en-GB";
+const icon = (n, st, z) => typeof ico === "function" ? ico(n, st || "bold", z || 24) : "";
 /* emoji de un producto (🧶 sale magenta en algunas fuentes: lo pintamos como lana blanca) */
 const pe = pid => `<span class="fm-pe fm-pe-${pid}">${PROD[pid].e}</span>`;
 function fmtLeft(ms){
@@ -138,6 +180,31 @@ function hourNow(){
   const f = farmMount.debug && farmMount.debug.phase;
   if(f) return {dawn: 7.2, day: 12.5, dusk: 19.6, night: 23.5}[f] || 12;
   const d = new Date(); return d.getHours() + d.getMinutes() / 60;
+}
+/* ¿suena algo ahora? (la voz del navegador o un audio grabado de index.html) */
+function sounding(){
+  try{ if("speechSynthesis" in window && (speechSynthesis.speaking || speechSynthesis.pending)) return true; }catch(e){}
+  try{ return typeof clipEl !== "undefined" && !!clipEl; }catch(e){ return false; }
+}
+/* lo que oyó el reconocedor: el comparador tolerante del repaso (js/review.js) o, si no está, uno sencillo */
+function heard(alts, word){
+  try{ if(window.vocabReview && typeof vocabReview.matches === "function") return !!vocabReview.matches(alts, word, lang); }catch(e){}
+  const f = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\p{L}\p{N}' ]+/gu, " ").replace(/\s+/g, " ").trim();
+  const bare = s => s.replace(/^(the|a|an|le|la|les|un|une|en|et) /, "").replace(/^l'/, "");
+  const w = bare(f(word));
+  return !!w && (alts || []).some(a => { const t = f(a); return t === w || bare(t) === w || (" " + t + " ").includes(" " + w + " "); });
+}
+/* acierto con una palabra de la granja: al repaso con el mismo formato que una lección (clave «tema|es»), si está en el
+   corpus del idioma. Solo si es nueva en el repaso o ya le toca: darle de comer cada día no la sube de caja sin repasar */
+function srsWord(id){
+  try{
+    const ref = (CORPUS[lang] || {})[id];
+    if(!ref || typeof srsGrade !== "function" || typeof srsAll !== "function") return false;
+    const i = ref.indexOf("|"), doc = ref.slice(0, i), es = ref.slice(i + 1), x = srsAll()[doc + "|" + es];
+    if(x && typeof today === "function" && x.due > today()) return false;
+    srsGrade(doc, {es}, 2);
+    return true;
+  }catch(e){ console.error(e); return false; }
 }
 
 /* ---------- estado ---------- */
@@ -171,7 +238,7 @@ function heartsS(s, id){
   return e < HMS(HEART_H[0]) ? 3 : e < HMS(HEART_H[1]) ? 2 : e < HMS(HEART_H[2]) ? 1 : 0;
 }
 const canEatS = (s, id) => !inShelterS(s, id) && sinceFed(s, id) >= HMS(FULL_H);
-/* los que necesitan comer ya (2 corazones o menos): portada, insignia del menú, tarjeta */
+/* los que necesitan comer ya (2 corazones o menos): portada, insignia del menú, globos de la escena */
 const needyS = s => onFarmS(s).filter(id => heartsS(s, id) <= 2);
 /* pone al día el estado: migración, despensa y refugio a salvo de datos raros, recién llegados, los que se van al refugio */
 function careSync(s){
@@ -187,8 +254,8 @@ function careSync(s){
     else if(typeof v.t !== "number" || !isFinite(v.t)){ v.t = t; out.ch = true; }
   }
   const ids = ownedAnimals();
-  /* primera vez con esta versión: nadie pierde animales por actualizar. Empiezan con 2❤️ (o más si comieron hace poco)
-     y, si la granja ya existía, llega un poco de comida de regalo para cada uno */
+  /* primera vez con esta versión: nadie pierde animales por actualizar. Empiezan con 2 corazones (o más si comieron hace
+     poco) y, si la granja ya existía, llega un poco de comida de regalo para cada uno */
   if(s.cv !== CARE_V){
     const gift = {};
     for(const id of ids){
@@ -207,10 +274,10 @@ function careSync(s){
   for(const id of ids){
     if(inShelterS(s, id)) continue;
     let f = s.fed[id];
-    if(!okT(f)){ f = s.fed[id] = t - HMS(ARRIVE_H); out.ch = true; }   /* recién llegado (o dato roto): 2❤️ */
+    if(!okT(f)){ f = s.fed[id] = t - HMS(ARRIVE_H); out.ch = true; }   /* recién llegado (o dato roto): 2 corazones */
     /* (una hora de comer «en el futuro» no se toca: es que el reloj va atrasado, y sinceFed la lee como «acaba de comer»;
        si se guardara, al arreglar el reloj perdería corazones o se iría al refugio sin motivo) */
-    /* aún no ha visto la novedad de la comida: nadie baja de 2❤️ ni se va al refugio por actualizar */
+    /* aún no ha visto la novedad de la comida: nadie baja de 2 corazones ni se va al refugio por actualizar */
     if(s.cnew && t - f > HMS(ARRIVE_H)){ f = s.fed[id] = t - HMS(ARRIVE_H); out.ch = true; }
     if(t - f >= HMS(SHELTER_H)){ s.shelter[id] = {t: Math.round(f + HMS(SHELTER_H)), seen: false}; out.gone.push(id); out.ch = true; }
   }
@@ -222,7 +289,7 @@ function careState(){
   const s = load(), r = careSync(s); if(r.ch) save(s);
   return s;
 }
-/* gastar monedas: nunca por debajo de 0 */
+/* gastar monedas: nunca por debajo de 0 (las monedas solo entran con award()) */
 function spend(n, why){
   const g = game(), have = Math.max(0, Math.floor(Number(g.coins) || 0));
   if(!(n > 0) || have < n) return false;
@@ -243,7 +310,7 @@ const joinY = a => a.length <= 1 ? (a[0] || "") : a.slice(0, -1).join(", ") + " 
 function spot(id, pos, y0){
   const k = kindOf(id), big = BIG.has(id) || TREE[id];
   /* bandas pensadas para un suelo de 58 % a 95 %; con más suelo (granja llena) se estiran */
-  const f = y => (y0 || G.y0) + (y - G.y0) * (G.y1 - (y0 || G.y0)) / (G.y1 - G.y0);
+  const f = y => (y0 || GND.y0) + (y - GND.y0) * (GND.y1 - (y0 || GND.y0)) / (GND.y1 - GND.y0);
   const band = (big ? [60, 69] : k === "plant" ? [78, 93] : [68, 88]).map(f);
   /* se compara el centro de cada cosa (las grandes suben más desde su punto de apoyo) */
   const mid = (o, k) => ({x: o.x, y: o.y - (BIG.has(k) || TREE[k] ? 9 : 5)});
@@ -257,39 +324,9 @@ function spot(id, pos, y0){
   return {x: r1(best.x), y: r1(best.y)};
 }
 
-/* el regalo de bienvenida ya está en la granja: actualiza las tarjetas de la tienda ya pintadas (las de js/shop.js se
-   ponen al día solas con vocabShop.sync(); lo de abajo queda para unas tarjetas sin ese módulo) */
-function patchShop(ids){
-  if(window.vocabShop && typeof window.vocabShop.sync === "function"){ window.vocabShop.sync(); return; }
-  ids.forEach(id => {
-    const it = itemById(id); if(!it) return;
-    document.querySelectorAll(".shop .sc").forEach(sc => {
-      const n = sc.querySelector(".sn"), e = sc.querySelector(".se");
-      if(!n || !e || (sc.dataset.id ? sc.dataset.id !== id : (n.textContent !== it.n || e.textContent !== it.e))) return;
-      sc.classList.add("own");
-      sc.querySelectorAll(".btn.buy, .miss").forEach(x => x.remove());
-      if(!sc.querySelector(".own")){ const o = document.createElement("span"); o.className = "own"; o.textContent = "✓ En tu granja"; sc.appendChild(o); }
-    });
-  });
-}
-
-/* la tienda ya pintada: «🏚️ En el refugio» ↔ «✓ En tu granja» (con js/shop.js, vocabShop.sync() lee el refugio) */
-function patchShopShelter(sh){
-  if(window.vocabShop && typeof window.vocabShop.sync === "function"){ try{ window.vocabShop.sync(); }catch(e){} return; }
-  try{
-    const own = game().owned || {};
-    document.querySelectorAll(".shop .sc[data-id]").forEach(sc => {
-      const id = sc.dataset.id, o = sc.querySelector("span.own"); if(!ANIM[id] || !own[id] || !o) return;
-      const inS = !!(sh && sh[id]); if(inS === sc.classList.contains("shel")) return;
-      sc.classList.toggle("shel", inS); o.classList.toggle("shl", inS);
-      o.textContent = inS ? "🏚️ En el refugio" : "✓ En tu granja";
-      const b = sc.querySelector("[data-shelter]");
-      if(inS && !b) o.insertAdjacentHTML("afterend", `<button class="btn sm" data-shelter="${id}">Ir al refugio</button>`);
-      if(!inS && b) b.remove();
-    });
-  }catch(e){}
-}
-/* «Ir al refugio» de la tienda */
+/* las piezas de la tienda ya pintadas se ponen al día (comprada, en el refugio, precios): js/shop.js */
+const shopSync = () => { try{ if(window.vocabShop && typeof vocabShop.sync === "function") vocabShop.sync(); }catch(e){} };
+/* «Ir al refugio» de una pieza (vocabShop.bind ya lo atiende y no deja que llegue aquí; esto queda para otras) */
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-shelter]"); if(b && cur && cur.alive()) cur.openShelter(); });
 
 /* ---------- conexión con la app ---------- */
@@ -304,6 +341,10 @@ bus.on("lesson-done", () => addDrops(3));
 bus.on("review-done", () => addDrops(2));
 bus.on("game-done", () => addDrops(1));
 bus.on("route", d => { if(cur && !(cur.host.isConnected && String((d && d.h) || "").startsWith("granja"))) cur.stop(); });
+/* comprar fuera de la hoja (un regalo, otra pantalla): lo nuevo aparece en la escena montada */
+bus.on("buy", d => { const it = d && d.item; if(!cur || !cur.alive()) return; if(it && it.t === "farm") cur.added(it.id); cur.coins(); });
+/* las monedas cambian (comida, regalos, medallas): la hoja de la tienda pone al día sus botones */
+bus.on("coins", () => { if(cur && cur.alive()) cur.coins(); });
 
 /* punto azul en la pestaña «Granja» (tabBadge de index.html) cuando algún animal tiene hambre o se fue al refugio sin que
    el niño lo haya visto todavía (al entrar en la granja sale el aviso y el punto se va). Nunca rojo ni un número: la
@@ -320,31 +361,31 @@ function navBadge(){
   }catch(e){ console.error(e); }
 }
 ["boot", "route", "coins", "farm-feed", "farm-rescue", "buy", "gift-open"].forEach(ev => bus.on(ev, () => navBadge()));
-setInterval(navBadge, 60000);   /* (navBadge también pone al día lo comprado o regalado: llega con 2❤️ aunque no se abra la granja) */
+setInterval(navBadge, 60000);   /* (navBadge también pone al día lo comprado o regalado: llega con 2 corazones aunque no se abra la granja) */
 
-/* window.vocabFarm.openShop(): el botón de las monedas de arriba abre la tienda de la granja. Hoy la tienda está al
-   final de #/granja (<h2 id="shop">): se va allí si hace falta, se baja hasta ella y se le da el foco */
-let shopPend = false;
-function goShop(){
-  const h = document.getElementById("shop"); if(!h) return false;
-  const top = document.getElementById("topbar"), off = top && top.getClientRects().length ? top.getBoundingClientRect().bottom + 12 : 12;
-  window.scrollTo({top: Math.max(0, scrollY + h.getBoundingClientRect().top - off), behavior: RM() ? "auto" : "smooth"});
-  try{ h.focus({preventScroll: true}); }catch(e){}
-  return true;
-}
+/* window.vocabFarm.openShop({food, from}): la pastilla de las monedas (y el dock) abren la hoja de la tienda de la granja.
+   Desde otra pestaña, va antes a #/granja y la abre al llegar */
+const onFarmHash = () => /^#\/granja(\/|$)/.test(location.hash);
+let shopPend = null;
 bus.on("route", d => {
   if(!shopPend) return;
-  shopPend = false;
-  if(String((d && d.h) || "").startsWith("granja")) requestAnimationFrame(() => goShop());
+  const o = shopPend; shopPend = null;
+  if(String((d && d.h) || "").startsWith("granja")) setTimeout(() => { if(cur && cur.alive()) cur.openShop(o); }, 60);
 });
-window.vocabFarm = Object.assign(window.vocabFarm || {}, {
-  openShop(){
-    if(/^#\/granja(\/|$)/.test(location.hash) && goShop()) return;
-    shopPend = true;
-    if(/^#\/granja(\/|$)/.test(location.hash)){ if(typeof route === "function") route(); }
+{
+  const VF = window.vocabFarm = window.vocabFarm || {};
+  VF.openShop = o => {
+    o = o && typeof o === "object" && !(o instanceof Event) ? o : {};
+    if(onFarmHash() && cur && cur.alive()){ cur.openShop(o); return true; }
+    shopPend = o;
+    if(onFarmHash()){ if(typeof route === "function") route(); }
     else location.hash = "#/granja";
-  },
-});
+    return false;
+  };
+  VF.closeShop = () => { if(cur && cur.alive()) cur.closeShop(); };
+  /* la escena montada ahora (o null fuera de la granja): un getter, no una copia */
+  Object.defineProperty(VF, "stage", {configurable: true, enumerable: true, get: () => cur && cur.alive() ? cur.stage : null});
+}
 
 /* Hoy: una fila compacta cuando alguien se acaba de ir al refugio («La gallina está en el refugio · ¡Puedes traerla de
    vuelta!»). Lleva a la granja, que enseña el aviso con «Ver el refugio»; visto el aviso, la fila ya no sale */
@@ -357,14 +398,21 @@ const shelSlot = () => {
 shelSlot.id = "granja";
 if(typeof HOME_SLOTS !== "undefined") HOME_SLOTS.push(shelSlot);
 
+/* la página: #/granja (route() de index.html la llama con la tienda ya cargada) */
+if(typeof ROUTES === "object" && ROUTES) ROUTES.granja = async () => {
+  const app = document.getElementById("app"); if(!app) return;
+  app.innerHTML = `<div id="farm-host" class="fm-host"></div>`;
+  mount(app.firstElementChild);
+};
+
 /* ---------- montaje ---------- */
 function mount(host){
   if(cur) cur.stop();
   if(!host) return null;
   css();
 
-  /* temporizadores: todos se paran al salir de la página */
-  const T = new Set(), I = new Set();
+  /* temporizadores y gestos: todo se para al salir de la página */
+  const T = new Set(), I = new Set(), OFF = [];
   let alive = true;
   const isOn = () => alive && host.isConnected;
   const later = (fn, ms) => { const t = setTimeout(() => { T.delete(t); if(isOn()) fn(); else stop(); }, ms); T.add(t); return t; };
@@ -375,7 +423,10 @@ function mount(host){
     /* solo la hora de la visita, sobre lo guardado (otra pestaña pudo cambiar la granja) */
     try{ const t = load(); t.visit = Math.max(Number(t.visit) || 0, now()); save(t); }catch(e){}
     T.forEach(clearTimeout); I.forEach(clearInterval); T.clear(); I.clear();
+    OFF.splice(0).forEach(f => { try{ f(); }catch(e){} });
     window.removeEventListener("resize", onResize); window.removeEventListener("storage", onStorage);
+    document.removeEventListener("keydown", onKey); document.removeEventListener("pointerdown", onDocDown, true);
+    try{ coachDone(); noHint(); }catch(e){}
     try{ host.querySelectorAll("dialog[open]").forEach(d => d.close()); }catch(e){}
     if(cur === api) cur = null;
   }
@@ -387,31 +438,33 @@ function mount(host){
   if(first && !owned().length){
     const g = game(); g.owned.gallina = true; g.owned.flor = true; gameSet(g); gifted = true;
     for(const k of Object.keys(WELCOME_FOOD)) s.pan[k] = Math.min(PAN_MAX, (s.pan[k] || 0) + WELCOME_FOOD[k]);
-    patchShop(["gallina", "flor"]);
+    shopSync();
   }
-  careSync(s);   /* recién llegados con 2❤️ y los que se van al refugio */
+  careSync(s);   /* recién llegados con 2 corazones y los que se van al refugio */
   const away = s.visit > 0 ? Math.max(0, now() - s.visit) : 0; s.visit = Math.max(s.visit, now());   /* reloj atrasado: no cuenta */
   const api = {host, stop, alive: isOn,
     addDrops: n => { const b = s.drops || 0; upd(st => st.drops = Math.min(MAX_DROPS, b + n)); bar(); },
     /* otros módulos leen el estado a través de la granja montada (así no se pisan los cambios) */
     sync: () => { const r = careSync(s); if(r.ch) save(s); if(r.gone.length) later(() => leave(r.gone), 0); return s; },
-    openShelter: () => { if(!dlgOpen() && !finding()){ showStage(); openShelter(); } },
+    openShelter: () => { if(!dlgOpen() && !finding()) openShelter(); },
+    openShop: o => openShop(o || {}), closeShop: () => closeShop(),
+    added: id => addLive(id), coins: () => shopCoins(),
     tick: () => tick()};
   cur = api;
   const items = owned().filter(it => !inShelterS(s, it.id)), fresh = [];
   const narrow = matchMedia("(max-width:560px)").matches;
   const crowd = items.length > (narrow ? 9 : 16);
-  const HZ = crowd ? 40 : 50;                                   /* horizonte (% desde arriba) */
-  const GR = {x0: G.x0, x1: G.x1, y0: HZ + 8, y1: G.y1};       /* suelo donde se apoyan las cosas */
-  if(s.lay !== GR.y0){                                          /* cambia el suelo: se reparte lo que ya había */
-    const o = typeof s.lay === "number" ? s.lay : G.y0, m = y => r1(GR.y0 + (y - o) * (GR.y1 - GR.y0) / (GR.y1 - o));
+  const HZ = crowd ? 40 : 50;                                       /* horizonte (% del mundo, desde arriba) */
+  const GR = {x0: GND.x0, x1: GND.x1, y0: HZ + 8, y1: GND.y1};     /* suelo donde se apoyan las cosas */
+  if(s.lay !== GR.y0){                                              /* cambia el suelo: se reparte lo que ya había */
+    const o = typeof s.lay === "number" ? s.lay : GND.y0, m = y => r1(GR.y0 + (y - o) * (GR.y1 - GR.y0) / (GR.y1 - o));
     for(const k of Object.keys(s.pos)) if(okPos(s.pos[k])) s.pos[k].y = m(s.pos[k].y);
     if(okPos(s.hero)) s.hero.y = m(s.hero.y);
     for(const k of Object.keys(s.prod)) if(okPos(s.prod[k])) s.prod[k].y = m(s.prod[k].y);
     for(const k of Object.keys(live)) if(okPos(live[k])) live[k].y = m(live[k].y);
     s.lay = GR.y0;
   }
-  /* la bienvenida queda pendiente hasta que se ve (si cambia de idioma o de página antes, sale al volver) */
+  /* la enseñanza de la primera vez queda pendiente hasta que se ve (si cambia de idioma o de página antes, sale al volver) */
   if(first) s.wpend = gifted ? "gift" : "live";
   s.welcome = true;
   for(const it of items){
@@ -430,50 +483,72 @@ function mount(host){
   /* ---------- escenario ---------- */
   let ph = phase();
   let blades = ""; for(let i = 0; i < 400; i += 5){ const h = 5 + (i * 7) % 9; blades += `M${i} 16L${i + 2.5} ${16 - h}L${i + 5} 16Z`; }
-  const stars = Array.from({length: 24}, () => `<i style="left:${rnd(2, 98).toFixed(1)}%;top:${rnd(3, 44).toFixed(1)}%;animation-delay:${rnd(0, 2.6).toFixed(2)}s;width:${rnd(2, 3.5).toFixed(1)}px;height:${rnd(2, 3.5).toFixed(1)}px"></i>`).join("");
+  const stars = Array.from({length: 24}, () => `<i style="left:${rnd(2, 98).toFixed(1)}%;top:${rnd(10, 44).toFixed(1)}%;animation-delay:${rnd(0, 2.6).toFixed(2)}s;width:${rnd(2, 3.5).toFixed(1)}px;height:${rnd(2, 3.5).toFixed(1)}px"></i>`).join("");
   const flies = Array.from({length: 9}, () => `<i style="left:${rnd(4, 94).toFixed(1)}%;top:${rnd(10, 80).toFixed(1)}%;animation-delay:-${rnd(0, 6).toFixed(2)}s;animation-duration:${rnd(5, 9).toFixed(1)}s"></i>`).join("");
-  const clouds = [[8, 12, 95, -20, 1], [20, 48, 120, -75, .8], [5, 78, 80, -50, .65]]
+  const clouds = [[14, 12, 95, -20, 1], [24, 48, 120, -75, .8], [18, 78, 80, -50, .65]]
     .map(([t, cx, d, dl, sc]) => `<button type="button" class="fm-cloud" aria-label="Nube" style="top:${t}%;--cx:${cx}%;animation-duration:${d}s;animation-delay:${dl}s;scale:${sc}"></button>`).join("");
   host.innerHTML = `<div class="fm">
     <div class="fm-stage${crowd ? " crowd" : ""}" data-ph="${ph}" style="--hz:${HZ}%" role="group" aria-label="Tu granja">
-      <div class="fm-sky"></div><div class="fm-stars">${stars}</div>
-      <button type="button" class="fm-sun" aria-label="Sol"></button><button type="button" class="fm-moon" aria-label="Luna"></button>
-      ${clouds}
-      <svg class="fm-hills" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
-        <path class="h2" d="M0 58C90 22 190 18 300 44C390 64 470 26 590 30C700 34 760 60 860 40C920 28 970 30 1000 36L1000 100L0 100Z"/>
-        <path class="h1" d="M0 84C120 56 230 60 330 78C430 94 520 64 640 66C760 68 820 88 1000 70L1000 100L0 100Z"/></svg>
-      <div class="fm-ground"></div>
-      <svg class="fm-path" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M38 101C42 70 58 46 64 22C66 12 67 5 68 -1L71 -1C71 6 71 14 70 24C68 50 63 74 63 101Z"/></svg>
-      <div class="fm-fence"></div><div class="fm-fence r"></div>
-      <button type="button" class="fm-shel" hidden><span class="fm-she" aria-hidden="true">🏚️</span><span class="fm-shl">Refugio</span><b class="fm-shb" hidden></b></button>
-      <svg class="fm-blades" viewBox="0 0 400 16" preserveAspectRatio="none" aria-hidden="true"><path d="${blades}"/></svg>
-      <div class="fm-flies" aria-hidden="true">${flies}</div>
-      <div class="fm-layer"></div>
-      <div class="fm-bub" hidden></div>
+      <div class="fm-world">
+        <div class="fm-sky"></div><div class="fm-stars">${stars}</div>
+        <button type="button" class="fm-sun" aria-label="Sol"></button><button type="button" class="fm-moon" aria-label="Luna"></button>
+        ${clouds}
+        <svg class="fm-hills" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
+          <path class="h2" d="M0 58C90 22 190 18 300 44C390 64 470 26 590 30C700 34 760 60 860 40C920 28 970 30 1000 36L1000 100L0 100Z"/>
+          <path class="h1" d="M0 84C120 56 230 60 330 78C430 94 520 64 640 66C760 68 820 88 1000 70L1000 100L0 100Z"/></svg>
+        <div class="fm-ground"></div>
+        <svg class="fm-path" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M38 101C42 70 58 46 64 22C66 12 67 5 68 -1L71 -1C71 6 71 14 70 24C68 50 63 74 63 101Z"/></svg>
+        <div class="fm-fence"></div><div class="fm-fence r"></div>
+        <button type="button" class="fm-shel" hidden><span class="fm-she" aria-hidden="true">🏚️</span><span class="fm-shl">Refugio</span><b class="fm-shb" hidden></b></button>
+        <svg class="fm-blades" viewBox="0 0 400 16" preserveAspectRatio="none" aria-hidden="true"><path d="${blades}"/></svg>
+        <div class="fm-flies" aria-hidden="true">${flies}</div>
+        <div class="fm-layer"></div>
+        <div class="fm-bub" hidden></div>
+      </div>
+      <div class="fm-below" aria-hidden="true"></div>
+      <div class="fm-season" aria-hidden="true"></div>
       <div class="fm-find" hidden></div>
       <div class="fm-hint" hidden></div>
+      <div class="fm-pop" hidden role="dialog" tabindex="-1"><div class="fm-pin"></div></div>
+      <div class="fm-tray" id="fm-tray" hidden role="group" aria-label="Comida"></div>
+      <div class="fm-dock glass lite" role="toolbar" aria-label="Herramientas de la granja">
+        <button type="button" class="fm-db" data-fm="water" aria-pressed="false">${icon("drop")}<span class="lb">Regar</span><b class="fm-badge" hidden></b></button>
+        <i class="fm-dsep" aria-hidden="true"></i>
+        <button type="button" class="fm-db" data-fm="food" aria-expanded="false" aria-controls="fm-tray">${icon("bowl-food")}<span class="lb">Comida</span></button>
+        <i class="fm-dsep" aria-hidden="true"></i>
+        <button type="button" class="fm-db" data-fm="shop" aria-haspopup="dialog">${icon("storefront")}<span class="lb">Tienda</span></button>
+      </div>
     </div>
-    <div class="fm-bar">
-      <button type="button" class="btn lc fm-tb" data-fm="water" style="--lc:#1E6EF4"><span class="ic">💧</span><span class="lb">Regar</span><b class="fm-badge" hidden></b></button>
-      <button type="button" class="btn lc fm-tb" data-fm="find" style="--lc:#008932"><span class="ic">🔍</span><span class="lb">¿Dónde está?</span></button>
-      <button type="button" class="btn lc fm-tb fm-help" data-fm="help" style="--lc:#46566c" aria-label="Ayuda" title="Ayuda">?</button>
-    </div>
-    <div class="fm-pan" role="group" aria-label="Despensa"></div>
-    <div class="fm-tasks" aria-live="polite"></div>
   </div>`;
-  const root = host.firstElementChild, stage = root.querySelector(".fm-stage"), layer = root.querySelector(".fm-layer");
+  const root = host.firstElementChild, stage = root.querySelector(".fm-stage"), world = stage.querySelector(".fm-world"), layer = root.querySelector(".fm-layer");
   const bub = root.querySelector(".fm-bub"), fb = root.querySelector(".fm-find"), hint = root.querySelector(".fm-hint");
-  const sun = root.querySelector(".fm-sun"), moon = root.querySelector(".fm-moon"), tasksEl = root.querySelector(".fm-tasks");
-  const bWater = root.querySelector('[data-fm="water"]'), bFind = root.querySelector('[data-fm="find"]'), bHelp = root.querySelector('[data-fm="help"]');
-  const panEl = root.querySelector(".fm-pan"), shelB = root.querySelector(".fm-shel");
+  const sun = root.querySelector(".fm-sun"), moon = root.querySelector(".fm-moon"), seasonEl = root.querySelector(".fm-season");
+  const dock = root.querySelector(".fm-dock"), bWater = dock.querySelector('[data-fm="water"]'), bFood = dock.querySelector('[data-fm="food"]'), bShop = dock.querySelector('[data-fm="shop"]');
+  const popEl = root.querySelector(".fm-pop"), popIn = popEl.firstElementChild, tray = root.querySelector(".fm-tray"), shelB = root.querySelector(".fm-shel");
+  api.stage = stage;
 
-  const els = {}, wt = {}, busy = {}, awake = {};
-  let shelOpened = false, waterMode = false, foodMode = null, F = null, drag = null, fdrag = null, justDragged = 0, bubT = null, heroT = null, rzT = null;
+  const els = {}, wt = {}, busy = {}, awake = {}, spoke = new Set(), newPend = [];
+  let waterMode = false, foodMode = null, F = null, lift = null, dragging = false, bubT = null, heroT = null, rzT = null;
+  let leadId = null, shopDlg = null, coachEl = null, coachAnim = null, regHint = null, U = 56, WH = 600, TB = 10;
+  /* la pista de la regadera (G.hint) se aparta en cuanto se abre otra cosa encima del dock (bandeja, hoja, globo) */
+  const noHint = () => { if(regHint){ try{ regHint.close(); }catch(e){} regHint = null; } };
+
+  /* ---------- medidas: el mundo va de arriba del todo hasta encima del dock; el tamaño de las cosas, de lo que se ve ---------- */
+  function layout(){
+    const W = innerWidth || 390, dt = dock.getBoundingClientRect().top, st = stage.getBoundingClientRect().top;
+    WH = Math.max(260, Math.round((dt > 0 ? dt : innerHeight - 150) - st - 10));
+    stage.style.setProperty("--fm-wh", WH + "px");
+    U = clamp(Math.min(.082 * WH, .145 * W), 36, 70) * (crowd ? .86 : 1);
+    stage.style.setProperty("--u", U.toFixed(1) + "px");
+    const tb = document.getElementById("topbar"), tr = tb && tb.getClientRects().length ? tb.getBoundingClientRect() : null;
+    TB = tr && tr.top < innerHeight / 2 ? clamp(tr.bottom / WH * 100, 0, 30) : 4;   /* lo que tapa la barra de arriba (%) */
+  }
+  layout();
 
   /* ---------- consultas ---------- */
   const hungry = id => canEatS(s, id);           /* puede comer: hace 8 h o más que comió */
   const hearts = id => heartsS(s, id);
-  const needy = id => !inShelterS(s, id) && hearts(id) <= 2;   /* tiene hambre (2❤️ o menos): igual que la insignia y la portada */
+  const needy = id => !inShelterS(s, id) && hearts(id) <= 2;   /* tiene hambre (2 corazones o menos): igual que la insignia */
   const plant = id => { let p = s.pl[id]; if(!p || typeof p !== "object") p = s.pl[id] = {s: 1, w: 0}; return p; };
   const canWater = id => now() - (plant(id).w || 0) >= WATER;
   const lit = () => (ph === "night" || ph === "dusk") && s.light !== false;
@@ -481,11 +556,15 @@ function mount(host){
   const finding = () => !!(F && !F.done);
   const posOf = id => (ANIM[id] && okPos(live[id])) ? live[id] : s.pos[id];
   const hasProd = src => Object.values(s.prod).some(P => P.a === src);
+  const dlgOpen = () => !!root.querySelector("dialog[open]");
+  const popOpen = () => !popEl.hidden;
+  const trayOpen = () => !tray.hidden;
 
   /* ---------- pintar cosas ---------- */
   function put(el, x, y, ms){
     if(el._hw) x = clamp(x, el._hw, 100 - el._hw);   /* que no se corte por los lados */
     el.classList.toggle("er", x > 84);                 /* cerca del borde derecho: bocadillos al otro lado */
+    el.classList.toggle("al", x < 24); el.classList.toggle("ar", x > 76);   /* el globo del hambre, hacia dentro */
     el.style.setProperty("--t", (ms || 0) + "ms");
     el.style.left = x + "%"; el.style.top = y + "%";
     el.style.zIndex = String(Math.round(y * 10));
@@ -504,49 +583,56 @@ function mount(host){
     if(ANIM[id]) live[id] = {x: p.x, y: p.y};
     put(el, p.x, p.y, 0);
     layer.appendChild(el); els[id] = el;
-    render(id, true);   /* (en los animales, render vuelve a medir: sus corazones son más anchos que el emoji) */
+    render(id, true);
+    holdMove(el);
     if(fresh.includes(id)) cls(el, "new", 800);
   }
   function render(id, force){
     const el = els[id], it = itemById(id); if(!el || !it) return;
-    if(el._busy && !force) return;
-    const k = kindOf(id); let badge = "", c = "", g = k === "animal" ? pj(it) : it.e, lbl = it.n;
+    if((el._busy || el._lift) && !force) return;
+    const k = kindOf(id); let badge = "", c = "", g = k === "animal" ? pj(it) : it.e, lbl = it.n, lead = false;
     if(k === "animal"){
-      /* corazones encima: 🍽️ si tiene hambre, 🤒 si está malito (con 3❤️ puede comer, pero no tiene hambre) */
+      /* con hambre: el globo con la comida que pide (el más urgente, también con la frase en el idioma) */
       const h = Math.max(0, hearts(id)), eat = needy(id);
       c = h === 0 ? "sick" : h === 1 ? "sad" : "";
-      badge = `<span class="fm-hp${eat ? " need" : ""}${h === 0 ? " sk" : ""}" aria-hidden="true">${h === 0 ? "<i>🤒</i>" : eat ? "<i>🍽️</i>" : ""}<span>${heartsHtml(h)}</span></span>`;
-      if(!eat && asleep(id)) badge += `<span class="fm-zz" aria-hidden="true">💤</span>`;
-      lbl += `, ${h === 1 ? "1 corazón" : h + " corazones"}${h === 0 ? (ANIM[id].f ? ", está malita" : ", está malito") : eat ? ", tiene hambre" : hungry(id) ? ", puede comer" : ""}`;
+      if(eat){ lead = id === leadId; badge = askHtml(id, lead); }
+      else if(asleep(id)) badge = `<span class="fm-zz" aria-hidden="true">💤</span>`;
+      lbl += `, ${h === 1 ? "1 corazón" : h + " corazones"}${h === 0 ? (ANIM[id].f ? ", está malita" : ", está malito") : ""}${eat ? `, tiene hambre: quiere ${FOOD[ANIM[id].eats].n}` : hungry(id) ? ", puede comer" : ""}`;
     } else if(k === "plant"){
       const p = plant(id);
       if(p.s <= 0){ g = "🌱"; c = "sd0"; } else if(p.s === 1){ g = "🌿"; c = "sd1"; }
       if(p.s >= 2){ if(!TREE[id]){ c = "ripe"; badge = `<span class="fm-spk" aria-hidden="true"><i>✨</i><i>✨</i></span>`; lbl += ", lista para cosechar"; } }
       else if(canWater(id)){ badge = `<span class="fm-need w" aria-hidden="true">💧</span>`; lbl += ", quiere agua"; }
     } else if(id === "casa" && lit()) c = "lit";
+    el.classList.toggle("lead", lead);
     const sig = g + "|" + badge + "|" + c;
     if(!force && el._sig === sig) return;
     el._sig = sig;
     el.classList.remove("sd0", "sd1", "ripe", "lit", "sick", "sad"); if(c) el.classList.add(c);
     el.innerHTML = `<span class="fm-body"><span class="fm-sh"></span><span class="fm-e">${g}</span></span>${badge}`;
     el.setAttribute("aria-label", lbl);
-    if(k === "animal"){
-      const hw = hwOf(id);
-      if(Math.abs(hw - (el._hw || 0)) > .05){ el._hw = hw; const p = posOf(id); if(p && !el.classList.contains("walk")) put(el, p.x, p.y, 0); }
-    }
   }
-  /* que no se corte por los lados: la media anchura del emoji o, en los animales, la de sus corazones si es mayor */
-  function hwOf(id){
-    const el = els[id], hw = halfW(id), p = el && el.querySelector(".fm-hp"), W = layer.clientWidth;
-    if(!p || !W) return hw;
-    const d = parseFloat(el.style.getPropertyValue("--d")) || 1;
-    return Math.min(20, Math.max(hw, (p.offsetWidth * d / 2 + 3) / W * 100));
+  /* el globo del hambre: la comida que pide; el del más urgente, además «I'm hungry!» y «¡Tengo hambre!» en gris */
+  function askHtml(id, lead){
+    const Fd = FOOD[ANIM[id].eats];
+    if(!lead) return `<span class="fm-ask sm" aria-hidden="true"><span class="fm-ae">${Fd.e}</span></span>`;
+    return `<span class="fm-ask" aria-hidden="true"><span class="fm-ae">${Fd.e}</span><span class="fm-at"><b lang="${code()}">${esc(PHRASE[lang] || PHRASE.english)}</b><small>${PHRASE_ES}</small></span></span>`;
   }
-  /* media anchura (en % del escenario) de una cosa ya crecida */
+  /* el que más prisa tiene: menos corazones y, si empatan, el que lleva más sin comer */
+  function pickLead(){
+    const ids = Object.keys(els).filter(id => ANIM[id] && needy(id));
+    ids.sort((a, b) => hearts(a) - hearts(b) || sinceFed(s, b) - sinceFed(s, a));
+    const nl = ids[0] || null;
+    if(nl === leadId) return;
+    const old = leadId; leadId = nl;
+    if(old && els[old]) render(old, true);
+    if(nl) render(nl, true);
+  }
+  /* media anchura (en % del mundo) de una cosa ya crecida */
+  const sizeK = id => id === "castillo" ? 1.65 : (BIG.has(id) || TREE[id]) ? 1.38 : 1;
   function halfW(id){
-    const narrow = matchMedia("(max-width:560px)").matches, W = layer.clientWidth || 600;
-    const rem = (id === "castillo" ? [4.3, 3.5] : (BIG.has(id) || TREE[id]) ? [3.6, 3] : [2.6, 2.2])[narrow ? 1 : 0];
-    return Math.min(20, (rem * (crowd ? .86 : 1) * 16 * 1.2 * 1.1 / 2 + 2) / W * 100);
+    const W = layer.clientWidth || innerWidth || 600;
+    return Math.min(20, (U * sizeK(id) * .72 + 2) / W * 100);
   }
   function makeProd(key, isNew){
     const P = s.prod[key], d = P && PROD[P.p]; if(!d) return;
@@ -590,32 +676,10 @@ function mount(host){
       {transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.35)`, opacity: .2}], {duration: 900, easing: "ease-in", fill: "forwards"});
   }
 
-  /* que el escenario se vea entero entre la barra de arriba (o la del modo foco) y la de pestañas de abajo */
-  function bars(){
-    let top = 0, bot = innerHeight;
-    for(const id of ["topbar", "focusbar", "tabbar"]){
-      const el = document.getElementById(id);
-      if(!el || !el.getClientRects().length) continue;
-      const cs = getComputedStyle(el); if(cs.display === "none" || cs.position !== "fixed") continue;
-      const r = el.getBoundingClientRect();
-      if(r.top < innerHeight / 2) top = Math.max(top, r.bottom); else bot = Math.min(bot, r.top);
-    }
-    return {top, bot};
-  }
-  function showStage(){
-    const {top: hb, bot} = bars();
-    const r = stage.getBoundingClientRect(), room = bot - hb;
-    let dy = 0;
-    if(r.top < hb + 6) dy = r.top - hb - 6;
-    else if(r.bottom > bot - 4) dy = Math.min(r.bottom - bot + 4, r.top - hb - 6);
-    if(r.height > room - 10 && r.top >= hb + 6) dy = r.top - hb - 6;
-    if(Math.abs(dy) > 2) window.scrollBy({top: dy, behavior: RM() ? "auto" : "smooth"});
-  }
-
   /* ---------- bocadillo ---------- */
   const msg = t => `<span class="fm-bm">${t}</span>`;
-  const sayBtns = w => `<span class="fm-sg"><button type="button" class="say" data-say="${esc(w)}" aria-label="Escuchar" title="Escuchar">🔊</button><button type="button" class="say" data-say="${esc(w)}" data-slow aria-label="Escuchar despacio" title="Escuchar despacio">🐢</button></span>`;
-  const wordBub = (e, w, es, extra) => `<span class="fm-be">${e}</span><span class="fm-bt"><b>${esc(w)}</b><small>= ${esc(es)}</small>${extra ? `<i>${extra}</i>` : ""}</span>${sayBtns(w)}`;
+  const sayBtns = w => `<span class="fm-sg"><button type="button" class="say" data-say="${esc(w)}" aria-label="Escuchar" title="Escuchar">${icon("speaker-high", "fill", 22)}</button><button type="button" class="say" data-say="${esc(w)}" data-slow aria-label="Escuchar despacio" title="Escuchar despacio">${icon("turtle", "fill", 22)}</button></span>`;
+  const wordBub = (e, w, es, extra) => `<span class="fm-be">${e}</span><span class="fm-bt"><b lang="${code()}">${esc(w)}</b><small>= ${esc(es)}</small>${extra ? `<i>${extra}</i>` : ""}</span>${sayBtns(w)}`;
   function bubble(html, anchor, ms){
     bub.innerHTML = html; bub.hidden = false;
     bub.classList.remove("in", "below"); void bub.offsetWidth; bub.classList.add("in");
@@ -624,8 +688,8 @@ function mount(host){
       const t = (anchor.querySelector && anchor.querySelector(".fm-e, .fm-hb")) || anchor, r = t.getBoundingClientRect();
       cx = r.left + r.width / 2 - L.left; top = r.top - L.top; bot = r.bottom - L.top;
     } else { cx = anchor.x / 100 * L.width; top = bot = anchor.y / 100 * L.height; }
-    const bw = bub.offsetWidth, bh = bub.offsetHeight;
-    const left = clamp(cx, bw / 2 + 6, L.width - bw / 2 - 6), below = top - bh - 14 < 2;
+    const bw = bub.offsetWidth, bh = bub.offsetHeight, lim = TB / 100 * L.height + 6;   /* nunca debajo de la barra de arriba */
+    const left = clamp(cx, bw / 2 + 8, L.width - bw / 2 - 8), below = top - bh - 14 < lim;
     bub.classList.toggle("below", below);
     bub.style.left = left + "px";
     bub.style.top = (below ? Math.min(bot + 12, L.height - bh - 4) : top - 10) + "px";
@@ -634,78 +698,87 @@ function mount(host){
   }
   function hideBub(){ bub.hidden = true; }
 
-  /* ---------- diálogos ---------- */
-  const dlgOpen = () => !!root.querySelector("dialog.fm-dlg[open]");
-  function dlg(html){
-    /* nunca dos diálogos a la vez (toques rápidos, teclado…) */
+  /* ---------- globo junto a un animal (comer y «¿Cómo me llamo?»): no tapa la granja ni es modal ----------
+     Se cierra con «Ahora no», con Esc o tocando fuera (ese toque no hace nada más) */
+  let popCtl = null;
+  function pop(html, anchor, label, onClose){
+    closePop(true); noHint();
+    popIn.innerHTML = html; popEl.hidden = false;
+    popEl.setAttribute("aria-label", label || "");
+    popCtl = {anchor, onClose, back: document.activeElement};
+    placePop();
+    popEl.classList.remove("in"); void popEl.offsetWidth; popEl.classList.add("in");
+    try{ popEl.focus({preventScroll: true}); }catch(e){}
+    return popIn;
+  }
+  function placePop(){
+    if(popEl.hidden || !popCtl) return;
+    const a = popCtl.anchor, t = a && a.isConnected ? (a.querySelector(".fm-e") || a) : null;
+    const r = t ? t.getBoundingClientRect() : {left: innerWidth / 2 - 20, right: innerWidth / 2 + 20, top: innerHeight / 2, bottom: innerHeight / 2, width: 40};
+    const top0 = TB / 100 * WH + 8, bot0 = dock.getBoundingClientRect().top - 10, m = 12;
+    popIn.style.maxHeight = Math.max(160, bot0 - top0) + "px";
+    const pw = popEl.offsetWidth, ph = popEl.offsetHeight, cx = r.left + r.width / 2;
+    const left = clamp(cx - pw / 2, m, Math.max(m, innerWidth - m - pw));
+    let y, side;
+    if(r.top - 14 - ph >= top0){ y = r.top - 14 - ph; side = "top"; }
+    else if(r.bottom + 14 + ph <= bot0){ y = r.bottom + 14; side = "bottom"; }
+    else { y = clamp(r.top - 14 - ph, top0, Math.max(top0, bot0 - ph)); side = "over"; }
+    popEl.dataset.side = side;
+    popEl.style.left = Math.round(left) + "px"; popEl.style.top = Math.round(y) + "px";
+    popEl.style.setProperty("--tail", Math.round(clamp(cx - left, 26, pw - 26)) + "px");
+  }
+  function closePop(quiet){
+    if(popEl.hidden) return;
+    const c = popCtl; popCtl = null;
+    const had = popEl.contains(document.activeElement);
+    popEl.hidden = true; popIn.innerHTML = "";
+    if(had && c && c.back && c.back.isConnected && !quiet) try{ c.back.focus({preventScroll: true}); }catch(e){}
+    if(c && typeof c.onClose === "function") try{ c.onClose(); }catch(e){ console.error(e); }
+  }
+  /* tocar fuera: se cierra (y ese toque no hace nada en la escena); el dock y la bandeja siguen funcionando */
+  function onDocDown(e){
+    if(!isOn()) return;
+    if(coachEl) coachDone();
+    const t = e.target;
+    if(popEl.hidden || popEl.contains(t) || (t.closest && t.closest("dialog[open]"))) return;
+    const keep = t.closest && t.closest(".fm-dock, .fm-tray");
+    closePop();
+    if(!keep && stage.contains(t)){ const g = GS(); if(g && g.swallowClick) g.swallowClick(600, e.clientX, e.clientY); }
+  }
+  function onKey(e){
+    if(e.key !== "Escape" || !isOn() || dlgOpen()) return;
+    if(popOpen()){ e.preventDefault(); closePop(); return; }
+    if(finding()){ e.preventDefault(); exitFind(); return; }
+    if(waterMode || foodMode){ e.preventDefault(); setWater(false); setFood(null); return; }
+    if(trayOpen()){ e.preventDefault(); closeTray(); bFood.focus({preventScroll: true}); }
+  }
+
+  /* ---------- hojas (refugio, se fue al refugio): las de M (js/motion.js) ---------- */
+  function dlg(html, cl){
+    /* nunca dos a la vez (toques rápidos, teclado…) */
     root.querySelectorAll("dialog.fm-dlg").forEach(x => { try{ x.close(); }catch(e){} x.remove(); });
-    const d = document.createElement("dialog"); d.className = "fm-dlg"; d.innerHTML = html;
+    closePop(true);
+    const d = document.createElement("dialog"); d.className = "m-sheet glass fm-dlg" + (cl ? " " + cl : ""); d.innerHTML = html;
     root.appendChild(d); d.addEventListener("close", () => { d.remove(); later(nextIntro, 350); });
-    try{ d.showModal(); }catch(e){ d.setAttribute("open", ""); }
-    d.scrollTop = 0;   /* el foco va al botón de abajo: en el móvil se abría a media lista, sin el título */
+    d.addEventListener("click", e => { if(e.target.closest("[data-x]")) shut(d); });
+    if(window.M && typeof M.openSheet === "function") M.openSheet(d); else { try{ d.showModal(); }catch(e){ d.setAttribute("open", ""); } }
+    d.scrollTop = 0;
     return d;
   }
-  /* avisos al entrar, uno detrás de otro: cada uno devuelve cuánto esperar (o nada si abre un diálogo) */
+  const shut = d => { if(!d || !d.open) return; if(window.M && typeof M.closeSheet === "function" && d.classList.contains("m-sheet")) M.closeSheet(d); else d.close(); };
+  const head = (t, x, id) => `<div class="m-head"><h2${id ? ` id="${id}"` : ""}>${t}</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-x>${x || "Listo"}</button></div>`;
+  /* avisos al entrar, uno detrás de otro: cada uno devuelve cuánto esperar (o nada si abre una hoja) */
   const intro = [];
   function nextIntro(){
-    if(!isOn() || dlgOpen() || finding() || !intro.length) return;
+    if(!isOn() || dlgOpen() || finding() || popOpen() || !intro.length) return;
     const w = intro.shift()();
     if(typeof w === "number") later(nextIntro, w);
-  }
-  function openHelp(){
-    play("tap");
-    const he = pj(itemById(game().wear.hero) || itemById("zorro"), "pj-sm") || "🦊";
-    const d = dlg(`<h2>¿Cómo se juega? 🏡</h2><ul class="fm-help-l">
-      <li><span>👆</span>Toca una cosa: oirás cómo se dice en ${LANGS[lang].name}.</li>
-      <li><span>🍽️</span>¿Tiene hambre? Tócalo y dale su comida. Luego te pregunta su nombre: ¡si aciertas, regalo doble! 🎁🎁</li>
-      <li><span>🧺</span>La comida se compra en la «Despensa» con tus 🪙. Cada animal come una cosa: ¡descubre cuál!</li>
-      <li><span class="fm-hl3">❤️❤️❤️</span>Así de contento está. Cada día sin comer pierde un ❤️. Con 🤒 está malito.</li>
-      <li><span>🏚️</span>Si pasa 5 días sin comer, se va al «Refugio». ¡Allí puedes rescatarlo!</li>
-      <li><span>🥚</span>Recoge sus regalos y ganas 🪙.</li>
-      <li><span>💧</span>Pulsa «Regar» y toca una planta. Cuando brilla ✨, ¡tócala y cosecha!</li>
-      <li><span>🔍</span>«¿Dónde está?»: escucha la palabra y toca esa cosa.</li>
-      <li><span>✋</span>Arrastra las cosas con el dedo. Toca el suelo y ${he} irá allí.</li>
-      <li><span>📚</span>Las lecciones te dan 🪙 y agua extra 💧.</li></ul>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">¡Entendido!</button>`);
-    d.querySelector(".fm-ok").onclick = () => d.close();
-  }
-  const giftTxt = g => Object.keys(g || {}).filter(k => FOOD[k]).map(k => `<span class="fm-nw">${FOOD[k].e}×${g[k]}</span>`).join(" ");
-  function welcome(gift){
-    const extra = s.cnew ? giftTxt(s.cnew) : ""; delete s.cnew; save(s);
-    const d = dlg(`<div class="fm-wel">${gift ? "🎁" : "✨"}</div><h2>${gift ? "¡Un regalo para tu granja!" : "¡Tu granja está viva!"}</h2>
-      <p class="fm-sub">${gift ? "Te regalo una gallina 🐔, una flor 🌼 y 2 raciones de grano 🌾 para la gallina." : `Tus animales comen, las plantas crecen… ¡y puedes jugar!${extra ? `<br>🎁 Te regalo comida: ${extra}` : ""}`}</p>
-      <ul class="fm-help-l">
-        <li><span>🍽️</span>${gift ? "La gallina tiene hambre. Tócala y dale grano 🌾." : "Si un animal tiene hambre, tócalo y dale su comida."}</li>
-        <li><span class="fm-hl3">❤️❤️❤️</span>Los corazones dicen si está contento. ¡Dale de comer cada día!</li>
-        <li><span>🧺</span>Cuando se acabe la comida, compra más en la «Despensa» con tus 🪙.</li>
-        <li><span>💧</span>${gift ? "Pulsa «Regar» y toca la flor para que crezca." : "Pulsa «Regar» y toca una planta para que crezca."}</li>
-        <li><span>🪙</span>Recoge huevos, leche y cosechas: ¡ganas monedas!</li></ul>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">¡A jugar!</button>`);
-    d.querySelector(".fm-ok").onclick = () => d.close();
-    play(gift ? "gift" : "pop");
-    if(gift){ try{ confetti({n: 70}); }catch(e){} }
-    d.addEventListener("close", () => { if(!isOn()) return; const id = gift ? "gallina" : Object.keys(els).find(i => ANIM[i] && hungry(i)); if(id && els[id]){ if(ANIM[id]) freeze(id); cls(els[id], "hl", 2500); if(ANIM[id]) resume(id, 2700); } });
-  }
-  /* granja que ya existía: novedad de la comida (y un poco de comida de regalo) */
-  function novelty(){
-    const extra = giftTxt(s.cnew); delete s.cnew; save(s);
-    const d = dlg(`<div class="fm-wel">🍽️</div><h2>¡Novedad en tu granja!</h2>
-      <p class="fm-sub">Ahora tus animales comen comida de la despensa.${extra ? `<br>🎁 Te regalo comida para empezar: <b>${extra}</b>` : ""}</p>
-      <ul class="fm-help-l">
-        <li><span>🍽️</span>Si un animal tiene hambre, tócalo y dale su comida.</li>
-        <li><span class="fm-hl3">❤️❤️❤️</span>Los corazones dicen si está contento. ¡Dale de comer cada día!</li>
-        <li><span>🧺</span>Compra más comida en la «Despensa» con tus 🪙.</li>
-        <li><span>🏚️</span>Si pasa 5 días sin comer, se va al «Refugio». ¡Pero puedes rescatarlo!</li></ul>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">¡A dar de comer!</button>`);
-    d.querySelector(".fm-ok").onclick = () => d.close();
-    play("gift");
-    d.addEventListener("close", () => { if(!isOn()) return; const id = Object.keys(els).find(i => ANIM[i] && hungry(i)); if(id){ freeze(id); cls(els[id], "hl", 2500); resume(id, 2700); } });
   }
 
   /* ---------- el personaje ---------- */
   const hero = document.createElement("div");
-  hero.className = "fm-hero"; hero.tabIndex = 0; hero.setAttribute("role", "button"); hero.setAttribute("aria-label", "Tu personaje");
-  const hsz = layer.clientWidth < 480 ? 42 : 50;
+  hero.className = "fm-hero"; hero.tabIndex = 0; hero.setAttribute("role", "button"); hero.setAttribute("aria-label", "Tu personaje: jugar a «¿Dónde está?»");
+  const hsz = Math.round(U * 1.02);
   hero.innerHTML = `<span class="fm-sh" style="font-size:${hsz}px"></span><div class="fm-hf"><div class="fm-hb">${heroHtml(hsz)}</div></div>`;
   let hpos = {x: s.hero.x, y: s.hero.y};
   put(hero, hpos.x, hpos.y, 0);
@@ -733,11 +806,12 @@ function mount(host){
     if(x < 4 || x > 96) x = p.x - side * off;
     walkTo(x, clamp(p.y - .5, GR.y0, GR.y1));
   }
+  const playBtn = `<button type="button" class="fm-bplay" data-play-find>${icon("magnifying-glass", "bold", 20)}<span>¿Dónde está?</span></button>`;
   function tapHero(){
     hop(hero);
     if(finding()){ const it = itemById(F.target); if(it) speak(iw(it)); return; }
     const gr = GREET[ph] || GREET.day, w = gr[lang] || gr.english;
-    bubble(`<span class="fm-be">👋</span><span class="fm-bt"><b>${esc(w)}</b><small>= ${esc(gr.es)}</small></span>${sayBtns(w)}`, hero);
+    bubble(`<span class="fm-be">👋</span><span class="fm-bt"><b lang="${code()}">${esc(w)}</b><small>= ${esc(gr.es)}</small></span>${sayBtns(w)}${findable().length >= 3 ? playBtn : ""}`, hero, 6000);
     speak(w); play("pop");
   }
 
@@ -746,8 +820,8 @@ function mount(host){
   function wander(id){
     wt[id] = null;
     const A = ANIM[id], el = els[id]; if(!A || !el || RM()) return;
-    /* malito (0❤️): se queda tumbado · triste (1❤️): pasea despacio y poco */
-    if(finding() || busy[id] || (drag && drag.id === id) || asleep(id) || hearts(id) === 0){ wt[id] = later(() => wander(id), 3000); return; }
+    /* malito (0 corazones): se queda tumbado · triste (1): pasea despacio y poco */
+    if(finding() || busy[id] || (lift && lift.id === id) || asleep(id) || hearts(id) === 0 || (popCtl && popCtl.anchor === el)){ wt[id] = later(() => wander(id), 3000); return; }
     const slow = hearts(id) === 1 ? .45 : 1;
     const home = s.pos[id], c = posOf(id), r = A.r * (slow < 1 ? .6 : 1);
     const x = clamp(home.x + rnd(-r, r), GR.x0, GR.x1), y = clamp(home.y + rnd(-r * .55, r * .55), GR.y0, GR.y1);
@@ -771,6 +845,58 @@ function mount(host){
   }
   function resume(id, ms){ if(!ANIM[id] || !els[id]) return; cancel(wt[id]); wt[id] = later(() => wander(id), ms); }
 
+  /* ---------- «La granja te habla»: «I'm hungry!» una vez por animal y visita ---------- */
+  function talk(id, entry){
+    if(!ANIM[id] || spoke.has(id) || !needy(id) || !els[id]) return false;
+    if(entry && (sounding() || dlgOpen())) return false;   /* al entrar, solo si no suena nada */
+    spoke.add(id);
+    speak(PHRASE[lang] || PHRASE.english);
+    cls(els[id], "talk", 900);
+    return true;
+  }
+
+  /* ---------- levantar y mover: mantener pulsado 500 ms (G.hold) ---------- */
+  function holdMove(el){
+    const g = GS(); if(!g || typeof g.hold !== "function") return;
+    const id = el.dataset.fid;
+    OFF.push(g.hold(el, {ms: 500, touchAction: "none",
+      onHold: ({x, y}) => {
+        if(!isOn() || finding() || el._busy || dragging || !els[id]) return;
+        if(ANIM[id]){ freeze(id); busy[id] = true; }
+        const L = layer.getBoundingClientRect(), cs = getComputedStyle(el);
+        lift = {id, el, L, ox: x - L.left - parseFloat(cs.left), oy: y - L.top - parseFloat(cs.top), x: NaN, y: NaN};
+        el._lift = true; el.classList.add("lift"); hideBub(); closePop(true);
+        try{ g.haptic("selection"); }catch(e){}
+        play("tap");
+      },
+      onMove: ({x, y}) => {
+        if(!lift || lift.el !== el) return;
+        const L = lift.L, hw = el._hw || 0;
+        lift.x = clamp((x - L.left - lift.ox) / L.width * 100, Math.max(GR.x0, hw), Math.min(GR.x1, 100 - hw));
+        lift.y = clamp((y - L.top - lift.oy) / L.height * 100, GR.y0, GR.y1);
+        put(el, lift.x, lift.y, 0);
+      },
+      onRelease: ({moved}) => {
+        if(!lift || lift.el !== el) return;
+        const d = lift; lift = null; el._lift = false; el.classList.remove("lift");
+        /* soltar sin moverla: se queda donde está (no se guarda nada) */
+        if(moved && isFinite(d.x)){
+          upd(st => st.pos[id] = {x: r1(d.x), y: r1(d.y)});
+          if(ANIM[id]) live[id] = {x: d.x, y: d.y};
+          const t = topOf(el, 1); puffs(t.x - 2, t.y, 1); puffs(t.x + 2, t.y, 1);
+          cls(el, "land", 400); play("pop");
+        }
+        if(ANIM[id]){ busy[id] = false; resume(id, 3000); }
+        render(id, true);
+      },
+      onCancel: () => {
+        if(!lift || lift.el !== el) return;
+        const d = lift; lift = null; el._lift = false; el.classList.remove("lift");
+        const p = posOf(id); if(p) put(el, p.x, p.y, 0);
+        if(ANIM[d.id]){ busy[d.id] = false; resume(d.id, 2000); }
+      }}));
+  }
+
   /* ---------- tocar cosas ---------- */
   function tap(id, ev){
     const it = itemById(id), el = els[id]; if(!it || !el || dlgOpen()) return;
@@ -779,106 +905,92 @@ function mount(host){
     const k = kindOf(id);
     if(foodMode){
       if(k === "animal") return giveFood(id, foodMode);
-      hop(el); play("tap"); bubble(msg(`😄 ¡Eso no come!<br>Toca un animal para darle ${FOOD[foodMode].e}.`), el, 2600); return;
+      hop(el); play("tap"); bubble(msg(`¡Eso no come!<br>Toca un animal para darle ${FOOD[foodMode].e}`), el, 2600); return;
     }
     if(k === "animal") return tapAnimal(id);
     if(k === "plant") return tapPlant(id);
     if(k === "build") return tapBuild(id);
     hop(el); play("tap"); bubble(wordBub(pj(it), iw(it), it.n), el); speak(iw(it));
   }
+  /* acariciar: corazones, su nombre y su voz (no come: s.fed no cambia). Con hambre, el globo para darle de comer */
   function tapAnimal(id){
     const it = itemById(id), el = els[id], A = ANIM[id];
     freeze(id);
-    if(hungry(id)){ play("tap"); cls(el, "wig", 700); walkNear(id); openFeed(id); return; }
+    if(hungry(id)){ play("tap"); hop(el); heart(el); walkNear(id); talk(id); openFeed(id); return; }
     const woke = asleep(id); awake[id] = now() + 30000;
     hop(el); heart(el); play(A.moo ? "moo" : "pop");
-    bubble(wordBub(pj(it), iw(it), it.n, woke ? "¡Me has despertado! 🥱" : fullTxt(id)), el); speak(iw(it));
+    bubble(wordBub(pj(it), iw(it), it.n, `<span class="fm-hl" aria-hidden="true">${heartsHtml(Math.max(0, hearts(id)))}</span> ${woke ? "¡Me has despertado! 🥱" : fullTxt(id)}`), el); speak(iw(it));
     render(id); resume(id, 2600);
   }
   const fullTxt = id => `¡Está lleno! 😋 Podrá comer en ${fmtLeft(HMS(FULL_H) - sinceFed(s, id))}`;
-  const puaj = (id, fid) => { const R = ANIM[id].eats; return `¡Puaj! 🤢 ${cap(alA(id))} no le gusta ${elF(fid)} ${FOOD[fid].e}.<br>¡Le gusta ${elF(R)} ${FOOD[R].e}!`; };
-  const poorTxt = need => `¡Uy! Te faltan <b>${need} 🪙</b>.<br>Haz una lección 📚, repasa 🔁 o recoge los regalos de tus animales 🥚 para ganar más.`;
+  /* comida que no es la suya: nunca un fallo (no se gasta): le dice cuál le gusta */
+  const puaj = (id, fid) => { const R = ANIM[id].eats; return `${cap(alA(id))} no le gusta ${elF(fid)}.<br>¡Le gusta ${elF(R)} ${FOOD[R].e}!`; };
+  const poorTxt = need => `Te ${need === 1 ? "falta 1 moneda" : `faltan ${need} monedas`}.<br>¡Una lección te da más!`;
 
   /* comprar comida: resta monedas (nunca por debajo de 0) y la guarda en la despensa */
   function buyFood(k, n){
-    const F = FOOD[k]; if(!F) return {ok: false};
+    const Fd = FOOD[k]; if(!Fd) return {ok: false};
     const room = PAN_MAX - (s.pan[k] || 0); if(room <= 0) return {ok: false, full: true};
     n = Math.max(1, Math.min(n || 1, room));
-    const cost = F.c * n, have = coinsNow();
-    if(have < cost || !spend(cost, `Comida: ${F.n}`)) return {ok: false, need: cost - have};
+    const cost = Fd.c * n, have = coinsNow();
+    if(have < cost || !spend(cost, `Comida: ${Fd.n}`)) return {ok: false, need: cost - have};
     upd(st => st.pan[k] = Math.min(PAN_MAX, (st.pan[k] || 0) + n));
     play("coin");
     emit("farm-buy", {food: k, n, cost});
-    pantryBar(); tasks();
+    trayPaint(); shopFoods();
     return {ok: true, n};
   }
 
-  /* tocar un animal con hambre: elegir su comida de la despensa */
+  /* tocar un animal con hambre: el globo para elegir su comida (de la despensa) */
   function openFeed(id){
-    const it = itemById(id), A = ANIM[id], right = A.eats, R = FOOD[right], h = Math.max(0, hearts(id));
-    const d = dlg(`<div class="fm-qe" aria-hidden="true"><span class="${h === 0 ? "fm-qsk" : ""}">${pj(it)}</span><span class="fm-qb">${h === 0 ? "🤒" : "🍽️"}</span></div>
-      <div class="fm-qh"><span class="fm-hpill" role="img" aria-label="${h} de 3 corazones">${heartsHtml(h)}</span></div>
+    const it = itemById(id), A = ANIM[id], right = A.eats, R = FOOD[right], h = Math.max(0, hearts(id)), el = els[id];
+    const tried = new Set();
+    let done = false;
+    const box = pop(`<div class="fm-ph"><p class="fm-qt">${h === 0 ? `¡${cap(elA(id))} está ${A.f ? "malita" : "malito"}! Dale su comida.` : `¿Qué le das ${alA(id)}?`}</p>
+        <span class="fm-hpill" role="img" aria-label="${h} de 3 corazones">${heartsHtml(h)}</span></div>
       <div class="fm-fb"></div>
       <p class="fm-qm" aria-live="polite"></p>
-      <button type="button" class="btn fm-x">Ahora no</button>`);
-    d.classList.add("fm-feed"); d.dataset.fid = id;
-    const box = d.querySelector(".fm-fb"), m = d.querySelector(".fm-qm"), tried = new Set();
-    let done = false, bought = "";
-    d.querySelector(".fm-x").onclick = () => d.close();
-    d.addEventListener("close", () => { if(!done && isOn()) resume(id, 1200); });   /* «Ahora no»: vuelve a pasear */
+      <div class="fm-pa"><button type="button" class="btn-fill btn-fill--neu fm-x">Ahora no</button></div>`, el, `Dar de comer ${alA(id)}`,
+      () => { if(!done && isOn()) resume(id, 1200); });   /* «Ahora no»: vuelve a pasear */
+    popEl.dataset.fid = id; popEl.dataset.kind = "feed";
+    const fbx = box.querySelector(".fm-fb"), m = box.querySelector(".fm-qm");
+    box.querySelector(".fm-x").onclick = () => closePop();
     function paint(){
       const have = Object.keys(FOOD).filter(k => (s.pan[k] || 0) > 0);
-      const q = h === 0 ? `¡${cap(elA(id))} está ${A.f ? "malita" : "malito"}! Dale su comida y se curará.` : `¿Qué le das de comer ${alA(id)}?`;
-      box.innerHTML = `<p class="fm-qt">${q}</p>
-        ${have.length ? `<div class="fm-foods">${have.map(k => `<button type="button" class="fm-food${tried.has(k) ? " bad" : ""}${k === bought ? " new" : ""}" data-food="${k}" aria-label="${esc(fw(k))}, ${esc(FOOD[k].n)}, tienes ${s.pan[k]}"><span class="fe" aria-hidden="true">${FOOD[k].e}</span><span class="ft"><b>${esc(fw(k))}</b><small>${esc(FOOD[k].n)} · tienes ${s.pan[k]}</small></span></button>`).join("")}</div>` : ""}
-        ${(s.pan[right] || 0) > 0 ? "" : `<div class="fm-nofood"><p>${have.length ? "" : "🧺 Tu despensa está vacía.<br>"}${cap(elA(id))} come <b>${R.e} ${esc(R.n)}</b> y no te queda.</p>
-          <button type="button" class="fm-buyq" data-qbuy="${right}">🛒 Comprar ${R.e} ${esc(R.n)} · 🪙 ${R.c}</button></div>`}`;
+      fbx.innerHTML = `${have.length ? `<div class="fm-foods">${have.map(k => `<button type="button" class="fm-food${tried.has(k) ? " bad" : ""}" data-food="${k}" aria-label="${esc(fw(k))}, ${esc(FOOD[k].n)}, tienes ${s.pan[k]}"><span class="fe" aria-hidden="true">${FOOD[k].e}</span><span class="ft"><b lang="${code()}">${esc(fw(k))}</b><small>${esc(FOOD[k].n)} · ${s.pan[k]}</small></span>${tried.has(k) ? `<span class="fm-mk" aria-hidden="true">${icon("x", "bold", 16)}</span>` : ""}</button>`).join("")}</div>` : ""}
+        ${(s.pan[right] || 0) > 0 ? "" : `<div class="fm-nofood"><p>${cap(elA(id))} come <b>${R.e} ${esc(R.n)}</b>. ¡Cómprale un poco!</p>
+          <button type="button" class="btn-fill fm-buyq" data-qbuy="${right}">${icon("storefront", "bold", 20)}<span>Comprar ${R.e} ${esc(R.n)}</span></button></div>`}`;
+      placePop();
     }
     paint();
-    const seeMsg = () => { if(m.scrollIntoView) m.scrollIntoView({block: "nearest"}); };   /* en pantallas bajas el aviso queda debajo */
-    box.addEventListener("click", e => {
+    fbx.addEventListener("click", e => {
       if(done) return;
-      if(inShelterS(s, id)) return d.close();   /* se fue al refugio con el diálogo abierto */
-      const qb = e.target.closest("[data-qbuy]");
-      if(qb){
-        const r = buyFood(qb.dataset.qbuy, 1);
-        if(r.ok){ bought = qb.dataset.qbuy; speak(fw(bought)); paint(); m.className = "fm-qm ok"; m.innerHTML = `¡Comprado! ${R.e} <b>${esc(fw(right))}</b><br>Ahora tócalo para darle de comer.`; }
-        else { play("tap"); m.className = "fm-qm warm"; m.innerHTML = r.full ? "¡La despensa está llena!" : poorTxt(r.need); }
-        return seeMsg();
-      }
+      if(inShelterS(s, id)) return closePop();   /* se fue al refugio con el globo abierto */
+      if(e.target.closest("[data-qbuy]")){ closePop(true); resume(id, 1200); openShop({food: right, from: e.target.closest("button")}); return; }
       const b = e.target.closest("[data-food]"); if(!b) return;
       const k = b.dataset.food;
       if(k !== right){
-        tried.add(k); b.classList.add("bad");
-        m.className = "fm-qm warm"; m.innerHTML = puaj(id, k); return seeMsg();   /* no se gasta: así aprende qué come cada uno */
+        /* gris con ✗, sin temblar ni sonido triste: así aprende qué come cada uno */
+        tried.add(k); paint(); m.className = "fm-qm info"; m.innerHTML = puaj(id, k); return;
       }
       if(!((s.pan[k] || 0) > 0)) return;
-      done = true; b.classList.add("ok"); play("eat");
-      box.querySelectorAll(".fm-food, .fm-buyq").forEach(x => { if(x !== b) x.disabled = true; });
-      /* se guarda ya (comido + regalo): aunque cierre con Escape o salga de la página no se pierde ni se repite */
-      const res = eatNow(id);
-      m.className = "fm-qm ok"; m.innerHTML = `¡Ñam, ñam! 😋 <b>${esc(fw(right))}</b>`; speak(fw(right));
-      d.addEventListener("close", () => { if(!isOn()) return; eatFx(id, right); later(() => gifts(id, res), 1300); }, {once: true});
-      later(() => nameQuiz(d, id, res), 1200);
+      done = true; closePop(true);
+      giveFood(id, k);
     });
   }
-  /* comida elegida en la barra (tocar o arrastrar hasta un animal) */
+  /* dar de comer (tocar la comida y luego el animal, arrastrar la comida o elegirla en su globo: siempre esto) */
   function giveFood(id, fid){
-    const it = itemById(id), el = els[id], A = ANIM[id]; if(!el || !A || inShelterS(s, id)) return;
-    freeze(id);
-    if(!hungry(id)){ hop(el); play("tap"); bubble(wordBub(pj(it), iw(it), it.n, fullTxt(id)), el); speak(iw(it)); resume(id, 2600); return; }
-    if(fid !== A.eats){ cls(el, "no", 500); bubble(msg(puaj(id, fid)), el, 4500); resume(id, 2600); return; }
-    if(!((s.pan[fid] || 0) > 0)){ resume(id, 1200); openPantry(fid); return; }
+    const it = itemById(id), el = els[id], A = ANIM[id]; if(!el || !A || inShelterS(s, id)) return false;
+    freeze(id); coachDone();
+    if(!hungry(id)){ hop(el); play("tap"); bubble(wordBub(pj(it), iw(it), it.n, fullTxt(id)), el); speak(iw(it)); resume(id, 2600); return false; }
+    if(fid !== A.eats){ cls(el, "no", 500); bubble(msg(puaj(id, fid)), el, 4500); resume(id, 2600); return false; }
+    if(!((s.pan[fid] || 0) > 0)){ resume(id, 1200); openShop({food: fid}); return false; }
     walkNear(id);
     const res = eatNow(id);
     eatFx(id, fid);
     bubble(wordBub(FOOD[fid].e, fw(fid), FOOD[fid].n, "¡Ñam, ñam! 😋"), el, 1500); speak(fw(fid));
-    later(() => {
-      if(dlgOpen()) return gifts(id, res);
-      const d = dlg(""); d.classList.add("fm-feed");
-      d.addEventListener("close", () => { if(isOn()) gifts(id, res); }, {once: true});
-      nameQuiz(d, id, res);
-    }, 1450);
+    later(() => { if(popOpen() || dlgOpen() || !els[id]) return gifts(id, res); nameQuiz(id, res); }, 1450);
+    return true;
   }
   /* come: gasta 1 ración, corazones al máximo y regalo (si no estaba triste o malito) */
   function eatNow(id){
@@ -889,13 +1001,13 @@ function mount(host){
     if(!res.weak){ const k = addProd(id, A.p); if(k) res.keys.push(k); }
     emit("farm-feed", {item: itemById(id), food: fid});
     if(foodMode && !((s.pan[foodMode] || 0) > 0)) setFood(null);
-    render(id, true); pantryBar(); tasks();
+    pickLead(); render(id, true); trayPaint(); shopFoods();
     return res;
   }
-  /* después de comer: «¿cómo me llamo?» (3 opciones con audio). Acierto = regalo doble */
-  function nameQuiz(d, id, res){
-    if(!d.open || !isOn()) return;
-    const it = itemById(id), right = iw(it);
+  /* después de comer: «¿Cómo me llamo?» (3 opciones con audio y, si hay micrófono, «Dilo»). Acierto = regalo doble */
+  function nameQuiz(id, res){
+    if(!isOn() || !els[id]) return;
+    const it = itemById(id), right = iw(it), el = els[id];
     const words = new Set([right]), others = [];
     for(const x of shuffle(SHOP.filter(x => x.t === "farm" && ANIM[x.id] && x.id !== id)).concat(shuffle(SHOP.filter(x => x.t === "farm" && !ANIM[x.id])))){
       const w = iw(x); if(!words.has(w)){ words.add(w); others.push(x); } if(others.length === 2) break;
@@ -903,33 +1015,63 @@ function mount(host){
     const opts = shuffle([it, ...others]);
     /* lo que se promete es lo que pasa: con muchos regalos suyos en el suelo (PROD_MAX) ya no caen más */
     const room = PROD_MAX - Object.values(s.prod).filter(P => P.a === id).length;
-    const prize = room <= 0 ? "🥚 Primero recoge sus regalos del suelo" : res.keys.length ? "Si aciertas: 🎁🎁 ¡regalo doble!" : "Si aciertas: 🎁 un regalo";
-    d.innerHTML = `<div class="fm-qe" aria-hidden="true"><span>${pj(it)}</span><span class="fm-qb">💬</span></div>
-      <div class="fm-qh"><span class="fm-hpill" role="img" aria-label="3 de 3 corazones">${heartsHtml(3)}</span></div>
-      <p class="fm-qt">¡Gracias! 😋 Ahora dime: ¿cómo me llamo en ${LANGS[lang].name}?</p>
+    const prize = room <= 0 ? "Primero recoge sus regalos 🥚" : res.keys.length ? "Si aciertas: ¡regalo doble! 🎁🎁" : "Si aciertas: ¡un regalo! 🎁";
+    const mic = typeof canListen === "function" && canListen() && typeof listen === "function";
+    let done = false, busyMic = false;
+    const box = pop(`<div class="fm-ph"><span class="fm-qe" aria-hidden="true">${pj(it)}</span><p class="fm-qt">¿Cómo me llamo?</p></div>
       <p class="fm-qs">${prize}</p>
-      <div class="fm-opts">${opts.map(o => `<div class="fm-or"><button type="button" class="fm-opt" data-fo="${o.id}">${esc(iw(o))}</button><button type="button" class="say fm-ls" data-say="${esc(iw(o))}" aria-label="Escuchar ${esc(iw(o))}" title="Escuchar">🔊</button></div>`).join("")}</div>
+      ${mic ? `<button type="button" class="btn-fill fm-mic" data-mic aria-label="Dilo: di mi nombre en ${esc(LANGS[lang].name)}">${icon("microphone", "bold", 22)}<span>Dilo</span></button>` : ""}
+      <div class="fm-opts">${opts.map(o => `<div class="fm-or"><button type="button" class="fm-opt" data-fo="${o.id}" lang="${code()}">${esc(iw(o))}</button><button type="button" class="say fm-ls" data-say="${esc(iw(o))}" aria-label="Escuchar ${esc(iw(o))}" title="Escuchar">${icon("speaker-high", "fill", 22)}</button></div>`).join("")}</div>
       <p class="fm-qm" aria-live="polite"></p>
-      <button type="button" class="btn fm-x">Ahora no</button>`;
-    const m = d.querySelector(".fm-qm"), x = d.querySelector(".fm-x"); let done = false;
-    x.onclick = () => d.close();
-    d.querySelectorAll(".fm-opt").forEach(b => b.onclick = () => {
+      <div class="fm-pa"><button type="button" class="btn-fill btn-fill--neu fm-x">Ahora no</button></div>`, el, "¿Cómo me llamo?",
+      () => { if(isOn()) gifts(id, res); });
+    popEl.dataset.fid = id; popEl.dataset.kind = "quiz";
+    const m = box.querySelector(".fm-qm"), x = box.querySelector(".fm-x"), micB = box.querySelector("[data-mic]");
+    x.onclick = () => closePop();
+    const okB = () => box.querySelector(`.fm-opt[data-fo="${id}"]`);
+    function win(b){
       if(done) return; done = true;
-      d.querySelectorAll(".fm-opt").forEach(o => { if(o !== b) o.disabled = true; });
-      if(b.dataset.fo === id){
-        b.classList.add("ok"); play("ok"); speak(right);
-        const k = addProd(id, ANIM[id].p); if(k) res.keys.push(k);
-        const n = res.keys.length;
-        m.className = "fm-qm ok"; m.innerHTML = `¡Muy bien! <b>${esc(right)}</b><br>${n >= 2 ? "🎁🎁 ¡Regalo doble!" : n ? "🎁 ¡Te dejo un regalo!" : "🥚 ¡Recoge mis regalos del suelo!"}`;
-        x.textContent = "¡Genial!";
-        later(() => { try{ d.close(); }catch(e){} }, 1700);
-      } else {
-        b.classList.add("bad"); speak(right);
-        const okB = d.querySelector(`.fm-opt[data-fo="${id}"]`); if(okB){ okB.disabled = false; okB.classList.add("ok"); okB.onclick = null; }
-        m.className = "fm-qm info"; m.innerHTML = `Me llamo <b>«${esc(right)}»</b> ${pj(it, "pj-sm")}<br>${res.keys.length ? "🎁 ¡Te dejo un regalo!" : res.weak ? "Estaba muy débil y hoy no hay regalo. ¡Dame de comer cada día! 💪" : "🥚 ¡Recoge mis regalos del suelo!"}`;
-        x.textContent = "Seguir ➜"; x.classList.add("lc"); x.style.setProperty("--lc", "#1E6EF4");
-      }
+      box.querySelectorAll(".fm-opt").forEach(o => { if(o !== b) o.disabled = true; });
+      if(micB) micB.disabled = true;
+      if(b){ b.classList.add("ok"); b.insertAdjacentHTML("beforeend", `<span class="fm-mk" aria-hidden="true">${icon("check", "bold", 18)}</span>`); }
+      play("ok"); speak(right); srsWord(id);
+      const k = addProd(id, ANIM[id].p); if(k) res.keys.push(k);
+      const n = res.keys.length;
+      m.className = "fm-qm ok"; m.innerHTML = `¡Muy bien! <b lang="${code()}">${esc(right)}</b><br>${n >= 2 ? "¡Regalo doble! 🎁🎁" : n ? "¡Te dejo un regalo! 🎁" : "¡Recoge mis regalos! 🥚"}`;
+      x.textContent = "¡Genial!";
+      if(window.M && typeof M.ok === "function" && b) try{ M.ok(b); }catch(e){}
+      later(() => { if(popEl.dataset.kind === "quiz" && popEl.dataset.fid === id) closePop(); }, 1700);
+    }
+    box.querySelectorAll(".fm-opt").forEach(b => b.onclick = () => {
+      if(done) return;
+      if(b.dataset.fo === id) return win(b);
+      /* fallo: gris con ✗ (nunca rojo ni dorado), sin temblar ni sonido triste; la buena en verde con ✓ */
+      done = true;
+      box.querySelectorAll(".fm-opt").forEach(o => { if(o !== b) o.disabled = true; });
+      if(micB) micB.disabled = true;
+      b.classList.add("bad"); b.insertAdjacentHTML("beforeend", `<span class="fm-mk" aria-hidden="true">${icon("x", "bold", 18)}</span>`);
+      speak(right);
+      const o = okB(); if(o){ o.disabled = false; o.classList.add("ok"); o.onclick = null; o.insertAdjacentHTML("beforeend", `<span class="fm-mk" aria-hidden="true">${icon("check", "bold", 18)}</span>`); }
+      m.className = "fm-qm info"; m.innerHTML = `Me llamo <b lang="${code()}">«${esc(right)}»</b><br>${res.keys.length ? "¡Te dejo un regalo! 🎁" : res.weak ? "¡Dame de comer cada día! 💪" : "¡Recoge mis regalos! 🥚"}`;
+      x.textContent = "Seguir"; x.classList.remove("btn-fill--neu");
     });
+    /* «Dilo»: si no lo entiende, nunca es un fallo: se puede tocar */
+    if(micB) micB.onclick = async () => {
+      if(done || busyMic) return;
+      busyMic = true; micB.classList.add("on"); micB.setAttribute("aria-pressed", "true"); micB.querySelector("span").textContent = "Te escucho…";
+      try{ if("speechSynthesis" in window) speechSynthesis.cancel(); }catch(e){}
+      m.className = "fm-qm"; m.textContent = "";
+      let r = null;
+      try{ r = await listen({lang: code(), ms: 6000}); }catch(e){ r = {status: "error", alts: []}; }
+      busyMic = false;
+      if(!isOn() || done || popEl.dataset.kind !== "quiz" || popEl.dataset.fid !== id || !micB.isConnected) return;
+      micB.classList.remove("on"); micB.removeAttribute("aria-pressed"); micB.querySelector("span").textContent = "Dilo";
+      if(r && r.status === "ok" && heard(r.alts, right)) return win(okB());
+      if(r && (r.status === "denied" || r.status === "unavailable" || r.status === "unsupported")){
+        micB.hidden = true; m.className = "fm-qm info"; m.textContent = "Toca mi nombre."; placePop(); return;
+      }
+      m.className = "fm-qm info"; m.textContent = "No te he oído bien. Toca la respuesta.";
+    };
   }
   /* animación de comer */
   function eatFx(id, fid){
@@ -948,9 +1090,9 @@ function mount(host){
     for(const key of res.keys) if(s.prod[key] && !layer.querySelector(`[data-pk="${key}"]`)){ const i = n++; later(() => { if(s.prod[key] && !layer.querySelector(`[data-pk="${key}"]`)){ makeProd(key, true); play("pop"); } }, i * 300); }
     if(ANIM[id].moo) play("moo");
     bubble(wordBub(pj(it), iw(it), it.n, n > 1 ? "¡Gracias! Te dejo 2 regalos 🎁🎁" : n ? "¡Gracias! Te dejo un regalo 🎁" : res.weak ? "¡Gracias! ¡Ya me siento mejor! 💪" : "¡Gracias! Recoge mis regalos 🥚"), el, 3400);
-    resume(id, 3000); tasks();
+    resume(id, 3000);
   }
-  /* guarda un producto junto a su animal o árbol (como mucho 2 a la vez) */
+  /* guarda un producto junto a su animal o árbol */
   function addProd(src, pid){
     const p = posOf(src); if(!p || !PROD[pid]) return null;
     const have = Object.values(s.prod).filter(P => P.a === src).length;
@@ -979,7 +1121,7 @@ function mount(host){
     walkTo(P.x + (hpos.x < P.x ? -5 : 5), P.y + 1);
     award(d.c, `¡${cap(d.n)}!`);
     emit("farm-collect", {product: {id: P.p, e: d.e, n: d.n, word: w, from: P.a}});
-    tasks(); bar();
+    bar();
   }
 
   /* plantas */
@@ -997,19 +1139,20 @@ function mount(host){
   }
   function waterTap(id){
     const it = itemById(id), el = els[id], k = kindOf(id);
+    if(!el) return false;
     if(k !== "plant"){
       hop(el); play("whoosh");
-      bubble(msg(id === "pato" ? "🦆💦 ¡Al pato le encanta el agua!" : k === "animal" ? "💦 ¡Ji, ji! ¡Eso no es una planta!" : "💦 Eso no es una planta. ¡Toca una planta!"), el, 2600); return;
+      bubble(msg(id === "pato" ? "🦆💦 ¡Al pato le encanta el agua!" : k === "animal" ? "💦 ¡Ji, ji! ¡Eso no es una planta!" : "💦 Eso no es una planta. ¡Toca una planta!"), el, 2600); return false;
     }
     const p = plant(id);
     if(p.s >= 2){
-      if(!TREE[id]) return harvest(id);   /* ya está lista: se cosecha aunque esté regando */
-      hop(el); bubble(msg("🌳 ¡Ya es muy grande!<br>No necesita más agua."), el, 3000); return;
+      if(!TREE[id]){ harvest(id); return true; }   /* ya está lista: se cosecha aunque esté regando */
+      hop(el); bubble(msg("🌳 ¡Ya es muy grande!<br>No necesita más agua."), el, 3000); return false;
     }
     const free = canWater(id);
     if(!free && s.drops <= 0){
       cls(el, "no", 500); play("tap");
-      bubble(msg(`🌿 Ya bebió agua.<br>Vuelve en ${fmtLeft(WATER - (now() - p.w))}.<br>📚 ¡Una lección te da agua extra!`), el, 4200); return;
+      bubble(msg(`🌿 Ya bebió agua.<br>Vuelve en ${fmtLeft(WATER - (now() - p.w))}.<br>📚 ¡Una lección te da agua extra!`), el, 4200); return false;
     }
     upd(st => { if(!free) st.drops = Math.max(0, st.drops - 1); const q = st.pl[id]; q.s = Math.min(2, q.s + 1); q.w = now(); });
     walkNear(id); play("whoosh");
@@ -1021,8 +1164,8 @@ function mount(host){
       const ripe = plant(id).s >= 2;
       if(ripe){ play("ok"); burst(el, "✨", 6); bubble(wordBub(pj(it), iw(it), it.n, TREE[id] ? "¡Ha crecido un montón! 🌳" : "✨ ¡Ya está lista! ¡Cosecha!"), el); speak(iw(it)); if(TREE[id]) checkTrees(); }
       else bubble(msg(`💧 ¡Glu, glu! ¡Está creciendo!${free ? "" : "<br>Usaste 1 💧 extra."}`), el, 2600);
-      tasks();
     }, 800);
+    return true;
   }
   function harvest(id){
     const it = itemById(id), el = els[id], w = iw(it);
@@ -1032,7 +1175,7 @@ function mount(host){
     bubble(wordBub(pj(it), w, it.n, "¡Cosechado! 🧺"), el); speak(w);
     award(PLANT[id] || 3, `¡${cap(artEs(it.n))}!`);
     el._busy = true; cls(el, "pluck", 460);
-    later(() => { el._busy = false; render(id, true); cls(el, "grow", 750); tasks(); }, 470);
+    later(() => { el._busy = false; render(id, true); cls(el, "grow", 750); }, 470);
     emit("farm-harvest", {item: it});
   }
   const artEs = n => { try{ return typeof art === "function" ? art(n) : n; }catch(e){ return n; } };
@@ -1080,7 +1223,7 @@ function mount(host){
   }
   function fireworks(el){
     const t = topOf(el); play("fanfare");
-    for(let i = 0; i < 5; i++) later(() => { fx("", t.x + rnd(-14, 14), Math.max(6, t.y - rnd(4, 20)), "fm-fw", 1150, {"--c": pick(["#FFCC00", "#5aa2ff", "#45cf8b"])}); play("pop"); }, i * 320);
+    for(let i = 0; i < 5; i++) later(() => { fx("", t.x + rnd(-14, 14), Math.max(TB + 4, t.y - rnd(4, 20)), "fm-fw", 1150, {"--c": pick(["#FFCC00", "#5aa2ff", "#45cf8b"])}); play("pop"); }, i * 320);
   }
   function campfire(id){
     if(layer.querySelector(".fm-fire")) return;
@@ -1123,8 +1266,8 @@ function mount(host){
 
   /* cielo */
   function tapSky(key, el){
-    const W = SKYW[key], w = pw(W);
-    bubble(wordBub(W.e, w, W.n), el); speak(w); play("pop");
+    const Wd = SKYW[key], w = pw(Wd);
+    bubble(wordBub(Wd.e, w, Wd.n), el); speak(w); play("pop");
     if(el.animate && !RM()) el.animate([{scale: 1}, {scale: 1.25}, {scale: 1}], {duration: 600, easing: "ease-out"});
   }
   function tapCloud(cl){
@@ -1137,29 +1280,29 @@ function mount(host){
   }
   function shootingStar(x, y, withWord){
     if(!RM()) fx("", x, y, "fm-shoot", 1100);
-    if(withWord){ const W = SKYW.estrella, w = pw(W); bubble(wordBub(W.e, w, W.n), {x, y}); speak(w); play("pop"); }
+    if(withWord){ const Wd = SKYW.estrella, w = pw(Wd); bubble(wordBub(Wd.e, w, Wd.n), {x, y}); speak(w); play("pop"); }
   }
   function butterfly(x, y){
     if(!RM()) fx("🦋", x, y, "fm-bfly", 2700);
-    const W = SKYW.mariposa, w = pw(W); bubble(wordBub(W.e, w, W.n), {x, y}); speak(w); play("pop");
+    const Wd = SKYW.mariposa, w = pw(Wd); bubble(wordBub(Wd.e, w, Wd.n), {x, y}); speak(w); play("pop");
   }
 
-  /* ---------- juego «¿Dónde está…?» ---------- */
+  /* ---------- juego «¿Dónde está…?» (se empieza tocando al personaje) ---------- */
   function dots(){ return `<span class="fm-dots">${Array.from({length: ROUNDS}, (_, i) => `<i class="${i < F.res.length ? (F.res[i] ? "ok" : "no") : i === F.res.length ? "now" : ""}"></i>`).join("")}</span>`; }
   /* solo cosas que se reconocen: las plantas cuentan cuando ya han crecido */
   const findable = () => owned().map(x => x.id).filter(id => els[id] && (kindOf(id) !== "plant" || plant(id).s >= 2));
   function startFind(){
-    if(finding()){ if(now() - (F.t0 || 0) < 800) return; return exitFind(); }   /* doble toque: no sale sin querer */
+    if(finding()) return;
     const ids = findable();
     if(ids.length < 3){
       play("tap");
-      bubble(msg(owned().length >= 3 ? "🔍 Para jugar necesitas 3 cosas que se vean bien.<br>¡Haz crecer tus plantas 🌻 o compra más! 🛒" : "🔍 Para jugar necesitas 3 cosas en tu granja.<br>¡Compra más en la tienda! 🛒"), hero, 4500);
+      bubble(msg(owned().length >= 3 ? "🔍 Para jugar hacen falta 3 cosas que se vean.<br>¡Haz crecer tus plantas! 🌻" : "🔍 Para jugar hacen falta 3 cosas.<br>¡Mira la tienda! 🛒"), hero, 4500);
       return;
     }
-    setWater(false); setFood(null); hideBub();
+    setWater(false); setFood(null); closeTray(); closePop(true); hideBub();
     F = {round: 0, ok: 0, res: [], prev: null, bag: shuffle(ids), lock: false, done: false, t0: now()};
     Object.keys(els).forEach(id => { if(ANIM[id]) freeze(id); });
-    stage.classList.add("finding"); bar(); play("whoosh"); showStage();
+    stage.classList.add("finding"); bar(); play("whoosh");
     later(nextRound, 250);
   }
   function nextRound(){
@@ -1172,8 +1315,8 @@ function mount(host){
     F.target = id; F.prev = id; F.lock = false;
     const it = itemById(id), w = iw(it);
     fb.hidden = false;
-    fb.innerHTML = `<span class="fm-fh">${heroHtml(30)}</span><span class="fm-ft"><small>¿Dónde está…?</small><b>${esc(w)}</b>${dots()}</span>
-      <button type="button" class="say" data-say="${esc(w)}" aria-label="Escuchar" title="Escuchar">🔊</button><button type="button" class="fm-fq" aria-label="Salir del juego" title="Salir">✕</button>`;
+    fb.innerHTML = `<span class="fm-fh">${heroHtml(30)}</span><span class="fm-ft"><small>¿Dónde está…?</small><b lang="${code()}">${esc(w)}</b>${dots()}</span>
+      <button type="button" class="say" data-say="${esc(w)}" aria-label="Escuchar" title="Escuchar">${icon("speaker-high", "fill", 22)}</button><button type="button" class="fm-fq" aria-label="Salir del juego" title="Salir">${icon("x", "bold", 18)}</button>`;
     hop(hero); later(() => speak(w), 200);
   }
   function findTap(id, ev){
@@ -1187,9 +1330,10 @@ function mount(host){
     }
     F.res.push(ok); if(ok) F.ok++; F.round++;
     emit("farm-find", {ok});
+    if(ok) srsWord(F.target);
     const dd = fb.querySelector(".fm-dots"); if(dd) dd.outerHTML = dots();
     if(ok){ play("ok"); hop(el); burst(el, "⭐", 5); bubble(wordBub(pj(it), w, it.n, "¡Muy bien! ✅"), el, 1400); }
-    else { cls(tEl, "hl", 2300); bubble(wordBub(pj(it), w, it.n, "¡Casi! ¡Está aquí! 👇"), tEl || el, 2300); speak(w); }
+    else { cls(tEl, "hl", 2300); bubble(wordBub(pj(it), w, it.n, "¡Está aquí! 👇"), tEl || el, 2300); speak(w); }
     later(nextRound, ok ? 1300 : 2500);
   }
   function endFind(){
@@ -1198,9 +1342,9 @@ function mount(host){
     upd(st => { if(!st.fd || st.fd.day !== day) st.fd = {day, n: 0}; if(st.fd.n < FIND_PAID){ st.fd.n++; paid = true; } });
     const coins = paid ? n + (all ? 5 : 0) : 0;
     if(coins) award(coins, all ? "¡Lo encontraste todo!" : "¿Dónde está?");
-    if(all){ play("fanfare"); try{ confetti({emoji: "⭐", n: 40}); }catch(e){} } else if(n) play("ok");
-    fb.innerHTML = `<span class="fm-fh">${heroHtml(30)}</span><span class="fm-ft"><small>${all ? "¡Perfecto! 🏆" : n >= 3 ? "¡Muy bien! 🎉" : "¡Buen intento! 💪"}</small><b>${n} de ${ROUNDS}</b>${coins ? `<em>+${coins} 🪙</em>` : !paid ? `<em class="m">Hoy ya ganaste 🪙 aquí</em>` : ""}</span>
-      <button type="button" class="fm-fa">🔁 Otra vez</button><button type="button" class="fm-fq" aria-label="Cerrar" title="Cerrar">✕</button>`;
+    if(all){ play("fanfare"); try{ if(window.M && M.confetti) M.confetti({n: 40}); }catch(e){} } else if(n) play("ok");
+    fb.innerHTML = `<span class="fm-fh">${heroHtml(30)}</span><span class="fm-ft"><small>${all ? "¡Perfecto! 🏆" : n >= 3 ? "¡Muy bien! 🎉" : "¡Buen intento! 💪"}</small><b>${n} de ${ROUNDS}</b>${coins ? `<em>+${coins} monedas</em>` : !paid ? `<em class="m">Hoy ya ganaste monedas aquí</em>` : ""}</span>
+      <button type="button" class="btn-fill fm-fa">Otra vez</button><button type="button" class="fm-fq" aria-label="Cerrar" title="Cerrar">${icon("x", "bold", 18)}</button>`;
     stage.classList.remove("finding"); bar();
     Object.keys(els).forEach(id => { if(ANIM[id]) resume(id, rnd(800, 2500)); });
     later(nextIntro, 1800);   /* avisos pendientes (alguien se fue al refugio mientras jugaba) */
@@ -1211,77 +1355,34 @@ function mount(host){
     later(nextIntro, 350);
   }
 
-  /* ---------- despensa, refugio y avisos ---------- */
+  /* ---------- refugio y avisos ---------- */
   /* comidas que hacen falta: las de sus animales (también los del refugio) y las que ya tiene */
   const neededFoods = () => Object.keys(FOOD).filter(k => ownedAnimals().some(id => ANIM[id].eats === k) || (s.pan[k] || 0) > 0);
   const eatersOf = k => ownedAnimals().filter(id => ANIM[id].eats === k).map(id => pj(itemById(id), "pj-sm")).join("");
-  function openPantry(focus){
-    if(dlgOpen()) return;
-    play("tap");
-    const d = dlg(`<div class="fm-wel">🧺</div><h2>La despensa</h2>
-      <p class="fm-sub">Compra comida para tus animales.<br>Tienes <b class="fm-pc">🪙 ${coinsNow()}</b></p>
-      <div class="fm-pl"></div>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">¡Listo!</button>`);
-    d.classList.add("fm-pand");
-    const list = d.querySelector(".fm-pl");
-    /* los botones que no puede pagar salen en gris con «Te faltan N» (como en la tienda) */
-    const pb = (k, n) => { const c = FOOD[k].c * n, miss = c - coinsNow();
-      return `<button type="button" class="fm-pb${miss > 0 ? " no" : ""}" data-fbuy="${k}" data-n="${n}">+${n} · 🪙 ${c}${miss > 0 ? `<small>Te faltan ${miss}</small>` : ""}</button>`; };
-    function paint(pop){
-      const ks = neededFoods();
-      d.querySelector(".fm-pc").textContent = "🪙 " + coinsNow();
-      if(!ks.length){ list.innerHTML = `<p class="fm-note">🐣 Aún no tienes animales.<br>¡Compra uno en la tienda! 🛒</p>`; return; }
-      list.innerHTML = ks.map(k => {
-        const F = FOOD[k], w = fw(k), who = eatersOf(k);
-        return `<div class="fm-prow${k === focus ? " focus" : ""}${k === pop ? " pop" : ""}" data-pf="${k}">
-          <span class="fm-pe2" aria-hidden="true">${F.e}</span>
-          <span class="fm-pt"><span class="fm-pw"><b>${esc(w)}</b><button type="button" class="say" data-say="${esc(w)}" aria-label="Escuchar ${esc(w)}" title="Escuchar">🔊</button></span>
-            <small>${esc(F.n)}${who ? ` · para ${who}` : ""}</small><small class="fm-ph">Tienes <b>${s.pan[k] || 0}</b></small></span>
-          <span class="fm-pbs">${pb(k, 1)}${pb(k, 3)}</span><p class="fm-qm fm-rm" aria-live="polite"></p></div>`;
-      }).join("");
-    }
-    paint();
-    d.querySelector(".fm-ok").onclick = () => d.close();
-    list.addEventListener("click", e => {
-      const b = e.target.closest("[data-fbuy]"); if(!b) return;
-      const k = b.dataset.fbuy, r = buyFood(k, +b.dataset.n || 1);
-      if(r.ok){ speak(fw(k)); paint(k); } else play("tap");
-      /* el aviso sale debajo de la fila tocada (con 4 o 5 comidas, abajo del todo no se veía) */
-      const row = list.querySelector(`.fm-prow[data-pf="${k}"]`), m = row && row.querySelector(".fm-rm"); if(!m) return;
-      list.querySelectorAll(".fm-rm").forEach(x => { if(x !== m){ x.className = "fm-qm fm-rm"; x.innerHTML = ""; } });
-      m.className = "fm-qm fm-rm " + (r.ok ? "ok" : "warm");
-      m.innerHTML = r.ok ? `¡Comprado! ${FOOD[k].e} <b>${esc(fw(k))}</b> ×${r.n}` : r.full ? `¡Ya tienes mucha comida ${FOOD[k].e}!` : poorTxt(r.need);
-      if(m.scrollIntoView) m.scrollIntoView({block: "nearest"});
-    });
-    if(focus) later(() => { const r = list.querySelector(".fm-prow.focus"); if(r && r.scrollIntoView) r.scrollIntoView({block: "nearest"}); }, 60);
-  }
   function openShelter(){
     if(dlgOpen()) return;
-    play("tap"); shelOpened = true;
-    const d = dlg(`<div class="fm-wel">🏚️</div><h2>El refugio</h2>
-      <p class="fm-sub">Aquí cuidan a los animales que pasaron mucha hambre. ¡Puedes traerlos de vuelta a tu granja!</p>
-      <div class="fm-pl"></div><p class="fm-qm" aria-live="polite"></p>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">Cerrar</button>`);
-    d.classList.add("fm-shd");
+    play("tap");
+    const d = dlg(`${head("El refugio")}
+      <p class="fm-sub">Aquí cuidan a los animales que pasaron mucha hambre. ¡Puedes traerlos a casa!</p>
+      <div class="fm-pl"></div><p class="fm-qm" aria-live="polite"></p>`, "fm-shd");
     const list = d.querySelector(".fm-pl"), m = d.querySelector(".fm-qm"), back = [];
     function paint(){
       const ids = Object.keys(s.shelter).filter(id => itemById(id));
       list.innerHTML = ids.length ? ids.map(id => {
-        const it = itemById(id), w = iw(it), F = FOOD[ANIM[id].eats];
+        const it = itemById(id), w = iw(it), Fd = FOOD[ANIM[id].eats], p = rescuePrice(it), miss = p - coinsNow();
         return `<div class="fm-prow" data-sh="${id}"><span class="fm-pe2" aria-hidden="true">${pj(it)}</span>
-          <span class="fm-pt"><span class="fm-pw"><b>${esc(w)}</b><button type="button" class="say" data-say="${esc(w)}" aria-label="Escuchar ${esc(w)}" title="Escuchar">🔊</button></span>
-            <small>${esc(it.n)} · come ${F.e} ${esc(F.n)}</small></span>
-          <span class="fm-pbs one"><button type="button" class="fm-pb res" data-rescue="${id}">🏡 Traer a casa · 🪙 ${rescuePrice(it)}</button></span></div>`;
-      }).join("") + `<p class="fm-note2">Vuelve con 1 ❤️: ¡dale de comer enseguida!</p>`
-        : `<p class="fm-note">🥰 ¡No hay nadie!<br>Todos tus animales están en casa.</p>`;
+          <span class="fm-pt"><span class="fm-pw"><b lang="${code()}">${esc(w)}</b><button type="button" class="say shp-spk" data-say="${esc(w)}" aria-label="Escuchar «${esc(w)}»">${icon("speaker-high", "fill", 22)}</button></span>
+            <small>${esc(it.n)} · come ${Fd.e} ${esc(Fd.n)}</small></span>
+          <span class="fm-pbs one"><button type="button" class="btn-fill fm-pb res${miss > 0 ? " no" : ""}" data-rescue="${id}">${miss > 0 ? `Te faltan <span class="t-num">${miss}</span>${COIN}` : `Traer a casa · ${COIN}<span class="t-num">${p}</span>`}</button></span></div>`;
+      }).join("") + `<p class="fm-note2">Vuelve con 1 corazón: ¡dale de comer enseguida!</p>`
+        : `<p class="fm-note">¡No hay nadie! 🥰<br>Todos tus animales están en casa.</p>`;
     }
     paint();
-    d.querySelector(".fm-ok").onclick = () => d.close();
     list.addEventListener("click", e => {
       const b = e.target.closest("[data-rescue]"); if(!b) return;
       const id = b.dataset.rescue, it = itemById(id); if(!it || !s.shelter[id]) return;
       const p = rescuePrice(it), have = coinsNow();
-      if(have < p || !spend(p, `Rescate: ${it.n}`)){ play("tap"); m.className = "fm-qm warm"; m.innerHTML = poorTxt(p - have); if(m.scrollIntoView) m.scrollIntoView({block: "nearest"}); return; }
+      if(have < p || !spend(p, `Rescate: ${it.n}`)){ play("tap"); m.className = "fm-qm info"; m.innerHTML = poorTxt(p - have); if(m.scrollIntoView) m.scrollIntoView({block: "nearest"}); return; }
       upd(st => { delete st.shelter[id]; st.fed[id] = now() - HMS(RESCUE_H); });
       emit("farm-rescue", {item: it});
       play("gift"); speak(iw(it));
@@ -1290,10 +1391,10 @@ function mount(host){
     });
     d.addEventListener("close", () => {
       if(!isOn() || !back.length) return;
-      const id = back[back.length - 1], el = els[id], it = itemById(id), F = FOOD[ANIM[id].eats];
+      const id = back[back.length - 1], el = els[id], it = itemById(id), Fd = FOOD[ANIM[id].eats];
       if(!el) return;
       freeze(id); cls(el, "hl", 2500); resume(id, 2800);
-      later(() => bubble(wordBub(pj(it), iw(it), it.n, `¡Gracias por rescatarme! Tengo hambre: dame ${F.e} ${F.n}`), el, 4500), 300);
+      later(() => bubble(wordBub(pj(it), iw(it), it.n, `¡Gracias por rescatarme! Dame ${Fd.e} ${Fd.n}`), el, 4500), 300);
     });
   }
   /* vuelve del refugio: aparece en la granja */
@@ -1302,24 +1403,24 @@ function mount(host){
     if(!okPos(s.pos[id])) upd(st => st.pos[id] = spot(id, st.pos, GR.y0));
     makeItem(it); cls(els[id], "new", 800);
     wt[id] = later(() => wander(id), 2600);
-    patchShopShelter(s.shelter);
-    tasks(); pantryBar(); shelSign();
+    shopSync();
+    pickLead(); trayPaint(); shelSign();
   }
   /* se va al refugio mientras mira la granja */
   function leave(ids){
-    /* su diálogo de comer ya no sirve: se cierra (el aviso sale a continuación) */
-    root.querySelectorAll("dialog.fm-feed[open]").forEach(d => { if(ids.includes(d.dataset.fid)) d.close(); });
+    /* su globo de comer ya no sirve: se cierra (el aviso sale a continuación) */
+    if(popOpen() && ids.includes(popEl.dataset.fid)) closePop(true);
     for(const id of ids){
       const el = els[id]; if(!el) continue;
       cancel(wt[id]); const t = topOf(el, .5); puffs(t.x, t.y, 3, 140);
       el.classList.add("bye"); later(() => el.remove(), 650);
       delete els[id]; delete live[id];
     }
-    patchShopShelter(s.shelter);
-    tasks(); pantryBar(); shelSign();
+    shopSync();
+    pickLead(); trayPaint(); shelSign();
     /* «¿Dónde está?»: si se fue lo que había que buscar, otra ronda (o se acaba si ya no queda nada) */
     if(finding() && ids.includes(F.target) && !F.lock){ F.lock = true; later(nextRound, 700); }
-    /* con un diálogo abierto o jugando, el aviso espera su turno (sale al cerrar o al terminar el juego) */
+    /* con una hoja abierta o jugando, el aviso espera su turno (sale al cerrar o al terminar el juego) */
     if(!dlgOpen() && !finding()) departed();
     else intro.push(() => departed() ? undefined : 0);
   }
@@ -1328,27 +1429,22 @@ function mount(host){
     const ids = Object.keys(s.shelter).filter(id => !s.shelter[id].seen && itemById(id)); if(!ids.length) return false;
     upd(st => ids.forEach(id => st.shelter[id].seen = true));
     const pl = ids.length > 1, lo = pl ? "los" : ANIM[ids[0]].f ? "la" : "lo";
-    const d = dlg(`<div class="fm-wel">🏚️</div><h2>${pl ? "Se fueron al refugio" : `${cap(elA(ids[0]))} se fue al refugio`}</h2>
+    const d = dlg(`${head(pl ? "Se fueron al refugio" : `${cap(elA(ids[0]))} se fue al refugio`, "Vale")}
       <div class="fm-dep" aria-hidden="true">${ids.map(id => pj(itemById(id))).join(" ")}</div>
-      <p class="fm-sub">${pl ? `${cap(joinY(ids.map(elA)))} tenían` : "Tenía"} mucha hambre 😢. En el refugio ${lo} cuidan muy bien. ¡No te preocupes!</p>
-      <p class="fm-sub">Puedes traer${lo} de vuelta: toca el cartel <b>🏚️ Refugio</b>.</p>
-      <div class="fm-dbtns"><button type="button" class="btn lc fm-go" style="--lc:#008198">🏚️ Ver el refugio</button><button type="button" class="btn fm-x">Vale</button></div>`);
-    d.querySelector(".fm-go").onclick = () => { d.close(); later(openShelter, 200); };
-    d.querySelector(".fm-x").onclick = () => d.close();
+      <p class="fm-sub">${pl ? `${cap(joinY(ids.map(elA)))} tenían` : "Tenía"} mucha hambre. En el refugio ${lo} cuidan muy bien. ¡Puedes traer${lo} de vuelta!</p>
+      <div class="fm-dbtns"><button type="button" class="btn-fill fm-go">${icon("house", "bold", 20)}<span>Ver el refugio</span></button></div>`, "fm-dpd");
+    d.querySelector(".fm-go").onclick = () => { shut(d); later(openShelter, 380); };
     play("whoosh");
     return true;
   }
-  /* vuelve tras 2 días o más sin venir */
+  /* vuelve tras 2 días o más sin venir: el personaje lo cuenta y los animales saltan */
   function missYou(){
     const an = Object.keys(els).filter(id => ANIM[id]); if(!an.length) return 0;
-    const days = Math.max(2, Math.floor(away / HMS(24))), n = an.filter(id => needy(id)).length;
-    const d = dlg(`<div class="fm-wel">🥰</div><h2>¡Te echaban de menos!</h2>
-      <div class="fm-dep" aria-hidden="true">${an.map(id => pj(itemById(id))).join(" ")}</div>
-      <p class="fm-sub">Hace ${days} días que no venías.${n ? "<br>Tienen hambre: ¡dales de comer! 🍽️" : "<br>¡Qué bien que has vuelto!"}</p>
-      <button type="button" class="btn lc fm-ok" style="--lc:#1E6EF4">¡Hola, animales! 👋</button>`);
-    d.querySelector(".fm-ok").onclick = () => d.close();
+    const n = an.filter(id => needy(id)).length;
+    bubble(msg(`🥰 ¡Te echaban de menos!${n ? "<br>¡Tienen hambre!" : ""}`), hero, 4200);
     play("pop");
-    d.addEventListener("close", () => { if(!isOn()) return; an.forEach((id, i) => later(() => { const el = els[id]; if(el && hearts(id) > 0){ hop(el); heart(el); } }, 150 + i * 140)); });
+    an.forEach((id, i) => later(() => { const el = els[id]; if(el && hearts(id) > 0){ hop(el); heart(el); } }, 300 + i * 140));
+    return 4300;
   }
   function shelSign(){
     const n = Object.keys(s.shelter).length;
@@ -1357,20 +1453,79 @@ function mount(host){
     shelB.classList.toggle("has", n > 0);
     shelB.setAttribute("aria-label", n ? `Refugio: ${n === 1 ? "1 animal" : n + " animales"}` : "Refugio");
   }
-  /* despensa en la barra: botón y contadores (tocar = elegir esa comida · arrastrar hasta un animal) */
-  function pantryBar(){
-    if(fdrag){ fdrag.repaint = true; return; }
+
+  /* ---------- la bandeja de comida (Comida): tocar = elegirla y luego un animal · arrastrarla hasta un animal ---------- */
+  function trayPaint(){
+    if(dragging){ tray._repaint = true; return; }
+    if(tray.hidden) return;
     const ks = neededFoods();
-    if(!ks.length){ panEl.hidden = true; panEl._h = ""; return; }
-    panEl.hidden = false;
-    const html = `<button type="button" class="btn lc fm-tb fm-pbtn" data-fm="pan" style="--lc:#008198"><span class="ic">🧺</span><span class="lb">Despensa</span></button>
-      <span class="fm-fcs">${ks.map(k => { const n = s.pan[k] || 0, F = FOOD[k];
-        return `<button type="button" class="fm-fc${n ? "" : " zero"}${foodMode === k ? " on" : ""}" data-pfood="${k}" aria-label="${esc(F.n)}: ${n === 1 ? "1 ración" : n + " raciones"}${n ? "" : ". Toca para comprar"}" title="${esc(F.n)}"><span aria-hidden="true">${F.e}</span><b>${n}</b></button>`; }).join("")}</span>`;
-    if(panEl._h !== html){ panEl._h = html; panEl.innerHTML = html; }
+    const html = `<div class="fm-tr">${ks.map(k => { const n = s.pan[k] || 0, Fd = FOOD[k];
+        return `<button type="button" class="fm-fc${n ? "" : " zero"}${foodMode === k ? " on" : ""}" data-pfood="${k}" aria-pressed="${foodMode === k}" aria-label="${esc(fw(k))}, ${esc(Fd.n)}: ${n === 1 ? "1 ración" : n + " raciones"}${n ? "" : ". Toca para comprar"}"><span class="fe" aria-hidden="true">${Fd.e}</span><span class="fw" lang="${code()}">${esc(fw(k))}</span><b class="fn">${n}</b></button>`; }).join("")}
+        <button type="button" class="fm-fc fm-fbuy" data-tray-shop aria-label="Comprar comida">${icon("plus", "bold", 26)}<span class="fw">Comprar</span></button></div>
+      <p class="fm-tn">${ks.length ? (foodMode ? `Toca un animal para darle ${FOOD[foodMode].e}` : "Arrástrala hasta un animal") : "Aún no tienes animales 🐣"}</p>`;
+    if(tray._h === html) return;
+    tray._h = html; tray.innerHTML = html;
+    tray.querySelectorAll("[data-pfood]").forEach(c => bindFoodDrag(c));
   }
+  function openTray(){
+    if(finding()) exitFind();
+    setWater(false); closePop(true); noHint();
+    tray.hidden = false; tray._h = ""; trayPaint();
+    bFood.setAttribute("aria-expanded", "true");
+    tray.classList.remove("in"); void tray.offsetWidth; tray.classList.add("in");
+  }
+  function closeTray(){
+    if(tray.hidden) return;
+    tray.hidden = true; tray._h = ""; bFood.setAttribute("aria-expanded", "false");
+    if(foodMode) setFood(null);
+  }
+  function bindFoodDrag(c){
+    const g = GS(); if(!g) return;
+    const k = c.dataset.pfood;
+    OFF.push(g.drag(c, {
+      ghost: () => { const n = document.createElement("span"); n.className = "fm-dghost"; n.textContent = FOOD[k].e; return n; },
+      onStart: i => {
+        if(!isOn() || finding() || dlgOpen() || !((s.pan[k] || 0) > 0)) return false;
+        dragging = true; hideBub(); closePop(true); coachDone(); play("tap");
+        if(i.ghost) Object.assign(i.ghost.style, {left: (i.x - i.dx - 32) + "px", top: (i.y - i.dy - 52) + "px", width: "64px", height: "64px"});
+      },
+      onMove: i => { dropMark(animalAt(i.x, i.y)); },
+      onDrop: i => {
+        dragging = false; dropMark(null);
+        const id = animalAt(i.x, i.y);
+        const ok = id ? giveFood(id, k) : (bubble(msg(`${FOOD[k].e} Suéltala encima de un animal.`), hero, 2400), false);
+        if(tray._repaint){ tray._repaint = false; trayPaint(); }
+        return ok;
+      },
+      onCancel: () => { dragging = false; dropMark(null); if(tray._repaint){ tray._repaint = false; trayPaint(); } },
+    }));
+  }
+  tray.addEventListener("click", e => {
+    if(e.target.closest("[data-tray-shop]")) return openShop({from: e.target.closest("button")});
+    const c = e.target.closest("[data-pfood]"); if(!c || finding()) return;
+    const k = c.dataset.pfood;
+    if(!((s.pan[k] || 0) > 0)) return openShop({food: k, from: c});
+    setFood(foodMode === k ? null : k);
+  });
+  const dropMark = id => Object.keys(els).forEach(k => els[k].classList.toggle("drop", k === id));
+  function animalAt(x, y){ return itemAt(x, y, id => !!ANIM[id]); }
+  function plantAt(x, y){ return itemAt(x, y, id => kindOf(id) === "plant"); }
+  function itemAt(x, y, ok){
+    let best = null, bd = Infinity;
+    for(const id of Object.keys(els)){
+      if(!ok(id)) continue;
+      const g = els[id].querySelector(".fm-e"); if(!g) continue;
+      const r = g.getBoundingClientRect(), pad = 16;
+      if(!r.width || x < r.left - pad || x > r.right + pad || y < r.top - pad || y > r.bottom + pad) continue;
+      const dd = Math.hypot(x - r.left - r.width / 2, y - r.top - r.height / 2); if(dd < bd){ bd = dd; best = id; }
+    }
+    return best;
+  }
+
+  /* ---------- modos: regar y dar de comer (tocando) ---------- */
   function paintHint(){
-    if(waterMode) hint.innerHTML = `<span>💧 Toca una planta para regarla</span><button type="button" class="fm-hx">✋ Parar</button>`;
-    else if(foodMode) hint.innerHTML = `<span>${FOOD[foodMode].e} Toca un animal para darle ${esc(FOOD[foodMode].n)}</span><button type="button" class="fm-hx">✋ Parar</button>`;
+    if(waterMode) hint.innerHTML = `<span>💧 Toca una planta para regarla</span><button type="button" class="fm-hx">Parar</button>`;
+    else if(foodMode) hint.innerHTML = `<span>${FOOD[foodMode].e} Toca un animal para darle ${esc(FOOD[foodMode].n)}</span><button type="button" class="fm-hx">Parar</button>`;
     hint.hidden = !waterMode && !foodMode;
   }
   function setFood(fid){
@@ -1379,71 +1534,227 @@ function mount(host){
     foodMode = fid || null;
     stage.classList.toggle("feeding", !!foodMode);
     paintHint();
-    if(foodMode){ play("pop"); hideBub(); showStage(); }
-    bar(); pantryBar();
+    if(foodMode){ play("pop"); hideBub(); closePop(true); }
+    bar(); trayPaint();
   }
-
-  /* ---------- barra y tareas ---------- */
   function setWater(on){
     if(on && finding()) return;
-    if(on && !owned().some(x => kindOf(x.id) === "plant")){ play("tap"); bubble(msg("🌱 Aún no tienes plantas.<br>¡Compra una en la tienda! 🛒"), hero, 4000); return; }
-    if(on && foodMode){ foodMode = null; stage.classList.remove("feeding"); pantryBar(); }
+    if(on && !owned().some(x => kindOf(x.id) === "plant")){ play("tap"); bubble(msg("🌱 Aún no tienes plantas.<br>¡Mira la tienda! 🛒"), hero, 4000); return; }
+    if(on){ if(foodMode){ foodMode = null; stage.classList.remove("feeding"); } closeTray(); closePop(true); }
     waterMode = !!on; stage.classList.toggle("watering", waterMode);
     paintHint();
-    if(waterMode){ play("pop"); hideBub(); showStage(); }
+    if(waterMode){ play("pop"); hideBub(); }
     bar();
   }
   function bar(){
-    bWater.classList.toggle("on", waterMode);
-    bWater.querySelector(".ic").textContent = waterMode ? "✋" : "💧";
-    bWater.querySelector(".lb").textContent = waterMode ? "Parar" : "Regar";
+    bWater.setAttribute("aria-pressed", String(waterMode));
     const b = bWater.querySelector(".fm-badge"); b.hidden = !(s.drops > 0); b.textContent = "+" + s.drops;
-    bWater.title = s.drops > 0 ? `Regar · tienes ${s.drops} de agua extra` : "Regar las plantas";
-    bFind.classList.toggle("on", finding());
-    bFind.querySelector(".lb").textContent = finding() ? "Salir" : "¿Dónde está?";
-    bFind.querySelector(".ic").textContent = finding() ? "✕" : "🔍";
+    bWater.setAttribute("aria-label", s.drops > 0 ? `Regar. Tienes ${s.drops} de agua extra` : "Regar");
+    bWater.title = "Regar · o arrastra la regadera hasta una planta";
   }
-  function tasks(){
-    const its = owned(); let h = 0, w = 0, r = 0, nx = Infinity, miss = null;
-    for(const it of its){
-      const id = it.id, k = kindOf(id);
-      if(k === "animal"){
-        if(inShelterS(s, id)) continue;
-        if(needy(id)){ h++; if(!miss && !((s.pan[ANIM[id].eats] || 0) > 0)) miss = ANIM[id].eats; }
-        else nx = Math.min(nx, HMS(HEART_H[0]) - sinceFed(s, id));   /* cuándo volverá a tener hambre */
-      }
-      else if(k === "plant"){
-        const p = plant(id);
-        if(p.s >= 2){ if(!TREE[id]) r++; else if(!hasProd(id)) nx = Math.min(nx, (s.tree[id] || 0) + TREE_T - now()); }
-        else if(canWater(id)) w++; else nx = Math.min(nx, (p.w || 0) + WATER - now());
-      }
+  /* arrastrar la regadera hasta una planta = regarla (lo mismo que «Regar» y tocar la planta) */
+  {
+    const g = GS();
+    if(g) OFF.push(g.drag(bWater, {
+      ghost: () => { const n = document.createElement("span"); n.className = "fm-dghost"; n.textContent = "💧"; return n; },
+      onStart: i => {
+        if(!isOn() || finding() || dlgOpen() || !owned().some(x => kindOf(x.id) === "plant")) return false;
+        dragging = true; hideBub(); closePop(true); closeTray(); play("tap");
+        if(i.ghost) Object.assign(i.ghost.style, {left: (i.x - i.dx - 32) + "px", top: (i.y - i.dy - 52) + "px", width: "64px", height: "64px"});
+      },
+      onMove: i => { const id = plantAt(i.x, i.y); Object.keys(els).forEach(k => els[k].classList.toggle("drop", k === id)); },
+      onDrop: i => {
+        dragging = false; dropMark(null);
+        const id = plantAt(i.x, i.y);
+        if(!id){ bubble(msg("💧 Suéltala encima de una planta."), hero, 2400); return false; }
+        return waterTap(id);
+      },
+      onCancel: () => { dragging = false; dropMark(null); },
+    }));
+  }
+
+  /* ---------- la tienda de la granja: hoja de M con la comida y las piezas de js/shop.js ---------- */
+  const shopFarm = () => (window.vocabShop ? vocabShop.items("farm") : SHOP.filter(x => x.t === "farm"));
+  const card = x => window.vocabShop ? vocabShop.card(x, {mode: "farm"}) : "";
+  function foodBtn(k, n){
+    const Fd = FOOD[k], c = Fd.c * n, miss = c - coinsNow(), room = PAN_MAX - (s.pan[k] || 0);
+    if(room <= 0) return `<button type="button" class="btn-fill fm-pb" data-fbuy="${k}" data-n="${n}" disabled>¡Ya tienes mucha!</button>`;
+    if(miss > 0) return `<button type="button" class="btn-fill fm-pb no" data-fbuy="${k}" data-n="${n}" aria-disabled="true" aria-label="${n} de ${esc(Fd.n)}: cuesta ${c}, te ${miss === 1 ? "falta 1 moneda" : `faltan ${miss} monedas`}">Te faltan <span class="t-num">${miss}</span>${COIN}</button>`;
+    return `<button type="button" class="btn-fill fm-pb" data-fbuy="${k}" data-n="${n}" aria-label="Comprar ${n} de ${esc(Fd.n)}: ${c} monedas">+${n}<span class="shp-dot" aria-hidden="true">·</span>${COIN}<span class="t-num">${c}</span></button>`;
+  }
+  function foodRow(k){
+    const Fd = FOOD[k], w = fw(k), who = eatersOf(k);
+    return `<div class="fm-prow" data-pf="${k}">
+      <span class="fm-pe2" aria-hidden="true">${Fd.e}</span>
+      <span class="fm-pt"><span class="fm-pw"><b lang="${code()}">${esc(w)}</b><button type="button" class="say shp-spk" data-say="${esc(w)}" aria-label="Escuchar «${esc(w)}»">${icon("speaker-high", "fill", 22)}</button></span>
+        <small>${esc(Fd.n)}${who ? ` · para ${who}` : ""}</small><small class="fm-have">Tienes <b class="t-num">${s.pan[k] || 0}</b></small></span>
+      <span class="fm-pbs">${foodBtn(k, 1)}${foodBtn(k, 3)}</span><p class="fm-qm fm-rm" aria-live="polite"></p></div>`;
+  }
+  function shopHtml(){
+    const farm = shopFarm(), an = farm.filter(x => ANIM[x.id]), pl = farm.filter(x => PLANT[x.id] !== undefined), th = farm.filter(x => !ANIM[x.id] && PLANT[x.id] === undefined);
+    const ks = neededFoods();
+    const sec = (t, k, list) => list.length ? `<section class="fm-ss" aria-labelledby="fm-sh-${k}"><h3 class="fm-sh3" id="fm-sh-${k}">${t}</h3><div class="shop">${list.map(card).join("")}</div></section>` : "";
+    return `${head("Tienda", "Listo", "fm-shop-t")}
+      <p class="fm-scoin">Tienes ${COIN}<b class="t-num" data-fm-coins data-coins-n>${coinsNow()}</b></p>
+      <section class="fm-ss" aria-labelledby="fm-sh-c"><h3 class="fm-sh3" id="fm-sh-c">Comida</h3>
+        <div class="fm-pl" data-fm-foods>${ks.length ? ks.map(foodRow).join("") : `<p class="fm-note">Primero, un animal 🐣<br>¡Mira aquí abajo!</p>`}</div></section>
+      ${sec("Animales", "a", an)}${sec("Plantas", "p", pl)}${sec("Cosas", "t", th)}`;
+  }
+  const PHONE = () => matchMedia("(max-width:819px)").matches;
+  function openShop(o){
+    o = o || {};
+    if(finding()) exitFind();
+    closePop(true); setWater(false); setFood(null); closeTray(); hideBub(); noHint();
+    if(!shopDlg){
+      const d = shopDlg = document.createElement("dialog");
+      d.id = "fm-shop"; d.className = "m-sheet glass fm-sheet"; d.setAttribute("aria-labelledby", "fm-shop-t");
+      root.appendChild(d);
+      d.addEventListener("click", e => {
+        if(e.target.closest("[data-x]")) return shut(d);
+        const b = e.target.closest("[data-fbuy]"); if(!b) return;
+        const k = b.dataset.fbuy, r = buyFood(k, +b.dataset.n || 1);
+        const row = d.querySelector(`.fm-prow[data-pf="${k}"]`), m = row && row.querySelector(".fm-rm");
+        d.querySelectorAll(".fm-rm").forEach(x => { if(x !== m){ x.className = "fm-qm fm-rm"; x.innerHTML = ""; } });
+        if(r.ok){ speak(fw(k)); if(row){ const e2 = row.querySelector(".fm-pe2"); if(e2) cls(e2, "pop", 520); } try{ if(window.G && G.haptic) G.haptic("success"); }catch(err){} }
+        else play("tap");   /* le falta: aviso amable, sin sonido triste */
+        if(!m) return;
+        m.className = "fm-qm fm-rm " + (r.ok ? "ok" : "info");
+        m.innerHTML = r.ok ? `¡Comprado! ${FOOD[k].e} <b lang="${code()}">${esc(fw(k))}</b> ×${r.n}` : r.full ? `¡Ya tienes mucha comida ${FOOD[k].e}!` : poorTxt(r.need);
+        if(m.scrollIntoView) m.scrollIntoView({block: "nearest"});
+      });
+      /* dos alturas en el móvil: a media pantalla y, al bajar el contenido o subir el agarre, entera */
+      d.addEventListener("scroll", () => { if(d.dataset.detent === "medium" && d.scrollTop > 2) detent("large"); });
+      let gy = null;
+      d.addEventListener("pointerdown", e => { gy = e.isPrimary && e.target.closest && e.target.closest(".m-grab, .m-head") ? {id: e.pointerId, y: e.clientY} : null; });
+      d.addEventListener("pointermove", e => { if(gy && e.pointerId === gy.id && e.clientY - gy.y < -24 && d.dataset.detent === "medium") detent("large"); });
+      d.addEventListener("pointerup", () => { gy = null; });
+      d.addEventListener("close", () => {
+        if(!isOn()) return;
+        /* lo que se compró aparece con su «¡Nuevo!» al cerrar la hoja */
+        const id = newPend.pop(); newPend.length = 0;
+        if(id && els[id]){ const it = itemById(id), k = kindOf(id); later(() => { if(els[id]) bubble(wordBub(pj(it), iw(it), it.n, k === "animal" ? "¡Nuevo! Tiene hambre 🍽️" : k === "plant" ? "¡Nuevo! Riégalo 💧" : "¡Nuevo! Tócalo ✨"), els[id], 4500); }, 380); }
+        later(nextIntro, 400);
+      });
+      if(window.vocabShop) OFF.push(vocabShop.bind(d, {onChange: e => { if(e && e.type === "buy") addLive(e.id); }}));
     }
-    const pr = Object.keys(s.prod).length, sh = Object.keys(s.shelter).length, chips = [];
-    if(h) chips.push(`<button type="button" class="fm-chip c-h" data-fk="h">🍽️ <b>${h}</b> ${h === 1 ? "tiene" : "tienen"} hambre</button>`);
-    if(miss) chips.push(`<button type="button" class="fm-chip c-f" data-fk="f" data-ff="${miss}">🧺 Compra ${FOOD[miss].e} ${esc(FOOD[miss].n)}</button>`);
-    if(pr) chips.push(`<button type="button" class="fm-chip c-p" data-fk="p">🎁 <b>${pr}</b> para recoger</button>`);
-    if(w) chips.push(`<button type="button" class="fm-chip c-w" data-fk="w">💧 <b>${w}</b> ${w === 1 ? "quiere" : "quieren"} agua</button>`);
-    if(r) chips.push(`<button type="button" class="fm-chip c-r" data-fk="r">✨ <b>${r}</b> para cosechar</button>`);
-    if(sh) chips.push(`<button type="button" class="fm-chip c-s" data-fk="s">🏚️ <b>${sh}</b> en el refugio</button>`);
-    let html = chips.join("");
-    if(!its.length) html = `<span class="fm-note">🛒 ¡Compra animales y plantas en la tienda!</span>`;
-    else if(!chips.length) html = `<span class="fm-note">😊 ¡Todo hecho!${isFinite(nx) && nx > 0 ? ` Vuelve en ${fmtLeft(nx)}.` : ""}</span>`;
-    if(tasksEl._h !== html){ tasksEl._h = html; tasksEl.innerHTML = html; }
+    const d = shopDlg;
+    d.innerHTML = shopHtml();
+    d.dataset.detent = PHONE() && !o.food ? "medium" : "large";
+    const from = o.from && o.from.nodeType === 1 ? o.from : document.querySelector("[data-coins-pill]");
+    if(!d.open){ if(window.M && typeof M.openSheet === "function") M.openSheet(d, {from}); else { try{ d.showModal(); }catch(e){ d.setAttribute("open", ""); } } }
+    d.scrollTop = 0;
+    if(o.food && FOOD[o.food]) later(() => {
+      const row = d.querySelector(`.fm-prow[data-pf="${o.food}"]`); if(!row) return;
+      row.classList.add("focus"); later(() => row.classList.remove("focus"), 2600);
+      if(row.scrollIntoView) row.scrollIntoView({block: "center", behavior: RM() ? "auto" : "smooth"});
+    }, 120);
   }
+  function detent(name){
+    const d = shopDlg; if(!d || d.dataset.detent === name) return;
+    const h0 = d.getBoundingClientRect().height; d.dataset.detent = name;
+    const h1 = d.getBoundingClientRect().height;
+    if(!RM() && d.animate && Math.abs(h1 - h0) > 2 && window.M && M.snappy) try{ d.animate([{height: h0 + "px"}, {height: h1 + "px"}], {duration: M.snappy.ms, easing: M.snappy.easing}); }catch(e){}
+  }
+  function closeShop(){ if(shopDlg && shopDlg.open) shut(shopDlg); }
+  /* la comida de la hoja: «Tienes N» y los botones (precio que llega o «Te faltan»), sin repintar la hoja */
+  function shopFoods(){
+    const d = shopDlg; if(!d || !d.open) return;
+    const box = d.querySelector("[data-fm-foods]"); if(!box) return;
+    for(const row of box.querySelectorAll(".fm-prow[data-pf]")){
+      const k = row.dataset.pf, h = row.querySelector(".fm-have b"); if(h) h.textContent = s.pan[k] || 0;
+      const bs = row.querySelector(".fm-pbs"), fo = bs && bs.contains(document.activeElement) ? document.activeElement.dataset.n : null;
+      const html = foodBtn(k, 1) + foodBtn(k, 3);
+      if(bs && bs._h !== html){ bs._h = html; bs.innerHTML = html; if(fo){ const f = bs.querySelector(`[data-n="${fo}"]`); if(f) f.focus({preventScroll: true}); } }
+    }
+  }
+  function shopCoins(){
+    const d = shopDlg; if(!d || !d.open) return;
+    const c = d.querySelector("[data-fm-coins]"); if(c) c.textContent = coinsNow();
+    shopFoods();
+  }
+  /* comprado (en la hoja o fuera): aparece en la escena sin volver a montar la granja */
+  function addLive(id){
+    const it = itemById(id); if(!it || it.t !== "farm" || els[id] || !game().owned[id] || inShelterS(s, id)) return;
+    careSync(s);   /* un animal nuevo llega con 2 corazones (y con hambre) */
+    if(!s.seen[id]) s.seen[id] = now();
+    if(kindOf(id) === "plant" && (!s.pl[id] || typeof s.pl[id] !== "object")) s.pl[id] = {s: 1, w: 0};
+    if(!okPos(s.pos[id])) s.pos[id] = spot(id, s.pos, GR.y0);
+    s.pos[id] = {x: clamp(s.pos[id].x, GR.x0, GR.x1), y: clamp(s.pos[id].y, GR.y0, GR.y1)};
+    save(s);
+    makeItem(it); cls(els[id], "new", 800);
+    if(ANIM[id]) wt[id] = later(() => wander(id), 2600);
+    pickLead(); trayPaint(); shelSign(); shopFoods();
+    if(shopDlg && shopDlg.open){
+      newPend.push(id);
+      /* la comida del animal nuevo: su fila sale ya en la hoja */
+      const box = shopDlg.querySelector("[data-fm-foods]");
+      if(box && ANIM[id] && !box.querySelector(`[data-pf="${ANIM[id].eats}"]`)) box.innerHTML = neededFoods().map(foodRow).join("");
+    } else later(() => { if(els[id]) bubble(wordBub(pj(it), iw(it), it.n, "¡Nuevo! ✨"), els[id], 4000); }, 300);
+  }
+
+  /* ---------- la primera vez: una mano enseña a arrastrar la comida hasta el animal ---------- */
+  function coach(){
+    const gift = s.wpend === "gift", wp = !!s.wpend, extra = s.cnew;
+    upd(st => { delete st.wpend; delete st.cnew; });
+    const ft = Object.keys(extra || {}).filter(k => FOOD[k]).map(k => `${FOOD[k].e}×${extra[k]}`).join(" ");
+    if(gift) note("¡Un regalo! Una gallina, una flor y grano", "🎁");
+    else if(ft) note(`¡Comida de regalo! ${ft}`, "🎁");
+    else if(wp) note("¡Tu granja está viva!", "✨");
+    if(gift) play("gift");
+    /* a quién: uno con hambre cuya comida ya tiene (el más urgente si puede) */
+    const cand = Object.keys(els).filter(id => ANIM[id] && needy(id) && hungry(id) && (s.pan[ANIM[id].eats] || 0) > 0);
+    const id = cand.includes(leadId) ? leadId : cand[0];
+    if(!id) return 1200;
+    openTray();
+    later(() => showCoach(id), 500);
+    return 6500;
+  }
+  function showCoach(id){
+    coachDone();
+    const el = els[id], fid = ANIM[id] && ANIM[id].eats, chip = fid && tray.querySelector(`[data-pfood="${fid}"]`);
+    if(!el || !chip || tray.hidden || dlgOpen() || popOpen()) return;
+    freeze(id); busy[id] = true;
+    const a = chip.getBoundingClientRect(), t = (el.querySelector(".fm-e") || el).getBoundingClientRect();
+    const x0 = a.left + a.width / 2, y0 = a.top + a.height / 2, x1 = t.left + t.width / 2, y1 = t.top + t.height / 2;
+    const c = coachEl = document.createElement("div");
+    c.className = "fm-coach"; c.setAttribute("role", "status");
+    c.innerHTML = `<span class="fm-cht">${FOOD[fid].a === "la" ? "Arrástrala" : "Arrástralo"} hasta ${esc(elA(id))}</span><span class="fm-chh" aria-hidden="true">${HAND}</span>`;
+    c.style.left = x0 + "px"; c.style.top = y0 + "px";
+    stage.appendChild(c);
+    cls(chip, "coached", 4800);
+    if(!RM() && c.animate){
+      coachAnim = c.animate([
+        {translate: "0 0", opacity: 0, offset: 0}, {translate: "0 0", opacity: 1, offset: .12},
+        {translate: `${x1 - x0}px ${y1 - y0}px`, opacity: 1, offset: .7}, {translate: `${x1 - x0}px ${y1 - y0}px`, opacity: 0, offset: 1}],
+        {duration: 1800, iterations: 3, easing: "ease-in-out"});
+      coachAnim.onfinish = () => { if(coachEl === c){ c.style.translate = "0 0"; c.classList.add("still"); } };
+    } else c.classList.add("still");
+    later(() => { if(coachEl === c) coachDone(); }, 9000);
+  }
+  function coachDone(){
+    if(!coachEl) return;
+    const c = coachEl; coachEl = null;
+    try{ if(coachAnim) coachAnim.cancel(); }catch(e){} coachAnim = null;
+    c.remove();
+    for(const id of Object.keys(busy)) if(busy[id] && ANIM[id] && !lift){ busy[id] = false; resume(id, 1500); }
+  }
+
+  /* ---------- un repaso cada 15 s ---------- */
   function tick(){
     if(!isOn()) return;
     const p = phase();
     if(p !== ph){ ph = p; stage.dataset.ph = p; }
     const cr = careSync(s); if(cr.ch) save(s); if(cr.gone.length) leave(cr.gone);
     skyPos(); checkTrees();
+    pickLead();
     for(const id of Object.keys(els)) render(id);
-    tasks(); bar(); pantryBar(); shelSign();
-    if(ph === "night" && Math.random() < .25) shootingStar(rnd(30, 90), rnd(6, 28), false);
+    bar(); trayPaint(); shelSign(); shopFoods();
+    if(ph === "night" && Math.random() < .25) shootingStar(rnd(30, 90), rnd(Math.max(6, TB + 4), 28), false);
   }
   function skyPos(){
-    const h = hourNow();
-    if(ph === "night"){ const p = clamp(((h - 21 + 24) % 24) / 9, 0, 1); moon.style.left = (10 + 80 * p) + "%"; moon.style.top = (HZ * .68 - Math.sin(Math.PI * p) * (HZ * .68 - 12)) + "%"; }
-    else { const p = clamp((h - 6) / 15, 0, 1); sun.style.left = (8 + 84 * p) + "%"; sun.style.top = (HZ * .8 - Math.sin(Math.PI * p) * (HZ * .8 - 11)) + "%"; }
+    const h = hourNow(), top0 = Math.max(11, TB + 7);
+    if(ph === "night"){ const p = clamp(((h - 21 + 24) % 24) / 9, 0, 1); moon.style.left = (10 + 80 * p) + "%"; moon.style.top = Math.max(top0, HZ * .68 - Math.sin(Math.PI * p) * (HZ * .68 - 12)) + "%"; }
+    else { const p = clamp((h - 6) / 15, 0, 1); sun.style.left = (8 + 84 * p) + "%"; sun.style.top = Math.max(top0, HZ * .8 - Math.sin(Math.PI * p) * (HZ * .8 - 11)) + "%"; }
   }
 
   /* ---------- eventos ---------- */
@@ -1460,46 +1771,10 @@ function mount(host){
     }
     return best;
   }
-  stage.addEventListener("pointerdown", e => {
-    if(e.pointerType === "mouse" && e.button !== 0) return;
-    const el = pickIt(e, e.target.closest(".fm-it")); if(!el || finding() || el._busy) return;
-    const L = layer.getBoundingClientRect(), cs = getComputedStyle(el);
-    drag = {id: el.dataset.fid, el, pid: e.pointerId, sx: e.clientX, sy: e.clientY, L,
-            ox: e.clientX - L.left - parseFloat(cs.left), oy: e.clientY - L.top - parseFloat(cs.top), on: false};
-  });
-  stage.addEventListener("pointermove", e => {
-    if(!drag || e.pointerId !== drag.pid) return;
-    if(!drag.on){
-      if(Math.hypot(e.clientX - drag.sx, e.clientY - drag.sy) < 8) return;
-      drag.on = true; try{ drag.el.setPointerCapture(e.pointerId); }catch(err){}
-      if(ANIM[drag.id]){ freeze(drag.id); busy[drag.id] = true; }
-      drag.el.classList.add("drag"); hideBub(); play("tap");
-    }
-    e.preventDefault();
-    const L = drag.L;
-    const hw = drag.el._hw || 0;
-    drag.x = clamp((e.clientX - L.left - drag.ox) / L.width * 100, Math.max(GR.x0, hw), Math.min(GR.x1, 100 - hw));
-    drag.y = clamp((e.clientY - L.top - drag.oy) / L.height * 100, GR.y0, GR.y1);
-    put(drag.el, drag.x, drag.y, 0);
-  });
-  const endDrag = e => {
-    if(!drag || e.pointerId !== drag.pid) return;
-    const d = drag; drag = null; if(!d.on) return;
-    d.el.classList.remove("drag"); justDragged = now();
-    if(isFinite(d.x)){
-      upd(st => st.pos[d.id] = {x: r1(d.x), y: r1(d.y)});
-      if(ANIM[d.id]) live[d.id] = {x: d.x, y: d.y};
-      const t = topOf(d.el, 1); puffs(t.x - 2, t.y, 1); puffs(t.x + 2, t.y, 1);
-    }
-    cls(d.el, "land", 400); play("pop");
-    if(ANIM[d.id]){ busy[d.id] = false; resume(d.id, 3000); }
-  };
-  stage.addEventListener("pointerup", endDrag);
-  stage.addEventListener("pointercancel", endDrag);
   stage.addEventListener("click", e => {
-    if(now() - justDragged < 350) return;
     const t = e.target;
-    if(t.closest(".fm-bub, .fm-find, .fm-hint")) return;
+    /* (un botón del globo que ya se quitó al tocarlo, p. ej. la comida elegida, no es un toque en la escena) */
+    if(!t.isConnected || t.closest(".fm-bub, .fm-find, .fm-hint, .fm-pop, .fm-tray, .fm-dock, .fm-coach")) return;
     if(t.closest(".fm-shel")){ if(!finding()) openShelter(); return; }
     const it = pickIt(e, t.closest(".fm-it")); if(it) return tap(it.dataset.fid, e);
     const pr = t.closest(".fm-prod"); if(pr){ if(!finding()) collect(pr.dataset.pk, pr); return; }
@@ -1513,101 +1788,34 @@ function mount(host){
     const L = layer.getBoundingClientRect(), x = (e.clientX - L.left) / L.width * 100, y = (e.clientY - L.top) / L.height * 100;
     if(!isFinite(x) || !isFinite(y)) return;
     hideBub();
+    if(y > 100) return;
     if(y >= HZ + 2){ fx("", x, y, "fm-ring", 650); play("tap"); walkTo(x, y); }
     else if(ph === "night") shootingStar(x, y, true);
     else butterfly(x, y);
   });
   hero.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); tapHero(); } });
+  bub.addEventListener("click", e => { if(e.target.closest("[data-play-find]")){ e.stopPropagation(); hideBub(); startFind(); } });
   fb.addEventListener("click", e => {
     if(e.target.closest(".fm-fq")) return exitFind();
     if(e.target.closest(".fm-fa")){ if(finding()) return; F = null; startFind(); }
   });
-  /* «✋ Parar»: el aviso se repinta al salir de un modo, así que el toque no debe llegar al escenario (mariposa, paseo…) */
+  /* «Parar»: el aviso se repinta al salir de un modo, así que el toque no debe llegar al escenario (mariposa, paseo…) */
   hint.addEventListener("click", e => { if(e.target.closest(".fm-hx")){ e.stopPropagation(); setWater(false); setFood(null); } });
   let wT = 0;
-  bWater.onclick = () => { if(now() - wT < 500) return; wT = now(); setWater(!waterMode); };   /* doble toque = un toque */
-  bFind.onclick = startFind;
-  bHelp.onclick = openHelp;
-  tasksEl.addEventListener("click", e => {
-    const c = e.target.closest("[data-fk]"); if(!c) return;
-    const k = c.dataset.fk;
-    if(k === "f") return openPantry(c.dataset.ff);
-    if(k === "s") return openShelter();
-    play("tap");
-    if(k === "p") stage.querySelectorAll(".fm-prod").forEach(b => cls(b, "hl", 2500));
-    for(const it of owned()){
-      const id = it.id, kk = kindOf(id), el = els[id]; if(!el) continue;
-      const hit = (k === "h" && kk === "animal" && needy(id)) || (k === "w" && kk === "plant" && plant(id).s < 2 && canWater(id)) || (k === "r" && kk === "plant" && plant(id).s >= 2 && !TREE[id]);
-      if(!hit) continue;
-      if(ANIM[id]){ freeze(id); resume(id, 2700); }
-      cls(el, "hl", 2500);
-    }
-    if(k === "w" && !waterMode) setWater(true);
-    showStage();
-  });
-
-  /* despensa de la barra: tocar una comida = elegirla (luego se toca un animal) · arrastrarla hasta un animal · 0 = comprar */
-  let fdEnd = 0;
-  function animalAt(x, y){
-    let best = null, bd = Infinity;
-    for(const id of Object.keys(els)){
-      if(!ANIM[id]) continue;
-      const g = els[id].querySelector(".fm-e"); if(!g) continue;
-      const r = g.getBoundingClientRect(), pad = 16;
-      if(!r.width || x < r.left - pad || x > r.right + pad || y < r.top - pad || y > r.bottom + pad) continue;
-      const dd = Math.hypot(x - r.left - r.width / 2, y - r.top - r.height / 2); if(dd < bd){ bd = dd; best = id; }
-    }
-    return best;
-  }
-  const dropMark = id => Object.keys(els).forEach(k => els[k].classList.toggle("drop", k === id));
-  panEl.addEventListener("pointerdown", e => {
-    if(e.pointerType === "mouse" && e.button !== 0) return;
-    const c = e.target.closest("[data-pfood]"); if(!c || finding() || dlgOpen()) return;
-    const k = c.dataset.pfood; if(!((s.pan[k] || 0) > 0)) return;
-    fdrag = {k, el: c, pid: e.pointerId, sx: e.clientX, sy: e.clientY, on: false, g: null, over: null};
-  });
-  panEl.addEventListener("pointermove", e => {
-    const d = fdrag; if(!d || e.pointerId !== d.pid) return;
-    if(!d.on){
-      if(Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 8) return;
-      d.on = true; try{ d.el.setPointerCapture(e.pointerId); }catch(err){}
-      d.g = document.createElement("span"); d.g.className = "fm-ghost"; d.g.textContent = FOOD[d.k].e; document.body.appendChild(d.g);
-      d.el.classList.add("lift"); hideBub(); play("tap");
-    }
-    e.preventDefault();
-    d.g.style.left = e.clientX + "px"; d.g.style.top = e.clientY + "px";
-    const id = animalAt(e.clientX, e.clientY); if(id !== d.over){ d.over = id; dropMark(id); }
-  });
-  const endFood = e => {
-    const d = fdrag; if(!d || e.pointerId !== d.pid) return;
-    fdrag = null;
-    if(d.on){
-      fdEnd = now(); if(d.g) d.g.remove(); d.el.classList.remove("lift"); dropMark(null);
-      const id = e.type === "pointerup" ? animalAt(e.clientX, e.clientY) : null;
-      if(id) giveFood(id, d.k);
-      else if(e.type === "pointerup"){ play("tap"); bubble(msg(`${FOOD[d.k].e} Suéltalo encima de un animal.`), hero, 2400); }
-    }
-    if(d.repaint) pantryBar();
-  };
-  panEl.addEventListener("pointerup", endFood);
-  panEl.addEventListener("pointercancel", endFood);
-  panEl.addEventListener("click", e => {
-    if(now() - fdEnd < 350) return;
-    if(e.target.closest('[data-fm="pan"]')) return openPantry();
-    const c = e.target.closest("[data-pfood]"); if(!c || finding()) return;
-    const k = c.dataset.pfood;
-    if(!((s.pan[k] || 0) > 0)) return openPantry(k);
-    setFood(foodMode === k ? null : k);
-  });
+  bWater.onclick = () => { if(now() - wT < 500) return; wT = now(); if(finding()) exitFind(); setWater(!waterMode); };   /* doble toque = un toque */
+  bFood.onclick = () => { if(finding()) exitFind(); if(trayOpen()) closeTray(); else openTray(); };
+  bShop.onclick = () => openShop({from: bShop});
 
   /* girar el móvil o cambiar el tamaño de la ventana: se recoloca (o se vuelve a montar si cambia de móvil a escritorio) */
   function onResize(){
     if(!isOn()) return stop();
     cancel(rzT);
     rzT = later(() => {
-      if(matchMedia("(max-width:560px)").matches !== narrow && !finding() && !dlgOpen() && !drag) return mount(host);
-      for(const id of Object.keys(els)){ els[id]._hw = hwOf(id); const p = posOf(id); if(p && !els[id].classList.contains("walk")) put(els[id], p.x, p.y, 0); }
-    }, 350);
+      if(matchMedia("(max-width:560px)").matches !== narrow && !finding() && !dlgOpen() && !lift && !popOpen()) return mount(host);
+      layout();
+      for(const id of Object.keys(els)){ els[id]._hw = halfW(id); const p = posOf(id); if(p && !els[id].classList.contains("walk")) put(els[id], p.x, p.y, 0); }
+      skyPos(); placePop();
+    }, 250);
   }
 
   /* otra pestaña cambió la granja (compró comida, dio de comer…): se recarga el estado sin guardarlo
@@ -1620,31 +1828,42 @@ function mount(host){
     for(const it of owned()) if(!els[it.id] && !inShelterS(s, it.id)) comeBack(it.id);
     layer.querySelectorAll(".fm-prod").forEach(b => { if(!s.prod[b.dataset.pk] && !b._got) b.remove(); });
     for(const k of Object.keys(s.prod)) if(!layer.querySelector(`[data-pk="${k}"]`)) makeProd(k, false);
+    pickLead();
     for(const id of Object.keys(els)) render(id);
     if(gone.length) leave(gone);
-    tasks(); bar(); pantryBar(); shelSign();
+    bar(); trayPaint(); shelSign(); shopFoods();
   }
 
   /* ---------- arranque ---------- */
   for(const it of items) makeItem(it);
   for(const k of Object.keys(s.prod)) makeProd(k, false);
   layer.appendChild(hero);
-  skyPos(); checkTrees(); tasks(); bar(); pantryBar(); shelSign(); paintHint();
+  pickLead();
+  skyPos(); checkTrees(); bar(); shelSign(); paintHint();
   for(const id of Object.keys(els)) if(ANIM[id]) wt[id] = later(() => wander(id), rnd(400, 2600));
   every(tick, 15000);
   window.addEventListener("resize", onResize); window.addEventListener("storage", onStorage);
-  /* bienvenida · novedad de la comida · alguien se fue al refugio · «¡Te echaban de menos!» · lo nuevo */
-  if(s.wpend) intro.push(() => { const g = s.wpend === "gift"; upd(st => delete st.wpend); welcome(g); });
-  else {
-    intro.push(() => s.cnew ? novelty() : 0);
-    intro.push(() => departed() ? undefined : 0);
-    if(!first && away >= HMS(MISS_H)) intro.push(() => missYou());
-    if(fresh.length){
-      const id = fresh[fresh.length - 1], it = itemById(id), k = kindOf(id);
-      intro.push(() => { if(!els[id]) return 0; bubble(wordBub(pj(it), iw(it), it.n, k === "animal" ? "¡Nuevo! Tiene hambre 🍽️" : k === "plant" ? "¡Nuevo! Riégalo 💧" : "¡Nuevo! Tócalo ✨"), els[id], 4500); return 4600; });
-    } else if(news > 0) intro.push(() => { bubble(msg(`📚 ¡Ganaste ${news} 💧 de agua extra por aprender!<br>Pulsa «Regar» para usarla.`), hero, 5000); return 5100; });
-  }
+  document.addEventListener("keydown", onKey); document.addEventListener("pointerdown", onDocDown, true);
+  /* la primera vez (o comida de regalo): la mano · alguien se fue al refugio · «¡Te echaban de menos!» · lo nuevo ·
+     agua extra · el más urgente dice que tiene hambre (si no suena nada) · nada que hacer: el zorro propone jugar */
+  if(s.wpend || s.cnew) intro.push(() => coach());
+  intro.push(() => departed() ? undefined : 0);
+  if(!first && away >= HMS(MISS_H)) intro.push(() => missYou());
+  if(fresh.length && !s.wpend){
+    const id = fresh[fresh.length - 1], it = itemById(id), k = kindOf(id);
+    intro.push(() => { if(!els[id]) return 0; bubble(wordBub(pj(it), iw(it), it.n, k === "animal" ? "¡Nuevo! Tiene hambre 🍽️" : k === "plant" ? "¡Nuevo! Riégalo 💧" : "¡Nuevo! Tócalo ✨"), els[id], 4500); return 4600; });
+  } else if(news > 0) intro.push(() => { bubble(msg(`📚 ¡Ganaste ${news} 💧 de agua extra!<br>Pulsa «Regar» o arrastra la regadera.`), hero, 5000); return 5100; });
+  later(() => { if(leadId) talk(leadId, true); }, 900);
+  intro.push(() => {
+    const care = Object.keys(els).some(id => (ANIM[id] && needy(id)) || (kindOf(id) === "plant" && ((plant(id).s < 2 && canWater(id)) || (plant(id).s >= 2 && !TREE[id]))));
+    if(!care && !coachEl && findable().length >= 3){ bubble(msg("¿Jugamos?") + playBtn, hero, 6000); return 6100; }
+    /* una planta con sed: la pista de arrastrar la regadera (G.hint: 3 veces como mucho) */
+    const thirsty = Object.keys(els).some(id => kindOf(id) === "plant" && plant(id).s < 2 && canWater(id));
+    const g = GS(); if(thirsty && !coachEl && !trayOpen() && !popOpen() && !dlgOpen() && g && typeof g.hint === "function") regHint = g.hint(bWater, {id: "fm-regadera", text: "Arrástrala hasta una planta", gesture: "drag", delay: 600});
+    return 0;
+  });
   later(nextIntro, 450);
+  emit("farm-mounted", {stage, season: seasonEl, world, hz: HZ});
   return api;
 }
 farmMount._mount = mount;
@@ -1661,7 +1880,7 @@ const animInfo = (s, id) => { const it = itemById(id) || {}, h = heartsS(s, id);
 farmMount.care = Object.freeze({
   /* 3, 2, 1, 0 (malito) en la granja · -1 en el refugio · null si no lo tiene */
   hearts: id => ANIM[id] && game().owned[id] ? heartsS(careState(), id) : null,
-  /* en la granja con 2❤️ o menos (o malitos): los que salen en la portada y en la insignia */
+  /* en la granja con 2 corazones o menos (o malitos): los que salen en la portada y en la insignia */
   hungryList: () => { const s = careState(); return needyS(s).map(id => animInfo(s, id)); },
   shelterList: () => { const s = careState(); return Object.keys(s.shelter).map(id => { const it = itemById(id) || {}; return {id, e: it.e || "", n: it.n || id, since: s.shelter[id].t, seen: !!s.shelter[id].seen, price: rescuePrice(it)}; }); },
   animals: () => onFarmS(careState()),
@@ -1673,6 +1892,9 @@ farmMount.care = Object.freeze({
   rescuePrice: id => rescuePrice(itemById(id)),
   limits: Object.freeze({FULL_H, HEART_H: Object.freeze(HEART_H.slice()), SHELTER_H, ARRIVE_H, RESCUE_H, MISS_H, PAN_MAX, PROD_MAX}),
   openShelter: () => { if(cur && cur.alive()) cur.openShelter(); },
+  /* «La granja te habla» y el repaso: la frase de cada idioma y la clave del repaso de cada cosa (o null) */
+  phrase: l => PHRASE[l || lang] || PHRASE.english,
+  srsKey: id => (CORPUS[lang] || {})[id] || null,
 });
 farmMount.debug.tick = () => { if(cur && cur.alive()) cur.tick(); navBadge(); };
 
@@ -1682,9 +1904,7 @@ function cssCare(){
   if(document.getElementById("css-farm-care")) return;
   const st = document.createElement("style"); st.id = "css-farm-care";
   st.textContent = `
-.sc.shel{border-color:#FFCC00}
 .sc .own.shl{color:var(--gold-ink)}
-[data-theme=dark] .sc .own.shl{color:#FFCC00}
 .sc [data-shelter]{min-height:44px;padding:8px 14px}`;
   document.head.appendChild(st);
 }
@@ -1694,13 +1914,23 @@ function css(){
   const cur = `url("data:image/svg+xml,${encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32'><text x='2' y='26' font-size='24'>💧</text></svg>")}") 10 26, pointer`;
   const st = document.createElement("style"); st.id = "css-farm";
   st.textContent = `
-.fm{position:relative;margin:4px 0 6px}
-.fm-stage{--hz:50%;position:relative;height:340px;border-radius:22px;overflow:hidden;box-shadow:var(--shadow);user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;isolation:isolate;cursor:pointer;touch-action:manipulation;
-  --sky1:#2f86d9;--sky2:#7cc3f2;--sky3:#d2efff;--h1:#5aa84a;--h2:#7db86e;--g1:#66bd4c;--g2:#3c9431;--g3:#2f7d27;--path:#d9b67c;--path2:#c39a5c;--fence:#8a5a2b;--cloud:#fff;--cloudo:.95}
+/* la granja ocupa la pantalla: la página no se desplaza y el accesorio «Seguir» deja su sitio al dock */
+:root[data-sec=granja]{overflow:hidden;overscroll-behavior:none}
+:root[data-sec=granja] body{overscroll-behavior:none}
+:root[data-sec=granja] #acc{display:none!important}
+.fm{position:relative}
+.fm-stage{--hz:50%;--u:56px;--fm-wh:calc(100vh - 150px);position:fixed;inset:0;z-index:0;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;isolation:isolate;cursor:pointer;touch-action:none;
+  --sky1:#2f86d9;--sky2:#7cc3f2;--sky3:#d2efff;--h1:#5aa84a;--h2:#7db86e;--g1:#66bd4c;--g2:#3c9431;--g3:#2f7d27;--path:#d9b67c;--path2:#c39a5c;--fence:#8a5a2b;--cloud:#fff;--cloudo:.95;background:var(--g2)}
 .fm-stage[data-ph=dawn]{--sky1:#1d4a80;--sky2:#6b9cc8;--sky3:#FFE08A;--h1:#4b8e44;--h2:#6a9c68;--g1:#5aab48;--g2:#37862f;--g3:#2b6f25;--cloud:#fff1d6}
 .fm-stage[data-ph=dusk]{--sky1:#0f2a52;--sky2:#3a6390;--sky3:#FFD866;--h1:#3c6f3c;--h2:#4f7660;--g1:#4d9640;--g2:#2f7429;--g3:#255f21;--path:#b8925c;--path2:#9c7a48;--fence:#6e4823;--cloud:#f0cf9c}
 .fm-stage[data-ph=night]{--sky1:#040c1c;--sky2:#0a2040;--sky3:#173a5f;--h1:#16402a;--h2:#1b3a37;--g1:#1f4f2a;--g2:#163c1f;--g3:#102f17;--path:#5e5038;--path2:#4b3f2b;--fence:#3f2c1b;--cloud:#5d7192;--cloudo:.6}
-[data-theme=dark] .fm-stage{box-shadow:0 0 0 1px var(--line),var(--shadow)}
+/* el mundo: de arriba del todo hasta encima del dock (las cosas se colocan en % de él) */
+.fm-world{position:absolute;left:0;right:0;top:0;height:var(--fm-wh)}
+.fm-below{position:absolute;left:0;right:0;top:var(--fm-wh);bottom:0;z-index:3;pointer-events:none;
+  background:radial-gradient(circle at 30% 40%,rgba(255,255,255,.07) 0 2px,transparent 3px) 0 0/23px 19px,linear-gradient(var(--g2),var(--g3))}
+.fm-below::before{content:"";position:absolute;top:0;bottom:0;left:38%;width:25%;background:var(--path);box-shadow:inset 2px 0 0 var(--path2),inset -2px 0 0 var(--path2)}
+/* capa de las temporadas (js/season.js): toda la pantalla, encima del suelo y debajo de los animales */
+.fm-season{position:absolute;inset:0;z-index:4;pointer-events:none}
 .fm-sky{position:absolute;inset:0;background:linear-gradient(var(--sky1) 0%,var(--sky2) calc(var(--hz) * .56),var(--sky3) var(--hz))}
 .fm-stars{position:absolute;inset:0 0 calc(100% - var(--hz)) 0;opacity:0;transition:opacity 2s;pointer-events:none}
 .fm-stage[data-ph=night] .fm-stars{opacity:1}.fm-stage[data-ph=dusk] .fm-stars,.fm-stage[data-ph=dawn] .fm-stars{opacity:.35}
@@ -1731,20 +1961,20 @@ function css(){
 .fm-flies i{position:absolute;width:5px;height:5px;border-radius:50%;background:#eaff8a;box-shadow:0 0 10px 4px rgba(214,255,110,.55);animation:fmFly 6s ease-in-out infinite alternate}
 .fm-layer{position:absolute;inset:0;z-index:5;pointer-events:none}
 .fm-layer>*{pointer-events:auto}.fm-layer>.fm-fx{pointer-events:none}
-.fm-it{position:absolute;display:flex;align-items:flex-end;justify-content:center;border:0;background:none;padding:0;margin:0;color:inherit;font-size:2.6rem;line-height:1;min-width:52px;min-height:52px;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;
+/* las cosas: su tamaño sale de --u (lo calcula la granja según la pantalla) */
+.fm-it{position:absolute;display:flex;align-items:flex-end;justify-content:center;border:0;background:none;padding:0;margin:0;color:inherit;font-size:var(--u);line-height:1;min-width:52px;min-height:52px;cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;
   transform:translate(-50%,-100%) scale(var(--d,1));transform-origin:50% 100%;transition:left var(--t,0ms) linear,top var(--t,0ms) linear,transform var(--t,0ms) linear}
-.fm-it.bg{font-size:3.6rem}.fm-it.xl{font-size:4.3rem}
-.fm-it.sd0{font-size:1.8rem}.fm-it.sd1{font-size:2.2rem}.fm-it.bg.sd0{font-size:1.9rem}.fm-it.bg.sd1{font-size:2.5rem}
+.fm-it.bg{font-size:calc(var(--u) * 1.38)}.fm-it.xl{font-size:calc(var(--u) * 1.65)}
+.fm-it.sd0{font-size:calc(var(--u) * .62)}.fm-it.sd1{font-size:calc(var(--u) * .76)}.fm-it.bg.sd0{font-size:calc(var(--u) * .66)}.fm-it.bg.sd1{font-size:calc(var(--u) * .9)}
 .fm-it:focus-visible,.fm-prod:focus-visible{outline:3px solid #fff;outline-offset:3px;border-radius:12px}
 .fm-stage.watering .fm-it.k-plant{cursor:${cur}}
 .fm-stage.watering .fm-it:not(.k-plant),.fm-stage.watering .fm-prod{filter:saturate(.55) brightness(.92)}
 .fm-body{position:relative;display:block;transform:scaleX(var(--fx,1));transition:transform .2s}
 .fm-e{position:relative;display:block;line-height:1.05;transform-origin:50% 90%;filter:drop-shadow(0 2px 1px rgba(0,0,0,.18))}
 .fm-e .pj{display:block;width:1.4em;height:1.15em}
-@media (min-width:561px){.fm-e .pj{width:1.6em;height:1.3em}}
-.fm-qe .pj{display:block;width:1.35em;height:1.15em}
 .fm-pe2 .pj{display:block;margin:0 auto}
 .fm-dep .pj{width:1.2em;height:1.05em}
+.fm-qe .pj{display:block;width:1.35em;height:1.15em}
 .fm-sh{position:absolute;left:50%;bottom:-.04em;width:.9em;height:.2em;border-radius:50%;background:rgba(0,0,0,.2);transform:translateX(-50%);pointer-events:none}
 .fm-it.fly .fm-e{translate:0 -.45em;animation:fmHover 1.3s ease-in-out infinite}
 .fm-it.fly .fm-sh{width:.5em;opacity:.6}
@@ -1757,10 +1987,10 @@ function css(){
 .fm-stage[data-ph=night] .fm-it .fm-e,.fm-stage[data-ph=night] .fm-hb{filter:brightness(.8) saturate(.85) drop-shadow(0 2px 1px rgba(0,0,0,.25))}
 .fm-stage[data-ph=dusk] .fm-it .fm-e,.fm-stage[data-ph=dusk] .fm-hb{filter:brightness(.93) drop-shadow(0 2px 1px rgba(0,0,0,.2))}
 .fm-it.peck .fm-e{animation:fmPeck .7s ease}
-.fm-it.wig .fm-e{animation:fmWig .7s ease}
+.fm-it.wig .fm-e,.fm-it.talk .fm-e{animation:fmWig .7s ease}
 .fm-it.eat .fm-e{animation:fmEat .32s ease-in-out 4}
 .fm-it.hop .fm-e{animation:fmHop .55s ease}
-.fm-it.no .fm-e{animation:fmShake .45s ease}
+.fm-it.no .fm-e{animation:fmNo .5s ease}
 .fm-it.new .fm-e{animation:fmPop .75s cubic-bezier(.3,1.6,.5,1)}
 .fm-it.grow .fm-e{animation:fmGrow .7s cubic-bezier(.3,1.6,.5,1)}
 .fm-it.pluck .fm-e{animation:fmPluck .45s ease-in forwards}
@@ -1768,10 +1998,11 @@ function css(){
 .fm-it.hl .fm-e{animation:fmHl .8s ease-in-out 3}
 .fm-it.hl .fm-sh{background:radial-gradient(closest-side,rgba(242,201,76,.95),rgba(242,201,76,0));width:1.5em;height:.45em;bottom:-.2em}
 .fm-it.fly2 .fm-sh{opacity:0}
-.fm-it.drag{transition:none!important;cursor:grabbing;z-index:2000!important}
-.fm-it.drag .fm-e{translate:0 -.25em;scale:1.15;animation:none}
-.fm-it.fly.drag .fm-e{translate:0 -.6em}
-.fm-it.drag .fm-sh{width:1.1em;opacity:.6}
+/* levantada (mantener pulsado): crece un poco, con sombra, y se mueve con el dedo */
+.fm-it.lift{transition:none!important;z-index:2000!important;cursor:grabbing}
+.fm-it.lift .fm-body{scale:1.06;translate:0 -.08em}
+.fm-it.lift .fm-e{animation:none;filter:drop-shadow(0 14px 10px rgba(0,0,0,.3)) drop-shadow(0 2px 1px rgba(0,0,0,.18))!important}
+.fm-it.lift .fm-sh{width:1.1em;opacity:.45}
 .fm-need{position:absolute;left:58%;bottom:80%;font-size:.42em;line-height:1;background:#fff;border-radius:50%;width:1.9em;height:1.9em;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.25);animation:fmBob 1.6s ease-in-out 3;pointer-events:none}
 .fm-need::before,.fm-need::after{content:"";position:absolute;background:inherit;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2)}
 .fm-need::before{width:.42em;height:.42em;left:-.12em;bottom:-.28em}.fm-need::after{width:.24em;height:.24em;left:-.42em;bottom:-.6em}
@@ -1779,27 +2010,33 @@ function css(){
 .fm-it.bg .fm-need{font-size:.32em}
 .fm-it.er .fm-need{left:auto;right:58%}.fm-it.er .fm-need::before{left:auto;right:-.12em}.fm-it.er .fm-need::after{left:auto;right:-.42em}
 .fm-it.er .fm-zz{left:auto;right:60%}
-.fm-stage.watering .fm-need.w{animation:fmPulse .9s ease-in-out infinite}
-.fm-stage.finding .fm-need,.fm-stage.finding .fm-zz,.fm-stage.finding .fm-spk,.fm-stage.finding .fm-hp,.fm-stage.finding .fm-shel{display:none}
-/* corazones encima de cada animal (🍽️ = tiene hambre · 🤒 = malito) */
-.fm-hp{position:absolute;left:50%;bottom:calc(100% - 4px);transform:translateX(-50%);display:flex;align-items:center;gap:2px;font-size:12px;line-height:1;padding:3px 6px;border-radius:99px;background:rgba(11,37,69,.8);box-shadow:0 1px 3px rgba(0,0,0,.3);white-space:nowrap;pointer-events:none;z-index:1}
-.fm-hp>span{letter-spacing:-1px}
-.fm-hp i{font-style:normal;font-size:14px;line-height:1;margin:-2px 1px -2px -1px}
-.fm-hp.need{box-shadow:0 0 0 2px #FFCC00,0 1px 4px rgba(0,0,0,.35);animation:fmBob 1.6s ease-in-out 3}
-.fm-hp.sk{box-shadow:0 0 0 2px #9fc3ea,0 1px 4px rgba(0,0,0,.35)}
-.fm-it.er .fm-zz{left:auto;right:60%}
+.fm-stage.watering .fm-need.w{animation:fmPulse .9s ease-in-out 3}
+.fm-stage.finding .fm-need,.fm-stage.finding .fm-zz,.fm-stage.finding .fm-spk,.fm-stage.finding .fm-ask,.fm-stage.finding .fm-shel{display:none}
+/* el globo del hambre: la comida que pide (y, en el más urgente, la frase en el idioma con la traducción en gris) */
+.fm-ask{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%) scale(calc(1 / var(--d,1)));transform-origin:50% 100%;display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 14px 4px 8px;border-radius:20px;background:#fff;color:#000;
+  font:600 15px/1.15 var(--f-text);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.2);pointer-events:none;z-index:2;animation:fmBob 1.6s ease-in-out 3}
+.fm-ask::after{content:"";position:absolute;top:calc(100% - 1px);left:var(--tl,50%);margin-left:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+.fm-ae{flex:none;font-size:24px;line-height:1}
+.fm-at{display:flex;flex-direction:column;text-align:left;min-width:0}
+.fm-at b{font-weight:600;font-size:15px;line-height:1.2}
+.fm-at small{color:#6C6C70;font-weight:400;font-size:12px;line-height:1.2}
+.fm-ask.sm{padding:4px;min-height:36px;min-width:36px;justify-content:center}
+.fm-ask.sm .fm-ae{font-size:22px}
+.fm-it.al .fm-ask{left:-6px;transform:scale(calc(1 / var(--d,1)));transform-origin:0 100%;--tl:30px}
+.fm-it.ar .fm-ask{left:auto;right:-6px;transform:scale(calc(1 / var(--d,1)));transform-origin:100% 100%;--tl:calc(100% - 30px)}
+.fm-it.ar .fm-ask.sm,.fm-it.al .fm-ask.sm{--tl:50%}
+.fm-it.lead{z-index:1500!important}
+.fm-it.sick .fm-ask{bottom:calc(86% + 6px)}
+.fm-stage.feeding .fm-ask{animation:fmPulse .9s ease-in-out 3}
 .fm-it.sad .fm-e{filter:saturate(.55) drop-shadow(0 2px 1px rgba(0,0,0,.18))}
 /* malito: descansa un poco agachado (sin volcarse: la cabeza siempre arriba) */
 .fm-it.sick .fm-e{rotate:-10deg;scale:1.06 .84;filter:grayscale(.45) drop-shadow(0 2px 1px rgba(0,0,0,.18))}
-.fm-it.sick .fm-hp{bottom:calc(86% - 4px)}
-/* 💤 encima de los corazones, no debajo */
-.fm-it.k-animal .fm-zz{bottom:calc(100% + 14px)}
+.fm-it.k-animal .fm-zz{bottom:calc(100% + 4px)}
 .fm-it.drop .fm-e{scale:1.15;filter:drop-shadow(0 0 8px rgba(242,201,76,1)) drop-shadow(0 2px 1px rgba(0,0,0,.18))}
 .fm-it.bye{opacity:0;transition:opacity .6s ease,transform .6s ease!important;transform:translate(-50%,-100%) scale(.3)!important;pointer-events:none}
 .fm-stage.feeding .fm-it:not(.k-animal),.fm-stage.feeding .fm-prod{filter:saturate(.55) brightness(.92)}
-.fm-stage.feeding .fm-hp.need{animation:fmPulse .9s ease-in-out infinite}
 /* cartel del refugio */
-.fm-shel{position:absolute;left:8px;top:calc(var(--hz) - 52px);z-index:6;display:flex;align-items:center;gap:6px;min-height:46px;padding:4px 12px 4px 7px;border:2px solid rgba(255,255,255,.8);border-radius:14px;background:rgba(11,37,69,.84);color:#fff;font:inherit;font-weight:800;font-size:.95rem;line-height:1;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.28);-webkit-tap-highlight-color:transparent}
+.fm-shel{position:absolute;left:max(12px,var(--safe-l));top:calc(var(--hz) - 52px);z-index:6;display:flex;align-items:center;gap:6px;min-height:46px;padding:4px 12px 4px 7px;border:2px solid rgba(255,255,255,.8);border-radius:14px;background:rgba(11,37,69,.84);color:#fff;font:inherit;font-weight:700;font-size:.95rem;line-height:1;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.28);-webkit-tap-highlight-color:transparent}
 .fm-shel[hidden]{display:none}
 .fm-she{font-size:1.45rem;line-height:1}
 .fm-shb{position:absolute;top:-9px;right:-9px;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:#1E6EF4;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}
@@ -1808,7 +2045,7 @@ function css(){
 .fm-shel:focus-visible{outline:3px solid #fff;outline-offset:2px}
 .fm-zz{position:absolute;left:60%;bottom:76%;font-size:.38em;pointer-events:none;animation:fmZz 2.4s ease-in-out infinite}
 .fm-spk{position:absolute;inset:-.15em;pointer-events:none}
-.fm-spk i{position:absolute;font-style:normal;font-size:.36em;animation:fmTw 1.4s ease-in-out infinite}
+.fm-spk i{position:absolute;font-style:normal;font-size:.36em;animation:fmTw 1.4s ease-in-out 3}
 .fm-spk i:nth-child(1){left:-.15em;top:0}.fm-spk i:nth-child(2){right:-.2em;top:.55em;animation-delay:.7s}
 .fm-layer>.fm-hero{position:absolute;pointer-events:none;transform:translate(-50%,-100%) scale(var(--d,1));transform-origin:50% 100%;transition:left var(--t,0ms) linear,top var(--t,0ms) linear,transform var(--t,0ms) linear;outline:none}
 .fm-hero:focus-visible .fm-hb{outline:3px solid #fff;border-radius:12px}
@@ -1820,7 +2057,6 @@ function css(){
 .fm-prod{position:absolute;width:52px;height:52px;border:0;padding:0;border-radius:50%;font-size:1.85rem;line-height:1;display:flex;align-items:center;justify-content:center;transform:translate(-50%,-100%);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;
   background:radial-gradient(closest-side,rgba(255,255,255,.9) 0 55%,rgba(255,255,255,0));animation:fmGlow 1.8s ease-in-out 3}
 .fm-prod.new{animation:fmDrop .7s cubic-bezier(.3,1.5,.5,1),fmGlow 1.8s ease-in-out .7s 3}
-.fm-prod.hl{animation:fmProdHl .5s ease 5}
 .fm-prod.got{animation:fmGot .45s ease-in forwards;pointer-events:none}
 .fm-stage[data-ph=night] .fm-prod{background:radial-gradient(closest-side,rgba(255,240,180,.8) 0 55%,rgba(255,240,180,0))}
 .fm-fx{position:absolute;transform:translate(-50%,-50%);pointer-events:none;z-index:2500;font-size:1.5rem;line-height:1}
@@ -1837,141 +2073,166 @@ function css(){
 .fm-shoot{width:90px;height:3px;border-radius:3px;background:linear-gradient(90deg,#fff,rgba(255,255,255,0));transform:translate(-50%,-50%) rotate(-24deg);animation:fmShoot 1s ease-out forwards}
 .fm-flame{position:absolute;left:50%;top:80%;font-size:.5em;transform:translateX(-50%) rotate(180deg);pointer-events:none;animation:fmFire .2s ease-in-out infinite alternate}
 .fm-flyc{position:fixed;z-index:1000;font-size:2rem;line-height:1;pointer-events:none}
-.fm-bub{position:absolute;z-index:3000;transform:translate(-50%,-100%);transform-origin:50% 100%;background:#fff;color:#16202c;border-radius:16px;padding:6px 6px 6px 12px;box-shadow:0 8px 22px rgba(0,0,0,.28);display:flex;align-items:center;gap:8px;white-space:nowrap;width:max-content;max-width:min(calc(100% - 12px),380px);box-sizing:border-box;pointer-events:none;cursor:default}
+/* bocadillo de la escena (blanco en claro y en oscuro: es parte del dibujo) */
+.fm-bub{position:absolute;z-index:3000;transform:translate(-50%,-100%);transform-origin:50% 100%;background:#fff;color:#000;border-radius:18px;padding:6px 6px 6px 12px;box-shadow:0 8px 22px rgba(0,0,0,.24);display:flex;align-items:center;gap:8px;white-space:nowrap;width:max-content;max-width:min(calc(100% - 16px),400px);box-sizing:border-box;pointer-events:none;cursor:default;font-family:var(--f-text)}
 .fm-bub[hidden]{display:none}
 .fm-bub.below{transform:translate(-50%,0);transform-origin:50% 0}
 .fm-bub.in{animation:fmBubIn .22s ease-out}
 .fm-bub::after{content:"";position:absolute;top:100%;left:var(--tail,50%);transform:translateX(-50%);border:9px solid transparent;border-top-color:#fff}
 .fm-bub.below::after{top:auto;bottom:100%;border-top-color:transparent;border-bottom-color:#fff}
-.fm-be{font-size:1.9rem;line-height:1;display:flex;align-items:center;gap:2px}.fm-be small{font-size:.9rem;color:#5b6778}
+.fm-be{font-size:1.9rem;line-height:1;display:flex;align-items:center;gap:2px}.fm-be small{font-size:.9rem;color:#6C6C70}
+.fm-be .pj{width:1.35em;height:1.15em}
 .fm-bt{display:flex;flex-direction:column;line-height:1.15;min-width:0}
-.fm-bt b{font-size:1.25rem}.fm-bt small{color:#5b6778;font-size:.9rem;font-weight:600}
-.fm-bt i{font-style:normal;font-size:.85rem;color:#1a6fc4;font-weight:800;white-space:normal;line-height:1.2}
+.fm-bt b{font-size:1.25rem;font-weight:600}.fm-bt small{color:#6C6C70;font-size:.9rem;font-weight:400}
+.fm-bt i{font-style:normal;font-size:.9rem;color:#185CCF;font-weight:600;white-space:normal;line-height:1.25}
+.fm-hl{letter-spacing:-1px}
 .fm-pe{display:inline-block;line-height:1}.fm-pe-lana{filter:grayscale(1) brightness(1.32)}
 .fm-sg{display:flex;gap:4px;flex:none}
-.fm-bub .say,.fm-find .say{pointer-events:auto;width:44px;height:44px;flex:none;background:#edf3fa;border:1px solid #cfd8e3;color:#16202c;font-size:1.15rem}
-.fm-bm{white-space:normal;font-weight:700;font-size:1rem;line-height:1.3;padding:4px 6px 4px 0;max-width:260px}
-.fm-find{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:3100;background:#fff;color:#16202c;border-radius:18px;padding:6px 8px;box-shadow:0 8px 24px rgba(0,0,0,.3);display:flex;align-items:center;gap:8px;max-width:calc(100% - 16px);width:max-content;cursor:default}
+.fm-bub .say,.fm-find .say{pointer-events:auto;display:grid;place-items:center;width:44px;height:44px;flex:none;padding:0;background:rgba(120,120,128,.12);border:0;border-radius:50%;color:#1E6EF4}
+.fm-bm{white-space:normal;font-weight:600;font-size:1rem;line-height:1.3;padding:4px 6px 4px 0;max-width:260px}
+.fm-bplay{pointer-events:auto;flex:none;display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:0;border-radius:22px;background:#1E6EF4;color:#fff;font:600 var(--fs-note)/1.1 var(--f-text);cursor:pointer}
+/* arriba, bajo la barra: «¿Dónde está…?» y el aviso del modo (regar o dar de comer) */
+.fm-find{position:absolute;left:50%;top:calc(var(--topbar-h) + 8px);transform:translateX(-50%);z-index:3100;background:var(--card);color:var(--label);border-radius:22px;padding:6px 8px;box-shadow:0 8px 24px rgba(0,0,0,.24);display:flex;align-items:center;gap:8px;max-width:calc(100% - 24px);width:max-content;cursor:default}
 .fm-find[hidden]{display:none}
 .fm-fh{flex:none;line-height:0;padding:0 2px 4px}
 .fm-ft{display:flex;flex-direction:column;line-height:1.1;min-width:0;gap:2px}
-.fm-ft small{color:#5b6778;font-weight:700;font-size:.82rem}
-.fm-ft b{font-size:1.35rem;color:#0f3d75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.fm-ft em{font-style:normal;font-weight:800;color:var(--gold-ink)}.fm-ft em.m{color:#5b6778;font-size:.8rem;font-weight:700}
+.fm-ft small{color:var(--label2);font-weight:600;font-size:.82rem}
+.fm-ft b{font-size:1.35rem;color:var(--label);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fm-ft em{font-style:normal;font-weight:700;color:var(--gold-ink)}.fm-ft em.m{color:var(--label2);font-size:.8rem;font-weight:600}
+.fm-find .say{background:var(--brand-soft);color:var(--brand-tint)}
 .fm-dots{display:flex;gap:4px;margin-top:2px}
-.fm-dots i{width:10px;height:10px;border-radius:50%;background:#dfe4eb}
-.fm-dots i.ok{background:var(--ok)}.fm-dots i.no{background:var(--miss)}.fm-dots i.now{background:#fff;box-shadow:0 0 0 2px #1E6EF4}
-.fm-fq{flex:none;width:44px;height:44px;border:0;border-radius:12px;background:#edf3fa;color:#46566c;font-size:1.1rem;font-weight:800}
-.fm-fa{flex:none;min-height:44px;border:0;border-radius:12px;background:#2e9e4f;color:#fff;font-weight:800;padding:0 12px;box-shadow:0 3px 0 #1e6e36}
-.fm-hint{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:3050;background:rgba(11,37,69,.9);color:#fff;border-radius:999px;padding:5px 6px 5px 16px;font-weight:700;display:flex;align-items:center;gap:10px;white-space:nowrap;width:max-content;max-width:calc(100% - 16px);box-sizing:border-box;line-height:1.2;cursor:default;box-shadow:0 6px 16px rgba(0,0,0,.3)}
+.fm-dots i{width:10px;height:10px;border-radius:50%;background:var(--fill)}
+.fm-dots i.ok{background:var(--ok)}.fm-dots i.no{background:var(--miss)}.fm-dots i.now{background:var(--card);box-shadow:0 0 0 2px var(--brand-tint)}
+.fm-fq{flex:none;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:22px;background:var(--fill);color:var(--label);padding:0}
+.fm-fa{flex:none}
+.fm-hint{position:absolute;left:50%;top:calc(var(--topbar-h) + 8px);transform:translateX(-50%);z-index:3050;background:var(--card);color:var(--label);border-radius:999px;padding:5px 6px 5px 16px;font-weight:600;display:flex;align-items:center;gap:10px;white-space:nowrap;width:max-content;max-width:calc(100% - 24px);box-sizing:border-box;line-height:1.2;cursor:default;box-shadow:0 6px 16px rgba(0,0,0,.22)}
 .fm-hint[hidden]{display:none}
 .fm-hint span{white-space:normal}
-.fm-hx{flex:none;min-height:44px;border:0;border-radius:999px;background:#fff;color:#0b2545;font-weight:800;padding:0 14px}
-.fm-bar{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;margin:12px 0 8px}
-.fm-bar .fm-tb{min-height:56px;font-size:1.08rem;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:8px;line-height:1.15;padding:8px 14px;text-align:center}
-.fm-bar .fm-tb .ic{font-size:1.5rem;line-height:1}
-.fm-bar .fm-help{width:58px;padding:0;font-size:1.6rem;font-weight:900}
-.fm-bar .fm-tb.on{box-shadow:0 0 0 4px color-mix(in srgb,var(--lc) 35%,transparent),0 4px 0 color-mix(in srgb,var(--lc) 60%,#000)}
-.fm-bar .fm-tb:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--lc) 60%,#000)}
-.fm-bar .fm-tb.nudge{animation:fmNudge .6s ease 2}
-.fm-badge{background:#fff;color:#0f3d75;border-radius:99px;padding:1px 8px;font-size:.85rem;font-weight:800}
+.fm-hx{flex:none;min-height:44px;border:0;border-radius:999px;background:var(--fill);color:var(--label);font-weight:600;padding:0 16px}
+/* el dock: vidrio ligero (sin desenfoque) encima de la barra de pestañas, en el sitio del accesorio */
+.fm-dock{--g-lite:rgba(255,255,255,.96);--g-lite-d:rgba(28,28,30,.96);position:absolute;z-index:3300;left:max(16px,var(--safe-l));right:max(16px,var(--safe-r));bottom:calc(var(--tabbar-b) + var(--tabbar-h) + 8px);
+  max-width:520px;margin:0 auto;height:60px;border-radius:30px;display:flex;align-items:center;padding:4px;cursor:default;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+@media (min-width:820px){:root:not([data-bar=bottom]) .fm-dock{bottom:calc(16px + var(--safe-b))}}
+.fm-db{position:relative;flex:1 1 0;min-width:0;height:52px;border:0;border-radius:26px;background:none;color:var(--label);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 8px;
+  font:600 var(--fs-sub)/1.1 var(--f-text);white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:none}
+.fm-db .ico{flex:none;width:24px;height:24px;color:var(--brand-tint)}
+.fm-db .lb{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.fm-db[aria-pressed=true],.fm-db[aria-expanded=true]{background:var(--card);color:var(--brand-ink);box-shadow:0 1px 4px rgba(0,0,0,.14)}
+.fm-db:focus-visible{outline:3px solid var(--brand-tint);outline-offset:-3px}
+.fm-db.nudge{animation:fmNudge .6s ease 2}
+.fm-dsep{flex:none;width:1px;height:28px;background:var(--sep)}
+.fm-badge{position:absolute;top:2px;right:calc(50% - 52px);min-width:22px;height:20px;padding:0 6px;border-radius:10px;background:var(--brand-fill);color:#fff;font:700 12px/20px var(--f-text);text-align:center}
 .fm-badge[hidden]{display:none}
-.fm-tasks{display:flex;flex-wrap:wrap;gap:8px;align-items:center;min-height:44px}
-.fm-chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 14px;font-weight:700;font-size:.98rem}
-.fm-chip b{font-size:1.1rem}
-.fm-chip.c-h{border-color:#FFCC00}.fm-chip.c-p{border-color:#13887f}.fm-chip.c-w{border-color:#1E6EF4}.fm-chip.c-r{border-color:#2e9e4f}
-.fm-chip.c-f{border-color:#FFCC00;background:color-mix(in srgb,#FFCC00 18%,var(--card))}.fm-chip.c-s{border-color:#46566c}
-/* despensa en la barra */
-.fm-pan{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
-.fm-bar,.fm-pan,.fm-tasks{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
-.fm-pan[hidden]{display:none}
-.fm-pan .fm-pbtn{min-height:52px;font-size:1.05rem;border-radius:16px;display:inline-flex;align-items:center;gap:8px;padding:6px 16px;line-height:1.1}
-.fm-pan .fm-pbtn .ic{font-size:1.45rem;line-height:1}
-.fm-pan .fm-pbtn:active{transform:translateY(3px);box-shadow:0 1px 0 color-mix(in srgb,var(--lc) 60%,#000)}
-.fm-fcs{display:contents}
-.fm-fc{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:52px;min-width:64px;border:2px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:4px 12px;font:inherit;font-size:1.55rem;line-height:1;touch-action:none;cursor:grab;box-shadow:0 3px 0 var(--line);-webkit-tap-highlight-color:transparent}
-.fm-fc b{font-size:1.08rem;font-weight:900;min-width:1ch}
-.fm-fc.zero{cursor:pointer;touch-action:manipulation;background:var(--soft)}
-.fm-fc.zero span{opacity:.55}.fm-fc.zero b{color:var(--muted)}
-.fm-fc.on{border-color:#13887f;background:color-mix(in srgb,#13887f 16%,var(--card));box-shadow:0 0 0 3px color-mix(in srgb,#13887f 40%,transparent)}
-.fm-fc.lift{opacity:.45}
-.fm-ghost{position:fixed;z-index:3500;font-size:2.6rem;line-height:1;transform:translate(-50%,-65%);pointer-events:none;filter:drop-shadow(0 4px 4px rgba(0,0,0,.3))}
-.fm-note{color:var(--muted);font-weight:700}
-.fm-dlg{width:min(94vw,440px);text-align:center;padding:18px 16px}
-.fm-dlg h2{margin:0 0 6px;color:var(--ink)}
-.fm-wel{font-size:3.6rem;line-height:1.1;animation:fmPop .7s cubic-bezier(.3,1.6,.5,1)}
-.fm-sub{color:var(--muted);margin:0 0 10px;font-size:1.05rem}
-.fm-qe{position:relative;display:inline-block;font-size:4.2rem;line-height:1;margin:4px 0 6px}
-.fm-qb{position:absolute;left:88%;top:-.25em;font-size:1.5rem;animation:fmBob 1.6s ease-in-out 3}
-.fm-qt{font-size:1.2rem;font-weight:700;margin:4px 0 14px;line-height:1.35}
-.fm-qt b{color:var(--brand)}
-.fm-opts{display:grid;gap:10px}
-.fm-or{display:flex;gap:8px;align-items:stretch}
-.fm-opt{flex:1;min-height:58px;border:3px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;font-size:1.25rem;font-weight:800;padding:8px 12px;box-shadow:0 4px 0 var(--line);transition:transform .08s}
-.fm-opt:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
-.fm-opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--card));box-shadow:0 4px 0 color-mix(in srgb,var(--ok) 60%,#000)}
-.fm-opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--card));opacity:.75;cursor:not-allowed}
-.fm-opt.hint{border-color:var(--ok);animation:fmHint .9s ease-in-out infinite}
-.fm-or .say{width:58px;height:auto;min-height:58px;border-radius:16px;font-size:1.35rem;flex:none}
-.fm-qm{min-height:1.6em;font-weight:700;font-size:1.12rem;margin:12px 0 8px}
-.fm-qm.ok{color:var(--ok-ink)}.fm-qm.bad{color:var(--bad)}
-.fm-dlg .fm-x{min-height:44px}
-.fm-dlg .btn.lc{min-height:50px;font-size:1.1rem}
-.fm-help-l{list-style:none;padding:0;margin:8px 0 14px;text-align:left;display:grid;gap:7px}
-.fm-help-l li{display:flex;gap:12px;align-items:center;background:var(--soft);border-radius:14px;padding:7px 12px;font-size:1rem;line-height:1.3}
-.fm-help-l li span{font-size:1.6rem;flex:none;width:34px;text-align:center}
-.fm-help-l li span.fm-hl3{font-size:.72rem;width:auto;min-width:34px;letter-spacing:-1px;background:#0f2f57;border-radius:99px;padding:4px 5px}
-/* comer, despensa y refugio */
-.fm-qh{margin:-2px 0 6px}
-.fm-hpill{display:inline-flex;gap:2px;font-size:1.05rem;line-height:1;padding:5px 10px;border-radius:99px;background:#0f2f57}
-.fm-qsk{display:inline-block;rotate:-10deg;scale:1.06 .84;filter:grayscale(.4)}
-.fm-qs{margin:-8px 0 12px;color:var(--muted);font-weight:800}
-.fm-foods{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 6px}
-.fm-food{display:flex;align-items:center;gap:10px;min-height:64px;border:3px solid var(--line);background:var(--card);color:var(--ink);border-radius:16px;padding:8px 12px;text-align:left;box-shadow:0 4px 0 var(--line);font:inherit;transition:transform .08s}
-.fm-food .fe{font-size:2.1rem;line-height:1;flex:none}
+.fm-dghost{display:grid;place-items:center;font-size:44px;line-height:1;background:none!important;box-shadow:none!important;filter:drop-shadow(0 6px 6px rgba(0,0,0,.3))}
+/* la bandeja de la comida: sólida, encima del dock, con su colita hacia «Comida» */
+.fm-tray{position:absolute;z-index:3250;left:50%;bottom:calc(var(--tabbar-b) + var(--tabbar-h) + 8px + 72px);transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);box-sizing:border-box;
+  background:var(--card);color:var(--label);border-radius:24px;padding:10px 10px 8px;box-shadow:0 10px 30px rgba(0,0,0,.2);cursor:default;touch-action:manipulation}
+@media (min-width:820px){:root:not([data-bar=bottom]) .fm-tray{bottom:calc(16px + var(--safe-b) + 72px)}}
+.fm-tray[hidden]{display:none}
+.fm-tray.in{animation:fmBubIn .2s ease-out}
+.fm-tray::after{content:"";position:absolute;top:calc(100% - 1px);left:50%;margin-left:-9px;border:9px solid transparent;border-top-color:var(--card);border-bottom:0}
+.fm-tr{display:flex;gap:8px;overflow-x:auto;padding:2px;scrollbar-width:none}
+.fm-tr::-webkit-scrollbar{display:none}
+.fm-fc{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:76px;min-height:76px;padding:8px 4px 6px;border:0;border-radius:18px;background:var(--fill2);color:var(--label);touch-action:none;cursor:grab;-webkit-tap-highlight-color:transparent}
+.fm-fc .fe{font-size:32px;line-height:1}
+.fm-fc .fw{max-width:100%;font:600 var(--fs-min)/1.15 var(--f-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fm-fc .fn{position:absolute;top:4px;right:4px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--brand-fill);color:#fff;font:700 13px/22px var(--f-text);text-align:center}
+.fm-fc.zero{cursor:pointer;touch-action:manipulation}
+.fm-fc.zero .fe{opacity:.45}
+.fm-fc.zero .fn{background:var(--miss-fill);color:var(--label)}
+.fm-fc.on{background:var(--brand-soft);box-shadow:inset 0 0 0 2px var(--brand-tint)}
+.fm-fc.g-dragging{opacity:.45}
+.fm-fc.coached{box-shadow:inset 0 0 0 2px var(--brand-tint)}
+.fm-fc.fm-fbuy{cursor:pointer;touch-action:manipulation;color:var(--brand-ink)}
+.fm-fc.fm-fbuy .ico{color:var(--brand-tint)}
+.fm-fc:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
+.fm-tn{margin:6px 4px 0;color:var(--label2);font:400 var(--fs-min)/1.3 var(--f-text);text-align:center}
+/* el globo junto al animal: comer y «¿Cómo me llamo?» (sólido, no es modal) */
+.fm-pop{position:absolute;z-index:3200;left:0;top:0;width:min(360px,calc(100vw - 24px));box-sizing:border-box;background:var(--card);color:var(--label);border-radius:24px;box-shadow:0 12px 36px rgba(0,0,0,.26);cursor:default;outline:none;touch-action:manipulation;user-select:text;-webkit-user-select:text}
+.fm-pop[hidden]{display:none}
+.fm-pop.in{animation:fmBubIn .2s ease-out}
+.fm-pop[data-side=top]::after,.fm-pop[data-side=bottom]::after{content:"";position:absolute;left:var(--tail,50%);margin-left:-10px;border:10px solid transparent}
+.fm-pop[data-side=top]::after{top:calc(100% - 1px);border-top-color:var(--card);border-bottom:0}
+.fm-pop[data-side=bottom]::after{bottom:calc(100% - 1px);border-bottom-color:var(--card);border-top:0}
+.fm-pin{overflow:auto;overscroll-behavior:contain;padding:14px 14px 12px;text-align:center;touch-action:pan-y}
+.fm-ph{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin:0 0 10px}
+.fm-qt{margin:0;font:600 var(--fs-head)/1.25 var(--f-text)}
+.fm-qe{display:inline-block;font-size:52px;line-height:1}
+.fm-hpill{display:inline-flex;gap:2px;font-size:.95rem;line-height:1;padding:5px 10px;border-radius:99px;background:var(--fill2);letter-spacing:-1px}
+.fm-qs{margin:-4px 0 10px;color:var(--label2);font:400 var(--fs-note)/1.3 var(--f-text)}
+.fm-foods{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:0 0 6px}
+.fm-food{position:relative;display:flex;align-items:center;gap:10px;min-height:60px;border:0;background:var(--fill2);color:var(--label);border-radius:16px;padding:8px 12px;text-align:left;font:inherit;transition:transform .08s}
+.fm-food .fe{font-size:2rem;line-height:1;flex:none}
 .fm-food .ft{display:flex;flex-direction:column;min-width:0}
-.fm-food b{font-size:1.15rem;font-weight:800;overflow-wrap:anywhere}
-.fm-food small{color:var(--muted);font-weight:700;font-size:.85rem}
-.fm-food:active{transform:translateY(3px);box-shadow:0 1px 0 var(--line)}
-.fm-food.bad{border-color:var(--miss);background:color-mix(in srgb,var(--miss) 16%,var(--card))}
-.fm-food.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 16%,var(--card));box-shadow:0 4px 0 color-mix(in srgb,var(--ok) 60%,#000)}
-.fm-food.new{border-color:var(--ok);animation:fmHint .9s ease-in-out infinite}
-.fm-food:disabled:not(.ok){opacity:.5}
-.fm-nofood{background:var(--soft);border-radius:16px;padding:10px 12px;margin:8px 0 0}
-.fm-nofood p{margin:0 0 10px;font-weight:700;line-height:1.35}
-.fm-buyq,.fm-pb{border:0;border-radius:14px;background:#FFCC00;color:#3D2B00;font:inherit;font-weight:900;font-size:1.02rem;min-height:48px;padding:8px 14px;box-shadow:0 4px 0 #B38F00;cursor:pointer}
-.fm-buyq:active,.fm-pb:active{transform:translateY(3px);box-shadow:0 1px 0 #B38F00}
-.fm-buyq:disabled{opacity:.5}
-.fm-pb{display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15}
-.fm-pb small{font-size:.8rem;font-weight:800}
-.fm-pb.no{background:var(--card);color:var(--muted);box-shadow:0 4px 0 var(--line);border:2px solid var(--line)}
-.fm-pb.no:active{box-shadow:0 1px 0 var(--line)}
-.fm-rm{grid-column:1/-1;margin:0;min-height:0;font-size:1rem;line-height:1.35;text-align:center}
-.fm-rm:empty{display:none}
-.fm-pb.res{background:#1E6EF4;color:#fff;box-shadow:0 4px 0 #154b8f}
-.fm-pb.res:active{box-shadow:0 1px 0 #154b8f}
-.fm-nw{white-space:nowrap}
-.fm-qm.warm{color:var(--gold-ink)}.fm-qm.info{color:var(--brand)}
-[data-theme=dark] .fm-qm.warm{color:#FFCC00}
-.fm-pl{display:grid;gap:10px;margin:8px 0 4px;text-align:left}
-.fm-prow{display:grid;grid-template-columns:52px 1fr;gap:8px 12px;align-items:center;background:var(--soft);border:2px solid transparent;border-radius:16px;padding:10px 12px}
-.fm-prow.focus{border-color:#13887f}
-.fm-prow.pop .fm-pe2{animation:fmPop .5s cubic-bezier(.3,1.6,.5,1)}
+.fm-food b{font-size:1.05rem;font-weight:600;overflow-wrap:anywhere}
+.fm-food small{color:var(--label2);font-size:.85rem}
+.fm-food.bad{background:var(--miss-fill);color:var(--miss-on);border-color:var(--miss)}
+.fm-food.bad .fe{opacity:.55}
+.fm-food.bad small{color:var(--miss-on)}
+.fm-mk{display:grid;place-items:center;flex:none;width:24px;height:24px;margin-left:auto;border-radius:50%}
+.fm-food.bad .fm-mk,.fm-opt.bad .fm-mk{background:var(--miss);color:#fff}
+.fm-opt.ok .fm-mk{background:var(--ok-fill);color:#fff}
+.fm-nofood{background:var(--fill2);border-radius:16px;padding:10px 12px;margin:6px 0 0}
+.fm-nofood p{margin:0 0 10px;line-height:1.35}
+.fm-buyq{width:100%}
+.fm-mic{width:100%;min-height:52px;margin:0 0 10px;gap:8px}
+.fm-mic.on{background:var(--ok-fill)}
+.fm-mic[hidden]{display:none}
+.fm-opts{display:grid;gap:8px}
+.fm-or{display:flex;gap:8px;align-items:stretch}
+.fm-opt{position:relative;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border:0;background:var(--fill2);color:var(--label);border-radius:16px;font:600 1.15rem/1.2 var(--f-text);padding:6px 12px;overflow-wrap:anywhere}
+.fm-opt .fm-mk{position:absolute;right:10px;top:50%;margin-top:-12px}
+.fm-opt.ok{background:var(--ok-soft);color:var(--label);box-shadow:inset 0 0 0 2px var(--ok)}
+.fm-opt.bad{background:var(--miss-fill);color:var(--miss-on);cursor:default}
+.fm-opt:disabled:not(.ok):not(.bad){opacity:.5}
+.fm-or .say{display:grid;place-items:center;width:52px;min-height:52px;padding:0;border:0;border-radius:16px;background:var(--brand-soft);color:var(--brand-tint);flex:none}
+.fm-qm{min-height:1.4em;font:600 var(--fs-sub)/1.35 var(--f-text);margin:10px 0 6px}
+.fm-qm:empty{margin:4px 0}
+.fm-qm.ok{color:var(--ok-ink)}.fm-qm.info{color:var(--label)}
+.fm-pa{display:flex;justify-content:center}
+.fm-pa .btn-fill{min-width:140px}
+/* las hojas: tienda, refugio y «se fue al refugio» */
+dialog.fm-sheet,dialog.fm-dlg{color:var(--label)}
+@media (max-width:819px){
+  dialog#fm-shop.m-sheet{height:calc(100dvh - var(--safe-t,0px) - 24px)}
+  dialog#fm-shop.m-sheet[data-detent=medium]{height:min(calc(100dvh - var(--safe-t,0px) - 24px),max(440px,64dvh))}
+}
+.fm-scoin{display:flex;align-items:center;justify-content:center;gap:4px;margin:-4px 0 8px;color:var(--label);font:400 var(--fs-note)/1.2 var(--f-text)}
+.fm-scoin .coin-ico{width:18px;height:18px}
+.fm-scoin b{color:var(--label);font-weight:700}
+.fm-ss{margin:0 0 20px}
+.fm-sh3{margin:0 4px 8px;font:600 var(--fs-head)/1.25 var(--f-text);color:var(--label)}
+.fm-sub{color:var(--label2);margin:0 0 12px;font-size:var(--fs-sub);text-align:center}
+.fm-pl{display:grid;gap:10px;margin:0 0 4px;text-align:left}
+.fm-prow{display:grid;grid-template-columns:52px 1fr;gap:8px 12px;align-items:center;background:var(--card-2);border-radius:20px;padding:10px 12px;box-shadow:inset 0 0 0 2px transparent;transition:box-shadow .3s}
+.fm-prow.focus{box-shadow:inset 0 0 0 2px var(--brand-tint)}
 .fm-pe2{font-size:2.6rem;line-height:1;text-align:center}
+.fm-pe2.pop{animation:fmPop .5s cubic-bezier(.3,1.6,.5,1)}
 .fm-pt{display:flex;flex-direction:column;min-width:0;gap:2px}
-.fm-pw{display:flex;align-items:center;gap:8px;min-width:0}
-.fm-pw b{font-size:1.2rem;overflow-wrap:anywhere}
-.fm-pw .say{width:44px;height:44px;flex:none}
-.fm-pt small{color:var(--muted);font-weight:700;font-size:.88rem}
-.fm-ph b{color:var(--ink);font-size:1.02rem}
+.fm-pw{display:flex;align-items:center;gap:4px;min-width:0}
+.fm-pw b{font:600 var(--fs-body)/1.2 var(--f-text);overflow-wrap:anywhere}
+.fm-pt small{color:var(--label2);font-size:var(--fs-note)}
+.fm-have b{color:var(--label);font-weight:700}
 .fm-pbs{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .fm-pbs.one{grid-template-columns:1fr}
-.fm-note{color:var(--muted);font-weight:700;text-align:center;line-height:1.4}
-.fm-note2{margin:2px 0 0;color:var(--muted);font-weight:700;font-size:.92rem;text-align:center}
-.fm-dep{font-size:2.4rem;line-height:1.2;letter-spacing:4px;margin:2px 0 8px}
-.fm-dbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
-.fm-dbtns .btn{min-height:50px}
-.fm-dlg.fm-pand,.fm-dlg.fm-shd{max-height:calc(100dvh - 24px)}
+.fm-pb{width:100%;gap:4px;padding:0 10px}
+.fm-pb .coin-ico{display:block;width:18px;height:18px;flex:none}
+.fm-pb.no,.fm-pb.no[aria-disabled=true]{background:var(--fill);color:var(--label2);cursor:default}
+.fm-pb.no .coin-ico{filter:grayscale(1);opacity:.55}
+.fm-rm{grid-column:1/-1;margin:0;min-height:0;text-align:center}
+/* hoja ancha (ordenador): los botones a la derecha de la comida, en la misma fila */
+@media (min-width:820px){.fm-sheet .fm-prow{grid-template-columns:52px 1fr minmax(0,232px)}.fm-sheet .fm-pbs{grid-column:auto}}
+.fm-rm:empty{display:none}
+.fm-note{color:var(--label2);text-align:center;line-height:1.4;margin:8px 0}
+.fm-note2{margin:2px 0 0;color:var(--label2);font-size:var(--fs-note);text-align:center}
+.fm-dep{font-size:2.6rem;line-height:1.2;letter-spacing:4px;margin:2px 0 8px;text-align:center}
+.fm-dbtns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:4px 0 8px}
+.fm-dbtns .btn-fill{min-height:50px;padding:0 22px}
+/* la mano de la primera vez */
+.fm-coach{position:absolute;z-index:3400;left:0;top:0;width:0;height:0;pointer-events:none}
+.fm-chh{position:absolute;left:-6px;top:-4px;display:block;width:48px;height:48px;color:#fff;filter:drop-shadow(0 3px 4px rgba(0,0,0,.45))}
+.fm-chh svg{display:block;width:100%;height:100%}
+.fm-cht{position:absolute;left:0;bottom:30px;transform:translateX(-50%);white-space:nowrap;background:#fff;color:#000;border-radius:16px;padding:8px 14px;font:600 15px/1.2 var(--f-text);box-shadow:0 6px 18px rgba(0,0,0,.22)}
 @keyframes fmTw{0%,100%{opacity:.3;scale:.7}50%{opacity:1;scale:1.1}}
 @keyframes fmSpin{to{rotate:360deg}}
 @keyframes fmDrift{from{left:-30%}to{left:110%}}
@@ -1985,18 +2246,17 @@ function css(){
 @keyframes fmWig{0%,100%{transform:rotate(0)}25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
 @keyframes fmEat{0%,100%{transform:scale(1,1)}50%{transform:scale(1.08,.88) rotate(-5deg)}}
 @keyframes fmHop{0%,100%{transform:translateY(0) scale(1)}40%{transform:translateY(-38%) scale(1.12)}72%{transform:translateY(0) scale(1.06,.92)}}
-@keyframes fmShake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-7px)}40%,80%{transform:translateX(7px)}}
+@keyframes fmNo{0%,100%{opacity:1}40%{opacity:.6}}
 @keyframes fmPop{from{transform:scale(0)}to{transform:scale(1)}}
 @keyframes fmGrow{from{transform:scale(.4)}to{transform:scale(1)}}
 @keyframes fmPluck{to{transform:translateY(-70%) scale(.3);opacity:0}}
 @keyframes fmLand{0%{transform:scale(1.12,.85)}100%{transform:scale(1)}}
 @keyframes fmHl{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-14%) scale(1.15)}}
 @keyframes fmBob{0%,100%{translate:0 0}50%{translate:0 -4px}}
-@keyframes fmPulse{0%,100%{scale:1}50%{scale:1.3}}
+@keyframes fmPulse{0%,100%{scale:1}50%{scale:1.18}}
 @keyframes fmZz{0%{translate:0 0;opacity:0}30%{opacity:1}100%{translate:8px -16px;opacity:0}}
 @keyframes fmGlow{0%,100%{filter:drop-shadow(0 0 2px rgba(255,214,90,.6))}50%{filter:drop-shadow(0 0 10px rgba(255,214,90,1))}}
 @keyframes fmDrop{0%{translate:0 -50px;scale:.3;opacity:0}60%{translate:0 4px;scale:1.12;opacity:1}100%{translate:0 0;scale:1}}
-@keyframes fmProdHl{0%,100%{scale:1}50%{scale:1.3}}
 @keyframes fmGot{to{scale:1.7;opacity:0}}
 @keyframes fmUp{0%{translate:0 0;opacity:0;scale:.5}20%{opacity:1;scale:1.15}100%{translate:0 -70px;opacity:0;scale:1}}
 @keyframes fmRing{from{scale:.3;opacity:1}to{scale:1.6;opacity:0}}
@@ -2010,37 +2270,23 @@ function css(){
 @keyframes fmFlap{from{scale:1 1}to{scale:.55 1}}
 @keyframes fmShoot{0%{translate:0 0;opacity:0}20%{opacity:1}100%{translate:-170px 76px;opacity:0}}
 @keyframes fmBubIn{from{scale:.6;opacity:0}to{scale:1;opacity:1}}
+@keyframes fmFade{from{opacity:0}to{opacity:1}}
 @keyframes fmNudge{0%,100%{translate:0 0}25%{translate:0 -6px}50%{translate:0 0}75%{translate:0 -3px}}
-@keyframes fmHint{0%,100%{box-shadow:0 4px 0 var(--line),0 0 0 0 rgba(31,157,98,.55)}50%{box-shadow:0 4px 0 var(--line),0 0 0 8px rgba(31,157,98,0)}}
-.fm-stage.crowd{height:400px}
-.fm-stage.crowd .fm-it{font-size:2.3rem}.fm-stage.crowd .fm-it.bg{font-size:3.1rem}.fm-stage.crowd .fm-it.xl{font-size:3.7rem}
-.fm-stage.crowd .fm-it.sd0{font-size:1.6rem}.fm-stage.crowd .fm-it.sd1{font-size:1.95rem}.fm-stage.crowd .fm-it.bg.sd0{font-size:1.7rem}.fm-stage.crowd .fm-it.bg.sd1{font-size:2.2rem}
 @media (max-width:560px){
-  .fm-stage{height:300px;border-radius:18px}
-  .fm-stage.crowd{height:390px}
-  .fm-stage.crowd .fm-it{font-size:1.9rem}.fm-stage.crowd .fm-it.bg{font-size:2.6rem}.fm-stage.crowd .fm-it.xl{font-size:3rem}
-  .fm-stage.crowd .fm-it.sd0{font-size:1.45rem}.fm-stage.crowd .fm-it.sd1{font-size:1.7rem}.fm-stage.crowd .fm-it.bg.sd0{font-size:1.5rem}.fm-stage.crowd .fm-it.bg.sd1{font-size:1.85rem}
-  .fm-it{font-size:2.2rem}.fm-it.bg{font-size:3rem}.fm-it.xl{font-size:3.5rem}
-  .fm-it.sd0{font-size:1.6rem}.fm-it.sd1{font-size:1.9rem}.fm-it.bg.sd0{font-size:1.7rem}.fm-it.bg.sd1{font-size:2.1rem}
   .fm-sun{width:46px;height:46px}
-  .fm-bar{grid-template-columns:1fr 1fr 54px;gap:8px}
-  .fm-bar .fm-tb{font-size:.98rem;padding:8px 8px;gap:6px}
-  .fm-bar .fm-help{width:54px}
-  .fm-chip{font-size:.92rem;padding:6px 12px}
   .fm-ft b{font-size:1.2rem}
   .fm-hint{font-size:.92rem;padding-left:12px}
-  .fm-hp{font-size:11px;padding:2px 5px}.fm-hp i{font-size:13px}
   .fm-shel{font-size:.85rem;padding:3px 9px 3px 5px;top:calc(var(--hz) - 48px)}.fm-she{font-size:1.25rem}
-  .fm-pan .fm-pbtn{padding:6px 12px;font-size:1rem}
-  .fm-fc{min-width:58px;padding:4px 9px;font-size:1.4rem}
-  .fm-foods{grid-template-columns:1fr 1fr}
-  .fm-food{padding:8px 9px;gap:7px}.fm-food .fe{font-size:1.8rem}
+  .fm-fc{width:68px;min-height:72px}
+  .fm-db{gap:6px;font-size:var(--fs-note)}
 }
-@media (max-width:359px){.fm-foods{grid-template-columns:1fr}}
+@media (max-width:359px){.fm-foods{grid-template-columns:1fr}.fm-db .ico{width:22px;height:22px}}
+/* «Reducir movimiento» (y html[data-motion=calm], que index.html copia de aquí): el escenario se queda quieto */
 @media (prefers-reduced-motion: reduce){
   .fm-cloud{animation:none!important;left:var(--cx)!important}
-  .fm-stars i,.fm-flies i,.fm-sun::before,.fm-need,.fm-zz,.fm-spk i,.fm-it.fly .fm-e,.fm-it.walk .fm-e,.fm-it.ripe .fm-e,.fm-prod,.fm-fire,.fm-flame,.fm-qb,.fm-hp,.fm-shel,.fm-food.new{animation:none!important}
+  .fm-stars i,.fm-flies i,.fm-sun::before,.fm-need,.fm-zz,.fm-spk i,.fm-it.fly .fm-e,.fm-it.walk .fm-e,.fm-it.ripe .fm-e,.fm-prod,.fm-fire,.fm-flame,.fm-shel,.fm-ask,.fm-db.nudge,.fm-bfly{animation:none!important}
   .fm-it,.fm-hero{transition:none!important}
+  .fm-tray.in,.fm-pop.in,.fm-bub.in{animation-name:fmFade!important}   /* aparecen sin crecer (lo de dentro no se mueve) */
 }`;
   document.head.appendChild(st);
 }
