@@ -44,8 +44,8 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   Seguir · Salir, y el juego parado), `sw.js` y una vuelta por todo que deja la partida igual que la de la base.
 - `test_f2_fix.py` (arreglos de las revisiones de F2): la barra de arriba desde 820 px (cabe con la pastilla, 5 cifras
   de monedas y texto grande, se aprieta por pasos o baja), el borde de la pastilla «Guardar», 3 superficies con
-  desenfoque como mucho, la Puerta (200 aperturas tocando al azar, teclado físico, un minuto de espera, Premios ›
-  Para mayores), rutas y lecciones que no existen, la ✕ del modo foco, el scroll al volver atrás, los avisos en los
+  desenfoque como mucho, la Puerta (200 aperturas tocando al azar, teclado físico, un minuto de espera; desde F4c
+  Premios ya no tiene «Para mayores»), rutas y lecciones que no existen, la ✕ del modo foco, el scroll al volver atrás, los avisos en los
   segmentos y del refugio, hojas opacas a toda altura y centradas en el ordenador, «Reducir movimiento» en el fondo de
   las hojas, la hoja corta del aviso de Google, Voz y velocidad sin tecnicismos, el título de cada pantalla, créditos
   y privacidad en español, Hoy en móviles bajos, el borde de la granja y el accesorio a lo ancho.
@@ -119,6 +119,17 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   `data/lince.json` válido (≥ 12 pares por idioma, palabras del corpus con audio y dibujo), sin bucles infinitos, la
   fila de arriba que cabe en el móvil, contraste/paleta (capturas `F4a-juegos-*` y `F4a-lince-*` en `capturas/F4`) y
   la partida exportada como la base.
+- `test_f4_premios.py` (F4c, `js/rewards.js` y `js/album.js`): `ROUTES.progreso`/`ROUTES.mizorro`, `window.vocabRewards`,
+  los segmentos Medallas · Mi zorro y `js/rewards.js` en `SHELL` y `OFF_APP`; Premios cabe en 2 alturas a 390×844 con la
+  partida sembrada y sin lo que se quitó (casillas, calendario, ayuda, mayores); la semana de lunes a domingo (sembrada
+  y sin práctica hoy: hoy vacío, nada late); «Tu próxima medalla» = la de más progreso (también con 990 de 1000 monedas);
+  la hoja de detalle (falta / conseguida, ratón y teclado); una medalla nueva gira una vez (`vocab:ui.medals`); Mi zorro
+  (comprar un sombrero resta una vez y se lo pone, saltito, quitárselo, elegir la rana, sin piezas de la granja); el
+  álbum: portada con anillo y una línea y las partes en un control segmentado (`album:tab`, flechas, recargar),
+  deslizar `#al-page` con el dedo (CDP: < 60 px, en diagonal, con un diálogo abierto o sin tema a ese lado no pasa) y
+  la hoja «Tema», despegar (uno y todos) y completar un tema que da 50 una sola vez, la tarjeta con botones de icono y la
+  IPA solo con la opción; sin bucles infinitos; contraste/paleta (capturas `F4c-*` en `capturas/F4`) y la partida
+  exportada como la base.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

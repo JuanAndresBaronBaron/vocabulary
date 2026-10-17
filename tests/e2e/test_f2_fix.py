@@ -211,24 +211,24 @@ def test_gate_random_guessing_fails():
 
 
 def test_gate_keyboard_and_premios_details():
-    """La Puerta también se contesta con el teclado físico (cifras, Retroceso, Intro). En Premios, «Para mayores»
-    (detalle y descarga) pasa por la Puerta: sin ella se queda cerrado; al acertar se abre."""
+    """La Puerta también se contesta con el teclado físico (cifras, Retroceso, Intro): cancelarla da false y acertarla,
+    true. Premios ya no tiene apartado de mayores (F4c: el detalle se quitó; la descarga y lo demás están en Ajustes ›
+    Para mayores, tras la Puerta)."""
     page = C.new_page("desk")
     probs = []
     try:
         C.seed(page)
         C.goto(page, "#/progreso")
-        page.locator("details.adult summary").click()
+        if page.locator("main details.adult, main #adult, main #off-panel").count():
+            probs.append("Premios sigue teniendo su apartado «Para mayores» (va en Ajustes › Para mayores)")
+        page.evaluate("() => { window.__gp = adultGate({reason: 'Prueba'}); }")
         page.wait_for_selector("#gate[open]", timeout=3000)
         C.settle(page, 250)
-        if page.evaluate("document.querySelector('details.adult').open"):
-            probs.append("«Para mayores» de Premios se abre sin la Puerta")
         page.locator("#gt-x").click()
         page.wait_for_function("() => !document.getElementById('gate').open", timeout=3000)
-        page.wait_for_timeout(300)
-        if page.evaluate("document.querySelector('details.adult').open") or page.evaluate("document.getElementById('adult').innerHTML"):
-            probs.append("al cancelar la Puerta, «Para mayores» de Premios se abre igual")
-        page.locator("details.adult summary").click()
+        if page.evaluate("() => window.__gp") is not False:
+            probs.append("al cancelar la Puerta no devuelve false")
+        page.evaluate("() => { window.__gp = adultGate({reason: 'Prueba'}); }")
         page.wait_for_selector("#gate[open]", timeout=3000)
         C.settle(page, 250)
         q = page.evaluate("document.querySelector('#gt-q b').textContent")
@@ -241,10 +241,9 @@ def test_gate_keyboard_and_premios_details():
         if page.evaluate("document.getElementById('gt-f').textContent") != str(s):
             probs.append(f"el teclado físico no escribe en el campo: {page.evaluate('document.getElementById(`gt-f`).textContent')!r}")
         page.keyboard.press("Enter")
-        page.wait_for_function("() => document.querySelector('details.adult').open", timeout=3000)
-        page.wait_for_function("() => document.getElementById('adult').innerHTML.length > 0", timeout=4000)
-        if page.locator("main #off-panel").count():
-            probs.append("Premios sigue teniendo su propia «Descargar todo» (está en Ajustes › Para mayores)")
+        page.wait_for_function("() => !document.getElementById('gate').open", timeout=3000)
+        if page.evaluate("() => window.__gp") is not True:
+            probs.append("al acertar con el teclado la Puerta no devuelve true")
         probs += C.errors(page)
     finally:
         page.context.close()

@@ -607,24 +607,8 @@ input[type=search]{flex:1;min-width:180px;padding:10px 14px;border:1px solid var
 .pr-end{text-align:center;padding:30px 20px}
 .pr-end .big{font-size:2.6rem}
 
-/* progreso */
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:14px 0}
-.stat{background:var(--card);border:1px solid transparent;border-radius:var(--r-card);padding:12px 14px;box-shadow:var(--shadow);text-decoration:none;display:block}
-.stat .v{font-size:1.6rem;font-weight:800;line-height:1.15}
-.stat .k{font-size:.82rem;color:var(--muted)}
-.stat.hl{background:var(--brand-fill);color:#fff;border-color:transparent}.stat.hl .k{color:rgba(255,255,255,.88)}
-.days{display:flex;gap:4px;align-items:flex-end;height:80px;margin:10px 0 4px}
-.days i{flex:1;background:var(--line);border-radius:4px 4px 0 0;min-height:4px}
-.days i.on{background:var(--teal)}
+/* etiquetas de los extremos de una barra (Voz y velocidad) y la barra de «Descargar todo» */
 .dlbl{display:flex;justify-content:space-between;font-size:.75rem;color:var(--muted)}
-.ptable{width:100%;border-collapse:collapse;font-size:.92rem}
-.ptable td,.ptable th{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
-.ptable th{font-size:.78rem;color:var(--muted);font-weight:600}
-.ptable a{text-decoration:none}.ptable a:hover{color:var(--brand)}
-.mbar{height:8px;background:var(--line);border-radius:99px;overflow:hidden;display:flex;min-width:80px}
-.mbar i{display:block;height:100%}
-.mbar .m{background:var(--ok)}.mbar .l{background:var(--brand);opacity:.6}
-@media (max-width:360px){.ptable .mbar{min-width:52px}}
 .off-bar{height:8px;border-radius:999px;background:var(--fill);overflow:hidden;margin:12px 0 6px}
 .off-bar i{display:block;height:100%;width:0;background:var(--teal);border-radius:inherit;transition:width .2s}
 @media (prefers-reduced-motion:reduce){.off-bar i{transition:none}}
@@ -640,7 +624,6 @@ dialog::backdrop{background:rgba(0,0,0,.35)}
 dialog h2{margin:0 0 6px}
 dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 #cfg-th button{flex:1}
-:root[data-theme=dark] .lvm .ring b{color:color-mix(in srgb,var(--lc) 55%,#fff)}
 /* lección: sus estilos van con js/lesson.js (<style id="css-lesson">) */
 /* el botón principal es siempre azul (un solo color para lo que se toca); --lc queda para cabeceras y adornos del nivel o juego */
 .btn.lc{background:var(--brand-fill);border-color:transparent;color:#fff;font-weight:700;padding:11px 22px;box-shadow:0 4px 0 color-mix(in srgb,var(--brand-fill) 60%,#000)}
@@ -661,10 +644,6 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .hero.pjh .h-hand{left:-.06em;right:auto;bottom:-.03em;font-size:.32em;transform:rotate(-12deg)}
 .hero.pjh .h-pet{left:auto;right:-.2em;bottom:-.02em;font-size:.48em}
 .hero.pjh .h-pet .pj{display:block}
-.me{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin:6px 0 10px}
-.me-info{flex:1;min-width:200px}
-.me-info input{font:inherit;font-size:1.3rem;font-weight:800;border:2px dashed var(--line);background:transparent;color:var(--ink);border-radius:12px;padding:6px 10px;width:min(100%,320px)}
-.me-coins{font-size:1.2rem;margin:8px 0 4px}
 .farm{position:relative;height:340px;border-radius:var(--r-card);overflow:hidden;background:linear-gradient(#8fd3ff 0%,#c9ecff 44%,#6cc551 44%,#4fa83a 100%);box-shadow:var(--shadow);user-select:none}
 [data-theme=dark] .farm{background:linear-gradient(#1d3b6b 0%,#2b5a8a 44%,#2f7a2a 44%,#215c1e 100%)}
 .farm .sun{position:absolute;right:20px;top:14px;font-size:2.6rem}
@@ -698,37 +677,8 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .speech{position:relative;background:var(--card);border:2px solid var(--line);border-radius:var(--r-card);padding:12px 16px;font-size:1.15rem;box-shadow:var(--shadow)}
 .speech::before{content:"";position:absolute;left:-12px;top:50%;border:10px solid transparent;border-right-color:var(--line);transform:translateY(-50%)}
 .speech b{display:block;font-size:1.4rem}
-/* premios */
-.kid-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin:10px 0 14px}
-.ks{background:var(--card);border:2px solid transparent;border-radius:var(--r-card);padding:12px;text-align:center;text-decoration:none;display:flex;flex-direction:column;align-items:center}
-.ks span{font-size:2rem}.ks b{font-size:1.7rem;line-height:1.1}.ks small{color:var(--muted)}
-.cal{display:grid;grid-template-columns:repeat(14,1fr);gap:4px}
-.cd{display:flex;flex-direction:column;align-items:center;gap:3px}
-.cd span{width:100%;aspect-ratio:1;max-width:42px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;font-size:1.15rem}
-.cd.on span{background:var(--gold-soft)}
-.cd.today span{outline:3px solid var(--brand)}
-.cd small{font-size:.7rem;color:var(--muted);text-transform:uppercase}
-.lvms{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.lvm{display:flex;flex-direction:column;align-items:center;gap:4px;text-decoration:none}
-.lvm .ring{width:76px;height:76px;border-radius:50%;background:conic-gradient(var(--lc) calc(var(--p)*1%),var(--line) 0);display:flex;align-items:center;justify-content:center}
-.lvm .ring b{width:58px;height:58px;border-radius:50%;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:1.2rem;color:var(--lc)}
-.lvm.full .ring b{font-size:1.8rem}
-.lvm small{color:var(--muted);font-weight:700}
-.achs{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.ach{border:2px dashed var(--line);border-radius:var(--r-md);padding:12px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
-.ach .ae{font-size:2.3rem;filter:grayscale(1);opacity:.45}
-.ach.ok{border-style:solid;border-color:var(--gold);background:color-mix(in srgb,var(--gold) 12%,var(--card))}
-:root[data-theme=dark] .ach.ok{background:var(--card)}
-.ach.ok .ae{filter:none;opacity:1}
-.ach small{color:var(--muted);font-size:.78rem}
-.ach .done{color:var(--ok-ink);font-style:normal;font-weight:700;font-size:.85rem}
-.abar{width:80%;height:8px;border-radius:99px;background:var(--line);overflow:hidden}.abar i{display:block;height:100%;background:var(--gold)}
-details.adult summary{cursor:pointer;font-weight:700;color:var(--muted)}
-details.adult[open] summary{margin-bottom:10px}
-/* en el móvil, el personaje y el nombre ocupan poco: así la granja se ve antes */
-@media (max-width:560px){.me{gap:14px;flex-wrap:nowrap;margin:0 0 4px}.me>.hero{font-size:76px!important}.me-info{min-width:0}
-  .me-info input{font-size:1.1rem;width:100%;padding:5px 9px}.me-coins{margin:4px 0 0;font-size:1.1rem}.me-info>.count{display:none}.me-info h1{font-size:1.4rem}}
-@media (max-width:560px){.cal{grid-template-columns:repeat(7,1fr)}.hello{gap:12px}.speech{font-size:1rem}.speech b{font-size:1.15rem}.farm{height:300px}.fi{font-size:2rem}.fi.bg{font-size:2.8rem}}
+/* Premios (Medallas y Mi zorro): sus estilos van con js/rewards.js (<style id="css-rewards">) */
+@media (max-width:560px){.hello{gap:12px}.speech{font-size:1rem}.speech b{font-size:1.15rem}.farm{height:300px}.fi{font-size:2rem}.fi.bg{font-size:2.8rem}}
 </style>
 </head>
 <body>
@@ -1078,45 +1028,13 @@ function streak(){
   return s;
 }
 function updBadge(){ const n = dueList().length; tabBadge("aprender", n, n === 1 ? "1 palabra para repasar" : `${n} palabras para repasar`, "#/repaso"); }
-function statsHtml(){
-  const m = Object.values(srsAll()), due = m.filter(x=>x.due<=today()).length, mast = m.filter(x=>x.b>=MASTER).length;
-  const a = store.get("act", {}), st = streak();
-  return `<div class="stats">
-    <a class="stat hl" href="#/repaso"><div class="v">🔁 ${due}</div><div class="k">Para repasar hoy</div></a>
-    <a class="stat" href="#/progreso"><div class="v">🔥 ${st}</div><div class="k">${st===1?"día seguido":"días seguidos"}</div></a>
-    <a class="stat" href="#/granja"><div class="v">🪙 ${game().coins}</div><div class="k">Monedas</div></a>
-    <a class="stat" href="#/progreso"><div class="v">💎 ${mast}</div><div class="k">Palabras que ya no olvidas</div></a>
-  </div>`;
-}
 const inDays = n => n<=0 ? "hoy otra vez" : n===1 ? "mañana" : n<30 ? `en ${n} días` : n<60 ? "en 1 mes" : `en ${Math.round(n/30)} meses`;
 
 /* el repaso (Aprender › Repasar, #/repaso) está en js/review.js: repaso(), rvStart(), rvDraw() y «Dilo primero», con
    su ruta en ROUTES. Aquí queda su estado, porque lo miran el modo foco, Hoy y el accesorio «Seguir»: rv = null o
    {q: [{id, r}], i, done, total, coins, …}; abierto mientras i < q.length (rvOpen()). */
 let rv = null;
-
-async function progreso(el){
-  const idx = await getIndex(), m = Object.values(srsAll()), a = store.get("act", {});
-  const days = []; for(let k=13; k>=0; k--){ const d = new Date(); d.setDate(d.getDate()-k); days.push({k:dayKey(d), n:a[dayKey(d)]||0, lbl:d.toLocaleDateString("es",{weekday:"short"})}); }
-  const max = Math.max(1, ...days.map(x=>x.n));
-  const by = {}; for(const x of m){ const o = by[x.d] = by[x.d] || {l:0, m:0}; if(x.b>=MASTER) o.m++; else o.l++; }
-  const rows = idx.filter(d => d.langs.includes(lang)).map(d => {
-    const o = by[d.id] || {l:0, m:0}, pm = 100*o.m/d.count, pl = 100*o.l/d.count;
-    return `<tr><td><a href="#/doc/${d.id}">${d.num?String(d.num).padStart(2,"0")+" · ":""}${esc(d.title)}</a></td>
-      <td>${o.m} / ${d.count}</td><td style="width:40%"><div class="mbar"><i class="m" style="width:${pm}%"></i><i class="l" style="width:${pl}%"></i></div></td></tr>`;
-  }).join("");
-  const total = days.reduce((s,x)=>s+x.n,0);
-  (el || $("#app")).innerHTML = `${el ? "" : `<h1>Tu progreso <span style="color:var(--muted);font-weight:400">en ${LANGS[lang].name}</span></h1>
-    ${statsHtml()}`}
-    <div class="panel"><h2>Últimos 14 días</h2><div class="count">${total} repeticiones en total. La racha cuenta los días seguidos con al menos una práctica, test o repaso.</div>
-      <div class="days">${days.map(x=>`<i class="${x.n?"on":""}" style="height:${Math.max(5, 100*x.n/max)}%" title="${x.k}: ${x.n}"></i>`).join("")}</div>
-      <div class="dlbl"><span>${days[0].lbl}</span><span>hoy</span></div></div>
-    <div class="panel"><h2>Por documento</h2>
-      <div class="legend"><span><i style="background:var(--ok)"></i>Dominadas (repaso cada 14 días o más)</span><span><i style="background:var(--brand);opacity:.6"></i>Aprendiendo</span></div>
-      <table class="ptable"><thead><tr><th>Documento</th><th>Dominadas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
-    <div class="panel"><h2>📲 En el móvil y sin internet</h2>
-      <p class="sub">Instalar la app y descargarlo todo para usarla sin internet está en Ajustes (el engranaje) › Para mayores › La app. Tu progreso se guarda en cada dispositivo (y en Google si lo conectas).</p></div>`;
-}
+/* (el detalle por documento de «Para mayores» de Premios se quitó con Premios nuevo: js/rewards.js) */
 
 /* ---------- app instalable y sin internet ---------- */
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
@@ -1124,7 +1042,7 @@ async function progreso(el){
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
 const OFF_SHELL = "vocab-shell-v18", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
-  "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/buddy.js", "js/album.js",
+  "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
@@ -1344,7 +1262,8 @@ const TABS = [
   {id:"jugar", t:"Jugar", ic:"game-controller", root:"#/juegos", title:"Jugar", secs:["juegos", "album"],
     segs:[{t:"Juegos", h:"#/juegos", secs:["juegos"]}, {t:"Álbum", h:"#/album", secs:["album"]}]},
   {id:"granja", t:"Granja", ic:"barn", root:"#/granja", title:null, secs:["granja"]},
-  {id:"premios", t:"Premios", ic:"trophy", root:"#/progreso", title:"Premios", secs:["progreso"], segs:[{t:"Medallas", h:"#/progreso", secs:["progreso"]}]},
+  {id:"premios", t:"Premios", ic:"trophy", root:"#/progreso", title:"Premios", secs:["progreso", "mizorro"],
+    segs:[{t:"Medallas", h:"#/progreso", secs:["progreso"]}, {t:"Mi zorro", h:"#/mizorro", secs:["mizorro"]}]},
 ];
 const hashPath = (hash = location.hash) => hash.replace(/^#\/?/, "").split("?")[0];
 const secOf = h => String(h || "").split("/")[0];
@@ -1972,8 +1891,6 @@ function gameSet(g){ store.set("game", g); paintCoins(); }
 let coinShown = null, coinHold = 0;
 function paintCoins(o = {}){
   const v = game().coins;
-  /* todo lo que enseña monedas en la página de la granja (también tras una medalla, que no emite "coins") */
-  const mc = $(".me-coins b"); if(mc) mc.textContent = v;
   if(window.vocabShop) vocabShop.refreshPrices();   /* las piezas de la tienda pintadas (js/shop.js) */
   if(coinHold > 0 && !o.force) return;
   const up = coinShown !== null && v > coinShown;
@@ -2088,7 +2005,7 @@ function showGift(it){
           <button class="btn" id="gclose">¡Genial!</button></div></div>`;
       if(it) setTimeout(() => say(itemWord(it)), 300);
       $("#gclose").onclick = () => d.close();
-      if($("#gwear")) $("#gwear").onclick = () => { const g = game(); g.wear[it.t] = it.id; gameSet(g); d.close(); location.hash = "#/granja"; };
+      if($("#gwear")) $("#gwear").onclick = () => { const g = game(); g.wear[it.t] = it.id; gameSet(g); d.close(); location.hash = "#/mizorro"; };   /* los trajes están en Premios › Mi zorro */
     }, 650);
   };
 }
@@ -2098,45 +2015,8 @@ const art = n => n.startsWith("gafas") ? "unas " + n : (FEM.has(n) ? "una " : "u
 /* página: la granja es ROUTES.granja (js/farm.js): la escena a pantalla completa, su dock y su tienda (solo cosas de la
    granja, con js/shop.js); el nombre se cambia en Ajustes */
 
-/* página: mis premios */
-async function premios(){
-  await getMap(); await getShop(); document.onkeydown = null;
-  const g = game(), a = store.get("act", {}), st = streak(), P = mapP();
-  const m = Object.values(srsAll()), mast = m.filter(x => x.b >= MASTER).length, due = dueList().length;
-  const days = []; for(let k = 13; k >= 0; k--){ const d = new Date(); d.setDate(d.getDate() - k); days.push({n: a[dayKey(d)] || 0, l: d.toLocaleDateString("es", {weekday: "narrow"}), today: k === 0}); }
-  const lv = Object.entries(LVS).map(([k, v]) => {
-    const ls = lvLessons(k), d = ls.filter(l => P[l.id]).length, pct = Math.round(100 * d / ls.length);
-    return `<a class="lvm ${pct === 100 ? "full" : ""}" href="#/mapa/${k}" style="--lc:${v.c};--p:${pct}"><span class="ring"><b>${pct === 100 ? "🏅" : k}</b></span><small>${pct}%</small></a>`;
-  }).join("");
-  const ach = achList(), got = ach.filter(x => x.ok).length;
-  $("#app").innerHTML = `<div class="me">${heroHtml(96, g)}<div class="me-info"><h1 style="margin:0">Mis premios</h1>
-      <div class="sub" style="margin:4px 0 0">¡Mira todo lo que has conseguido${g.name ? ", " + esc(g.name) : ""}!</div></div></div>
-    <div class="kid-stats">
-      <a class="ks" href="#/granja"><span>🪙</span><b>${g.coins}</b><small>monedas</small></a>
-      <div class="ks"><span>🔥</span><b>${st}</b><small>${st === 1 ? "día seguido" : "días seguidos"}</small></div>
-      <div class="ks"><span>📚</span><b>${m.length}</b><small>palabras aprendidas</small></div>
-      <div class="ks"><span>💎</span><b>${mast}</b><small>palabras que ya no olvidas</small></div>
-      <div class="ks"><span>🏅</span><b>${got}</b><small>de ${ach.length} medallas</small></div>
-    </div>
-    <div class="panel"><h2>📅 Mis días de estudio</h2><p class="sub">Cada día que aprendes ganas una estrella. ¡No rompas la racha!</p>
-      <div class="cal">${days.map(x => `<div class="cd ${x.n ? "on" : ""} ${x.today ? "today" : ""}"><span>${x.n ? "⭐" : ""}</span><small>${x.today ? "hoy" : x.l}</small></div>`).join("")}</div></div>
-    <div class="panel"><h2>🗺️ Mis niveles</h2><p class="sub">Completa todas las lecciones de un nivel para ganar su medalla.</p><div class="lvms">${lv}</div></div>
-    <div class="panel"><h2>🏅 Mis medallas</h2><div class="achs">${ach.map(x => `<div class="ach ${x.ok ? "ok" : ""}"><span class="ae">${x.e}</span><b>${esc(x.t)}</b><small>${esc(x.d)}</small>
-      ${x.ok ? `<i class="done">✓ ¡Conseguida!</i>` : `<div class="abar"><i style="width:${Math.round(100 * x.v / x.goal)}%"></i></div><small>${x.v} / ${x.goal}</small>`}</div>`).join("")}</div></div>
-    <details class="panel adult"><summary>👨‍👩‍👦 Para mayores: detalle por documento e instalación</summary><div id="adult"></div></details>`;
-  /* «Para mayores»: antes, la Puerta (si no se pasa, se queda cerrado) */
-  const det = document.querySelector("details.adult"), sum = det.querySelector("summary");
-  det.ontoggle = () => {
-    if(!det.open) return;
-    const g = window.adultGate;
-    if(typeof g === "function" && !g.passed()){
-      det.open = false;
-      g({reason: "Aquí está el detalle de cada documento.", from: sum}).then(ok => { if(ok && det.isConnected) det.open = true; });
-      return;
-    }
-    if(!$("#adult").innerHTML) progreso($("#adult"));
-  };
-}
+/* página: Premios › Medallas (#/progreso) y Premios › Mi zorro (#/mizorro) están en js/rewards.js (ROUTES.progreso y
+   ROUTES.mizorro, window.vocabRewards). Las medallas (achList, checkAch) siguen aquí. */
 
 /* ---------- «Reducir movimiento» de Ajustes (html[data-motion=calm]) = el del aparato ----------
    Las reglas de cada hoja de estilos para @media (prefers-reduced-motion: reduce) se copian con :root[data-motion=calm]
@@ -2167,7 +2047,7 @@ function calmCss(){
 /* ---------- rutas ---------- */
 /* las rutas que existen: las de aquí y las de los módulos (ROUTES). Una que no existe (un enlace viejo o mal escrito)
    se cambia por Hoy en el historial, y así la pestaña, el título y el modo foco son los de Hoy */
-const KNOWN = ["", "leccion", "progreso"];   /* #/repaso: ROUTES.repaso (js/review.js); #/granja: js/farm.js; #/mapa, #/palabras, #/doc y #/gramatica: js/learn.js */
+const KNOWN = ["", "leccion"];   /* #/repaso: ROUTES.repaso (js/review.js); #/granja: js/farm.js; #/mapa, #/palabras, #/doc y #/gramatica: js/learn.js; #/progreso y #/mizorro: js/rewards.js */
 const knownRoute = hp => KNOWN.includes(secOf(hp)) || Object.prototype.hasOwnProperty.call(ROUTES, secOf(hp));
 let prevHp = null, mapScrolled = false;
 async function route(){
@@ -2187,7 +2067,6 @@ async function route(){
   try{
     await getShop();
     if(h.startsWith("leccion/")) await leccion(h.slice(8));
-    else if(h.startsWith("progreso")) await premios();
     else if(ROUTES[secOf(hp)]){ document.onkeydown = null; await ROUTES[secOf(hp)](h.split("/").slice(1)); }
     else await home();
   }catch(e){ console.error(e); $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
@@ -2215,6 +2094,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/lince.js"></script>
 <script src="js/buddy.js"></script>
 <script src="js/album.js"></script>
+<script src="js/rewards.js"></script>
 <script src="js/save.js"></script>
 <script src="js/sync.js"></script>
 <script src="js/gate.js"></script>
