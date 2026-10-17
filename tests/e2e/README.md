@@ -87,6 +87,17 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   Palabras › ficha › Preguntas; Gramática › Practicar; «Salir» a media lección y seguir con la cápsula; respuestas de la lección y de Preguntas que
   no se parten a media palabra (texto normal y grande, antes y después de contestar); francés y danés
   en cada pantalla de Aprender (y en el repaso y la lección); y una vuelta por todo F3 que deja la partida como la base.
+- `test_f4_shop.py` (F4-0, `js/shop.js`, `window.vocabShop`): comprar resta el precio una vez y emite `buy` una vez
+  (también con doble toque; la pieza pasa a «En tu granja», sale en la escena, suena la palabra y «¡Nuevo! …», sin
+  repintar la página); un traje comprado se pone; sin monedas no compra (cápsula gris «Te faltan N», aviso amable, sin
+  `bad` ni temblor); ponerse/quitarse alterna (y emite `wear`); el personaje no se quita («Eres tú» / «Elegir»);
+  `refreshPrices` con `award`, con un gasto que solo emite `coins` y a mano, sin volver a montar la granja; los selectores
+  de `farm.js` (`.shop .sc[data-id]`, `.se`, `.sn`, `[data-sb]`, `span.own`, `[data-buy]`, `[data-wear]`, `[data-shelter]`)
+  y «Ir al refugio» (una vez; desde una hoja la cierra; `goShelter()` desde otra pantalla); el regalo de bienvenida
+  pone al día las piezas; la API (`items`, `state`, `card` en cada estado, `images()` con 200, otra lengua); `bind()` en
+  otra pantalla con `onChange` y `off()`; piezas que caben, botones de 44 px y contraste/paleta en móvil y escritorio,
+  claro y oscuro (capturas `F4-0-tienda-*` en `capturas/F4`); la partida exportada como la base y `js/shop.js` en
+  `SHELL` y `OFF_APP`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

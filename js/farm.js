@@ -257,8 +257,10 @@ function spot(id, pos, y0){
   return {x: r1(best.x), y: r1(best.y)};
 }
 
-/* el regalo de bienvenida ya está en la granja: actualiza las tarjetas de la tienda ya pintadas */
+/* el regalo de bienvenida ya está en la granja: actualiza las tarjetas de la tienda ya pintadas (las de js/shop.js se
+   ponen al día solas con vocabShop.sync(); lo de abajo queda para unas tarjetas sin ese módulo) */
 function patchShop(ids){
+  if(window.vocabShop && typeof window.vocabShop.sync === "function"){ window.vocabShop.sync(); return; }
   ids.forEach(id => {
     const it = itemById(id); if(!it) return;
     document.querySelectorAll(".shop .sc").forEach(sc => {
@@ -271,8 +273,9 @@ function patchShop(ids){
   });
 }
 
-/* la tienda de index.html ya pintada: «🏚️ En el refugio» ↔ «✓ En tu granja» */
+/* la tienda ya pintada: «🏚️ En el refugio» ↔ «✓ En tu granja» (con js/shop.js, vocabShop.sync() lee el refugio) */
 function patchShopShelter(sh){
+  if(window.vocabShop && typeof window.vocabShop.sync === "function"){ try{ window.vocabShop.sync(); }catch(e){} return; }
   try{
     const own = game().owned || {};
     document.querySelectorAll(".shop .sc[data-id]").forEach(sc => {
