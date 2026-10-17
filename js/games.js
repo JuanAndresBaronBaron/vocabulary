@@ -87,8 +87,8 @@ function pauseSheet(){
     <span class="gm-pz-ic" aria-hidden="true">${typeof ico === "function" ? ico("pause", "bold", 28) : "Ⅱ"}</span>
     <h2 class="gm-pz-t" id="gm-pz-t">¿Paramos aquí?</h2>
     <div class="gm-pz-b">
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="gm-pz-go" autofocus>${typeof ico === "function" ? ico("play", "fill", 20) : ""}Seguir</button>
-      <button type="button" class="glass-btn glass-btn--lg glass-btn--block" id="gm-pz-out">Salir</button></div></div>`;
+      <button type="button" class="glass-btn glass-btn--lg" id="gm-pz-out">Salir</button>
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="gm-pz-go" autofocus>${typeof ico === "function" ? ico("play", "fill", 20) : ""}Seguir</button></div></div>`;
   document.body.appendChild(d);
   PZ = {d, run: null, exit: false};
   d.addEventListener("click", e => {
@@ -473,7 +473,8 @@ dialog#gm-pause.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filte
 .gm-pz{display:flex;flex-direction:column;align-items:center;text-align:center;padding:4px 4px 8px}
 .gm-pz-ic{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;margin:4px 0 12px;color:var(--brand-tint,#1E6EF4);background:var(--fill,rgba(120,120,128,.16))}
 .gm-pz-t{margin:0 0 20px;font:700 var(--fs-t2,1.5rem)/1.2 var(--f-round,system-ui);color:var(--label,#000)}
-.gm-pz-b{display:flex;flex-direction:column;gap:12px;width:100%;max-width:360px}
+.gm-pz-b{display:flex;gap:12px;width:100%;max-width:440px}
+.gm-pz-b>*{flex:1}
 @media (prefers-reduced-motion: reduce){
   .gm *,.gm-intro *{animation-duration:.01ms!important;animation-iteration-count:1!important;animation-delay:0s!important}
   .gm-mc-in{transition:none}

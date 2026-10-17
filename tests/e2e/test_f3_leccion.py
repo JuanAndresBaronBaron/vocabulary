@@ -3,7 +3,8 @@
 Acertar pasa sola al acabar el audio (nunca antes de 0,9 s); fallar deja la elegida en gris con ✗ y la buena en verde
 con ✓, sin temblor, sin vibración y sin sonido triste, y el botón dice «Seguir». Deslizar la tarjeta de palabra nueva
 es lo mismo que «Continuar». Lo hecho se guarda en sessionStorage 'vocab:ls' y se recupera al recargar; Atrás del
-navegador a mitad pregunta «¿Paramos aquí?» (guarda de salida de route()) y «Salir» lo borra. El final: estrellas de una
+navegador a mitad pregunta «¿Paramos aquí?» (guarda de salida de route()) y «Salir» lo deja para seguir luego con la
+cápsula «Seguir» (plan-doc §Lección); terminarla lo borra. El final: estrellas de una
 en una, monedas una sola vez, «Mañana repasas N palabras», confeti, «Siguiente lección» y «Repetir». El camino y el
 repaso se guardan igual que en la versión anterior (BASE_REV) para la misma secuencia de respuestas."""
 from __future__ import annotations
@@ -320,7 +321,7 @@ def test_swipe_on_new_word_equals_continue():
 def test_reload_resumes_and_back_asks():
     """Recargar a mitad sigue donde estaba (mismo paso, lo hecho y lo fallado). Atrás del navegador a mitad saca
     «¿Paramos aquí?» sin salir de la lección; «Seguir» no pierde nada. Con la hoja abierta, un acierto no pasa solo
-    hasta cerrarla. «Salir» desde Atrás borra 'vocab:ls' y deja ir adonde iba."""
+    hasta cerrarla. «Salir» desde Atrás deja ir adonde iba con lo hecho en 'vocab:ls' (para la cápsula «Seguir»)."""
     page = C.new_page("phone")
     probs = []
     try:
@@ -373,14 +374,15 @@ def test_reload_resumes_and_back_asks():
         page.locator("#ls-pz-go").click()
         _wait_change(page, st["i"], 4000)
         page.wait_for_timeout(300)
-        # Atrás y «Salir»: borra lo guardado y va adonde iba (el camino)
+        # Atrás y «Salir»: va adonde iba (el camino) y lo hecho se queda para seguir luego
+        sv = page.evaluate(_SAVED)
         page.go_back()
         page.wait_for_selector("dialog#ls-pause[open]", timeout=4000)
         page.locator("#ls-pz-out").click()
         page.wait_for_function("() => location.hash.startsWith('#/mapa') && !document.documentElement.dataset.focus", timeout=6000)
         C.settle(page, 300)
-        if page.evaluate("sessionStorage.getItem('vocab:ls')") is not None or page.evaluate("!!(window.vocabLesson && vocabLesson.state)"):
-            probs.append("«Salir» no borra 'vocab:ls' o la lección sigue en marcha")
+        if page.evaluate(_SAVED) != sv or page.evaluate("!!(window.vocabLesson && vocabLesson.state)"):
+            probs.append(f"«Salir» no deja lo hecho en 'vocab:ls' ({page.evaluate(_SAVED)}, antes {sv}) o la lección sigue en marcha")
         if page.evaluate("!!document.querySelector('dialog[open]')"):
             probs.append("tras «Salir» queda una hoja abierta")
         probs += C.errors(page)
@@ -391,8 +393,8 @@ def test_reload_resumes_and_back_asks():
 
 def test_x_and_esc_ask_and_salir_goes_back():
     """La ✕ con algo hecho abre «¿Paramos aquí?» (en la primera tarjeta, sin nada hecho, sale sin preguntar); «Salir»
-    borra 'vocab:ls' y vuelve a donde estaba el niño (el camino). En el escritorio Esc hace lo mismo que la ✕. La
-    partida exportada no cambia por empezar y dejar una lección."""
+    vuelve a donde estaba el niño (el camino) con lo hecho en 'vocab:ls' y la cápsula «Seguir · Lección N» a la vista. En
+    el escritorio Esc hace lo mismo que la ✕. La partida exportada no cambia por empezar y dejar una lección."""
     probs = []
     for kind in ("phone", "desk"):
         page = C.new_page(kind)
@@ -426,8 +428,12 @@ def test_x_and_esc_ask_and_salir_goes_back():
             page.locator("#ls-pz-out").click()
             page.wait_for_function("() => location.hash.startsWith('#/mapa') && !document.documentElement.dataset.focus", timeout=6000)
             C.settle(page, 300)
-            if page.evaluate("sessionStorage.getItem('vocab:ls')") is not None:
-                probs.append(f"{kind}: «Salir» no borra 'vocab:ls'")
+            sv = page.evaluate(_SAVED)
+            if not sv or sv.get("id") != LESSON or sv.get("i") != 2:
+                probs.append(f"{kind}: «Salir» no deja lo hecho en 'vocab:ls': {sv}")
+            acc = page.evaluate("() => { const a = document.getElementById('acc'); return a && !a.hidden && a.getClientRects().length ? a.textContent.replace(/\\s+/g, ' ').trim() : null; }")
+            if not acc or not acc.startswith("Seguir · Lección"):
+                probs.append(f"{kind}: tras «Salir» no sale la cápsula «Seguir · Lección N»: {acc}")
             if C.current_hash(page) != "mapa":
                 probs.append(f"{kind}: «Salir» deja en #/{C.current_hash(page)}")
             d = C.diff_exports(base, C.export(page), allow_new=False)

@@ -284,12 +284,17 @@ dialog.cm-pk{max-width:480px}
   background:var(--card);color:var(--label);font:700 var(--fs-t3)/1.15 var(--f-round);text-align:center;overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto;
   cursor:pointer;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms);-webkit-tap-highlight-color:transparent}
 .qz-opts.is-long .qz-opt{font-size:var(--fs-head)}
+.qz-opts.is-xlong .qz-opt{font-size:var(--fs-sub)}
+.qz-ot{display:block;min-width:0;max-width:100%;overflow-wrap:normal;word-break:normal}
+.qz-opts.is-break .qz-ot{overflow-wrap:anywhere}
 .qz-opt:disabled{cursor:default;opacity:1}
 .qz-opt.is-dim{color:var(--label2)}
 .qz-opt.is-ok{background:var(--ok-fill);color:#fff;box-shadow:0 8px 20px -8px rgba(0,137,50,.7)}
 .qz-opt.is-miss{background:var(--miss-fill);color:var(--miss-on)}
 .qz-opt .chk{flex:none}
 .qz-opt .xm{flex:none;color:var(--miss)}
+.qz-opt.is-stack{flex-direction:column;gap:2px;padding-top:6px;padding-bottom:6px}
+.qz-opt.is-stack .chk,.qz-opt.is-stack .xm{width:20px;height:20px}
 .qz-opt.is-ok .ln-kbd,.qz-opt.is-miss .ln-kbd,.qz-opt.is-dim .ln-kbd{visibility:hidden}
 .qz-fb{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 8px;min-height:var(--tap);margin:0;text-align:center;
   font:700 var(--fs-t3)/1.25 var(--f-round);color:var(--ok-ink)}
@@ -921,6 +926,17 @@ async function fcAuto(doc){
 }
 
 /* ---------- Preguntas (antes «Test») ---------- */
+/* ninguna respuesta se parte a media palabra: si una no cabe, las 4 bajan de tamaño juntas; solo si ni así cabe, se parte */
+function fitQz(v){
+  const box = v && v.querySelector(".qz-opts"); if(!box) return;
+  const ots = [...box.querySelectorAll(".qz-ot")];
+  const over = t => t.scrollWidth > t.clientWidth + 1;
+  /* con la ✓ o la ✗ al lado no cabe: se pone encima */
+  box.querySelectorAll(".qz-opt").forEach(o => {
+    const t = o.querySelector(".qz-ot"); if(t && o.querySelector(".chk,.xm") && over(t)) o.classList.add("is-stack");
+  });
+  for(const c of ["is-long", "is-xlong", "is-break"]){ if(!ots.some(over)) return; box.classList.add(c); }
+}
 function test(doc){
   clearGest();
   const v = $("#view"), list = entries(doc), lc = code();
@@ -947,10 +963,11 @@ function test(doc){
       <span class="qz-n">${t.i + 1}/${t.qs.length}</span></div>
     <div class="qz-card">${picHtml(r)}<h2 class="qz-ask">¿Cómo se dice <q>${esc(r.es)}</q>?</h2></div>
     <div class="qz-opts${long ? " is-long" : ""}" role="group" aria-label="Respuestas">${opts.map((o, i) =>
-      `<button type="button" class="qz-opt" data-i="${i}" data-press="sink" lang="${esc(lc)}"><kbd class="ln-kbd" aria-hidden="true">${i + 1}</kbd><span>${esc(o.l[lang].word)}</span></button>`).join("")}</div>
+      `<button type="button" class="qz-opt" data-i="${i}" data-press="sink" lang="${esc(lc)}"><kbd class="ln-kbd" aria-hidden="true">${i + 1}</kbd><span class="qz-ot">${esc(o.l[lang].word)}</span></button>`).join("")}</div>
     <p class="qz-fb" id="qz-fb" role="status"></p>
     <div class="qz-go"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="nextq" hidden>Siguiente</button></div></div>`;
   const btns = [...v.querySelectorAll(".qz-opt")], fb = $("#qz-fb"), next = $("#nextq");
+  fitQz(v);
   btns.forEach(b => b.onclick = () => {
     if(t.answered === t.i) return; t.answered = t.i;
     const pick = opts[+b.dataset.i], good = pick === r;
@@ -964,6 +981,7 @@ function test(doc){
       else if(x === b){ x.classList.add("is-miss"); x.insertAdjacentHTML("afterbegin", ico("x", "bold", 22, "xm")); }
       else x.classList.add("is-dim");
     });
+    fitQz(v);   /* la ✓ y la ✗ quitan sitio: que la palabra siga entera */
     if(good && W.M) try{ M.ok(right, {haptic: true}); }catch(_){}
     const ipa = ui().ipa && d.ipa ? `<small>${esc(d.ipa)}</small>` : "";
     fb.className = "qz-fb" + (good ? "" : " miss");

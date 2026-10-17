@@ -52,7 +52,8 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
 - `test_f3_leccion.py` (F3a, `js/lesson.js`): acertar pasa solo ≤ 1,2 s tras el audio y nunca antes de 0,9 s (audio
   simulado), fallar en gris con ✗ y la buena en verde sin temblor, vibración ni sonido triste, deslizar con
   PointerEvents sintéticos igual que «Continuar», recargar a mitad sigue donde estaba, Atrás a mitad pregunta
-  «¿Paramos aquí?» (guarda de salida) y «Salir» borra `vocab:ls`, el accesorio «Seguir · Lección N», el final (estrellas
+  «¿Paramos aquí?» (guarda de salida) y «Salir» deja lo hecho en `vocab:ls` para la cápsula «Seguir · Lección N»
+  (plan-doc), el accesorio «Seguir · Lección N», el final (estrellas
   de una en una, monedas una vez, «Mañana repasas N palabras», confeti), la gramática, «Cómo suena» y el camino y el
   repaso guardados igual que en la versión anterior (commit 3396fc7) para la misma secuencia.
 - `test_f3_repaso.py` (F3b, `js/review.js`): `#/repaso` directo a la primera tarjeta en modo foco, girar (350 ms, con
@@ -70,6 +71,13 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   PointerEvents sintéticos escribe lo mismo que `srsAdd(id, [fila], 0)`, Preguntas igual que `srsGrade` (fallo gris,
   sin temblor, paga una vez), Escribir con `prPrefs`, `prAuto`, `prEx` y `pr:<tema>:<idioma>` de siempre, Gramática que
   despliega y «Practicar», URL directas (y `#/doc` sin tema → `#/palabras`) y la partida igual tras recorrerlo todo.
+- `test_f3_int.py` (F3 entero): orden de carga de `js/lesson.js`, `js/review.js` y `js/learn.js` (detrás del script
+  principal, de `motion.js` y de `gestures.js`, listos al primer `route()`), `sw.js` en la versión 17 o más con los tres
+  en `SHELL` y `OFF_APP`; cada ruta de F3 por enlace directo, al recargar y navegando (pestaña, segmentos, nodo del
+  camino, «Practicar»); Hoy › Empezar › fin de lección › «Siguiente lección»; Hoy › Repasar › final › «Seguir» a Hoy;
+  Palabras › ficha › Preguntas; Gramática › Practicar; «Salir» a media lección y seguir con la cápsula; respuestas de la lección y de Preguntas que
+  no se parten a media palabra (texto normal y grande, antes y después de contestar); francés y danés
+  en cada pantalla de Aprender (y en el repaso y la lección); y una vuelta por todo F3 que deja la partida como la base.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

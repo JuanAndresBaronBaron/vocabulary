@@ -158,7 +158,7 @@ function swipe(el, o = {}){
     if(!S.on){
       if(Math.hypot(raw, dy) < S.slop) return;
       if(Math.abs(raw) <= AXIS * Math.abs(dy) || taken(e.pointerId, S)) return stop();
-      S.on = true; claim(e.pointerId, S); capture(el, e.pointerId); unpress();
+      S.on = true; claim(e.pointerId, S); capture(el, e.pointerId); unpress(); hintAway(el);
     }
     S.dx = shape(raw, S.w);
     call(o.onMove, {dx: S.dx, raw, dy, p: S.dx / S.th, dir: S.dx < 0 ? "left" : "right", el, e});
@@ -272,7 +272,7 @@ function drag(el, o = {}){
     if(!S.on){
       if(Math.hypot(dx, dy) < S.slop) return;
       if(taken(e.pointerId, S)) return stop();
-      S.on = true; claim(e.pointerId, S); capture(el, e.pointerId); unpress();
+      S.on = true; claim(e.pointerId, S); capture(el, e.pointerId); unpress(); hintAway(el);
       if(o.ghost) S.ghost = makeGhost(el, o.ghost, el.getBoundingClientRect());
       el.classList.add("g-dragging");
       if(call(o.onStart, info(S, e)) === false){ el.classList.remove("g-dragging"); if(S.ghost) S.ghost.remove(); return stop(); }
@@ -422,6 +422,11 @@ function learned(id){
   if(!id) return;
   hintSet(String(id), LEARNED);
   if(CUR && CUR.id === String(id)) CUR.close(false);
+}
+/* al arrancar un gesto sobre el elemento de la pista, el globo se aparta (no tapa lo que se arrastra); si el gesto se
+   completa, learnOn la da por aprendida igual (data-g-hint sigue en el elemento) */
+function hintAway(el){
+  try{ if(CUR && CUR.node && CUR.el && (CUR.el === el || el.contains(CUR.el) || CUR.el.contains(el))) CUR.close(false); }catch(e){}
 }
 /* usar el gesto donde estaba la pista la da por aprendida */
 function learnOn(el){

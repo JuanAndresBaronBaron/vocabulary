@@ -17,12 +17,13 @@
      «Repetir». La ✕ y Esc vuelven al camino.
    Guardado mientras se hace: sessionStorage "vocab:ls" = {id, i, first, miss, n, lang} (i: pasos hechos; first: las que
      acertó a la primera; miss: las falladas; n: pasos en total). Se escribe en cada paso desde el primero hecho y se borra
-     al terminar o con «Salir». leccion(id) lo recupera si es la misma lección y el mismo idioma. Avisa al accesorio
-     «Seguir · Lección N» (window.vocabAccessory.refresh()). No es de la partida (sessionStorage: save.js no lo mira).
+     al terminar. «Salir» lo deja: el niño sigue donde estaba con la cápsula «Seguir · Lección N» o con «Seguir» en Hoy
+     (plan-doc §Lección). leccion(id) lo recupera si es la misma lección y el mismo idioma. Avisa al accesorio
+     (window.vocabAccessory.refresh()). No es de la partida (sessionStorage: save.js no lo mira).
    Guarda de salida: route() (index.html) llama antes de nada a vocabLesson.blocks(hashPath()). Con una lección empezada,
      salir de su ruta sin la ✕ (Atrás del navegador, el gesto de Safari, un enlace) vuelve a la lección con
-     history.pushState y pregunta «¿Paramos aquí?»: Seguir no pierde nada; Salir borra lo guardado y deja ir adonde iba
-     (history.back(), que es la entrada a la que quería ir).
+     history.pushState y pregunta «¿Paramos aquí?»: Seguir no pierde nada; Salir deja ir adonde iba (history.back(), que
+     es la entrada a la que quería ir), con lo hecho guardado para seguir luego.
    API (global, la usa route()): leccion(id) · lsStep() · lsEnd() · gramLesson(id) · gStep()
      window.vocabLesson = {state (la lección en marcha o null), saved(), blocks(hp), ask(from), syllables(text, lang)} */
 (() => {
@@ -112,6 +113,9 @@ const CSS = `
 .ls-opts.is-long .ls-opt{font-size:var(--fs-head)}
 .ls .ls-opt.has-pic{justify-content:flex-start;padding-left:10px;text-align:left;font-size:var(--fs-t3)}
 .ls .ls-opts.is-long .ls-opt.has-pic{font-size:var(--fs-head)}
+.ls .ls-opts.is-xlong .ls-opt,.ls .ls-opts.is-xlong .ls-opt.has-pic{font-size:var(--fs-sub)}
+.ls-ot{display:block;min-width:0;max-width:100%;overflow-wrap:normal;word-break:normal}
+.ls-opts.is-break .ls-ot{overflow-wrap:anywhere}
 .ls-opt img{flex:none;box-sizing:border-box;width:48px;height:48px;padding:3px;border-radius:10px;background:#fff;object-fit:contain;-webkit-user-drag:none}
 :root[data-theme=dark] .ls-opt img{background:#F2F2F7}
 .ls-opt .ls-k{display:none;position:absolute;left:8px;top:8px}
@@ -124,6 +128,12 @@ const CSS = `
 .ls-opt.is-ok .ls-k,.ls-opt.is-miss .ls-k,.ls-opt.is-dim .ls-k{visibility:hidden}
 .ls-opt .chk{flex:none;width:24px;height:24px}
 .ls-opt .xm{flex:none;color:var(--miss)}
+.ls .ls-opt.is-stack{flex-direction:column;gap:2px;padding-top:6px;padding-bottom:6px}
+.ls-opt.is-stack .chk,.ls-opt.is-stack .xm{width:20px;height:20px}
+.ls-opt.has-pic .chk,.ls-opt.has-pic .xm{position:absolute;left:38px;top:calc(50% + 4px);z-index:1;box-sizing:border-box;width:26px;height:26px;padding:5px;
+  border-radius:50%;box-shadow:0 0 0 2px #fff}
+.ls-opt.has-pic .chk{background:var(--ok-fill);color:#fff}
+.ls-opt.has-pic .xm{background:var(--miss-fill)}
 .ls-fb{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 8px;margin:4px 0 0;text-align:center;
   font:700 var(--fs-t3)/1.25 var(--f-round);color:var(--ok-ink)}
 .ls-fb:empty{display:none}
@@ -170,6 +180,10 @@ const CSS = `
 .ls-tmr{margin:0;font:400 var(--fs-body)/1.3 var(--f-text);color:var(--label2)}
 .ls-tmr:empty{display:none}
 .ls-extra:empty{display:none}
+.ls-extra{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.ls-extra .btn.al-ls{display:inline-flex;align-items:center;gap:8px;min-height:var(--tap);margin:0;padding:0 16px;border:0;border-radius:var(--r-pill);
+  background:var(--fill2);color:var(--brand-ink);box-shadow:none;font:600 var(--fs-sub)/1.2 var(--f-text);text-decoration:none}
+.ls-extra .btn.al-ls .ico{color:var(--gold-deep)}
 .ls-end .ls-rep{flex:none;padding:0 20px}
 .ls-end .ls-rep:only-child{flex:1}
 .ls-pz,.ls-how{display:flex;flex-direction:column;align-items:center;text-align:center;padding:4px 4px 8px}
@@ -362,6 +376,19 @@ function options(w, field){
 const optsHtml = (list, o = {}) => `<div class="ls-opts${list.some(x => String(x.v).length > 11) ? " is-long" : ""}" role="group" aria-label="Respuestas">${list.map((x, k) =>
   `<button type="button" class="ls-opt${o.pics ? " has-pic" : ""}" data-press="sink" data-k="${k}"${x.lang ? ` lang="${x.lang}"` : ""}><kbd class="ls-k" aria-hidden="true">${k + 1}</kbd>${o.pics ? `<img src="${esc(x.r.img)}" alt="" draggable="false">` : ""}<span class="ls-ot">${esc(x.v)}</span></button>`).join("")}</div>`;
 
+/* ninguna respuesta se parte a media palabra («grandmothe·r»): si una palabra no cabe en su botón, las 4 bajan de tamaño
+   juntas (titular y luego 17 px); solo si ni así cabe, se parte */
+function fitOpts(pg){
+  const box = pg && pg.querySelector(".ls-opts"); if(!box) return;
+  const ots = [...box.querySelectorAll(".ls-ot")];
+  const over = t => t.scrollWidth > t.clientWidth + 1;
+  /* con la ✓ o la ✗ al lado no cabe: se pone encima (en las de foto va sobre la esquina de la foto) */
+  box.querySelectorAll(".ls-opt:not(.has-pic)").forEach(o => {
+    const t = o.querySelector(".ls-ot"); if(t && o.querySelector(".chk,.xm") && over(t)) o.classList.add("is-stack");
+  });
+  for(const c of ["is-long", "is-xlong", "is-break"]){ if(!ots.some(over)) return; box.classList.add(c); }
+}
+
 /* ---------- pasos de vocabulario ---------- */
 function lsStep(dir = 1){
   const s = LS; if(!s || s.ended) return;
@@ -400,7 +427,7 @@ function lsStep(dir = 1){
     </section>
     ${optsHtml(list, {pics})}
     <p class="ls-fb"></p></div>`, dir);
-  paintTop(idx); setGo(null); setPrev(false);
+  paintTop(idx); setGo(null); setPrev(false); fitOpts(pg);
   pg.querySelectorAll(".ls-opt").forEach(b => b.addEventListener("click", () => answer(b)));
   if(listen) setTimeout(() => { if(alive(s) && s.i === idx && autoTok === tok && !st.done && !sheetOpen()) sayP(d.word, pg.querySelector(".ls-spk")); }, dir ? 280 : 250);
 }
@@ -472,6 +499,7 @@ function marks(opts, right, b, ok){
   opts.forEach(o => { o.disabled = true; if(o !== right && o !== b) o.classList.add("is-dim"); });
   right.classList.add("is-ok"); right.insertAdjacentHTML("afterbegin", CHK);
   if(!ok){ b.classList.add("is-miss"); b.insertAdjacentHTML("afterbegin", ico("x", "bold", 22, "xm")); }
+  fitOpts(right.closest(".ls-page"));   /* la ✓ y la ✗ quitan sitio: que la palabra siga entera */
   if(window.M && typeof M.ok === "function"){
     if(ok) M.ok(right, {haptic: true});
     else { const c = right.querySelector("svg.chk"); if(c) M.ok(c); }   /* solo se dibuja la ✓: la buena no salta */
@@ -546,7 +574,7 @@ function gStep(dir = 1){
     </section>
     ${optsHtml(q.o.map(o => ({v: o, lang: langCode()})))}
     <p class="ls-fb"></p></div>`, dir);
-  paintTop(idx); setGo(null); setPrev(false);
+  paintTop(idx); setGo(null); setPrev(false); fitOpts(pg);
   pg.querySelectorAll(".ls-opt").forEach(b => b.addEventListener("click", () => gAnswer(b)));
 }
 function gAnswer(b){
@@ -673,11 +701,12 @@ function ask(from, viaBack){
   }catch(e){ try{ d.showModal(); }catch(e2){ d.setAttribute("open", ""); } }
   return true;
 }
-/* «Salir»: se borra lo guardado y se va a donde estaba el niño (la ✕ de verdad) o adonde iba (Atrás) */
+/* «Salir»: se va a donde estaba el niño (la ✕ de verdad) o adonde iba (Atrás). Lo hecho se queda en "vocab:ls" para
+   seguir luego con la cápsula «Seguir · Lección N» o con «Seguir» en Hoy (plan-doc §Lección); se borra al terminarla. */
 function exit(viaBack){
   const s = LS; LS = null; document.onkeydown = null;
   offs.splice(0).forEach(f => { try{ f(); }catch(e){} });
-  clearSaved();
+  refreshAcc();
   if(viaBack){ try{ history.back(); }catch(e){} return; }
   const x = document.getElementById("fx-x");
   if(x && x.isConnected){ PASS = true; try{ x.click(); }finally{ PASS = false; } }
