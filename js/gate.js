@@ -29,8 +29,8 @@ const rnd = n => { try{ const a = new Uint32Array(1); crypto.getRandomValues(a);
 const LOCK_SVG = '<path d="M208,76H180V56A52,52,0,0,0,76,56V76H48A20,20,0,0,0,28,96V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V96A20,20,0,0,0,208,76ZM100,56a28,28,0,0,1,56,0V76H100ZM204,204H52V100H204Zm-60-52a16,16,0,1,1-16-16A16,16,0,0,1,144,152Z"/>';
 const lock = z => typeof ico === "function" ? ico("lock", "bold", z)
   : `<svg class="ico" width="${z}" height="${z}" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true" focusable="false">${LOCK_SVG}</svg>`;
-/* la tecla de borrar: un dibujo sencillo en línea (en todas las páginas) */
-const DEL = '<svg class="ico" width="26" height="26" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M61.67,204.12,16,128,61.67,51.88A8,8,0,0,1,68.53,48H216a8,8,0,0,1,8,8V200a8,8,0,0,1-8,8H68.53A8,8,0,0,1,61.67,204.12Z"/><line x1="160" y1="104" x2="112" y2="152"/><line x1="160" y1="152" x2="112" y2="104"/></svg>';
+/* la tecla de borrar: un dibujo sencillo en línea (en todas las páginas); fill:none en style porque .ico pinta el relleno */
+const DEL = '<svg class="ico" width="26" height="26" viewBox="0 0 256 256" style="fill:none" stroke="currentColor" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M61.67,204.12,16,128,61.67,51.88A8,8,0,0,1,68.53,48H216a8,8,0,0,1,8,8V200a8,8,0,0,1-8,8H68.53A8,8,0,0,1,61.67,204.12Z"/><line x1="160" y1="104" x2="112" y2="152"/><line x1="160" y1="152" x2="112" y2="104"/></svg>';
 
 const num = k => { try{ return +sessionStorage.getItem(k) || 0; }catch(e){ return 0; } };
 function passed(){ const t = num(KEY); return t > 0 && Date.now() < t && t - Date.now() <= MS; }
