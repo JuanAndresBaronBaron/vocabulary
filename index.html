@@ -681,18 +681,9 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .shop-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
 .shop-tabs button{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;font-weight:700}
 .shop-tabs button.on{border-color:var(--brand);background:var(--soft);color:var(--brand)}
-.shop{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.sc{background:var(--card);border:2px solid transparent;border-radius:var(--r-card);padding:14px 10px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px}
-.sc.own{border-color:color-mix(in srgb,var(--ok) 55%,transparent)}
-.sc .se{font-size:3rem;line-height:1.1}
-.sc .sn{font-weight:800}.sc .sn::first-letter{text-transform:uppercase}
-.sc .sw{color:var(--muted);font-size:.9rem;min-height:30px}
-.sc .own{color:var(--ok-ink);font-weight:700;font-size:.9rem}
+/* las piezas de la tienda (.shop, .sc.shp-c) las pinta y las estiliza js/shop.js (window.vocabShop) */
 .btn.sm{padding:5px 12px;font-size:.88rem}.btn.sm.on{border-color:var(--brand);color:var(--brand)}
-.btn.buy{background:var(--gold);border-color:transparent;color:var(--gold-on);font-weight:800;padding:7px 16px}
-.btn.buy.no{background:var(--soft);border-color:var(--line);color:var(--muted)}
 .miss{color:var(--muted);font-size:.78rem}
-.sc .sb{display:contents}
 #gift{width:min(92vw,380px);text-align:center}
 .gift h2{color:var(--ink)}
 .gbox{font-size:5.5rem;line-height:1.1;animation:shake 1s 3}
@@ -1134,7 +1125,7 @@ async function progreso(el){
 const OFF_SHELL = "vocab-shell-v18", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
-  "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
+  "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
@@ -1281,6 +1272,7 @@ async function downloadAll(){
       else if(j && Array.isArray(j.rows)) j.rows.forEach(r => r.img && imgs.add(r.img));
     });
     Object.keys(sprites || {}).forEach(k => /^[\w-]+$/.test(k) && imgs.add(`img/pj/${k}.png`));
+    if(window.vocabShop) vocabShop.images().forEach(u => imgs.add(u));   /* los dibujos de la tienda (img/shop) */
     const second = [...[...imgs].map(u => [u, media]), ...ids.map(id => [`audio/${ab}/${id}.mp3`, media])];
     job.total = first.length + second.length;
     await pool(second, ([u, c]) => one(u, c, true, false));
@@ -1981,7 +1973,7 @@ function paintCoins(o = {}){
   const v = game().coins;
   /* todo lo que enseña monedas en la página de la granja (también tras una medalla, que no emite "coins") */
   const mc = $(".me-coins b"); if(mc) mc.textContent = v;
-  shopCoins();
+  if(window.vocabShop) vocabShop.refreshPrices();   /* las piezas de la tienda pintadas (js/shop.js) */
   if(coinHold > 0 && !o.force) return;
   const up = coinShown !== null && v > coinShown;
   coinShown = v;
@@ -2102,13 +2094,10 @@ function showGift(it){
 const FEM = new Set(["rana","gorra","corona","cometa","guitarra","pelota de baloncesto","varita mágica","videoconsola","copa","tortuga","gallina","abeja","oveja","cabra","vaca","flor","seta","zanahoria","fresa","calabaza","manzana","tienda de campaña","cabaña","casa","fuente","gafas","gafas de sol","gafas de bucear"]);
 const art = n => n.startsWith("gafas") ? "unas " + n : (FEM.has(n) ? "una " : "un ") + n;
 
-/* página: mi granja + tienda */
+/* página: mi granja + tienda. Las piezas de la tienda, comprar y ponerse son de js/shop.js (window.vocabShop): card()
+   pinta cada pieza y bind() compra, pone o quita y va al refugio, repintando solo esa pieza (y los precios de las
+   demás); aquí, tras un cambio, se ponen al día el personaje de arriba y la escena (sale lo comprado o el traje nuevo) */
 let shopTab = "farm";
-const buyBtn = (x, coins) => coins >= x.p ? `<button class="btn buy" data-buy="${x.id}">🪙 ${x.p}</button>`
-  : `<button class="btn buy no" disabled>🪙 ${x.p}</button><small class="miss">Te faltan ${x.p - coins}</small>`;
-/* las monedas cambian sin repintar la página (comida de la granja, regalos recogidos): los precios se ponen al día */
-function shopCoins(){ const c = game().coins; document.querySelectorAll(".shop [data-sb]").forEach(el => { const it = itemById(el.dataset.sb); if(it) el.innerHTML = buyBtn(it, c); }); }
-bus.on("coins", shopCoins);
 async function granja(){
   await getShop(); document.onkeydown = null;
   const g = game(), farm = SHOP.filter(x => x.t === "farm" && g.owned[x.id]);
@@ -2118,17 +2107,9 @@ async function granja(){
     return `<button class="fi ${big.has(x.id) ? "bg" : ""}" data-it="${x.id}" style="left:${sx}%;top:${sy}%;z-index:${sy}" aria-label="${esc(x.n)}">${pjImg(x)}</button>`;
   }).join("");
   const tabs = TYPES.map(([t, e, n]) => `<button class="${t === shopTab ? "on" : ""}" data-tab="${t}">${e} ${n}</button>`).join("");
-  /* animales que se fueron al refugio (farm.js): siguen siendo suyos, se rescatan desde la granja */
-  const shel = id => { try{ return typeof farmMount === "function" && !!farmMount.care && farmMount.care.inShelter(id); }catch(e){ return false; } };
-  const cards = SHOP.filter(x => x.t === shopTab).map(x => {
-    const own = g.owned[x.id], worn = g.wear[x.t] === x.id, sh = x.t === "farm" && own && shel(x.id);
-    const btn = x.t === "farm" ? (own ? (sh ? `<span class="own shl">🏚️ En el refugio</span><button class="btn sm" data-shelter="${x.id}">Ir al refugio</button>` : `<span class="own">✓ En tu granja</span>`) : "")
-      : own ? (x.t === "hero" ? (worn ? `<span class="own">✓ Eres tú</span>` : `<button class="btn sm" data-wear="${x.id}">Elegir</button>`)
-                              : `<button class="btn sm ${worn ? "on" : ""}" data-wear="${x.id}">${worn ? "Quitármelo" : "Ponérmelo"}</button>`) : "";
-    const buy = own ? "" : `<span class="sb" data-sb="${x.id}">${buyBtn(x, g.coins)}</span>`;
-    return `<div class="sc ${own ? "own" : ""}${sh ? " shel" : ""}" data-id="${x.id}"><div class="se">${pjImg(x)}</div><div class="sn">${esc(x.n)}</div>
-      <div class="sw">${esc(itemWord(x))} ${sayBtn(itemWord(x), 1)}</div>${btn}${buy}</div>`;
-  }).join("");
+  /* animales que se fueron al refugio (farm.js): siguen siendo suyos; su pieza lleva a «Ir al refugio» */
+  const mode = shopTab === "farm" ? "farm" : "zorro";
+  const cards = vocabShop.items(shopTab).map(x => vocabShop.card(x, {mode})).join("");
   $("#app").innerHTML = `<div class="me">${heroHtml(120, g)}
       <div class="me-info"><input id="me-name" maxlength="20" placeholder="Escribe tu nombre" value="${esc(g.name)}" aria-label="Tu nombre">
         <div class="me-coins">🪙 <b>${g.coins}</b> monedas</div>
@@ -2153,17 +2134,14 @@ async function granja(){
     tip.style.left = b.style.left; tip.style.top = `calc(${b.style.top} - 54px)`;
     say(itemWord(it));
   });
-  $(".shop").addEventListener("click", e => {
-    const b = e.target.closest("[data-buy]"); if(!b) return;
-    const it = itemById(b.dataset.buy), g = game(); if(!it || g.owned[it.id]) return;
-    if(g.coins < it.p){ toast(`Te faltan ${it.p - g.coins} 🪙`); return shopCoins(); }
-    g.coins -= it.p; g.owned[it.id] = true; if(it.t !== "farm") g.wear[it.t] = it.id; gameSet(g); bus.emit("buy", {item: it});
-    toast(`¡Nuevo! ${it.e} ${it.n} = ${itemWord(it)}`); say(itemWord(it)); granja(); setTimeout(checkAch, 800);
-  });
-  document.querySelectorAll("[data-wear]").forEach(b => b.onclick = () => {
-    const it = itemById(b.dataset.wear), g = game();
-    g.wear[it.t] = (g.wear[it.t] === it.id && it.t !== "hero") ? null : it.id; gameSet(g); granja();
-  });
+  /* comprar, ponerse o quitarse: la pieza se repinta sola; aquí, el personaje de arriba y la escena (lo comprado sale
+     en la granja y el personaje de la granja lleva lo nuevo), sin volver a pintar la página ni perder el sitio */
+  vocabShop.bind($("#app .shop"), {onChange: e => {
+    if(e.type !== "buy" && e.type !== "wear") return;
+    const me = $("#app .me > .hero"); if(me) me.outerHTML = heroHtml(120);
+    if(typeof farmMount === "function"){ if($("#farm-host")) farmMount($("#farm-host")); }
+    else granja();   /* sin js/farm.js, la granja quieta de aquí arriba se vuelve a pintar entera, como antes */
+  }});
 }
 
 /* página: mis premios */
@@ -2278,6 +2256,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/lesson.js"></script>
 <script src="js/learn.js"></script>
 <script src="js/sfx.js"></script>
+<script src="js/shop.js"></script>
 <script src="js/farm.js"></script>
 <script src="js/games.js"></script>
 <script src="js/buddy.js"></script>
