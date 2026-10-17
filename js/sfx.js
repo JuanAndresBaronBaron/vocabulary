@@ -56,7 +56,7 @@ function confetti(o = {}){
   Object.assign(cv.style, {position: "fixed", inset: "0", width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 999});
   document.body.appendChild(cv);
   const c = cv.getContext("2d"); c.scale(dpr, dpr);
-  const cols = ["#1f6fd1", "#2e9e4f", "#f2c94c", "#13887f", "#e67e22", "#22409a"];
+  const cols = ["#FFCC00", "#1E6EF4", "#008198"];   /* oro, azul y verde azulado */
   const emo = o.emoji || null, N = o.n || 110, x0 = o.x ?? innerWidth / 2, y0 = o.y ?? innerHeight * .35;
   const P = Array.from({length: N}, () => ({x: x0, y: y0, vx: (Math.random() - .5) * 14, vy: -Math.random() * 13 - 3,
     r: Math.random() * 6 + 4, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: cols[Math.floor(Math.random() * cols.length)]}));
