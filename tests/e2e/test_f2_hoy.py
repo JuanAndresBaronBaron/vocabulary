@@ -177,7 +177,7 @@ def test_card_picks_review_lesson_or_game():
 
 def test_review_row_starts_review():
     """«Repasar N» lleva a #/repaso y empieza el repaso directamente (modo foco). Volver a Hoy sin cerrarlo deja la
-    tarjeta en «Seguir»; el ✕ del modo foco lo cierra."""
+    tarjeta en «Seguir»; la ✕ del modo foco pregunta «¿Paramos aquí?» y «Salir» lo deja abierto (F3b)."""
     probs = []
     page = C.new_page("phone")
     try:
@@ -207,19 +207,22 @@ def test_review_row_starts_review():
         a = page.evaluate(_ACC)
         if not a["shown"] or a["t"] != "Seguir · Repaso" or a["href"] != "#/repaso":
             probs.append(f"fuera de Hoy, con el repaso abierto, el accesorio es {a}")
-        # el accesorio sigue el repaso donde estaba; la ✕ del modo foco lo cierra
+        # el accesorio sigue el repaso donde estaba; la ✕ del modo foco abre «¿Paramos aquí?» (F3b) y «Salir» vuelve
+        # a donde estaba con el repaso abierto: el accesorio lo sigue ofreciendo
         n0 = page.evaluate("window.__vocabRouteN || 0")
         page.locator("#acc").click()
         page.wait_for_function("n => (window.__vocabRouteN || 0) > n", arg=n0, timeout=8000)
         if page.evaluate("document.documentElement.dataset.focus || ''") != "repaso":
             probs.append("el accesorio no vuelve al repaso empezado")
-        n0 = page.evaluate("window.__vocabRouteN || 0")
         page.locator("#fx-x").click()
+        page.wait_for_selector("dialog#rv-pause[open]", timeout=3000)
+        n0 = page.evaluate("window.__vocabRouteN || 0")
+        page.locator("#rv-pz-out").click()
         page.wait_for_function("n => (window.__vocabRouteN || 0) > n", arg=n0, timeout=8000)
-        C.goto(page, "#/")
-        c = page.evaluate(_CARD)
-        if c["btn"] != "Empezar" or page.evaluate(_ACC)["shown"] or page.evaluate("vocabAccessory.state") is not None:
-            probs.append(f"tras la ✕ el repaso sigue abierto: botón {c['btn']!r}, accesorio {page.evaluate(_ACC)}")
+        C.settle(page, 200)
+        a = page.evaluate(_ACC)
+        if C.current_hash(page) != "mapa" or not a["shown"] or a["t"] != "Seguir · Repaso":
+            probs.append(f"tras «Salir» queda en #/{C.current_hash(page)} con el accesorio {a}")
         probs += C.errors(page)
     finally:
         page.context.close()

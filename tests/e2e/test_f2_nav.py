@@ -204,6 +204,10 @@ def test_segments_go_to_their_routes():
             "jugar": [("Juegos", "#/juegos"), ("Álbum", "#/album")]}
     try:
         C.seed(page)
+        # F3b: con pendientes «Repasar» empieza el repaso en modo foco (sin segmentos); aquí, sin pendientes («Todo repasado»)
+        page.evaluate("""() => { const k = 'srs:english', m = JSON.parse(localStorage.getItem(k)), t = today();
+          for (const x of Object.values(m)) if (x.due <= t) x.due = t + 1; localStorage.setItem(k, JSON.stringify(m)); }""")
+        C.goto(page, "#/", reload=True)
         for tab, items in want.items():
             C.goto(page, items[-1][1])            # se empieza en el último para que todos sean un cambio
             got = [(t, h) for t, h, _ in page.evaluate(seg)]
@@ -324,13 +328,13 @@ def test_focus_mode_hides_bars():
         st = page.evaluate(_FOCUS)
         if st["focus"] or not st["tab"] or not st["top"] or st["x"]:
             probs.append(f"al salir de la lección: {st}")
+        # F3b (js/review.js): con pendientes #/repaso ya es la primera tarjeta; la ✕ abre «¿Paramos aquí?» y «Salir» sale
         C.goto(page, "#/repaso")
-        if page.evaluate(_FOCUS)["focus"]:
-            probs.append("#/repaso sin empezar ya está en modo foco")
-        page.locator("#rv-go").click()
         page.wait_for_function("() => document.documentElement.dataset.focus === 'repaso'", timeout=4000)
         check("repaso en marcha", "repaso")
         page.locator("#fx-x").click()
+        page.wait_for_selector("dialog#rv-pause[open]", timeout=3000)
+        page.locator("#rv-pz-out").click()
         page.wait_for_function("() => !document.documentElement.dataset.focus", timeout=4000)
         C.goto(page, "#/juegos/memoria")
         check("partida (portada)", "juego")
@@ -693,10 +697,11 @@ def test_nav_tour_keeps_export():
         page.keyboard.press("Escape")
         C.goto(page, f"#/leccion/{R.LESSON}")
         _click_route(page, "#fx-x")
-        C.goto(page, "#/repaso")
-        page.locator("#rv-go").click()
+        C.goto(page, "#/repaso")   # F3b: empieza directo; la ✕ abre «¿Paramos aquí?» y «Salir» lo deja abierto
         page.wait_for_function("() => document.documentElement.dataset.focus === 'repaso'", timeout=4000)
         page.locator("#fx-x").click()
+        page.wait_for_selector("dialog#rv-pause[open]", timeout=3000)
+        page.locator("#rv-pz-out").click()
         page.wait_for_function("() => !document.documentElement.dataset.focus", timeout=4000)
         C.goto(page, "#/juegos/globos")
         page.keyboard.press("Escape")
