@@ -348,7 +348,7 @@ def test_hoy_review_row_to_end_and_back_home():
 
 def test_words_topic_questions_and_grammar_practice():
     """Aprender › Palabras › «Animales» › Preguntas: se contesta una (srsGrade como siempre, fallo en gris o acierto en
-    verde) y «Siguiente»; después Aprender › Gramática › una unidad › «Practicar» abre la práctica G-… con la regla y,
+    verde) y «Seguir»; después Aprender › Gramática › una unidad › «Practicar» abre la práctica G-… con la regla y,
     tras «Practicar», una frase con hueco y 4 opciones."""
     probs = []
     page = C.new_page("phone")
@@ -533,7 +533,7 @@ def test_answers_never_split_words():
                 bad = page.evaluate(_SPLIT, "#view .qz-ot")
                 if bad:
                     probs.append(f"{tag}, Preguntas tras contestar: {bad}")
-                if page.locator("#nextq").inner_text().strip() != "Siguiente":
+                if page.locator("#nextq").inner_text().strip() != "Seguir":
                     break
                 page.locator("#nextq").click()
             if C.errors(page):

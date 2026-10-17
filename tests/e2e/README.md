@@ -59,9 +59,18 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
 - `test_f3_repaso.py` (F3b, `js/review.js`): `#/repaso` directo a la primera tarjeta en modo foco, girar (350 ms, con
   «Reducir movimiento» un fundido), las notas 2 · 1 · 0 comparadas con lo que escribe el `srsGrade` de siempre (y
   `srsGrade`/`srsNext` iguales a los del commit 1721796), deslizar con PointerEvents sintéticos igual que los botones,
-  la pista del gesto en el segundo giro, los tres escalones de «Pista», «Dilo primero» con un `SpeechRecognition`
-  simulado (acierto que puntúa solo, fallo que nunca pone 0, los 7 s de `listen()`, sin permiso), sin reconocedor sin
-  micrófono, el final que paga una vez y va a Hoy, «Todo repasado», «¿Paramos aquí?» con el accesorio y la auditoría.
+  la pista del gesto en el segundo giro, «Ver» como botón principal, las dos pistas (artículo y primera letra, luego
+  la primera sílaba y las letras que faltan), «Dilo en …» con un `SpeechRecognition` simulado (acierto que puntúa solo,
+  comparación estricta que no acepta otra palabra conocida, fallo que nunca pone 0, «No me sale» solo tras un fallo y
+  que da 0 y la vuelve a preguntar, los 7 s de `listen()`, sin permiso, sin red, sin micrófono), sin reconocedor
+  «Piénsala… y toca para ver», el final en su tarjeta que paga una vez y va a Hoy, «Todo repasado», «¿Paramos aquí?»
+  con el accesorio y la auditoría.
+- `test_f3_fix.py` (arreglos de la revisión de F3): la palabra nueva de la lección nunca se parte, dos toques rápidos
+  no se saltan el final (lección y repaso), decir la palabra y salir antes de decidir sigue puntuando, una tarjeta
+  que vuelve cuenta como mucho una vez, el micrófono sin red o sin aparato, la lección guardada conserva las
+  repeticiones y rechaza valores malos (también tras cerrar la pestaña), la hoja «Cómo suena» se cierra al salir,
+  detalles de la lección y del repaso (foco, avisos, textos), la flecha de la ficha en la barra de arriba con los
+  detalles de Aprender (Lista, Tarjetas, Preguntas, Escribir con su hoja «Opciones») y las columnas del ordenador.
 - `test_f3_aprender.py` (F3c, `js/learn.js`): la pastilla de nivel (menú con los 6 niveles, teclado, `mapLv` como
   antes: el Camino lo guarda y Gramática no), «Mi lección» (sale, baja con scroll y se va; ↑ muy abajo; vidrio
   ligero), mantener pulsado un nodo hecho (vistazo con estrellas, palabras y «Repetir», sin abrir la lección al

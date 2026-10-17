@@ -1,10 +1,12 @@
 """F3b: Aprender › Repasar (#/repaso) en js/review.js, con «Dilo primero».
-#/repaso con pendientes entra directo a la primera tarjeta en modo foco (sin pantalla intermedia); tocar la tarjeta la
-gira y suena; «¡Sí!» rápido y sin pista es nota 2, con pista (o tarde, > 8 s) nota 1 y «No» nota 0, escritas por el
-srsGrade de siempre (mismo formato en srs:<idioma>); deslizar la tarjeta girada a la derecha es «¡Sí!» y a la izquierda
-«No»; la pista va por escalones (principio, letras con huecos, ver la respuesta); con un reconocedor de voz simulado,
-decir bien la palabra la puntúa sola y no oírla bien nunca pone un 0; sin reconocedor no hay micrófono; el final paga
-las monedas una sola vez y «Seguir» va a Hoy; sin pendientes sale «Todo repasado». Sin errores de consola."""
+#/repaso con pendientes entra directo a la primera tarjeta en modo foco (sin pantalla intermedia), con «¿Cómo se dice en
+inglés?» y el botón principal «Ver»; tocar la tarjeta (o «Ver») la gira y suena; «¡Sí!» rápido y sin pista es nota 2,
+con pista (o tarde, > 8 s) nota 1 y «No» nota 0, escritas por el srsGrade de siempre (mismo formato en srs:<idioma>);
+deslizar la tarjeta girada a la derecha es «¡Sí!» y a la izquierda «No»; la pista va por escalones (artículo y primera
+letra, primera sílaba con huecos; luego «Ver»); con un reconocedor de voz simulado, «Dilo en inglés» puntúa solo si dice
+la palabra (nunca otra palabra de verdad) y no oírla bien nunca pone un 0; «No me sale» (solo tras intentarlo) es un 0
+con un solo «Seguir»; sin reconocedor no hay micrófono; el final paga las monedas una sola vez, sin aviso y volando
+desde el chip, y «Seguir» va a Hoy; sin pendientes sale «Todo repasado». Sin errores de consola."""
 from __future__ import annotations
 
 import json
@@ -26,7 +28,8 @@ _ROUTE_N = "() => window.__vocabRouteN || 0"
 _LOOK = """() => { const q = s => document.querySelector(s), vis = el => !!el && !!el.getClientRects().length && getComputedStyle(el).visibility !== 'hidden';
   const card = q('#rv-card'), txt = el => el ? el.textContent.replace(/\\s+/g, ' ').trim() : null;
   return {card: !!card, flipped: !!card && card.classList.contains('is-flipped'), backs: document.querySelectorAll('#rv-stack .rv-back').length,
-    es: txt(q('.rv-q .rv-es')), pic: !!q('.rv-q .rv-pic'), tap: txt(q('.rv-q .rv-tap')), word: txt(q('.rv-a .rv-word')),
+    es: txt(q('.rv-q .rv-es')), pic: !!q('.rv-q .rv-pic'), tap: txt(q('.rv-q .rv-tap')), qq: txt(q('.rv-q .rv-qq')), word: txt(q('.rv-a .rv-word')),
+    next: txt(q('.rv-next')),
     spk: !!q('.rv-a .rv-spk'), slow: !!q('.rv-a .rv-slow'), ask: txt(q('#rv-ask')), no: txt(q('.rv-no')), yes: txt(q('.rv-yes')),
     hint: txt(q('.rv-hint')), giveup: txt(q('.rv-giveup')), mic: vis(q('#rv-mic')) ? txt(q('#rv-mic')) : null,
     micPressed: q('#rv-mic') && q('#rv-mic').getAttribute('aria-pressed'), look: txt(q('.rv-look')), msg: txt(q('.rv-msg')),
@@ -76,7 +79,7 @@ _SWIPE = """async ([dxs, up, rest]) => {
   await pause(30);
   return seen; }"""
 # reconocedor de voz simulado (window.__srMode: right = dice la palabra, wrong = otra cosa, silent = no-speech,
-# hang = no contesta nunca, denied = sin permiso)
+# hang = no contesta nunca, denied = sin permiso, network = sin internet, audio-capture = sin micrófono)
 _FAKE_SR = r"""
 (() => {
   class FakeSR {
@@ -87,8 +90,8 @@ _FAKE_SR = r"""
       if (mode === "hang") return;
       setTimeout(() => {
         if (this._ab) return;
-        if (mode === "silent" || mode === "denied") {
-          if (this.onerror) this.onerror({error: mode === "silent" ? "no-speech" : "not-allowed"});
+        if (mode === "silent" || mode === "denied" || mode === "network" || mode === "audio-capture") {
+          if (this.onerror) this.onerror({error: mode === "silent" ? "no-speech" : mode === "denied" ? "not-allowed" : mode});
           if (this.onend) this.onend();
           return;
         }
@@ -164,8 +167,9 @@ def _awards(page):
 # ---------------------------------------------------------------- entrar y girar
 def test_starts_straight_in_focus_and_flips():
     """Con pendientes, #/repaso (también cargando la URL directa) es ya la primera tarjeta, en modo foco y sin pantalla
-    intermedia: el dibujo, la palabra en español y «Toca para ver». Tocarla la gira en 3D (350 ms) y suena la palabra; la
-    respuesta trae la palabra, su altavoz, la tortuga y «¿La sabías?» con «No» y «¡Sí!» (verde #008932, texto blanco)."""
+    intermedia: el dibujo, la palabra en español, «¿Cómo se dice en inglés?» y «Toca para ver», con «Ver» como botón
+    principal. Tocarla la gira en 3D (350 ms) y suena la palabra; la respuesta trae la palabra, su altavoz, la tortuga y
+    «¿La sabías?» con «No» y «¡Sí!» (verde #008932, texto blanco)."""
     probs = []
     page = _page()
     try:
@@ -181,8 +185,11 @@ def test_starts_straight_in_focus_and_flips():
             probs.append(f"barra de progreso: {lk['prog']}")
         if lk["backs"] != 2:
             probs.append(f"detrás se ven {lk['backs']} tarjetas (2)")
-        if not lk["pic"] or lk["es"] != st["es"] or lk["tap"] != "Toca para ver" or lk["flipped"]:
+        if not lk["pic"] or lk["es"] != st["es"] or lk["tap"] != "Toca para ver" or lk["qq"] != "¿Cómo se dice en inglés?" or lk["flipped"]:
             probs.append(f"cara de la pregunta: {lk}")
+        main = page.evaluate("() => { const b = document.querySelector('#rv-dock .rv-look'); return b && [b.textContent.trim(), b.classList.contains('glass-btn--pri'), b.getBoundingClientRect().height]; }")
+        if not main or main[0] != "Ver" or not main[1] or main[2] < 44:
+            probs.append(f"«Ver» no es el botón principal de abajo: {main}")
         one_line = page.evaluate("""() => { const t = document.querySelector('.rv-tap'), lh = parseFloat(getComputedStyle(t).lineHeight) || 20;
           return t.getBoundingClientRect().height < lh * 1.6; }""")
         if not one_line:
@@ -363,7 +370,7 @@ def test_swipe_matches_buttons():
 
 
 def test_swipe_hint_on_second_flip():
-    """La pista «Desliza para decidir» (G.hint) no sale la primera vez que se gira una tarjeta, sí la segunda."""
+    """La pista «Desliza: sí o no» (G.hint) no sale la primera vez que se gira una tarjeta, sí la segunda."""
     probs = []
     page = _page()
     try:
@@ -378,10 +385,10 @@ def test_swipe_hint_on_second_flip():
         try:
             page.wait_for_selector(".g-hint", timeout=3000)
             t = page.locator(".g-hint .g-hint-t").text_content()
-            if t != "Desliza para decidir":
+            if t != "Desliza: sí o no":
                 probs.append(f"la pista dice {t!r}")
         except Exception:  # noqa: BLE001
-            probs.append("la segunda vez que gira no sale «Desliza para decidir»")
+            probs.append("la segunda vez que gira no sale «Desliza: sí o no»")
         page.locator(".rv-no").click()
         page.wait_for_timeout(600)
         if page.locator(".g-hint").count():
@@ -394,17 +401,20 @@ def test_swipe_hint_on_second_flip():
 
 # ---------------------------------------------------------------- pistas
 def test_hint_steps():
-    """«Pista» por escalones, cada uno se queda en la tarjeta: 1) el artículo o el principio, 2) las letras con huecos
-    (respetando los espacios), 3) ver la respuesta (gira). Con pista, «¡Sí!» es nota 1."""
+    """«Pista» por escalones, cada uno se queda en la tarjeta: 1) el artículo y la primera letra («le c…»), 2) la primera
+    sílaba y huecos para el resto (respetando los espacios; siempre quedan 2 letras ocultas); con las dos, «Pista» se va y
+    queda «Ver» (gira). El lector de pantalla oye la pista con la palabra en su idioma. Con pista, «¡Sí!» es nota 1."""
     probs = []
     page = _page()
     try:
         _open(page)
         h = page.evaluate("""() => [['le chien', 'français'], ['la tortue', 'français'], ["l'oiseau", 'français'], ['en hund', 'dansk'],
-          ['dog', 'english'], ['the cat', 'english'], ['ice cream', 'english'], ['hippopotamus', 'english'], ['et æble', 'dansk']]
+          ['dog', 'english'], ['the cat', 'english'], ['ice cream', 'english'], ['hippopotamus', 'english'], ['et æble', 'dansk'],
+          ['ostrich', 'english'], ['le cheval', 'français'], ['at løbe', 'dansk'], ['horse', 'english']]
           .map(([w, l]) => vocabReview.hints(w, l))""")
-        want = [["le…", "le c _ _ _ _"], ["la…", "la t _ _ _ _ _"], ["l'o…", "l'o _ _ _ _ _"], ["en…", "en h _ _ _"], ["d…", "d _ _"],
-                ["the…", "the c _ _"], ["i…", "i _ _   c _ _ _ _"], ["h…", "h" + " _" * 11], ["et…", "et æ _ _ _"]]
+        want = [["le c…", "le chi _ _"], ["la t…", "la tor _ _ _"], ["l'o…", "l'oi _ _ _ _"], ["en h…", "en hu _ _"], ["d…", "d _ _"],
+                ["the c…", "the c _ _"], ["i…", "i _ _   c _ _ _ _"], ["h…", "hip" + " _" * 9], ["et æ…", "et æ _ _ _"],
+                ["o…", "os _ _ _ _ _"], ["le c…", "le che _ _ _"], ["at l…", "at lø _ _"], ["h…", "hor _ _"]]
         if h != want:
             probs.append(f"vocabReview.hints: {h} (se esperaba {want})")
         st0, before = page.evaluate(_ST), page.evaluate(_SNAP)
@@ -416,13 +426,17 @@ def test_hint_steps():
         lk = page.evaluate(_LOOK)
         if lk["steps"] != steps[:1] or lk["hint"] != "Otra pista" or lk["flipped"]:
             probs.append(f"escalón 1: {lk['steps']} (se esperaba {steps[:1]}), botón {lk['hint']!r}")
+        page.wait_for_timeout(120)
+        live = page.evaluate("() => document.getElementById('rv-live').innerHTML")
+        if f'«<span lang="en-GB">{steps[0][:-1]}</span>»' not in live:
+            probs.append(f"el lector de pantalla no oye la pista 1 con su idioma: {live!r}")
         page.locator(".rv-hint").click()
         lk = page.evaluate(_LOOK)
-        if lk["steps"] != steps or lk["hint"] != "Ver la respuesta" or lk["flipped"]:
-            probs.append(f"escalón 2: {lk['steps']} (se esperaba {steps}), botón {lk['hint']!r}")
+        if lk["steps"] != steps or lk["hint"] is not None or lk["look"] != "Ver" or lk["flipped"]:
+            probs.append(f"escalón 2: {lk['steps']} (se esperaba {steps}), botón {lk['hint']!r}, «{lk['look']}»")
         if page.evaluate(_SNAP) != before:
             probs.append("pedir pista ya escribe en el repaso")
-        page.locator(".rv-hint").click()
+        page.locator(".rv-look").click()
         _wait_flip(page)
         st = page.evaluate(_ST)
         if not st["hinted"] or st["hint"] != 2:
@@ -441,20 +455,27 @@ def test_hint_steps():
 
 # ---------------------------------------------------------------- Dilo primero
 def test_matching_is_tolerant():
-    """Comparar lo que oyó el reconocedor: sin mayúsculas, tildes, signos ni artículo, con todas las alternativas y con
-    distancia ≤1 hasta 5 letras o ≤2 si es más larga; vale también con su artículo."""
+    """Comparar lo que oyó el reconocedor: sin mayúsculas, tildes, signos ni artículo y con todas las alternativas; exacta
+    hasta 4 letras, una letra de diferencia de 5 a 7 y dos desde 8, empezando igual; vale también con su artículo. Nunca
+    vale otra palabra de verdad (las parejas que un niño confunde: bat/cat, dig/dog, house/horse, tree/three…)."""
     page = _page()
     try:
         C.seed(page)
-        r = page.evaluate("""() => { const m = vocabReview.matches; return {
-          yes: [m(['Dog'], 'dog', 'english'), m(['zzz', 'the dog!'], 'dog', 'english'), m(['dug'], 'dog', 'english'),
+        r = page.evaluate("""async () => { await getDoc('familia'); await getDoc('animales'); const m = vocabReview.matches; return {
+          yes: [m(['Dog'], 'dog', 'english'), m(['zzz', 'the dog!'], 'dog', 'english'),
                 m(['hipopotamus'], 'hippopotamus', 'english'), m(['hippopotamuses'], 'hippopotamus', 'english'),
                 m(["it's a whale"], 'whale', 'english'), m(['chien'], 'le chien', 'français'), m(['le chien'], 'le chien', 'français'),
                 m(['Élephant'], "l'éléphant", 'français'), m(['l’éléphant'], "l'éléphant", 'français'), m(['hund'], 'en hund', 'dansk'),
                 m(['aeble'], 'et æble', 'dansk'), m(['shark'], 'shark / sharks', 'english'), m(['ice cream'], 'ice cream', 'english'),
-                m(['icecream'], 'ice cream', 'english'), m(['kangaru'], 'kangaroo', 'english')],
+                m(['icecream'], 'ice cream', 'english'), m(['butterfli'], 'butterfly', 'english'), m(['chiens'], 'le chien', 'français')],
           no: [m(['cat'], 'dog', 'english'), m(['door'], 'dove', 'english'), m(['zzzz qqqq'], 'swan', 'english'), m([], 'dog', 'english'),
-               m([''], 'dog', 'english'), m(['hipopotams'], 'cat', 'english'), m(['chat'], 'le chien', 'français'), m(['ox'], 'of', 'english')]}; }""")
+               m([''], 'dog', 'english'), m(['hipopotams'], 'cat', 'english'), m(['chat'], 'le chien', 'français'), m(['ox'], 'of', 'english'),
+               m(['dug'], 'dog', 'english'), m(['kangaru'], 'kangaroo', 'english'), m(['bat'], 'cat', 'english'), m(['hat'], 'cat', 'english'),
+               m(['a hat'], 'cat', 'english'), m(['at'], 'cat', 'english'), m(['dig'], 'dog', 'english'), m(['big'], 'pig', 'english'),
+               m(['son'], 'sun', 'english'), m(['bear'], 'pear', 'english'), m(['house'], 'mouse', 'english'), m(['mother'], 'brother', 'english'),
+               m(['tree'], 'three', 'english'), m(['three'], 'tree', 'english'), m(['pen'], 'pan', 'english'), m(['ten'], 'hen', 'english'),
+               m(['horse'], 'house', 'english'), m(['father'], 'feather', 'english'), m(['grandfather'], 'grandmother', 'english'),
+               m(['grand father'], 'grandmother', 'english'), m(['hun'], 'en hund', 'dansk')]}; }""")
         bad = [f"debería valer #{i}" for i, v in enumerate(r["yes"]) if not v] + [f"no debería valer #{i}" for i, v in enumerate(r["no"]) if v]
         assert not bad and not C.errors(page), f"{bad} {C.errors(page)}"
     finally:
@@ -462,16 +483,19 @@ def test_matching_is_tolerant():
 
 
 def test_mic_right_word_grades_itself():
-    """Con un reconocedor simulado que oye la palabra: «Dilo» escucha en el idioma de la palabra («Te escucho…»), la
-    tarjeta gira con el ✓ verde y se puntúa sola (2 sin pista, 1 con pista) y pasa tras el audio. Si no contesta, a los 7 s
-    de listen() queda «No te he oído bien» sin nota, y el rato escuchando no cuenta para los 8 s."""
+    """Con un reconocedor simulado que oye la palabra: «Dilo en inglés» (secundario: una cápsula, no el botón azul)
+    escucha en el idioma de la palabra («Te escucho…»), la tarjeta gira con el ✓ verde y se puntúa sola (2 sin pista, 1
+    con pista) y pasa tras el audio. Si no contesta, a los 7 s de listen() queda «No te he oído bien» sin nota (y ahora
+    sí «No me sale»), y el rato escuchando no cuenta para los 8 s."""
     probs = []
     page = _page(init=_FAKE_SR)
     try:
         _open(page)
         lk = page.evaluate(_LOOK)
-        if lk["mic"] != "Dilo" or lk["hint"] != "Pista" or lk["giveup"] != "No me sale":
-            probs.append(f"con micrófono: «{lk['mic']}» · «{lk['hint']}» · «{lk['giveup']}»")
+        if lk["mic"] != "Dilo en inglés" or lk["hint"] != "Pista" or lk["giveup"] is not None or lk["look"] != "Ver":
+            probs.append(f"con micrófono: «{lk['mic']}» · «{lk['hint']}» · «{lk['giveup']}» · «{lk['look']}»")
+        if page.evaluate("() => document.getElementById('rv-mic').classList.contains('glass-btn--pri')"):
+            probs.append("«Dilo en inglés» es el botón principal (debería ser «Ver»)")
         # dice bien la palabra (en la segunda alternativa, en mayúsculas y con signos)
         for label, hint, g in (("dicha bien", False, 2), ("dicha bien con pista", True, 1)):
             st0, before = page.evaluate(_ST), page.evaluate(_SNAP)
@@ -504,8 +528,8 @@ def test_mic_right_word_grades_itself():
         page.clock.fast_forward(7300)
         page.wait_for_function("() => vocabReview.state.mic === 'miss'", timeout=4000)
         lk = page.evaluate(_LOOK)
-        if lk["msg"] != "No te he oído bien" or lk["look"] != "Mira" or lk["flipped"]:
-            probs.append(f"tras 7 s sin respuesta: {lk['msg']!r} · {lk['look']!r} · girada {lk['flipped']}")
+        if lk["msg"] != "No te he oído bien" or lk["look"] != "Ver" or lk["mic"] != "Otra vez" or lk["giveup"] != "No me sale" or lk["flipped"]:
+            probs.append(f"tras 7 s sin respuesta: {lk['msg']!r} · {lk['look']!r} · {lk['mic']!r} · {lk['giveup']!r} · girada {lk['flipped']}")
         if page.evaluate(_SNAP) != before or page.evaluate(_ST)["i"] != st0["i"]:
             probs.append("si el reconocedor no contesta, ya hay nota")
         page.locator(".rv-look").click()
@@ -520,8 +544,10 @@ def test_mic_right_word_grades_itself():
 
 
 def test_mic_wrong_word_never_zero():
-    """Si el reconocedor oye otra cosa (o nada) no hay nota: «No te he oído bien», «Mira» y «Otra vez», y decide él con
-    los botones. «No me sale» gira la tarjeta: «No» es 0 y «¡Sí!» 1. Sin permiso del micrófono se quita «Dilo»."""
+    """Si el reconocedor oye otra cosa (o nada) no hay nota: «No te he oído bien», «Otra vez» y «No me sale»; a la
+    segunda, el micrófono se va («¡No pasa nada! Mírala y dime si la sabías.») y decide él con «Ver» y los botones.
+    «No me sale» gira la tarjeta, suena y dice «Así se dice. ¡La verás otra vez!» con un solo «Seguir» (o → / Intro):
+    nota 0 y vuelve al final de la cola; nunca «¿La sabías?». Sin permiso del micrófono se quita «Dilo»."""
     probs = []
     page = _page(init=_FAKE_SR)
     try:
@@ -531,32 +557,52 @@ def test_mic_wrong_word_never_zero():
         page.locator("#rv-mic").click()
         page.wait_for_function("() => vocabReview.state.mic === 'miss'", timeout=4000)
         lk = page.evaluate(_LOOK)
-        if lk["msg"] != "No te he oído bien" or lk["look"] != "Mira" or lk["mic"] != "Otra vez" or lk["flipped"]:
-            probs.append(f"otra palabra: {lk['msg']!r} · {lk['look']!r} · {lk['mic']!r} · girada {lk['flipped']}")
+        if lk["msg"] != "No te he oído bien" or lk["look"] != "Ver" or lk["mic"] != "Otra vez" or lk["giveup"] != "No me sale" or lk["flipped"]:
+            probs.append(f"otra palabra: {lk['msg']!r} · {lk['look']!r} · {lk['mic']!r} · {lk['giveup']!r} · girada {lk['flipped']}")
         page.evaluate("() => { window.__srMode = 'silent'; }")
         page.locator("#rv-mic").click()
-        page.wait_for_function("() => vocabReview.state.mic === 'miss' && window.__srStarts >= 2", timeout=4000)
+        page.wait_for_function("() => vocabReview.state.miss === 2 && window.__srStarts >= 2", timeout=4000)
         page.wait_for_timeout(300)
         if page.evaluate(_SNAP) != before or page.evaluate(_ST)["i"] != st0["i"] or page.evaluate("() => window.__cards.length"):
             probs.append("el reconocedor que falla ya pone nota")
+        lk = page.evaluate(_LOOK)
+        if lk["msg"] != "¡No pasa nada! Mírala y dime si la sabías." or lk["mic"] is not None or lk["look"] != "Ver":
+            probs.append(f"a la segunda: {lk['msg']!r}, micrófono {lk['mic']!r}, «{lk['look']}»")
         page.locator(".rv-look").click()
         _wait_flip(page)
         if page.evaluate(_LOOK)["yes"] != "¡Sí!":
-            probs.append("tras «Mira» no puede decidir con los botones")
+            probs.append("tras «Ver» no puede decidir con los botones")
         page.locator(".rv-yes").click()
         _wait_next(page, st0["i"])
         _graded(page, st0, before, 2, "¡Sí! tras no oírle bien", probs)
-        # «No me sale»
-        for label, btn, g in (("No me sale + No", ".rv-no", 0), ("No me sale + ¡Sí!", ".rv-yes", 1)):
+        # «No me sale» (aparece tras intentarlo): nota 0 con un solo «Seguir»; con el ratón y con →
+        page.evaluate("() => { window.__srMode = 'wrong'; }")
+        for label, how in (("No me sale + Seguir", "click"), ("No me sale + →", "key")):
             page.wait_for_selector("#rv-card:not(.is-flipped)", timeout=3000)
             st0, before = page.evaluate(_ST), page.evaluate(_SNAP)
+            q_len, n_said = page.evaluate("() => rv.q.length"), len(page.evaluate("() => window.__said"))
+            page.locator("#rv-mic").click()
+            page.wait_for_function("() => vocabReview.state.mic === 'miss'", timeout=4000)
             page.locator(".rv-giveup").click()
             _wait_flip(page)
+            page.wait_for_timeout(150)
+            lk = page.evaluate(_LOOK)
+            if lk["ask"] or lk["yes"] or lk["no"] or lk["next"] != "Seguir" or "Así se dice. ¡La verás otra vez!" not in (page.locator("#rv-dock").text_content() or ""):
+                probs.append(f"{label}: tras «No me sale»: «{lk['ask']}» {lk['yes']!r} {lk['no']!r} siguiente {lk['next']!r}")
+            if st0["word"] not in page.evaluate("() => window.__said")[n_said:]:
+                probs.append(f"{label}: no suena la palabra")
             if page.evaluate(_SNAP) != before:
                 probs.append(f"{label}: «No me sale» ya puntúa")
-            page.locator(btn).click()
+            if how == "click":
+                page.locator(".rv-next").click()
+            else:
+                page.evaluate("() => document.activeElement && document.activeElement.blur()")
+                page.keyboard.press("ArrowRight")
             _wait_next(page, st0["i"])
-            _graded(page, st0, before, g, label, probs)
+            _graded(page, st0, before, 0, label, probs)
+            q = page.evaluate("() => ({n: rv.q.length, last: srsK(rv.q[rv.q.length - 1].id, rv.q[rv.q.length - 1].r), again: !!rv.q[rv.q.length - 1].again})")
+            if q["n"] != q_len + 1 or q["last"] != st0["key"] or not q["again"]:
+                probs.append(f"{label}: no vuelve al final de la cola: {q}")
         # sin permiso: fuera el micrófono
         page.wait_for_selector("#rv-card:not(.is-flipped)", timeout=3000)
         page.evaluate("() => { window.__srMode = 'denied'; }")
@@ -564,8 +610,8 @@ def test_mic_wrong_word_never_zero():
         page.locator("#rv-mic").click()
         page.wait_for_function("() => !document.getElementById('rv-mic')", timeout=4000)
         lk = page.evaluate(_LOOK)
-        if not (lk["msg"] or "").startswith("No puedo usar el micrófono") or lk["giveup"] or lk["hint"] != "Pista":
-            probs.append(f"sin permiso: {lk['msg']!r}, «No me sale» {lk['giveup']!r}, pista {lk['hint']!r}")
+        if lk["msg"] != "No puedo usar el micrófono. Toca «Ver»." or lk["giveup"] or lk["hint"] != "Pista" or lk["look"] != "Ver":
+            probs.append(f"sin permiso: {lk['msg']!r}, «No me sale» {lk['giveup']!r}, pista {lk['hint']!r}, «{lk['look']}»")
         if page.evaluate(_SNAP) != before:
             probs.append("sin permiso del micrófono ya hay nota")
         probs += C.errors(page)
@@ -575,8 +621,8 @@ def test_mic_wrong_word_never_zero():
 
 
 def test_no_mic_without_speech_recognition():
-    """Sin SpeechRecognition (como en la app instalada del iPhone) no hay «Dilo» ni «No me sale»: la pista y tocar la
-    tarjeta siguen."""
+    """Sin SpeechRecognition (como en la app instalada del iPhone) no hay «Dilo» ni «No me sale»: «Ver», la pista y tocar
+    la tarjeta siguen, y la tarjeta invita a pensarla antes («Piénsala… y toca para ver»)."""
     probs = []
     page = _page(init=_NO_SR)
     try:
@@ -584,8 +630,8 @@ def test_no_mic_without_speech_recognition():
         lk = page.evaluate(_LOOK)
         if page.evaluate("() => canListen()") or lk["mic"] or lk["giveup"] or page.locator("#rv[data-mic]").count():
             probs.append(f"sin reconocedor: canListen {page.evaluate('() => canListen()')}, «{lk['mic']}», «{lk['giveup']}»")
-        if lk["hint"] != "Pista":
-            probs.append(f"sin reconocedor no está «Pista»: {lk['hint']!r}")
+        if lk["hint"] != "Pista" or lk["look"] != "Ver" or lk["tap"] != "Piénsala… y toca para ver" or lk["qq"] != "¿Cómo se dice en inglés?":
+            probs.append(f"sin reconocedor: «{lk['hint']}» · «{lk['look']}» · {lk['tap']!r} · {lk['qq']!r}")
         st0, before = page.evaluate(_ST), page.evaluate(_SNAP)
         _tap_card(page)
         page.locator(".rv-yes").click()
@@ -599,8 +645,9 @@ def test_no_mic_without_speech_recognition():
 
 # ---------------------------------------------------------------- final, vacío y salir
 def test_end_pays_once_and_goes_home():
-    """Al terminar: «¡Repasaste N palabras!», las monedas (award(10, …, from) una sola vez, volando desde el chip), la
-    racha y «Seguir», que va SIEMPRE a Hoy (aunque se entrara desde el Camino)."""
+    """Al terminar, en una tarjeta: «¡Repasaste N palabras!», las monedas (award(10, "", false, from) una sola vez,
+    volando desde el chip, que lleva el total, y sin aviso: una sola cifra), la racha y «Seguir», que va SIEMPRE a Hoy
+    (aunque se entrara desde el Camino)."""
     probs = []
     page = _page()
     try:
@@ -624,9 +671,11 @@ def test_end_pays_once_and_goes_home():
         chip = page.locator(".rv-chip:not(.coin)").text_content().strip()
         if str(max(1, streak)) not in chip:
             probs.append(f"la racha dice {chip!r} (streak() = {streak})")
-        fin = [a for a in _awards(page) if a[1] == "¡Repaso terminado!"]
-        if fin != [[10, "¡Repaso terminado!", False, "rv-earn"]]:
+        fin = [a for a in _awards(page) if a[0] == 10]
+        if fin != [[10, "", False, "rv-earn"]]:
             probs.append(f"monedas del final: {fin}")
+        if not page.evaluate("() => !!document.querySelector('#rv-end .card.rv-end-card #rv-earn')"):
+            probs.append("el final no va en una tarjeta")
         if page.evaluate("() => window.__mc.filter(c => c[0] === 10)") != [[10, "rv-earn"]]:
             probs.append(f"las monedas no vuelan desde el chip: {page.evaluate('() => window.__mc')}")
         if page.evaluate("() => window.__done") != [{"n": 12}]:
@@ -642,7 +691,7 @@ def test_end_pays_once_and_goes_home():
         C.settle(page, 200)
         if C.current_hash(page) != "" or page.evaluate(_FOCUS):
             probs.append(f"«Seguir» deja en #/{C.current_hash(page)} con modo foco {page.evaluate(_FOCUS)!r}")
-        if len([a for a in _awards(page) if a[1] == "¡Repaso terminado!"]) != 1 or len(page.evaluate("() => window.__done")) != 1:
+        if len([a for a in _awards(page) if a[0] == 10]) != 1 or len(page.evaluate("() => window.__done")) != 1:
             probs.append(f"el final paga más de una vez: {_awards(page)[-3:]}")
         if page.evaluate(_ST) is not None or page.evaluate("() => vocabAccessory.state") is not None:
             probs.append("tras terminar sigue abierto el repaso")

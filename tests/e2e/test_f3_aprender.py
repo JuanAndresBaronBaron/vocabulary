@@ -539,7 +539,9 @@ def test_preguntas_grades_and_pays_once():
               const bs = [...document.querySelectorAll('#app .qz-opt')], w = r.l[lang].word;
               return {es: r.es, right: bs.findIndex(b => b.querySelector('span').textContent === w), n: bs.length,
                 ask: document.querySelector('.qz-ask').textContent}; }""")
-            if q["n"] != 4 or q["right"] < 0 or q["es"] not in q["ask"]:
+            # la misma pregunta que en la lección, con la palabra en minúscula: «¿Cuál es «perro»?» (las comillas las pone <q>)
+            low = "/".join(p if any(ch.isupper() for ch in p[1:]) else p[:1].lower() + p[1:] for p in q["es"].split("/"))
+            if q["n"] != 4 or q["right"] < 0 or q["ask"] != f"¿Cuál es {low}?":
                 probs.append(f"pregunta {i + 1}: {q}")
                 break
             good = i % 2 == 0
@@ -567,7 +569,9 @@ def test_preguntas_grades_and_pays_once():
                 if look["shake"]:
                     probs.append(f"pregunta {i + 1}: el fallo tiembla")
             if not look["next"]:
-                probs.append(f"pregunta {i + 1}: no sale «Siguiente»")
+                probs.append(f"pregunta {i + 1}: no sale «Seguir»")
+            elif i + 1 < n and page.evaluate("() => document.getElementById('nextq').textContent.trim()") != "Seguir":
+                probs.append(f"pregunta {i + 1}: tras contestar el botón no dice «Seguir»")
             page.locator("#nextq").click()
             page.wait_for_timeout(120)
         page.evaluate(_FINISH)
@@ -596,7 +600,8 @@ def test_preguntas_grades_and_pays_once():
 
 
 def test_escribir_saves_as_before():
-    """Escribir (antes «Práctica 21»): el ajuste lee prPrefs (actividades y repeticiones) y prAuto/prEx; «Empezar»
+    """Escribir (antes «Práctica 21»): arriba, a la vista, «Empezar» y «N palabras» (sin «210 repeticiones»); los
+    ajustes van en la hoja de «Opciones ›», que lee prPrefs (actividades y repeticiones) y prAuto/prEx; «Empezar»
     guarda prPrefs {acts, reps}, prAuto, prEx y pr:<tema>:<idioma> = {running, acts, reps, words: [{i, n}], cur, step}
     como antes; cada tarjeta suma una repetición; «Pausar» deja la práctica a medias y el ajuste ofrece «Seguir».
     «Hablar» sigue en la lista (con micrófono o tocando)."""
@@ -616,9 +621,25 @@ def test_escribir_saves_as_before():
             probs.append(f"el ajuste no lee prPrefs {prefs}: {st}")
         if st["auto"] is not True or st["ex"] is not True or not st["hablar"] or not st["go"]:
             probs.append(f"el ajuste: {st}")
+        top = page.evaluate("""() => { const b = document.getElementById('pr-go').getBoundingClientRect();
+          return {y: b.bottom, ih: innerHeight, total: document.getElementById('pr-total').textContent, sum: document.getElementById('pr-sum').textContent,
+            pri: document.getElementById('pr-go').classList.contains('glass-btn--pri'), sheet: document.getElementById('pr-sheet').open}; }""")
+        if top["y"] > top["ih"] * .6 or not top["pri"] or top["sheet"] or not top["total"].endswith(" palabras") or "repeticiones" in top["total"]:
+            probs.append(f"«Empezar» no está arriba a la vista con «N palabras»: {top}")
+        if top["sum"] != "Escuchar, Leer y Escribir · 21 veces cada una":
+            probs.append(f"resumen de «Opciones»: {top['sum']!r}")
+        page.locator("#pr-opt").click()
+        page.wait_for_selector("#pr-sheet[open]", timeout=3000)
+        page.wait_for_timeout(400)
         page.locator("#view [data-r='7']").click()
         page.locator("#view [data-pick='5']").click()
         page.locator("label:has(#pr-o-auto)").click()
+        page.locator("#pr-sheet [data-close]").click()
+        page.wait_for_selector("#pr-sheet:not([open])", state="attached", timeout=3000)
+        page.wait_for_timeout(300)
+        t = page.evaluate("() => [document.getElementById('pr-total').textContent, document.getElementById('pr-sum').textContent, document.documentElement.hasAttribute('data-sheet')]")
+        if t != ["5 palabras", "Escuchar, Leer y Escribir · 7 veces cada una", False]:
+            probs.append(f"tras cerrar «Opciones»: {t}")
         page.locator("#pr-go").click()
         page.wait_for_timeout(700)
         prefs = _ls(page, "prPrefs")

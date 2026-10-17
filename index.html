@@ -135,6 +135,10 @@ button{font:inherit;color:inherit;cursor:pointer}
 .t-min{font:400 var(--fs-min)/1.38 var(--f-text);color:var(--label2)}
 .t-tab{font:600 var(--fs-tab)/1.17 var(--f-text)}
 .t-word{font:700 var(--fs-word)/1.18 var(--f-round);overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto;text-wrap:balance}   /* con lang="en-GB|fr|da" en el elemento */
+/* la palabra que se aprende (fitWord): nunca se parte ni lleva guion; si no cabe, baja de tamaño. Solo si ni a 28 px
+   cabe, se parte (.is-break) */
+:root [data-fit]{overflow-wrap:normal;word-break:normal;-webkit-hyphens:manual;hyphens:manual}
+:root [data-fit].is-break{overflow-wrap:anywhere}
 .t-num{font-family:var(--f-round);font-variant-numeric:tabular-nums}
 
 /* ---------- iconos (sprite Phosphor al principio del <body>; ico(nombre, estilo, tamaño)) ---------- */
@@ -255,13 +259,20 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
 /* barra superior: tres botones de vidrio sobre un borde que funde el contenido que pasa por debajo */
 .topbar{position:fixed;z-index:var(--z-bar);top:0;left:0;right:0;display:flex;align-items:center;justify-content:space-between;gap:8px;
   padding:var(--bar-top) max(16px,var(--safe-r)) 8px max(16px,var(--safe-l));pointer-events:none}
-.topbar::after{content:"";position:absolute;z-index:-1;inset:0 0 -14px;pointer-events:none;
-  background:linear-gradient(180deg,var(--edge) 0,var(--edge) calc(var(--safe-t) + 6px),rgba(242,242,247,0) 100%)}
-:root[data-theme=dark] .topbar::after{background:linear-gradient(180deg,var(--edge) 0,var(--edge) calc(var(--safe-t) + 6px),rgba(0,0,0,0) 100%)}
+.topbar::after{content:"";position:absolute;z-index:-1;inset:0 0 -20px;pointer-events:none;
+  background:linear-gradient(180deg,var(--edge) 0,var(--edge) calc(var(--safe-t) + 20px),rgba(242,242,247,0) 100%)}
+:root[data-theme=dark] .topbar::after{background:linear-gradient(180deg,var(--edge) 0,var(--edge) calc(var(--safe-t) + 20px),rgba(0,0,0,0) 100%)}
 /* en la granja la escena llega hasta arriba (sin el borde que funde); al bajar más allá de ella, el borde vuelve */
 :root[data-tab=granja]:not([data-fm-past]) .topbar::after{display:none}
 .topbar>*{pointer-events:auto}
 .tb-flag{flex:none;width:var(--tap);height:var(--tap);padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+/* en la ficha de un tema (#/doc/…), «‹ Palabras» va en el sitio de la bandera, como el botón de volver de iOS (dentro de
+   un tema casi no se cambia de idioma); js/learn.js lo maneja */
+.tb-back{display:none;flex:none;align-items:center;gap:2px;height:var(--tap);padding:0 16px 0 8px;border-radius:var(--r-pill);
+  color:var(--brand-ink);font:600 var(--fs-sub)/1 var(--f-text);text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.tb-back .ico{color:var(--brand-tint)}
+:root[data-sec=doc] .topbar>.tb-back{display:inline-flex}
+:root[data-sec=doc] .topbar>.tb-flag{display:none}
 .flag{display:block;width:28px;height:28px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 .5px rgba(0,0,0,.18);flex:none}
 .flag svg{display:block;width:100%;height:100%}
 .tb-right{display:flex;align-items:center;gap:8px;min-width:0}
@@ -337,7 +348,7 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
   :root:not([data-bar=bottom]){--tb-row:52px;--topbar-h:calc(var(--safe-t) + 68px);scroll-padding-bottom:16px}
   :root:not([data-bar=bottom]) main{padding-bottom:48px}
   :root:not([data-bar=bottom]) .topbar{display:grid;grid-template-columns:minmax(max-content,1fr) auto minmax(max-content,1fr);column-gap:12px}
-  :root:not([data-bar=bottom]) .topbar>.tb-flag{grid-column:1;justify-self:start}
+  :root:not([data-bar=bottom]) .topbar>.tb-flag,:root:not([data-bar=bottom]) .topbar>.tb-back{grid-column:1;grid-row:1;justify-self:start}
   :root:not([data-bar=bottom]) .topbar>.tabbar{grid-column:2}
   :root:not([data-bar=bottom]) .topbar>.tb-right{grid-column:3;justify-self:end}
   :root:not([data-bar=bottom]) .tabbar{position:relative;inset:auto;z-index:auto;width:max-content;max-width:none;height:var(--tb-row);margin:0;
@@ -353,6 +364,8 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
 /* título grande y segmentos de la pestaña (solo en su raíz; las pantallas no pintan otro título grande) */
 .tabhead{padding-top:4px}
 .tabhead[hidden]{display:none}
+/* Aprender: el título y los segmentos en la misma columna de 640 px que Camino, Palabras y Gramática (js/learn.js) */
+:root[data-tab=aprender] #tabhead{max-width:calc(640px + max(16px,var(--safe-l)) + max(16px,var(--safe-r)))}
 .th-t{margin:0 0 12px;color:var(--label)}
 /* segmentos del mismo ancho mientras quepan; si un nombre (con su aviso o con texto grande) no cabe, ese segmento crece
    y los demás ceden */
@@ -385,6 +398,8 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
 :root[data-focus] .focusbar{position:fixed;z-index:var(--z-bar);top:var(--bar-top);left:max(16px,var(--safe-l));right:max(16px,var(--safe-r));
   height:var(--tap);display:flex;align-items:center;justify-content:space-between;gap:12px;pointer-events:none}
 .focusbar>*{pointer-events:auto}
+/* en la lección y el repaso, la ✕ y las monedas van en la misma columna de 560 px que la barra y la tarjeta */
+:root:is([data-focus=leccion],[data-focus=repaso]) .focusbar{left:max(16px,var(--safe-l),calc(50% - 280px));right:max(16px,var(--safe-r),calc(50% - 280px))}
 .fx-x{flex:none;width:var(--tap);height:var(--tap);border-radius:50%;display:grid;place-items:center;color:var(--label);text-decoration:none}
 .fx-coins{display:flex;align-items:center;gap:5px;min-height:32px;padding:0 2px;font:800 calc(1.0625rem*var(--k))/1 var(--f-round);
   font-variant-numeric:tabular-nums;color:var(--gold-ink);white-space:nowrap}
@@ -824,6 +839,7 @@ details.adult[open] summary{margin-bottom:10px}
 <symbol id="i-swap-bold" viewBox="0 0 256 256"><path d="M228,48V152a20,20,0,0,1-20,20H112.92a12,12,0,0,1-17.41,16.49l-20-20a12,12,0,0,1,0-17l20-20A12,12,0,0,1,112.92,148H204V52H100a12,12,0,0,1-24,0V48A20,20,0,0,1,96,28H208A20,20,0,0,1,228,48ZM168,192a12,12,0,0,0-12,12H52V108h91.08a12,12,0,0,0,17.41,16.49l20-20a12,12,0,0,0,0-17l-20-20A12,12,0,0,0,143.08,84H48a20,20,0,0,0-20,20V208a20,20,0,0,0,20,20H160a20,20,0,0,0,20-20v-4A12,12,0,0,0,168,192Z"/></symbol>
 </svg>
 <header class="topbar" id="topbar">
+  <a class="tb-back glass lite" id="dv-back" href="#/palabras"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-caret-left-bold"></use></svg><span>Palabras</span></a>
   <button type="button" class="tb-flag glass" id="lang-b" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-m" aria-label="Idioma"></button>
   <div class="tb-right">
     <div class="tb-slot" data-sync-slot></div>
@@ -1115,7 +1131,7 @@ async function progreso(el){
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v17", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v18", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
@@ -1503,7 +1519,8 @@ function goTab(id){
    vuelve abajo, como en el móvil). Se mira otra vez cuando cambia el tamaño de algo (ResizeObserver). */
 const BAR_MQ = matchMedia("(min-width:820px)");
 function barFits(){
-  const nav = $("#tabbar"), fl = $("#lang-b"), rt = document.querySelector(".topbar .tb-right"), tb = $("#topbar");
+  /* a la izquierda, la bandera o, en la ficha de un tema, «‹ Palabras» en su sitio */
+  const nav = $("#tabbar"), fl = [$("#dv-back"), $("#lang-b")].find(e => e && e.getClientRects().length) || $("#lang-b"), rt = document.querySelector(".topbar .tb-right"), tb = $("#topbar");
   if(!nav || !fl || !rt || !tb || !nav.getClientRects().length) return true;
   const pad = parseFloat(getComputedStyle(tb).paddingRight) || 16;
   const n = nav.getBoundingClientRect(), r = rt.getBoundingClientRect(), f = fl.getBoundingClientRect();
@@ -1537,7 +1554,7 @@ function watchBar(){
   addEventListener("resize", placeBarSoon);
   if(typeof ResizeObserver === "function"){
     const ro = new ResizeObserver(placeBarSoon);
-    ["#lang-b", ".topbar .tb-right", "#tabbar .tb-list"].forEach(s => { const el = $(s); if(el) ro.observe(el); });
+    ["#lang-b", "#dv-back", ".topbar .tb-right", "#tabbar .tb-list"].forEach(s => { const el = $(s); if(el) ro.observe(el); });
   }
   if(document.fonts && document.fonts.ready) document.fonts.ready.then(placeBarSoon, () => {});
 }
@@ -1666,11 +1683,15 @@ let homeOffer = null;   /* lo que ofrece la tarjeta de Hoy ({kind: "repaso"} o {
 const lcFirst = t => String(t || "").charAt(0).toLowerCase() + String(t || "").slice(1);
 const nPal = n => n === 1 ? "1 palabra" : `${n} palabras`;
 const rvOpen = () => !!(rv && rv.q && rv.i < rv.q.length);
-/* la lección guardada a medias (sessionStorage "vocab:ls" = {id, i, first, miss, n?, lang?}; la escribe la lección) */
+/* la lección guardada a medias (sessionStorage "vocab:ls" = {id, i, first, miss, n?, lang?, left?}; la escribe la
+   lección). Si la pestaña se cerró (o el iPhone cerró la app), la copia de este aparato: localStorage "vocab:lsdraft" =
+   {t: cuándo, v: lo mismo}, que vale 72 horas (js/lesson.js la escribe y la borra; no es de la partida) */
 function lsSaved(){
+  const ok = v => v && typeof v === "object" && typeof v.id === "string" && v.id && (!v.lang || v.lang === lang) ? v : null;
+  try{ const v = ok(JSON.parse(sessionStorage.getItem("vocab:ls"))); if(v) return v; }catch(e){}
   try{
-    const v = JSON.parse(sessionStorage.getItem("vocab:ls"));
-    return v && typeof v === "object" && typeof v.id === "string" && v.id && (!v.lang || v.lang === lang) ? v : null;
+    const d = JSON.parse(localStorage.getItem("vocab:lsdraft"));
+    return d && typeof d === "object" && typeof d.t === "number" && Date.now() - d.t < 72 * 36e5 && Date.now() >= d.t - 6e4 ? ok(d.v) : null;
   }catch(e){ return null; }
 }
 /* la siguiente lección del camino: la del nivel que enseña el mapa (mapLv) si le quedan, si no la del primer nivel
@@ -1830,7 +1851,8 @@ const noVoiceMsg = () => iosPWA() ? "Para hablar, abre la web en Safari. Tambié
 
 /* micrófono: devuelve las transcripciones posibles */
 /* escucha una vez (como mucho ms, 7 s por defecto) y nunca se queda colgado ni falla:
-   resuelve {status, alts} con status "ok" | "timeout" | "no-speech" | "denied" | "unsupported" | "busy" | "error" */
+   resuelve {status, alts} con status "ok" | "timeout" | "no-speech" | "denied" | "unsupported" | "unavailable" | "busy" |
+   "error" (con error: el código del reconocedor) */
 let recNow = null;
 function listen(opts){
   const ms = (opts && opts.ms) || 7000;
@@ -1848,7 +1870,10 @@ function listen(opts){
     rec.onresult = e => { alts = [...e.results[0]].map(a => a.transcript); done("ok"); try{ rec.stop(); }catch(_){} };
     rec.onerror = e => {
       const c = e.error || "error";
-      done(c === "not-allowed" || c === "service-not-allowed" ? "denied" : c === "no-speech" ? "no-speech" : "error", c);
+      /* sin internet (el reconocedor de Chrome lo necesita), sin micrófono o sin ese idioma: "unavailable" (no es culpa
+         del niño y no sirve repetir); el código de verdad va en error */
+      done(c === "not-allowed" || c === "service-not-allowed" ? "denied" : c === "no-speech" ? "no-speech"
+        : c === "network" || c === "audio-capture" || c === "language-not-supported" ? "unavailable" : "error", c);
     };
     rec.onend = () => done(alts ? "ok" : "no-speech");
     timer = setTimeout(() => { done("timeout"); try{ rec.abort(); }catch(_){} }, ms);
@@ -1864,6 +1889,29 @@ function toast(t, icon){
   if(!icon){ const m = LEAD_EMOJI.exec(t); if(m && m[0].length < t.length){ icon = m[1]; t = t.slice(m[0].length); } }
   M.toast(t, icon ? {icon: icon === "🪙" ? "coin" : icon} : {});
 }
+
+/* la palabra que se aprende nunca se parte a media palabra («grandmothe / r», «grand-daughter»): el elemento (la palabra
+   de la lección, del repaso o de Tarjetas) queda con [data-fit] (sin partir ni guiones) y, si no cabe, baja de 2 en 2 px
+   hasta min (28 px). Solo si ni así cabe, se parte (.is-break). Se vuelve a medir al cambiar el tamaño de la ventana o al
+   cargar la letra. Las frases se parten por los espacios, como siempre. */
+const FIT = new Set();
+function fitWord(el, min){
+  if(!el || !el.isConnected) return;
+  min = +min || +el.dataset.fit || 28;
+  el.dataset.fit = String(min); el.classList.remove("is-break"); el.style.fontSize = "";
+  FIT.add(el);
+  const over = () => el.scrollWidth > el.clientWidth + 1;
+  let fs = parseFloat(getComputedStyle(el).fontSize) || 44;
+  while(over() && fs > min){ fs = Math.max(min, fs - 2); el.style.fontSize = fs + "px"; }
+  if(over()) el.classList.add("is-break");
+}
+let fitRaf = 0;
+function refitWords(){
+  if(fitRaf) return;
+  fitRaf = requestAnimationFrame(() => { fitRaf = 0; for(const el of [...FIT]){ if(el.isConnected) fitWord(el); else FIT.delete(el); } });
+}
+addEventListener("resize", refitWords);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(refitWords, () => {});
 
 /* ---------- mapa (camino por niveles) ---------- */
 const LVS = {

@@ -2,27 +2,31 @@
    Rutas (las registra en ROUTES; route() de index.html las llama con los trozos de la ruta, también al cargar la URL):
    - #/mapa y #/mapa/<nivel> → mapa(lv): el camino del nivel. Arriba la pastilla de nivel (levelPicker), el nombre del
      nivel con «N de M» y, si hay regalo cada 5 lecciones, una fila neutra «Regalo en 3 lecciones» con 5 puntos. Nodos
-     limpios: hecho en --ok con ✓ y sus estrellas en oro, el actual en --brand-fill (con el zorro de js/buddy.js al
+     limpios: hecho en --ok-fill con ✓ y sus estrellas en oro, el actual en --brand-fill (con el zorro de js/buddy.js al
      lado), bloqueado en gris; la gramática en cuadrado redondeado. Tocar un nodo abre la lección (bloqueado: aviso
-     amable); mantener pulsado uno hecho (G.hold) abre el vistazo: hoja pequeña con sus estrellas, sus palabras y
-     «Repetir». Si la lección actual no se ve, la pastilla flotante «Mi lección» (↓ o ↑) baja o sube hasta ella con
+     amable); mantener pulsado uno hecho (G.hold) abre el vistazo: hoja pequeña con «Unidad N · tema», sus estrellas,
+     sus palabras y «Repetir». Si la lección actual no se ve, la pastilla flotante «Mi lección» (↓ o ↑) baja o sube hasta ella con
      scroll suave. Al entrar por la pestaña no se mueve (se ven el título y los segmentos); con un nivel en la ruta o al
      volver de una lección baja hasta la lección actual (como en F2). Guarda el nivel en store "mapLv", como antes.
    - #/palabras → palabras(): lista agrupada como Ajustes del iPhone: «Temas», «Las 3000» y «Avanzado» (plegado; si se
      abre, se recuerda en la sesión). Cada fila: dibujo, nombre, número de palabras, anillo de progreso (las del tema que
      ya están en srs:<idioma> / las del tema) y la flecha. Usa data/index.json.
-   - #/doc/<id> → docView(id): «‹ Palabras», el título y el control segmentado Lista · Tarjetas · Preguntas · Escribir
+   - #/doc/<id> → docView(id): el título y el control segmentado Lista · Tarjetas · Preguntas · Escribir; «‹ Palabras» es
+     la cápsula de la barra de arriba (#dv-back de index.html, en el sitio de la bandera)
      (Tarjetas por defecto; el último elegido de cada tema se recuerda en la sesión, sessionStorage "vocab:docmode").
-     · Lista: filas con el español, la palabra y el altavoz (44 px); tocar la fila abre el detalle (dibujo, cómo suena,
-       plural o formas, IPA solo si vocabUI.get().ipa, ejemplo y «Al repaso»). Deslizar una fila a la izquierda (como en
+     · Lista: filas con el español, la palabra y el altavoz (44 px; con la fila abierta, solo el grande del detalle) y
+       el punto «En el repaso»; tocar la fila abre el detalle (dibujo, «Se dice», plural o formas, IPA solo si
+       vocabUI.get().ipa, ejemplo y «Al repaso»). Deslizar una fila a la izquierda (como en
        Mail) también la manda al repaso: srsAdd(id, [fila], 0), igual que el «➕ Al repaso» de antes.
      · Tarjetas: tarjeta sólida que gira al tocarla; «Siguiente» y ‹ (también deslizando y con ← →), «Automático»
-       (secuencia que solo dice el idioma que se estudia), «Barajar» y qué se ve primero.
-     · Preguntas (antes «Test»): 10 preguntas con 4 opciones sólidas; acierto en verde con ✓, fallo en gris con ✗ y la
+       (secuencia que solo dice el idioma que se estudia), «Barajar» y «Ver primero en inglés / en español».
+     · Preguntas (antes «Test»): 10 preguntas «¿Cuál es «perro»?» (como en la lección) con 4 opciones sólidas; acierto en verde con ✓, fallo en gris con ✗ y la
        correcta en verde (sin temblor ni sonido triste); srsGrade(id, fila, 2|0) y bus "answer" {where: "test"} como
-       antes; al final award(aciertos) una sola vez, con las monedas volando.
+       antes; tras contestar, «Seguir»; al final award(aciertos) una sola vez, con las monedas volando.
      · Escribir (antes «Práctica 21»): la práctica de repeticiones de siempre (escuchar, leer, escribir, hablar y
        dictado), con su guardado: store "pr:<id>:<idioma>" (la sesión), "prPrefs" {acts, reps}, "prAuto" y "prEx".
+       Arriba solo «Empezar» (con lo elegido la última vez) y «N palabras»; lo demás (qué practicas, cuántas veces,
+       qué palabras, pasar sola, oír el ejemplo) va en la fila «Opciones ›», que abre una hoja.
        «Hablar» sigue ahí: con micrófono si canListen(); si no, se dice en voz alta y se toca «Lo he dicho» (noVoiceMsg()).
    - #/gramatica y #/gramatica/<nivel> → gramatica(lv): la misma pastilla de nivel; filas con número y título de cada
      unidad; al tocar se despliega la teoría (una abierta a la vez) con «Practicar», que abre su lección
@@ -60,6 +64,21 @@ const picHtml = (r, cls = "") => `<div class="ln-pic${cls ? " " + cls : ""}${r.i
   ? `<img src="${esc(r.img)}" alt="" loading="lazy" decoding="async" draggable="false">` : `<span class="ln-ph" aria-hidden="true">${esc((r.es || "?").charAt(0).toUpperCase())}</span>`}</div>`;
 const norm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9æøåœ]/g, "");
 const stars = (n, z = 16) => [0, 1, 2].map(i => `<span class="ln-star${i < n ? " on" : ""}">${ico("star", "fill", z)}</span>`).join("");
+/* la palabra en español dentro de una frase, en minúscula («¿Cuál es «perro»?»), como en la lección; no los nombres
+   propios (países, o con más mayúsculas) */
+const inQ = (es, doc) => String(es || "").split("/").map(p => doc === "paises" || /\p{Lu}/u.test(p.slice(1)) ? p : p.charAt(0).toLowerCase() + p.slice(1)).join("/");
+/* las cabeceras de grupo como el resto («Mascotas», no «MASCOTAS»): solo cambia lo que viene todo en mayúsculas. Lo
+   que lleva cifras se queda («Nivel A1 · Principiante») y en los temas de lugares cada nombre va con mayúscula
+   («Asia y Oceanía», «Medio Oriente») */
+const GEO = new Set(["paises", "nacionalidades"]);
+function catT(c, doc){
+  c = String(c || ""); if(/\p{Ll}/u.test(c)) return c;
+  const cap = w => w.charAt(0) + w.slice(1).toLowerCase();
+  return c.split(/(\s*·\s*)/).map(part => /·/.test(part) ? part : part.split(" ").map((w, i) =>
+    /\d/.test(w) ? w : i === 0 ? cap(w) : GEO.has(doc) && !/^(Y|DE|DEL|LA|EL)$/.test(w) ? cap(w) : w.toLowerCase()).join(" ")).join("");
+}
+/* el punto «ya está en el repaso» con su nombre para el lector de pantalla */
+const IN_SRS = `<span class="vh dl-srs">En el repaso</span>`;
 
 /* ---------- estilos ---------- */
 const CSS = `
@@ -91,8 +110,11 @@ const CSS = `
 .lvp-car{transition:rotate var(--d-fast,160ms) ease}
 .lvp-b[aria-expanded=true] .lvp-car{rotate:180deg}
 .lvp-m{position:absolute;z-index:8;top:calc(100% + 8px);left:0;width:min(320px,calc(100vw - 32px));padding:4px;border-radius:var(--r-menu)}
-.lvp-m.glass{--g-tint:rgba(255,255,255,.86)}
-:root[data-theme=dark] .lvp-m.glass{--g-tint:rgba(28,28,30,.84)}
+.lvp-m.glass{--g-tint:rgba(255,255,255,.94)}   /* casi opaco: detrás no se ven los nodos del camino */
+:root[data-theme=dark] .lvp-m.glass{--g-tint:rgba(28,28,30,.94)}
+/* en oscuro, los niveles de color oscuro con un punto más claro (del mismo tono) */
+:root[data-theme=dark] .lvp-dot[data-lv=B2]{background:#7F9CF0}
+:root[data-theme=dark] .lvp-dot[data-lv=C1]{background:#9CA3AF}
 .lvp-m[hidden]{display:none}
 .lvp-i{position:relative;display:flex;align-items:center;gap:12px;min-height:var(--row);padding:8px 12px;border-radius:16px;color:var(--label);
   text-decoration:none;font:400 var(--fs-body)/1.2 var(--f-text);-webkit-tap-highlight-color:transparent}
@@ -106,7 +128,7 @@ const CSS = `
 .lvp-i[aria-checked=true] .lvp-chk{visibility:visible}
 
 /* Camino */
-.cm{position:relative;width:min(100%,560px);margin:0 auto}
+.cm{position:relative;width:min(100%,640px);margin:0 auto}   /* el mismo ancho que el título, Palabras y Gramática */
 .cm-top{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin:0 0 8px}
 .cm-sum{margin:0;min-width:0;font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
 .cm-sum b{font-weight:600;color:var(--label)}
@@ -125,7 +147,7 @@ const CSS = `
 .cm .nd.hb{margin-top:44px}
 .cm .node{position:relative;width:68px;height:68px;margin:0;padding:0;border:0;border-radius:50%;display:grid;place-items:center;
   color:#fff;background:var(--brand-fill);box-shadow:0 2px 6px rgba(0,0,0,.16);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.cm .node.done{background:var(--ok)}
+.cm .node.done{background:var(--ok-fill)}   /* el ✓ blanco con contraste de sobra */
 .cm .node.cur{background:var(--brand-fill);box-shadow:0 0 0 6px var(--brand-soft),0 4px 12px rgba(30,110,244,.32)}
 .cm .node.lock{background:var(--fill);color:var(--label3);box-shadow:none}
 .cm .node.gram{border-radius:22px}
@@ -199,8 +221,6 @@ dialog.cm-pk{max-width:480px}
 
 /* ficha de un tema */
 .dv{width:min(100%,640px);margin:0 auto}
-.dv-back{display:inline-flex;align-items:center;gap:2px;min-height:var(--tap);margin:0 0 4px -6px;padding:0 10px 0 2px;border-radius:var(--r-pill);
-  color:var(--brand-ink);font:400 var(--fs-sub)/1 var(--f-text);text-decoration:none;-webkit-tap-highlight-color:transparent}
 .dv-t{margin:0;font:700 var(--fs-t1)/1.15 var(--f-round);color:var(--label);text-wrap:balance}
 .dv-sub{margin:4px 0 16px;font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
 .dv-note{margin:0 0 16px}
@@ -229,7 +249,8 @@ dialog.cm-pk{max-width:480px}
   color:var(--label);text-align:left;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .dl-es{font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
 .dl-w{font:600 var(--fs-head)/1.25 var(--f-text);color:var(--label);overflow-wrap:anywhere}
-.dl-r.in-srs .dl-es::after{content:"";display:inline-block;width:7px;height:7px;margin:0 0 1px 6px;border-radius:50%;background:var(--teal);vertical-align:middle}
+.dl-r.in-srs .dl-es::after{content:"";display:inline-block;width:8px;height:8px;margin:0 0 1px 8px;border-radius:50%;background:var(--teal);vertical-align:middle}
+.dl-r.is-open .dl-fg>.say{visibility:hidden}   /* abierta, el altavoz es el grande del detalle */
 .dl-open[aria-expanded=true] .dl-w{color:var(--brand-ink)}
 .dl-d{padding:0 16px 16px}
 .dl-d[hidden]{display:none}
@@ -245,7 +266,7 @@ dialog.cm-pk{max-width:480px}
 .dl-ex .ln-spk{display:inline-grid;vertical-align:middle;margin:-10px 0 -10px 0}
 .dl-ex .dl-ex-tr{margin-top:2px;font-size:var(--fs-note);color:var(--label2)}
 .dl-add .ico{flex:none}
-@media (max-width:420px){.dl-dd{flex-direction:column;gap:8px}.dl-pic{width:100%;height:120px}.dl-pic.wide{width:100%}}
+@media (max-width:420px){.dl-dd{flex-direction:column;gap:8px}.dl-pic{width:100%;height:120px}.dl-pic.wide{width:100%}.dl-hear{align-self:center}}
 
 /* Tarjetas */
 .fcx{display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -258,7 +279,8 @@ dialog.cm-pk{max-width:480px}
 .fcx-w{margin:4px 0 0;font:700 var(--fs-word)/1.15 var(--f-round);overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto;text-wrap:balance}
 .fcx-es{margin:0;font:400 var(--fs-body)/1.3 var(--f-text);color:var(--label2)}
 .fcx-hear{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:4px}
-.fcx-tap{margin:6px 0 0;font:600 var(--fs-note)/1.2 var(--f-text);color:var(--label2)}
+.fcx-tap{display:flex;align-items:center;gap:8px;margin:8px 0 0;font:600 var(--fs-note)/1.2 var(--f-text);color:var(--label2)}
+.fcx-tap .ico{color:var(--brand-tint)}
 .fcx-meta{margin:0;font:400 var(--fs-sub)/1.35 var(--f-text);color:var(--label2)}
 .fcx-ex{width:100%;margin-top:4px;padding:10px 12px;border-radius:var(--r-md);background:var(--fill2);text-align:left}
 .fcx-ex p{margin:0;font:400 var(--fs-sub)/1.35 var(--f-text)}
@@ -328,6 +350,14 @@ label.st-r{cursor:pointer}
 .pw-words .st-r small{display:inline;margin-left:6px;color:var(--label2);font-size:var(--fs-note)}
 .pw-go{display:flex;flex-direction:column;align-items:stretch;gap:8px}
 .pw-total{margin:0;text-align:center;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
+.pw-opt .st-l small{white-space:normal}
+.pw-chev{flex:none;color:var(--label3)}
+/* las opciones de Escribir, en una hoja (lo de un mayor, fuera del camino del niño) */
+dialog.pw-sheet{max-width:560px}
+dialog.pw-sheet.m-sheet,dialog.pw-sheet.m-sheet.glass{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-theme=dark] dialog.pw-sheet.m-sheet{background:var(--card)}
+:root[data-theme=dark] dialog.pw-sheet .st-g{background:var(--card-2)}
+.pw-sheet .pw{padding:0 0 8px}
 .pw-resume{padding:0 0 12px}
 .pw-rb{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px}
 .pw-rb>*{flex:1}
@@ -461,11 +491,11 @@ function levelPicker(lv, href, o = {}){
   const items = Object.entries(LVS).map(([k, v]) => {
     let x = {done: 0, total: 0}; try{ x = info(k) || x; }catch(e){}
     return `<a class="lvp-i" role="menuitemradio" aria-checked="${k === lv}" tabindex="-1" href="${esc(to(k))}" aria-label="${k}, ${esc(v.n)}: ${x.done} de ${x.total} ${esc(what)}">
-      <i class="lvp-dot" style="--lc:${v.c}" aria-hidden="true"></i><span class="lvp-t"><b>${k}</b>${esc(v.n)}</span><span class="lvp-n" aria-hidden="true">${x.done}/${x.total}</span>${ico("check", "bold", 20, "lvp-chk")}</a>`;
+      <i class="lvp-dot" data-lv="${k}" style="--lc:${v.c}" aria-hidden="true"></i><span class="lvp-t"><b>${k}</b>${esc(v.n)}</span><span class="lvp-n" aria-hidden="true">${x.done}/${x.total}</span>${ico("check", "bold", 20, "lvp-chk")}</a>`;
   }).join("");
   return `<div class="lvp" data-lvp>
     <button type="button" class="glass-btn glass-btn--sm lvp-b" aria-haspopup="menu" aria-expanded="false" aria-controls="${id}" aria-label="Nivel ${lv}, ${esc(LVS[lv].n)}. Cambiar de nivel">
-      <i class="lvp-dot" style="--lc:${LVS[lv].c}" aria-hidden="true"></i><b>${lv}</b>${ico("caret-down", "bold", 18, "lvp-car")}</button>
+      <i class="lvp-dot" data-lv="${lv}" style="--lc:${LVS[lv].c}" aria-hidden="true"></i><b>${lv}</b>${ico("caret-down", "bold", 18, "lvp-car")}</button>
     <div class="lvp-m glass" id="${id}" role="menu" aria-label="Niveles" hidden>${items}</div></div>`;
 }
 let menuAt = null;     /* el .lvp abierto */
@@ -553,10 +583,10 @@ async function mapa(lv){
   const app = $("#app"), nodes = [...app.querySelectorAll(".node[data-ls]")];
   app.querySelector(".path").addEventListener("click", e => {
     const b = e.target.closest(".node[data-ls]"); if(!b) return;
-    if(b.classList.contains("lock")) return toast("Primero, la lección de antes. ¡Tú puedes!", "🔒");
+    if(b.classList.contains("lock")) return toast("Primero, la lección de antes. ¡Tú puedes!", ico("lock", "bold", 20));
     location.hash = "#/leccion/" + b.dataset.ls;
   });
-  $("#trophy").onclick = () => toast(allDone ? `¡Nivel ${lv} completado!` : `Termina las ${ls.length} lecciones y el trofeo es tuyo`, "🏆");
+  $("#trophy").onclick = () => toast(allDone ? `¡Nivel ${lv} completado!` : `Termina las ${ls.length} lecciones y el trofeo es tuyo`, ico("trophy", "bold", 20));
   /* mantener pulsado un nodo hecho: el vistazo */
   if(W.G && typeof G.hold === "function") nodes.filter(b => b.classList.contains("done")).forEach(b => gest(G.hold(b, {onHold: () => {
     if(W.G.haptic) try{ G.haptic("selection"); }catch(e){}
@@ -618,11 +648,11 @@ async function openPeek(id, from){
   await getMap();
   const lv = Object.keys(LVS).find(k => lvLessons(k).some(l => l.id === id)); if(!lv) return false;
   const ls = lvLessons(lv), k = ls.findIndex(l => l.id === id), l = ls[k], st = mapP()[id] || 0;
-  const u = lvUnits(lv).find(u => u.ls.some(x => x.id === id)) || {t: ""};
+  const us = lvUnits(lv), un = us.findIndex(u => u.ls.some(x => x.id === id)), u = us[un] || {t: ""};
   const title = l.w ? `Lección ${k + 1}` : "Gramática";
   const d = peekSheet();
   d.innerHTML = `<div class="m-head"><h2 id="cm-pk-t">${esc(title)}</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
-    <p class="cm-pk-u">${l.w ? `Unidad · ${esc(u.t)}` : esc(l.t)}</p>
+    <p class="cm-pk-u">${l.w ? `Unidad ${un + 1} · ${esc(u.t)}` : esc(l.t)}</p>
     <div class="cm-pk-st" role="img" aria-label="${st} de 3 estrellas">${stars(st, 40)}</div>
     <p class="cm-pk-s">${st >= 3 ? "¡Perfecta!" : st === 2 ? "¡Muy bien hecha!" : "¡Hecha! A por más estrellas"}</p>
     <div class="cm-pk-w" id="cm-pk-w"></div>
@@ -713,15 +743,13 @@ async function docView(id){
   if(state.doc !== id){ state.doc = id; state.mode = modeFor(id); }
   clearGest();
   const meta = idx.find(d => d.id === id);
-  const back = `<a class="dv-back" id="dv-back" href="#/palabras">${ico("caret-left", "bold", 24)}<span>Palabras</span></a>`;
   if(!meta || !(meta.langs || []).includes(lang)){
-    $("#app").innerHTML = `<div class="dv">${back}<h1 class="dv-t">${esc(doc.title)}</h1>
+    $("#app").innerHTML = `<div class="dv"><h1 class="dv-t">${esc(doc.title)}</h1>
       <div class="qz-card" style="margin-top:16px"><div class="qz-fox">${typeof heroHtml === "function" ? heroHtml(80) : ""}</div><p class="qz-msg">Este tema aún no está listo en ${esc(lname())}. ¡Pronto!</p></div></div>`;
     wireBack(); return;
   }
   const n = entries(doc).length;
   $("#app").innerHTML = `<div class="dv" id="dv">
-    ${back}
     <h1 class="dv-t">${esc(doc.title)}</h1>
     <p class="dv-sub">${nPal(n)} en ${esc(lname())}</p>
     <div class="note dv-note" id="voicenote" hidden></div>
@@ -740,9 +768,11 @@ async function docView(id){
   seg.addEventListener("keydown", e => { try{ rovingKeys(e, [...seg.querySelectorAll(".seg-i")]); }catch(_){} });
   draw(doc);
 }
-/* «‹ Palabras»: si se vino de la lista, Atrás (vuelve a su scroll); si no, a la lista */
+/* «‹ Palabras» (la cápsula de la barra de arriba en #/doc/…, en el sitio de la bandera): si se vino de la lista, Atrás
+   (vuelve a su scroll); si no, a la lista. Se engancha una vez. */
 function wireBack(){
-  const b = $("#dv-back"); if(!b) return;
+  const b = $("#dv-back"); if(!b || b.dataset.wired) return;
+  b.dataset.wired = "1";
   b.addEventListener("click", e => {
     if(secOf(docFrom || "") === "palabras" && history.length > 1 && !e.metaKey && !e.ctrlKey){ e.preventDefault(); history.back(); }
   });
@@ -762,12 +792,12 @@ function lista(doc){
     const r = all[i];
     if(r.cat){ cat = r.cat; continue; }
     const d = r.l && r.l[lang]; if(!r.es || !d) continue;
-    if(cat !== null || !open){ if(open) html += `</div>`; if(cat !== null) html += `<h3 class="dl-cat">${esc(cat)}</h3>`; html += `<div class="dl-g st-g">`; open = true; cat = null; }
+    if(cat !== null || !open){ if(open) html += `</div>`; if(cat !== null) html += `<h3 class="dl-cat">${esc(catT(cat, doc.id))}</h3>`; html += `<div class="dl-g st-g">`; open = true; cat = null; }
     n++;
     const q = norm(r.es) + " " + norm(d.word) + " " + norm(d.ex);
     html += `<div class="dl-r${m[srsK(doc.id, r)] ? " in-srs" : ""}" data-i="${i}" data-q="${esc(q)}">
       <div class="dl-act" aria-hidden="true">${ico("plus", "bold", 22)}<span>Al repaso</span></div>
-      <div class="dl-fg"><button type="button" class="dl-open" aria-expanded="false" aria-controls="dl-d${i}"><span class="dl-es">${esc(r.es)}</span><span class="dl-w" lang="${esc(lc)}">${esc(d.word)}</span></button>${spk(d.word)}</div>
+      <div class="dl-fg"><button type="button" class="dl-open" aria-expanded="false" aria-controls="dl-d${i}"><span class="dl-es">${esc(r.es)}</span><span class="dl-w" lang="${esc(lc)}">${esc(d.word)}</span>${m[srsK(doc.id, r)] ? IN_SRS : ""}</button>${spk(d.word)}</div>
       <div class="dl-d" id="dl-d${i}" hidden></div></div>`;
   }
   if(open) html += `</div>`;
@@ -793,7 +823,7 @@ function lista(doc){
     const o = e.target.closest(".dl-open"); if(!o) return;
     const row = o.closest(".dl-r"), d = row.querySelector(".dl-d"), on = o.getAttribute("aria-expanded") !== "true";
     if(on && !d.innerHTML) d.innerHTML = detailHtml(doc, all[+row.dataset.i]);
-    o.setAttribute("aria-expanded", on); d.hidden = !on;
+    o.setAttribute("aria-expanded", on); d.hidden = !on; row.classList.toggle("is-open", on);
     if(on){
       if(!rm()) try{ d.animate([{opacity: 0, transform: "translateY(-6px)"}, {opacity: 1, transform: "none"}], {duration: 200, easing: "ease-out"}); }catch(_){}
       const big = d.querySelector(".ln-spk.lg");
@@ -827,7 +857,7 @@ function detailHtml(doc, r){
   const formsK = !r.pos || r.pos === "noun" ? "Plural" : "Formas";
   return `<div class="dl-dd">${r.img ? picHtml(r, "dl-pic") : ""}<div class="dl-info">
     <div class="dl-hear">${spk(d.word, "lg")}${slowB(d.word)}</div>
-    ${pron ? `<p class="dl-ln"><span class="dl-k">Suena</span>${esc(pron)}</p>` : ""}
+    ${pron ? `<p class="dl-ln"><span class="dl-k">Se dice</span>«${esc(pron)}»</p>` : ""}
     ${d.forms ? `<p class="dl-ln"><span class="dl-k">${formsK}</span><span lang="${esc(lc)}">${esc(d.forms)}</span></p>` : ""}
     ${ipa && d.ipa ? `<p class="dl-ln"><span class="dl-k">IPA</span>${esc(d.ipa)}</p>` : ""}
     ${d.ex ? `<div class="dl-ex"><p lang="${esc(lc)}">${esc(d.ex)} ${spk(d.ex, "sm")}</p>${d.ex_es ? `<p class="dl-ex-tr">${esc(d.ex_es)}</p>` : ""}</div>` : ""}
@@ -838,8 +868,9 @@ function detailHtml(doc, r){
 function toReview(doc, row, btn){
   const r = doc.rows[+row.dataset.i]; if(!r) return 0;
   const n = srsAdd(doc.id, [r], 0);
-  toast(n ? `«${r.es}» va al repaso` : `«${r.es}» ya estaba en el repaso`, n ? "✅" : "👍");
+  toast(n ? `«${r.es}» va al repaso` : `«${r.es}» ya estaba en el repaso`, ico("check-circle", "fill", 20));
   row.classList.add("in-srs");
+  const o = row.querySelector(".dl-open"); if(o && !o.querySelector(".dl-srs")) o.insertAdjacentHTML("beforeend", IN_SRS);
   const b = btn || row.querySelector("[data-add]");
   if(b) b.innerHTML = `${ico("check", "bold", 18)}En el repaso`;
   if(n){ if(btn && W.M) try{ M.ok(btn); }catch(_){} if(W.G && G.haptic) try{ G.haptic("success"); }catch(_){} }
@@ -860,20 +891,21 @@ function tarjetas(doc, anim){
     : `${picHtml(r)}<p class="fcx-w">${esc(r.es)}</p>`;
   const back = `${picHtml(r)}<p class="fcx-es">${esc(r.es)}</p><p class="fcx-w" lang="${esc(lc)}">${esc(d.word)}</p>
     <div class="fcx-hear">${spk(d.word, "lg")}${slowB(d.word)}</div>
-    ${pron || (ipa && d.ipa) ? `<p class="fcx-meta">${pron ? `Suena «${esc(pron)}»` : ""}${pron && ipa && d.ipa ? " · " : ""}${ipa && d.ipa ? esc(d.ipa) : ""}</p>` : ""}
+    ${pron || (ipa && d.ipa) ? `<p class="fcx-meta">${pron ? `Se dice «${esc(pron)}»` : ""}${pron && ipa && d.ipa ? " · " : ""}${ipa && d.ipa ? esc(d.ipa) : ""}</p>` : ""}
     ${d.forms ? `<p class="fcx-meta" lang="${esc(lc)}">${esc(d.forms)}</p>` : ""}
     ${d.ex ? `<div class="fcx-ex"><p lang="${esc(lc)}">${esc(d.ex)} ${spk(d.ex, "sm")}</p>${d.ex_es ? `<p class="fcx-tr">${esc(d.ex_es)}</p>` : ""}</div>` : ""}`;
   v.innerHTML = `<div class="fcx">
     <p class="fcx-n" aria-live="polite">${s.i + 1} / ${list.length}</p>
-    <div class="fcx-card${s.flip ? " is-back" : ""}" id="card" role="button" tabindex="0" aria-label="${s.flip ? `${esc(r.es)}: ${esc(d.word)}. Toca para volver` : "Toca para ver la respuesta"}">${s.flip ? back : front}${s.flip ? "" : `<p class="fcx-tap">Toca para ver</p>`}</div>
+    <div class="fcx-card${s.flip ? " is-back" : ""}" id="card" role="button" tabindex="0" aria-label="${s.flip ? `${esc(r.es)}: ${esc(d.word)}. Toca para volver` : "Toca para ver la respuesta"}">${s.flip ? back : front}${s.flip ? "" : `<p class="fcx-tap">${ico("hand-pointing", "bold", 20)}Toca para ver</p>`}</div>
     <div class="fcx-nav"><button type="button" class="glass-btn glass-btn--icon fcx-prev" id="prev" aria-label="Anterior">${ico("caret-left", "bold", 26)}</button>
       <button type="button" class="glass-btn glass-btn--pri glass-btn--lg fcx-next" id="next">Siguiente</button></div>
     <div class="fcx-more">
       <button type="button" class="glass-btn glass-btn--sm" id="auto" aria-pressed="${!!s.auto}">${s.auto ? `${ico("pause", "bold", 18)}Parar` : `${ico("play", "bold", 18)}Automático`}</button>
       <button type="button" class="glass-btn glass-btn--sm" id="shuf">${ico("shuffle", "bold", 18)}Barajar</button>
-      <button type="button" class="glass-btn glass-btn--sm" id="rev">${ico("swap", "bold", 18)}${s.rev ? "Primero: español" : `Primero: ${esc(lname())}`}</button>
+      <button type="button" class="glass-btn glass-btn--sm" id="rev">${ico("swap", "bold", 18)}${s.rev ? "Ver primero en español" : `Ver primero en ${esc(lname())}`}</button>
     </div></div>`;
   const card = $("#card");
+  card.querySelectorAll(".fcx-w").forEach(el => fitWord(el, 28));   /* la palabra entera, sin partir */
   if(anim && !rm()) try{
     if(anim === "flip") card.animate([{transform: "perspective(900px) rotateY(80deg)", opacity: .4}, {transform: "none", opacity: 1}], {duration: 260, easing: "cubic-bezier(.2,.8,.3,1)"});
     else card.animate([{transform: `translateX(${anim === "next" ? 48 : -48}px)`, opacity: 0}, {transform: "none", opacity: 1}], {duration: 240, easing: "cubic-bezier(.2,.8,.3,1)"});
@@ -961,11 +993,11 @@ function test(doc){
   v.innerHTML = `<div class="qz">
     <div class="qz-top"><div class="qz-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${t.qs.length}" aria-valuenow="${t.i}" aria-label="Pregunta ${t.i + 1} de ${t.qs.length}"><i style="width:${(100 * t.i / t.qs.length).toFixed(1)}%"></i></div>
       <span class="qz-n">${t.i + 1}/${t.qs.length}</span></div>
-    <div class="qz-card">${picHtml(r)}<h2 class="qz-ask">¿Cómo se dice <q>${esc(r.es)}</q>?</h2></div>
+    <div class="qz-card">${picHtml(r)}<h2 class="qz-ask">¿Cuál es <q>${esc(inQ(r.es, state.doc))}</q>?</h2></div>
     <div class="qz-opts${long ? " is-long" : ""}" role="group" aria-label="Respuestas">${opts.map((o, i) =>
       `<button type="button" class="qz-opt" data-i="${i}" data-press="sink" lang="${esc(lc)}"><kbd class="ln-kbd" aria-hidden="true">${i + 1}</kbd><span class="qz-ot">${esc(o.l[lang].word)}</span></button>`).join("")}</div>
     <p class="qz-fb" id="qz-fb" role="status"></p>
-    <div class="qz-go"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="nextq" hidden>Siguiente</button></div></div>`;
+    <div class="qz-go"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="nextq" hidden>Seguir</button></div></div>`;
   const btns = [...v.querySelectorAll(".qz-opt")], fb = $("#qz-fb"), next = $("#nextq");
   fitQz(v);
   btns.forEach(b => b.onclick = () => {
@@ -977,8 +1009,8 @@ function test(doc){
     let right = null;
     btns.forEach(x => {
       x.disabled = true;
-      if(opts[+x.dataset.i] === r){ right = x; x.classList.add("is-ok"); x.insertAdjacentHTML("afterbegin", CHK); }
-      else if(x === b){ x.classList.add("is-miss"); x.insertAdjacentHTML("afterbegin", ico("x", "bold", 22, "xm")); }
+      if(opts[+x.dataset.i] === r){ right = x; x.classList.add("is-ok"); x.insertAdjacentHTML("afterbegin", CHK); x.insertAdjacentHTML("beforeend", `<span class="vh" lang="es"> (correcta)</span>`); }
+      else if(x === b){ x.classList.add("is-miss"); x.insertAdjacentHTML("afterbegin", ico("x", "bold", 22, "xm")); x.insertAdjacentHTML("beforeend", `<span class="vh" lang="es"> (tu respuesta)</span>`); }
       else x.classList.add("is-dim");
     });
     fitQz(v);   /* la ✓ y la ✗ quitan sitio: que la palabra siga entera */
@@ -988,9 +1020,9 @@ function test(doc){
     fb.innerHTML = good ? `${PRAISE[Math.floor(Math.random() * PRAISE.length)]}${spk(d.word, "sm")}${ipa}`
       : `¡Casi! Es <b lang="${esc(lc)}">«${esc(d.word)}»</b>${spk(d.word, "sm")}${ipa}`;
     say(d.word);
-    next.textContent = t.i + 1 >= t.qs.length ? "Ver resultado" : "Siguiente";
+    next.textContent = t.i + 1 >= t.qs.length ? "Ver resultado" : "Seguir";
     next.hidden = false; next.focus({preventScroll: true});
-    /* en un móvil bajo, «Siguiente» puede quedar bajo la barra de pestañas: se sube lo justo */
+    /* en un móvil bajo, «Seguir» puede quedar bajo la barra de pestañas: se sube lo justo */
     try{ next.scrollIntoView({block: "nearest", behavior: rm() ? "auto" : "smooth"}); }catch(_){}
   });
   next.onclick = () => { t.i++; test(doc); };
@@ -1020,7 +1052,7 @@ function practica(doc){
   if(s && s.running) return prRun(doc, s);
   prSetup(doc, s);
 }
-/* al empezar (el botón está abajo del todo): sube hasta los segmentos para que se vea la barra de progreso */
+/* al empezar: sube hasta los segmentos para que se vea la barra de progreso */
 function toSeg(){
   const sg = $("#dv .dv-seg"); if(!sg) return;
   const r = sg.getBoundingClientRect();
@@ -1034,9 +1066,13 @@ function prSetup(doc, saved){
   prev.acts = (prev.acts || []).filter(a => ACTS[a]);
   const resume = saved && !saved.running && saved.words && saved.words.some(w => w.n < saved.reps) ? saved : null;
   const pct = resume ? Math.round(100 * resume.words.reduce((a, w) => a + Math.min(w.n, resume.reps), 0) / (resume.words.length * resume.reps)) : 0;
+  /* arriba, un solo botón destacado («Empezar», con lo de la última vez) y cuántas palabras; lo demás, en «Opciones ›» */
   $("#view").innerHTML = `<div class="pw">
     ${resume ? `<section class="st-g pw-resume" aria-label="Práctica a medias"><div class="st-r"><span class="st-ic">${ico("pencil-simple", "bold", 18)}</span><span class="st-l">Tienes una práctica a medias<small>${pct} % hecho</small></span></div>
       <div class="pw-rb"><button type="button" class="glass-btn glass-btn--pri" id="pr-cont">Seguir</button><button type="button" class="glass-btn" id="pr-drop">Empezar otra</button></div></section>` : ""}
+    <div class="pw-go"><button type="button" class="glass-btn ${resume ? "" : "glass-btn--pri "}glass-btn--lg glass-btn--block" id="pr-go">${ico("play", "fill", 20)}Empezar</button><p class="pw-total" id="pr-total" aria-live="polite"></p></div>
+    <div class="st-g"><button type="button" class="st-r pw-opt" id="pr-opt" aria-haspopup="dialog" aria-controls="pr-sheet"><span class="st-ic">${ico("gear-six", "bold", 18)}</span><span class="st-l">Opciones<small id="pr-sum"></small></span>${ico("caret-right", "bold", 16, "pw-chev")}</button></div>
+    <dialog class="pw-sheet" id="pr-sheet" aria-labelledby="pr-sheet-t"><div class="m-head"><h2 id="pr-sheet-t">Opciones</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div><div class="pw">
     <section class="st-sec" aria-labelledby="pw-h1"><h3 class="st-h" id="pw-h1">¿Qué practicas?</h3><div class="st-g">${Object.entries(ACTS).map(([k, a]) => `
       <label class="st-r"><span class="st-ic${k === "hablar" && !canListen() ? " gr" : ""}">${ico(a.ic, "bold", 18)}</span><span class="st-l">${a.name}<small>${k === "hablar" && !canListen() ? esc(noVoiceMsg()) : a.hint}</small></span>
         <input type="checkbox" class="pw-chk" name="act" value="${k}"${prev.acts.includes(k) ? " checked" : ""}></label>`).join("")}</div></section>
@@ -1049,16 +1085,23 @@ function prSetup(doc, saved){
     <section class="st-sec" aria-label="Opciones"><div class="st-g">
       <label class="st-r"><span class="st-l">Pasar sola<small>A la siguiente tarjeta</small></span><input type="checkbox" class="st-sw" role="switch" id="pr-o-auto"${prUI.auto ? " checked" : ""}></label>
       <label class="st-r"><span class="st-l">Oír el ejemplo<small>También suena la frase</small></span><input type="checkbox" class="st-sw" role="switch" id="pr-o-ex"${prUI.ex ? " checked" : ""}></label></div></section>
-    <div class="pw-go"><button type="button" class="glass-btn ${resume ? "" : "glass-btn--pri "}glass-btn--lg glass-btn--block" id="pr-go">${ico("play", "fill", 20)}Empezar</button><p class="pw-total" id="pr-total" aria-live="polite"></p></div>
+    </div></dialog>
   </div>`;
   let reps = [7, 14, 21, 30].includes(prev.reps) ? prev.reps : 21;
   const boxes = [...D.querySelectorAll("#view input[name=w]")];
   const upd = () => {
-    const nw = boxes.filter(b => b.checked).length, na = D.querySelectorAll("#view input[name=act]:checked").length;
+    const nw = boxes.filter(b => b.checked).length, acts = Object.keys(ACTS).filter(k => { const x = D.querySelector(`#view input[name=act][value=${k}]`); return !!x && x.checked; });
     $("#pr-n").textContent = `(${nw})`;
-    $("#pr-total").textContent = nw && na ? `${nw * reps} repeticiones en total` : "Elige qué practicas y alguna palabra";
-    $("#pr-go").disabled = !(nw && na);
+    $("#pr-total").textContent = nw && acts.length ? nPal(nw) : "Elige en «Opciones» qué practicas y alguna palabra";
+    const names = acts.map(k => ACTS[k].name), list = names.length > 1 ? names.slice(0, -1).join(", ") + " y " + names[names.length - 1] : names[0] || "Nada elegido";
+    $("#pr-sum").textContent = `${list} · ${reps} veces cada una`;
+    $("#pr-go").disabled = !(nw && acts.length);
   };
+  /* la hoja de opciones (dentro de #view: se va con la ficha) */
+  const sheet = $("#pr-sheet"); prSheet = sheet;
+  $("#pr-opt").onclick = e => { try{ if(W.M && typeof M.openSheet === "function") M.openSheet(sheet, {from: e.currentTarget}); else sheet.showModal(); }catch(_){ try{ sheet.showModal(); }catch(__){} } };
+  sheet.addEventListener("click", e => { if(e.target.closest("[data-close]")){ if(W.M && typeof M.closeSheet === "function") M.closeSheet(sheet); else sheet.close(); } });
+  sheet.addEventListener("close", () => { if(!sheet.isConnected || !$("#pr-go")) return; upd(); const o = $("#pr-opt"); if(o && D.activeElement === D.body) o.focus({preventScroll: true}); });
   const pick = mode => {
     boxes.forEach(b => b.checked = false);
     if(mode === "all") boxes.forEach(b => b.checked = true);
@@ -1077,6 +1120,7 @@ function prSetup(doc, saved){
     if(!acts.length || !words.length) return;
     store.set("prPrefs", {acts, reps});
     prUI.auto = $("#pr-o-auto").checked; prUI.ex = $("#pr-o-ex").checked; store.set("prAuto", prUI.auto); store.set("prEx", prUI.ex);
+    if(sheet.open) try{ sheet.close(); }catch(_){}
     const sess = {running: true, acts, reps, words, cur: 0, step: 0};
     store.set(prKey(doc.id), sess);
     prUI.hist = [];
@@ -1168,7 +1212,7 @@ function prRun(doc, s){
     if(prUI.busy) return; prUI.busy = true;
     prUI.hist = [...prUI.hist, {wi: s.cur, n: w.n}].slice(-3);
     w.n++; logAct();
-    if(w.n === s.reps){ toast(`¡«${r.es}» completada! Vuelve mañana en el repaso`, "🎉"); srsAdd(doc.id, [r], 1); }
+    if(w.n === s.reps){ toast(`¡«${r.es}» completada! Vuelve mañana en el repaso`, ico("sparkle", "fill", 20)); srsAdd(doc.id, [r], 1); }
     const n = nextIdx(s, s.cur); if(n >= 0) s.cur = n;
     save();
     els.forEach(el => { el.dataset.off = +el.dataset.off - 1; el.classList.toggle("side", +el.dataset.off !== 0); });
@@ -1209,16 +1253,19 @@ function prRun(doc, s){
       if(!D.body.contains(flow) || t2 !== autoTok) return;
       if(got.status !== "ok"){
         msg.className = "pr-msg";
-        msg.textContent = got.status === "denied" ? "Deja usar el micrófono a esta página (el candado de arriba). También puedes tocar «Saltar»."
+        msg.textContent = got.status === "denied" ? "Pide a un mayor que deje usar el micrófono. También puedes tocar «Saltar»."
           : got.status === "timeout" || got.status === "no-speech" ? "No te he oído. Toca el micrófono y prueba otra vez."
           : got.status === "unsupported" ? noVoiceMsg()
+          : got.status === "unavailable" && (got.error === "network" || navigator.onLine === false) ? "Sin internet no puedo oírte. Dila en voz alta y toca «Saltar»."
+          : got.status === "unavailable" && got.error === "audio-capture" ? "No encuentro el micrófono. Dila en voz alta y toca «Saltar»."
+          : got.status === "unavailable" ? "Ahora no puedo oírte. Dila en voz alta y toca «Saltar»." 
           : "El micrófono no ha funcionado. Prueba otra vez o toca «Saltar».";
         return;
       }
       const alts = got.alts;
       if(heard(alts, word)){
         ok = true; msg.className = "pr-msg ok"; msg.innerHTML = `¡Bien dicho! <span style="font-weight:400;color:var(--label2)">Oí «${esc(alts[0])}»</span>`;
-        btn.textContent = "Siguiente"; btn.classList.add("glass-btn--pri");
+        btn.textContent = "Seguir"; btn.classList.add("glass-btn--pri");
         const tok2 = ++autoTok, al2 = () => tok2 === autoTok && D.body.contains(flow);
         if(prUI.ex && r.l[lang].ex){ await sleep(300); if(!al2()) return; await sayP(r.l[lang].ex, card.querySelector(".pw-ex .say")); }
         if(prUI.auto && al2()){ await sleep(1000); if(prUI.auto && al2()) advance(); }
@@ -1238,7 +1285,7 @@ function prRun(doc, s){
       if(res.ok){
         ok = true; inp.classList.remove("bad"); inp.classList.add("ok"); inp.readOnly = true; bus.emit("answer", {ok: true, where: "practice"});
         msg.className = "pr-msg ok"; msg.innerHTML = res.perfect ? "¡Perfecto!" : `¡Casi perfecto! <div class="diff">${res.html}</div>`;
-        btn.textContent = "Siguiente"; btn.focus({preventScroll: true});
+        btn.textContent = "Seguir"; btn.focus({preventScroll: true});
         card.querySelector(".tr").hidden = false;
         if(prUI.auto && res.perfect) (async () => { const t3 = ++autoTok; await sleep(1200); if(t3 === autoTok && prUI.auto && D.body.contains(flow)) advance(); })();
       } else {
@@ -1259,7 +1306,7 @@ function prRun(doc, s){
         ok = true; inp.classList.remove("bad"); inp.classList.add("ok"); inp.disabled = true; bus.emit("answer", {ok: true, es: r.es, word: r.l[lang].word, where: "practice"});
         msg.className = "pr-msg ok";
         msg.innerHTML = res === "ok" ? (failed ? "¡Ahora sí!" : "¡Correcto!") : `¡Casi! Mira las tildes y letras especiales: <b>${esc(r.l[lang].word)}</b>`;
-        btn.textContent = "Siguiente"; btn.focus({preventScroll: true});
+        btn.textContent = "Seguir"; btn.focus({preventScroll: true});
         const exEl = card.querySelector(".pw-ex"); if(exEl) exEl.hidden = false;
         play().then(ok2 => { if(ok2) autoNext(); });
       } else {
@@ -1278,7 +1325,7 @@ function prRun(doc, s){
   $("#pr-auto").onchange = e => { prUI.auto = e.target.checked; store.set("prAuto", prUI.auto); prRun(doc, s); };
   $("#pr-ex").onchange = e => { prUI.ex = e.target.checked; store.set("prEx", prUI.ex); prRun(doc, s); };
   $("#pr-stop").onclick = () => { autoTok++; s.running = false; save(); prUI.hist = []; D.onkeydown = null; prSetup(doc, s); };
-  $("#pr-skip").onclick = () => { w.n = s.reps; srsAdd(doc.id, [r], 2); toast(`«${r.es}» ya te la sabes`, "✅"); const n = nextIdx(s, s.cur); if(n >= 0) s.cur = n; prUI.hist = []; save(); prRun(doc, s); };
+  $("#pr-skip").onclick = () => { w.n = s.reps; srsAdd(doc.id, [r], 2); toast(`«${r.es}» ya te la sabes`, ico("check-circle", "fill", 20)); const n = nextIdx(s, s.cur); if(n >= 0) s.cur = n; prUI.hist = []; save(); prRun(doc, s); };
   D.querySelectorAll("#view .pr-steps li").forEach(li => li.onclick = () => {
     const k = +li.dataset.k; if(s.words[k].n >= s.reps || k === s.cur) return;
     s.cur = k; prUI.hist = []; save(); prRun(doc, s);
@@ -1289,7 +1336,7 @@ function prCard(r, act, isCur, n, reps, off){
   const hero = `<div class="pr-hero">${picHtml(r)}<span class="pr-tag">${ico(a.ic, "bold", 14)}${a.name}</span><span class="pr-num">${n + 1}/${reps}</span></div>`;
   if(!isCur) return `<div class="pr-card side" data-off="${off}" aria-hidden="true">${hero}<div class="pr-body"><p class="es2">${esc(r.es)}</p></div></div>`;
   const pron = d.pron && norm(d.pron) !== norm(d.word) ? d.pron : "";
-  const meta = pron || (ipa && d.ipa) ? `<p class="pw-line">${pron ? `Suena «${esc(pron)}»` : ""}${pron && ipa && d.ipa ? " · " : ""}${ipa && d.ipa ? esc(d.ipa) : ""}</p>` : "";
+  const meta = pron || (ipa && d.ipa) ? `<p class="pw-line">${pron ? `Se dice «${esc(pron)}»` : ""}${pron && ipa && d.ipa ? " · " : ""}${ipa && d.ipa ? esc(d.ipa) : ""}</p>` : "";
   const ex = (hidden) => d.ex ? `<div class="pw-ex"${hidden ? " hidden" : ""}><p lang="${lc}">${esc(d.ex)} ${spk(d.ex, "sm")}</p>${d.ex_es ? `<p class="tr">${esc(d.ex_es)}</p>` : ""}</div>` : "";
   const OK = ico("check", "bold", 20);
   let body;
@@ -1430,7 +1477,14 @@ bus.on("route", d => {
   if(!h.startsWith("mapa")) jumpOff();
   closePeek(); closeMenu(false);
 });
-addEventListener("hashchange", () => { if(PK && PK.open) PK.close(); closeMenu(false); });
+/* la hoja «Opciones» de Escribir vive dentro de #view: si la pantalla ya se cambió con la hoja abierta, se cierra igual
+   (así se avisa de que ya no hay hoja y la barra de pestañas vuelve a su vidrio) */
+let prSheet = null;
+addEventListener("hashchange", () => {
+  if(PK && PK.open) PK.close(); closeMenu(false);
+  const ps = D.getElementById("pr-sheet") || prSheet; if(ps && ps.open) try{ ps.close(); }catch(_){}
+  if(prSheet && !prSheet.isConnected) prSheet = null;
+});
 
 W.levelPicker = levelPicker;
 W.vocabLearn = {levelPicker, mapa, palabras, docView: openDoc, gramatica, state, topicPic, modes: MODES.map(m => m[0]), peek: id => openPeek(id), jump};

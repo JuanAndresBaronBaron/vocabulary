@@ -2,24 +2,29 @@
    Va en modo foco (html[data-focus=leccion]: la ✕, el contador de monedas y la barra de progreso arriba) con el botón
    principal de vidrio fijo abajo, que cambia según el paso: «Continuar» (palabra nueva), «Practicar» (la regla de
    gramática) o «Seguir» (después de contestar). Antes de contestar no hay botón: se toca una respuesta.
-   - Palabra nueva: dibujo, la palabra (44 px), la traducción en gris, el altavoz grande y la tortuga (despacio), «Cómo
+   - Palabra nueva: dibujo, la palabra (44 px; si no cabe entera, más pequeña, nunca partida: fitWord), la traducción en gris, el altavoz grande y la tortuga (despacio), «Cómo
      suena» (hoja con las sílabas y el audio lento; también manteniendo la palabra) y «Ejemplo» (se abre al tocarlo). El
      IPA solo si un mayor lo activó (vocabUI.get().ipa). Deslizar a la izquierda = Continuar; a la derecha = la anterior
      (también con ← →, y con el botón ‹ de abajo). La pista «Desliza para seguir» nunca sale en la primera tarjeta.
-   - Preguntas: 2×2 opciones sólidas de 64 px (dibujo o texto), sin gestos. Acertar: rebote, verde con ✓, suena la
+   - Preguntas: 2×2 opciones sólidas de 64 px (dibujo o texto; con 3, en fila), sin gestos. En francés y danés las otras
+     opciones llevan, si puede ser, el mismo artículo (no se adivina por «la» o «et»). El altavoz de la pregunta sale al
+     contestar (el dibujo se encoge lo mismo, así las opciones no se mueven). Acertar: rebote, verde con ✓, suena la
      palabra, vibración suave y pasa sola al acabar el audio (nunca antes de 0,9 s; con tope por si no acaba). Fallar: la
      elegida en gris con ✗, la correcta en verde con ✓ y suena; el botón pasa a «Seguir». Sin temblor, sin vibración, sin
      sonido triste. Racha: a los 3, 5 y 8 aciertos seguidos salta un chip con la llama y el número.
    - La ✕ y Esc abren «¿Paramos aquí?» (Seguir destacado · Salir, que vuelve a donde estaba el niño, como la ✕). En la
      primera tarjeta, sin nada hecho, no preguntan: salen.
    - Fin: el zorro con su traje, las estrellas de una en una con notas que suben, «+N» con las monedas volando al
-     contador (award con from), «Mañana repasas N palabras», confeti (sfx.js, con "lesson-done"), «Siguiente lección» y
-     «Repetir». La ✕ y Esc vuelven al camino.
-   Guardado mientras se hace: sessionStorage "vocab:ls" = {id, i, first, miss, n, lang} (i: pasos hechos; first: las que
-     acertó a la primera; miss: las falladas; n: pasos en total). Se escribe en cada paso desde el primero hecho y se borra
-     al terminar. «Salir» lo deja: el niño sigue donde estaba con la cápsula «Seguir · Lección N» o con «Seguir» en Hoy
-     (plan-doc §Lección). leccion(id) lo recupera si es la misma lección y el mismo idioma. Avisa al accesorio
-     (window.vocabAccessory.refresh()). No es de la partida (sessionStorage: save.js no lo mira).
+     contador (award con from), «Mañana repasas estas N palabras» (las de esta lección que vuelven mañana), confeti
+     (sfx.js, con "lesson-done"), «Siguiente lección» y «Repetir». Los botones de abajo no responden los primeros 0,7 s
+     (un doble toque en «Seguir» no se salta el final). La ✕ y Esc vuelven al camino.
+   Guardado mientras se hace: sessionStorage "vocab:ls" = {id, i, first, miss, n, lang, left} (i: pasos hechos; first:
+     las que acertó a la primera; miss: las falladas; n: pasos en total; left: las repeticiones de falladas que aún
+     faltan). Se escribe en cada paso desde el primero hecho y se borra al terminar. Una copia va a localStorage
+     "vocab:lsdraft" = {t, v} (solo de este aparato: DEVICE_ONLY en save.js; vale 72 horas) por si el iPhone cierra la app
+     o se cierra la pestaña. «Salir» lo deja: el niño sigue donde estaba con la cápsula «Seguir · Lección N» o con
+     «Seguir» en Hoy (plan-doc §Lección). leccion(id) lo recupera si es la misma lección y el mismo idioma (con valores
+     raros o fuera de rango empieza de cero). Avisa al accesorio (window.vocabAccessory.refresh()). No es de la partida.
    Guarda de salida: route() (index.html) llama antes de nada a vocabLesson.blocks(hashPath()). Con una lección empezada,
      salir de su ruta sin la ✕ (Atrás del navegador, el gesto de Safari, un enlace) vuelve a la lección con
      history.pushState y pregunta «¿Paramos aquí?»: Seguir no pierde nada; Salir deja ir adonde iba (history.back(), que
@@ -28,7 +33,7 @@
      window.vocabLesson = {state (la lección en marcha o null), saved(), blocks(hp), ask(from), syllables(text, lang)} */
 (() => {
 "use strict";
-const KEY = "vocab:ls";
+const KEY = "vocab:ls", DRAFT = "vocab:lsdraft", DRAFT_MS = 72 * 36e5;
 const ROOT = document.documentElement;
 const MIN_WAIT = 900, AFTER_AUDIO = 350;   /* acertar: pasa sola 350 ms después del audio, nunca antes de 0,9 s */
 let LS = null;          /* la lección en marcha */
@@ -64,7 +69,6 @@ const CSS = `
 :root[data-focus] .ls .ls-top{margin-top:calc(-1 * (var(--tap) + 12px));padding:0 92px 0 56px}
 .ls-bar{flex:1;height:12px;border-radius:999px;background:var(--fill);overflow:hidden}
 .ls-bar>i{display:block;width:0;height:100%;border-radius:inherit;background:var(--teal)}
-.ls-cnt{flex:none;min-width:2.6em;text-align:right;font:700 var(--fs-note)/1 var(--f-round);font-variant-numeric:tabular-nums;color:var(--label2)}
 .ls-stage{position:relative}
 .ls-page{display:flex;flex-direction:column;gap:12px}
 .ls-page.ls-ghost{position:absolute;left:0;right:0;top:0;pointer-events:none}
@@ -84,7 +88,7 @@ const CSS = `
 .ls-ask q{quotes:"«" "»"}
 .ls-tag{margin:0;font:600 var(--fs-note)/1.2 var(--f-text);color:var(--label2);display:inline-flex;align-items:center;gap:6px}
 .ls-audio{position:relative;display:flex;align-items:center;justify-content:center;gap:16px;margin-top:8px}
-.ls-audio.is-later{visibility:hidden}
+.ls-audio.is-later{display:none}
 .ls .ls-spk.say{position:relative;width:64px;height:64px;border:0;border-radius:50%;display:grid;place-items:center;font-size:inherit;
   background:var(--brand-soft);color:var(--brand-tint);transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
 .ls .ls-spk.say.xl{width:88px;height:88px}
@@ -99,7 +103,7 @@ const CSS = `
 .ls-chip{display:inline-flex;align-items:center;gap:6px;min-height:var(--tap);padding:0 16px;border:0;border-radius:999px;
   background:var(--fill2);color:var(--brand-ink);font:600 var(--fs-sub)/1 var(--f-text)}
 .ls-chip[aria-expanded=true] .ico{rotate:180deg}
-.ls-ex{width:100%;padding:12px 14px;border-radius:var(--r-md);background:var(--fill2);text-align:left}
+.ls-ex{width:100%;padding:12px 16px;border-radius:var(--r-md);background:var(--fill2);text-align:left}
 .ls-ex p{margin:0;font:400 var(--fs-body)/1.35 var(--f-text)}
 .ls-ex .ls-ex-tr{margin-top:4px;font-size:var(--fs-note);color:var(--label2)}
 .ls .ls-exs.say{width:44px;height:44px;margin:-8px 0 -8px 2px;border:0;background:none;color:var(--brand-tint);vertical-align:middle}
@@ -107,7 +111,9 @@ const CSS = `
 .ls-streak{position:absolute;top:16px;left:16px;z-index:1;display:flex;align-items:center;gap:4px;height:32px;padding:0 12px 0 8px;border-radius:16px;
   background:var(--gold-soft);color:var(--gold-ink);font:800 var(--fs-sub)/1 var(--f-round);font-variant-numeric:tabular-nums}
 .ls-opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.ls .ls-opt{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:64px;padding:8px 14px;
+.ls-opts.is-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.ls-opts.is-col{grid-template-columns:minmax(0,1fr)}
+.ls .ls-opt{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:64px;padding:8px 12px;
   border:0;border-radius:20px;background:var(--card);color:var(--label);font:700 var(--fs-t2)/1.15 var(--f-round);text-align:center;
   overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
 .ls-opts.is-long .ls-opt{font-size:var(--fs-head)}
@@ -140,7 +146,7 @@ const CSS = `
 .ls-fb.miss{color:var(--label)}
 .ls-fb.miss b{font-weight:800;color:var(--ok-ink)}
 .ls-fb small{flex-basis:100%;font:400 var(--fs-sub)/1.35 var(--f-text);color:var(--label2)}
-.ls-fb .ls-why{display:flex;gap:8px;align-items:flex-start;margin-top:6px;padding:10px 12px;border-radius:var(--r-md);background:var(--fill2);color:var(--label);text-align:left}
+.ls-fb .ls-why{display:flex;gap:8px;align-items:flex-start;margin-top:8px;padding:8px 12px;border-radius:var(--r-md);background:var(--fill2);color:var(--label);text-align:left}
 .ls-fb .ls-why .ico{flex:none;margin-top:1px;color:var(--gold-ink)}
 .ls-sent{margin:8px 0 0;font:600 var(--fs-t3)/1.5 var(--f-text);color:var(--label)}
 .ls-gap{display:inline-block;min-width:72px;padding:0 4px;border-bottom:3px solid var(--sep);color:var(--label2)}
@@ -154,7 +160,7 @@ const CSS = `
 .ls-tab{border-collapse:collapse;margin:8px 0 0;font-size:var(--fs-sub)}
 .ls-tab td{border:1px solid var(--sep);padding:4px 10px}
 .ls-tab tr:first-child td{background:var(--fill2)}
-.ls-gex{margin:14px 0 0}
+.ls-gex{margin:16px 0 0}
 .ls-gex p{margin:6px 0 0;font:400 var(--fs-body)/1.35 var(--f-text)}
 .ls-gex small{display:block;color:var(--label2);font-size:var(--fs-note)}
 .ls-dock{position:fixed;z-index:5;left:max(16px,var(--safe-l),calc(50% - 280px));right:max(16px,var(--safe-r),calc(50% - 280px));
@@ -164,12 +170,13 @@ const CSS = `
   background:linear-gradient(to bottom,transparent,var(--bg) 45%);pointer-events:none}
 .ls-dock .ls-go{flex:1}
 .ls .ls-prev{flex:none;width:var(--btn-main);min-height:var(--btn-main);padding:0;border-radius:50%}
-.ls-end .ls-card{gap:10px;padding:24px 20px 28px}
+.ls .ls-prev.is-off{visibility:hidden}   /* el hueco se queda: «Continuar» y «Seguir» siempre del mismo ancho y en el mismo sitio */
+.ls-end .ls-card{gap:12px;padding:24px 20px}
 .ls-fox{height:120px;display:grid;place-items:end center}
 .ls-fox .hero{animation:ls-hop .62s cubic-bezier(.3,.7,.4,1) .15s 2 both}
 @keyframes ls-hop{0%,100%{translate:0 0;rotate:0deg}40%{translate:0 -18px;rotate:-4deg}70%{translate:0 0;rotate:3deg}}
 .ls-end-t{margin:4px 0 0;font:700 var(--fs-t1)/1.2 var(--f-round);text-wrap:balance}
-.ls-stars{display:flex;gap:10px;justify-content:center}
+.ls-stars{display:flex;gap:8px;justify-content:center}
 .ls-star{display:grid;color:var(--fill);opacity:0;scale:.3}
 .ls-star.got{color:var(--gold)}
 .ls-star.on{opacity:1;scale:1;transition:opacity .2s ease-out,scale .5s cubic-bezier(.34,1.56,.64,1)}
@@ -201,7 +208,15 @@ const CSS = `
 .ls-how-p{margin:0 0 6px;font:400 var(--fs-body)/1.35 var(--f-text);color:var(--label2)}
 .ls-how-p b{color:var(--label)}
 .ls-how-ipa{margin:0 0 6px;font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
-.ls-how-b{margin-top:14px}
+.ls-how-b{margin-top:16px}
+/* móvil bajo (iPhone SE/8): todo cabe sin bajar, y la respuesta queda por encima del botón */
+@media (max-height:700px){
+  .ls-pic{height:clamp(96px,18vh,140px)}
+  .ls .ls-card{gap:4px;padding:16px 16px 20px}
+  .ls .ls-top{margin-bottom:12px}
+  .ls-opts{gap:8px}
+  .ls-end .ls-card{padding:16px}
+  .ls-fox{height:96px}}
 @media (prefers-reduced-motion:reduce){
   .ls .ls-spk.say.playing::after{animation:none;opacity:0}
   .ls-fox .hero{animation:none}
@@ -214,49 +229,66 @@ function css(){
   document.head.appendChild(st);
 }
 
-/* ---------- guardado (sessionStorage "vocab:ls") ---------- */
+/* ---------- guardado (sessionStorage "vocab:ls" y su copia localStorage "vocab:lsdraft") ---------- */
+const okSaved = v => v && typeof v === "object" && !Array.isArray(v) && typeof v.id === "string" && v.id && (!v.lang || v.lang === lang) ? v : null;
 function saved(){
+  try{ const v = okSaved(JSON.parse(sessionStorage.getItem(KEY))); if(v) return v; }catch(e){}
+  /* la pestaña se cerró (o el iPhone cerró la app): la copia de este aparato, si es de las últimas 72 horas */
   try{
-    const v = JSON.parse(sessionStorage.getItem(KEY));
-    return v && typeof v === "object" && typeof v.id === "string" && v.id && (!v.lang || v.lang === lang) ? v : null;
+    const d = JSON.parse(localStorage.getItem(DRAFT)), now = Date.now();
+    return d && typeof d === "object" && typeof d.t === "number" && now - d.t < DRAFT_MS && now >= d.t - 6e4 ? okSaved(d.v) : null;
   }catch(e){ return null; }
 }
+const stepKey = (s, st) => s.g ? st.q.s : st.w.r.es;
 /* done: pasos hechos. No se guarda nada hasta el primer paso hecho (antes no hay nada que perder). */
 function lsSave(done){
   const s = LS; if(!s || s.ended) return;
   done = Math.max(0, Math.min(done, s.steps.length));
   if(!s.saved && done < 1) return;
   s.saved = true;
-  const v = {id: s.id, i: done, first: [...s.first], miss: [...s.miss], n: s.steps.length, lang};
+  const left = s.steps.slice(done).filter(st => st.re).map(st => stepKey(s, st));
+  const v = {id: s.id, i: done, first: [...s.first], miss: [...s.miss], n: s.steps.length, lang, left};
   try{ sessionStorage.setItem(KEY, JSON.stringify(v)); }catch(e){}
+  try{ localStorage.setItem(DRAFT, JSON.stringify({t: Date.now(), v})); }catch(e){}
   refreshAcc();
 }
 function clearSaved(){
   try{ sessionStorage.removeItem(KEY); }catch(e){}
+  try{ localStorage.removeItem(DRAFT); }catch(e){}
   refreshAcc();
 }
 /* rehace los pasos de una lección guardada: delante los ya hechos y detrás lo que falta (las que no ha contestado aún y
-   las repeticiones de las falladas), con el mismo total. El orden de lo que falta se vuelve a mezclar. */
+   las repeticiones de las falladas que quedaban, sv.left; en lo guardado antes de left, las últimas falladas hasta el
+   total de antes). El orden de lo que falta se vuelve a mezclar. Con valores raros o fuera de rango devuelve false (y
+   la lección empieza de cero). */
 function rebuild(s, sv){
   const items = s.g ? s.x.q : s.words, key = s.g ? (q => q.s) : (w => w.r.es);
+  const W = s.g ? 0 : s.words.length, maxN = W + items.length * 4;
+  const i0 = Math.floor(+sv.i), n0 = sv.n == null ? 0 : Math.floor(+sv.n);
+  if(!Number.isFinite(i0) || i0 < 0 || i0 > maxN || !Number.isFinite(n0) || n0 < 0 || n0 > maxN || (n0 && i0 > n0)) return false;
   const keys = new Set(items.map(key));
   const first = (Array.isArray(sv.first) ? sv.first : []).filter(k => keys.has(k));
   const miss = (Array.isArray(sv.miss) ? sv.miss : []).filter(k => keys.has(k) && !first.includes(k));
   s.first = new Set(first); s.miss = new Set(miss); s.saved = true;
-  const W = s.g ? 0 : s.words.length, done = new Set([...first, ...miss]);
-  let i = Math.max(0, Math.floor(+sv.i) || 0);
-  if(i < W && !done.size){ s.i = i; return; }   /* aún con las palabras nuevas: los pasos de siempre valen */
+  const done = new Set([...first, ...miss]);
+  let i = i0;
+  if(i < W && !done.size){ s.i = i; return true; }   /* aún con las palabras nuevas: los pasos de siempre valen */
   i = Math.max(i, W);
   const mk = (it, j) => s.g ? {t: "gq", q: it} : {t: j % 2 ? "listen" : "pick", w: it};
+  const byKey = k => items.find(it => key(it) === k);
   const todo = mix(items.filter(it => !done.has(key(it))));
-  const left = Math.max(todo.length, (Math.floor(+sv.n) || 0) - i);
-  const missed = miss.map(k => items.find(it => key(it) === k)).filter(Boolean);
-  const again = [];
-  for(let r = left - todo.length, k = missed.length - 1; r > 0 && missed.length; r--, k--) again.unshift(missed[(k % missed.length + missed.length) % missed.length]);
+  let again;
+  if(Array.isArray(sv.left)) again = sv.left.filter(k => miss.includes(k)).slice(0, items.length * 3).map(byKey).filter(Boolean);
+  else {
+    const left = Math.max(todo.length, n0 - i), missed = miss.map(byKey).filter(Boolean);
+    again = [];
+    for(let r = left - todo.length, k = missed.length - 1; r > 0 && missed.length; r--, k--) again.unshift(missed[(k % missed.length + missed.length) % missed.length]);
+  }
   const learn = s.g ? [] : s.words.map(w => ({t: "learn", w}));
   const past = []; for(let k = 0; k < i - W; k++) past.push(Object.assign(mk(items[k % items.length], k), {done: true}));
-  s.steps = [...learn, ...past, ...todo.map(mk), ...again.map((it, j) => mk(it, todo.length + j + 1))];
+  s.steps = [...learn, ...past, ...todo.map(mk), ...again.map((it, j) => Object.assign(mk(it, todo.length + j + 1), {re: true}))];
   s.i = i;
+  return true;
 }
 function fresh(o){
   return Object.assign({i: 0, first: new Set(), miss: new Set(), tok: ++autoTok, streak: 0, saved: false, ended: false,
@@ -282,9 +314,12 @@ async function leccion(id){
   /* distractores: las otras palabras de la lección y, si faltan, del mismo documento */
   const pool = [...words]; const seen = new Set(words.map(x => x.r.es));
   for(const r of docs[unit.doc].rows) if(pool.length < 12 && r.es && r.l && r.l[lang] && !seen.has(r.es)){ seen.add(r.es); pool.push({doc: unit.doc, r}); }
-  const steps = [...words.map(w => ({t: "learn", w})), ...mix(words).map((w, i) => ({t: i % 2 ? "listen" : "pick", w}))];
-  LS = fresh({id, lv, unit, words, pool, steps, nq: words.length});
-  const sv = saved(); if(sv && sv.id === id) rebuild(LS, sv);
+  /* más palabras del tema, para buscar otras opciones con el mismo artículo (francés y danés) */
+  const more = []; for(const [d, doc] of Object.entries(docs)) for(const r of doc.rows) if(r.es && r.l && r.l[lang] && !seen.has(r.es)){ seen.add(r.es); more.push({doc: d, r}); }
+  const plan = () => [...words.map(w => ({t: "learn", w})), ...mix(words).map((w, i) => ({t: i % 2 ? "listen" : "pick", w}))];
+  LS = fresh({id, lv, unit, words, pool, more, steps: plan(), nq: words.length});
+  const sv = saved();
+  if(sv && sv.id === id && !rebuild(LS, sv)){ clearSaved(); LS = fresh({id, lv, unit, words, pool, more, steps: plan(), nq: words.length}); }
   mount(); lsStep(0);
 }
 async function gramLesson(id){
@@ -293,9 +328,10 @@ async function gramLesson(id){
   const G = await getGram(), x = ((G || {})[lv] || [])[k];
   if(hashPath() !== "leccion/" + id) return;
   if(!x || !Array.isArray(x.q) || !x.q.length){ location.replace("#/mapa" + (LVS[lv] ? "/" + lv : "")); return; }
-  const steps = mix(x.q.map((q, i) => i)).map(i => ({t: "gq", q: x.q[i]}));
-  LS = fresh({id, lv, g: true, x, words: [], steps, i: -1, nq: x.q.length});
-  const sv = saved(); if(sv && sv.id === id) rebuild(LS, sv);
+  const plan = () => mix(x.q.map((q, i) => i)).map(i => ({t: "gq", q: x.q[i]}));
+  LS = fresh({id, lv, g: true, x, words: [], steps: plan(), i: -1, nq: x.q.length});
+  const sv = saved();
+  if(sv && sv.id === id && !rebuild(LS, sv)){ clearSaved(); LS = fresh({id, lv, g: true, x, words: [], steps: plan(), i: -1, nq: x.q.length}); }
   mount(); gStep(0);
 }
 
@@ -304,11 +340,11 @@ function mount(){
   const s = LS, lc = LVS[s.lv] ? LVS[s.lv].c : "";
   offs.splice(0).forEach(f => { try{ f(); }catch(e){} });
   $("#app").innerHTML = `<div class="ls${s.g ? " ls-g" : ""}" style="--lc:${lc}">
-    <div class="ls-top"><div class="ls-bar" role="progressbar" aria-label="Tu progreso" aria-valuemin="0" aria-valuemax="${s.steps.length}" aria-valuenow="0"><i></i></div><span class="ls-cnt" aria-hidden="true"></span></div>
+    <div class="ls-top"><div class="ls-bar" role="progressbar" aria-label="Tu progreso" aria-valuemin="0" aria-valuemax="${s.steps.length}" aria-valuenow="0"><i></i></div></div>
     <div class="ls-stage"></div>
     <p class="vh" id="ls-say" aria-live="polite" aria-atomic="true"></p>
     <div class="ls-dock">
-      <button type="button" class="glass-btn glass-btn--lg ls-prev" aria-label="Anterior" hidden>${ico("caret-left", "bold", 22)}</button>
+      <button type="button" class="glass-btn glass-btn--lg ls-prev${s.g ? "" : " is-off"}" aria-label="Anterior"${s.g ? " hidden" : ' aria-hidden="true" tabindex="-1" disabled'}>${ico("caret-left", "bold", 22)}</button>
       <button type="button" class="glass-btn glass-btn--pri glass-btn--lg ls-go" id="ls-go" hidden>Continuar</button>
     </div></div>`;
   const go = $("#ls-go"), prev = $(".ls .ls-prev");
@@ -321,41 +357,55 @@ function setGo(text, fn){
   const go = $("#ls-go"); if(!go) return;
   go._fn = fn || null; go.textContent = text || ""; go.hidden = !fn;
 }
-function setPrev(on){ const b = $(".ls .ls-prev"); if(b) b.hidden = !on; }
-function announce(t){ const el = $("#ls-say"); if(!el) return; el.textContent = ""; setTimeout(() => { if(el.isConnected) el.textContent = t; }, 40); }
-/* barra (con muelle) y contador «3/8»: done = pasos hechos */
+/* «‹» (la palabra nueva anterior): en las de vocabulario su hueco se queda aunque no se vea */
+function setPrev(on){
+  const b = $(".ls .ls-prev"); if(!b) return;
+  if(LS && LS.g){ b.hidden = !on; return; }
+  b.classList.toggle("is-off", !on); b.disabled = !on;
+  if(on){ b.removeAttribute("aria-hidden"); b.removeAttribute("tabindex"); } else { b.setAttribute("aria-hidden", "true"); b.tabIndex = -1; }
+}
+/* para el lector de pantalla (html: las palabras del idioma van en su <span lang>) */
+function announce(html){ const el = $("#ls-say"); if(!el) return; el.textContent = ""; setTimeout(() => { if(el.isConnected) el.innerHTML = html; }, 40); }
+const inLang = t => `<span lang="${langCode()}">${esc(t)}</span>`;
+/* la palabra en español dentro de una frase, en minúscula («¿Cuál es «perro»?»), salvo nombres propios (los países, o
+   si lleva más mayúsculas: «Reino Unido») */
+const inQ = (es, doc) => String(es || "").split("/").map(p => doc === "paises" || /\p{Lu}/u.test(p.slice(1)) ? p : p.charAt(0).toLowerCase() + p.slice(1)).join("/");
+/* barra de progreso (con muelle): done = pasos hechos. Sin contador «3/8»: al fallar sumaría una más */
 function paintTop(done){
-  const s = LS, n = s.steps.length, bar = $(".ls .ls-bar"), cnt = $(".ls .ls-cnt"); if(!bar) return;
+  const s = LS, n = s.steps.length, bar = $(".ls .ls-bar"); if(!bar) return;
   const fill = bar.firstElementChild, w = (n ? Math.min(100, 100 * done / n) : 0).toFixed(2) + "%";
   bar.setAttribute("aria-valuemax", n); bar.setAttribute("aria-valuenow", Math.min(done, n));
   bar.setAttribute("aria-valuetext", `${Math.min(done, n)} de ${n}`);
   if(fill.style.width && window.M && typeof M.springTo === "function") M.springTo(fill, [{width: w}]); else fill.style.width = w;
-  if(cnt) cnt.textContent = s.i >= 0 && s.i < n ? `${s.i + 1}/${n}` : "";
 }
 
-/* cambia la tarjeta con un deslizamiento lateral de 220 ms (dir 1 = adelante, -1 = atrás; con «Reducir movimiento», un
-   fundido corto). La de antes se va por el otro lado y se quita. */
+/* cambia la tarjeta empujándola de lado, como en iOS: la de antes sale entera por un lado y la nueva entra pegada a ella
+   por el otro, con el mismo muelle (M.snappy; dir 1 = adelante, -1 = atrás). Nunca se montan una encima de otra. Con
+   «Reducir movimiento», un fundido de 140 ms. Si el foco se quedaba en la de antes (o en ninguna parte), pasa a la
+   tarjeta nueva, así el lector de pantalla la lee. */
 function swap(html, dir){
   const st = stage(); if(!st) return null;
   offs.splice(0).forEach(f => { try{ f(); }catch(e){} });
   st.querySelectorAll(".ls-ghost").forEach(g => g.remove());
-  const old = page();
+  const old = page(), ae = document.activeElement;
+  /* el foco se pierde si estaba en la tarjeta vieja, en ningún sitio o en el botón de abajo (que cambia o se esconde) */
+  const lost = !ae || ae === document.body || !!(old && old.contains(ae)) || !!(ae.closest && ae.closest(".ls-dock"));
   const tmp = document.createElement("div"); tmp.innerHTML = html.trim();
   const pg = tmp.firstElementChild; st.prepend(pg);
   if(old && dir){
     old.classList.add("ls-ghost"); old.setAttribute("aria-hidden", "true"); old.inert = true;
     old.querySelectorAll("[id]").forEach(n => n.removeAttribute("id"));
-    const R = rm(), ms = R ? 140 : 220, ease = "cubic-bezier(.25,.8,.25,1)";
-    const out = R ? [{opacity: 1}, {opacity: 0}] : [{transform: "translateX(0)", opacity: 1}, {transform: `translateX(${-dir * 36}%)`, opacity: 0}];
-    const inn = R ? [{opacity: 0}, {opacity: 1}] : [{transform: `translateX(${dir * 36}%)`, opacity: 0}, {transform: "translateX(0)", opacity: 1}];
-    try{
-      const a = old.animate(out, {duration: ms, easing: ease, fill: "forwards"});
-      a.finished.then(() => old.remove(), () => old.remove());
-      pg.animate(inn, {duration: ms, easing: ease});
-    }catch(e){ old.remove(); }
+    const R = rm(), sp = window.M && M.snappy;
+    const ms = R ? 140 : sp && sp.ms ? Math.max(260, Math.min(520, sp.ms)) : 320;
+    const ease = !R && sp && sp.easing ? sp.easing : "cubic-bezier(.25,.8,.25,1)";
+    const at = (k, gap) => `translateX(calc(${k * 100}% ${gap < 0 ? "-" : "+"} ${Math.abs(gap)}px))`;
+    const out = R ? [{opacity: 1}, {opacity: 0}] : [{transform: "translateX(0)"}, {transform: at(-dir, -dir * 16)}];
+    const inn = R ? [{opacity: 0}, {opacity: 1}] : [{transform: at(dir, dir * 16)}, {transform: "translateX(0)"}];
+    const run = e => { const a = old.animate(out, {duration: ms, easing: e, fill: "forwards"}); a.finished.then(() => old.remove(), () => old.remove()); pg.animate(inn, {duration: ms, easing: e}); };
+    try{ run(ease); }catch(e){ try{ run("cubic-bezier(.25,.8,.25,1)"); }catch(e2){ old.remove(); } }
   } else if(old) old.remove();
   if(scrollY > 0) scrollTo(0, 0);
-  if(kbdMode()){ const c = pg.querySelector(".ls-card"); if(c){ c.tabIndex = -1; c.focus({preventScroll: true}); } }
+  if(kbdMode() || lost){ const c = pg.querySelector(".ls-card"); if(c){ c.tabIndex = -1; c.focus({preventScroll: true}); } }
   return pg;
 }
 
@@ -366,14 +416,21 @@ const spkBtn = (t, xl) => `<button type="button" class="say ls-spk${xl ? " xl" :
 const slowBtn = t => `<button type="button" class="say ls-slow" data-say="${esc(t)}" data-slow aria-label="Escuchar despacio">${ico("turtle", "fill", 30)}</button>`;
 const streakHtml = n => `<span class="ls-streak" role="img" aria-label="${n} seguidas">${ico("flame", "fill", 20)}<b>${n}</b></span>`;
 const chip = s => s.streak >= 3 ? streakHtml(s.streak) : "";
-/* opciones: la buena y 3 distintas de la lección (o del tema) */
+/* el artículo de una palabra en francés o danés («le», «la», «l'», «les», «un», «une», «des»; «en», «et», «at») */
+const ARTS = {fr: /^(l['’]|les\s|le\s|la\s|une\s|un\s|des\s)/i, da: /^(en\s|et\s|at\s)/i};
+const artOf = w => { const re = ARTS[lang2()], m = re && re.exec(String(w || "")); return m ? m[1].toLowerCase().replace("’", "'").trim() : ""; };
+/* opciones: la buena y 3 distintas de la lección (o del tema). Si la buena lleva artículo, las otras llevan el mismo
+   cuando se puede (de la lección y, si faltan, del tema): así no se acierta solo por «la» o por «et» */
 function options(w, field){
   const val = x => field === "es" ? x.r.es : x.r.l[lang].word;
   const out = [w], used = new Set([val(w)]);
-  for(const x of mix(LS.pool)){ if(out.length >= 4) break; if(!used.has(val(x))){ used.add(val(x)); out.push(x); } }
+  const add = x => { if(out.length < 4 && x && x.r && x.r.l && x.r.l[lang] && !used.has(val(x))){ used.add(val(x)); out.push(x); } };
+  const a = field === "es" ? "" : artOf(val(w));
+  if(a){ const same = x => artOf(val(x)) === a; mix(LS.pool).filter(same).forEach(add); mix(LS.more || []).filter(same).forEach(add); }
+  mix(LS.pool).forEach(add);
   return mix(out).map(x => ({v: val(x), r: x.r}));
 }
-const optsHtml = (list, o = {}) => `<div class="ls-opts${list.some(x => String(x.v).length > 11) ? " is-long" : ""}" role="group" aria-label="Respuestas">${list.map((x, k) =>
+const optsHtml = (list, o = {}) => `<div class="ls-opts${list.length === 3 ? " is-3" : ""}${list.some(x => String(x.v).length > 11) ? " is-long" : ""}" role="group" aria-label="Respuestas">${list.map((x, k) =>
   `<button type="button" class="ls-opt${o.pics ? " has-pic" : ""}" data-press="sink" data-k="${k}"${x.lang ? ` lang="${x.lang}"` : ""}><kbd class="ls-k" aria-hidden="true">${k + 1}</kbd>${o.pics ? `<img src="${esc(x.r.img)}" alt="" draggable="false">` : ""}<span class="ls-ot">${esc(x.v)}</span></button>`).join("")}</div>`;
 
 /* ninguna respuesta se parte a media palabra («grandmothe·r»): si una palabra no cabe en su botón, las 4 bajan de tamaño
@@ -386,7 +443,36 @@ function fitOpts(pg){
   box.querySelectorAll(".ls-opt:not(.has-pic)").forEach(o => {
     const t = o.querySelector(".ls-ot"); if(t && o.querySelector(".chk,.xm") && over(t)) o.classList.add("is-stack");
   });
+  /* tres en fila: si alguna no cabe, en columna */
+  if(box.classList.contains("is-3") && ots.some(over)){ box.classList.remove("is-3"); box.classList.add("is-col"); }
   for(const c of ["is-long", "is-xlong", "is-break"]){ if(!ots.some(over)) return; box.classList.add(c); }
+}
+/* al contestar sale el altavoz de la pregunta; el dibujo se encoge lo mismo, así las opciones no se mueven de su sitio */
+function reveal(pg){
+  const el = pg && pg.querySelector(".ls-audio.is-later"); if(!el) return;
+  const pic = pg.querySelector(".ls-q .ls-pic"), h0 = pic ? pic.getBoundingClientRect().height : 0;
+  el.classList.remove("is-later"); el.removeAttribute("aria-hidden");
+  const cs = getComputedStyle(el), h = el.getBoundingClientRect().height, mt = parseFloat(cs.marginTop) || 0;
+  const gap = parseFloat(getComputedStyle(el.parentElement).rowGap) || 0, grow = h + mt + gap;
+  const h1 = pic && h0 ? Math.max(72, Math.round(h0 - grow)) : 0;
+  if(h1) pic.style.height = h1 + "px";
+  if(rm()){ try{ el.animate([{opacity: 0}, {opacity: 1}], {duration: 150, easing: "ease-out"}); }catch(e){} return; }
+  const ease = "cubic-bezier(.25,.8,.25,1)";
+  try{
+    el.style.overflow = "hidden";
+    el.animate([{height: "0px", marginTop: -gap + "px", opacity: 0}, {height: h + "px", marginTop: mt + "px", opacity: 1}], {duration: 220, easing: ease})
+      .finished.then(() => { el.style.overflow = ""; }, () => { el.style.overflow = ""; });
+    if(h1) pic.animate([{height: h0 + "px"}, {height: h1 + "px"}], {duration: 220, easing: ease});
+  }catch(e){ el.style.overflow = ""; }
+}
+/* la respuesta («¡Casi! Es «uncle»») siempre a la vista, por encima del botón de abajo */
+function showFb(pg){
+  setTimeout(() => {
+    const fb = pg && pg.querySelector(".ls-fb"), dock = document.querySelector(".ls .ls-dock");
+    if(!fb || !fb.isConnected || !dock || !fb.textContent.trim()) return;
+    const over = fb.getBoundingClientRect().bottom - (dock.getBoundingClientRect().top - 8);
+    if(over > 0) scrollBy({top: over, behavior: rm() ? "auto" : "smooth"});
+  }, rm() ? 20 : 240);
 }
 
 /* ---------- pasos de vocabulario ---------- */
@@ -409,6 +495,8 @@ function lsStep(dir = 1){
         <div class="ls-more"><button type="button" class="ls-chip" data-how aria-haspopup="dialog">Cómo suena</button>${d.ex ? `<button type="button" class="ls-chip" data-ex aria-expanded="false" aria-controls="ls-ex">Ejemplo ${ico("caret-down", "bold", 16)}</button>` : ""}</div>
         ${d.ex ? `<div class="ls-ex" id="ls-ex" hidden><p lang="${lc}">${esc(d.ex)} <button type="button" class="say ls-exs" data-say="${esc(d.ex)}" aria-label="Escuchar la frase">${ico("speaker-high", "fill", 20)}</button></p>${d.ex_es ? `<p class="ls-ex-tr">${esc(d.ex_es)}</p>` : ""}</div>` : ""}
       </section></div>`, dir);
+    if(typeof fitWord === "function") fitWord(pg.querySelector(".ls-word"));
+    announce(`Palabra nueva: ${inLang(d.word)}, ${esc(r.es)}`);
     paintTop(idx);
     const canPrev = idx > 0 && s.steps[idx - 1].t === "learn";
     setGo("Continuar", () => next(idx)); setPrev(canPrev);
@@ -419,14 +507,17 @@ function lsStep(dir = 1){
   const listen = st.t === "listen", list = options(st.w, listen ? "es" : "word");
   st.right = listen ? r.es : d.word;
   if(!listen) list.forEach(x => { x.lang = langCode(); });
-  const pics = listen && list.every(x => x.r && x.r.img);
+  /* con dibujos solo si se distinguen: los árboles de familia (fam_…) son casi iguales en pequeño */
+  const pics = listen && list.every(x => x.r && x.r.img) && !list.every(x => /(^|\/)fam_/.test(x.r.img));
+  const es = inQ(r.es, st.w.doc);
   const pg = swap(`<div class="ls-page">
     <section class="card ls-card ls-q${listen ? " ls-listen" : ""}">${chip(s)}
       ${listen ? `<h2 class="ls-ask">Escucha y elige</h2><div class="ls-audio ls-audio--c">${spkBtn(d.word, true)}${slowBtn(d.word)}</div>`
-               : `<div class="ls-pic">${pic(r)}</div><h2 class="ls-ask">¿Cuál es <q>${esc(r.es)}</q>?</h2><div class="ls-audio is-later" aria-hidden="true">${spkBtn(d.word)}${slowBtn(d.word)}</div>`}
+               : `<div class="ls-pic">${pic(r)}</div><h2 class="ls-ask">¿Cuál es <q>${esc(es)}</q>?</h2><div class="ls-audio is-later" aria-hidden="true">${spkBtn(d.word)}${slowBtn(d.word)}</div>`}
     </section>
     ${optsHtml(list, {pics})}
     <p class="ls-fb"></p></div>`, dir);
+  announce(listen ? "Escucha y elige" : `¿Cuál es «${esc(es)}»?`);
   paintTop(idx); setGo(null); setPrev(false); fitOpts(pg);
   pg.querySelectorAll(".ls-opt").forEach(b => b.addEventListener("click", () => answer(b)));
   if(listen) setTimeout(() => { if(alive(s) && s.i === idx && autoTok === tok && !st.done && !sheetOpen()) sayP(d.word, pg.querySelector(".ls-spk")); }, dir ? 280 : 250);
@@ -482,13 +573,16 @@ function answer(b){
   const ok = v === st.right, right = opts.find(o => o.querySelector(".ls-ot").textContent === st.right) || b;
   const key = r.es;
   if(ok){ if(!s.miss.has(key)) s.first.add(key); s.streak++; }
-  else { s.miss.add(key); s.steps.push({t: st.t === "pick" ? "listen" : "pick", w: st.w}); s.streak = 0; }
+  else { s.miss.add(key); s.steps.push({t: st.t === "pick" ? "listen" : "pick", w: st.w, re: true}); s.streak = 0; }
   marks(opts, right, b, ok);
   bus.emit("answer", {ok, es: r.es, word: d.word, where: "lesson"});
   lsSave(idx + 1); paintTop(idx + 1);
-  const later = pg.querySelector(".ls-audio.is-later"); if(later){ later.classList.remove("is-later"); later.removeAttribute("aria-hidden"); }
+  reveal(pg);
   const spk = pg.querySelector(".ls-spk");
-  feedback(pg, ok, ok ? "" : `¡Casi! Es <b>«${esc(st.right)}»</b>`, ok ? "" : `¡Casi! Es ${st.right}`);
+  /* «Escucha y elige» se contesta en español; «¿Cuál es…?», en el idioma */
+  const rl = st.t === "listen" ? "" : ` lang="${langCode()}"`;
+  feedback(pg, ok, ok ? "" : `¡Casi! Es <b${rl}>«${esc(st.right)}»</b>`);
+  showFb(pg);
   streakUp(s, pg, ok);
   setGo("Seguir", () => next(idx));
   if(kbdMode()) $("#ls-go").focus({preventScroll: true});
@@ -498,19 +592,20 @@ function answer(b){
 function marks(opts, right, b, ok){
   opts.forEach(o => { o.disabled = true; if(o !== right && o !== b) o.classList.add("is-dim"); });
   right.classList.add("is-ok"); right.insertAdjacentHTML("afterbegin", CHK);
-  if(!ok){ b.classList.add("is-miss"); b.insertAdjacentHTML("afterbegin", ico("x", "bold", 22, "xm")); }
+  right.insertAdjacentHTML("beforeend", `<span class="vh" lang="es"> (correcta)</span>`);
+  if(!ok){ b.classList.add("is-miss"); b.insertAdjacentHTML("afterbegin", ico("x", "bold", 22, "xm")); b.insertAdjacentHTML("beforeend", `<span class="vh" lang="es"> (tu respuesta)</span>`); }
   fitOpts(right.closest(".ls-page"));   /* la ✓ y la ✗ quitan sitio: que la palabra siga entera */
   if(window.M && typeof M.ok === "function"){
     if(ok) M.ok(right, {haptic: true});
     else { const c = right.querySelector("svg.chk"); if(c) M.ok(c); }   /* solo se dibuja la ✓: la buena no salta */
   } else if(ok && window.G && typeof G.haptic === "function") G.haptic("success");
 }
-function feedback(pg, ok, missHtml, missText, extra = ""){
+function feedback(pg, ok, missHtml, extra = ""){
   const fb = pg.querySelector(".ls-fb"); if(!fb) return;
   const t = ok ? PRAISE[Math.floor(Math.random() * PRAISE.length)] : "";
   fb.classList.toggle("miss", !ok);
   fb.innerHTML = (ok ? `${ico("check-circle", "fill", 28)}<span>${t}</span>` : `<span>${missHtml}</span>`) + extra;
-  announce(ok ? t : missText);
+  announce(ok ? esc(t) : missHtml);
 }
 /* racha: el chip sale a los 3 aciertos seguidos y salta a los 3, 5 y 8; al fallar se va */
 function streakUp(s, pg, ok){
@@ -574,6 +669,7 @@ function gStep(dir = 1){
     </section>
     ${optsHtml(q.o.map(o => ({v: o, lang: langCode()})))}
     <p class="ls-fb"></p></div>`, dir);
+  announce(`Completa la frase: ${inLang(String(q.s).replace("___", "…"))}`);
   paintTop(idx); setGo(null); setPrev(false); fitOpts(pg);
   pg.querySelectorAll(".ls-opt").forEach(b => b.addEventListener("click", () => gAnswer(b)));
 }
@@ -584,14 +680,15 @@ function gAnswer(b){
   const q = st.q, idx = s.i, pg = b.closest(".ls-page"), opts = [...pg.querySelectorAll(".ls-opt")];
   const ok = +b.dataset.k === q.a, right = opts[q.a] || b, key = q.s, rw = q.o[q.a];
   if(ok){ if(!s.miss.has(key)) s.first.add(key); s.streak++; }
-  else { s.miss.add(key); s.steps.push({t: "gq", q}); s.streak = 0; }
+  else { s.miss.add(key); s.steps.push({t: "gq", q, re: true}); s.streak = 0; }
   marks(opts, right, b, ok);
   bus.emit("answer", {ok, where: "grammar"});
   lsSave(idx + 1); paintTop(idx + 1);
   const gap = pg.querySelector(".ls-gap"); if(gap){ gap.textContent = rw; gap.classList.add("ok"); }
-  const later = pg.querySelector(".ls-audio.is-later"); if(later){ later.classList.remove("is-later"); later.removeAttribute("aria-hidden"); }
+  reveal(pg);
   const extra = `${q.es ? `<small lang="es">${esc(q.es)}</small>` : ""}${!ok && q.why ? `<small class="ls-why">${ico("lightbulb", "bold", 18)}<span>${bold(q.why)}</span></small>` : ""}`;
-  feedback(pg, ok, `¡Casi! Es <b>«${esc(rw)}»</b>`, `¡Casi! Es ${rw}`, extra);
+  feedback(pg, ok, `¡Casi! Es <b lang="${langCode()}">«${esc(rw)}»</b>`, extra);
+  showFb(pg);
   streakUp(s, pg, ok);
   setGo("Seguir", () => next(idx));
   if(kbdMode()) $("#ls-go").focus({preventScroll: true});
@@ -638,8 +735,11 @@ function lsEnd(){
   const by = {}; for(const w of s.words) (by[w.doc] = by[w.doc] || []).push(w.r);
   for(const [d, rows] of Object.entries(by)) srsAdd(d, rows, 1);
   logAct(s.words.length || s.nq); updBadge();
-  const t1 = today() + 1, due1 = Object.values(srsAll()).filter(x => x && x.due === t1).length;
-  if(due1) $(".ls-end .ls-tmr").textContent = `Mañana repasas ${due1 === 1 ? "1 palabra" : due1 + " palabras"}`;
+  /* «Mañana repasas estas 8 palabras»: solo las de esta lección que vuelven mañana (no todo el repaso) */
+  const t1 = today() + 1, all = srsAll(), W = s.words.length;
+  const due1 = s.words.filter(w => { const x = all[srsK(w.doc, w.r)]; return x && x.due === t1; }).length;
+  if(due1) $(".ls-end .ls-tmr").textContent = due1 === W ? (W === 1 ? "Mañana repasas esta palabra" : `Mañana repasas estas ${W} palabras`)
+    : `Mañana repasas ${due1 === 1 ? "1 de estas palabras" : due1 + " de estas palabras"}`;
   bus.emit("lesson-done", {id: s.id, lv: s.lv, stars, first: !prev, grammar: !!s.g, words: s.words.map(w => ({doc: w.doc, es: w.r.es, word: w.r.l[lang].word}))});
   announce(`¡Lección completada! ${stars} de 3 estrellas y ${coins} monedas.`);
   /* las estrellas, de una en una cada 150 ms, cada una con una nota más aguda */
@@ -650,6 +750,10 @@ function lsEnd(){
     if(i < stars) note(i * 2 + 1);
   }, 180 + 150 * i));
   $("#ls-rep").addEventListener("click", () => { if(LS === s){ LS = null; if(typeof updFocus === "function") updFocus(); leccion(s.id); } });
+  /* un doble toque en «Seguir» (justo en el sitio de «Siguiente lección») no se salta el final: los botones no responden
+     hasta que salen las estrellas */
+  const dock = $(".ls-end .ls-dock");
+  if(dock){ dock.inert = true; setTimeout(() => { if(dock.isConnected) dock.inert = false; }, rm() ? 300 : 700); }
   document.onkeydown = onKey;
   setTimeout(giftCheck, 1500);
 }
@@ -692,7 +796,7 @@ function ask(from, viaBack){
     <p class="ls-pz-s">${left <= 3 && s.i > 0 ? "¡Ya casi la terminas!" : `Te ${left === 1 ? "queda 1 tarjeta" : `quedan ${left} tarjetas`}`}</p>
     <div class="ls-pz-b">
       <button type="button" class="glass-btn glass-btn--lg" id="ls-pz-out">Salir</button>
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="ls-pz-go" autofocus>${ico("play", "fill", 20)}Seguir</button>
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="ls-pz-go" autofocus>Seguir</button>
     </div></div>`;
   quiet();
   try{
@@ -840,7 +944,7 @@ function lightSyl(d){
   howT.forEach(clearTimeout); howT = [];
   const sy = [...d.querySelectorAll(".ls-syl .sy")];
   sy.forEach(x => x.classList.remove("on"));
-  if(rm() || sy.length < 2) return;
+  if(sy.length < 2) return;   /* con «Reducir movimiento» también: es una ayuda para leer, no una animación */
   const step = 420;
   sy.forEach((x, i) => {
     howT.push(setTimeout(() => { sy.forEach(y => y.classList.remove("on")); x.classList.add("on"); }, 120 + i * step));
@@ -880,11 +984,14 @@ function openHow(from){
   setTimeout(() => { if(d.open){ say1(word, d.querySelector(".ls-how-go"), true); lightSyl(d); } }, 220);
 }
 
-/* al salir de la ruta de la lección (sin estar empezada, o ya terminada), la lección deja de estar en marcha */
+/* al salir de la ruta de la lección (sin estar empezada, o ya terminada), la lección deja de estar en marcha; las hojas
+   («¿Paramos aquí?», «Cómo suena») se cierran y se calla */
 bus.on("route", d => {
   const h = String((d && d.h) || "").split("?")[0];
   if(LS && h !== pathOf(LS)){ LS = null; offs.splice(0).forEach(f => { try{ f(); }catch(e){} }); }
   if(PZ.d && PZ.d.open && !LS){ PZ.exit = true; try{ PZ.d.close(); }catch(e){} }
+  const how = document.getElementById("ls-how");
+  if(how && how.open && !LS){ try{ how.close(); }catch(e){} quiet(); }
 });
 
 css();
