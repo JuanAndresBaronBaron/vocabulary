@@ -7,6 +7,7 @@
      Tocar una bloqueada dice en qué lección del Camino está.
    - Página completa (todas conseguidas): premio una vez por idioma → award(50) + confeti + sello.
    - Portada (HOME_ACTS): botón «📒 Álbum» con «✨ N nuevas»; fin de lección y de repaso: enlace a las pegatinas nuevas.
+     Punto azul en la pestaña «Jugar» mientras haya pegatinas nuevas sin ver.
    Guarda: store "album:seen:<lang>" {clave: 1 vista | 2 vista ya dorada} · "album:done:<lang>" {docId: fecha}
            "album:uniq:<lang>" {docId: nº de pegatinas distintas} · "album:tab" (pestaña de la portada).
    Emite: bus "album-complete" {id}. */
@@ -863,13 +864,19 @@ window.addEventListener("hashchange", () => { if(DLG && DLG.open) closeDlg(); })
 HOME_ACTS.push({href: "#/album", e: "📒", t: "Álbum", color: "#008198",
   get sub(){ try{ const n = newTotal(); return n ? `✨ ${n} ${plural(n, "nueva", "nuevas")}` : "Colecciona pegatinas"; }catch(e){ return "Colecciona pegatinas"; } }});
 
+/* punto azul en la pestaña «Jugar» (tabBadge de index.html) si hay pegatinas nuevas sin ver */
+function tabDot(n){
+  try{ if(typeof tabBadge === "function") tabBadge("jugar", n > 0, n > 0 ? `${n} ${plural(n, "pegatina nueva", "pegatinas nuevas")}` : ""); }catch(e){}
+}
 function decorateHome(){
-  const a = document.querySelector('a.ba[href="#/album"]'); if(!a) return;
   let n = 0; try{ n = newTotal(); }catch(e){}
+  tabDot(n);
+  const a = document.querySelector('a.ba[href="#/album"]'); if(!a) return;
   a.classList.toggle("al-ba-new", n > 0);
   const old = a.querySelector(".al-bdot"); if(old) old.remove();
   if(n > 0) a.insertAdjacentHTML("beforeend", `<span class="al-bdot" aria-hidden="true">${n > 99 ? "99+" : n}</span>`);
 }
+["boot", "lang", "lesson-done", "review-done"].forEach(ev => bus.on(ev, () => setTimeout(() => { try{ decorateHome(); }catch(e){} }, 0)));
 bus.on("route", d => {
   const h = String((d && d.h) || "");
   if(!h.startsWith("album")){ NAV++; stopAll(); }

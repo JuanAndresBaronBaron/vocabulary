@@ -7,10 +7,11 @@
    - Plantas que crecen con la regadera y se cosechan; árboles que dan fruta o nidos.
    - Edificios con sorpresa (cohete, tractor, fuente, castillo, casa, cabaña, tienda).
    - Juego «¿Dónde está…?».
-   - Fuera de la granja: tarjeta de la portada (HOME_SLOTS) e insignia en el menú con los animales con hambre.
+   - Fuera de la granja: tarjeta de la portada (HOME_SLOTS) y un punto azul en la pestaña «Granja» si algún animal tiene hambre.
    Estado: store "farm:state". Emite: farm-feed {item, food}, farm-harvest {item}, farm-collect {product}, farm-find {ok},
    farm-buy {food, n, cost}, farm-rescue {item}, coins {n < 0} al gastar.
-   Para otros módulos: farmMount.kinds (listas de especies) y farmMount.care (consultas de solo lectura). */
+   Para otros módulos: farmMount.kinds (listas de especies), farmMount.care (consultas de solo lectura) y
+   window.vocabFarm.openShop() (abre la tienda de la granja: lo usa el botón de las monedas de arriba). */
 function farmMount(host){ return farmMount._mount ? farmMount._mount(host) : null; }
 /* pruebas: phase "dawn" | "day" | "dusk" | "night" fuerza la hora del cielo;
    shift (ms) adelanta el reloj de la granja (simular días); tick() repasa la granja montada al momento */
@@ -300,20 +301,43 @@ bus.on("review-done", () => addDrops(2));
 bus.on("game-done", () => addDrops(1));
 bus.on("route", d => { if(cur && !(cur.host.isConnected && String((d && d.h) || "").startsWith("granja"))) cur.stop(); });
 
-/* insignia roja en «Granja» del menú: cuántos animales necesitan comer */
+/* punto azul en la pestaña «Granja» (tabBadge de index.html) cuando algún animal tiene hambre. Nunca rojo ni un número:
+   la granja no es una obligación */
 function navBadge(){
   try{
-    const a = document.querySelector('.hnav a[data-nav="granja"]') || document.querySelector('a[href="#/granja"]'); if(!a) return;
     const s = careState(), n = needyS(s).length, sh = Object.keys(s.shelter).length;
-    let b = a.querySelector(".fm-nb");
-    if(!n){ if(b) b.hidden = true; a.title = sh ? `Mi granja · ${sh} en el refugio` : "Mi granja"; a.removeAttribute("aria-label"); return; }
-    if(!b){ b = document.createElement("span"); b.className = "b fm-nb"; b.setAttribute("aria-hidden", "true"); a.appendChild(b); }
-    b.hidden = false; b.textContent = n;
-    a.title = `Mi granja · ${n === 1 ? "1 animal tiene" : n + " animales tienen"} hambre`; a.setAttribute("aria-label", a.title);
+    const label = n ? `${n === 1 ? "1 animal tiene" : n + " animales tienen"} hambre` : sh ? `${sh} en el refugio` : "";
+    if(typeof tabBadge === "function") tabBadge("granja", n > 0, label);
+    const a = document.getElementById("tab-granja");
+    if(a) a.title = label ? `Granja · ${label}` : "Granja";
   }catch(e){ console.error(e); }
 }
 ["boot", "route", "coins", "farm-feed", "farm-rescue", "buy", "gift-open"].forEach(ev => bus.on(ev, () => navBadge()));
 setInterval(navBadge, 60000);   /* (navBadge también pone al día lo comprado o regalado: llega con 2❤️ aunque no se abra la granja) */
+
+/* window.vocabFarm.openShop(): el botón de las monedas de arriba abre la tienda de la granja. Hoy la tienda está al
+   final de #/granja (<h2 id="shop">): se va allí si hace falta, se baja hasta ella y se le da el foco */
+let shopPend = false;
+function goShop(){
+  const h = document.getElementById("shop"); if(!h) return false;
+  const top = document.getElementById("topbar"), off = top && top.getClientRects().length ? top.getBoundingClientRect().bottom + 12 : 12;
+  window.scrollTo({top: Math.max(0, scrollY + h.getBoundingClientRect().top - off), behavior: RM() ? "auto" : "smooth"});
+  try{ h.focus({preventScroll: true}); }catch(e){}
+  return true;
+}
+bus.on("route", d => {
+  if(!shopPend) return;
+  shopPend = false;
+  if(String((d && d.h) || "").startsWith("granja")) requestAnimationFrame(() => goShop());
+});
+window.vocabFarm = Object.assign(window.vocabFarm || {}, {
+  openShop(){
+    if(/^#\/granja(\/|$)/.test(location.hash) && goShop()) return;
+    shopPend = true;
+    if(/^#\/granja(\/|$)/.test(location.hash)){ if(typeof route === "function") route(); }
+    else location.hash = "#/granja";
+  },
+});
 
 /* portada: «Tus animales tienen hambre» con sus caras y un botón a la granja */
 HOME_SLOTS.push(async () => {
@@ -573,13 +597,24 @@ function mount(host){
       {transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(.35)`, opacity: .2}], {duration: 900, easing: "ease-in", fill: "forwards"});
   }
 
-  /* que el escenario se vea entero: la cabecera de la app está fija arriba y en móvil es alta */
+  /* que el escenario se vea entero entre la barra de arriba (o la del modo foco) y la de pestañas de abajo */
+  function bars(){
+    let top = 0, bot = innerHeight;
+    for(const id of ["topbar", "focusbar", "tabbar"]){
+      const el = document.getElementById(id);
+      if(!el || !el.getClientRects().length) continue;
+      const cs = getComputedStyle(el); if(cs.display === "none" || cs.position !== "fixed") continue;
+      const r = el.getBoundingClientRect();
+      if(r.top < innerHeight / 2) top = Math.max(top, r.bottom); else bot = Math.min(bot, r.top);
+    }
+    return {top, bot};
+  }
   function showStage(){
-    const hd = document.querySelector("header"), hb = hd && getComputedStyle(hd).position === "sticky" ? hd.getBoundingClientRect().bottom : 0;
-    const r = stage.getBoundingClientRect(), room = innerHeight - hb;
+    const {top: hb, bot} = bars();
+    const r = stage.getBoundingClientRect(), room = bot - hb;
     let dy = 0;
     if(r.top < hb + 6) dy = r.top - hb - 6;
-    else if(r.bottom > innerHeight - 4) dy = Math.min(r.bottom - innerHeight + 4, r.top - hb - 6);
+    else if(r.bottom > bot - 4) dy = Math.min(r.bottom - bot + 4, r.top - hb - 6);
     if(r.height > room - 10 && r.top >= hb + 6) dy = r.top - hb - 6;
     if(Math.abs(dy) > 2) window.scrollBy({top: dy, behavior: RM() ? "auto" : "smooth"});
   }
@@ -1670,7 +1705,6 @@ function cssCare(){
 .sc.shel{border-color:#FFCC00}
 .sc .own.shl{color:var(--gold-ink)}
 [data-theme=dark] .sc .own.shl{color:#FFCC00}
-.hbtn .fm-nb[hidden]{display:none}
 .sc [data-shelter]{min-height:44px;padding:8px 14px}`;
   document.head.appendChild(st);
 }

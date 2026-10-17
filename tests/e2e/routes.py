@@ -28,8 +28,8 @@ TOPIC_3000 = "w04" if any(d["id"] == "w04" for d in _w3000) else _w3000[0]["id"]
 ALBUM_DONE = "colores"                             # página del álbum completa en la partida sembrada
 GAMES = ["memoria", "lluvia", "globos", "letras"]
 
-# las rutas de hoy (SPEC §6); Aprender › Repasar/Camino/Palabras/Gramática son hoy #/repaso, #/mapa, la lista de
-# temas de #/ y #/gramatica
+# las rutas de hoy (SPEC §6); Aprender › Repasar/Camino/Palabras/Gramática son #/repaso, #/mapa, #/palabras (F2: la
+# lista de temas que antes estaba en #/) y #/gramatica
 BASE = [
     {"name": "hoy", "hash": "#/", "what": "Inicio / Hoy"},
     {"name": "mapa", "hash": "#/mapa", "what": "Camino (nivel actual)"},
@@ -69,3 +69,7 @@ def all_routes(only=None):
     if only:
         rs = [r for r in rs if any(o == r["name"] or o in r["name"] for o in only)]
     return rs
+
+
+# F2 (armazón de navegación): Aprender › Palabras, la lista de temas que antes estaba en la portada
+add("palabras", "#/palabras", "Aprender › Palabras (temas, las 3000 y avanzado)")

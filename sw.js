@@ -9,14 +9,14 @@
    están, de la red (y se guardan). Las cachés viejas (vocab-v1 de «Descargar todo», vocab-vNN del sw anterior) pasan
    sus imágenes, audios y datos a vocab-media entrada a entrada y después se borran; si no cabe, se borran igual (todo
    se puede volver a bajar). */
-const VERSION = 14;
+const VERSION = 15;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
 const SHELL = [
   "./", "index.html", "privacy.html", "manifest.webmanifest",
   "data/index.json", "data/map.json", "data/game.json", "data/sprites.json",
   "js/motion.js", "js/gestures.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
-  "js/save.js", "js/sync.js", "js/fab.js",
+  "js/save.js", "js/sync.js",
   "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png",
   "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2",

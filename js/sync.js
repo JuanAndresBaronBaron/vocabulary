@@ -362,13 +362,13 @@ function preGis(){
   const m = meta();
   if(m.connectedAt && !m.choice && online() && !gisReady() && (m.reconnect || tokLeft() < 10 * MIN)) loadGis().catch(() => {});
 }
-const OPP = '.ls-end a, .ls-end button, a[href="#/granja"], a.ba[href="#/mapa"], .hnav a[data-nav="mapa"]';
+const OPP = '.ls-end a, .ls-end button, a[href="#/granja"], a.ba[href="#/mapa"], .tabbar a[data-nav="aprender"], .tabbar a[data-nav="granja"], [data-coins-pill]';
 document.addEventListener("click", e => {
   const a = e.target.closest && e.target.closest(OPP); if(!a) return;
   const p = renewInTap(false); if(p) p.catch(() => {});
 }, true);
 
-/* chip «☁️ Guardar» junto a las monedas */
+/* chip «☁️ Guardar» junto a las monedas: va dentro del hueco [data-sync-slot] de la barra de arriba */
 function chipWanted(){
   const m = meta();
   if(!m.connectedAt || m.choice || tokOk() || !(m.reconnect || phase === "reconnect")) return false;
@@ -380,7 +380,7 @@ function paintChip(){
   if(!want){ if(c) c.remove(); return; }
   preGis();
   if(c) return;
-  const coin = document.querySelector(".hnav .coin"); if(!coin) return;
+  const slot = document.querySelector("[data-sync-slot]"); if(!slot) return;
   css();
   c = document.createElement("button");
   c.type = "button"; c.id = "sv-chip"; c.className = "sv-chip";
@@ -393,7 +393,7 @@ function paintChip(){
      .catch(() => { try{ toast("☁️ No se pudo guardar ahora. Prueba luego."); }catch(e){} })
      .finally(() => { const x = $s("sv-chip"); if(x) x.disabled = false; paintChip(); });
   };
-  coin.before(c);
+  slot.appendChild(c);
 }
 
 /* botón «Entrar con Google» en el menú hasta que se conecte, con ⓘ que explica para qué sirve */
@@ -744,7 +744,7 @@ function cfgLink(){
   css();
   const p = document.createElement("p"); p.className = "sv-cfg";
   p.innerHTML = `<a href="#/progreso" id="sv-cfg" data-sv-go></a>`;
-  d.appendChild(p); cfgPaint();
+  (d.querySelector("[data-sync-cfg]") || d).appendChild(p); cfgPaint();
 }
 try{ const d = $s("cfg"); if(d && typeof MutationObserver === "function") new MutationObserver(cfgLink).observe(d, {childList: true}); }catch(e){}
 
