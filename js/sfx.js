@@ -1,5 +1,5 @@
 /* Efectos de sonido sintetizados (sin archivos) y confeti.
-   API: sfx.play(nombre) · nombres: tap, pop, coin, ok, bad, gift, fanfare, whoosh, eat, moo
+   API: sfx.play(nombre) · nombres: tap, pop, coin, ok, bad, gift, fanfare, whoosh, eat, moo · sfx.note(i) (monedas)
         confetti(opciones?) · sfx.muted / sfx.toggle() */
 const sfx = (() => {
   let ctx = null;
@@ -25,6 +25,7 @@ const sfx = (() => {
     f.type = "highpass"; f.frequency.value = hp; g.gain.value = vol;
     s.buffer = b; s.connect(f).connect(g).connect(c.destination); s.start(t);
   };
+  const STEP = [0, 2, 4, 7, 9, 12, 14, 16];
   const S = {
     tap:    () => tone(880, 0, .06, "triangle", .08),
     pop:    () => { tone(520, 0, .09, "sine", .2, 1100); },
@@ -41,16 +42,20 @@ const sfx = (() => {
     get muted(){ return store.get("mute", false); },
     toggle(){ store.set("mute", !api.muted); paint(); if(!api.muted) api.play("pop"); },
     play(n){ if(api.muted || !S[n]) return; try{ S[n](); }catch(e){} },
+    /* nota i de una escala pentatónica (cada moneda de M.coins un poco más aguda), en el mismo AudioContext */
+    note(i = 0){ if(api.muted) return; try{ if(navigator.userActivation && !navigator.userActivation.hasBeenActive) return; tone(1046.5 * Math.pow(2, STEP[Math.abs(i | 0) % STEP.length] / 12), .005, .17, "triangle", .07); }catch(e){} },
   };
   function paint(){ const b = document.getElementById("snd-b"); if(b){ b.textContent = api.muted ? "🔕" : "🔔"; b.title = api.muted ? "Activar sonidos" : "Quitar sonidos"; } }
   document.addEventListener("DOMContentLoaded", () => { paint(); const b = document.getElementById("snd-b"); if(b) b.onclick = api.toggle; });
-  /* desbloquear el audio en el primer toque (móviles) */
-  addEventListener("pointerdown", () => { if(!api.muted) ac(); }, {once: true});
+  /* desbloquear el audio en el primer toque (móviles), sin sonar: al soltar el dedo, en el clic o con una tecla, que es
+     cuando el navegador lo permite (al apoyar el dedo todavía no) */
+  const unlock = () => { if(!api.muted) ac(); if(ctx && ctx.state === "running") ["pointerup", "click", "keydown"].forEach(t => removeEventListener(t, unlock, true)); };
+  ["pointerup", "click", "keydown"].forEach(t => addEventListener(t, unlock, true));
   return api;
 })();
 
 function confetti(o = {}){
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  try{ if(window.M && typeof window.M.rm === "function" ? window.M.rm() : matchMedia("(prefers-reduced-motion: reduce)").matches) return; }catch(e){}
   const cv = document.createElement("canvas"), dpr = Math.min(2, devicePixelRatio || 1);
   cv.className = "confetti"; cv.width = innerWidth * dpr; cv.height = innerHeight * dpr;
   Object.assign(cv.style, {position: "fixed", inset: "0", width: "100vw", height: "100vh", pointerEvents: "none", zIndex: 999});

@@ -11,7 +11,7 @@
 
 /* ---------- utilidades ---------- */
 const MKEY = "buddy:missions", WKEY = "buddy:wotd", HKEY = "buddy:hide";
-const RM = () => { try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };
+const RM = () => { try{ return window.M && typeof window.M.rm === "function" ? window.M.rm() : matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };   /* M.rm() de js/motion.js */
 const small = () => { try{ return matchMedia("(max-width:560px)").matches; }catch(e){ return false; } };
 const snd = n => { try{ if(typeof sfx !== "undefined") sfx.play(n); }catch(e){} };
 const boom = o => { try{ if(typeof confetti === "function") confetti(o); }catch(e){} };
@@ -40,7 +40,7 @@ const STYLE = `
 /* compañero flotante */
 .bd{position:fixed;left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));z-index:25;transition:transform .4s cubic-bezier(.3,1.3,.5,1),left .3s}
 .bd[hidden],.bd-peek[hidden]{display:none!important}
-.bd-me{display:block;position:relative;border:0;background:none;padding:0;margin:0;cursor:pointer;line-height:1;-webkit-tap-highlight-color:transparent;touch-action:manipulation;filter:drop-shadow(0 5px 6px rgba(5,20,40,.28));animation:bd-idle 2.6s ease-in-out infinite;transform-origin:50% 100%}
+.bd-me{display:block;position:relative;border:0;background:none;padding:0;margin:0;cursor:pointer;line-height:1;-webkit-tap-highlight-color:transparent;touch-action:manipulation;filter:drop-shadow(0 5px 6px rgba(5,20,40,.28));animation:bd-idle 2.6s ease-in-out 3;transform-origin:50% 100%}
 .bd-me .hero{display:block}
 .bd-me::after{content:"";position:absolute;left:18%;right:18%;bottom:-6px;height:7px;border-radius:50%;background:rgba(5,20,40,.22);filter:blur(1px);z-index:-1}
 .bd-me:focus-visible{outline:3px solid var(--brand);outline-offset:4px;border-radius:14px}
@@ -109,9 +109,9 @@ a.bd-row:active{transform:translateY(2px)}
 .bd-row.done .bd-bar i{background:var(--gold)}
 .bd-row.got{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
 .bd-row.got .bd-bar i{background:var(--ok)}
-.bd-row.got .bd-mt small{color:color-mix(in srgb,var(--ok) 70%,var(--ink))}
+.bd-row.got .bd-mt small{color:var(--ok-ink)}
 .bd-plus{display:inline-block;margin-left:6px;padding:0 7px;border-radius:99px;background:#FFCC00;color:#3D2B00;font-weight:900;animation:bd-stamp .5s cubic-bezier(.3,1.6,.5,1)}
-.bd-get{border:0;border-radius:14px;background:#FFCC00;color:#3D2B00;font-weight:900;font-size:1rem;padding:10px 14px;min-height:46px;box-shadow:0 4px 0 #B38F00;white-space:nowrap;animation:bd-pulse 1.5s ease-in-out infinite}
+.bd-get{border:0;border-radius:14px;background:#FFCC00;color:#3D2B00;font-weight:900;font-size:1rem;padding:10px 14px;min-height:46px;box-shadow:0 4px 0 #B38F00;white-space:nowrap;animation:bd-pulse 1.5s ease-in-out 3}
 .bd-get:hover{background:#f7d774}
 .bd-get:active{transform:translateY(3px);box-shadow:0 1px 0 #B38F00;animation:none}
 .bd-check{width:42px;height:42px;border-radius:50%;background:#23843f;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.3rem}
@@ -123,7 +123,7 @@ a.bd-row:active{transform:translateY(2px)}
 .bd-cdots i{width:14px;height:14px;border-radius:50%;background:var(--line)}
 .bd-cdots i.on{background:#FFCC00;box-shadow:0 0 0 2px color-mix(in srgb,#FFCC00 50%,transparent)}
 .bd-chest.ready{border:2px solid #FFCC00;background:linear-gradient(120deg,color-mix(in srgb,#FFCC00 24%,var(--card)),var(--card));color:var(--ink)}
-.bd-chest.ready .bd-box{filter:none;opacity:1;animation:bd-shake 1s ease-in-out infinite}
+.bd-chest.ready .bd-box{filter:none;opacity:1;animation:bd-shake 1s ease-in-out 3}
 .bd-chest.open{border-style:solid;border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
 .bd-chest.open .bd-box{filter:none;opacity:1;animation:bd-stamp .5s}
 @keyframes bd-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
@@ -147,7 +147,7 @@ a.bd-row:active{transform:translateY(2px)}
 .bd-wsay{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .bd-wsay .say{width:44px;height:44px;font-size:1.15rem}
 .bd-wsay .pron{color:var(--muted)}
-.bd-reveal{border:2px dashed var(--brand);background:var(--soft);color:var(--brand);border-radius:16px;padding:10px 14px;font-weight:900;font-size:1.05rem;min-height:56px;text-align:left;line-height:1.2;animation:bd-pulse 1.8s ease-in-out infinite}
+.bd-reveal{border:2px dashed var(--brand);background:var(--soft);color:var(--brand);border-radius:16px;padding:10px 14px;font-weight:900;font-size:1.05rem;min-height:56px;text-align:left;line-height:1.2;animation:bd-pulse 1.8s ease-in-out 3}
 .bd-reveal small{display:block;font-weight:700;color:var(--muted);font-size:.85rem;margin-top:2px}
 .bd-wotd .ex{margin-top:12px}
 .bd-wotd .ex .say.sm{width:44px;height:44px;font-size:1.05rem}
@@ -171,7 +171,7 @@ a.bd-row:active{transform:translateY(2px)}
 /* mapa: avatar y regalo */
 .bd-av{position:absolute;top:50%;z-index:3;cursor:pointer;-webkit-tap-highlight-color:transparent;translate:0 0;transition:translate 1.5s cubic-bezier(.45,.05,.4,1)}
 .bd-av.r{left:calc(100% + 14px)}.bd-av.l{right:calc(100% + 14px)}
-.bd-av-in{margin-top:-40px;filter:drop-shadow(0 4px 4px rgba(5,20,40,.3));animation:bd-bob 1.5s ease-in-out infinite;transform-origin:50% 100%}
+.bd-av-in{margin-top:-40px;filter:drop-shadow(0 4px 4px rgba(5,20,40,.3));animation:bd-bob 1.5s ease-in-out 3;transform-origin:50% 100%}
 .bd-av-in .hero{display:block}
 .bd-av::after{content:"";position:absolute;left:16%;right:16%;bottom:-4px;height:7px;border-radius:50%;background:rgba(5,20,40,.2);z-index:-1}
 .bd-av.walk .bd-av-in{animation:bd-walk .34s ease-in-out infinite}
@@ -183,7 +183,7 @@ a.bd-row:active{transform:translateY(2px)}
 @keyframes bd-walk{0%,100%{transform:translateY(0) rotate(-7deg)}50%{transform:translateY(-9px) rotate(7deg)}}
 .bd-gift{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;background:rgba(0,0,0,.2);border-radius:999px;padding:6px 14px 6px 8px;font-weight:800;font-size:.95rem;width:max-content;max-width:100%}
 .bd-gb{font-size:1.35rem;line-height:1}
-.bd-gift.soon .bd-gb{animation:bd-shake 1.2s ease-in-out infinite}
+.bd-gift.soon .bd-gb{animation:bd-shake 1.2s ease-in-out 3}
 .bd-gdots{display:inline-flex;gap:5px}
 .bd-gdots i{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.35)}
 .bd-gdots i.on{background:#FFCC00;box-shadow:0 0 0 2px rgba(0,0,0,.12)}

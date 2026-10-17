@@ -530,7 +530,7 @@ const CSS = `
 .sv-rem .sv-row{margin:0;align-items:center}
 .sv-rem .btn.lc{min-height:46px;display:inline-flex;align-items:center;text-decoration:none}
 .sv-later{min-height:44px;background:none;border:0;color:var(--muted);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer;padding:0 10px}
-.sv-chip{flex:none;min-height:44px;min-width:44px;padding:0 14px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:#1a7f9e;color:#fff;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;animation:svpulse 2.4s ease-in-out infinite;-webkit-tap-highlight-color:transparent}
+.sv-chip{flex:none;min-height:44px;min-width:44px;padding:0 14px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:#1a7f9e;color:#fff;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;animation:svpulse 2.4s ease-in-out 3;-webkit-tap-highlight-color:transparent}
 .sv-chip span{margin-left:6px}
 .sv-chip:disabled{opacity:.7;animation:none}
 .hnav .sv-chip{margin-left:auto}.hnav .sv-chip+.coin{margin-left:0}
@@ -541,7 +541,7 @@ const CSS = `
   @keyframes svpulse{0%,100%{box-shadow:0 3px 10px rgba(5,20,40,.35),0 0 0 0 rgba(90,200,230,.55)}50%{box-shadow:0 3px 10px rgba(5,20,40,.35),0 0 0 7px rgba(90,200,230,0)}}}
 .sv-nav{position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;margin-left:auto}
 .hnav .sv-nav+.coin{margin-left:0}
-.sv-nb{min-height:44px;padding:0 14px 0 10px;border-radius:999px;border:2px solid rgba(255,255,255,.6);background:#fff;color:#0b2545;font:inherit;font-weight:700;font-size:.98rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;animation:svpulse 2.4s ease-in-out infinite}
+.sv-nb{min-height:44px;padding:0 14px 0 10px;border-radius:999px;border:2px solid rgba(255,255,255,.6);background:#fff;color:#0b2545;font:inherit;font-weight:700;font-size:.98rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;animation:svpulse 2.4s ease-in-out 3}
 .sv-nb svg{width:20px;height:20px;flex:none}
 .sv-nb:disabled{opacity:.7;animation:none}
 .sv-inf{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:#1f5fbf;color:#fff;font:700 1.15rem/1 Georgia,serif;font-style:italic;cursor:pointer;flex:none}
@@ -555,7 +555,7 @@ const CSS = `
 @media (max-width:420px){.sv-rem{flex-direction:column;gap:6px}.sv-b{flex-basis:100%}}
 `;
 function css(){ if(document.getElementById("css-sync")) return; const s = document.createElement("style"); s.id = "css-sync"; s.textContent = CSS; document.head.appendChild(s); }
-const G = `<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
+const G = `<svg viewBox="0 0 48 48" aria-hidden="true" data-brand="google"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
 
 /* ---------- bloque «☁️ Guardar la partida en Google» (Para mayores) ---------- */
 const $s = id => document.getElementById(id);
