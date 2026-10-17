@@ -12,6 +12,10 @@
 (function(){var t=null;try{t=JSON.parse(localStorage.getItem("theme"))}catch(e){}
 if(t!=="light"&&t!=="dark")t=null;
 document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light");})();
+/* Ajustes › Accesibilidad ("vocab:ui", solo de este aparato; js/settings.js): se ponen antes de pintar */
+(function(){var u=null;try{u=JSON.parse(localStorage.getItem("vocab:ui"))}catch(e){}
+if(!u||typeof u!=="object")return;var d=document.documentElement.dataset;
+if(u.glass==="off")d.glass="off";if(u.motion==="calm")d.motion="calm";if(u.contrast==="more")d.contrast="more";if(u.text==="large")d.text="large";})();
 </script>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
@@ -99,6 +103,8 @@ document.documentElement.dataset.theme=t||(matchMedia("(prefers-color-scheme: da
 @supports (-webkit-touch-callout:none) and (font:-apple-system-body){html{font:-apple-system-body}:root{--k:.9412}}
 html[data-text=large]{--k:1.18}
 @supports (-webkit-touch-callout:none) and (font:-apple-system-body){html[data-text=large]{--k:1.11}}
+/* fuera de iOS, «Texto más grande» sube la base (118 %): crecen los --fs-* y también las pantallas que aún usan rem sueltos */
+@supports not ((-webkit-touch-callout:none) and (font:-apple-system-body)){html[data-text=large]{font-size:118%;--k:1}}
 @media (min-width:744px){:root{--gutter:24px}}
 /* más contraste (sistema o Ajustes): texto secundario y separadores más fuertes */
 @media (prefers-contrast:more){
@@ -343,7 +349,7 @@ html[data-focus]{scroll-padding-top:calc(var(--bar-top) + var(--tap) + 8px);scro
 :root[data-focus] .ls-top .x,:root[data-focus] .gm-x,:root[data-focus] .back[href="#/repaso"],:root[data-focus] .gm .back[href="#/juegos"]{display:none!important}
 /* la cápsula de avisos sale debajo de las barras de arriba */
 html #m-toasts{inset:calc(var(--bar-top) + var(--tap) + 8px) 0 auto 0}
-/* hoja de Ajustes provisional (dialog#cfg con M.openSheet; la definitiva la pone window.openSettings de otro módulo) */
+/* filas agrupadas de las hojas: Ajustes (js/settings.js, dialog#ajustes) y la hoja de voz (dialog#cfg, openCfg) */
 #cfg.m-sheet{max-width:600px}
 .st-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px}
 dialog .st-top h2{margin:0}
@@ -889,6 +895,16 @@ details.adult[open] summary{margin-bottom:10px}
 <symbol id="i-target-fill" viewBox="0 0 256 256"><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32L167.6,99.71h0l-37.71,37.71-23.95,23.95a40,40,0,0,0,62-35.67,8,8,0,1,1,16-.9,56,56,0,0,1-95.5,42.79h0a56,56,0,0,1,73.13-84.43L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"/></symbol>
 <symbol id="i-graduation-cap-fill" viewBox="0 0 256 256"><path d="M176,207.24a119,119,0,0,0,16-7.73V240a8,8,0,0,1-16,0Zm11.76-88.43-56-29.87a8,8,0,0,0-7.52,14.12L171,128l17-9.06Zm64-29.87-120-64a8,8,0,0,0-7.52,0l-120,64a8,8,0,0,0,0,14.12L32,117.87v48.42a15.91,15.91,0,0,0,4.06,10.65C49.16,191.53,78.51,216,128,216a130,130,0,0,0,48-8.76V130.67L171,128l-43,22.93L43.83,106l0,0L25,96,128,41.07,231,96l-18.78,10-.06,0L188,118.94a8,8,0,0,1,4,6.93v73.64a115.63,115.63,0,0,0,27.94-22.57A15.91,15.91,0,0,0,224,166.29V117.87l27.76-14.81a8,8,0,0,0,0-14.12Z"/></symbol>
 <symbol id="i-graduation-cap-bold" viewBox="0 0 256 256"><path d="M249.8,85.49l-116-64a12,12,0,0,0-11.6,0l-116,64a12,12,0,0,0,0,21l21.8,12v47.76a19.89,19.89,0,0,0,5.09,13.32C46.63,194.7,77,220,128,220a136.88,136.88,0,0,0,40-5.75V240a12,12,0,0,0,24,0V204.12a119.53,119.53,0,0,0,30.91-24.51A19.89,19.89,0,0,0,228,166.29V118.53l21.8-12a12,12,0,0,0,0-21ZM128,45.71,219.16,96,186,114.3a1.88,1.88,0,0,1-.18-.12l-52-28.69a12,12,0,0,0-11.6,21l39,21.49L128,146.3,36.84,96ZM128,196c-40.42,0-64.65-19.07-76-31.27v-33l70.2,38.74a12,12,0,0,0,11.6,0L168,151.64v37.23A110.46,110.46,0,0,1,128,196Zm76-31.27a93.21,93.21,0,0,1-12,10.81V138.39l12-6.62Z"/></symbol>
+<symbol id="i-person-arms-spread-bold" viewBox="0 0 256 256"><path d="M235.4,86.85A23.55,23.55,0,0,0,212,68H150.59a36,36,0,1,0-45.18,0H44A24,24,0,0,0,34,113.79l.19.09,47.63,21L61.76,211a24,24,0,0,0,12.11,30.74A23.77,23.77,0,0,0,84,244a24,24,0,0,0,21.52-13.29L128,191.91l22.51,38.8A24,24,0,0,0,194.24,211l-20-76.15,47.63-21,.19-.09A23.55,23.55,0,0,0,235.4,86.85ZM128,28a12,12,0,1,1-12,12A12,12,0,0,1,128,28Zm27.16,89a12,12,0,0,0-6.77,14L171.26,218a11.87,11.87,0,0,0,.73,2c-.15-.32-.32-.64-.5-.95L138.38,162a12,12,0,0,0-20.76,0L84.51,219.05c-.18.31-.35.63-.5.95a11.87,11.87,0,0,0,.73-2l22.87-86.92a12,12,0,0,0-6.77-14L44,92H212Z"/></symbol>
+<symbol id="i-text-aa-bold" viewBox="0 0 256 256"><path d="M90.86,50.89a12,12,0,0,0-21.72,0l-64,136a12,12,0,0,0,21.71,10.22L42.44,164h75.12l15.58,33.11a12,12,0,0,0,21.72-10.22ZM53.74,140,80,84.18,106.27,140ZM200,84c-13.85,0-24.77,3.86-32.45,11.48a12,12,0,1,0,16.9,17c3-3,8.26-4.52,15.55-4.52,11,0,20,7.18,20,16v4.39A47.28,47.28,0,0,0,200,124c-24.26,0-44,17.94-44,40s19.74,40,44,40a47.18,47.18,0,0,0,22-5.38A12,12,0,0,0,244,192V124C244,101.94,224.26,84,200,84Zm0,96c-11,0-20-7.18-20-16s9-16,20-16,20,7.18,20,16S211,180,200,180Z"/></symbol>
+<symbol id="i-device-mobile-bold" viewBox="0 0 256 256"><path d="M176,12H80A28,28,0,0,0,52,40V216a28,28,0,0,0,28,28h96a28,28,0,0,0,28-28V40A28,28,0,0,0,176,12ZM76,76H180V180H76Zm4-40h96a4,4,0,0,1,4,4V52H76V40A4,4,0,0,1,80,36Zm96,184H80a4,4,0,0,1-4-4V204H180v12A4,4,0,0,1,176,220Z"/></symbol>
+<symbol id="i-arrows-clockwise-bold" viewBox="0 0 256 256"><path d="M228,48V96a12,12,0,0,1-12,12H168a12,12,0,0,1,0-24h19l-7.8-7.8a75.55,75.55,0,0,0-53.32-22.26h-.43A75.49,75.49,0,0,0,72.39,75.57,12,12,0,1,1,55.61,58.41a99.38,99.38,0,0,1,69.87-28.47H126A99.42,99.42,0,0,1,196.2,59.23L204,67V48a12,12,0,0,1,24,0ZM183.61,180.43a75.49,75.49,0,0,1-53.09,21.63h-.43A75.55,75.55,0,0,1,76.77,179.8L69,172H88a12,12,0,0,0,0-24H40a12,12,0,0,0-12,12v48a12,12,0,0,0,24,0V189l7.8,7.8A99.42,99.42,0,0,0,130,226.06h.56a99.38,99.38,0,0,0,69.87-28.47,12,12,0,0,0-16.78-17.16Z"/></symbol>
+<symbol id="i-sign-in-bold" viewBox="0 0 256 256"><path d="M144.49,136.49l-40,40a12,12,0,0,1-17-17L107,140H24a12,12,0,0,1,0-24h83L87.51,96.49a12,12,0,0,1,17-17l40,40A12,12,0,0,1,144.49,136.49ZM200,28H136a12,12,0,0,0,0,24h52V204H136a12,12,0,0,0,0,24h64a12,12,0,0,0,12-12V40A12,12,0,0,0,200,28Z"/></symbol>
+<symbol id="i-sign-out-bold" viewBox="0 0 256 256"><path d="M124,216a12,12,0,0,1-12,12H48a12,12,0,0,1-12-12V40A12,12,0,0,1,48,28h64a12,12,0,0,1,0,24H60V204h52A12,12,0,0,1,124,216Zm108.49-96.49-40-40a12,12,0,0,0-17,17L195,116H112a12,12,0,0,0,0,24h83l-19.52,19.51a12,12,0,0,0,17,17l40-40A12,12,0,0,0,232.49,119.51Z"/></symbol>
+<symbol id="i-cloud-check-bold" viewBox="0 0 256 256"><path d="M160,36A92.09,92.09,0,0,0,79,84.36,68,68,0,1,0,72,220h88a92,92,0,0,0,0-184Zm0,160H72a44,44,0,0,1-1.82-88A91.86,91.86,0,0,0,68,128a12,12,0,0,0,24,0,68,68,0,1,1,68,68Zm40.49-92.49a12,12,0,0,1,0,17l-48,48a12,12,0,0,1-17,0l-24-24a12,12,0,1,1,17-17L144,143l39.51-39.52A12,12,0,0,1,200.49,103.51Z"/></symbol>
+<symbol id="i-cloud-slash-bold" viewBox="0 0 256 256"><path d="M56.88,31.93A12,12,0,1,0,39.12,48.07L71.79,84A68,68,0,0,0,72,220h88a91.26,91.26,0,0,0,30.66-5.24l8.46,9.31a12,12,0,0,0,17.76-16.14ZM160,196H72a44,44,0,0,1-1.8-87.95A91.91,91.91,0,0,0,68,128a12,12,0,0,0,24,0,68.22,68.22,0,0,1,2.66-18.84l77.88,85.67A68.67,68.67,0,0,1,160,196Zm92-68a91.32,91.32,0,0,1-17.53,54,12,12,0,1,1-19.41-14.11,68,68,0,0,0-89.57-98.53,12,12,0,0,1-12.2-20.66A92,92,0,0,1,252,128Z"/></symbol>
+<symbol id="i-wifi-slash-bold" viewBox="0 0 256 256"><path d="M216.88,207.93a12,12,0,1,1-17.76,16.14L147.78,167.6a56.06,56.06,0,0,0-52.71,7.1,12,12,0,0,1-14.14-19.4,79.35,79.35,0,0,1,41.92-15.12L103.51,118.9a104.18,104.18,0,0,0-40.06,19.55,12,12,0,0,1-14.9-18.81A128.46,128.46,0,0,1,85.61,99.21l-17.31-19a151.14,151.14,0,0,0-36.68,22.28A12,12,0,1,1,16.39,83.91a175.52,175.52,0,0,1,35-22.38L39.12,48.07A12,12,0,1,1,56.88,31.93ZM128,188a16,16,0,1,0,16,16A16,16,0,0,0,128,188Zm64.55-49.55a12,12,0,0,0,14.9-18.81A127.27,127.27,0,0,0,170,99.05a12,12,0,0,0-7.87,22.67A103.62,103.62,0,0,1,192.55,138.45Zm47.06-54.54A176.33,176.33,0,0,0,128,44c-3.94,0-7.93.13-11.86.39a12,12,0,1,0,1.59,24c3.4-.23,6.86-.34,10.27-.34a152.24,152.24,0,0,1,96.38,34.46,12,12,0,1,0,15.23-18.55Z"/></symbol>
+<symbol id="i-warning-circle-bold" viewBox="0 0 256 256"><path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Zm-12-80V80a12,12,0,0,1,24,0v52a12,12,0,0,1-24,0Zm28,40a16,16,0,1,1-16-16A16,16,0,0,1,144,172Z"/></symbol>
 </svg>
 <header class="topbar" id="topbar">
   <button type="button" class="tb-flag glass" id="lang-b" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-m" aria-label="Idioma"></button>
@@ -1048,13 +1064,12 @@ const sayBtn = (t, sm) => t ? `<span class="sayg"><button class="say${sm?" sm":"
 const SLOW = () => Math.max(0.35, rate * 0.55);
 
 
-/* ---------- Ajustes (hoja provisional) ----------
-   window.openSettings(after, from) abre los Ajustes. El engranaje de la barra superior la busca en el momento del toque,
-   así que un módulo puede poner la hoja definitiva con window.openSettings = (after, from) => {…} y todo lo que abre
-   Ajustes (el engranaje y «⚙️ Voz» de las fichas) pasa a abrir la suya. after() se llama al cerrarla (p. ej. para pintar
-   la velocidad nueva); from es el botón que la abrió (la hoja sale desde él). Esta provisional (dialog#cfg, con
-   M.openSheet) tiene lo que estaba en la cabecera: sonidos, voz y velocidad, apariencia, instalar, descargar todo, el
-   enlace a Google (sync.js lo pone en [data-sync-cfg]) y los créditos (creditsHtml()). */
+/* ---------- Ajustes ----------
+   La hoja de Ajustes es de js/settings.js (window.openSettings(section, {from, after})); el engranaje la busca en el
+   momento del toque. Aquí quedan lo que usa: la hoja de voz openCfg(after, from, host) (voz del idioma, velocidad y
+   «Probar la voz»; sin host abre su propia hoja dialog#cfg con M.openSheet, la de «⚙️ Voz» de las fichas, y llama a
+   after() al cerrarla; con host la pinta dentro de ese elemento, que es Ajustes › Voz y velocidad), los créditos
+   (creditsHtml()) y la fila de instalar la app (installRow()). Si js/settings.js no carga, el engranaje abre la de voz. */
 const SAMPLE = {english:"Hello! This is how I sound.", "français":"Bonjour ! Voici ma voix.", dansk:"Hej! Sådan lyder min stemme."};
 /* créditos y privacidad (antes en el pie de página) */
 function creditsHtml(){
@@ -1068,14 +1083,13 @@ function installRow(){
   const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   return `<div class="st-r">${ic(0)}<span class="st-l">Instalar la app<small>${ios ? "En Safari: Compartir › «Añadir a pantalla de inicio»." : "En Chrome o Edge: menú ⋮ › «Instalar aplicación»."}</small></span></div>`;
 }
-function openCfg(after, from){
-  const d = $("#cfg"), code = LANGS[lang].code, base = code.slice(0,2);
+function openCfg(after, from, host){
+  const d = $("#cfg"), root = host || d, code = LANGS[lang].code, base = code.slice(0,2);
   const vs = voices.filter(v => v.lang.replace("_","-").toLowerCase().startsWith(base));
   const cur = (voiceFor(code)||{}).name;
-  d.innerHTML = `<div class="st-top"><h2 class="t-2" id="cfg-tt">Ajustes</h2><button type="button" class="glass-btn glass-btn--sm glass-btn--pri" id="cfg-x">Listo</button></div>
-    <section class="st-sec" aria-labelledby="cfg-h1"><h3 class="st-h" id="cfg-h1">Sonido y voz</h3><div class="st-g">
-      <label class="st-r" for="cfg-snd"><span class="st-ic">${ico("speaker-high", "bold", 18)}</span><span class="st-l">Sonidos</span>
-        <input type="checkbox" role="switch" class="st-sw" id="cfg-snd" ${sfx.muted ? "" : "checked"}></label>
+  if(host && !d.open) d.innerHTML = "";      /* así sus ids no se repiten */
+  root.innerHTML = `${host ? "" : `<div class="st-top"><h2 class="t-2" id="cfg-tt">Voz y velocidad</h2><button type="button" class="glass-btn glass-btn--sm glass-btn--pri" id="cfg-x">Listo</button></div>`}
+    <section class="st-sec" aria-label="Voz y velocidad"><div class="st-g">
       <div class="st-r col"><label for="cfg-v">Voz para el ${LANGS[lang].name}</label>
         ${vs.length ? `<select id="cfg-v">${vs.map(v=>`<option value="${esc(v.name)}" ${v.name===cur?"selected":""}>${esc(v.name)} (${esc(v.lang)})</option>`).join("")}</select>`
           : `<div class="note" style="margin:0">Este dispositivo no tiene voces en ${LANGS[lang].name}. En Windows: Configuración › Hora e idioma › Voz › Agregar voces. En el móvil: ajustes de texto a voz.</div>`}</div>
@@ -1083,36 +1097,20 @@ function openCfg(after, from){
         <input type="range" id="cfg-r" min="0.5" max="1.3" step="0.05" value="${rate}">
         <div class="dlbl"><span>🐢 Más lenta</span><span>Más rápida 🐇</span></div></div>
       <button type="button" class="st-r st-btn" id="cfg-t"><span class="st-ic tl">${ico("play", "bold", 18)}</span><span class="st-l">Probar la voz</span></button>
-    </div></section>
-    <section class="st-sec" aria-labelledby="cfg-thl"><h3 class="st-h" id="cfg-thl">Apariencia</h3>
-      <div class="seg" id="cfg-th" role="radiogroup" aria-labelledby="cfg-thl">${[["auto","Automático"],["light","Claro"],["dark","Oscuro"]].map(([k,t]) =>
-        `<button type="button" class="seg-i" role="radio" data-th="${k}" aria-checked="${themeMode()===k}" tabindex="${themeMode()===k?0:-1}">${t}</button>`).join("")}</div></section>
-    <section class="st-sec" aria-labelledby="cfg-h3"><h3 class="st-h" id="cfg-h3">Para mayores</h3><div class="st-g">
-      ${installRow()}
-      <div class="st-r col" id="cfg-off"></div>
-      <div class="st-r col" data-sync-cfg></div></div></section>
-    <section class="st-sec" aria-labelledby="cfg-h4"><h3 class="st-h" id="cfg-h4">Créditos</h3><div class="st-g"><p class="st-cred">${creditsHtml()}</p></div></section>`;
-  const rv = () => $("#cfg-rv").textContent = `${(+rate).toFixed(2).replace(/0$/,"")}×` + (rate<0.75?" (lenta)":rate<=1?" (normal)":" (rápida)");
+    </div></section>`;
+  const q = s => root.querySelector(s);
+  const rv = () => q("#cfg-rv").textContent = `${(+rate).toFixed(2).replace(/0$/,"")}×` + (rate<0.75?" (lenta)":rate<=1?" (normal)":" (rápida)");
   rv();
-  $("#cfg-snd").onchange = e => { if(sfx.muted === e.target.checked) sfx.toggle(); };
-  $("#cfg-r").oninput = e => { rate = +e.target.value; store.set("rate", rate); rv(); };
-  if($("#cfg-v")) $("#cfg-v").onchange = e => store.set("voice:"+lang, e.target.value);
-  $("#cfg-t").onclick = () => say(SAMPLE[lang]);
-  const th = [...d.querySelectorAll("[data-th]")];
-  th.forEach(b => b.onclick = () => { setTheme(b.dataset.th); paintTheme(); });
-  $("#cfg-th").onkeydown = e => {
-    const i = th.indexOf(document.activeElement), k = {ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1}[e.key];
-    if(i < 0 || !k) return;
-    e.preventDefault(); const b = th[(i + k + th.length) % th.length]; b.focus(); b.click();
-  };
-  const ib = $("#cfg-inst");
-  if(ib) ib.onclick = async () => { if(!installEv) return; const ev = installEv; installEv = null; ev.prompt(); try{ await ev.userChoice; }catch(e){} ib.outerHTML = installRow(); };
-  offlinePanel($("#cfg-off"));
-  $("#cfg-x").onclick = () => { if(window.M) M.closeSheet(d); else d.close(); };
+  q("#cfg-r").oninput = e => { rate = +e.target.value; store.set("rate", rate); rv(); };
+  if(q("#cfg-v")) q("#cfg-v").onchange = e => store.set("voice:"+lang, e.target.value);
+  q("#cfg-t").onclick = () => say(SAMPLE[lang]);
+  if(host) return;
+  q("#cfg-x").onclick = () => { if(window.M) M.closeSheet(d); else d.close(); };
   d.onclose = () => { voiceNote(); if(after) after(); };
   if(window.M) M.openSheet(d, {from}); else d.showModal();
 }
-window.openSettings = (after, from) => openCfg(after, from);
+/* hasta que js/settings.js ponga la hoja de Ajustes (o si no cargara), el engranaje abre la de voz */
+window.openSettings = (after, from) => openCfg(typeof after === "function" ? after : null, from && from.nodeType === 1 ? from : null);
 
 /* ---------- repaso espaciado, actividad y progreso ---------- */
 const today = () => { const d = new Date(); return Math.floor((d - d.getTimezoneOffset()*60000) / 864e5); };
@@ -1271,7 +1269,7 @@ async function progreso(el){
 const OFF_SHELL = "vocab-shell-v15", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/buddy.js", "js/album.js",
-  "js/save.js", "js/sync.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
+  "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
@@ -1320,7 +1318,7 @@ async function offState(l){
 function offlinePanel(el){
   if(!el) return;
   el.innerHTML = `<div class="off-dl">
-    <div class="pr-row"><button class="btn pri" id="off-dl" type="button">⬇️ Descargar todo para usar sin internet</button>
+    <div class="pr-row"><button class="btn pri" id="off-dl" type="button">${ico("download-simple", "bold", 20)} Descargar todo para usar sin internet</button>
       <button class="btn" id="off-x" type="button" hidden>Cancelar</button></div>
     <div class="off-bar" id="off-bar" role="progressbar" aria-label="Descarga" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><i></i></div>
     <div class="count" id="off-msg" aria-live="polite"></div></div>`;
@@ -1455,7 +1453,7 @@ function setTheme(mode){
 }
 /* Ajustes › Apariencia (si está abierta) marca lo elegido */
 function paintTheme(){
-  document.querySelectorAll("#cfg-th [data-th]").forEach(x => { const on = x.dataset.th === themeMode(); x.setAttribute("aria-checked", on); x.tabIndex = on ? 0 : -1; });
+  document.querySelectorAll("[data-th]").forEach(x => { const on = x.dataset.th === themeMode(); x.setAttribute("aria-checked", on); x.tabIndex = on ? 0 : -1; });
 }
 darkMQ.addEventListener("change", () => { if(themeMode() === "auto") applyTheme(); });
 addEventListener("storage", e => { if(e.key === "theme" || e.key === null) applyTheme(); });
@@ -1750,7 +1748,7 @@ async function docView(id){
     $("#rate").textContent = `⚙️ Voz · ${rate.toFixed(2).replace(/0$/,"")}×`;
   };
   $("#modes").onclick = e => { const b=e.target.closest("[data-m]"); if(!b) return; autoTok++; state.fc.auto=false; state.mode=b.dataset.m; sync(); draw(doc); };
-  $("#rate").onclick = e => window.openSettings(sync, e.currentTarget);
+  $("#rate").onclick = e => openCfg(sync, e.currentTarget);
   $("#to-srs").onclick = () => { const n = srsAdd(doc.id, entries(doc), 0); toast(n ? `➕ ${n} palabra${n>1?"s":""} añadida${n>1?"s":""} al repaso` : "Ya estaban todas en el repaso"); };
   document.querySelectorAll("[data-l]").forEach(b => b.onclick = () => { state.lvl=b.dataset.l; state.fc={i:0,flip:false,order:null,rev:state.fc.rev}; state.test=null; sync(); draw(doc); });
   sync(); draw(doc);
@@ -2911,5 +2909,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/album.js"></script>
 <script src="js/save.js"></script>
 <script src="js/sync.js"></script>
+<script src="js/gate.js"></script>
+<script src="js/settings.js"></script>
 </body>
 </html>
