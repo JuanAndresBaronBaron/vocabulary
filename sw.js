@@ -1,10 +1,14 @@
 /* App sin internet.
-   · vocab-shell-vN: la app (páginas, js, datos pequeños, iconos). Cada versión nueva borra las anteriores.
-   · vocab-media: imágenes y audios (y lo que guarda «Descargar todo»). Se conserva de una versión a otra.
+   · vocab-shell-vN: la app (las entradas de SHELL: páginas, js, iconos y los datos pequeños). Cada versión nueva borra las
+     anteriores.
+   · vocab-media: imágenes, audios y los demás datos (temas, gramática, mapas de audio: data/… y audio/….json), con lo que
+     guarda «Descargar todo». Se conserva de una versión a otra: lo que el niño ya abrió con red sigue ahí sin conexión
+     aunque la app se actualice.
    La página y los datos van primero a la red (siempre la última versión) y, sin conexión, salen del shell actual,
    luego de vocab-media y por último de cualquier otra caché. Las imágenes y los mp3 salen de vocab-media y, si no
    están, de la red (y se guardan). Las cachés viejas (vocab-v1 de «Descargar todo», vocab-vNN del sw anterior) pasan
-   sus imágenes, audios y datos a vocab-media y después se borran. */
+   sus imágenes, audios y datos a vocab-media entrada a entrada y después se borran; si no cabe, se borran igual (todo
+   se puede volver a bajar). */
 const VERSION = 14;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
@@ -15,22 +19,37 @@ const SHELL = [
   "js/save.js", "js/sync.js", "js/fab.js",
   "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png",
+  "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */
 const MEDIA_RE = /\.(png|jpe?g|gif|webp|svg|mp3|m4a|ogg|wav)$/i;
 const isMedia = url => MEDIA_RE.test(url.pathname) && !url.pathname.includes("/icons/");
 const OLD_RE = /^vocab-v\d+$/;                              /* cachés de antes de vocab-shell */
 const SHELL_RE = /^vocab-shell-v\d+$/;
-const KEEP_RE = /\/(data|audio)\/[^/]+\.json$/;             /* datos que también pasan de las cachés viejas */
+const KEEP_RE = /\/(data|audio)\/.+\.json$/;                /* datos que se guardan en vocab-media (y pasan de las viejas) */
+const SHELL_URLS = new Set(SHELL.map(u => new URL(u, location.href).href));
+const inShell = url => SHELL_URLS.has(url.origin + url.pathname);
+/* dónde se guarda una respuesta de la red: los datos que no son del shell, en vocab-media (no se borran al actualizar) */
+const cacheFor = url => !inShell(url) && KEEP_RE.test(url.pathname) ? MEDIA_CACHE : SHELL_CACHE;
+const msg = err => (err && (err.name === "QuotaExceededError" ? "no cabe (" + err.message + ")" : err.message)) || err;
 
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
-    const c = await caches.open(SHELL_CACHE), failed = [];
+    const c = await caches.open(SHELL_CACHE);
     /* uno a uno: si uno falla se avisa en la consola y los demás se guardan igual */
-    await Promise.all(SHELL.map(u => c.add(new Request(u, {cache: "reload"})).catch(err => {
-      failed.push(u);
-      console.warn("[sw] no se pudo guardar", u, (err && err.message) || err);
-    })));
+    const put = u => c.add(new Request(u, {cache: "reload"})).then(() => null, err => err || new Error("sin respuesta"));
+    let errs = await Promise.all(SHELL.map(put));
+    /* si no cabe, primero la app: se borran las cachés de antes de vocab-shell (sus dibujos se pueden volver a bajar) */
+    if(errs.some(err => err && err.name === "QuotaExceededError")){
+      const olds = (await caches.keys()).filter(n => OLD_RE.test(n));
+      if(olds.length){
+        console.warn("[sw] no cabe la app: se borran", olds.join(", "));
+        await Promise.all(olds.map(n => caches.delete(n).catch(() => {})));
+        errs = await Promise.all(SHELL.map((u, i) => errs[i] ? put(u) : null));
+      }
+    }
+    const failed = SHELL.filter((u, i) => errs[i]);
+    failed.forEach(u => console.warn("[sw] no se pudo guardar", u, msg(errs[SHELL.indexOf(u)])));
     const missing = REQUIRED.filter(u => failed.includes(u));
     if(missing.length) throw new Error("[sw] sin " + missing.join(", ") + ": se queda la versión anterior");
     await self.skipWaiting();
@@ -40,32 +59,43 @@ self.addEventListener("install", e => {
 self.addEventListener("activate", e => {
   e.waitUntil((async () => {
     const names = await caches.keys();
-    await Promise.all(names.filter(n => SHELL_RE.test(n) && n !== SHELL_CACHE).map(n => caches.delete(n)));
+    for(const n of names.filter(n => SHELL_RE.test(n) && n !== SHELL_CACHE)){
+      /* de un shell viejo solo se salvan los datos que no son del shell (los de antes de que fueran a vocab-media) */
+      await moveTo(n, MEDIA_CACHE, url => !inShell(url) && KEEP_RE.test(url.pathname));
+    }
     await self.clients.claim();
   })());
-  /* el paso de las cachés viejas no bloquea la activación; si se corta, se repite al volver a arrancar */
+  /* el paso de las cachés viejas no bloquea la activación; si se corta, se repite al volver a arrancar el sw */
   migrateOld();
 });
 
+/* pasa a la caché dest las entradas de la caché name que cumplen keep (las que ya están en dest no se tocan) y borra
+   name. Va entrada a entrada y borra cada una al pasarla, así libera sitio mientras copia. Si no cabe, borra name igual. */
+async function moveTo(name, dest, keep){
+  try{
+    const old = await caches.open(name), to = await caches.open(dest);
+    for(const req of await old.keys()){
+      const url = new URL(req.url);
+      if(url.origin === location.origin && keep(url) && !(await to.match(req))){
+        const res = await old.match(req);
+        if(res && res.status === 200 && res.type !== "opaque") await to.put(req, res);
+      }
+      await old.delete(req);
+    }
+  }catch(err){
+    console.warn("[sw] no se pudo pasar", name, "a", dest + ":", msg(err), "· se borra igual");
+  }
+  await caches.delete(name).catch(() => {});
+}
+
+/* una vez por arranque del sw (aunque falle: no se reintenta en cada petición) */
 let migrating = null;
 function migrateOld(){
   if(migrating) return migrating;
   migrating = (async () => {
     const olds = (await caches.keys()).filter(n => OLD_RE.test(n));
-    if(!olds.length) return;
-    const media = await caches.open(MEDIA_CACHE);
-    for(const name of olds){
-      const old = await caches.open(name);
-      for(const req of await old.keys()){
-        const url = new URL(req.url);
-        if(url.origin !== location.origin || !(isMedia(url) || KEEP_RE.test(url.pathname))) continue;
-        if(await media.match(req)) continue;
-        const res = await old.match(req);
-        if(res && res.status === 200 && res.type !== "opaque") await media.put(req, res);
-      }
-      await caches.delete(name);                             /* solo cuando ya está todo copiado */
-    }
-  })().catch(err => { console.warn("[sw] no se pudo pasar la caché vieja", (err && err.message) || err); migrating = null; });
+    for(const name of olds) await moveTo(name, MEDIA_CACHE, url => isMedia(url) || KEEP_RE.test(url.pathname));
+  })().catch(err => console.warn("[sw] no se pudo pasar la caché vieja", msg(err)));
   return migrating;
 }
 
@@ -114,13 +144,14 @@ async function rangeOf(req, res){
     "Content-Range": `bytes ${a}-${b}/${size}`, "Content-Length": String(b - a + 1), "Accept-Ranges": "bytes"}});
 }
 
-/* lo demás: primero la red (y se guarda en el shell actual); sin red, de las cachés */
+/* lo demás: primero la red (y se guarda: el shell en el shell actual, los datos en vocab-media); sin red, de las cachés */
 async function networkFirst(req, e){
   try{
     const res = await fetch(req);
     if(res.status === 200 && res.type === "basic" && !res.redirected){
-      const copy = res.clone();
-      e.waitUntil(caches.open(SHELL_CACHE).then(c => c.put(req, copy)).catch(() => {}));
+      const copy = res.clone(), url = new URL(req.url);
+      e.waitUntil(caches.open(cacheFor(url)).then(c => c.put(url.origin + url.pathname, copy))
+        .catch(err => console.warn("[sw] no cabe", url.pathname, msg(err))));
     }
     return res;
   }catch(err){

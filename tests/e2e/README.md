@@ -23,16 +23,26 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   enlaces directos); la partida sembrada no cambia al arrancar ni al recargar, es igual a la de la versión anterior
   y la exportación de antes se carga entera.
 - `test_f1.py` (cimientos): contraste ≥ 4,5:1 de los textos de cada ruta, ningún color prohibido (tono 260-340° o
-  naranja), sin `backdrop-filter` con `html[data-glass=off]`, todas las entradas de `SHELL` de `sw.js` con 200, sin
-  conexión con una caché vieja `vocab-v1` se sirve la versión nueva, tema automático, `listen()` que nunca se cuelga,
-  «Descargar todo» con los mp3 del idioma, sin bucles infinitos de atención, `M.rm()` en todos los módulos y la lluvia
-  de palabras que reacciona al soltar el dedo (sonido y `G.haptic` solo al acertar).
+  naranja), sin `backdrop-filter` con `html[data-glass=off]` (también el `::backdrop` de la tarjeta de pegatina), todas
+  las entradas de `SHELL` de `sw.js` con 200, sin conexión con una caché vieja `vocab-v1` se sirve la versión nueva y lo
+  abierto con red sigue tras una versión nueva (sin red de verdad: el servidor parado, con control negativo), tema
+  automático, `listen()` que nunca se cuelga, «Descargar todo» con los mp3 del idioma, sin bucles infinitos de atención,
+  `M.rm()` en todos los módulos, la lluvia de palabras que reacciona al soltar el dedo (sonido y `G.haptic` solo al
+  acertar), el vidrio ligero que cede a los modos de accesibilidad, el clic fantasma (solo el del navegador), los iconos
+  del sprite, fallar en gris y sin sonido, y títulos y cápsulas que caben con el texto más grande.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.
 - `shots.py`: capturas `<phone|desk>-<light|dark>-<ruta>.png` (móvil a página completa) y `--export` para guardar la
   exportación de la partida sembrada.
 - `baseline/export.json`: exportación de la partida sembrada en la versión anterior al rediseño (commit 1721796).
+
+## Sin conexión
+
+`context.set_offline(True)` no corta las peticiones que hace el service worker después de recargar: para probar sin red
+de verdad, crea un servidor propio y páralo (`srv = C.Server(C.ROOT, "localhost", handler=...)`,
+`C.new_context("phone", sw=True, server=srv)`, luego `srv.stop()`). `handler` puede ser una subclase de `C._Quiet` (por
+ejemplo, para servir `sw.js` con otra `VERSION`).
 
 ## Reloj y partida sembrada
 

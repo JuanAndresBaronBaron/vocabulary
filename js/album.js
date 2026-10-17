@@ -285,9 +285,10 @@ const CSS = `
 .al-pager .nx{margin-left:auto}
 /* tarjeta grande */
 .al-dlg{border:0;background:transparent;padding:16px 8px 14px;width:min(96vw,430px);max-width:none;max-height:100dvh;overflow:auto;box-shadow:none;color:var(--ink)}
-.al-dlg::backdrop{background:rgba(4,12,26,.68);backdrop-filter:blur(3px)}
+.al-dlg::backdrop{background:rgba(0,0,0,.6)}   /* solo oscurece, sin desenfoque (no es vidrio); el texto blanco de debajo de la tarjeta pasa 4,5:1 */
 .al-dw{position:relative}
-.al-x{position:absolute;right:2px;top:-6px;z-index:6;width:48px;height:48px;border-radius:50%;border:3px solid #fff;background:#0f2f57;color:#fff;font-size:1.25rem;font-weight:900;box-shadow:0 4px 10px rgba(0,0,0,.35)}
+.al-x{position:absolute;right:2px;top:-6px;z-index:6;display:grid;place-items:center;width:48px;height:48px;padding:0;border-radius:50%;border:0;background:var(--neu);color:var(--neu-ink);font-size:1.25rem;font-weight:700;box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 2px 8px rgba(0,0,0,.22)}
+.al-x:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 .al-card{perspective:1400px}
 .al-card.opening{animation:al-open .62s cubic-bezier(.2,.8,.25,1.1) both}
 @keyframes al-open{0%{transform:perspective(1000px) rotateY(-110deg) scale(.45);opacity:0}55%{opacity:1}75%{transform:perspective(1000px) rotateY(10deg) scale(1.02)}100%{transform:none}}
@@ -771,7 +772,7 @@ function drawCard(anim){
   const s = CARD.list[CARD.i], n = CARD.list.length;
   CARD.turned = false;
   DLG.innerHTML = `<div class="al-dw">
-    <button class="al-x" data-al="x" aria-label="Cerrar">✕</button>
+    <button class="al-x" data-al="x" aria-label="Cerrar">${typeof ico === "function" ? ico("x", "bold", 22) : "✕"}</button>
     <div class="al-card${s.gold ? " gold" : ""}${anim && !RM() ? " " + anim : ""}"><div class="al-flip" id="al-flip">${frontHtml(s)}${backHtml(s)}</div></div>
     <div class="al-dnav">
       <button class="al-nb" data-al="prev" aria-label="Pegatina anterior" ${CARD.i > 0 ? "" : "disabled"}>‹</button>
@@ -824,7 +825,7 @@ function openLocked(s){
   const first = ((es.match(/[\p{L}\p{N}]/u) || ["?"])[0]).toUpperCase();
   const d = dlg();
   d.innerHTML = `<div class="al-dw">
-    <button class="al-x" data-al="x" aria-label="Cerrar">✕</button>
+    <button class="al-x" data-al="x" aria-label="Cerrar">${typeof ico === "function" ? ico("x", "bold", 22) : "✕"}</button>
     <div class="al-card${RM() ? "" : " opening"}"><div class="al-cf al-front">
       <div class="al-cf-top"><span class="al-n2">Nº ${s.n}</span></div>
       <div class="al-cf-img lk">${r.img ? `<img src="${esc(r.img)}" alt="">` : ""}<span class="al-q">?</span></div>

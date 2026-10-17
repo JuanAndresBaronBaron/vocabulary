@@ -7,7 +7,8 @@
 //   palette:  colores calculados (color, background-color, border-color, fill, stroke y paradas de degradados) con tono
 //             260-340° y saturación > 25 % (índigo, morado, rosa) o naranjas (tono 15-45°, saturación > 60 %, luz 40-70 %).
 //             No mira los logotipos de otras marcas, que van con sus colores (dentro de [data-brand], p. ej. el de Google).
-//   backdrop: elementos (y sus ::before/::after) con backdrop-filter distinto de none.
+//   backdrop: elementos (y sus ::before/::after, y el ::backdrop de un diálogo modal o popover abierto) con backdrop-filter
+//             distinto de none.
 // Los colores se leen pintándolos en un lienzo de 1×1, así vale cualquier sintaxis (rgb, color(srgb…), oklch, color-mix…).
 (opts) => {
   opts = opts || {};
@@ -121,8 +122,8 @@
   // ---------- fondo efectivo ----------
   const bgOf = el => {
     const layers = [];                             // de arriba (el propio elemento) a abajo
-    for(let p = el; p; p = p.parentElement){
-      const cs = CS(p);
+    // un fondo (color y degradados); devuelve null si hay un dibujo, true si ya tapa del todo
+    const add = cs => {
       const bi = cs.backgroundImage;
       if(bi && bi !== "none"){
         if(/url\(/i.test(bi)) return null;           // hay un dibujo detrás: no se puede medir
@@ -130,7 +131,22 @@
         if(stops.length) layers.push(avg(stops));
       }
       const bc = parse(cs.backgroundColor);
-      if(bc && bc.a > 0){ layers.push(bc); if(bc.a >= .999) break; }
+      if(bc && bc.a > 0){ layers.push(bc); if(bc.a >= .999) return true; }
+      return false;
+    };
+    for(let p = el; p; ){
+      const r = add(CS(p));
+      if(r === null) return null;
+      if(r) break;
+      // un diálogo modal o un popover abierto está en la capa de arriba: debajo va su ::backdrop y luego la página
+      let top = false; try{ top = p.matches(":modal") || p.matches(":popover-open"); }catch(e){}
+      if(top){
+        const rb = add(getComputedStyle(p, "::backdrop"));
+        if(rb === null) return null;
+        if(rb) break;
+        p = document.body; continue;
+      }
+      p = p.parentElement;
     }
     let bg = {r: 255, g: 255, b: 255, a: 1};       // el lienzo del navegador
     for(let i = layers.length - 1; i >= 0; i--) bg = over(layers[i], bg);
@@ -143,11 +159,12 @@
     if(el.tagName === "SCRIPT" || el.tagName === "STYLE" || el.tagName === "TEMPLATE" || el.tagName === "OPTION") continue;
     const isSvg = el.namespaceURI === "http://www.w3.org/2000/svg";
 
-    // backdrop-filter (también lo oculto y los pseudoelementos)
+    // backdrop-filter (también lo oculto, los pseudoelementos y el ::backdrop de los diálogos modales y popovers abiertos)
     if(what.has("backdrop")){
-      for(const pe of [null, "::before", "::after"]){
+      const top = (() => { try{ return el.matches(":modal") || el.matches(":popover-open"); }catch(e){ return false; } })();
+      for(const pe of top ? [null, "::before", "::after", "::backdrop"] : [null, "::before", "::after"]){
         const cs = pe ? getComputedStyle(el, pe) : CS(el);
-        if(pe && (cs.content === "none" || cs.content === "normal")) continue;
+        if(pe && pe !== "::backdrop" && (cs.content === "none" || cs.content === "normal")) continue;
         const bf = cs.backdropFilter, wbf = cs.webkitBackdropFilter;
         if((bf && bf !== "none") || (wbf && wbf !== "none")) out.backdrop.push(`${path(el)}${pe || ""}: ${bf || wbf}`);
       }
