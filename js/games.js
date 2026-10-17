@@ -88,7 +88,7 @@ function pauseSheet(){
     <h2 class="gm-pz-t" id="gm-pz-t">¿Paramos aquí?</h2>
     <div class="gm-pz-b">
       <button type="button" class="glass-btn glass-btn--lg" id="gm-pz-out">Salir</button>
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="gm-pz-go" autofocus>${typeof ico === "function" ? ico("play", "fill", 20) : ""}Seguir</button></div></div>`;
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="gm-pz-go" autofocus>Seguir</button></div></div>`;
   document.body.appendChild(d);
   PZ = {d, run: null, exit: false};
   d.addEventListener("click", e => {

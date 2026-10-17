@@ -20,7 +20,7 @@ _TOP = """() => {
   const nav = document.getElementById('tabbar'), tb = document.getElementById('topbar'), R = e => e.getBoundingClientRect();
   const n = R(nav), f = R(document.getElementById('lang-b')), r = R(document.querySelector('.topbar .tb-right'));
   return {bar: document.documentElement.dataset.bar || '', inTop: nav.parentNode === tb,
-    order: [...tb.children].map(e => e.id || e.className.split(' ')[0]),
+    order: [...tb.children].filter(e => e.getClientRects().length).map(e => e.id || e.className.split(' ')[0]),   /* lo que se ve (#dv-back solo en #/doc) */
     n: [n.left, n.right, n.top, n.bottom], f: f.right, r: r.left, rr: r.right, vw: innerWidth, vh: innerHeight,
     cut: [...nav.querySelectorAll('.tab .tl')].filter(t => t.scrollWidth > t.clientWidth + .5).map(t => t.textContent),
     tabs: [...nav.querySelectorAll('.tab')].map(t => Math.round(t.getBoundingClientRect().height))};

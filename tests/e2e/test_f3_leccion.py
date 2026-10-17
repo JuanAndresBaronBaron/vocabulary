@@ -5,7 +5,7 @@ con ✓, sin temblor, sin vibración y sin sonido triste, y el botón dice «Seg
 es lo mismo que «Continuar». Lo hecho se guarda en sessionStorage 'vocab:ls' y se recupera al recargar; Atrás del
 navegador a mitad pregunta «¿Paramos aquí?» (guarda de salida de route()) y «Salir» lo deja para seguir luego con la
 cápsula «Seguir» (plan-doc §Lección); terminarla lo borra. El final: estrellas de una
-en una, monedas una sola vez, «Mañana repasas N palabras», confeti, «Siguiente lección» y «Repetir». El camino y el
+en una, monedas una sola vez, «Mañana repasas estas N palabras», confeti, «Siguiente lección» y «Repetir». El camino y el
 repaso se guardan igual que en la versión anterior (BASE_REV) para la misma secuencia de respuestas."""
 from __future__ import annotations
 
@@ -115,7 +115,7 @@ def _play(page, miss=(), auto=True, max_steps=80):
 def test_right_answers_advance_alone_and_lesson_ends_once():
     """Toda la lección bien: cada acierto pasa solo ≤ 1,2 s después de acabar el audio y nunca antes de 0,9 s (audio de
     0 y de 1 s), con ✓ verde, sonido «ok» y vibración de éxito. Racha: chip con la llama a los 3 seguidos. Al final, 3
-    estrellas de una en una (≈150 ms, notas que suben), «+25» y las monedas sumadas una sola vez, «Mañana repasas N
+    estrellas de una en una (≈150 ms, notas que suben), «+25» y las monedas sumadas una sola vez, «Mañana repasas estas N
     palabras» con la cuenta real, confeti una vez (solo aquí), «Siguiente lección» y «Repetir»; 'vocab:ls' borrado."""
     page = C.new_page("phone")
     probs = []
@@ -171,12 +171,14 @@ def test_right_answers_advance_alone_and_lesson_ends_once():
           repPri: document.getElementById('ls-rep').classList.contains('glass-btn--pri'), stars: document.querySelectorAll('.ls-star.got.on').length,
           fox: !!document.querySelector('.ls-fox .hero'), x: document.getElementById('fx-x').getAttribute('href'),
           old: /Volver al mapa|Acertaste a la primera/.test(document.getElementById('app').textContent),
-          due1: Object.values(srsAll()).filter(x => x && x.due === today() + 1).length, saved: sessionStorage.getItem('vocab:ls'),
+          due1: (vocabLesson.state.words || []).filter(w => { const x = srsAll()[srsK(w.doc, w.r)]; return x && x.due === today() + 1; }).length,
+          nw: (vocabLesson.state.words || []).length, saved: sessionStorage.getItem('vocab:ls'),
           coins: game().coins})""")
         if end["t"] != "¡Lección completada!" or end["plus"] != "+25" or end["stars"] != 3 or not end["fox"]:
             probs.append(f"final: {end}")
-        if end["tmr"] != f"Mañana repasas {end['due1']} palabras":
-            probs.append(f"«Mañana repasas…»: {end['tmr']!r} (vencen mañana {end['due1']})")
+        # solo las palabras de esta lección que vuelven mañana (no todo el repaso)
+        if end["due1"] != end["nw"] or end["tmr"] != f"Mañana repasas estas {end['nw']} palabras":
+            probs.append(f"«Mañana repasas…»: {end['tmr']!r} (de la lección vencen mañana {end['due1']} de {end['nw']})")
         if end["next"] != "Siguiente lección" or "glass-btn--pri" not in (end["nextCls"] or "") or end["rep"] != "Repetir" or end["repPri"]:
             probs.append(f"botones del final: {end}")
         if end["old"]:
@@ -672,9 +674,13 @@ def test_layout_phone_desk_light_dark():
                 # la transición entre tarjetas
                 page.locator("#ls-go").click()
                 page.wait_for_timeout(40)
+                # el empuje lateral de iOS: las dos tarjetas enteras, una junto a otra (la vieja sale a −100 % y la nueva
+                # entra desde +100 %), con el mismo muelle
                 an = page.evaluate("""() => { const p = document.querySelector('.ls-stage > .ls-page:not(.ls-ghost)'), a = p.getAnimations()[0];
-                  return a ? {d: a.effect.getTiming().duration, tf: a.effect.getKeyframes().some(k => k.transform && k.transform !== 'none')} : null; }""")
-                if not an or an["d"] != 220 or not an["tf"]:
+                  const g = document.querySelector('.ls-stage > .ls-page.ls-ghost'), b = g && g.getAnimations()[0], tx = k => String(k.transform || '');
+                  return a ? {d: a.effect.getTiming().duration, tf: a.effect.getKeyframes().some(k => k.transform && k.transform !== 'none'),
+                    from: tx(a.effect.getKeyframes()[0]), to: b ? tx(b.effect.getKeyframes().slice(-1)[0]) : null, same: !!b && b.effect.getTiming().duration === a.effect.getTiming().duration} : null; }""")
+                if not an or not 260 <= an["d"] <= 520 or not an["tf"] or "100%" not in an["from"] or "-100%" not in (an["to"] or "") or not an["same"]:
                     probs.append(f"{label}: transición {an}")
                 page.wait_for_timeout(300)
                 if kind == "phone" and scheme == "light":
