@@ -9,7 +9,10 @@
    - La primera vez en un aparato con progreso y una partida en Google, el mayor elige cuál seguir.
    - El permiso dura ~1 hora: se pide otra vez sin ventanas (prompt:""); si el navegador no deja, se avisa con un botón
      «Volver a conectar» y no se abre nada solo.
-   - Interfaz: «Para mayores» de la página de premios, enlace en ⚙️ y aviso en la portada si no está conectado.
+   - Interfaz: el bloque va en Ajustes › Para mayores (js/settings.js avisa por el bus «settings»; se llega tras la
+     Puerta de mayores), el estado en la fila «Para mayores» de Ajustes ([data-sync-cfg]), la pastilla «Guardar» junto a
+     las monedas ([data-sync-slot]) cuando el permiso caducó y hay algo sin subir, y el aviso de la portada
+     (HOME_SLOTS) si no está conectado. Entrar, salir o cambiar la partida pasan por la Puerta (window.adultGate).
    Estado propio (no se sube ni se restaura): "save:sync" {fileId, remoteModified, baseHash, lastPushedHash,
    localDirty, connectedAt, lastSync, hint, reconnect, choice} y "save:tok" {t, exp}. */
 (() => {
@@ -342,9 +345,10 @@ window.addEventListener("offline", () => { if(connected()) setPhase("offline"); 
 /* ---------- renovar el permiso dentro de un toque del niño ----------
    El permiso de Google dura ~1 hora y renovarlo abre (y cierra sola) una ventanita de Google, que el navegador
    solo deja abrir dentro de un toque. Así que se renueva:
-   - con el chip «☁️ Guardar» de la cabecera (cuando hace falta y hay algo sin subir o hace más de 1 h que no se mira)
-   - de paso, en toques que el niño ya hace fuera de una pregunta (fin de lección, abrir la granja, «Camino»),
-     como mucho una vez cada 50 min y solo si el permiso caduca en 5 min o ya caducó. */
+   - con la pastilla «Guardar» junto a las monedas (cuando hace falta y hay algo sin subir o hace más de 1 h que no se mira)
+   - de paso, en toques que el niño ya hace fuera de una pregunta (las pestañas, el botón principal de una pantalla, el
+     fin de lección, la granja, las monedas), como mucho una vez cada 50 min y solo si el permiso caduca en 5 min o ya
+     caducó. Nunca en mitad de una lección, un repaso o una partida, ni en la Puerta de mayores ([data-no-renew]). */
 const TAP_GAP = 50 * MIN, SOON = 5 * MIN;
 const tokLeft = () => isObj(tok) && typeof tok.exp === "number" ? tok.exp - now() : -1;
 /* llamar SIEMPRE desde dentro de un manejador de click: requestAccessToken se llama en el mismo toque */
@@ -362,13 +366,16 @@ function preGis(){
   const m = meta();
   if(m.connectedAt && !m.choice && online() && !gisReady() && (m.reconnect || tokLeft() < 10 * MIN)) loadGis().catch(() => {});
 }
-const OPP = '.ls-end a, .ls-end button, a[href="#/granja"], a.ba[href="#/mapa"], .tabbar a[data-nav="aprender"], .tabbar a[data-nav="granja"], [data-coins-pill]';
+const OPP = '.tabbar [data-nav], .glass-btn--pri, .btn-fill, .btn-pri, .btn.lc, .ls-end a, .ls-end button, a[href="#/granja"], a[href="#/mapa"], a.ba, [data-coins-pill], [data-open=ajustes]';
 document.addEventListener("click", e => {
-  const a = e.target.closest && e.target.closest(OPP); if(!a) return;
+  const a = e.target.closest && e.target.closest(OPP); if(!a || a.closest("[data-no-renew], .opt")) return;
+  const r = document.documentElement;
+  if(r.hasAttribute("data-gm-play") || (r.dataset.focus && !a.closest(".ls-end"))) return;
   const p = renewInTap(false); if(p) p.catch(() => {});
 }, true);
 
-/* chip «☁️ Guardar» junto a las monedas: va dentro del hueco [data-sync-slot] de la barra de arriba */
+/* pastilla «Guardar» (icono de nube) junto a las monedas, en el hueco [data-sync-slot] de la barra de arriba. Es lo único
+   de Google que ve el niño: sale solo si el permiso caducó y hay algo sin subir, y la renovación va dentro de su toque. */
 function chipWanted(){
   const m = meta();
   if(!m.connectedAt || m.choice || tokOk() || !(m.reconnect || phase === "reconnect")) return false;
@@ -383,63 +390,29 @@ function paintChip(){
   const slot = document.querySelector("[data-sync-slot]"); if(!slot) return;
   css();
   c = document.createElement("button");
-  c.type = "button"; c.id = "sv-chip"; c.className = "sv-chip";
-  c.title = "Guardar tu partida en Google"; c.innerHTML = `<b aria-hidden="true">☁️</b><span>Guardar</span>`;
+  c.type = "button"; c.id = "sv-chip"; c.className = "glass-btn glass-btn--pri glass-btn--sm sv-chip"; c.dataset.noRenew = "";
+  c.title = "Guardar tu partida en Google"; c.setAttribute("aria-label", "Guardar tu partida en Google");
+  c.innerHTML = `${ico("cloud-arrow-up", "bold", 20)}<span class="sv-chip-t" aria-hidden="true">Guardar</span>`;
   c.onclick = () => {
+    if(c.disabled) return;
     c.disabled = true;
     const p = renewInTap(true);
     if(!p){ c.disabled = false; try{ toast(online() ? "☁️ Un momento y vuelve a tocar" : "📴 Sin internet: se guardará luego"); }catch(e){} if(online()) loadGis().catch(() => {}); return; }
     p.then(() => { if(!chipWanted()) try{ toast("☁️ ¡Partida guardada!"); }catch(e){} })
-     .catch(() => { try{ toast("☁️ No se pudo guardar ahora. Prueba luego."); }catch(e){} })
+     .catch(() => { try{ toast("☁️ Ahora no se pudo guardar. Prueba luego."); }catch(e){} })
      .finally(() => { const x = $s("sv-chip"); if(x) x.disabled = false; paintChip(); });
   };
   slot.appendChild(c);
+  try{ if(window.M && typeof M.bump === "function") M.bump(c); }catch(e){}
 }
 
-/* botón «Entrar con Google» en el menú hasta que se conecte, con ⓘ que explica para qué sirve */
-const TIP = "Para no perder tu avance (monedas, granja, lecciones y repasos), entra con Google. La partida se guarda sola y puedes seguir en otro móvil, tablet u ordenador.";
-function paintNav(){
-  let w = $s("sv-nav");
-  document.documentElement.classList.toggle("sv-gnav", !connected());
-  if(connected()){ if(w) w.remove(); return; }
-  if(w) return;
-  const coin = document.querySelector(".hnav .coin"); if(!coin) return;
-  css();
-  w = document.createElement("span"); w.id = "sv-nav"; w.className = "sv-nav";
-  w.innerHTML = `<button type="button" class="sv-nb" id="sv-nb" title="Entrar con Google">${G}<span>Entrar con Google</span></button>`
-    + `<button type="button" class="sv-inf" id="sv-inf" aria-label="¿Para qué sirve?" aria-expanded="false" aria-controls="sv-tip">i</button>`
-    + `<span class="sv-tip" id="sv-tip" role="tooltip">${TIP}</span>`;
-  placeNav(w, coin);
-  const inf = w.querySelector(".sv-inf");
-  inf.onclick = e => { e.stopPropagation(); const o = w.classList.toggle("open"); inf.setAttribute("aria-expanded", o); };
-  w.querySelector(".sv-nb").onclick = e => {
-    const b = e.currentTarget; if(b.disabled) return;
-    w.classList.remove("open");
-    if(!online()){ try{ toast(AUTH_MSG.offline); }catch(x){} return; }
-    if(!gisReady()){ try{ toast("☁️ Un momento y vuelve a tocar"); }catch(x){} loadGis().catch(() => {}); return; }
-    b.disabled = true;
-    connect().finally(() => {
-      b.disabled = false;
-      if(!connected()){ try{ toast("No se ha terminado de entrar en Google. Puedes intentarlo otra vez."); }catch(x){} return; }
-      paintNav();
-      if(meta().choice) go();
-      else try{ toast("✅ ¡Conectado! Tu partida se guarda sola en Google."); }catch(x){}
-    });
-  };
-  if(online()) loadGis().catch(() => {});   /* así la ventana de Google se abre en el mismo toque */
+/* lo que no debe hacer un niño solo (entrar o salir de Google, cambiar o borrar una partida) pasa por la Puerta de
+   mayores. Si se pasó hace poco, sigue dentro del mismo toque (así la ventana de Google se puede abrir). */
+function gated(reason, fn, from){
+  const g = window.adultGate;
+  if(typeof g !== "function" || g.passed()) return fn();
+  g({reason, from}).then(ok => { if(ok) fn(); });
 }
-/* en el móvil el menú está lleno: el botón va en su propia fila al principio de la página (no flota encima) */
-const NARROW = window.matchMedia("(max-width:819px)");
-function placeNav(w, coin){
-  w = w || $s("sv-nav"); if(!w) return;
-  if(NARROW.matches){ const m = document.querySelector("main"); if(m && w.parentNode !== m) m.prepend(w); }
-  else { coin = coin || document.querySelector(".hnav .coin"); if(coin && w.nextSibling !== coin) coin.before(w); }
-}
-try{ NARROW.addEventListener("change", () => placeNav()); }catch(e){}
-document.addEventListener("click", e => {
-  const w = $s("sv-nav"); if(w && w.classList.contains("open") && !w.contains(e.target)){ w.classList.remove("open"); const i = $s("sv-inf"); if(i) i.setAttribute("aria-expanded", "false"); }
-});
-document.addEventListener("keydown", e => { if(e.key === "Escape"){ const w = $s("sv-nav"); if(w) w.classList.remove("open"); } });
 
 /* ---------- entrar y salir ---------- */
 const AUTH_MSG = {
@@ -447,7 +420,7 @@ const AUTH_MSG = {
   denied: "Google no ha dado permiso. Puedes intentarlo otra vez.",
   scope: "Hace falta permitir que la app guarde en Google Drive (marca la casilla). Inténtalo otra vez.",
   blocked: "El navegador no ha dejado abrir la ventana de Google. Permite las ventanas emergentes e inténtalo otra vez.",
-  offline: "📴 Sin internet. Conéctate a internet para entrar con Google.",
+  offline: "Sin internet. Conéctate a internet para entrar con Google.",
   gis: "No se pudo abrir Google. Comprueba la conexión e inténtalo otra vez.",
 };
 async function connect(){
@@ -486,131 +459,105 @@ function agoMin(t){
   return S.ago(t);
 }
 
-/* ---------- estilos ---------- */
+/* ---------- estilos (el bloque va en las filas agrupadas de Ajustes: .st-g, .st-r, .st-ic de index.html) ---------- */
 const CSS = `
-.sv{border-top:1px solid var(--line);margin:0 0 16px;padding:14px 0 4px;scroll-margin-top:120px}
-.sv h2{margin:0 0 6px;font-size:1.1rem}
-.sv .sub{margin:0 0 10px}
-.sv-st{margin:0 0 4px;font-weight:700;font-size:1rem}
-.sv-st.ok{color:var(--ok-ink)}.sv-st.bad{color:var(--bad)}
-.sv-acc{margin:0 0 10px;color:var(--muted);font-size:.92rem;overflow-wrap:anywhere}
-.sv-row{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
-.sv-b{min-height:46px;font:inherit;font-weight:600;padding:10px 16px;flex:1 1 180px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-align:center;color:var(--ink);max-width:100%;box-sizing:border-box}
-.sv-b.pri{color:#fff}
-.sv-b:disabled{opacity:.6;cursor:default}
-.sv-g{min-height:54px;font-size:1.06rem;font-weight:700;border:2px solid var(--line);background:var(--card);color:var(--ink);flex:1 1 260px}
-.sv-g:hover{border-color:var(--brand)}
-.sv-g svg{width:22px;height:22px;flex:none;background:#fff;border-radius:50%;padding:3px}
-.sv-fine{margin:0 0 10px;font-size:.88rem;color:var(--muted)}
-.sv-fine a{color:var(--brand)}
+.sv{margin:0}
 .sv [hidden],.sv-rem [hidden]{display:none!important}
-.sv-msg{margin:4px 0 10px;font-weight:600}
+.sv .st-ic svg[data-brand]{width:18px;height:18px}
+.sv .st-r.st-btn:disabled{opacity:.55;cursor:default}
+.sv .sv-quiet{color:var(--label);font-weight:400}
+.sv-msg{margin:8px 16px 0;font:600 var(--fs-note,.9375rem)/1.38 var(--f-text,system-ui);color:var(--label2)}
 .sv-msg:empty{display:none}
-.sv-msg.ok{color:var(--ok-ink)}.sv-msg.bad{color:var(--bad)}
-.sv-box{scroll-margin-top:120px;border:2px solid var(--brand);border-radius:14px;padding:14px;margin:0 0 12px;background:var(--soft)}
-.sv-box h3{margin:0 0 8px;font-size:1.02rem}
-.sv-cmp{width:100%;border-collapse:collapse;font-size:.93rem;margin:0 0 10px;table-layout:fixed}
-.sv-cmp th,.sv-cmp td{padding:7px 6px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;overflow-wrap:anywhere}
-.sv-cmp th{color:var(--muted);font-weight:700;font-size:.82rem}
-.sv-cmp td:nth-child(n+2){font-weight:700}
+.sv-msg.ok{color:var(--ok-ink)}.sv-msg.bad{color:var(--miss-ink)}
+.sv-acc{overflow-wrap:anywhere}
+.sv-box{margin:12px 0 0;padding:16px;border-radius:var(--r-card,24px);background:var(--card)}
+:root[data-theme=dark] .sv-box{background:var(--card-2)}
+.sv-box h3{margin:0 0 8px;font:600 var(--fs-head,1.1875rem)/1.26 var(--f-text,system-ui);color:var(--label)}
+.sv-box p{margin:0 0 10px;font:400 var(--fs-note,.9375rem)/1.38 var(--f-text,system-ui);color:var(--label2)}
+.sv-box p b{color:var(--label)}
+.sv-acts{display:flex;flex-direction:column;gap:8px}
+.sv-cmp{width:100%;border-collapse:collapse;font:400 var(--fs-note,.9375rem)/1.3 var(--f-text,system-ui);margin:0 0 12px;table-layout:fixed;color:var(--label)}
+.sv-cmp th,.sv-cmp td{padding:7px 6px;border-bottom:.5px solid var(--sep);text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.sv-cmp th{color:var(--label2);font-weight:600;font-size:var(--fs-min,.8125rem)}
+.sv-cmp td:nth-child(n+2){font-weight:600}
 .sv-cmp td:first-child{width:40%}
-.sv-cmp .win{color:var(--ok-ink)}
-.sv-warn{border:1px solid #FFCC00;background:color-mix(in srgb,#FFCC00 16%,var(--card));color:var(--ink);border-radius:10px;padding:9px 12px;margin:0 0 10px;font-size:.92rem}
-.sv-safe{margin:6px 0 8px;font-size:.92rem;color:var(--muted)}
-.sv-undo{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 10px}
-.sv-undo .sv-b{flex:1 1 220px}
-.sv-x{background:none;border:0;color:var(--muted);text-decoration:underline;min-height:44px;padding:0 8px;font:inherit;font-size:.88rem;cursor:pointer}
-.sv-cfg{margin:16px 0 0;padding-top:12px;border-top:1px solid var(--line)}
-.sv-cfg a{display:flex;align-items:center;min-height:44px;color:var(--brand);font-weight:700;text-decoration:none}
-.sv-cfg small{display:block;color:var(--muted);font-weight:400}
-.sv-rem{display:flex;gap:14px;align-items:flex-start;border:2px solid #1a9e94;background:color-mix(in srgb,#1a9e94 9%,var(--card))}
-.sv-rem-e{font-size:2.4rem;line-height:1}
-.sv-rem h2{margin:0 0 4px;font-size:1.12rem;color:var(--ink)}
-.sv-rem p{margin:0 0 10px;color:var(--muted)}
-.sv-rem .sv-row{margin:0;align-items:center}
-.sv-rem .btn.lc{min-height:46px;display:inline-flex;align-items:center;text-decoration:none}
-.sv-later{min-height:44px;background:none;border:0;color:var(--muted);font:inherit;font-weight:600;text-decoration:underline;cursor:pointer;padding:0 10px}
-.sv-chip{flex:none;min-height:44px;min-width:44px;padding:0 14px;border-radius:999px;border:2px solid rgba(255,255,255,.55);background:#1a7f9e;color:#fff;font:inherit;font-weight:700;font-size:1rem;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;white-space:nowrap;animation:svpulse 2.4s ease-in-out 3;-webkit-tap-highlight-color:transparent}
-.sv-chip span{margin-left:6px}
-.sv-chip:disabled{opacity:.7;animation:none}
-.hnav .sv-chip{margin-left:auto}.hnav .sv-chip+.coin{margin-left:0}
-.sv-chip:focus-visible{outline:3px solid #fff;outline-offset:2px}
-@keyframes svpulse{0%,100%{box-shadow:0 0 0 0 rgba(90,200,230,.55)}50%{box-shadow:0 0 0 7px rgba(90,200,230,0)}}
-@media (prefers-reduced-motion: reduce){.sv-chip{animation:none}}
-@media (max-width:819px){.sv-chip{position:absolute;right:16px;top:calc(100% + 8px);box-shadow:0 3px 10px rgba(5,20,40,.35)}
-  @keyframes svpulse{0%,100%{box-shadow:0 3px 10px rgba(5,20,40,.35),0 0 0 0 rgba(90,200,230,.55)}50%{box-shadow:0 3px 10px rgba(5,20,40,.35),0 0 0 7px rgba(90,200,230,0)}}}
-.sv-nav{position:relative;flex:none;display:inline-flex;align-items:center;gap:6px;margin-left:auto}
-.hnav .sv-nav+.coin{margin-left:0}
-.sv-nb{min-height:44px;padding:0 14px 0 10px;border-radius:999px;border:2px solid rgba(255,255,255,.6);background:#fff;color:#0b2545;font:inherit;font-weight:700;font-size:.98rem;cursor:pointer;display:inline-flex;align-items:center;gap:8px;white-space:nowrap;animation:svpulse 2.4s ease-in-out 3}
-.sv-nb svg{width:20px;height:20px;flex:none}
-.sv-nb:disabled{opacity:.7;animation:none}
-.sv-inf{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.6);background:#1f5fbf;color:#fff;font:700 1.15rem/1 Georgia,serif;font-style:italic;cursor:pointer;flex:none}
-.sv-nb:focus-visible,.sv-inf:focus-visible{outline:3px solid #fff;outline-offset:2px}
-.sv-tip{display:none;position:absolute;right:0;top:calc(100% + 10px);z-index:60;width:min(300px,calc(100vw - 32px));padding:12px 14px;border-radius:12px;background:#0f2f57;color:#fff;font-size:.95rem;font-weight:500;line-height:1.4;white-space:normal;box-shadow:0 8px 24px rgba(5,20,40,.4);text-align:left}
-.sv-tip::before{content:"";position:absolute;right:16px;top:-7px;border:7px solid transparent;border-top:0;border-bottom-color:#0f2f57}
-.sv-nav.open .sv-tip{display:block}
-@media (hover:hover){.sv-inf:hover+.sv-tip,.sv-inf:focus-visible+.sv-tip{display:block}}
-@media (prefers-reduced-motion: reduce){.sv-nb{animation:none}}
-@media (max-width:819px){main>.sv-nav{display:flex;justify-content:flex-end;max-width:100%;margin:10px 16px 0}.sv-nb{border-color:#1f5fbf;box-shadow:0 2px 6px rgba(5,20,40,.2)}}
-@media (max-width:420px){.sv-rem{flex-direction:column;gap:6px}.sv-b{flex-basis:100%}}
+.sv-undo{margin-top:12px}
+.sv-rem{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;margin:0 0 12px}
+.sv-rem-ic{flex:none;width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--brand-fill);color:#fff}
+.sv-rem-tx{flex:1;min-width:0}
+.sv-rem h2{margin:0;font:600 var(--fs-head,1.1875rem)/1.26 var(--f-text,system-ui);color:var(--label)}
+.sv-rem p{margin:2px 0 10px;font:400 var(--fs-note,.9375rem)/1.35 var(--f-text,system-ui);color:var(--label2)}
+.sv-rem-b{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sv-later{min-height:44px;padding:0 10px;border:0;background:none;color:var(--label2);font:600 var(--fs-sub,1.0625rem)/1.2 var(--f-text,system-ui);cursor:pointer}
+.sv-chip{flex:none}
+.sv-chip:disabled{opacity:.7}
+@media (min-width:820px) and (max-width:1099px){.sv-chip{width:var(--tap,44px);padding:0}.sv-chip-t{display:none}}
 `;
 function css(){ if(document.getElementById("css-sync")) return; const s = document.createElement("style"); s.id = "css-sync"; s.textContent = CSS; document.head.appendChild(s); }
 const G = `<svg viewBox="0 0 48 48" aria-hidden="true" data-brand="google"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
 
-/* ---------- bloque «☁️ Guardar la partida en Google» (Para mayores) ---------- */
+/* ---------- bloque «Guardar la partida en Google» (Ajustes › Para mayores) ---------- */
 const $s = id => document.getElementById(id);
 const flag = L => { const l = (typeof LANGS !== "undefined" && LANGS[L] && LANGS[L].label) || L; return l.split(" ")[0]; };
 const msg = (t, k) => { const m = $s("sv-msg"); if(m){ m.textContent = t; m.className = "sv-msg" + (k ? " " + k : ""); } };
 const ERR = {
-  full: "⚠️ Tu Google Drive está lleno: libera espacio para seguir guardando la partida.",
-  rate: "⚠️ Google está muy ocupado ahora. Lo intentaremos otra vez en un rato.",
-  server: "⚠️ Google no responde ahora. Lo intentaremos otra vez en un rato.",
-  net: "⚠️ No se pudo conectar con Google. Lo intentaremos otra vez en un rato.",
-  gone: "⚠️ No se encontró la partida en Google. Lo intentaremos otra vez en un rato.",
-  loop: "⚠️ La partida ha cambiado varias veces seguidas. Pulsa «Sincronizar ahora» para intentarlo otra vez.",
-  space: "⚠️ No hay sitio en el navegador para la partida de Google.",
-  rollback: "⚠️ El navegador se quedó sin sitio a mitad de la carga. Pulsa «↩️ Deshacer» para volver a la partida de antes.",
+  full: "Tu Google Drive está lleno: libera espacio para seguir guardando la partida.",
+  rate: "Google está muy ocupado ahora. Lo intentaremos otra vez en un rato.",
+  server: "Google no responde ahora. Lo intentaremos otra vez en un rato.",
+  net: "No se pudo conectar con Google. Lo intentaremos otra vez en un rato.",
+  gone: "No se encontró la partida en Google. Lo intentaremos otra vez en un rato.",
+  loop: "La partida ha cambiado varias veces seguidas. Toca «Guardar ahora» para intentarlo otra vez.",
+  space: "No hay sitio en el navegador para la partida de Google.",
+  rollback: "El navegador se quedó sin sitio a mitad de la carga. Toca «Volver a la partida de antes» para recuperarla.",
 };
+/* una fila (o un botón) de las de Ajustes: icono en su cuadradito, texto y una línea pequeña */
+const row = (ic, cls, t, sub, id) => `<div class="st-r"${id ? ` id="${id}"` : ""}><span class="st-ic${cls ? " " + cls : ""}" aria-hidden="true">${ic}</span><span class="st-l">${t}${sub ? `<small class="sv-acc">${sub}</small>` : ""}</span></div>`;
+const btn = (id, ic, cls, t, sub, extra) => `<button type="button" class="st-r st-btn${extra ? " " + extra : ""}" id="${id}"><span class="st-ic${cls ? " " + cls : ""}" aria-hidden="true">${ic}</span><span class="st-l">${t}${sub ? `<small>${sub}</small>` : ""}</span></button>`;
+const okText = () => `Sincronizado · ${agoMin(meta().lastSync)}`;
 function statusHtml(){
   const m = meta();
-  if(!m.connectedAt) return `<p class="sub">Así la partida se guarda sola en tu Google Drive y se puede seguir en otro móvil, tablet u ordenador.</p>
-    <div class="sv-row"><button class="btn sv-b sv-g" id="sv-g" type="button">${G}<span>Entrar con Google</span></button></div>
-    <p class="sv-fine">La app solo usa una carpeta privada suya en tu Drive: no puede ver tus archivos. <a href="privacy.html">Privacidad</a></p>`;
-  const acc = `<p class="sv-acc">${m.hint ? `Cuenta: <b>${esc(m.hint)}</b>` : "Conectado con Google"}</p>`;
-  if(m.choice) return `<p class="sv-st">☁️ Conectado con Google. Elige qué partida quieres seguir:</p>${acc}${choice ? "" : `<p class="sub">Mirando la partida de Google…</p>`}
-    <div class="sv-row"><button class="btn sv-b" id="sv-out" type="button">Salir de Google</button></div>`;
+  if(!m.connectedAt) return `<div class="st-g ics">${btn("sv-g", G, "gg", "Entrar con Google", "La partida se guarda sola y se puede seguir en otro aparato.")}</div>
+    <p class="st-foot">La app solo usa una carpeta privada suya en tu Google Drive: no puede ver tus archivos. <a href="privacy.html">Privacidad</a></p>`;
+  const acc = m.hint ? esc(m.hint) : "Conectado con Google";
+  const now_ = btn("sv-now", ico("arrows-clockwise", "bold", 18), "", "Guardar ahora", "");
+  const out = btn("sv-out", ico("sign-out", "bold", 18), "gr", "Salir de Google", "", "sv-quiet");
+  if(m.choice) return `<div class="st-g ics">${row(ico("cloud-check", "bold", 18), "", "Conectado con Google",
+    `${acc} · ${choice ? "Elige qué partida quieres seguir." : "Mirando la partida de Google…"}`)}${out}</div>`;
   const last = agoMin(m.lastSync);
-  let st;
-  if(phase === "reconnect" || m.reconnect) st = `<p class="sv-st bad">⚠️ Hace falta volver a entrar en Google para seguir guardando.</p>${acc}
-    <div class="sv-row"><button class="btn pri sv-b" id="sv-re" type="button">🔑 Volver a conectar</button></div>
-    ${m.lastSync ? `<p class="sv-fine">Última vez guardada en Google: ${esc(last)}. Lo que se juegue mientras tanto se guarda aquí y se subirá al conectar.</p>` : ""}`;
-  else if(phase === "offline") st = `<p class="sv-st">📴 Sin internet. Se guardará en Google cuando vuelva la conexión.</p>${acc}${m.lastSync ? `<p class="sv-fine">Última vez: ${esc(last)}</p>` : ""}`;
-  else if(phase === "busy") st = `<p class="sv-st">🔄 Sincronizando con Google…</p>${acc}`;
-  else if(phase === "error") st = `<p class="sv-st bad">${esc(ERR[errCode] || ERR.server)}</p>${acc}${m.lastSync ? `<p class="sv-fine">Última vez: ${esc(last)}</p>` : ""}`;
-  else st = `<p class="sv-st ok" id="sv-ok">✅ Sincronizado con Google · última vez ${esc(last)}</p>${acc}`;
-  return st + `<div class="sv-row"><button class="btn sv-b" id="sv-now" type="button">🔄 Sincronizar ahora</button><button class="btn sv-b" id="sv-out" type="button">Salir</button></div>`;
+  let st, foot = "";
+  if(phase === "reconnect" || m.reconnect){
+    st = row(ico("cloud-slash", "bold", 18), "gr", "Hace falta volver a entrar en Google", acc) + btn("sv-re", ico("sign-in", "bold", 18), "", "Volver a conectar", "");
+    if(m.lastSync) foot = `<p class="st-foot">Última vez guardada en Google: ${esc(last)}. Lo que se juegue mientras tanto se guarda aquí y se subirá al conectar.</p>`;
+  }
+  else if(phase === "offline") st = row(ico("wifi-slash", "bold", 18), "gr", "Sin internet", `Se guardará en Google cuando vuelva la conexión.${m.lastSync ? " Última vez: " + esc(last) + "." : ""}`);
+  else if(phase === "busy") st = row(ico("arrows-clockwise", "bold", 18), "", "Sincronizando con Google…", acc);
+  else if(phase === "error") st = row(ico("warning-circle", "bold", 18), "gr", esc(ERR[errCode] || ERR.server), `${acc}${m.lastSync ? " · última vez " + esc(last) : ""}`);
+  else st = row(ico("cloud-check", "bold", 18), "ok", `<span id="sv-ok">${esc(okText())}</span>`, acc);
+  return `<div class="st-g ics">${st}${now_}${out}</div>${foot}`;
 }
 function blockHtml(){
-  return `<section class="sv" id="sv-box" aria-labelledby="sv-h">
-    <h2 id="sv-h">☁️ Guardar la partida en Google</h2>
+  return `<section class="sv" id="sv-box" aria-label="Guardar la partida en Google">
     <div id="sv-dyn">${statusHtml()}</div>
-    <div class="sv-msg" id="sv-msg" role="status" aria-live="polite"></div>
+    <p class="sv-msg" id="sv-msg" role="status" aria-live="polite"></p>
     <div id="sv-confirm" hidden></div>
     <div id="sv-undo-w"></div>
-    <p class="sv-safe" id="sv-safe"></p>
-    <p class="note" id="sv-ios" hidden></p>
+    <p class="st-foot" id="sv-safe"></p>
+    <p class="st-foot" id="sv-ios" hidden></p>
   </section>`;
 }
 function paintStatus(){
-  const ok = $s("sv-ok"); if(ok && phase === "ok") ok.textContent = `✅ Sincronizado con Google · última vez ${agoMin(meta().lastSync)}`;
+  const ok = $s("sv-ok"); if(ok && phase === "ok") ok.textContent = okText();
+  cfgPaint();
 }
 function paint(){
-  cfgPaint(); paintChip(); paintNav();
+  cfgPaint(); paintChip();
   const d = $s("sv-dyn"); if(!d) return;
   const focus = document.activeElement && d.contains(document.activeElement) ? document.activeElement.id : "";
   d.innerHTML = statusHtml();
   const on = (id, f) => { const b = $s(id); if(b) b.onclick = f; };
-  on("sv-g", connect); on("sv-re", connect); on("sv-out", disconnect);
+  on("sv-g", e => gated("Para entrar con Google.", connect, e.currentTarget));
+  on("sv-re", e => gated("Para volver a entrar en Google.", connect, e.currentTarget));
+  on("sv-out", e => gated("Para salir de Google.", disconnect, e.currentTarget));
   on("sv-now", () => { msg(""); lastSilent = 0;
     if(!tokOk()){ const p = renewInTap(true); if(p){ p.catch(e => { if(e && e.code !== "superseded") msg(AUTH_MSG[e.code] || AUTH_MSG.gis, "bad"); }); return; } }
     sync("manual"); });
@@ -624,11 +571,11 @@ function cmpRows(a, b, colA, colB, savedB){
   const used = S.langs().filter(L => a.per[L].lessons || a.per[L].words || b.per[L].lessons || b.per[L].words);
   const by = (s, f) => used.length ? used.map(L => `${flag(L)} ${s.per[L][f]}`).join(" · ") : "0";
   return `<table class="sv-cmp"><thead><tr><th></th><th>${colA}</th><th>${colB}</th></tr></thead><tbody>
-      ${savedB ? `<tr><td>📅 Guardada</td><td>—</td><td>${esc(S.fmtShort(savedB))}</td></tr>` : ""}
-      <tr><td>🪙 Monedas ganadas</td><td>${a.earned}</td><td>${b.earned}</td></tr>
-      <tr><td>🐄 Animales de la granja</td><td>${a.animals}</td><td>${b.animals}</td></tr>
-      <tr><td>🗺️ Lecciones del camino</td><td>${by(a, "lessons")}</td><td>${by(b, "lessons")}</td></tr>
-      <tr><td>🔁 Palabras en repaso</td><td>${by(a, "words")}</td><td>${by(b, "words")}</td></tr>
+      ${savedB ? `<tr><td>Guardada</td><td>—</td><td>${esc(S.fmtShort(savedB))}</td></tr>` : ""}
+      <tr><td>Monedas ganadas</td><td>${a.earned}</td><td>${b.earned}</td></tr>
+      <tr><td>Animales de la granja</td><td>${a.animals}</td><td>${b.animals}</td></tr>
+      <tr><td>Lecciones del camino</td><td>${by(a, "lessons")}</td><td>${by(b, "lessons")}</td></tr>
+      <tr><td>Palabras en repaso</td><td>${by(a, "words")}</td><td>${by(b, "words")}</td></tr>
     </tbody></table>`;
 }
 /* primera vez: ¿la de Google o la de este aparato? */
@@ -638,26 +585,27 @@ function choiceBox(){
   const g = score(choice.keys) >= score(lk);
   box.dataset.k = "choice";
   box.innerHTML = `<div class="sv-box" role="group" aria-labelledby="sv-c-h">
-    <h3 id="sv-c-h">☁️ Ya hay una partida guardada en Google</h3>
-    <p style="margin:0 0 10px">Este aparato también tiene progreso. ¿Con cuál seguimos? La otra se guarda como copia para deshacer.</p>
+    <h3 id="sv-c-h">Ya hay una partida guardada en Google</h3>
+    <p>Este aparato también tiene progreso. ¿Con cuál seguimos? La otra se guarda como copia para deshacer.</p>
     ${cmpRows(a, b, "En este aparato", "En Google", choice.saved)}
-    <p class="sv-fine">Recomendado: <b>${g ? "la de Google" : "la de este aparato"}</b>, porque tiene más progreso.</p>
-    <div class="sv-row" style="margin:0">
-      <button class="btn ${g ? "pri " : ""}sv-b" id="sv-use-g" type="button">☁️ Usar la partida de Google${g ? " (recomendado)" : ""}</button>
-      <button class="btn ${g ? "" : "pri "}sv-b" id="sv-use-l" type="button">📱 Usar la de este aparato${g ? "" : " (recomendado)"}</button></div></div>`;
+    <p>Recomendado: <b>${g ? "la de Google" : "la de este aparato"}</b>, porque tiene más progreso.</p>
+    <div class="sv-acts">
+      <button class="glass-btn glass-btn--block${g ? " glass-btn--pri" : ""}" id="sv-use-g" type="button">Usar la partida de Google</button>
+      <button class="glass-btn glass-btn--block${g ? "" : " glass-btn--pri"}" id="sv-use-l" type="button">Usar la de este aparato</button></div></div>`;
   box.hidden = false;
-  $s("sv-use-g").onclick = () => { $s("sv-use-g").disabled = $s("sv-use-l").disabled = true; msg("Cargando la partida de Google…", "ok"); useRemote(); };
-  $s("sv-use-l").onclick = () => { $s("sv-use-g").disabled = $s("sv-use-l").disabled = true; msg("Guardando en Google…"); useLocal(); };
+  const lock = () => { $s("sv-use-g").disabled = $s("sv-use-l").disabled = true; };
+  $s("sv-use-g").onclick = e => gated("Para elegir la partida.", () => { lock(); msg("Cargando la partida de Google…", "ok"); useRemote(); }, e.currentTarget);
+  $s("sv-use-l").onclick = e => gated("Para elegir la partida.", () => { lock(); msg("Guardando en Google…"); useLocal(); }, e.currentTarget);
 }
-/* ↩️ Deshacer: volver a la copia automática */
+/* «Volver a la partida de antes»: la copia automática */
 function paintUndo(){
   const w = $s("sv-undo-w"); if(!w) return;
   const u = S.metaGet(M.undo, null);
-  w.innerHTML = u && isObj(u.keys) ? `<div class="sv-undo" id="sv-undo"><button class="btn sv-b" id="sv-undo-b" type="button">↩️ Deshacer: volver a la partida de antes</button>
-      <small class="count">Copia automática del ${esc(S.fmtDate(Date.parse(u.saved) || now()))}</small>
-      <button class="sv-x" id="sv-undo-x" type="button">Borrar esta copia</button></div>` : "";
+  w.innerHTML = u && isObj(u.keys) ? `<div class="st-g ics sv-undo" id="sv-undo">
+      ${btn("sv-undo-b", ico("arrow-counter-clockwise", "bold", 18), "sl", "Volver a la partida de antes", "Copia automática del " + esc(S.fmtDate(Date.parse(u.saved) || now())))}
+      ${btn("sv-undo-x", ico("trash", "bold", 18), "gr", "Borrar esta copia", "", "sv-quiet")}</div>` : "";
   const ub = $s("sv-undo-b"); if(ub) ub.onclick = undoBox;
-  const ux = $s("sv-undo-x"); if(ux) ux.onclick = () => { S.metaDel(M.undo); paintUndo(); msg("Copia borrada."); };
+  const ux = $s("sv-undo-x"); if(ux) ux.onclick = e => gated("Para borrar la copia.", () => { S.metaDel(M.undo); paintUndo(); msg("Copia borrada."); }, e.currentTarget);
 }
 function undoBox(){
   const box = $s("sv-confirm"), u = S.metaGet(M.undo, null); if(!box) return;
@@ -666,87 +614,79 @@ function undoBox(){
   const a = S.summary(S.collect()), b = S.summary(p.data.keys);
   box.dataset.k = "undo";
   box.innerHTML = `<div class="sv-box" role="group" aria-labelledby="sv-c-h">
-    <h3 id="sv-c-h">↩️ ¿Volver a la partida de antes?</h3>
+    <h3 id="sv-c-h">¿Volver a la partida de antes?</h3>
     ${cmpRows(a, b, "Ahora en este aparato", "Partida de antes", p.data.saved)}
-    <p style="margin:0 0 10px"><b>Esto reemplazará la partida de este aparato</b>${connected() ? " y después la de Google" : ""}.</p>
-    <div class="sv-row" style="margin:0"><button class="btn pri sv-b" id="sv-yes" type="button">↩️ Sí, volver a la de antes</button><button class="btn sv-b" id="sv-no" type="button">Cancelar</button></div></div>`;
+    <p><b>Esto reemplazará la partida de este aparato</b>${connected() ? " y después la de Google" : ""}.</p>
+    <div class="sv-acts"><button class="glass-btn glass-btn--block glass-btn--pri" id="sv-yes" type="button">Sí, volver a la de antes</button>
+      <button class="glass-btn glass-btn--block" id="sv-no" type="button">Cancelar</button></div></div>`;
   box.hidden = false;
   $s("sv-no").onclick = () => { closeBox(); msg("No se ha cambiado nada."); };
-  $s("sv-yes").onclick = () => {
+  $s("sv-yes").onclick = e => gated("Para cambiar la partida.", () => {
     $s("sv-yes").disabled = $s("sv-no").disabled = true;
     const err = S.apply(p.data.keys, "undo");
     if(err){ msg(err, "bad"); closeBox(); } else msg("Volviendo a la partida de antes…", "ok");
-  };
-  try{ box.scrollIntoView({block: "nearest", behavior: "smooth"}); }catch(e){}
+  }, e.currentTarget);
+  try{ box.scrollIntoView({block: "nearest", behavior: window.M && M.rm() ? "auto" : "smooth"}); }catch(e){}
   $s("sv-yes").focus({preventScroll: true});
 }
 function paintSafe(){
   const el = $s("sv-safe"); if(!el) return;
   const p = S.persisted, c = connected();
-  el.textContent = p === true ? "🔒 Datos protegidos: este navegador no los borrará para hacer sitio."
-    : c ? "☁️ Aunque el navegador borre los datos, la partida está en Google."
-    : p === false ? "⚠️ Este navegador podría borrar los datos si se queda sin espacio. Conecta Google para tener una copia."
-    : "ℹ️ No sabemos si este navegador protege los datos. Conecta Google para tener una copia.";
+  el.textContent = p === true ? "Datos protegidos: este navegador no los borrará para hacer sitio."
+    : c ? "Aunque el navegador borre los datos, la partida está en Google."
+    : p === false ? "Este navegador podría borrar los datos si se queda sin espacio. Conecta Google para tener una copia."
+    : "No sabemos si este navegador protege los datos. Conecta Google para tener una copia.";
   const io = $s("sv-ios");
   if(io){ const show = S.isIOS() && !S.standalone(); io.hidden = !show;
-    if(show) io.innerHTML = "📱 <b>En iPhone o iPad</b>, si añades la app a la <b>pantalla de inicio</b> (Safari › Compartir › «Añadir a pantalla de inicio»), ábrela desde ese icono y entra allí también con Google: la app del icono tiene sus propios datos."; }
+    if(show) io.innerHTML = "<b>En iPhone o iPad</b>, si añades la app a la <b>pantalla de inicio</b> (Safari › Compartir › «Añadir a pantalla de inicio»), ábrela desde ese icono y entra allí también con Google: la app del icono tiene sus propios datos."; }
 }
 bus.on("save-persist", paintSafe);
-/* pone el bloque en «Para mayores» de la página de premios */
-function mountBlock(){
-  const det = document.querySelector("details.adult"); if(!det || $s("sv-box")) return;
+/* pone el bloque en Ajustes › Para mayores (host = el [data-sync-block] de esa página) */
+function mountBlock(host){
+  if(!host) return;
   css();
-  const sum = det.querySelector("summary");
-  if(sum && !/Google/.test(sum.textContent)) sum.textContent = "👨‍👩‍👦 Para mayores: guardar en Google, detalle por documento e instalación";
-  const ad = det.querySelector("#adult");
-  const w = document.createElement("div"); w.innerHTML = blockHtml();
-  det.insertBefore(w.firstElementChild, ad || null);
+  host.innerHTML = blockHtml();
   paint(); paintUndo(); paintSafe();
-  /* el script de Google se prepara al abrir «Para mayores», así la ventana sale enseguida al pulsar */
-  const pre = () => { if(det.open && online() && (!connected() || meta().reconnect)) loadGis().catch(() => {}); };
-  det.addEventListener("toggle", pre); pre();
+  /* el script de Google se prepara al abrir «Para mayores», así la ventana sale enseguida al tocar */
+  if(online() && (!connected() || meta().reconnect)) loadGis().catch(() => {});
 }
-/* ir a los controles (desde el aviso de la portada o desde ⚙️) */
-let goAdult = false;
+/* con el bloque a la vista: el foco en lo que toca hacer (entrar, volver a conectar, elegir o guardar) */
 function openAdult(){
-  const det = document.querySelector("details.adult"), box = $s("sv-box"); if(!det || !box) return;
-  if(!det.open) det.open = true;
   setTimeout(() => {
-    try{ box.scrollIntoView({block: "start", behavior: "smooth"}); }catch(e){ box.scrollIntoView(); }
+    const box = $s("sv-box"); if(!box) return;
+    try{ box.scrollIntoView({block: "nearest"}); }catch(e){}
     const b = $s("sv-g") || $s("sv-re") || $s("sv-use-g") || $s("sv-now"); if(b) b.focus({preventScroll: true});
   }, 80);
 }
-function go(){
-  goAdult = true;
-  if(/^#\/?progreso/.test(location.hash)){ goAdult = false; openAdult(); }
-  else location.hash = "#/progreso";
+/* ir a los controles: Ajustes › Para mayores (antes, la Puerta). auto: sin que nadie lo pida (tras cargar una partida),
+   solo si la Puerta ya se pasó hace poco: nunca sale una Puerta que nadie ha pedido */
+function go(o = {}){
+  if(typeof window.openSettings !== "function") return;
+  if(o.auto && typeof window.adultGate === "function" && !window.adultGate.passed()) return;
+  window.openSettings("google", {from: o.from});
 }
 document.addEventListener("click", e => {
   const a = e.target.closest && e.target.closest("[data-sv-go]"); if(!a) return;
   e.preventDefault();
-  const d = a.closest("dialog"); if(d && d.open) d.close();
-  go();
+  const d = a.closest("dialog");
+  if(d && d.open && d.id !== "ajustes"){ if(window.M && d.classList.contains("m-sheet")) M.closeSheet(d); else d.close(); }
+  go({from: d ? null : a});
+});
+bus.on("settings", d => {
+  if(!d || !d.el) return;
+  if(d.page === "root") cfgPaint();
+  else if(d.page === "mayores"){ mountBlock(d.el.querySelector("[data-sync-block]")); if(d.focus === "google") openAdult(); }
 });
 
-/* ⚙️: enlace al bloque al final del panel */
+/* Ajustes: el estado de Google en la fila «Para mayores» ([data-sync-cfg]) */
 function cfgText(){
   const m = meta();
-  if(!m.connectedAt) return ["☁️ Guardar la partida en Google (para mayores) →", "Entrar con Google para no perderla"];
-  if(m.reconnect || phase === "reconnect") return ["☁️ Partida en Google (para mayores) →", "⚠️ Hace falta volver a conectar"];
-  return ["☁️ Partida en Google (para mayores) →", `✅ Sincronizado · ${agoMin(m.lastSync)}`];
+  if(!m.connectedAt) return "Google: sin conectar";
+  if(m.choice) return "Google: elige qué partida seguir";
+  if(m.reconnect || phase === "reconnect") return "Google: hay que volver a entrar";
+  return m.lastSync ? `Google: guardado ${agoMin(m.lastSync)}` : "Google: conectado";
 }
-function cfgPaint(){
-  const a = $s("sv-cfg"); if(!a) return;
-  const [t, s] = cfgText(); a.innerHTML = `<span>${esc(t)}<small>${esc(s)}</small></span>`;
-}
-function cfgLink(){
-  const d = $s("cfg"); if(!d || !d.firstElementChild || $s("sv-cfg")) return;
-  css();
-  const p = document.createElement("p"); p.className = "sv-cfg";
-  p.innerHTML = `<a href="#/progreso" id="sv-cfg" data-sv-go></a>`;
-  (d.querySelector("[data-sync-cfg]") || d).appendChild(p); cfgPaint();
-}
-try{ const d = $s("cfg"); if(d && typeof MutationObserver === "function") new MutationObserver(cfgLink).observe(d, {childList: true}); }catch(e){}
+function cfgPaint(){ document.querySelectorAll("[data-sync-cfg]").forEach(el => { el.textContent = cfgText(); }); }
 
 /* ---------- aviso en la portada (solo si no está conectado, o si hace días que hay que volver a conectar) ---------- */
 let shownVisit = false;   /* como mucho una vez por visita (carga de la página) */
@@ -760,42 +700,38 @@ function due(){
   if(m.reconnect && t - m.reconnect > 3 * DAY) return "reconnect";
   return "";
 }
-HOME_SLOTS.unshift(async () => {   /* el primero de la portada: sale poco y así el niño lo ve sin bajar */
+const remSlot = async () => {   /* el primero de la portada: sale poco y así el niño lo ve sin bajar */
   const d = shownVisit ? "" : due(); if(!d) return "";
   shownVisit = true; css();
-  return `<section class="panel sv-rem" id="sv-rem" aria-label="Guardar la partida">
-    <div class="sv-rem-e" aria-hidden="true">💾</div>
-    <div><h2>${d === "connect" ? "Pídele a un mayor que conecte Google para guardar tu partida" : "Pídele a un mayor que vuelva a conectar Google"}</h2>
+  return `<section class="card sv-rem" id="sv-rem" aria-labelledby="sv-rem-t">
+    <span class="sv-rem-ic" aria-hidden="true">${ico("cloud-arrow-up", "bold", 22)}</span>
+    <div class="sv-rem-tx"><h2 id="sv-rem-t">${d === "connect" ? "Pide a un mayor que guarde tu partida" : "Pide a un mayor que vuelva a conectar Google"}</h2>
       <p>Así nunca pierdes tus monedas, tu granja ni tus lecciones.</p>
-      <div class="sv-row"><a class="btn lc" href="#/progreso" data-sv-go style="--lc:#1f5fbf">👨 ¡Avisar a un mayor!</a><button class="sv-later" id="sv-later" type="button">Ahora no</button></div></div>
+      <div class="sv-rem-b"><button type="button" class="glass-btn glass-btn--sm" data-sv-go>Avisar a un mayor</button><button class="sv-later" id="sv-later" type="button">Ahora no</button></div></div>
   </section>`;
-});
+};
+remSlot.id = "sync";
+HOME_SLOTS.unshift(remSlot);
 document.addEventListener("click", e => {
   if(!e.target.closest || !e.target.closest("#sv-later")) return;
   S.metaSet(M.snooze, now() + 2 * DAY);
   const r = $s("sv-rem"); if(r) r.remove();
 });
 
-/* ---------- arranque y rutas ---------- */
+/* ---------- arranque ---------- */
 bus.on("boot", () => {
   const f = S.takeFlash();
-  if(f){ if(f.adult) goAdult = true; setTimeout(() => { try{ toast(f.t); }catch(e){} }, 400); }
-  paintNav();
+  if(f){ setTimeout(() => { try{ toast(f.t); }catch(e){} }, 400); if(f.adult) setTimeout(() => go({auto: true}), 900); }
   if(!connected()) return;
   startPoll();
   lastVis = now();
   preGis();
   sync("boot").then(paintChip);
 });
-bus.on("route", d => {
-  if(!String((d && d.h) || "").startsWith("progreso")) return;
-  mountBlock();
-  if(goAdult){ goAdult = false; openAdult(); }
-});
 
 /* para pruebas y para los mayores curiosos */
 window.vocabSync = Object.freeze({
-  sync: why => sync(why || "manual"), connect, disconnect, due, hash: localHash, hashKeys, score, renewInTap, chipWanted,
+  sync: why => sync(why || "manual"), connect, disconnect, due, hash: localHash, hashKeys, score, renewInTap, chipWanted, go,
   get state(){ return {phase, errCode, meta: meta(), tokOk: tokOk(), choice: !!choice}; },
   _delays(o){ Object.assign(T, o || {}); if(pollI){ clearInterval(pollI); pollI = 0; startPoll(); } if(pushT){ clearTimeout(pushT); pushT = 0; schedule(); } },
   _idle: () => chain,

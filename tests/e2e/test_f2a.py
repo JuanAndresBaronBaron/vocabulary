@@ -344,8 +344,8 @@ def test_topbar_language_menu():
 
 def test_topbar_coins_and_settings():
     """Las monedas (data-coins-pill con id=coins dentro) abren la tienda de la granja; el engranaje («Ajustes») abre
-    la hoja provisional con sonido, tema, voz y velocidad, instalar, descargar todo, Google y créditos. Hay hueco
-    [data-sync-slot] junto a las monedas y no queda nada de la cabecera vieja."""
+    la hoja de Ajustes de js/settings.js (sonido, voz y velocidad, apariencia, accesibilidad y Para mayores, con el
+    estado de Google). Hay hueco [data-sync-slot] junto a las monedas y no queda nada de la cabecera vieja."""
     page = C.new_page("phone")
     probs = []
     try:
@@ -367,28 +367,26 @@ def test_topbar_coins_and_settings():
             probs.append(f"las monedas no abren la tienda: {sh}")
         # el engranaje abre la hoja de Ajustes
         page.locator(".topbar [aria-label=Ajustes]").click()
-        page.wait_for_selector("dialog#cfg[open]", timeout=3000)
+        page.wait_for_selector("dialog#ajustes[open]", timeout=3000)
         C.settle(page, 200)
-        cfg = page.evaluate("""() => { const d = document.getElementById('cfg');
+        cfg = page.evaluate("""() => { const d = document.getElementById('ajustes');
           return {sheet: d.classList.contains('m-sheet'), title: (document.getElementById(d.getAttribute('aria-labelledby')) || {}).textContent,
-            snd: !!d.querySelector('#cfg-snd[role=switch]'), theme: d.querySelectorAll('#cfg-th [data-th]').length,
-            rate: !!d.querySelector('#cfg-r'), test: !!d.querySelector('#cfg-t'), off: !!d.querySelector('#cfg-off'),
-            sync: !!d.querySelector('[data-sync-cfg]'), inst: /Instalar|instalada|Añadir|pantalla de inicio/i.test(d.textContent),
-            cred: /ElevenLabs|Phosphor|Créditos/.test(d.textContent), priv: !!d.querySelector('a[href="privacy.html"]')}; }""")
-        want = {"sheet": True, "title": "Ajustes", "snd": True, "theme": 3, "rate": True, "test": True, "off": True,
-                "sync": True, "inst": True, "cred": True, "priv": True}
+            snd: !!d.querySelector('#aj-snd[role=switch]'), theme: d.querySelectorAll('#aj-th [data-th]').length,
+            voz: !!d.querySelector('#aj-voz'), acc: !!d.querySelector('#aj-acc'), may: !!d.querySelector('#aj-may'),
+            sync: !!d.querySelector('[data-sync-cfg]')}; }""")
+        want = {"sheet": True, "title": "Ajustes", "snd": True, "theme": 3, "voz": True, "acc": True, "may": True, "sync": True}
         if cfg != want:
             probs.append(f"hoja de Ajustes: {cfg}")
         # el interruptor de sonido quita y pone los sonidos
         m0 = page.evaluate("sfx.muted")
-        page.locator("label[for=cfg-snd]").click()
+        page.locator("label[for=aj-snd]").click()
         if page.evaluate("sfx.muted") == m0:
             probs.append("el interruptor de Sonidos no cambia nada")
-        page.locator("label[for=cfg-snd]").click()
+        page.locator("label[for=aj-snd]").click()
         if page.evaluate("sfx.muted") != m0:
             probs.append("el interruptor de Sonidos no vuelve a su sitio")
-        page.locator("#cfg-x").click()
-        page.wait_for_function("() => !document.getElementById('cfg').open", timeout=3000)
+        page.locator("#aj-done").click()
+        page.wait_for_function("() => !document.getElementById('ajustes').open", timeout=3000)
         if page.evaluate("typeof window.openSettings") != "function":
             probs.append("falta window.openSettings")
         probs += C.errors(page)
