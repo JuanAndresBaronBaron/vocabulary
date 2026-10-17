@@ -7,7 +7,8 @@
    - Plantas que crecen con la regadera y se cosechan; árboles que dan fruta o nidos.
    - Edificios con sorpresa (cohete, tractor, fuente, castillo, casa, cabaña, tienda).
    - Juego «¿Dónde está…?».
-   - Fuera de la granja: un punto azul en la pestaña «Granja» si algún animal tiene hambre (Hoy ya no lleva aviso de hambre).
+   - Fuera de la granja: un punto azul en la pestaña «Granja» si algún animal tiene hambre o si alguno se fue al refugio y
+     aún no lo ha visto; ese mismo aviso del refugio sale también en Hoy como fila compacta (HOME_SLOTS, id "granja").
    Estado: store "farm:state". Emite: farm-feed {item, food}, farm-harvest {item}, farm-collect {product}, farm-find {ok},
    farm-buy {food, n, cost}, farm-rescue {item}, coins {n < 0} al gastar.
    Para otros módulos: farmMount.kinds (listas de especies), farmMount.care (consultas de solo lectura) y
@@ -301,13 +302,16 @@ bus.on("review-done", () => addDrops(2));
 bus.on("game-done", () => addDrops(1));
 bus.on("route", d => { if(cur && !(cur.host.isConnected && String((d && d.h) || "").startsWith("granja"))) cur.stop(); });
 
-/* punto azul en la pestaña «Granja» (tabBadge de index.html) cuando algún animal tiene hambre. Nunca rojo ni un número:
-   la granja no es una obligación */
+/* punto azul en la pestaña «Granja» (tabBadge de index.html) cuando algún animal tiene hambre o se fue al refugio sin que
+   el niño lo haya visto todavía (al entrar en la granja sale el aviso y el punto se va). Nunca rojo ni un número: la
+   granja no es una obligación */
+const shelNew = s => Object.keys(s.shelter).filter(id => !s.shelter[id].seen && itemById(id));
 function navBadge(){
   try{
-    const s = careState(), n = needyS(s).length, sh = Object.keys(s.shelter).length;
-    const label = n ? `${n === 1 ? "1 animal tiene" : n + " animales tienen"} hambre` : sh ? `${sh} en el refugio` : "";
-    if(typeof tabBadge === "function") tabBadge("granja", n > 0, label);
+    const s = careState(), n = needyS(s).length, sh = Object.keys(s.shelter).length, nw = shelNew(s).length;
+    const label = nw ? `${nw === 1 ? "1 animal está" : nw + " animales están"} en el refugio`
+      : n ? `${n === 1 ? "1 animal tiene" : n + " animales tienen"} hambre` : sh ? `${sh} en el refugio` : "";
+    if(typeof tabBadge === "function") tabBadge("granja", n > 0 || nw > 0, label);
     const a = document.getElementById("tab-granja");
     if(a) a.title = label ? `Granja · ${label}` : "Granja";
   }catch(e){ console.error(e); }
@@ -338,6 +342,17 @@ window.vocabFarm = Object.assign(window.vocabFarm || {}, {
     else location.hash = "#/granja";
   },
 });
+
+/* Hoy: una fila compacta cuando alguien se acaba de ir al refugio («La gallina está en el refugio · ¡Puedes traerla de
+   vuelta!»). Lleva a la granja, que enseña el aviso con «Ver el refugio»; visto el aviso, la fila ya no sale */
+const shelSlot = () => {
+  const ids = shelNew(careState()); if(!ids.length) return null;
+  const it = itemById(ids[0]) || {}, pl = ids.length > 1, lo = pl ? "los" : ANIM[ids[0]] && ANIM[ids[0]].f ? "la" : "lo";
+  return {t: pl ? `${ids.length} animales están en el refugio` : `${cap(elA(ids[0]))} está en el refugio`, sub: `¡Puedes traer${lo} de vuelta!`,
+    e: pl ? "" : it.e || "", icon: pl || !it.e ? "paw-print" : "", href: "#/granja", id: "fm-shel"};
+};
+shelSlot.id = "granja";
+if(typeof HOME_SLOTS !== "undefined") HOME_SLOTS.push(shelSlot);
 
 /* ---------- montaje ---------- */
 function mount(host){

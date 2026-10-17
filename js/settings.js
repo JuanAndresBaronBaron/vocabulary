@@ -59,8 +59,11 @@ window.vocabUI = Object.freeze({get: uiGet, set: uiSet, apply: () => applyUI()})
 const CSS = `
 dialog#ajustes.m-sheet{padding:0;overflow:hidden;height:min(680px,calc(100dvh - var(--safe-t,0px) - 24px))}
 dialog#ajustes.m-sheet[open]{display:flex;flex-direction:column}
-dialog#ajustes.m-sheet.glass{background:linear-gradient(180deg,rgb(255 255 255/.5) 0%,rgb(255 255 255/0) 120px),rgb(242 242 247/.9)}
-:root[data-theme=dark] dialog#ajustes.m-sheet.glass{background:linear-gradient(180deg,rgb(255 255 255/.06) 0%,rgb(255 255 255/0) 120px),rgb(28 28 30/.9)}
+dialog#ajustes.m-sheet.glass{background:linear-gradient(180deg,rgb(255 255 255/.5) 0%,rgb(255 255 255/0) 120px),rgb(242 242 247/.94)}
+:root[data-theme=dark] dialog#ajustes.m-sheet.glass{background:linear-gradient(180deg,rgb(255 255 255/.06) 0%,rgb(255 255 255/0) 120px),rgb(28 28 30/.94)}
+/* a toda altura (y siempre desde 820 px), opaca: lo de detrás no se trasluce */
+:root dialog#ajustes.m-sheet.glass[data-detent=large]{background:#F2F2F7;-webkit-backdrop-filter:none;backdrop-filter:none}
+:root[data-theme=dark] dialog#ajustes.m-sheet.glass[data-detent=large]{background:#1C1C1E}
 :root[data-glass=off] dialog#ajustes.m-sheet.glass,:root[data-contrast=more] dialog#ajustes.m-sheet.glass{background:#F2F2F7;-webkit-backdrop-filter:none;backdrop-filter:none}
 :root[data-glass=off][data-theme=dark] dialog#ajustes.m-sheet.glass,:root[data-contrast=more][data-theme=dark] dialog#ajustes.m-sheet.glass{background:#1C1C1E}
 @media (prefers-reduced-transparency:reduce){:root dialog#ajustes.m-sheet.glass{background:#F2F2F7;-webkit-backdrop-filter:none;backdrop-filter:none}
@@ -72,8 +75,17 @@ dialog#ajustes.m-sheet.glass{background:linear-gradient(180deg,rgb(255 255 255/.
 @media (max-width:819px){
   dialog#ajustes.m-sheet{height:calc(100dvh - var(--safe-t,0px) - 24px)}
   dialog#ajustes.m-sheet[data-detent=medium]{height:min(calc(100dvh - var(--safe-t,0px) - 24px),max(420px,62dvh))}}
+/* tableta grande y ordenador: hoja de formulario centrada, tan alta como la página que enseña (las páginas se apilan en
+   la misma celda; la que no cabe se desplaza dentro) */
+@media (min-width:820px){
+  dialog#ajustes.m-sheet{--aj-max:min(760px,calc(100dvh - 96px));height:fit-content;max-height:var(--aj-max);padding:0}
+  dialog#ajustes .aj-bar{padding-top:12px}
+  dialog#ajustes .aj-pgs{display:grid;flex:0 1 auto}
+  dialog#ajustes .aj-pg{position:relative;inset:auto;grid-area:1/1;max-height:calc(var(--aj-max) - 72px)}
+  :root dialog#ajustes.m-sheet.glass{background:#F2F2F7;-webkit-backdrop-filter:none;backdrop-filter:none}
+  :root[data-theme=dark] dialog#ajustes.m-sheet.glass{background:#1C1C1E}}
 dialog#ajustes .m-grab{flex:none;margin:0;position:relative}
-.aj-bar{flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:52px;padding:0 12px 6px}
+.aj-bar{flex:none;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:52px;padding:0 16px 8px}
 .aj-tt{grid-column:2;margin:0;font:600 var(--fs-head,1.1875rem)/1.2 var(--f-text,system-ui);color:var(--label);text-align:center;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:56vw}
 .aj-tt:focus{outline:none}
@@ -93,13 +105,14 @@ dialog#ajustes .m-grab{flex:none;margin:0;position:relative}
 .aj-av>img{width:52px;height:52px;object-fit:contain}
 .aj-me-t{flex:1;min-width:0}
 .aj-nm{display:flex;align-items:center;gap:6px;color:var(--label2)}
-.aj-name{flex:1;min-width:0;width:100%;margin:0;padding:4px 0;border:0;border-radius:8px;background:none;color:var(--label);
+.aj-name{flex:1;min-width:0;width:100%;min-height:var(--tap,44px);margin:0;padding:4px 0;border:0;border-radius:8px;background:none;color:var(--label);
   font:700 var(--fs-t3,1.375rem)/1.2 var(--f-round,system-ui)}
 .aj-name::placeholder{color:var(--label2);opacity:1}
 .aj-name:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 .aj-st{display:flex;align-items:center;gap:6px;margin:2px 0 0;font:600 var(--fs-note,.9375rem)/1.3 var(--f-text,system-ui);color:var(--label2)}
 .aj-st .ico{color:var(--gold-ink)}
 dialog#ajustes .st-sec{margin:0 0 24px}
+dialog#ajustes .aj-pg>.st-sec:last-child{margin-bottom:0}
 dialog#ajustes .st-g{border-radius:var(--r-card,24px)}
 dialog#ajustes .st-r{font-size:var(--fs-sub,1.0625rem)}
 dialog#ajustes .st-g>*+.st-r::before{content:"";position:absolute;top:0;left:16px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
@@ -118,9 +131,7 @@ dialog#ajustes a.st-r{color:var(--label)}
 dialog#ajustes .st-g .seg{margin:0;max-width:none}
 .aj-seg{padding:8px}
 dialog#ajustes .st-cred{margin:0}
-.aj-off .off-dl .pr-row{display:flex;flex-wrap:wrap;gap:8px}
-.aj-off .off-dl .btn{min-height:var(--tap,44px)}
-.aj-off .count{color:var(--label2);font:400 var(--fs-note,.9375rem)/1.38 var(--f-text,system-ui)}
+dialog#ajustes .aj-off .off-rows>.st-r:first-child::before{content:"";position:absolute;top:0;left:58px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
 .aj-hint{margin:0 0 16px;padding:0 4px;font:400 var(--fs-sub,1.0625rem)/1.38 var(--f-text,system-ui);color:var(--label2)}
 @media (forced-colors:active){.st-ic{border:1px solid CanvasText}}
 `;
@@ -148,7 +159,7 @@ function build(){
   dlg.innerHTML = `<div class="aj-bar" data-sheet-grab>
       <button type="button" class="aj-back" id="aj-back" hidden>${ico("caret-left", "bold", 22)}<span id="aj-back-t">Ajustes</span></button>
       <h2 class="aj-tt" id="aj-tt" tabindex="-1">Ajustes</h2>
-      <button type="button" class="glass-btn glass-btn--sm glass-btn--pri aj-done" id="aj-done">Listo</button></div>
+      <button type="button" class="glass-btn glass-btn--sm aj-done" id="aj-done">Listo</button></div>
     <div class="aj-pgs" id="aj-pgs"></div>`;
   D.body.appendChild(dlg);
   $("aj-done").onclick = () => close();
@@ -159,6 +170,8 @@ function build(){
     if(dlg.open) return;
     const a = opt.after; opt = {};
     unmountOff();
+    /* al cerrar Ajustes, la Puerta se vuelve a cerrar: el niño no entra después en Para mayores sin pregunta */
+    try{ if(window.adultGate && typeof adultGate.forget === "function") adultGate.forget(); }catch(e){}
     /* fuera las páginas (la próxima vez empieza en la portada, y sus ids no se repiten con la hoja de voz) */
     dlg.querySelectorAll(".aj-pg").forEach(x => x.remove()); stack = [];
     try{ if(typeof voiceNote === "function") voiceNote(); }catch(e){}
@@ -166,7 +179,7 @@ function build(){
     if(typeof a === "function") try{ a(); }catch(e){ console.error(e); }
   });
   /* altura media → grande: al bajar el contenido o al subir el agarre */
-  $("aj-pgs").addEventListener("scroll", e => { if(dlg.dataset.detent === "medium" && e.target.scrollTop > 2) detent("large"); }, true);
+  $("aj-pgs").addEventListener("scroll", e => { if(dlg.dataset.detent === "medium" && e.target === pageEl(curPage()) && !e.target.classList.contains("aj-anim") && e.target.scrollTop > 2) detent("large"); }, true);
   let drag = null;
   dlg.addEventListener("pointerdown", e => {
     drag = e.isPrimary && e.target.closest && e.target.closest(".m-grab,.aj-bar") ? {id: e.pointerId, y: e.clientY, dy: 0} : null;
@@ -231,24 +244,32 @@ function slide(inEl, outEl, dir){
   /* la que sale: se quita si ya no está en la pila (sus ids no se repiten), o se esconde */
   const gone = () => {
     if(!outEl.isConnected || outEl.dataset.pg === curPage()) return;
-    if(stack.includes(outEl.dataset.pg)){ outEl.hidden = true; return; }
-    if(outEl.querySelector("#aj-off")) unmountOff();
-    outEl.remove();
+    const h0 = boxH();
+    if(stack.includes(outEl.dataset.pg)) outEl.hidden = true;
+    else { if(outEl.querySelector("#aj-off")) unmountOff(); outEl.remove(); }
+    fitH(h0);
   };
   if(rm()) return gone();
   const A = (el, k) => { el.classList.add("aj-anim"); const a = el.animate(k, {duration: ms, easing: ease}); const end = () => el.classList.remove("aj-anim"); a.finished.then(end, end); return a; };
   if(dir > 0){ A(inEl, [{transform: "translateX(100%)"}, {transform: "none"}]); A(outEl, [{transform: "none", opacity: 1}, {transform: "translateX(-30%)", opacity: 0}]).finished.then(gone, () => {}); }
   else { A(inEl, [{transform: "translateX(-30%)", opacity: 0}, {transform: "none", opacity: 1}]); A(outEl, [{transform: "none"}, {transform: "translateX(100%)"}]).finished.then(gone, () => {}); }
 }
+/* en el ordenador la hoja mide lo que su página: al cambiar de página, la altura cambia con una animación corta */
+const boxH = () => dlg && dlg.open ? dlg.getBoundingClientRect().height : 0;
+function fitH(h0){
+  if(PHONE.matches || !h0 || !dlg.open || rm()) return;
+  const h1 = boxH(); if(Math.abs(h1 - h0) < 2) return;
+  try{ dlg.animate([{height: h0 + "px"}, {height: h1 + "px"}], {duration: 260, easing: "cubic-bezier(.2,.9,.25,1)"}); }catch(e){}
+}
 function push(p, o = {}){
-  const from = pageEl(curPage());
+  const from = pageEl(curPage()), h0 = boxH();
   stack.push(p);
   const el = render(p, o.focus);
   el.scrollTop = 0;
   paintBar();
-  detent("large", !o.instant);
+  if(p !== "voz") detent("large", !o.instant);   /* Voz y velocidad es corta: se queda a media altura */
   if(o.instant){ if(from) from.hidden = true; el.hidden = false; }
-  else { slide(el, from, 1); try{ $("aj-tt").focus({preventScroll: true}); }catch(e){} }
+  else { slide(el, from, 1); fitH(h0); try{ $("aj-tt").focus({preventScroll: true}); }catch(e){} }
   return el;
 }
 function back(){
@@ -257,7 +278,9 @@ function back(){
   if(out === "voz"){ try{ if(typeof voiceNote === "function") voiceNote(); }catch(e){} }
   if(curPage() === "root") paintRoot();
   paintBar();
+  const h0 = boxH();
   slide(inEl, outEl, -1);
+  fitH(h0);
   try{ $("aj-tt").focus({preventScroll: true}); }catch(e){}
 }
 function close(){
@@ -338,20 +361,21 @@ function credits(){
   return c.replace(/\s*·\s*<b>Vocabulary<\/b>[\s\S]*$/, "") || c;
 }
 function installHtml(){ return typeof installRow === "function" ? installRow() : ""; }
+function voiceHelp(){ try{ return typeof voiceHelpRow === "function" ? voiceHelpRow() : ""; }catch(e){ return ""; } }
 function adultHtml(){
   const ipa = !!uiGet().ipa;
   return `<section class="st-sec" aria-labelledby="aj-g-h"><h3 class="st-h" id="aj-g-h">Google</h3><div data-sync-block>
       <p class="st-foot">Guardar en Google no está disponible ahora.</p></div></section>
     <section class="st-sec" aria-labelledby="aj-app-h"><h3 class="st-h" id="aj-app-h">La app</h3><div class="st-g ics">
       <div id="aj-inst">${installHtml()}</div>
-      <div class="st-r col aj-off" id="aj-off"></div></div></section>
+      <div class="aj-off" id="aj-off"></div></div></section>
     <section class="st-sec" aria-labelledby="aj-l-h"><h3 class="st-h" id="aj-l-h">Lecciones</h3><div class="st-g ics">
       <label class="st-r" for="aj-ipa"><span class="st-ic tl" aria-hidden="true">${ico("text-aa", "bold", 18)}</span>
         <span class="st-l">Mostrar pronunciación (IPA)<small>Símbolos de cómo suena cada palabra.</small></span>
-        <input type="checkbox" role="switch" class="st-sw" id="aj-ipa" ${ipa ? "checked" : ""}></label></div></section>
+        <input type="checkbox" role="switch" class="st-sw" id="aj-ipa" ${ipa ? "checked" : ""}></label>${voiceHelp()}</div></section>
     <section class="st-sec" aria-labelledby="aj-c-h"><h3 class="st-h" id="aj-c-h">Créditos</h3><div class="st-g ics">
       <p class="st-cred">${credits()}</p>
-      <a class="st-r" href="privacy.html" id="aj-priv"><span class="st-ic" aria-hidden="true">${ico("shield-check", "bold", 18)}</span><span class="st-l">Privacidad</span>${chev()}</a>
+      <a class="st-r" href="privacy.html#es" id="aj-priv"><span class="st-ic" aria-hidden="true">${ico("shield-check", "bold", 18)}</span><span class="st-l">Privacidad</span>${chev()}</a>
     </div></section>`;
 }
 function paintInstall(){
@@ -373,7 +397,7 @@ function mountOff(){
   const host = $("aj-off"); if(!host || typeof offlinePanel !== "function") return;
   const other = D.querySelector("main #off-panel");
   if(other && other.querySelector(".off-dl")){ other.innerHTML = ""; offHome = other; }
-  offlinePanel(host);
+  offlinePanel(host, {row: true});
 }
 function unmountOff(){
   const host = $("aj-off"); if(host) host.innerHTML = "";
@@ -409,7 +433,7 @@ function wire(p, el){
     el.querySelector("#aj-acc").onclick = () => push("acc");
     el.querySelector("#aj-may").onclick = e => {
       const b = e.currentTarget;
-      gate("mayores", b).then(ok => { if(ok && dlg.open && curPage() === "root") push("mayores"); });
+      gate("mayores", b).then(ok => { if(ok && dlg.open && curPage() === "root"){ push("mayores"); afterGate(); } });
     };
   } else if(p === "voz"){
     if(typeof openCfg === "function") openCfg(null, null, el);
@@ -424,6 +448,17 @@ function wire(p, el){
     const ipa = el.querySelector("#aj-ipa");
     if(ipa) ipa.onchange = () => { uiSet("ipa", ipa.checked ? true : null); haptic(); };
   }
+}
+/* la Puerta se cierra con su animación y, al cerrarse, el navegador devuelve el foco a la fila que la abrió (que ya está
+   escondida): el foco va al título de la página nueva */
+function afterGate(){
+  const g = $("gate"), t = () => {
+    if(!dlg || !dlg.open) return;
+    const a = D.activeElement, pg = pageEl(curPage());
+    if(a && a !== dlg && (a === $("aj-tt") || (pg && pg.contains(a)))) return;   /* ya está en la página nueva (p. ej. «Entrar con Google») */
+    try{ $("aj-tt").focus({preventScroll: true}); }catch(e){}
+  };
+  if(g && g.open) g.addEventListener("close", () => setTimeout(t, 0), {once: true}); else t();
 }
 function gate(section, from){
   if(typeof window.adultGate !== "function") return Promise.resolve(true);
@@ -442,6 +477,7 @@ async function openSettings(a, b){
   build();
   if(path.some(p => PAGES[p] && PAGES[p].gate) && !(dlg.open && stack.includes("mayores"))){
     if(!await gate(section, o.from)) return false;
+    o.gated = true;
   }
   try{ if(typeof getShop === "function") await getShop(); }catch(e){}
   const focus = section === "google" || section === "descargar" ? section : "";
@@ -460,6 +496,7 @@ async function openSettings(a, b){
     if(typeof o.after === "function") opt.after = o.after;
     for(const p of path) if(!stack.includes(p)) push(p, {focus});
   }
+  if(o.gated) afterGate();
   if(focus === "descargar"){ const x = $("aj-off"); if(x) try{ x.scrollIntoView({block: "center"}); }catch(e){} }
   return true;
 }

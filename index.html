@@ -161,10 +161,19 @@ button{font:inherit;color:inherit;cursor:pointer}
   mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
 /* versión ligera (sin desenfoque, más opaca): granja, juegos, o html[data-glass=lite]. Con :where() pesa lo mismo que
    .glass, así los modos de abajo (sin transparencia, más contraste, data-glass=off) la pisan siempre por orden */
-.glass:where(.lite),:where(:root[data-glass=lite]) .glass{-webkit-backdrop-filter:none;backdrop-filter:none;
+/* Como mucho 3 superficies con desenfoque a la vez (plan §Rendimiento): la barra de pestañas, el grupo de las monedas y
+   el accesorio «Seguir» (o el menú, o una hoja). Van siempre sin desenfoque la bandera, la pastilla «Guardar» y la
+   cápsula de avisos; con una hoja abierta, las barras y el accesorio (quedan bajo su fondo oscurecido); con el menú de
+   idioma abierto, el accesorio. */
+.glass:where(.lite),:where(:root[data-glass=lite]) .glass,
+.glass:where(.tb-flag,.sv-chip,#m-toasts .m-toast),:where(:root[data-sheet]) .glass:where(.tabbar,.tb-group,.acc),:where(:root[data-menu]) .glass:where(.acc){
+  -webkit-backdrop-filter:none;backdrop-filter:none;
   background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),var(--g-lite,rgba(255,255,255,.9))}
-:where(:root[data-theme=dark]) .glass:where(.lite),:where(:root[data-theme=dark][data-glass=lite]) .glass{
+:where(:root[data-theme=dark]) .glass:where(.lite),:where(:root[data-theme=dark][data-glass=lite]) .glass,
+:where(:root[data-theme=dark]) .glass:where(.tb-flag,.sv-chip,#m-toasts .m-toast),:where(:root[data-theme=dark][data-sheet]) .glass:where(.tabbar,.tb-group,.acc),
+:where(:root[data-theme=dark][data-menu]) .glass:where(.acc){
   background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),var(--g-lite-d,rgba(28,28,30,.9))}
+#m-toasts{--g-lite:rgba(255,255,255,.94);--g-lite-d:rgba(28,28,30,.94)}
 
 /* ---------- vidrio sobre contenido: botones de acción (sin desenfoque, tinte opaco) ---------- */
 .glass-btn{--g-rim1:rgba(255,255,255,.75);--g-rim2:rgba(255,255,255,.12);
@@ -238,7 +247,7 @@ kbd{display:inline-flex;align-items:center;justify-content:center;min-width:1.7e
    · #tabhead: título grande y segmentos (.seg, role=tablist) de la pestaña, solo en su raíz.
    · Modo foco html[data-focus] (lección, repaso en marcha, partida): sin barras; .focusbar con la ✕ y el contador de
      monedas [data-coin-target]. html[data-tab] y html[data-sec] dicen la pestaña y la sección actuales. */
-:root{--bar-top:calc(var(--safe-t) + 8px);--topbar-h:calc(var(--safe-t) + 60px);--tabbar-h:62px;--tabbar-b:max(12px,var(--safe-b));
+:root{--bar-top:calc(var(--safe-t) + 8px);--tb-row:var(--tap);--topbar-h:calc(var(--safe-t) + 60px);--tabbar-h:62px;--tabbar-b:max(12px,var(--safe-b));
   --drop:rgba(120,120,128,.15);--drop-hi:inset 0 1px 0 rgba(255,255,255,.75);--edge:rgba(242,242,247,.9);--tab-ink:#0F4FB0}
 :root[data-theme=dark]{--drop:rgba(255,255,255,.08);--drop-hi:inset 0 1px 0 rgba(255,255,255,.16);--edge:rgba(0,0,0,.86);--tab-ink:var(--brand-ink)}
 html{scroll-padding-top:calc(var(--topbar-h) + 8px);scroll-padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 8px)}
@@ -249,7 +258,8 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
 .topbar::after{content:"";position:absolute;z-index:-1;inset:0 0 -14px;pointer-events:none;
   background:linear-gradient(180deg,var(--edge) 0,var(--edge) calc(var(--safe-t) + 6px),rgba(242,242,247,0) 100%)}
 :root[data-theme=dark] .topbar::after{background:linear-gradient(180deg,var(--edge) 0,var(--edge) calc(var(--safe-t) + 6px),rgba(0,0,0,0) 100%)}
-:root[data-tab=granja] .topbar::after{display:none}
+/* en la granja la escena llega hasta arriba (sin el borde que funde); al bajar más allá de ella, el borde vuelve */
+:root[data-tab=granja]:not([data-fm-past]) .topbar::after{display:none}
 .topbar>*{pointer-events:auto}
 .tb-flag{flex:none;width:var(--tap);height:var(--tap);padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer}
 .flag{display:block;width:28px;height:28px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 .5px rgba(0,0,0,.18);flex:none}
@@ -257,34 +267,47 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
 .tb-right{display:flex;align-items:center;gap:8px;min-width:0}
 .tb-slot{display:flex;align-items:center;gap:8px}
 .tb-slot:empty{display:none}
-.tb-slot .sv-chip{position:static;margin:0;box-shadow:none}
+/* la pastilla «Guardar» de sync.js: vidrio de la barra (sin desenfoque: cuenta como el grupo de al lado), texto azul */
+.tb-slot .sv-chip{position:relative;flex:none;margin:0;display:flex;align-items:center;gap:6px;height:var(--tap);min-width:var(--tap);padding:0 16px 0 12px;
+  border:0;border-radius:var(--r-pill);color:var(--brand-ink);font:600 var(--fs-sub)/1 var(--f-text);white-space:nowrap;cursor:pointer}
+.tb-slot .sv-chip .ico{color:var(--brand-tint)}
+/* sin sitio en la barra de arriba (placeBar(), más abajo): solo la nube */
+:root:is([data-bar=slim],[data-bar=compact]) .tb-slot .sv-chip{width:var(--tap);padding:0;justify-content:center}
+:root:is([data-bar=slim],[data-bar=compact]) .tb-slot .sv-chip-t{display:none}
 .tb-group{display:flex;align-items:center;height:var(--tap);border-radius:var(--r-pill);flex:none}
-.tb-coins{display:flex;align-items:center;gap:6px;height:var(--tap);min-width:var(--tap);padding:0 10px 0 11px;border:0;background:none;border-radius:var(--r-pill);
+.tb-coins{display:flex;align-items:center;gap:4px;height:var(--tap);min-width:var(--tap);padding:0 12px;border:0;background:none;border-radius:var(--r-pill);
   font:800 calc(1.1875rem*var(--k))/1 var(--f-round);font-variant-numeric:tabular-nums;color:var(--gold-ink);white-space:nowrap;cursor:pointer}
 .coin-ico{display:block;width:22px;height:22px;flex:none}
 .tb-sep{flex:none;width:1px;height:20px;background:var(--sep)}
 .tb-gear{flex:none;width:var(--tap);height:var(--tap);padding:0;border:0;background:none;border-radius:50%;display:grid;place-items:center;color:var(--label);cursor:pointer}
 /* menú de idioma (vidrio, radio 20): los tres idiomas con su bandera y ✓ en el elegido */
-.lang-m{position:fixed;z-index:calc(var(--z-bar) + 5);top:calc(var(--bar-top) + var(--tap) + 8px);left:max(16px,var(--safe-l));
-  width:min(280px,calc(100vw - 32px));padding:6px;border-radius:var(--r-menu)}
+.lang-m{position:fixed;z-index:calc(var(--z-bar) + 5);top:calc(var(--bar-top) + var(--tb-row) + 8px);left:max(16px,var(--safe-l));
+  width:min(280px,calc(100vw - 32px));padding:4px;border-radius:var(--r-menu)}
+/* un menú con filas de texto: tinte más denso, para que la letra grande de detrás no se lea entre las filas */
+.lang-m.glass{--g-tint:rgba(255,255,255,.84)}
+:root[data-theme=dark] .lang-m.glass{--g-tint:rgba(28,28,30,.82)}
 .lang-m[hidden]{display:none}
-.lm-i{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--row);padding:6px 12px;border:0;background:none;border-radius:14px;
+.lm-i{position:relative;display:flex;align-items:center;gap:12px;width:100%;min-height:var(--row);padding:8px 12px;border:0;background:none;border-radius:16px;
   color:var(--label);font:600 var(--fs-body)/1.2 var(--f-text);text-align:left;cursor:pointer}
-.lm-i+.lm-i{box-shadow:0 -.5px 0 var(--sep)}
+/* separador recto de media línea, como en las filas de Ajustes (sin las puntas curvas de una sombra con radio) */
+.lm-i+.lm-i::before{content:"";position:absolute;top:0;left:52px;right:12px;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0;pointer-events:none}
 .lm-i:hover{background:var(--fill2)}
+.lm-i:hover::before,.lm-i:hover+.lm-i::before{visibility:hidden}
 .lm-t{flex:1;min-width:0}.lm-t small{display:block;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
 .lm-i .lm-chk{flex:none;color:var(--brand-ink);visibility:hidden}
 .lm-i[aria-checked=true] .lm-chk{visibility:visible}
 /* barra de pestañas flotante */
 .tabbar{position:fixed;z-index:var(--z-bar);left:max(16px,var(--safe-l));right:max(16px,var(--safe-r));bottom:var(--tabbar-b);
   max-width:520px;height:var(--tabbar-h);margin:0 auto;padding:4px;display:flex;border-radius:calc(var(--tabbar-h) / 2)}
+/* nav (punto de referencia «Principal») › div role=tablist › las 5 a.tab */
+.tb-list{flex:1 1 auto;min-width:0;display:flex}
 .tab{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
   border-radius:calc(var(--tabbar-h) / 2 - 4px);color:var(--label);text-decoration:none;font:600 var(--fs-tab)/1.17 var(--f-text);letter-spacing:-.1px;
   cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 .tab .ico{width:26px;height:26px}
 .tab .tl{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tab[aria-selected=true]{color:var(--tab-ink);background:var(--drop);box-shadow:var(--drop-hi)}
-.tab[aria-selected=true] .ico{color:var(--brand-tint)}
+.tab[aria-selected=true] .ico{color:var(--tab-ink)}   /* icono y nombre del mismo azul: en claro uno algo más oscuro que el de texto, que da 4,5:1 sobre la gota gris */
 .tab[aria-selected=true]::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;pointer-events:none;opacity:.8;
   background:linear-gradient(135deg,var(--g-rim1) 0%,var(--g-rim2) 28%,rgba(255,255,255,.04) 55%,var(--g-rim2) 78%,var(--g-rim1) 100%);
   -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
@@ -295,37 +318,54 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
   box-shadow:0 0 0 2px var(--g-solid);pointer-events:none}
 .tb-badge.dot{top:6px;left:calc(50% + 9px);min-width:0;width:10px;height:10px;padding:0}
 .tb-badge[hidden]{display:none}
-/* en la granja la barra va sin desenfoque: casi opaca para que los textos de debajo no se mezclen con los nombres */
-.tabbar{--g-lite:rgba(255,255,255,.96);--g-lite-d:rgba(28,28,30,.96)}
+/* en la granja la barra va sin desenfoque: casi opaca para que los textos de debajo no se mezclen con los nombres (lo
+   mismo los botones de arriba cuando van sin desenfoque) */
+.tabbar,.topbar,.acc{--g-lite:rgba(255,255,255,.96);--g-lite-d:rgba(28,28,30,.96)}
 .tabbar.lite .tab[aria-selected=true]{background:rgba(120,120,128,.10)}
 :root[data-theme=dark] .tabbar.lite .tab[aria-selected=true]{background:var(--drop)}
 @media (prefers-contrast:more){.tab[aria-selected=true]::before{display:none}.tab[aria-selected=true]{box-shadow:inset 0 0 0 2px var(--brand-tint)}}
 :root[data-contrast=more] .tab[aria-selected=true]::before{display:none}
 :root[data-contrast=more] .tab[aria-selected=true]{box-shadow:inset 0 0 0 2px var(--brand-tint)}
 @media (forced-colors:active){.tab[aria-selected=true]{outline:2px solid Highlight}.tb-badge{border:1px solid CanvasText}}
-/* tableta grande y ordenador: la barra flota arriba y centrada, en la fila de la bandera y las monedas */
+/* tableta grande y ordenador: la barra flota arriba, en la fila de la bandera y las monedas. Va dentro de header.topbar
+   (placeBar() la mueve ahí: así el orden del teclado es el de la pantalla), que pasa a rejilla de 3 columnas: las de
+   los lados se reparten el sitio que sobra, y la barra queda centrada en la pantalla si cabe o se corre lo justo si el
+   grupo de la derecha es ancho, siempre a 12 px como poco de los otros botones. Pestañas de 44 px de alto (la barra,
+   52) con los nombres enteros: si no caben, placeBar() deja solo la nube en la pastilla «Guardar» (data-bar=slim),
+   luego aprieta las pestañas (compact) y, si aun así no caben (texto muy grande), la barra vuelve abajo (bottom). */
 @media (min-width:820px){
-  main{padding-bottom:48px}
-  html{scroll-padding-bottom:16px}
-  .tabbar{top:var(--bar-top);bottom:auto;left:50%;right:auto;width:max-content;max-width:calc(100vw - 2 * 168px);height:var(--tap);margin:0;
-    transform:translateX(-50%);border-radius:calc(var(--tap) / 2)}
-  .tab{flex:0 1 auto;flex-direction:row;gap:6px;padding:0 13px;border-radius:calc(var(--tap) / 2 - 4px);font-size:calc(.875rem*var(--k))}
-  .tab .ico{width:20px;height:20px}
-  .tb-badge{position:static;margin-left:2px}
-  .tb-badge.dot{margin-left:0}
+  :root:not([data-bar=bottom]){--tb-row:52px;--topbar-h:calc(var(--safe-t) + 68px);scroll-padding-bottom:16px}
+  :root:not([data-bar=bottom]) main{padding-bottom:48px}
+  :root:not([data-bar=bottom]) .topbar{display:grid;grid-template-columns:minmax(max-content,1fr) auto minmax(max-content,1fr);column-gap:12px}
+  :root:not([data-bar=bottom]) .topbar>.tb-flag{grid-column:1;justify-self:start}
+  :root:not([data-bar=bottom]) .topbar>.tabbar{grid-column:2}
+  :root:not([data-bar=bottom]) .topbar>.tb-right{grid-column:3;justify-self:end}
+  :root:not([data-bar=bottom]) .tabbar{position:relative;inset:auto;z-index:auto;width:max-content;max-width:none;height:var(--tb-row);margin:0;
+    padding:4px;border-radius:calc(var(--tb-row) / 2)}
+  :root:not([data-bar=bottom]) .tb-list{flex:none}
+  :root:not([data-bar=bottom]) .tab{flex:none;flex-direction:row;gap:6px;min-height:var(--tap);padding:0 14px;border-radius:calc(var(--tap) / 2);font-size:calc(.875rem*var(--k))}
+  :root:not([data-bar=bottom]) .tab .tl{max-width:none;overflow:visible;text-overflow:clip}
+  :root:not([data-bar=bottom]) .tab .ico{width:20px;height:20px}
+  :root:not([data-bar=bottom]) .tb-badge{position:static;margin-left:2px}
+  :root:not([data-bar=bottom]) .tb-badge.dot{margin-left:0}
+  :root[data-bar=compact] .tab{gap:4px;padding:0 8px;font-size:calc(.8125rem*var(--k))}
 }
-@media (min-width:820px) and (max-width:979px){.tab{gap:5px;padding:0 9px;font-size:calc(.8125rem*var(--k))}}
 /* título grande y segmentos de la pestaña (solo en su raíz; las pantallas no pintan otro título grande) */
-.tabhead{padding-top:2px}
+.tabhead{padding-top:4px}
 .tabhead[hidden]{display:none}
 .th-t{margin:0 0 12px;color:var(--label)}
-.seg{display:flex;gap:2px;width:100%;max-width:560px;min-height:var(--tap);padding:2px;margin:0 0 18px;border-radius:var(--r-pill);background:var(--fill2)}
-.seg-i{flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;padding:0 6px;border:0;background:none;border-radius:var(--r-pill);
+.seg{display:flex;gap:2px;width:100%;max-width:560px;min-height:48px;padding:2px;margin:0 0 20px;border-radius:var(--r-pill);background:var(--fill2)}
+.seg-i{position:relative;flex:1 1 0;min-width:0;min-height:var(--tap);display:flex;align-items:center;justify-content:center;gap:6px;padding:0 8px;border:0;background:none;border-radius:var(--r-pill);
   color:var(--label);font:600 var(--fs-note)/1.15 var(--f-text);text-align:center;text-decoration:none;white-space:nowrap;cursor:pointer;
   -webkit-tap-highlight-color:transparent}
 .seg-i[aria-selected=true],.seg-i[aria-checked=true]{background:var(--card);box-shadow:0 3px 8px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.04)}
 :root[data-theme=dark] .seg-i[aria-selected=true],:root[data-theme=dark] .seg-i[aria-checked=true]{background:#636366;color:#fff}
 .seg-i:focus-visible{outline-offset:-2px}
+/* el aviso de la pestaña, repetido en el segmento al que se refiere («Repasar 9+», punto en «Álbum») */
+.seg-i[data-badge]::after{content:attr(data-badge);flex:none;box-sizing:border-box;min-width:20px;height:20px;padding:0 6px;border-radius:10px;
+  background:var(--brand-fill);color:#fff;font:700 calc(.8125rem*var(--k))/20px var(--f-text);font-variant-numeric:tabular-nums;text-align:center}
+.seg-i[data-badge=""]::after{min-width:0;width:8px;height:8px;padding:0}
+@media (forced-colors:active){.seg-i[data-badge]::after{border:1px solid CanvasText}}
 @media (prefers-contrast:more){.seg-i[aria-selected=true],.seg-i[aria-checked=true]{outline:2px solid var(--label);outline-offset:-2px}}
 @media (forced-colors:active){.seg-i[aria-selected=true],.seg-i[aria-checked=true]{outline:2px solid Highlight}}
 /* solo para el lector de pantalla */
@@ -348,7 +388,8 @@ html[data-focus]{scroll-padding-top:calc(var(--bar-top) + var(--tap) + 8px);scro
 :root[data-focus] .ls-top,:root[data-focus] .gm-top{margin-top:calc(-1 * (var(--tap) + 12px));min-height:var(--tap);padding:0 92px 0 56px}
 :root[data-focus] .ls-top .x,:root[data-focus] .gm-x,:root[data-focus] .back[href="#/repaso"],:root[data-focus] .gm .back[href="#/juegos"]{display:none!important}
 /* la cápsula de avisos sale debajo de las barras de arriba */
-html #m-toasts{inset:calc(var(--bar-top) + var(--tap) + 8px) 0 auto 0}
+html #m-toasts{inset:calc(var(--bar-top) + var(--tb-row) + 8px) 0 auto 0}
+:root[data-focus] #m-toasts{inset:calc(var(--bar-top) + var(--tap) + 8px) 0 auto 0}
 /* filas agrupadas de las hojas: Ajustes (js/settings.js, dialog#ajustes) y la hoja de voz (dialog#cfg, openCfg) */
 #cfg.m-sheet{max-width:600px}
 .st-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 16px}
@@ -371,11 +412,14 @@ button.st-r{cursor:pointer}
 .st-l{flex:1;min-width:0}
 .st-l small{display:block;font:400 var(--fs-note)/1.33 var(--f-text);color:var(--label2)}
 .st-ic{flex:none;width:30px;height:30px;border-radius:8px;display:grid;place-items:center;color:#fff;background:var(--brand-fill)}
-.st-ic.tl{background:#008198}.st-ic.gr{background:#8E8E93}
+.st-ic.tl{background:var(--brand-fill)}.st-ic.gr{background:#8E8E93}   /* (tl: el verde azulado es solo adorno de progreso) */
 .st-r.col select,.st-r.col input[type=range]{width:100%}
 dialog .st-r.col>label{margin:0;font:600 var(--fs-sub)/1.3 var(--f-text)}
 .st-r[data-sync-cfg]:empty{display:none}
 .st-r .dlbl{margin:0}
+.dlbl span{display:inline-flex;align-items:center;gap:4px}
+button.st-r:disabled{cursor:default;color:var(--label2)}
+button.st-r:disabled .st-ic{background:#8E8E93}
 .st-btn{color:var(--brand-ink);font-weight:600}
 .st-sw{appearance:none;-webkit-appearance:none;flex:none;position:relative;width:51px;height:31px;margin:0;border-radius:16px;
   background:rgba(120,120,128,.32);cursor:pointer;transition:background var(--d-fast,160ms) ease}
@@ -388,6 +432,11 @@ dialog .st-r.col>label{margin:0;font:600 var(--fs-sub)/1.3 var(--f-text)}
 .st-cred{padding:14px 16px;font:400 var(--fs-note)/1.45 var(--f-text);color:var(--label2)}
 .st-cred a{color:var(--brand-ink)}
 .st-g .off-dl .pr-row{gap:8px}
+.off-rows .st-r{position:relative}
+.off-rows>.st-r+.st-r::before{content:"";position:absolute;top:0;left:58px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
+.off-prog{padding-left:58px}
+.off-prog .off-bar{flex:1;margin:0}
+.off-x{flex:none;min-height:var(--tap);padding:0 4px;border:0;background:none;font:600 var(--fs-sub)/1.2 var(--f-text);cursor:pointer}
 .st-g .sv-cfg{margin:0}
 /* Aprender › Palabras: los temas en tarjetas */
 .doc{display:flex;flex-direction:column;gap:2px;min-height:var(--row);text-decoration:none;color:var(--label);background:var(--card);
@@ -406,18 +455,18 @@ dialog .st-r.col>label{margin:0;font:600 var(--fs-sub)/1.3 var(--f-text)}
    Una sola pantalla sin scroll (390×844 con la barra de pestañas): .hm-hero, la tarjeta principal sólida (el zorro con
    su frase, el título y el subtítulo de nextAction() y «▶ Empezar»); .hm-row, la fila compacta de 52 px («Repasar N» y lo
    que devuelven los HOME_SLOTS con homeRow()); .hm-pair, las dos piezas de buddy.js (Misiones y Palabra del día); y
-   «Privacidad». Columna de 600 px como mucho; desde 820 px, dos columnas centradas (sin estirar las piezas). */
-:root[data-tab=hoy][data-sec=""] #tabhead,:root[data-tab=hoy][data-sec=""] #app{max-width:632px}
-.hm{display:flex;flex-direction:column;gap:12px}
+   «Privacidad». Columna de 600 px como mucho; desde 820 px, dos columnas. El título y la columna empiezan donde en las
+   otras pestañas (el mismo marco .wrap): cambiar de pestaña no mueve el título. */
+.hm{display:flex;flex-direction:column;gap:12px;max-width:600px}
 .hm-side{display:flex;flex-direction:column;gap:12px;min-width:0}
 .hm-hero{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;column-gap:10px;padding:16px;text-align:center}
 .hm-fox{flex:none;display:flex;transform-origin:50% 92%}
-.hm-say{position:relative;flex:0 1 auto;min-width:0;margin:0 0 0 6px;padding:6px 14px;border-radius:16px;background:var(--card-2);color:var(--label);
+.hm-say{position:relative;flex:0 1 auto;min-width:0;margin:0 0 0 8px;padding:8px 16px;border-radius:16px;background:var(--card-2);color:var(--label);
   font:600 var(--fs-sub)/1.2 var(--f-text);text-align:left;overflow-wrap:anywhere}
 .hm-say::before{content:"";position:absolute;left:-6px;top:50%;margin-top:-7px;border:7px solid transparent;border-left:0;border-right:6px solid var(--card-2)}
-.hm-t{flex-basis:100%;margin:10px 0 0;font:700 var(--fs-t2)/1.2 var(--f-round);color:var(--label);text-wrap:balance;overflow-wrap:anywhere}
+.hm-t{flex-basis:100%;margin:12px 0 0;font:700 var(--fs-t2)/1.2 var(--f-round);color:var(--label);text-wrap:balance;overflow-wrap:anywhere}
 .hm-sub{flex-basis:100%;margin:2px 0 0;font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
-.hm-go{margin-top:14px}
+.hm-go{margin-top:16px}
 /* el zorro saluda una vez al entrar (el único reclamo de la pantalla) y da un saltito al ganar monedas */
 .hm-fox.wave{animation:hm-wave 1.1s cubic-bezier(.4,0,.3,1) .3s 1 both}
 .hm-fox.hop{animation:hm-hop .5s cubic-bezier(.3,.9,.4,1) 1}
@@ -425,10 +474,10 @@ dialog .st-r.col>label{margin:0;font:600 var(--fs-sub)/1.3 var(--f-text)}
 @keyframes hm-hop{0%,100%{translate:0 0}40%{translate:0 -14px}}
 @media (prefers-reduced-motion:reduce){.hm-fox.wave,.hm-fox.hop{animation:none}}
 /* fila compacta (homeRow): icono en círculo, texto, número opcional y flecha */
-.hm-row{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--row);margin:0;padding:6px 12px 6px 10px;border:0;border-radius:calc(var(--row) / 2);
+.hm-row{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--row);margin:0;padding:8px 12px;border:0;border-radius:calc(var(--row) / 2);
   color:var(--label);text-decoration:none;text-align:left;font:600 var(--fs-head)/1.2 var(--f-text);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .hm-ric{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--brand-fill);color:#fff;font-size:18px;line-height:1}
-.hm-ric.teal{background:#008198}.hm-ric.gold{background:var(--gold);color:var(--gold-on)}.hm-ric.gray{background:#8E8E93}.hm-ric.emo{background:var(--fill2);font-size:20px}
+.hm-ric.teal{background:var(--brand-fill)}.hm-ric.gold{background:var(--gold);color:var(--gold-on)}.hm-ric.gray{background:#8E8E93}.hm-ric.emo{background:var(--fill2);font-size:20px}
 .hm-rt{flex:1;min-width:0;overflow-wrap:anywhere}
 .hm-rt small{display:block;margin-top:1px;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
 .hm-badge{flex:none;min-width:28px;height:24px;padding:0 8px;border-radius:12px;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-ink);
@@ -448,40 +497,56 @@ dialog .st-r.col>label{margin:0;font:600 var(--fs-sub)/1.3 var(--f-text)}
 .hm-slots .hm-slot>:not(.hm-row) p{display:none}
 .hm-slots .hm-slot>:not(.hm-row) :is(.btn,button){min-height:var(--tap);padding:0 12px;font-size:var(--fs-note);box-shadow:none}
 .hm-slots .hm-slot>:not(.hm-row) div:has(>:is(.btn,button)){margin:0;gap:0 6px}
-.hm-priv{margin:-6px 0 0;text-align:center;font:400 var(--fs-min)/1.38 var(--f-text)}
+.hm-priv{margin:-8px 0 0;text-align:center;font:400 var(--fs-min)/1.38 var(--f-text)}
+/* móviles bajos (iPhone SE 375×667, Android 360×740): Hoy sigue cabiendo sin scroll; zorro y título más pequeños, menos
+   aire y un solo HOME_SLOT (homeSlots()) */
+@media (max-width:819px) and (max-height:760px){
+  #tabhead .th-t{margin-bottom:8px}
+  .hm,.hm-side,.hm-pair{gap:8px}
+  .hm-hero{padding:12px 16px}
+  .hm-fox .hero{font-size:40px!important}
+  .hm-say{padding:6px 12px}
+  .hm-t{margin-top:8px;font-size:var(--fs-t3)}
+  .hm-go{margin-top:12px;min-height:48px}
+  .hm-priv{margin-top:-4px}
+  :root[data-tab=hoy]:not([data-acc]) main{padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 8px)}   /* «Privacidad», justo encima de la barra */
+}
+/* texto más grande: 4 px menos de aire para que siga cabiendo */
+:root[data-text=large] .hm-t{margin-top:8px}
 .hm-priv a{display:inline-flex;align-items:center;min-height:var(--tap);padding:0 12px;color:var(--label2);text-decoration:none}
 @media (min-width:820px){
-  :root[data-tab=hoy][data-sec=""] #tabhead,:root[data-tab=hoy][data-sec=""] #app{max-width:1000px}
-  .hm{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+  .hm{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start;max-width:none}
   .hm-hero{align-self:stretch;align-content:center;padding:24px}
   .hm-fox .hero{font-size:72px!important}
   .hm-side,.hm-pair{gap:16px}
   .hm-priv{grid-column:1/-1}
 }
-/* accesorio «Seguir» (algo empezado: una lección guardada o un repaso abierto): cápsula de vidrio sobre la barra de
-   pestañas con un anillo de progreso. En el ordenador, abajo y centrado. */
-.acc{position:fixed;z-index:var(--z-acc);left:50%;bottom:calc(var(--tabbar-b) + var(--tabbar-h) + 10px);transform:translateX(-50%);
-  display:flex;align-items:center;gap:10px;max-width:calc(100vw - 32px);min-height:var(--tap-bar);padding:0 20px 0 7px;border-radius:var(--r-pill);
+/* accesorio «Seguir» (algo empezado: una lección guardada o un repaso abierto): cápsula de vidrio del ancho de la barra
+   de pestañas, justo encima, como el minirreproductor de Música: anillo de progreso, «Seguir · Lección 4» y la flecha.
+   En el ordenador (la barra va arriba), abajo y centrado, con el mismo ancho como mucho. */
+.acc{position:fixed;z-index:var(--z-acc);left:max(16px,var(--safe-l));right:max(16px,var(--safe-r));bottom:calc(var(--tabbar-b) + var(--tabbar-h) + 8px);
+  max-width:520px;margin:0 auto;display:flex;align-items:center;gap:12px;min-height:var(--tap-bar);padding:0 16px 0 8px;border-radius:var(--r-pill);
   color:var(--label);text-decoration:none;font:600 var(--fs-sub)/1.2 var(--f-text);white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.acc-go{flex:none;color:var(--label2)}
 .acc[hidden],:root[data-focus] .acc{display:none}
 .acc-ring{position:relative;flex:none;width:34px;height:34px;display:grid;place-items:center;color:var(--brand-tint)}
 .acc-rs{position:absolute;inset:0;width:100%;height:100%;rotate:-90deg}
 .acc-ring circle{fill:none;stroke-width:3.5}
 .acc-bg{stroke:var(--fill)}
 .acc-fg{stroke:var(--teal);stroke-linecap:round;transition:stroke-dasharray var(--d-base,260ms) ease}
-.acc-t{overflow:hidden;text-overflow:ellipsis}
+.acc-t{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .acc-t b{font-weight:700}
 :root[data-acc]:not([data-focus]) main{padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 38px + var(--tap-bar))}
 @media (min-width:820px){
-  .acc{bottom:calc(16px + var(--safe-b))}
-  :root[data-acc]:not([data-focus]) main{padding-bottom:calc(64px + var(--tap-bar))}
+  :root:not([data-bar=bottom]) .acc{bottom:calc(16px + var(--safe-b))}
+  :root[data-acc]:not([data-focus]):not([data-bar=bottom]) main{padding-bottom:calc(64px + var(--tap-bar))}
 }
 /* «Reducir movimiento»: el del aparato y el de Ajustes (html[data-motion=calm]) hacen lo mismo. Aquí, para todo:
    animaciones y transiciones cortas (≤150 ms) y sin bucles; las reglas propias de cada pantalla y módulo para el
    aparato se copian para data-motion=calm en <style id="css-calm"> (calmCss() más abajo). */
-@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:150ms!important;animation-delay:0s!important;
+@media (prefers-reduced-motion:reduce){*,*::before,*::after,::backdrop{animation-duration:150ms!important;animation-delay:0s!important;
   animation-iteration-count:1!important;transition-duration:150ms!important;transition-delay:0s!important;scroll-behavior:auto!important}}
-:root[data-motion=calm] *,:root[data-motion=calm] *::before,:root[data-motion=calm] *::after{animation-duration:150ms!important;
+:root[data-motion=calm] *,:root[data-motion=calm] *::before,:root[data-motion=calm] *::after,:root[data-motion=calm] ::backdrop{animation-duration:150ms!important;
   animation-delay:0s!important;animation-iteration-count:1!important;transition-duration:150ms!important;transition-delay:0s!important;
   scroll-behavior:auto!important}
 h1{font:700 1.75rem/1.2 var(--f-round);margin:4px 0 6px}
@@ -905,7 +970,7 @@ details.adult[open] summary{margin-bottom:10px}
 <symbol id="i-plus-bold" viewBox="0 0 256 256"><path d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z"/></symbol>
 <symbol id="i-eye-bold" viewBox="0 0 256 256"><path d="M251,123.13c-.37-.81-9.13-20.26-28.48-39.61C196.63,57.67,164,44,128,44S59.37,57.67,33.51,83.52C14.16,102.87,5.4,122.32,5,123.13a12.08,12.08,0,0,0,0,9.75c.37.82,9.13,20.26,28.49,39.61C59.37,198.34,92,212,128,212s68.63-13.66,94.48-39.51c19.36-19.35,28.12-38.79,28.49-39.61A12.08,12.08,0,0,0,251,123.13Zm-46.06,33C183.47,177.27,157.59,188,128,188s-55.47-10.73-76.91-31.88A130.36,130.36,0,0,1,29.52,128,130.45,130.45,0,0,1,51.09,99.89C72.54,78.73,98.41,68,128,68s55.46,10.73,76.91,31.89A130.36,130.36,0,0,1,226.48,128,130.45,130.45,0,0,1,204.91,156.12ZM128,84a44,44,0,1,0,44,44A44.05,44.05,0,0,0,128,84Zm0,64a20,20,0,1,1,20-20A20,20,0,0,1,128,148Z"/></symbol>
 <symbol id="i-speaker-high-bold" viewBox="0 0 256 256"><path d="M157.27,21.22a12,12,0,0,0-12.64,1.31L75.88,76H32A20,20,0,0,0,12,96v64a20,20,0,0,0,20,20H75.88l68.75,53.47A12,12,0,0,0,164,224V32A12,12,0,0,0,157.27,21.22ZM36,100H68v56H36Zm104,99.46L92,162.13V93.87l48-37.33ZM212,128a44,44,0,0,1-11,29.11,12,12,0,1,1-18-15.88,20,20,0,0,0,0-26.43,12,12,0,0,1,18-15.86A43.94,43.94,0,0,1,212,128Zm40,0a83.87,83.87,0,0,1-21.39,56,12,12,0,0,1-17.89-16,60,60,0,0,0,0-80,12,12,0,1,1,17.88-16A83.87,83.87,0,0,1,252,128Z"/></symbol>
-<symbol id="i-turtle-bold" viewBox="0 0 256 256"><g fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 180a94 104 0 0 1 188 0ZM112 102l30 17v34l-30 17-30-17v-34ZM62 180v36M162 180v36"/><circle cx="216" cy="146" r="26"/></g><circle cx="219" cy="143" r="7"/></symbol>
+<symbol id="i-turtle-bold" viewBox="0 0 256 256"><g fill="none" stroke="currentColor" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"><path d="M18 180a94 104 0 0 1 188 0ZM112 102l30 17v34l-30 17-30-17v-34ZM62 180v36M162 180v36"/><circle cx="216" cy="146" r="26"/></g><circle cx="219" cy="143" r="7"/></symbol><symbol id="i-rabbit-bold" viewBox="0 0 256 256"><path d="M120,160a16,16,0,1,1-16-16A16,16,0,0,1,120,160Zm32-16a16,16,0,1,0,16,16A16,16,0,0,0,152,144Zm68,44a56,56,0,0,1-92,42.89,56,56,0,0,1-75-83,75.47,75.47,0,0,1,5.59-18.74,241.48,241.48,0,0,1-19.8-58.23C35.55,54.21,33.54,31.35,42.21,17A25.89,25.89,0,0,1,65.06,4c22.63,0,40.6,27.11,53.48,80.6a74.88,74.88,0,0,1,18.92,0C150.34,31.11,168.31,4,190.94,4a25.89,25.89,0,0,1,22.85,13c8.67,14.34,6.66,37.2,3.45,53.86a241.48,241.48,0,0,1-19.8,58.23A75.6,75.6,0,0,1,203,147.84,55.76,55.76,0,0,1,220,188ZM160.53,91.32a75.84,75.84,0,0,1,18.72,12.56c.78.71,1.53,1.43,2.28,2.17a211,211,0,0,0,12.14-39.73c3.9-20.23,2.34-32.33-.42-36.9C192.43,28.07,192,28,190.94,28,184.77,28,171.51,45.4,160.53,91.32ZM74.47,106.05c.74-.73,1.5-1.46,2.28-2.17A75.84,75.84,0,0,1,95.47,91.32C84.49,45.4,71.23,28,65.06,28c-1.08,0-1.49.07-2.31,1.42C56.54,39.7,60.73,72.84,74.47,106.05ZM196,188a31.9,31.9,0,0,0-11.86-24.87,12,12,0,0,1-4.38-8.17,52,52,0,0,0-103.52,0,12,12,0,0,1-4.38,8.17,32,32,0,0,0,38.47,51.08l-6-5a12,12,0,0,1,15.34-18.46L128,197.7l8.33-6.93a12,12,0,1,1,15.34,18.46l-6,5A32,32,0,0,0,196,188Z"/></symbol>
 <symbol id="i-speaker-slash-bold" viewBox="0 0 256 256"><path d="M56.88,31.93A12,12,0,1,0,39.12,48.07L64.51,76H32A20,20,0,0,0,12,96v64a20,20,0,0,0,20,20H75.88l68.75,53.47A12,12,0,0,0,164,224V185.44l35.12,38.63a12,12,0,0,0,17.76-16.14ZM36,100H68v56H36Zm104,99.46L92,162.13V106.24L140,159Zm-31-134a12,12,0,0,1,2.11-16.84l33.51-26.07A12,12,0,0,1,164,32V94.94a12,12,0,0,1-24,0V56.54l-14.15,11A12,12,0,0,1,109,65.44Zm74,49.35a12,12,0,0,1,18-15.85,44,44,0,0,1,5.55,50.21,12,12,0,0,1-21-11.55A19.67,19.67,0,0,0,188,128,20,20,0,0,0,183,114.79ZM252,128a84.18,84.18,0,0,1-19.11,53.35,12,12,0,1,1-18.53-15.25A60,60,0,0,0,212.73,88a12,12,0,1,1,17.88-16A83.87,83.87,0,0,1,252,128Z"/></symbol>
 <symbol id="i-lightbulb-bold" viewBox="0 0 256 256"><path d="M180,232a12,12,0,0,1-12,12H88a12,12,0,0,1,0-24h80A12,12,0,0,1,180,232Zm40-128a91.51,91.51,0,0,1-35.17,72.35A12.26,12.26,0,0,0,180,186v2a20,20,0,0,1-20,20H96a20,20,0,0,1-20-20v-2a12,12,0,0,0-4.7-9.51A91.57,91.57,0,0,1,36,104.52C35.73,54.69,76,13.2,125.79,12A92,92,0,0,1,220,104Zm-24,0a68,68,0,0,0-69.65-68C89.56,36.88,59.8,67.55,60,104.38a67.71,67.71,0,0,0,26.1,53.19A35.87,35.87,0,0,1,100,184h56.1A36.13,36.13,0,0,1,170,157.49,67.68,67.68,0,0,0,196,104Zm-20.07-5.32a48.5,48.5,0,0,0-31.91-40,12,12,0,0,0-8,22.62,24.31,24.31,0,0,1,16.09,20,12,12,0,0,0,23.86-2.64Z"/></symbol>
 <symbol id="i-microphone-bold" viewBox="0 0 256 256"><path d="M128,180a52.06,52.06,0,0,0,52-52V64A52,52,0,0,0,76,64v64A52.06,52.06,0,0,0,128,180ZM100,64a28,28,0,0,1,56,0v64a28,28,0,0,1-56,0Zm40,155.22V240a12,12,0,0,1-24,0V219.22A92.14,92.14,0,0,1,36,128a12,12,0,0,1,24,0,68,68,0,0,0,136,0,12,12,0,0,1,24,0A92.14,92.14,0,0,1,140,219.22Z"/></symbol>
@@ -987,12 +1052,13 @@ details.adult[open] summary{margin-bottom:10px}
   </div>
 </header>
 <div class="lang-m glass" id="lang-m" role="menu" aria-label="Idioma que aprendes" hidden></div>
-<nav class="tabbar glass" id="tabbar" role="tablist" aria-label="Secciones"></nav>
+<nav class="tabbar glass" id="tabbar" aria-label="Principal"></nav>
 <div class="focusbar" id="focusbar">
   <a class="fx-x glass" id="fx-x" href="#/" aria-label="Salir"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-x-bold"></use></svg></a>
   <span class="fx-coins" data-coin-target><svg class="coin-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFCC00"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7A000" stroke-opacity=".8"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B39000" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7.8 13.06 10.54 15.99 10.7 13.71 12.56 14.47 15.4 12 13.8 9.53 15.4 10.29 12.56 8.01 10.7 10.94 10.54Z" fill="#A88700" fill-opacity=".8"/><path d="M6.4 8.2a7 7 0 0 1 4.4-3.4" stroke="#fff" stroke-opacity=".85" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg><span data-coins-n>0</span><span class="vh"> monedas</span></span>
 </div>
 <dialog id="cfg" aria-labelledby="cfg-tt"></dialog>
+<p class="vh" id="route-say" aria-live="polite" aria-atomic="true"></p>
 <main><div class="wrap tabhead" id="tabhead" hidden></div><div class="wrap" id="app"><p class="empty">Cargando…</p></div></main>
 <script>
 const LANGS = {
@@ -1120,7 +1186,7 @@ function voiceNote(){
   const el = $("#voicenote"); if(!el) return;
   if(!("speechSynthesis" in window)){ el.innerHTML = "Tu navegador no permite audio."; el.hidden=false; return; }
   if(voices.length && !voiceFor(LANGS[lang].code)){
-    el.innerHTML = `Este dispositivo no tiene una voz en ${LANGS[lang].name}, así que el audio puede sonar con acento equivocado. En Windows: <b>Configuración › Hora e idioma › Voz › Agregar voces</b>. En Android o iPhone: ajustes de texto a voz. Chrome y Edge suelen traer más voces.`;
+    el.innerHTML = `Las palabras tienen su propio audio. Algunas frases pueden sonar con otro acento: un mayor puede añadir la voz del ${LANGS[lang].name} (Ajustes › Para mayores).`;
     el.hidden = false;
   } else el.hidden = true;
 }
@@ -1142,7 +1208,7 @@ const SLOW = () => Math.max(0.35, rate * 0.55);
 const SAMPLE = {english:"Hello! This is how I sound.", "français":"Bonjour ! Voici ma voix.", dansk:"Hej! Sådan lyder min stemme."};
 /* créditos y privacidad (antes en el pie de página) */
 function creditsHtml(){
-  return `Inglés británico · Francés · Danés — Imágenes: <a href="https://openmoji.org">OpenMoji</a> (CC BY-SA 4.0). Iconos: <a href="https://phosphoricons.com">Phosphor</a> (<a href="icons/PHOSPHOR-LICENSE">MIT</a>). Letra: <a href="https://github.com/googlefonts/nunito">Nunito</a> (<a href="fonts/OFL.txt">OFL</a>). Audio: ElevenLabs y voz del navegador. · <b>Vocabulary</b> · <a href="privacy.html">Privacy Policy / Privacidad</a>`;
+  return `Inglés británico · Francés · Danés — Imágenes: <a href="https://openmoji.org">OpenMoji</a> (CC BY-SA 4.0). Iconos: <a href="https://phosphoricons.com">Phosphor</a> (<a href="icons/PHOSPHOR-LICENSE" target="_blank" rel="noopener">MIT</a>). Letra: <a href="https://github.com/googlefonts/nunito">Nunito</a> (<a href="fonts/OFL.txt" target="_blank" rel="noopener">OFL</a>). Audio: ElevenLabs y voz del navegador. · <b>Vocabulary</b> · <a href="privacy.html">Privacy Policy / Privacidad</a>`;
 }
 const isStandalone = () => { try{ return navigator.standalone === true || matchMedia("(display-mode: standalone)").matches; }catch(e){ return false; } };
 function installRow(){
@@ -1152,23 +1218,31 @@ function installRow(){
   const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   return `<div class="st-r">${ic(0)}<span class="st-l">Instalar la app<small>${ios ? "En Safari: Compartir › «Añadir a pantalla de inicio»." : "En Chrome o Edge: menú ⋮ › «Instalar aplicación»."}</small></span></div>`;
 }
+/* las voces del aparato para el idioma (las de speechSynthesis) */
+const langVoices = (l = lang) => { const b = LANGS[l].code.slice(0, 2); return voices.filter(v => v.lang.replace("_", "-").toLowerCase().startsWith(b)); };
+const rateWord = r => (r = +r || .9) < .75 ? "Lenta" : r <= 1 ? "Normal" : "Rápida";
+/* Ajustes › Para mayores: cómo añadir la voz del idioma cuando el aparato no la tiene (si la tiene, nada) */
+function voiceHelpRow(){
+  if(!("speechSynthesis" in window) || langVoices().length) return "";
+  return `<div class="st-r"><span class="st-ic gr" aria-hidden="true">${ico("speaker-high", "bold", 18)}</span><span class="st-l">Voz del ${esc(LANGS[lang].name)}<small>Las palabras traen su audio; las frases usan la voz del aparato. En Windows: Configuración › Hora e idioma › Voz › Agregar voces. En el móvil: ajustes de texto a voz.</small></span></div>`;
+}
 function openCfg(after, from, host){
-  const d = $("#cfg"), root = host || d, code = LANGS[lang].code, base = code.slice(0,2);
-  const vs = voices.filter(v => v.lang.replace("_","-").toLowerCase().startsWith(base));
+  const d = $("#cfg"), root = host || d, code = LANGS[lang].code;
+  const vs = langVoices();
   const cur = (voiceFor(code)||{}).name;
   if(host && !d.open) d.innerHTML = "";      /* así sus ids no se repiten */
   root.innerHTML = `${host ? "" : `<div class="st-top"><h2 class="t-2" id="cfg-tt">Voz y velocidad</h2><button type="button" class="glass-btn glass-btn--sm glass-btn--pri" id="cfg-x">Listo</button></div>`}
     <section class="st-sec" aria-label="Voz y velocidad"><div class="st-g">
       <div class="st-r col"><label for="cfg-v">Voz para el ${LANGS[lang].name}</label>
         ${vs.length ? `<select id="cfg-v">${vs.map(v=>`<option value="${esc(v.name)}" ${v.name===cur?"selected":""}>${esc(v.name)} (${esc(v.lang)})</option>`).join("")}</select>`
-          : `<div class="note" style="margin:0">Este dispositivo no tiene voces en ${LANGS[lang].name}. En Windows: Configuración › Hora e idioma › Voz › Agregar voces. En el móvil: ajustes de texto a voz.</div>`}</div>
+          : `<div class="note" style="margin:0">Las palabras tienen su propio audio. Para las frases se usa la voz del aparato.</div>`}</div>
       <div class="st-r col"><label for="cfg-r">Velocidad: <span id="cfg-rv"></span></label>
         <input type="range" id="cfg-r" min="0.5" max="1.3" step="0.05" value="${rate}">
-        <div class="dlbl"><span>🐢 Más lenta</span><span>Más rápida 🐇</span></div></div>
-      <button type="button" class="st-r st-btn" id="cfg-t"><span class="st-ic tl">${ico("play", "bold", 18)}</span><span class="st-l">Probar la voz</span></button>
+        <div class="dlbl"><span>${ico("turtle", "bold", 18)} Más lenta</span><span>Más rápida ${ico("rabbit", "bold", 18)}</span></div></div>
+      <button type="button" class="st-r st-btn" id="cfg-t"${vs.length ? "" : " disabled"}><span class="st-ic" aria-hidden="true">${ico("play", "bold", 18)}</span><span class="st-l">Probar la voz${vs.length ? "" : "<small>Este aparato aún no tiene esa voz</small>"}</span></button>
     </div></section>`;
   const q = s => root.querySelector(s);
-  const rv = () => q("#cfg-rv").textContent = `${(+rate).toFixed(2).replace(/0$/,"")}×` + (rate<0.75?" (lenta)":rate<=1?" (normal)":" (rápida)");
+  const rv = () => { const w = rateWord(rate); q("#cfg-rv").textContent = w; q("#cfg-r").setAttribute("aria-valuetext", w); };
   rv();
   q("#cfg-r").oninput = e => { rate = +e.target.value; store.set("rate", rate); rv(); };
   if(q("#cfg-v")) q("#cfg-v").onchange = e => store.set("voice:"+lang, e.target.value);
@@ -1213,7 +1287,7 @@ function streak(){
   while(a[dayKey(d)]){ s++; d.setDate(d.getDate()-1); }
   return s;
 }
-function updBadge(){ const n = dueList().length; tabBadge("aprender", n, n === 1 ? "1 palabra para repasar" : `${n} palabras para repasar`); }
+function updBadge(){ const n = dueList().length; tabBadge("aprender", n, n === 1 ? "1 palabra para repasar" : `${n} palabras para repasar`, "#/repaso"); }
 function statsHtml(){
   const m = Object.values(srsAll()), due = m.filter(x=>x.due<=today()).length, mast = m.filter(x=>x.b>=MASTER).length;
   const a = store.get("act", {}), st = streak();
@@ -1330,9 +1404,7 @@ async function progreso(el){
       <div class="legend"><span><i style="background:var(--ok)"></i>Dominadas (repaso cada 14 días o más)</span><span><i style="background:var(--brand);opacity:.6"></i>Aprendiendo</span></div>
       <table class="ptable"><thead><tr><th>Documento</th><th>Dominadas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
     <div class="panel"><h2>📲 En el móvil y sin internet</h2>
-      <p class="sub">Puedes instalar esta web como una app: en Android o en Chrome, Ajustes (el engranaje) › «Instalar la app» o menú ⋮ › «Instalar aplicación»; en iPhone, Safari › Compartir › «Añadir a pantalla de inicio». Tu progreso se guarda en cada dispositivo (y en Google si lo conectas).</p>
-      <div id="off-panel"></div></div>`;
-  offlinePanel($("#off-panel"));
+      <p class="sub">Instalar la app y descargarlo todo para usarla sin internet está en Ajustes (el engranaje) › Para mayores › La app. Tu progreso se guarda en cada dispositivo (y en Google si lo conectas).</p></div>`;
 }
 
 /* ---------- app instalable y sin internet ---------- */
@@ -1388,9 +1460,16 @@ async function offState(l){
   }catch(e){ return {docs:false, audio:false}; }
 }
 /* el bloque de la descarga: botón, tamaño, barra de progreso y Cancelar. Se puede poner en cualquier sitio. */
-function offlinePanel(el){
+/* «Descargar todo»: o.row la pinta como filas de una lista agrupada (Ajustes › Para mayores): «Descargar todo» en azul
+   con su icono y el estado debajo; mientras descarga, otra fila con la barra y «Cancelar» */
+function offlinePanel(el, o = {}){
   if(!el) return;
-  el.innerHTML = `<div class="off-dl">
+  el.innerHTML = o.row ? `<div class="off-dl off-rows">
+    <button class="st-r st-btn" id="off-dl" type="button"><span class="st-ic" aria-hidden="true">${ico("download-simple", "bold", 18)}</span>
+      <span class="st-l">Descargar todo<small id="off-msg" aria-live="polite"></small></span></button>
+    <div class="st-r off-prog" id="off-prog" hidden><div class="off-bar" id="off-bar" role="progressbar" aria-label="Descarga" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><i></i></div>
+      <button class="st-btn off-x" id="off-x" type="button" hidden>Cancelar</button></div></div>`
+  : `<div class="off-dl">
     <div class="pr-row"><button class="btn pri" id="off-dl" type="button">${ico("download-simple", "bold", 20)} Descargar todo para usar sin internet</button>
       <button class="btn" id="off-x" type="button" hidden>Cancelar</button></div>
     <div class="off-bar" id="off-bar" role="progressbar" aria-label="Descarga" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><i></i></div>
@@ -1415,6 +1494,7 @@ function paintOff(){
   if(!j) return;
   const pct = j.total ? Math.round(100 * j.done / j.total) : 0;
   if(bar){ bar.hidden = !!j.end && !j.ok; bar.setAttribute("aria-valuenow", pct); bar.firstElementChild.style.width = pct + "%"; }
+  const pr = $("#off-prog"); if(pr) pr.hidden = (!x || x.hidden) && (!bar || bar.hidden);
   m.textContent = j.end ? j.end
     : j.total ? `Guardando… ${pct} % · ${offMB(j.bytes)} de unos ${offMB(Math.max(j.est, j.bytes))} MB`
     : "Preparando la descarga…";
@@ -1574,17 +1654,20 @@ let memT = 0;
 const memSave = () => { clearTimeout(memT); memT = setTimeout(() => { try{ sessionStorage.setItem("vocab:tabs", JSON.stringify(TABMEM)); }catch(e){} }, 250); };
 /* lo que se recuerda de una ruta: de una lección, su nivel del camino; de una partida, el menú de juegos */
 const memHash = h => secOf(h) === "leccion" || (secOf(h) === "juegos" && h.includes("/")) ? "#/" + rootOf(h) : "#/" + h;
-let curTab = null, tabRestore = null, ROUTE_RESTORE = false, focusOn = "", lastInput = 0;
+let curTab = null, tabRestore = null, ROUTE_RESTORE = false, ROUTE_FROM = null, focusOn = "", lastInput = 0;
 ["pointerdown", "wheel", "keydown", "touchstart"].forEach(t => addEventListener(t, () => { lastInput = Date.now(); }, {capture: true, passive: true}));
 
 function renderTabbar(){
   const nav = $("#tabbar"); if(!nav) return;
-  nav.innerHTML = TABS.map(t => `<a class="tab" role="tab" id="tab-${t.id}" data-nav="${t.id}" href="${esc(t.root)}" aria-selected="false" tabindex="-1">${ico(t.ic, "fill", 26)}<span class="tl">${esc(t.t)}</span><span class="tb-badge"${t.id === "aprender" ? ' id="due-b"' : ""} aria-hidden="true" hidden></span></a>`).join("");
+  /* el <nav> es el punto de referencia («Principal») y dentro va la lista de pestañas (role=tablist) */
+  nav.innerHTML = `<div class="tb-list" role="tablist" aria-label="Secciones">${TABS.map(t => `<a class="tab" role="tab" id="tab-${t.id}" data-nav="${t.id}" href="${esc(t.root)}" aria-selected="false" tabindex="-1">${ico(t.ic, "fill", 26)}<span class="tl">${esc(t.t)}</span><span class="tb-badge"${t.id === "aprender" ? ' id="due-b"' : ""} aria-hidden="true" hidden></span></a>`).join("")}</div>`;
 }
 /* aviso en una pestaña: v = número (más de 9 sale «9+»), true = punto azul, 0/false = nada. label es lo que lee el
-   lector de pantalla junto al nombre («6 palabras para repasar»). Da un saltito (M.bump) cuando cambia. Siempre azul. */
-const BADGES = {};
-function tabBadge(id, v, label){
+   lector de pantalla junto al nombre («6 palabras para repasar»). Da un saltito (M.bump) cuando cambia. Siempre azul.
+   seg (opcional): la ruta del segmento al que se refiere el aviso ("#/repaso", "#/album"); el mismo aviso sale también
+   en ese segmento, para que al entrar en la pestaña se vea dónde está lo nuevo. */
+const BADGES = {}, SEGB = {};
+function tabBadge(id, v, label, seg){
   const a = document.getElementById("tab-" + id), b = a && a.querySelector(".tb-badge"); if(!b) return;
   const n = typeof v === "number" ? Math.max(0, Math.floor(v) || 0) : !!v;
   const key = n === true ? "dot" : String(n || 0), old = BADGES[id];
@@ -1594,6 +1677,15 @@ function tabBadge(id, v, label){
   if(n && label) a.setAttribute("aria-label", `${t ? t.t : id}, ${label}`); else a.removeAttribute("aria-label");
   BADGES[id] = key;
   if(old !== undefined && old !== key && n && window.M) M.bump(b);
+  if(seg){ SEGB[seg] = {n, label: n ? label || "" : ""}; paintSegBadges(); }
+}
+/* los avisos de los segmentos (data-badge: el número, o "" para el punto; lo pinta el CSS) */
+function paintSegBadges(){
+  document.querySelectorAll("#tabhead .seg-i[href]").forEach(a => {
+    const x = SEGB[a.getAttribute("href")], n = x && x.n;
+    if(n) a.dataset.badge = n === true ? "" : n > 9 ? "9+" : String(n); else delete a.dataset.badge;
+    if(n && x.label) a.setAttribute("aria-label", `${a.dataset.t || a.textContent}, ${x.label}`); else a.removeAttribute("aria-label");
+  });
 }
 /* lo que se ve de la barra: pestaña marcada, adónde lleva cada una, vidrio ligero en la granja y en las partidas */
 function paintTabs(h){
@@ -1618,21 +1710,64 @@ function paintHead(h){
   if(el.dataset.k !== key || !el.innerHTML){
     el.dataset.k = key;
     el.innerHTML = `${t.title ? `<h1 class="th-t t-lt">${esc(t.title)}</h1>` : ""}${segs ? `<div class="seg" role="tablist" aria-label="${esc(t.t)}">${segs.map(s =>
-      `<a class="seg-i" role="tab" href="${esc(s.h)}" aria-selected="${s === cur}" tabindex="${s === cur ? 0 : -1}">${esc(s.t)}</a>`).join("")}</div>` : ""}`;
+      `<a class="seg-i" role="tab" href="${esc(s.h)}" data-t="${esc(s.t)}" aria-selected="${s === cur}" tabindex="${s === cur ? 0 : -1}">${esc(s.t)}</a>`).join("")}</div>` : ""}`;
   }
   el.hidden = false;
+  paintSegBadges();
+}
+/* el título de la ventana y el aviso para el lector de pantalla cuando cambia la pantalla: «Aprender · Palabras» */
+let saidTitle = "";
+function sayScreen(h){
+  const t = tabOf(h), seg = segOf(t, h), f = focusOn;
+  const name = f === "leccion" ? "Lección" : f === "repaso" ? "Repaso" : f === "juego" ? "Partida"
+    : t ? (seg && t.segs && t.segs.length > 1 ? `${t.t} · ${seg.t}` : t.t) : "Vocabulary";
+  document.title = name === "Vocabulary" ? "Vocabulary – Vocabulario" : `${name} · Vocabulary`;
+  if(name === saidTitle) return;
+  const first = !saidTitle; saidTitle = name;
+  const live = document.getElementById("route-say");
+  if(live && !first){ live.textContent = ""; setTimeout(() => { live.textContent = name; }, 60); }
 }
 /* modo foco (html[data-focus]): lección, repaso en marcha o partida (games.js marca html[data-gm-play]). Sin barras,
    con la ✕ (vuelve a la raíz de la pestaña) y el contador de monedas. */
+/* La ✕ vuelve a la pantalla desde la que se entró en el modo foco (Hoy › Empezar › ✕ vuelve a Hoy; desde el camino,
+   al camino), con su scroll. Si no se sabe (un enlace directo), a la raíz de la pestaña. Se guarda en sessionStorage
+   para que valga también tras recargar a mitad de una lección. */
+let plainHash = null;   /* la última pantalla pintada fuera del modo foco ("#/…") */
+let focusFrom = (() => { try{ return sessionStorage.getItem("vocab:focus-from") || null; }catch(e){ return null; } })();
+function setFocusFrom(v){ focusFrom = v || null; try{ if(v) sessionStorage.setItem("vocab:focus-from", v); else sessionStorage.removeItem("vocab:focus-from"); }catch(e){} }
+function focusBack(f, h){
+  if(f === "juego") return "#/juegos";
+  if(focusFrom && tabOf(hashPath(focusFrom)) && secOf(hashPath(focusFrom)) !== "leccion") return focusFrom;
+  return f === "leccion" ? "#/" + rootOf(h) : f === "repaso" ? "#/repaso" : "#/";
+}
 function updFocus(){
   const h = hashPath(), root = document.documentElement;
   const f = secOf(h) === "leccion" ? "leccion" : rv && secOf(h) === "repaso" ? "repaso" : root.hasAttribute("data-gm-play") ? "juego" : "";
+  if(f && !focusOn && plainHash) setFocusFrom(plainHash);   /* entra en el modo foco: de dónde viene */
   const x = $("#fx-x");
-  if(x) x.setAttribute("href", f === "leccion" ? "#/" + rootOf(h) : f === "repaso" ? "#/repaso" : f === "juego" ? "#/juegos" : "#/");
+  if(x) x.setAttribute("href", f ? focusBack(f, h) : "#/");
   if(f === focusOn) return;
+  if(!f && focusOn) setFocusFrom(null);
   focusOn = f;
   if(f){ root.dataset.focus = f; langMenu(false); } else delete root.dataset.focus;
-  paintHead(h); paintTabs(h);
+  paintHead(h); paintTabs(h); sayScreen(h);
+  if(!f) placeBarSoon();   /* al salir, la barra de arriba vuelve a medirse */
+}
+/* el scroll de cada pantalla: por entrada del historial (Atrás y Adelante vuelven a donde estaba; history.state.vk) y
+   por ruta (la ✕ del modo foco y tocar la pestaña activa desde una pantalla de dentro vuelven a la de antes) */
+const POSY = (() => { try{ const m = JSON.parse(sessionStorage.getItem("vocab:posy")); return m && typeof m === "object" ? m : {}; }catch(e){ return {}; } })();
+const HASHY = {};
+let curVk = null, posT = 0;
+const posSave = () => { clearTimeout(posT); posT = setTimeout(() => {
+  const ks = Object.keys(POSY); if(ks.length > 60) ks.slice(0, ks.length - 60).forEach(k => delete POSY[k]);
+  try{ sessionStorage.setItem("vocab:posy", JSON.stringify(POSY)); }catch(e){} }, 300); };
+/* la entrada del historial en la que estamos: la marca con una clave la primera vez (las nuevas llegan sin estado) */
+function entryKey(){
+  const st = history.state && typeof history.state === "object" ? history.state : null;
+  if(st && typeof st.vk === "string") return {vk: st.vk, seen: true};
+  const vk = Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  try{ history.replaceState(Object.assign({}, st || {}, {vk}), ""); }catch(e){}
+  return {vk, seen: false};
 }
 new MutationObserver(updFocus).observe(document.documentElement, {attributes: true, attributeFilter: ["data-gm-play"]});
 /* vuelve al scroll que tenía la pestaña (la página puede tardar en crecer: se reintenta un poco si no tocan) */
@@ -1648,13 +1783,59 @@ function goTab(id){
   const h = hashPath();
   if(curTab === id && tabOf(h) === t){
     const r = rootOf(h);
-    if(r !== h) navTo("#/" + r); else topSmooth();
+    if(r !== h){ const y = HASHY["#/" + r]; tabRestore = y > 0 ? y : null; navTo("#/" + r); }   /* vuelve a la de antes, donde estaba */
+    else topSmooth();
     return;
   }
   const m = TABMEM[id], ok = m && typeof m.h === "string" && tabOf(hashPath(m.h)) === t;
   const to = ok ? m.h : t.root;
   tabRestore = ok && m.y > 0 ? m.y : null;
   navTo(to);
+}
+/* Desde 820 px la barra de pestañas va arriba, dentro de header.topbar, entre la bandera y el grupo de la derecha (así
+   el orden del teclado y del lector de pantalla es el de la pantalla); en el móvil, justo después. Si no cabe con todos
+   sus nombres y 12 px de aire a cada lado (monedas de 5 cifras, la pastilla «Guardar», texto más grande…), se aprieta
+   por pasos (html[data-bar]): slim (la pastilla, solo la nube) → compact (pestañas más juntas) → bottom (la barra
+   vuelve abajo, como en el móvil). Se mira otra vez cuando cambia el tamaño de algo (ResizeObserver). */
+const BAR_MQ = matchMedia("(min-width:820px)");
+function barFits(){
+  const nav = $("#tabbar"), fl = $("#lang-b"), rt = document.querySelector(".topbar .tb-right"), tb = $("#topbar");
+  if(!nav || !fl || !rt || !tb || !nav.getClientRects().length) return true;
+  const pad = parseFloat(getComputedStyle(tb).paddingRight) || 16;
+  const n = nav.getBoundingClientRect(), r = rt.getBoundingClientRect(), f = fl.getBoundingClientRect();
+  return n.left >= f.right + 11.5 && n.right <= r.left - 11.5 && r.right <= innerWidth - pad + .5;
+}
+function placeBar(){
+  const root = document.documentElement, nav = $("#tabbar"), tb = $("#topbar"), fl = $("#lang-b"); if(!nav || !tb || !fl) return;
+  const move = into => {
+    if((nav.parentNode === tb) === into) return;
+    const had = nav.contains(document.activeElement) && document.activeElement;
+    if(into) fl.after(nav); else tb.after(nav);
+    if(had) had.focus({preventScroll: true});
+  };
+  if(!BAR_MQ.matches){ move(false); delete root.dataset.bar; return; }
+  if(root.hasAttribute("data-focus") || !tb.getClientRects().length){   /* escondida: se mide al volver */
+    if(root.dataset.bar !== "bottom") move(true);
+    return;
+  }
+  move(true);
+  for(const m of ["", "slim", "compact"]){
+    if(m) root.dataset.bar = m; else delete root.dataset.bar;
+    if(barFits()) return;
+  }
+  root.dataset.bar = "bottom"; move(false);
+}
+var barRaf = 0;
+function placeBarSoon(){ if(!barRaf) barRaf = requestAnimationFrame(() => { barRaf = 0; placeBar(); }); }
+function watchBar(){
+  placeBar();
+  try{ BAR_MQ.addEventListener("change", placeBar); }catch(e){ BAR_MQ.addListener(placeBar); }
+  addEventListener("resize", placeBarSoon);
+  if(typeof ResizeObserver === "function"){
+    const ro = new ResizeObserver(placeBarSoon);
+    ["#lang-b", ".topbar .tb-right", "#tabbar .tb-list"].forEach(s => { const el = $(s); if(el) ro.observe(el); });
+  }
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(placeBarSoon, () => {});
 }
 /* flechas en una lista de pestañas o segmentos (el foco se mueve; Intro o Espacio la abre) */
 function rovingKeys(e, items){
@@ -1692,14 +1873,29 @@ function wireNav(){
     e.preventDefault();
     if(focusOn === "juego" && window.vocabGames && typeof vocabGames.pause === "function" && vocabGames.pause(e.currentTarget)) return;
     if(focusOn === "repaso") rv = null;
-    navTo(e.currentTarget.getAttribute("href"));
+    const to = e.currentTarget.getAttribute("href"), y = HASHY[to];
+    if(to !== location.hash && y > 0) tabRestore = y;
+    navTo(to);
   });
-  /* el scroll de cada pestaña */
+  /* el scroll de cada pestaña, de cada entrada del historial y de cada ruta */
   addEventListener("scroll", () => {
-    if(!curTab || focusOn) return;
+    const y = Math.round(scrollY);
+    if(curVk){ POSY[curVk] = y; posSave(); }
+    if(focusOn) return;
+    HASHY["#/" + hashPath()] = y;
+    if(!curTab) return;
     const m = TABMEM[curTab]; if(!m || m.h !== memHash(hashPath())) return;
-    m.y = Math.round(scrollY); memSave();
+    m.y = y; memSave();
   }, {passive: true});
+  /* granja: con la escena debajo de la barra de arriba no hay borde que funda; al bajar más allá de ella, sí */
+  let fmT = 0;
+  addEventListener("scroll", () => { if(curTab !== "granja" || fmT) return; fmT = requestAnimationFrame(() => { fmT = 0; fmPast(); }); }, {passive: true});
+}
+function fmPast(){
+  const root = document.documentElement, st = curTab === "granja" && document.querySelector("#app .fm-stage, #app .farm");
+  const tb = document.getElementById("topbar"), lim = tb && tb.getClientRects().length ? tb.getBoundingClientRect().bottom : 60;
+  const past = !!st && st.getBoundingClientRect().bottom < lim;
+  root.toggleAttribute("data-fm-past", past);
 }
 
 /* ---------- barra superior: menú de idioma ---------- */
@@ -1721,6 +1917,7 @@ function langMenu(open){
   if(open === undefined) open = m.hidden;
   if(open === !m.hidden) return;
   m.hidden = !open; b.setAttribute("aria-expanded", open);
+  document.documentElement.toggleAttribute("data-menu", open);   /* (con el menú abierto, el accesorio va sin desenfoque) */
   if(!open) return;
   if(window.M){
     m.style.transformOrigin = "22px 0";
@@ -1809,18 +2006,19 @@ async function nextAction(){
     say: resume ? "¡Sigamos donde lo dejaste!" : L.first ? `¡Hola${nm}! ¿Empezamos?` : `¡Hola${nm}! Hoy toca ${lcFirst(u.t) || "aprender"}`};
 }
 /* fila compacta de Hoy (52 px) para los HOME_SLOTS: {t, sub?, icon? (Phosphor) | e? (emoji o dibujo), tone?: "teal" |
-   "gold" | "gray", badge?, href? (enlace; sin él es un <button>), id?, label? (para el lector de pantalla)} */
+   "gold" | "gray", badge?, href? (enlace; sin él es un <button>), id?, label? (para el lector de pantalla), chev? (la
+   flecha también en un <button>), popup? (el botón abre una hoja: aria-haspopup)} */
 function homeRow(o){
   o = o || {};
   const ic = o.icon ? `<span class="hm-ric${o.tone ? " " + esc(o.tone) : ""}" aria-hidden="true">${ico(o.icon, "bold", 18)}</span>`
     : o.e ? `<span class="hm-ric emo" aria-hidden="true">${esc(o.e)}</span>` : "";
-  const inner = `${ic}<span class="hm-rt">${esc(o.t)}${o.sub ? `<small>${esc(o.sub)}</small>` : ""}</span>${o.badge || o.badge === 0 ? `<span class="hm-badge" aria-hidden="true">${esc(o.badge)}</span>` : ""}${o.href ? ico("caret-right", "bold", 16, "hm-chev") : ""}`;
-  const at = `${o.id ? ` id="${esc(o.id)}"` : ""}${o.label ? ` aria-label="${esc(o.label)}"` : ""}`;
+  const inner = `${ic}<span class="hm-rt">${esc(o.t)}${o.sub ? `<small>${esc(o.sub)}</small>` : ""}</span>${o.badge || o.badge === 0 ? `<span class="hm-badge" aria-hidden="true">${esc(o.badge)}</span>` : ""}${o.href || o.chev ? ico("caret-right", "bold", 16, "hm-chev") : ""}`;
+  const at = `${o.id ? ` id="${esc(o.id)}"` : ""}${o.label ? ` aria-label="${esc(o.label)}"` : ""}${o.popup && !o.href ? ' aria-haspopup="dialog"' : ""}`;
   return o.href ? `<a class="card hm-row" href="${esc(o.href)}"${at}>${inner}</a>` : `<button type="button" class="card hm-row"${at}>${inner}</button>`;
 }
 /* HOME_SLOTS: funciones (con .id opcional) que devuelven nada ("" / null / false), un objeto para homeRow(), HTML o un
    nodo. Se pintan en orden debajo de las piezas, como mucho 2; las que no devuelven nada no ocupan sitio. */
-const SLOT_MAX = 2;
+const SLOT_MAX = 2, SHORT = matchMedia("(max-width:819px) and (max-height:760px)");   /* en un móvil bajo, 1 */
 function slotEl(v, f){
   if(v == null || v === false) return null;
   const box = document.createElement("div"); box.className = "hm-slot";
@@ -1834,7 +2032,8 @@ function slotEl(v, f){
 async function homeSlots(){
   const vals = await Promise.all(HOME_SLOTS.map(f => Promise.resolve().then(() => typeof f === "function" ? f() : f).catch(e => { console.error(e); return ""; })));
   const out = [];
-  vals.forEach((v, i) => { if(out.length < SLOT_MAX){ const el = slotEl(v, HOME_SLOTS[i]); if(el) out.push(el); } });
+  const max = SHORT.matches ? 1 : SLOT_MAX;
+  vals.forEach((v, i) => { if(out.length < max){ const el = slotEl(v, HOME_SLOTS[i]); if(el) out.push(el); } });
   return out;
 }
 let waveAt = 0;
@@ -1856,7 +2055,7 @@ async function home(){
       <a class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block hm-go" id="hm-go" href="${esc(na.href)}" data-kind="${na.kind}">${ico("play", "fill", 20)}${esc(na.btn)}</a>
     </section>
     <div class="hm-side">${row}${mis || wotd ? `<div class="hm-pair">${mis}${wotd}</div>` : ""}<div class="hm-slots" id="hm-slots"></div></div>
-    <p class="hm-priv"><a href="privacy.html">Privacidad</a></p></div>`;
+    <p class="hm-priv"><a href="privacy.html#es">Privacidad</a></p></div>`;
   $("#hm-slots").append(...slots);
   const go = $("#hm-go"), rev = $("#hm-rev");
   if(na.kind === "repaso" && !na.resume) go.addEventListener("click", () => { rvGo = true; });
@@ -1890,8 +2089,8 @@ async function accState(){
 function accEl(){
   let a = document.getElementById("acc"); if(a) return a;
   a = document.createElement("a"); a.id = "acc"; a.className = "acc glass"; a.hidden = true; a.href = "#/";
-  a.innerHTML = `<span class="acc-ring" aria-hidden="true"><svg class="acc-rs" viewBox="0 0 36 36"><circle class="acc-bg" cx="18" cy="18" r="15"/><circle class="acc-fg" cx="18" cy="18" r="15" pathLength="100" stroke-dasharray="0 100"/></svg>${ico("play", "fill", 14)}</span><span class="acc-t"></span>`;
-  const bar = document.getElementById("tabbar"); if(bar) bar.after(a); else document.body.append(a);
+  a.innerHTML = `<span class="acc-ring" aria-hidden="true"><svg class="acc-rs" viewBox="0 0 36 36"><circle class="acc-bg" cx="18" cy="18" r="15"/><circle class="acc-fg" cx="18" cy="18" r="15" pathLength="100" stroke-dasharray="0 100"/></svg>${ico("play", "fill", 14)}</span><span class="acc-t"></span>${ico("caret-right", "bold", 18, "acc-go")}`;
+  const fb = document.getElementById("focusbar"); if(fb) fb.before(a); else document.body.append(a);   /* la barra puede estar arriba */
   return a;
 }
 async function accRefresh(){
@@ -2571,7 +2770,7 @@ function lvCur(lv, P){ const ls = lvLessons(lv); const i = ls.findIndex(l => !P[
 const starsHtml = n => `${"★".repeat(n)}<span class="e">${"★".repeat(3-n)}</span>`;
 async function mapa(lv){
   await getMap(); document.onkeydown = null;
-  const P = mapP();
+  const P = mapP(), lvAsked = !!LVS[lv];
   if(!LVS[lv]) lv = store.get("mapLv", null) || Object.keys(LVS).find(l => lvCur(l, P) < lvLessons(l).length) || "A1";
   store.set("mapLv", lv);
   const ls = lvLessons(lv), cur = lvCur(lv, P), done = ls.filter(l => P[l.id]).length;
@@ -2610,8 +2809,10 @@ async function mapa(lv){
     location.hash = "#/leccion/" + b.dataset.ls;
   });
   $("#trophy").onclick = () => toast(allDone ? `¡Nivel ${lv} completado! 🏆` : `Completa las ${ls.length} lecciones para ganar el trofeo`);
-  const c = $("#cur-node");
-  if(c && !ROUTE_RESTORE) setTimeout(() => c.scrollIntoView({block:"center"}), 30);
+  /* baja hasta la lección que toca solo si se pidió ese nivel (#/mapa/A1) o si vuelve de una lección: al entrar por la
+     pestaña se ven el título y los segmentos (Repasar · Camino · Palabras · Gramática) */
+  const c = $("#cur-node"), fromLesson = secOf(ROUTE_FROM || "") === "leccion";
+  if(c && !ROUTE_RESTORE && (lvAsked || fromLesson)){ mapScrolled = true; setTimeout(() => c.scrollIntoView({block:"center"}), 30); }
   return true;
 }
 
@@ -2619,12 +2820,15 @@ let LS = null;
 async function leccion(id){
   await getMap(); document.onkeydown = null;
   if(id.startsWith("G-")) return gramLesson(id);
-  const lv = id.slice(0, 2); if(!MAP[lv]) return mapa();
-  const ui = MAP[lv].findIndex(u => u.ls.some(l => l.id === id)); if(ui < 0) return mapa(lv);
+  /* una lección que no existe (enlace viejo, id cambiado u otro idioma sin ella): al camino, por el router, así no se
+     queda en modo foco y el historial queda bien */
+  const toMap = l => { location.replace("#/mapa" + (l && MAP[l] ? "/" + l : "")); };
+  const lv = id.slice(0, 2); if(!MAP[lv]) return toMap();
+  const ui = MAP[lv].findIndex(u => u.ls.some(l => l.id === id)); if(ui < 0) return toMap(lv);
   const unit = MAP[lv][ui], l = unit.ls.find(l => l.id === id);
   const docs = {}; for(const [d] of l.w) docs[d] = await getDoc(d);
   const words = l.w.map(([d, i]) => ({doc:d, r:docs[d].rows[i]})).filter(x => x.r && x.r.l[lang]);
-  if(!words.length) return mapa(lv);
+  if(!words.length) return toMap(lv);
   /* distractores: las otras palabras de la lección y, si faltan, del mismo documento */
   const pool = [...words]; const seen = new Set(words.map(x => x.r.es));
   for(const r of docs[unit.doc].rows) if(pool.length < 12 && r.es && r.l[lang] && !seen.has(r.es)){ seen.add(r.es); pool.push({doc:unit.doc, r}); }
@@ -2759,7 +2963,7 @@ async function gramatica(lv){
 }
 async function gramLesson(id){
   const lv = id.slice(2, 4), k = parseInt(id.slice(5)) - 1, x = ((GRAM[lang] || {})[lv] || [])[k];
-  if(!x) return mapa(lv);
+  if(!x){ location.replace("#/mapa" + (LVS[lv] ? "/" + lv : "")); return; }
   LS = {id, lv, g:true, x, words:[], steps: shuffle(x.q.map((q, i) => i)).map(i => ({t:"gq", q:x.q[i]})), i:-1, nq:x.q.length, first:new Set(), miss:new Set(), tok:++autoTok};
   gStep();
 }
@@ -3047,8 +3251,18 @@ async function premios(){
     <div class="panel"><h2>🏅 Mis medallas</h2><div class="achs">${ach.map(x => `<div class="ach ${x.ok ? "ok" : ""}"><span class="ae">${x.e}</span><b>${esc(x.t)}</b><small>${esc(x.d)}</small>
       ${x.ok ? `<i class="done">✓ ¡Conseguida!</i>` : `<div class="abar"><i style="width:${Math.round(100 * x.v / x.goal)}%"></i></div><small>${x.v} / ${x.goal}</small>`}</div>`).join("")}</div></div>
     <details class="panel adult"><summary>👨‍👩‍👦 Para mayores: detalle por documento e instalación</summary><div id="adult"></div></details>`;
-  const det = document.querySelector("details.adult");
-  det.ontoggle = () => { if(det.open && !$("#adult").innerHTML) progreso($("#adult")); };
+  /* «Para mayores»: antes, la Puerta (si no se pasa, se queda cerrado) */
+  const det = document.querySelector("details.adult"), sum = det.querySelector("summary");
+  det.ontoggle = () => {
+    if(!det.open) return;
+    const g = window.adultGate;
+    if(typeof g === "function" && !g.passed()){
+      det.open = false;
+      g({reason: "Aquí está el detalle de cada documento.", from: sum}).then(ok => { if(ok && det.isConnected) det.open = true; });
+      return;
+    }
+    if(!$("#adult").innerHTML) progreso($("#adult"));
+  };
 }
 
 /* ---------- «Reducir movimiento» de Ajustes (html[data-motion=calm]) = el del aparato ----------
@@ -3078,12 +3292,22 @@ function calmCss(){
 { let t = 0; new MutationObserver(() => { clearTimeout(t); t = setTimeout(calmCss, 30); }).observe(document.head, {childList: true}); }
 
 /* ---------- rutas ---------- */
+/* las rutas que existen: las de aquí y las de los módulos (ROUTES). Una que no existe (un enlace viejo o mal escrito)
+   se cambia por Hoy en el historial, y así la pestaña, el título y el modo foco son los de Hoy */
+const KNOWN = ["", "doc", "mapa", "gramatica", "leccion", "repaso", "progreso", "granja", "palabras"];
+const knownRoute = hp => KNOWN.includes(secOf(hp)) || Object.prototype.hasOwnProperty.call(ROUTES, secOf(hp));
+let prevHp = null, mapScrolled = false;
 async function route(){
+  if(!knownRoute(hashPath())){ location.replace("#/"); return; }
   autoTok++; if(state.fc) state.fc.auto = false; if("speechSynthesis" in window) speechSynthesis.cancel();
-  const h = location.hash.replace(/^#\/?/,""), hp = hashPath();
+  const h = location.hash.replace(/^#\/?/,""), hp = hashPath(), from = prevHp; prevHp = hp;
   /* la pestaña se marca al momento (cambiar de pestaña es instantáneo); el título, los segmentos y el modo foco, con la
-     pantalla nueva. Si se vuelve a una pestaña, su scroll de antes (tabRestore lo pone goTab). */
-  const restoreY = tabRestore; tabRestore = null; ROUTE_RESTORE = restoreY != null;
+     pantalla nueva. Si se vuelve a una pestaña, su scroll de antes (tabRestore lo pone goTab); con Atrás o Adelante (o
+     al recargar), el de esa entrada del historial; si es una pantalla nueva, arriba del todo. */
+  const ek = entryKey(); curVk = ek.vk;
+  let restoreY = tabRestore; tabRestore = null;
+  if(restoreY == null && ek.seen && POSY[ek.vk] > 0) restoreY = POSY[ek.vk];
+  ROUTE_RESTORE = restoreY != null; ROUTE_FROM = from; mapScrolled = false;
   langMenu(false); paintTabs(hp);
   const t = tabOf(hp); if(t){ TABMEM[t.id] = {h: memHash(hp), y: restoreY || 0}; memSave(); }
   try{
@@ -3100,19 +3324,20 @@ async function route(){
     else if(h.startsWith("progreso")){ state.doc=null; await premios(); }
     else if(h.startsWith("granja")){ state.doc=null; await granja(); }
     else if(h.startsWith("palabras")){ state.doc=null; await palabras(); }
-    else if(ROUTES[h.split("/")[0]]){ state.doc=null; document.onkeydown = null; await ROUTES[h.split("/")[0]](h.split("/").slice(1)); }
+    else if(ROUTES[secOf(hp)]){ state.doc=null; document.onkeydown = null; await ROUTES[secOf(hp)](h.split("/").slice(1)); }
     else { state.doc=null; await home(); }
   }catch(e){ console.error(e); $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
   /* si mientras se pintaba se fue a otra ruta, la nueva se encarga de las barras y del scroll */
   if(hashPath() === hp){
-    paintTabs(hp); updFocus(); paintHead(hp);
-    if(restoreY != null) restoreScroll(restoreY); else if(!h.startsWith("mapa")) window.scrollTo(0,0);
+    paintTabs(hp); updFocus(); paintHead(hp); sayScreen(hp); fmPast();
+    if(restoreY != null) restoreScroll(restoreY); else if(!mapScrolled) window.scrollTo(0,0);
+    if(!focusOn) plainHash = "#/" + hp;
   }
   ROUTE_RESTORE = false;
   bus.emit("route", {h});
 }
 window.addEventListener("hashchange", route);
-renderTabbar(); wireNav(); renderLangs(); wireLangs();
+renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
 document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmCss(); bus.emit("boot"); route(); });
 </script>
 <script src="js/motion.js"></script>

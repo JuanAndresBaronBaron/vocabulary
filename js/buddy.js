@@ -56,13 +56,17 @@ const STYLE = `
 .bd-piece{position:relative;min-width:0;margin:0}
 .bd-mis{display:flex;flex-direction:column;align-items:stretch;min-height:120px;padding:14px 16px 16px;border:0;text-align:left;color:var(--label);
   font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.bd-pl{display:flex;align-items:center;gap:6px;min-width:0;font:600 var(--fs-note)/1.33 var(--f-text);color:var(--label2);white-space:nowrap}
+.bd-pl{display:flex;align-items:center;gap:6px;min-width:0;font:600 var(--fs-note)/1.33 var(--f-text);color:var(--label2)}
 .bd-pl .ico{flex:none;color:var(--brand-tint)}
-.bd-pl span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.bd-pl span{min-width:0;overflow-wrap:anywhere}   /* con texto grande pasa a dos líneas, sin cortarse con puntos */
 .bd-mt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin:8px 0 10px;font:600 var(--fs-head)/1.22 var(--f-text);overflow-wrap:anywhere}
+/* los 3 puntos de las misiones, iguales en la pieza de Hoy y en el cofre de la hoja: gris = por hacer, verde azulado =
+   hecha, y con la marca ✓ = premio recogido */
 .bd-dots{display:flex;gap:6px;margin-top:auto}
-.bd-dots i{width:12px;height:12px;border-radius:6px;background:var(--fill)}
-.bd-dots i.on{background:var(--teal)}
+.bd-dots i,.bd-cdots i{position:relative;width:14px;height:14px;border-radius:7px;background:var(--fill)}
+.bd-dots i.on,.bd-cdots i.on{background:var(--teal)}
+.bd-dots i.got::after,.bd-cdots i.got::after{content:"";position:absolute;left:4px;top:3px;width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+@media (forced-colors:active){.bd-dots i,.bd-cdots i{border:1px solid CanvasText}.bd-dots i.on,.bd-cdots i.on{background:CanvasText}}
 .bd-bounce{animation:bd-bounce .62s cubic-bezier(.3,1.3,.5,1) 1}
 @keyframes bd-bounce{0%,100%{translate:0 0}30%{translate:0 -12px}55%{translate:0 0}75%{translate:0 -4px}}
 /* palabra del día: dos caras (dibujo y palabra · traducción) que giran en 3D */
@@ -75,6 +79,11 @@ const STYLE = `
 .bd-wback{gap:2px;transform:rotateY(180deg)}
 .bd-wimg{display:block;flex:none;width:64px;height:64px}
 .bd-wotd .bd-wimg img{display:block;width:64px;height:64px;max-width:none;max-height:none;object-fit:contain}
+@media (max-width:819px) and (max-height:760px){   /* móviles bajos: las piezas de Hoy, más bajas */
+  .bd-mis{min-height:104px;padding:12px 14px}
+  .bd-mt{margin:4px 0 8px;-webkit-line-clamp:2}
+  .bd-face{padding:12px}
+  .bd-wotd .bd-wimg img{width:48px;height:48px}}
 .bd-ww{display:block;max-width:100%;margin:auto 0 0;font:700 calc(1.625rem*var(--k,1))/1.15 var(--f-round);overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}
 .bd-ww.s{font-size:calc(1.3125rem*var(--k,1))}.bd-ww.xs{font-size:calc(1.0625rem*var(--k,1))}
 .bd-wtap{display:flex;flex-direction:column;align-items:center;gap:0;width:100%;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
@@ -87,9 +96,8 @@ const STYLE = `
 
 /* hoja «Misiones de hoy» (M.openSheet): grupos sólidos sobre la hoja de vidrio */
 dialog.bd-ms{max-width:560px}
-.bd-ms-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0}
-.bd-ms-top h2{margin:0;font:700 var(--fs-t3)/1.2 var(--f-round);color:var(--label)}
-.bd-ms-sub{margin:0 0 14px;font:400 var(--fs-note)/1.33 var(--f-text);color:var(--label2)}
+.bd-ms-top{margin:0}
+.bd-ms-sub{margin:0 0 16px;font:400 var(--fs-note)/1.33 var(--f-text);color:var(--label2);text-align:center}
 .bd-ms-g{margin:0 0 12px;background:var(--card);border-radius:var(--r-card);overflow:hidden}
 :root[data-theme=dark] .bd-ms-g{background:var(--card-2)}
 .bd-row{position:relative;display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 14px;color:var(--label);text-decoration:none}
@@ -111,8 +119,6 @@ dialog.bd-ms{max-width:560px}
 .bd-row .glass-btn{flex:none}
 .bd-row.done{flex-wrap:wrap;row-gap:6px}.bd-row.done .bd-rt{flex-basis:calc(100% - 48px)}.bd-row.done .glass-btn{margin-left:48px}
 .bd-cdots{display:flex;flex:none;gap:6px}
-.bd-cdots i{width:12px;height:12px;border-radius:6px;background:var(--fill)}
-.bd-cdots i.on{background:var(--gold)}
 .bd-row.stamp .bd-ric{animation:bd-stamp .45s cubic-bezier(.3,1.6,.5,1)}
 .bd-chest .bd-ric.boom{animation:bd-open .5s forwards}
 @keyframes bd-stamp{0%{transform:scale(1.8);opacity:0}100%{transform:none;opacity:1}}
@@ -292,10 +298,11 @@ function misNext(M){
   if(todo) return mText(todo);
   return M.chest ? "¡Todo hecho! Mañana hay más" : "¡Abre el cofre sorpresa!";
 }
+const misDots = M => M.list.map(m => `<i class="${m.n >= m.goal ? "on" : ""}${m.got ? " got" : ""}"></i>`).join("");
 function misPieceInner(){
   const M = missions();
   return `<span class="bd-pl">${icon("target", "fill", 18)}<span>Misiones</span></span><span class="bd-mt">${esc(misNext(M))}</span>
-    <span class="bd-dots" aria-hidden="true">${M.list.map(m => `<i class="${m.n >= m.goal ? "on" : ""}"></i>`).join("")}</span>`;
+    <span class="bd-dots" aria-hidden="true">${misDots(M)}</span>`;
 }
 function misLabel(){ const M = missions(), done = M.list.filter(m => m.n >= m.goal).length; return `Misiones de hoy: ${misNext(M)} ${done} de 3 hechas.`; }
 function misPiece(){
@@ -322,8 +329,8 @@ function misHtml(){
     ? `<div class="bd-row bd-chest open"><span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>¡Cofre abierto!</b><small>Mañana habrá misiones nuevas</small></span></div>`
     : got === M.list.length
     ? `<div class="bd-row bd-chest ready"><span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>¡Cofre sorpresa!</b><small>Hiciste las 3 misiones</small></span><button type="button" class="glass-btn glass-btn--pri glass-btn--sm" data-chest="1" aria-label="Abrir el cofre: 25 monedas">Abrir<span class="bd-c">${COIN}25</span></button></div>`
-    : `<div class="bd-row bd-chest lock"><span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>Cofre sorpresa</b><small>Recoge las 3 misiones para abrirlo</small></span><span class="bd-cdots" role="img" aria-label="${got} de 3">${M.list.map(m => `<i class="${m.got ? "on" : ""}"></i>`).join("")}</span></div>`;
-  return `<div class="bd-ms-top"><h2 id="bd-ms-tt">Misiones de hoy</h2><button type="button" class="glass-btn glass-btn--sm" data-close>Listo</button></div>
+    : `<div class="bd-row bd-chest lock"><span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>Cofre sorpresa</b><small>Recoge las 3 misiones para abrirlo</small></span><span class="bd-cdots" role="img" aria-label="${got} de 3 recogidas">${misDots(M)}</span></div>`;
+  return `<div class="m-head bd-ms-top"><h2 id="bd-ms-tt">Misiones de hoy</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
     <p class="bd-ms-sub">${M.chest ? "¡Todas hechas! Mañana hay más." : "Haz las 3 y abre el cofre sorpresa."}</p>
     <div class="bd-ms-g">${rows}</div><div class="bd-ms-g">${chest}</div>`;
 }

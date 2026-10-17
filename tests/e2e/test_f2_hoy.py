@@ -79,11 +79,13 @@ def test_hoy_fits_without_scroll():
         c = page.evaluate(_CARD)
         if c["slots"] != ["sync", "prueba"]:
             probs.append(f"partida sembrada: los HOME_SLOTS pintados son {c['slots']} (el aviso de Google y el de prueba)")
-        # el aviso de otro módulo se compacta: sin el párrafo y en una fila de menos de 100 px
-        h = page.evaluate("""() => { const s = document.querySelector('#hm-slots .hm-slot:has(#sv-rem)'); const p = s && s.querySelector('p');
-          return {h: s ? s.getBoundingClientRect().height : 0, p: p ? getComputedStyle(p).display : 'none'}; }""")
-        if not h["h"] or h["h"] > 100 or h["p"] != "none":
-            probs.append(f"el aviso de Google no se compacta: {h}")
+        # el aviso de Google es una fila compacta (homeRow) que abre una hoja corta para el niño
+        h = page.evaluate("""() => { const a = document.querySelector('#hm-slots .hm-slot #sv-rem');
+          return a ? {tag: a.tagName, cls: a.className, h: Math.round(a.getBoundingClientRect().height), pop: a.getAttribute('aria-haspopup'),
+            t: a.textContent.replace(/\\s+/g, ' ').trim(), chev: !!a.querySelector('.hm-chev')} : null; }""")
+        if not h or h["tag"] != "BUTTON" or "hm-row" not in h["cls"] or h["h"] > 64 or h["pop"] != "dialog" or not h["chev"] \
+                or "Guarda tu partida" not in h["t"] or "mayor" not in h["t"]:
+            probs.append(f"el aviso de Google no es una fila compacta: {h}")
         row = page.evaluate("""() => { const a = document.querySelector('[data-slot=prueba] .hm-row');
           return a ? {tag: a.tagName, href: a.getAttribute('href'), h: a.getBoundingClientRect().height, t: a.textContent} : null; }""")
         if not row or row["tag"] != "A" or row["href"] != "#/mapa" or row["h"] > 60 or "Sobres nuevos" not in row["t"]:
@@ -298,7 +300,7 @@ def test_word_of_day_flips_and_speaks():
 
 
 def test_privacy_link():
-    """Al final de Hoy, «Privacidad» (13 px) lleva a privacy.html."""
+    """Al final de Hoy, «Privacidad» (13 px) lleva al resumen en español de privacy.html (#es)."""
     page = C.new_page("phone")
     try:
         C.seed(page)
@@ -307,7 +309,7 @@ def test_privacy_link():
         errs = C.errors(page)
     finally:
         page.context.close()
-    assert p["href"] == "privacy.html" and p["t"] == "Privacidad" and p["fs"] == "13px" and p["h"] >= 44 and p["vis"], f"Privacidad: {p}"
+    assert p["href"] == "privacy.html#es" and p["t"] == "Privacidad" and p["fs"] == "13px" and p["h"] >= 44 and p["vis"], f"Privacidad: {p}"
     assert not errs, "\n".join(errs)
 
 

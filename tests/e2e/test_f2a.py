@@ -15,7 +15,7 @@ TABS = [("hoy", "Hoy"), ("aprender", "Aprender"), ("jugar", "Jugar"), ("granja",
 _BAR = """() => {
   const nav = document.getElementById('tabbar'), r = nav.getBoundingClientRect();
   const tabs = [...nav.querySelectorAll('[role=tab]')];
-  return {role: nav.getAttribute('role'), shown: !!nav.getClientRects().length && getComputedStyle(nav).display !== 'none',
+  return {role: (nav.querySelector('[role=tablist]') || nav).getAttribute('role'), land: nav.tagName === 'NAV' && !nav.hasAttribute('role'), shown: !!nav.getClientRects().length && getComputedStyle(nav).display !== 'none',
     top: r.top, bottom: r.bottom, left: r.left, right: r.right, h: r.height,
     tabs: tabs.map(a => ({id: a.dataset.nav, label: a.querySelector('.tl').textContent, sel: a.getAttribute('aria-selected'),
       ti: a.tabIndex, ico: a.querySelector('svg.ico') ? a.querySelector('svg.ico').getBoundingClientRect().width : 0,
@@ -54,8 +54,9 @@ def _expect_tab(route_name):
 
 # ---------------------------------------------------------------- barra de pestañas
 def test_tabbar_on_every_route():
-    """En cada ruta, en móvil y en escritorio: 5 pestañas role=tab en un nav role=tablist, una sola marcada (la de su
-    sección) y con el foco itinerante; icono de 26 px y etiqueta de 12 px seminegrita en móvil."""
+    """En cada ruta, en móvil y en escritorio: 5 pestañas role=tab en una lista role=tablist dentro de un <nav> (punto
+    de referencia «Principal»), una sola marcada (la de su sección) y con el foco itinerante; icono de 26 px y etiqueta
+    de 12 px seminegrita en móvil."""
     probs = []
     for kind in ("phone", "desk"):
         page = C.new_page(kind)
@@ -65,8 +66,8 @@ def test_tabbar_on_every_route():
                 C.goto(page, r["hash"])
                 b = page.evaluate(_BAR)
                 exp = _expect_tab(r["name"])
-                if b["role"] != "tablist":
-                    probs.append(f"{kind} {r['name']}: el nav de pestañas tiene role={b['role']}")
+                if b["role"] != "tablist" or not b["land"]:
+                    probs.append(f"{kind} {r['name']}: la lista de pestañas tiene role={b['role']} (nav como punto de referencia: {b['land']})")
                 if [(t["id"], t["label"]) for t in b["tabs"]] != TABS:
                     probs.append(f"{kind} {r['name']}: pestañas {[(t['id'], t['label']) for t in b['tabs']]}")
                 sel = [t["id"] for t in b["tabs"] if t["sel"] == "true"]
@@ -85,8 +86,9 @@ def test_tabbar_on_every_route():
 
 
 def test_tabbar_layout_phone_and_desk():
-    """Móvil: abajo, sin encogerse al bajar la página. Desde 820 px flota arriba y centrada, sin tapar la bandera ni
-    las monedas (también justo en 820 px). Respeta las zonas seguras."""
+    """Móvil: abajo, sin encogerse al bajar la página. Desde 820 px flota arriba, centrada si cabe (si el grupo de la
+    derecha es ancho, se corre lo justo), a 12 px como poco de la bandera y de las monedas (también justo en 820 px).
+    Respeta las zonas seguras."""
     probs = []
     for kind, w in (("phone", None), ("desk", None), ("desk", 820), ("desk", 1024)):
         page = C.new_page(kind)
@@ -110,8 +112,13 @@ def test_tabbar_layout_phone_and_desk():
                 if b0["top"] > 40:
                     probs.append(f"{kind}/{vw}: desde 820 px la barra va arriba (top={b0['top']})")
                 mid = (b0["left"] + b0["right"]) / 2
-                if abs(mid - vw / 2) > 1.5:
-                    probs.append(f"{kind}/{vw}: la barra no está centrada ({mid} frente a {vw / 2})")
+                g = page.evaluate("""() => ({f: document.getElementById('lang-b').getBoundingClientRect().right,
+                  r: document.querySelector('.topbar .tb-right').getBoundingClientRect().left})""")
+                gap_l, gap_r = b0["left"] - g["f"], g["r"] - b0["right"]
+                if gap_l < 11.5 or gap_r < 11.5:
+                    probs.append(f"{kind}/{vw}: la barra está a menos de 12 px de los botones de arriba ({gap_l:.1f} / {gap_r:.1f})")
+                if abs(mid - vw / 2) > 1.5 and abs(gap_r - 12) > 1.5:
+                    probs.append(f"{kind}/{vw}: la barra no está centrada ni pegada a 12 px del grupo de la derecha ({mid} frente a {vw / 2})")
                 ov = page.evaluate("""() => { const t = document.getElementById('tabbar').getBoundingClientRect();
                   return ['#lang-b', '.tb-group', '[data-sync-slot]'].map(s => document.querySelector(s)).filter(Boolean)
                     .filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect();
@@ -398,7 +405,8 @@ def test_topbar_coins_and_settings():
 # ---------------------------------------------------------------- modo foco
 def test_focus_mode():
     """html[data-focus] en una lección, durante un repaso y en una partida: sin barras, con una ✕ de vidrio de 44 px
-    arriba a la izquierda que vuelve a la raíz de la pestaña y un contador de monedas arriba a la derecha."""
+    arriba a la izquierda que vuelve a donde estaba antes de entrar (o a la raíz de la pestaña) y un contador de
+    monedas arriba a la derecha."""
     page = C.new_page("phone")
     probs = []
     look = """() => { const vis = el => !!el && !!el.getClientRects().length && getComputedStyle(el).display !== 'none';
@@ -414,7 +422,7 @@ def test_focus_mode():
         st = page.evaluate(look)
         if st["focus"] or not st["tab"] or not st["top"] or st["x"]:
             probs.append(f"fuera del modo foco: {st}")
-        cases = [(f"#/leccion/{R.LESSON}", "leccion", f"#/mapa/{R.LEVEL}"), ("#/juegos/lluvia", "juego", "#/juegos")]
+        cases = [(f"#/leccion/{R.LESSON}", "leccion", "#/mapa"), ("#/juegos/lluvia", "juego", "#/juegos")]
         for h, f, back in cases:
             C.goto(page, h)
             st = page.evaluate(look)
