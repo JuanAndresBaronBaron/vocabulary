@@ -24,7 +24,7 @@ const TOPICS = [
   ["nacionalidades", "🏳️", "Nacionalidades", 0],
 ];
 const BALLOONS = ["#1E6EF4", "#008198", "#34C759", "#FFCC00", "#30B0C7", "#d64545", "#22409a", "#4b5563"];
-const RM = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const RM = () => { try{ return window.M && typeof window.M.rm === "function" ? window.M.rm() : matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };   /* M.rm() de js/motion.js */
 
 /* ---------- utilidades seguras ---------- */
 const snd = n => { try{ if(typeof sfx !== "undefined") sfx.play(n); }catch(e){} };
@@ -166,10 +166,10 @@ const CSS = `
 @media (hover:hover){.gm-card:hover{transform:translateY(-3px);box-shadow:0 9px 0 color-mix(in srgb,var(--gc) 55%,#000)}}
 .gm-card:active{transform:translateY(4px);box-shadow:0 2px 0 color-mix(in srgb,var(--gc) 55%,#000)}
 .gm-card:focus-visible{outline:4px solid var(--brand);outline-offset:3px}
-.gm-card .ge{font-size:3rem;line-height:1.1;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25));animation:gm-bob 2.6s ease-in-out infinite}
+.gm-card .ge{font-size:3rem;line-height:1.1;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25));animation:gm-bob 2.6s ease-in-out 3}
 .gm-card:nth-child(2) .ge{animation-delay:-.7s}.gm-card:nth-child(3) .ge{animation-delay:-1.4s}.gm-card:nth-child(4) .ge{animation-delay:-2s}
 .gm-card b{font-size:1.3rem;line-height:1.15;margin-top:6px;text-shadow:0 2px 0 rgba(0,0,0,.15)}
-.gm-card small{font-size:.92rem;opacity:.95}
+.gm-card small{font-size:.92rem}
 .gm-card .gb{margin-top:auto;padding-top:10px;display:flex;flex-wrap:wrap;gap:5px}
 .gm-card .gb>span{display:inline-block;background:rgba(0,0,0,.22);border-radius:10px;padding:5px 10px;font-size:.86rem;font-weight:700}
 .gm-card .gb>.gc{background:rgba(0,0,0,.24)}
@@ -196,7 +196,7 @@ const CSS = `
 .gm-intro{position:fixed;inset:0;z-index:9;background:rgba(5,15,30,.55);display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow:auto;animation:gm-fade .2s}
 @media (max-height:700px){.gm-intro-e{font-size:3rem!important}.gm-intro-c{padding:16px 16px!important}.gm-intro-c p{font-size:1rem!important}}
 .gm-intro-c{margin:auto;background:var(--card);color:var(--ink);border-radius:24px;padding:24px 20px;text-align:center;max-width:380px;width:100%;box-shadow:0 20px 50px rgba(0,0,0,.35);border-top:8px solid var(--gc);animation:gm-in .35s}
-.gm-intro-e{font-size:4rem;line-height:1.1;animation:gm-bob 2.4s ease-in-out infinite}
+.gm-intro-e{font-size:4rem;line-height:1.1;animation:gm-bob 2.4s ease-in-out 3}
 .gm-intro-c b{display:block;font-size:1.5rem;margin:6px 0 4px}
 .gm-intro-c p{margin:0 0 10px;font-size:1.08rem;line-height:1.4}
 .gm-intro-t{display:inline-block;background:var(--soft);border-radius:999px;padding:5px 12px;font-weight:700;color:var(--brand);margin-bottom:16px}
@@ -414,8 +414,9 @@ function topHtml(g, stats){
     <div class="gm-stats">${stats}</div></div>`;
 }
 function bump(el){ if(!el) return; el.classList.remove("gm-bump"); void el.offsetWidth; el.classList.add("gm-bump"); }
-/* vibración cortita en el móvil (si el aparato la tiene) */
-function buzz(pat){ try{ if(navigator.vibrate) navigator.vibrate(pat); }catch(e){} }
+/* vibración cortita (G.haptic de js/gestures.js: respeta el Sonido; en el iPhone tiene que ir dentro del toque).
+   Solo al acertar ("success") o al elegir ("selection"); al fallar, nada. */
+const haptic = k => { try{ if(window.G && typeof window.G.haptic === "function") window.G.haptic(k); }catch(e){} };
 /* pantallas bajitas (móvil pequeño, cabecera alta): si el juego no cabe, versión compacta .gm-short */
 function autoFit(run, el, after){
   const chk = keep => {
@@ -640,7 +641,6 @@ function memoria(app, P, withIntro){
       }, 1500);
     } else {
       lock = true; misses.add(ca.it.k); misses.add(c.it.k); answer(false, c.it);
-      later(run, () => buzz(40), 520);
       if(c.kind === "word") speak(c.it.word);
       later(run, () => { a.classList.add("no"); b.classList.add("no"); }, 520);
       later(run, () => {
@@ -709,7 +709,9 @@ function lluvia(app, P, withIntro){
     const fall = Math.max(2.6, 7.4 - 4 * Math.min(1, t / DUR) - Math.min(1.2, score * .06));
     const b = {el, it, x: lane * laneW + (laneW - bw) / 2, y: -bs * 1.5, v: (H + bs * 1.6) / fall, ph: Math.random() * 6, dead: false};
     el.style.transform = `translate3d(${b.x}px,${b.y}px,0)`;
-    el.addEventListener("pointerdown", e => { e.preventDefault(); hit(b); });
+    el.addEventListener("pointerdown", e => { e.preventDefault(); try{ el.setPointerCapture(e.pointerId); }catch(err){} b.pid = e.pointerId; });
+    el.addEventListener("pointerup", e => { if(b.pid !== e.pointerId) return; b.pid = null; hit(b); });
+    el.addEventListener("pointercancel", () => { b.pid = null; });
     el.addEventListener("click", e => { if(e.detail === 0) hit(b); });
     sky.appendChild(el); bubbles.push(b);
   }
@@ -721,7 +723,7 @@ function lluvia(app, P, withIntro){
   function hit(b){
     if(b.dead || ended || !running || !live(run)) return;
     if(b.it === target){
-      b.dead = true; b.el.classList.add("pop"); score++; streak++; buzz(15); answer(true, b.it);
+      b.dead = true; b.el.classList.add("pop"); score++; streak++; haptic("success"); answer(true, b.it);
       got.push(b.it);
       snd("pop"); later(run, () => snd("ok"), 90);
       const r = b.el.getBoundingClientRect(); boom({n: 16, x: r.left + r.width / 2, y: r.top + BS() / 2});
@@ -731,7 +733,7 @@ function lluvia(app, P, withIntro){
       setTarget();
     } else {
       b.dead = true; b.el.classList.add("bad"); lives--; streak = 0; answer(false, target);
-      missed.add(target.k); snd("bad"); buzz([50, 40, 50]);
+      missed.add(target.k); snd("bad");
       floatTxt(b, `✗ ${b.it.es}`, true);
       const L = $("#gm-lives");
       if(L){ const hs = L.querySelectorAll("i"); const h = hs[lives]; if(h){ h.classList.add("lost", "hurt"); } }
@@ -826,7 +828,7 @@ function globos(app, P, withIntro){
     const b = e.target.closest(".gm-bal"); if(!b || busy || b.disabled || !live(run)) return;
     const o = opts[+b.dataset.k];
     if(o === cur){
-      busy = true; if(first){ score++; answer(true, cur); } res.push(first); buzz(20);
+      busy = true; if(first){ score++; answer(true, cur); } res.push(first); haptic("success");
       b.classList.add("pop"); b.insertAdjacentHTML("beforeend", `<span class="gm-bang" aria-hidden="true">💥</span>`);
       snd("pop"); later(run, () => snd("ok"), 120);
       boomAt(b.querySelector(".gm-bal-b"), 22);
@@ -847,7 +849,7 @@ function globos(app, P, withIntro){
       }, 1900);
     } else {
       if(first) answer(false, cur);
-      first = false; b.disabled = true; b.classList.add("no"); snd("bad"); buzz([50, 40, 50]);
+      first = false; b.disabled = true; b.classList.add("no"); snd("bad");
       const lt = $("#gm-ltxt"); if(lt) lt.innerHTML = `Ese es <b style="font-size:1.1rem;color:var(--ink)">${esc(o.es)}</b>. ¡Escucha otra vez!`;
       later(run, () => speak(cur.word), 450);
     }
@@ -969,7 +971,7 @@ function letras(app, P, withIntro){
       $("#gm-next").onclick = nx;
       later(run, nx, 2600);
     } else {
-      S.errs++; snd("bad"); S.busy = true; buzz([50, 40, 50]); if(S.errs === 1) answer(false, S.it);
+      S.errs++; snd("bad"); S.busy = true; if(S.errs === 1) answer(false, S.it);
       const wrong = [];
       S.ans.forEach((ch, i) => { if(S.tiles[S.slots[i]].ch !== ch) wrong.push(i); else if(!S.lock[i]) S.lock[i] = "good"; });
       paint(); wrong.forEach(i => els[i].classList.add("wrong"));

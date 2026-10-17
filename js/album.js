@@ -14,7 +14,7 @@
 "use strict";
 
 /* ---------- utilidades ---------- */
-const RM = () => { try{ return matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };
+const RM = () => { try{ return window.M && typeof window.M.rm === "function" ? window.M.rm() : matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };   /* M.rm() de js/motion.js */
 const snd = n => { try{ if(typeof sfx !== "undefined") sfx.play(n); }catch(e){} };
 const boom = o => { try{ if(typeof confetti === "function") confetti(o); }catch(e){} };
 function boomAt(el, o = {}){
@@ -28,7 +28,7 @@ const fmt = n => Number(n || 0).toLocaleString("es");
 const plural = (n, one, many) => n === 1 ? one : many;
 function hash(s){ let h = 2166136261 >>> 0; for(const c of String(s)){ h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
 /* paleta: azul marino, azul, verde azulado, verde y gris (texto blanco legible encima) */
-const PAL = ["#1f6fd1", "#13887f", "#2e9e4f", "#22409a", "#0f3d75", "#4b5563", "#1a7f9e"];
+const PAL = ["#1f6fd1", "#117c74", "#23803f", "#22409a", "#0f3d75", "#4b5563", "#1a7f9e"];   /* todos con texto blanco a 4,5:1 */
 const colorOf = s => PAL[hash(s) % PAL.length];
 const tilt = k => ((hash(k) % 800) / 100 - 4).toFixed(2);              /* giro estable entre -4° y 4° */
 const delay = k => ((hash("d" + k) % 300) / 100).toFixed(2);           /* desfase estable de animaciones */
@@ -44,7 +44,7 @@ const getSeen = () => store.get(K.seen(), {}) || {};
 const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
 
 const GROUPS = [
-  {g: "temas",    tab: "🎨 Temas",       h: "🎨 Temas para empezar",          sub: "Animales, colores, números, la familia…",  c: "#13887f"},
+  {g: "temas",    tab: "🎨 Temas",       h: "🎨 Temas para empezar",          sub: "Animales, colores, números, la familia…",  c: "#117c74"},
   {g: "3000",     tab: "📗 Las 3000", h: "📗 Las palabras más importantes", sub: "Las 3000 palabras que más se usan.",        c: "#1f6fd1"},
   {g: "avanzado", tab: "🚀 Expertos",    h: "🚀 Palabras de experto",          sub: "Para cuando ya sepas muchísimo.",           c: "#22409a"},
 ];
@@ -126,7 +126,7 @@ const CSS = `
 .al-cv-top{position:relative;display:flex;align-items:center;gap:14px;z-index:1}
 .al-cv-ic{font-size:3.3rem;line-height:1;filter:drop-shadow(0 4px 4px rgba(0,0,0,.25));flex:none}
 .al-cover h1{margin:0;font-size:1.7rem;line-height:1.15}
-.al-cover p{margin:4px 0 0;opacity:.92;font-size:1rem}
+.al-cover p{margin:4px 0 0;font-size:1rem}
 .al-cv-st{position:relative;z-index:1;margin-top:14px;max-width:560px}
 .al-cv-big{font-size:1.22rem}.al-cv-big b{font-size:1.6rem;color:#FFE066}
 .al-bar{height:14px;border-radius:99px;background:rgba(255,255,255,.22);overflow:hidden;margin:8px 0 10px}
@@ -153,7 +153,7 @@ const CSS = `
 .al-tab{position:relative;flex:1 1 0;min-width:0;white-space:nowrap;min-height:56px;border:2px solid var(--line);border-bottom:0;border-top:5px solid var(--tc);
   background:var(--soft);border-radius:16px 16px 0 0;padding:6px 8px;margin-bottom:-2px;color:var(--muted);font-weight:800;
   display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.15;font-size:1rem}
-.al-tab small{font-weight:700;font-size:.78rem;opacity:.9}
+.al-tab small{font-weight:700;font-size:.78rem}
 .al-tab.on{background:var(--card);color:var(--ink)}
 .al-tab.on::after{content:"";position:absolute;left:0;right:0;bottom:-3px;height:5px;background:var(--card)}
 .al-tab .al-tdot{position:absolute;top:-12px;right:6px;background:#23803f;color:#fff;border-radius:99px;font-size:.72rem;padding:1px 7px;box-shadow:0 2px 6px rgba(0,0,0,.2)}
@@ -165,7 +165,7 @@ const CSS = `
   border-radius:18px;background:var(--card);border:2px solid var(--line);text-decoration:none;color:var(--ink);box-shadow:0 4px 0 var(--line);
   transition:transform .12s,box-shadow .12s,border-color .12s}
 .al-th{--cn:color-mix(in srgb,var(--c) 74%,#000)}
-[data-theme=dark] .al-th{--cf:color-mix(in srgb,var(--c) 58%,#fff);--cn:var(--cf)}
+[data-theme=dark] .al-th{--cf:color-mix(in srgb,var(--c) 58%,#fff);--cn:color-mix(in srgb,var(--c) 45%,#fff)}
 .al-th:hover{transform:translateY(-3px);border-color:var(--cf)}
 .al-th:active{transform:translateY(2px);box-shadow:0 1px 0 var(--line)}
 .al-th:focus-visible,.al-tab:focus-visible,.al-st:focus-visible,.al-f button:focus-visible{outline:3px solid var(--brand);outline-offset:3px}
@@ -176,16 +176,18 @@ const CSS = `
 .al-th-n small{color:var(--muted);font-weight:700}
 .al-th-gold{font-size:.8rem;font-weight:800;color:var(--gold-ink)}
 [data-theme=dark] .al-th-gold{color:#FFCC00}
+.al-th.full .al-th-gold{color:color-mix(in srgb,var(--gold-ink) 84%,#000)}
+[data-theme=dark] .al-th.full .al-th-gold{color:#FFCC00}
 .al-th.full{border-color:#FFCC00;background:color-mix(in srgb,#FFCC00 12%,var(--card));box-shadow:0 4px 0 #B38F00}
 .al-th-stamp{position:absolute;left:8px;top:8px;font-size:1.5rem;transform:rotate(-12deg)}
-.al-new-b{position:absolute;top:-11px;right:-6px;background:#23803f;color:#fff;white-space:nowrap;font-weight:900;font-size:.8rem;border-radius:99px;padding:3px 9px;box-shadow:0 3px 8px rgba(0,0,0,.22);animation:al-bob 1.6s ease-in-out infinite}
+.al-new-b{position:absolute;top:-11px;right:-6px;background:#23803f;color:#fff;white-space:nowrap;font-weight:900;font-size:.8rem;border-radius:99px;padding:3px 9px;box-shadow:0 3px 8px rgba(0,0,0,.22);animation:al-bob 1.6s ease-in-out 3}
 @keyframes al-bob{0%,100%{translate:0 0}50%{translate:0 -4px}}
 /* página de un tema */
 .al-ph{--cf:var(--c);position:relative;display:flex;align-items:center;gap:16px;background:var(--c);color:#fff;border-radius:22px;padding:16px 18px;margin:6px 0 14px;box-shadow:0 6px 0 color-mix(in srgb,var(--c) 58%,#000)}
 .al-ph-ic{font-size:2.6rem;width:74px;height:74px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex:none}
 .al-ph-tx{flex:1;min-width:0}
 .al-ph h1{margin:0;font-size:1.55rem;line-height:1.15;overflow-wrap:anywhere}
-.al-ph-sub{opacity:.95;font-size:1rem;margin-top:2px}
+.al-ph-sub{font-size:1rem;margin-top:2px}
 .al-ph-sub b{font-size:1.15rem}
 .al-ph .al-bar{margin:8px 0 0}
 .al-stamp{position:absolute;right:-6px;top:-16px;z-index:3;transform:rotate(11deg);background:#FFF5CC;color:#6b4f00;border:3px dashed #B38F00;border-radius:14px;padding:6px 12px;font-weight:900;font-size:.95rem;line-height:1.1;text-align:center;box-shadow:0 6px 14px rgba(0,0,0,.25);display:none}
@@ -196,8 +198,8 @@ const CSS = `
 .al-f{display:flex;flex-wrap:wrap;gap:6px}
 .al-f button{min-height:44px;border:2px solid var(--line);background:var(--card);border-radius:99px;padding:6px 14px;font-weight:800;color:var(--muted)}
 .al-f button.on{border-color:transparent;background:var(--brand-fill);color:#fff}
-.al-f button small{font-weight:700;opacity:.85}
-.btn.al-pall{margin-left:auto;min-height:48px;background:#23803f;border:0;color:#fff;font-weight:900;font-size:1.02rem;padding:10px 18px;border-radius:99px;box-shadow:0 4px 0 #165a2b;animation:al-glow 1.8s ease-in-out infinite}
+.al-f button small{font-weight:700}
+.btn.al-pall{margin-left:auto;min-height:48px;background:#23803f;border:0;color:#fff;font-weight:900;font-size:1.02rem;padding:10px 18px;border-radius:99px;box-shadow:0 4px 0 #165a2b;animation:al-glow 1.8s ease-in-out 3}
 .btn.al-pall:active{transform:translateY(3px);box-shadow:0 1px 0 #165a2b}
 @keyframes al-glow{0%,100%{filter:brightness(1)}50%{filter:brightness(1.12)}}
 .al-tip{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin:0 0 14px;color:var(--muted);font-weight:600}
@@ -246,7 +248,7 @@ const CSS = `
 .al-lb small{font-size:.72rem;color:#5b6778;overflow-wrap:anywhere}
 .al-st.gold{background:linear-gradient(135deg,#FFF6D1 0%,#FFCC00 30%,#FFF5CC 50%,#E6B800 75%,#FFE066 100%)}
 .al-st.gold .al-face{background:#fffaf0}
-.al-st.gold .al-face::after{content:"";position:absolute;top:-10%;bottom:-10%;left:-70%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);transform:skewX(-16deg);animation:al-sheen 3.6s ease-in-out infinite;animation-delay:var(--d,0s);pointer-events:none}
+.al-st.gold .al-face::after{content:"";position:absolute;top:-10%;bottom:-10%;left:-70%;width:45%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.85),transparent);transform:skewX(-16deg);animation:al-sheen 3.6s ease-in-out 3;animation-delay:var(--d,0s);pointer-events:none}
 @keyframes al-sheen{0%{transform:skewX(-16deg) translateX(0)}55%,100%{transform:skewX(-16deg) translateX(420%)}}
 .al-st.gold .al-lb small{color:#5e4500}
 .al-star{position:absolute;right:-9px;top:-11px;z-index:3;font-size:1.35rem;filter:drop-shadow(0 2px 2px rgba(0,0,0,.3))}
@@ -257,15 +259,15 @@ const CSS = `
 [data-theme=dark] .al-st.lock .al-face img{filter:url(#al-sil) invert(1);opacity:.15}
 .al-st.lock .al-num{background:none;color:var(--muted)}
 .al-q{position:absolute;font-size:2.3rem;font-weight:900;color:var(--muted)}
-.al-st.lock .al-lb b{color:var(--muted);font-size:.8rem}
+.al-st.lock .al-lb b{color:var(--miss-on,var(--muted));font-size:.8rem}
 .al-st.lock:hover{transform:translateY(-2px);box-shadow:none;border-color:var(--brand)}
 .al-pack{position:absolute;inset:-4px;z-index:4;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#fff;
   background:linear-gradient(135deg,#1E6EF4,#008198);box-shadow:inset 0 0 0 3px rgba(255,255,255,.75),0 6px 14px rgba(15,30,50,.25);transform-origin:0 0;pointer-events:none}
 .al-pack::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(45deg,rgba(255,255,255,.13) 0 9px,transparent 9px 18px)}
 .al-pack::after{content:"";position:absolute;right:0;bottom:0;width:28px;height:28px;background:linear-gradient(135deg,transparent 50%,#fff 50%);border-top-left-radius:8px;box-shadow:-3px -3px 5px rgba(0,0,0,.18)}
 .al-pack>*{position:relative}
-.al-pack span{font-size:1.9rem;line-height:1}.al-pack b{font-size:1.05rem}.al-pack small{font-size:.76rem;opacity:.92}
-.al-st.new{animation:al-wiggle 2.6s ease-in-out infinite;animation-delay:var(--d,0s)}
+.al-pack span{font-size:1.9rem;line-height:1}.al-pack b{font-size:1.05rem}.al-pack small{font-size:.76rem}
+.al-st.new{animation:al-wiggle 2.6s ease-in-out 3;animation-delay:var(--d,0s)}
 @keyframes al-wiggle{0%,78%,100%{transform:rotate(var(--r))}84%{transform:rotate(calc(var(--r) - 6deg)) scale(1.05)}90%{transform:rotate(calc(var(--r) + 6deg)) scale(1.05)}96%{transform:rotate(var(--r))}}
 .al-st.peeling .al-pack{animation:al-peel .6s cubic-bezier(.55,0,.75,.2) forwards}
 @keyframes al-peel{0%{transform:none}35%{transform:rotate(-7deg) translate(-3px,-8px)}100%{transform:rotate(-38deg) translate(-30%,-150%);opacity:0}}
@@ -341,8 +343,8 @@ const CSS = `
 .al-lk-w{color:var(--muted);font-weight:700;min-height:1.4em}
 .al-lk-a{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px}
 .al-lk-a .btn{text-decoration:none;min-height:48px;display:inline-flex;align-items:center}
-.btn.al-ls{background:#13887f;border-color:transparent;color:#fff;font-weight:800;text-decoration:none;padding:11px 18px;box-shadow:0 4px 0 #0b5a54}
-.ba.al-ba-new{position:relative;animation:al-hglow 1.8s ease-in-out infinite}
+.btn.al-ls{background:#117c74;border-color:transparent;color:#fff;font-weight:800;text-decoration:none;padding:11px 18px;box-shadow:0 4px 0 #0b5a54}
+.ba.al-ba-new{position:relative;animation:al-hglow 1.8s ease-in-out 3}
 .ba.al-ba-new .al-bdot{position:absolute;top:-8px;right:-6px;background:#FFCC00;color:#3D2B00;font-size:.9rem;font-weight:900;border-radius:99px;min-width:30px;height:30px;padding:0 8px;display:flex;align-items:center;justify-content:center;box-shadow:0 3px 8px rgba(0,0,0,.25)}
 @keyframes al-hglow{0%,100%{box-shadow:0 6px 0 rgba(0,0,0,.18),0 0 0 0 rgba(242,201,76,.75)}50%{box-shadow:0 6px 0 rgba(0,0,0,.18),0 0 0 9px rgba(242,201,76,0)}}
 @media (max-width:560px){

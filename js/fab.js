@@ -8,8 +8,8 @@ const STYLE = `
 .fab-main{position:absolute;right:0;bottom:0;width:60px;height:60px;border-radius:50%;border:3px solid #fff;background:var(--brand-fill);color:#fff;font-size:1.6rem;
   box-shadow:0 8px 22px rgba(5,20,40,.35);display:flex;align-items:center;justify-content:center;transition:transform .3s cubic-bezier(.3,1.4,.5,1),opacity .25s}
 .fab-main span{display:inline-block;transition:transform .45s cubic-bezier(.3,1.6,.5,1)}
-.fab:not(.open):not(.hid) .fab-main{animation:fab-bob 2.6s ease-in-out infinite}
-.fab:not(.open):not(.hid) .fab-main span{animation:fab-wig 6s ease-in-out infinite}
+.fab:not(.open):not(.hid) .fab-main{animation:fab-bob 2.6s ease-in-out 3}
+.fab:not(.open):not(.hid) .fab-main span{animation:fab-wig 6s ease-in-out 3}
 .fab-main:active{transform:scale(.88)}
 .fab.pop .fab-main{animation:fab-in .55s cubic-bezier(.3,1.7,.5,1)}
 @keyframes fab-bob{0%,100%{translate:0 0}50%{translate:0 -5px}}
@@ -64,7 +64,7 @@ const ring = root.querySelector(".fab-ring"), main = root.querySelector(".fab-ma
 const snd = n => { try{ if(typeof sfx !== "undefined") sfx.play(n); }catch(e){} };
 const SPARK = ["✨","⭐","🌟","💫"];
 function sparks(el, n){   // estrellitas que salen volando del botón
-  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  try{ if(window.M && typeof window.M.rm === "function" ? window.M.rm() : matchMedia("(prefers-reduced-motion: reduce)").matches) return; }catch(e){}
   const r = el.getBoundingClientRect(), cx = r.left + r.width/2, cy = r.top + r.height/2;
   for(let i = 0; i < n; i++){
     const s = document.createElement("span"); s.className = "fab-spark"; s.textContent = SPARK[i % SPARK.length];
@@ -123,7 +123,7 @@ addEventListener("hashchange", close);
 
 // visible solo cuando la fila de arriba de la cabecera ya no se ve
 const top = () => { const l = $(".logo"); return l ? l.getBoundingClientRect().bottom < 4 : scrollY > 60; };
-const calm = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+const calm = () => { try{ return window.M && typeof window.M.rm === "function" ? window.M.rm() : matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };   /* M.rm() de js/motion.js */
 // de dónde sale la estrella: el centro de la fila de arriba (ajustes e idiomas), aunque ya esté por encima de la pantalla
 function home(){
   const r = ($("#langs") || $(".htools") || $(".logo"))?.getBoundingClientRect();
