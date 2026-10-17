@@ -1,0 +1,49 @@
+{
+ "v": 1,
+ "about": "Palabras de temporada (js/season.js): Halloween (10 de octubre al 31), Bonfire Night (1 al 5 de noviembre, solo inglés) y calendario de adviento (1 al 24 de diciembre, una palabra por ventanita, en orden). w: la palabra en cada idioma (francés con artículo, danés con en/et); si audio/<ab>.json tiene esa palabra suena su audio grabado y, si no, la voz del navegador. img: dibujo del corpus o de OpenMoji (CC BY-SA 4.0) en img/season/. En halloween y bonfire, el orden es el de las pegatinas de «Mis cosas».",
+ "halloween": [
+  {"id": "pumpkin", "es": "calabaza", "img": "img/season/pumpkin.png", "w": {"english": "pumpkin", "français": "la citrouille", "dansk": "et græskar"}},
+  {"id": "ghost", "es": "fantasma", "img": "img/om_1F47B.png", "w": {"english": "ghost", "français": "le fantôme", "dansk": "et spøgelse"}},
+  {"id": "bat", "es": "murciélago", "img": "img/season/bat.png", "w": {"english": "bat", "français": "la chauve-souris", "dansk": "en flagermus"}},
+  {"id": "witch", "es": "bruja", "img": "img/season/witch.png", "w": {"english": "witch", "français": "la sorcière", "dansk": "en heks"}},
+  {"id": "spider", "es": "araña", "img": "img/b7c54fcc51.png", "w": {"english": "spider", "français": "l'araignée", "dansk": "en edderkop"}},
+  {"id": "skeleton", "es": "esqueleto", "img": "img/season/skeleton.png", "w": {"english": "skeleton", "français": "le squelette", "dansk": "et skelet"}},
+  {"id": "owl", "es": "búho", "img": "img/7a0d4a0582.png", "w": {"english": "owl", "français": "le hibou", "dansk": "en ugle"}},
+  {"id": "broom", "es": "escoba", "img": "img/season/broom.png", "w": {"english": "broom", "français": "le balai", "dansk": "en kost"}},
+  {"id": "mask", "es": "máscara", "img": "img/season/mask.png", "w": {"english": "mask", "français": "le masque", "dansk": "en maske"}},
+  {"id": "sweets", "es": "caramelos", "img": "img/season/sweets.png", "w": {"english": "sweets", "français": "les bonbons", "dansk": "slik"}}
+ ],
+ "bonfire": [
+  {"id": "bonfire", "es": "hoguera", "img": "img/season/bonfire.png", "w": {"english": "bonfire"}},
+  {"id": "firework", "es": "fuego artificial", "img": "img/season/firework.png", "w": {"english": "firework"}},
+  {"id": "rocket", "es": "cohete", "img": "img/season/rocket.png", "w": {"english": "rocket"}},
+  {"id": "sparkler", "es": "bengala", "img": "img/season/sparkler.png", "w": {"english": "sparkler"}},
+  {"id": "toffee-apple", "es": "manzana de caramelo", "img": "img/season/toffee-apple.png", "w": {"english": "toffee apple"}}
+ ],
+ "advent": [
+  {"id": "snow", "es": "nieve", "img": "img/om_2744.png", "w": {"english": "snow", "français": "la neige", "dansk": "en sne"}},
+  {"id": "moon", "es": "luna", "img": "img/om_1F319.png", "w": {"english": "moon", "français": "la lune", "dansk": "en måne"}},
+  {"id": "sock", "es": "calcetín", "img": "img/om_1F9E6.png", "w": {"english": "sock", "français": "la chaussette", "dansk": "en sok"}},
+  {"id": "glove", "es": "guante", "img": "img/om_1F9E4.png", "w": {"english": "glove", "français": "le gant", "dansk": "en handske"}},
+  {"id": "scarf", "es": "bufanda", "img": "img/season/scarf.png", "w": {"english": "scarf", "français": "l'écharpe", "dansk": "et halstørklæde"}},
+  {"id": "bell", "es": "campana", "img": "img/om_1F514.png", "w": {"english": "bell", "français": "la cloche", "dansk": "en klokke"}},
+  {"id": "biscuit", "es": "galleta", "img": "img/om_1F36A.png", "w": {"english": "biscuit", "français": "le biscuit", "dansk": "en småkage"}},
+  {"id": "candle", "es": "vela", "img": "img/season/candle.png", "w": {"english": "candle", "français": "la bougie", "dansk": "et lys"}},
+  {"id": "penguin", "es": "pingüino", "img": "img/78b802be36.png", "w": {"english": "penguin", "français": "le manchot", "dansk": "en pingvin"}},
+  {"id": "snowman", "es": "muñeco de nieve", "img": "img/season/snowman.png", "w": {"english": "snowman", "français": "le bonhomme de neige", "dansk": "en snemand"}},
+  {"id": "drum", "es": "tambor", "img": "img/om_1F941.png", "w": {"english": "drum", "français": "le tambour", "dansk": "en tromme"}},
+  {"id": "toy", "es": "juguete", "img": "img/om_1F9F8.png", "w": {"english": "toy", "français": "le jouet", "dansk": "et legetøj"}},
+  {"id": "chocolate", "es": "chocolate", "img": "img/om_1F36B.png", "w": {"english": "chocolate", "français": "le chocolat", "dansk": "en chokolade"}},
+  {"id": "reindeer", "es": "reno", "img": "img/season/reindeer.png", "w": {"english": "reindeer", "français": "le renne", "dansk": "et rensdyr"}},
+  {"id": "song", "es": "canción", "img": "img/om_1F3B5.png", "w": {"english": "song", "français": "la chanson", "dansk": "en sang"}},
+  {"id": "sledge", "es": "trineo", "img": "img/season/sledge.png", "w": {"english": "sledge", "français": "la luge", "dansk": "en kælk"}},
+  {"id": "angel", "es": "ángel", "img": "img/season/angel.png", "w": {"english": "angel", "français": "l'ange", "dansk": "en engel"}},
+  {"id": "family", "es": "familia", "img": "img/om_1F46A.png", "w": {"english": "family", "français": "la famille", "dansk": "en familie"}},
+  {"id": "elf", "es": "duende", "img": "img/season/elf.png", "w": {"english": "elf", "français": "le lutin", "dansk": "en nisse"}},
+  {"id": "christmas-tree", "es": "árbol de Navidad", "img": "img/season/christmas-tree.png", "w": {"english": "Christmas tree", "français": "le sapin de Noël", "dansk": "et juletræ"}},
+  {"id": "window", "es": "ventana", "img": "img/om_1FA9F.png", "w": {"english": "window", "français": "la fenêtre", "dansk": "et vindue"}},
+  {"id": "father-christmas", "es": "Papá Noel", "img": "img/season/father-christmas.png", "w": {"english": "Father Christmas", "français": "le père Noël", "dansk": "en julemand"}},
+  {"id": "gift", "es": "regalo", "img": "img/om_1F381.png", "w": {"english": "gift", "français": "le cadeau", "dansk": "en gave"}},
+  {"id": "star", "es": "estrella", "img": "img/om_2B50.png", "w": {"english": "star", "français": "l'étoile", "dansk": "en stjerne"}}
+ ]
+}
