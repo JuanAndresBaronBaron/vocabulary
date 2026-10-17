@@ -1,13 +1,17 @@
 /* Módulo buddy: misiones de hoy, palabra del día, cofre y el zorro del camino.
    El zorro ya no flota en una esquina: vive dentro del contenido (tarjeta de Hoy, camino) y sus frases de logros
    (misión cumplida, 5 o 10 aciertos seguidos) salen en la cápsula de avisos de arriba (M.toast). Nada de frases sueltas.
-   - Portada (HOME_SLOTS): «🎯 Misiones de hoy» (3 al día, deterministas por fecha, +15 🪙 cada una y cofre de +25 🪙)
-     y «🌟 Palabra del día» (+3 🪙 la primera vez que dice «¡Me la sé!»). Las monedas salen volando desde el botón (award(…, desde)).
+   - Hoy: home() de index.html pinta las dos piezas que da este módulo. «Misiones» (misPiece(): la siguiente misión y 3
+     puntos; al tocarla, la hoja #bd-mis-s con las 3 misiones de hoy, su progreso, «Recoger · 15» y el cofre de +25).
+     «Palabra del día» (wotdPiece(): dibujo y palabra; al tocarla gira en 3D, enseña la traducción y suena; detrás,
+     «¡Me la sé!» la manda al repaso y da +3 la primera vez del día). Las monedas salen volando desde el botón
+     (award(…, desde)). La pieza de Misiones salta una vez cuando hay una misión recién cumplida (attention()).
    - Mapa: el personaje junto a la lección actual (camina desde la anterior al terminar una) y «🎁 Regalo en N lecciones».
    - Mientras se juega a un minijuego (html[data-gm-play], lo pone games.js) los avisos de misión esperan al resultado.
-   API: window.vocabBuddy = {missions(), misHtml(), paintMis(), claim(k, desde), openChest(desde), wotdPick(), paintWotd(),
-        wire(), cheer(texto, icono)}. claim/openChest devuelven true si han pagado.
-   Guarda: store "buddy:missions" {day, list:[{k, goal, n, s (lo que ya vio en la portada), got}], chest} · "buddy:wotd" {day, seen, known, paid}.
+   API: window.vocabBuddy = {missions(), misHtml(), paintMis(), misPiece(), openMissions(desde), claim(k, desde),
+        openChest(desde), wotdPick(), wotdPiece(), paintWotd(girada), attention(), wire(), cheer(texto, icono)}.
+        claim/openChest devuelven true si han pagado; attention() true si la pieza de Misiones ha saltado.
+   Guarda: store "buddy:missions" {day, list:[{k, goal, n, s (lo que ya vio en la hoja), got}], chest} · "buddy:wotd" {day, seen, known, paid}.
    ("buddy:hide" era el ✕ del zorro flotante: ya no se escribe, pero la clave se conserva en la partida). */
 (() => {
 "use strict";
@@ -48,91 +52,72 @@ const sshuf = (arr, r) => { const a = [...arr]; for(let i = a.length - 1; i > 0;
 
 /* ---------- estilos ---------- */
 const STYLE = `
-/* portada: misiones y palabra del día */
-.bd-slot{margin:0 0 14px}
-/* las dos tarjetas juntas: en escritorio una al lado de la otra y con la misma altura */
-.bd-duo{display:grid;gap:14px;margin:0 0 14px}
-.bd-duo>.bd-slot{margin:0;min-width:0}
-@media (min-width:900px){.bd-duo{grid-template-columns:1fr 1fr;align-items:stretch}
-  .bd-duo .bd-wotd{display:flex;flex-direction:column}.bd-duo .bd-wotd .bd-wb{flex:1}
-  .bd-duo .bd-wotd .bd-wimg{width:150px;height:150px}.bd-duo .bd-wotd .bd-wimg .img img{max-width:124px;max-height:124px}}
-.bd-mh{display:flex;align-items:center;gap:10px;margin-bottom:12px}
-.bd-mh h2{margin:0;font-size:1.25rem}
-.bd-pill{margin-left:auto;background:var(--soft);border:2px solid var(--line);border-radius:999px;padding:3px 11px;font-weight:800;color:var(--muted);font-size:.88rem;white-space:nowrap}
-.bd-rows{display:grid;gap:10px}
-.bd-row{display:grid;grid-template-columns:50px 1fr auto;align-items:center;gap:12px;padding:10px 12px;border-radius:16px;border:2px solid var(--line);background:var(--card);text-decoration:none;color:var(--ink);min-height:70px;transition:transform .12s,border-color .2s,background .3s}
-a.bd-row:hover{border-color:var(--brand)}
-a.bd-row:active{transform:translateY(2px)}
-.bd-ic{width:50px;height:50px;border-radius:15px;background:var(--soft);display:flex;align-items:center;justify-content:center;font-size:1.65rem}
-.bd-mt{min-width:0;display:block}
-.bd-mt b{display:block;font-size:1rem;line-height:1.2}
-.bd-bar{display:block;height:12px;border-radius:99px;background:var(--line);overflow:hidden;margin:6px 0 3px}
-.bd-bar i{display:block;height:100%;border-radius:99px;background:var(--teal);transition:width .6s}
-.bd-mt small{display:block;color:var(--muted);font-weight:700;font-size:.82rem}
-.bd-go{width:40px;height:40px;border-radius:50%;background:var(--soft);color:var(--brand);font-size:1.5rem;font-weight:900;display:flex;align-items:center;justify-content:center;line-height:1}
-.bd-row.done{border-color:#FFCC00;background:color-mix(in srgb,#FFCC00 14%,var(--card))}
-.bd-row.done .bd-ic{background:color-mix(in srgb,#FFCC00 35%,var(--card))}
-.bd-row.done .bd-bar i{background:var(--gold)}
-.bd-row.got{border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
-.bd-row.got .bd-bar i{background:var(--ok)}
-.bd-row.got .bd-mt small{color:var(--ok-ink)}
-.bd-plus{display:inline-block;margin-left:6px;padding:0 7px;border-radius:99px;background:#FFCC00;color:#3D2B00;font-weight:900;animation:bd-stamp .5s cubic-bezier(.3,1.6,.5,1)}
-.bd-get{border:0;border-radius:14px;background:#FFCC00;color:#3D2B00;font-weight:900;font-size:1rem;padding:10px 14px;min-height:46px;box-shadow:0 4px 0 #B38F00;white-space:nowrap;animation:bd-pulse 1.5s ease-in-out 3}
-.bd-get:hover{background:#f7d774}
-.bd-get:active{transform:translateY(3px);box-shadow:0 1px 0 #B38F00;animation:none}
-.bd-check{width:42px;height:42px;border-radius:50%;background:#23843f;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1.3rem}
-.bd-row.stamp .bd-check{animation:bd-stamp .45s cubic-bezier(.3,1.6,.5,1)}
-.bd-chest{display:flex;align-items:center;gap:12px;margin-top:12px;padding:10px 12px;border-radius:16px;border:2px dashed var(--line);color:var(--muted);min-height:70px}
-.bd-box{font-size:2.3rem;line-height:1;filter:grayscale(1);opacity:.5;flex:none}
-.bd-ct{flex:1;min-width:0}.bd-ct b{display:block;color:var(--ink)}.bd-ct small{display:block;font-weight:600}
-.bd-cdots{display:flex;gap:6px}
-.bd-cdots i{width:14px;height:14px;border-radius:50%;background:var(--line)}
-.bd-cdots i.on{background:#FFCC00;box-shadow:0 0 0 2px color-mix(in srgb,#FFCC00 50%,transparent)}
-.bd-chest.ready{border:2px solid #FFCC00;background:linear-gradient(120deg,color-mix(in srgb,#FFCC00 24%,var(--card)),var(--card));color:var(--ink)}
-.bd-chest.ready .bd-box{filter:none;opacity:1;animation:bd-shake 1s ease-in-out 3}
-.bd-chest.open{border-style:solid;border-color:color-mix(in srgb,var(--ok) 45%,var(--line))}
-.bd-chest.open .bd-box{filter:none;opacity:1;animation:bd-stamp .5s}
-@keyframes bd-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
-@keyframes bd-stamp{0%{transform:scale(2.2) rotate(-20deg);opacity:0}100%{transform:none;opacity:1}}
+/* Hoy: las dos piezas (las pinta home() de index.html): contenido sólido, como las tarjetas */
+.bd-piece{position:relative;min-width:0;margin:0}
+.bd-mis{display:flex;flex-direction:column;align-items:stretch;min-height:120px;padding:14px 16px 16px;border:0;text-align:left;color:var(--label);
+  font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bd-pl{display:flex;align-items:center;gap:6px;min-width:0;font:600 var(--fs-note)/1.33 var(--f-text);color:var(--label2);white-space:nowrap}
+.bd-pl .ico{flex:none;color:var(--brand-tint)}
+.bd-pl span{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.bd-mt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin:8px 0 10px;font:600 var(--fs-head)/1.22 var(--f-text);overflow-wrap:anywhere}
+.bd-dots{display:flex;gap:6px;margin-top:auto}
+.bd-dots i{width:12px;height:12px;border-radius:6px;background:var(--fill)}
+.bd-dots i.on{background:var(--teal)}
+.bd-bounce{animation:bd-bounce .62s cubic-bezier(.3,1.3,.5,1) 1}
+@keyframes bd-bounce{0%,100%{translate:0 0}30%{translate:0 -12px}55%{translate:0 0}75%{translate:0 -4px}}
+/* palabra del día: dos caras (dibujo y palabra · traducción) que giran en 3D */
+.bd-wotd{display:grid;perspective:900px}
+.bd-flip{position:relative;display:grid;min-width:0;transform-style:preserve-3d;transition:transform var(--d-slow,420ms) var(--sp-snappy,cubic-bezier(.2,.9,.25,1))}
+.bd-flip.back{transform:rotateY(180deg)}
+.bd-face{grid-area:1/1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;margin:0;padding:14px 12px;border:0;text-align:center;color:var(--label);
+  font:inherit;-webkit-backface-visibility:hidden;backface-visibility:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bd-face .bd-pl{align-self:stretch;margin:0 4px 2px}
+.bd-wback{gap:2px;transform:rotateY(180deg)}
+.bd-wimg{display:block;flex:none;width:64px;height:64px}
+.bd-wotd .bd-wimg img{display:block;width:64px;height:64px;max-width:none;max-height:none;object-fit:contain}
+.bd-ww{display:block;max-width:100%;margin:auto 0 0;font:700 calc(1.625rem*var(--k,1))/1.15 var(--f-round);overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}
+.bd-ww.s{font-size:calc(1.3125rem*var(--k,1))}.bd-ww.xs{font-size:calc(1.0625rem*var(--k,1))}
+.bd-wtap{display:flex;flex-direction:column;align-items:center;gap:0;width:100%;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
+.bd-wes{max-width:100%;font:700 calc(1.5rem*var(--k,1))/1.15 var(--f-round);overflow-wrap:anywhere}
+.bd-wsm{max-width:100%;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
+.bd-know{margin-top:auto;font-size:var(--fs-note)}
+.bd-c{display:inline-flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
+.bd-c svg{display:block;width:16px;height:16px}
+.bd-wok{display:inline-flex;align-items:center;gap:5px;margin-top:auto;min-height:var(--tap,44px);font:600 var(--fs-note)/1.2 var(--f-text);color:var(--ok-ink)}
+
+/* hoja «Misiones de hoy» (M.openSheet): grupos sólidos sobre la hoja de vidrio */
+dialog.bd-ms{max-width:560px}
+.bd-ms-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:2px 0}
+.bd-ms-top h2{margin:0;font:700 var(--fs-t3)/1.2 var(--f-round);color:var(--label)}
+.bd-ms-sub{margin:0 0 14px;font:400 var(--fs-note)/1.33 var(--f-text);color:var(--label2)}
+.bd-ms-g{margin:0 0 12px;background:var(--card);border-radius:var(--r-card);overflow:hidden}
+:root[data-theme=dark] .bd-ms-g{background:var(--card-2)}
+.bd-row{position:relative;display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 14px;color:var(--label);text-decoration:none}
+.bd-row+.bd-row::before{content:"";position:absolute;top:0;left:62px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
+.bd-ric{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--brand-fill);color:#fff}
+.bd-row.done .bd-ric,.bd-chest.ready .bd-ric{background:var(--gold);color:var(--gold-on)}
+.bd-row.got .bd-ric,.bd-chest.open .bd-ric{background:var(--ok-fill);color:#fff}
+.bd-chest.lock .bd-ric{background:var(--fill);color:var(--label2)}
+.bd-rt{flex:1;min-width:0}
+.bd-rt b{display:block;font:600 var(--fs-sub)/1.25 var(--f-text)}
+.bd-rt small{display:block;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
+.bd-row.done .bd-rt small,.bd-row.got .bd-rt small,.bd-chest.open .bd-rt small{color:var(--ok-ink)}
+.bd-bar{display:block;height:8px;margin:6px 0 4px;border-radius:4px;background:var(--fill);overflow:hidden}
+.bd-bar i{display:block;height:100%;border-radius:4px;background:var(--teal);transition:width .6s cubic-bezier(.2,.9,.25,1)}
+.bd-row.done .bd-bar i,.bd-row.got .bd-bar i{background:var(--ok)}
+.bd-plus{display:inline-block;margin-left:6px;padding:0 7px;border-radius:99px;background:var(--gold);color:var(--gold-on);font-weight:800;animation:bd-stamp .5s cubic-bezier(.3,1.6,.5,1)}
+.bd-chev{flex:none;color:var(--label3)}
+:root[data-theme=dark] .bd-chev{color:rgba(235,235,245,.45)}
+.bd-row .glass-btn{flex:none}
+.bd-row.done{flex-wrap:wrap;row-gap:6px}.bd-row.done .bd-rt{flex-basis:calc(100% - 48px)}.bd-row.done .glass-btn{margin-left:48px}
+.bd-cdots{display:flex;flex:none;gap:6px}
+.bd-cdots i{width:12px;height:12px;border-radius:6px;background:var(--fill)}
+.bd-cdots i.on{background:var(--gold)}
+.bd-row.stamp .bd-ric{animation:bd-stamp .45s cubic-bezier(.3,1.6,.5,1)}
+.bd-chest .bd-ric.boom{animation:bd-open .5s forwards}
+@keyframes bd-stamp{0%{transform:scale(1.8);opacity:0}100%{transform:none;opacity:1}}
+@keyframes bd-open{0%{transform:scale(1)}40%{transform:scale(1.4) rotate(8deg)}100%{transform:scale(1)}}
 @keyframes bd-shake{0%,100%{transform:rotate(0)}15%{transform:rotate(-12deg) scale(1.08)}30%{transform:rotate(10deg) scale(1.08)}45%{transform:rotate(-6deg)}60%{transform:rotate(0)}}
-@keyframes bd-open{0%{transform:scale(1)}40%{transform:scale(1.5) rotate(8deg)}100%{transform:scale(0);opacity:0}}
-.bd-chest .bd-box.boom{animation:bd-open .5s forwards}
-.bd-wb{display:flex;gap:16px;align-items:center}
-.bd-wimg{flex:none;width:128px;height:128px;border-radius:22px;border:2px solid var(--line);background:var(--soft);display:flex;align-items:center;justify-content:center;padding:8px;cursor:pointer;transition:transform .12s;-webkit-tap-highlight-color:transparent}
-.bd-wimg:hover{border-color:var(--brand)}
-.bd-wimg .img img{max-width:104px;max-height:104px}
-.bd-wimg .img .ph{width:96px;height:96px;font-size:2.4rem}
-.bd-wimg.boing{animation:bd-boing .5s}
-[data-theme=dark] .bd-wimg{background:#fff;border-color:#fff}
-@keyframes bd-boing{0%,100%{transform:scale(1)}30%{transform:scale(1.12,.9)}60%{transform:scale(.94,1.06)}}
-.bd-wt{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px;align-items:flex-start}
-.bd-wes{color:var(--muted);font-weight:800;font-size:1.1rem}
-.bd-ww{font-size:2rem;font-weight:900;color:var(--brand);line-height:1.1;word-break:break-word}
-.bd-ww.flip{animation:bd-flip .5s cubic-bezier(.3,1.4,.5,1)}
-@keyframes bd-flip{0%{transform:rotateX(90deg);opacity:0}100%{transform:none;opacity:1}}
-.bd-wsay{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.bd-wsay .say{width:44px;height:44px;font-size:1.15rem}
-.bd-wsay .pron{color:var(--muted)}
-.bd-reveal{border:2px dashed var(--brand);background:var(--soft);color:var(--brand);border-radius:16px;padding:10px 14px;font-weight:900;font-size:1.05rem;min-height:56px;text-align:left;line-height:1.2;animation:bd-pulse 1.8s ease-in-out 3}
-.bd-reveal small{display:block;font-weight:700;color:var(--muted);font-size:.85rem;margin-top:2px}
-.bd-wotd .ex{margin-top:12px}
-.bd-wotd .ex .say.sm{width:44px;height:44px;font-size:1.05rem}
-.bd-wfoot{margin-top:12px}
-.bd-whint{margin-top:12px;padding:9px 12px;border-radius:12px;background:var(--soft);color:var(--muted);font-weight:700;font-size:.92rem;text-align:center}
-.bd-know{width:100%;font-size:1.1rem;min-height:52px}
-.bd-known{display:flex;align-items:center;gap:10px;background:color-mix(in srgb,var(--ok) 13%,var(--card));color:var(--ok-ink);border-radius:14px;padding:10px 14px;font-weight:800}
-.bd-known span{font-size:1.5rem}
-.bd-known small{display:block;color:var(--muted);font-weight:600}
-@media (max-width:480px){
-  .bd-row{grid-template-columns:46px 1fr auto;gap:10px;padding:10px}
-  .bd-ic{width:46px;height:46px;font-size:1.5rem}
-  .bd-row.done{grid-template-columns:46px 1fr}
-  .bd-row.done .bd-get{grid-column:1/-1;width:100%}
-  .bd-wimg{width:100px;height:100px;border-radius:18px}
-  .bd-wimg .img img{max-width:82px;max-height:82px}
-  .bd-ww{font-size:1.65rem}
-  .bd-chest.ready{flex-wrap:wrap}.bd-chest.ready .bd-get{width:100%}
-}
 
 /* mapa: avatar y regalo */
 .bd-av{position:absolute;top:50%;z-index:3;cursor:pointer;-webkit-tap-highlight-color:transparent;translate:0 0;transition:translate 1.5s cubic-bezier(.45,.05,.4,1)}
@@ -156,8 +141,16 @@ a.bd-row:active{transform:translateY(2px)}
 .bd-gdots i{width:11px;height:11px;border-radius:50%;background:rgba(255,255,255,.35)}
 .bd-gdots i.on{background:#FFCC00;box-shadow:0 0 0 2px rgba(0,0,0,.12)}
 @media (prefers-reduced-motion: reduce){
-  .bd-av-in,.bd-av.walk .bd-av-in,.bd-av.land .bd-av-in,.bd-get,.bd-reveal,.bd-chest.ready .bd-box,.bd-gift.soon .bd-gb,.bd-ww.flip,.bd-wimg.boing,.bd-avs,.bd-plus,.bd-row.stamp .bd-check,.bd-chest .bd-box.boom,.bd-chest.open .bd-box{animation:none!important}
+  .bd-av-in,.bd-av.walk .bd-av-in,.bd-av.land .bd-av-in,.bd-gift.soon .bd-gb,.bd-avs,.bd-bounce,.bd-plus,.bd-row.stamp .bd-ric,.bd-chest .bd-ric.boom{animation:none!important}
   .bd-av{transition:none!important}
+  /* la palabra del día no gira: las caras se cambian con un fundido corto */
+  .bd-flip{transition:none!important}
+  .bd-flip.back{transform:none}
+  .bd-wback{transform:none;opacity:0;visibility:hidden}
+  .bd-wfront,.bd-wback{transition:opacity .15s ease,visibility .15s}
+  .bd-flip.back .bd-wfront{opacity:0;visibility:hidden}
+  .bd-flip.back .bd-wback{opacity:1;visibility:visible}
+  .bd-bar i{transition:none}
 }
 `;
 function css(){
@@ -245,6 +238,13 @@ function missions(){
   return M;
 }
 const mText = m => MDEF[m.k].t(m.goal);
+/* icono de cada misión (Phosphor) */
+const MIC = {les: "map-trifold", ans: "check", rev: "arrow-counter-clockwise", game: "game-controller", feed: "bowl-food", harv: "basket", coll: "egg", find: "magnifying-glass"};
+const icon = (n, s = "bold", z = 20, c = "") => { try{ return typeof ico === "function" ? ico(n, s, z, c) : ""; }catch(e){ return ""; } };
+const COIN = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFCC00"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7A000" stroke-opacity=".8"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B39000" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7.8 13.06 10.54 15.99 10.7 13.71 12.56 14.47 15.4 12 13.8 9.53 15.4 10.29 12.56 8.01 10.7 10.94 10.54Z" fill="#A88700" fill-opacity=".8"/></svg>`;
+const mKey = (M, m) => M.day + "|" + m.k;
+/* misiones recién cumplidas que ya han hecho saltar la pieza en esta visita (salta una vez por misión) */
+const JUMPED = new Set();
 function bump(ev, d){
   if((ev === "answer" || ev === "farm-find") && !(d && d.ok)) return;
   const M = missions(), fresh = [];
@@ -254,8 +254,9 @@ function bump(ev, d){
     m.n++; if(m.n >= m.goal) fresh.push(m);
   }
   store.set(MKEY, M); paintMis();
-  /* aviso en la cápsula de arriba (en la portada basta con la tarjeta). En mitad de un minijuego espera al
+  /* en Hoy, la pieza de Misiones salta; fuera, un aviso en la cápsula de arriba. En mitad de un minijuego espera al
      resultado: un aviso encima taparía las burbujas o los globos */
+  if(fresh.length && isHome(curH())){ fresh.forEach(m => JUMPED.add(mKey(M, m))); bounce(document.getElementById("bd-mis")); }
   fresh.forEach((m, i) => setTimeout(() => {
     if(gmPlay()){ pendMis.push(m); return; }
     misNotice(m);
@@ -267,64 +268,139 @@ function misNotice(m){
   snd("pop");
   if(!isHome(curH())) cheer(`¡Misión cumplida! ${mText(m)}`, "🎯");
 }
+/* la pieza salta una vez (nada con «Reducir movimiento») */
+function bounce(el){
+  if(!el || RM()) return false;
+  el.classList.remove("bd-bounce"); void el.offsetWidth; el.classList.add("bd-bounce");
+  el.addEventListener("animationend", () => el.classList.remove("bd-bounce"), {once: true});
+  return true;
+}
+/* al entrar en Hoy: si hay una misión cumplida que aún no ha visto en la hoja, la pieza salta (una vez) */
+function attention(){
+  const el = document.getElementById("bd-mis"); if(!el) return false;
+  const M = missions();
+  const fresh = M.list.filter(m => m.n >= m.goal && !m.got && !(typeof m.s === "number" && m.s >= m.goal) && !JUMPED.has(mKey(M, m)));
+  if(!fresh.length) return false;
+  fresh.forEach(m => JUMPED.add(mKey(M, m)));
+  return bounce(el);
+}
+
+/* pieza de Hoy: la siguiente misión que toca y 3 puntos (uno por misión cumplida) */
+function misNext(M){
+  if(M.list.some(m => !m.got && m.n >= m.goal)) return "¡Recoge tu premio!";
+  const todo = M.list.find(m => m.n < m.goal);
+  if(todo) return mText(todo);
+  return M.chest ? "¡Todo hecho! Mañana hay más" : "¡Abre el cofre sorpresa!";
+}
+function misPieceInner(){
+  const M = missions();
+  return `<span class="bd-pl">${icon("target", "fill", 18)}<span>Misiones</span></span><span class="bd-mt">${esc(misNext(M))}</span>
+    <span class="bd-dots" aria-hidden="true">${M.list.map(m => `<i class="${m.n >= m.goal ? "on" : ""}"></i>`).join("")}</span>`;
+}
+function misLabel(){ const M = missions(), done = M.list.filter(m => m.n >= m.goal).length; return `Misiones de hoy: ${misNext(M)} ${done} de 3 hechas.`; }
+function misPiece(){
+  return `<button type="button" class="card bd-piece bd-mis" id="bd-mis" aria-haspopup="dialog" aria-controls="bd-mis-s" aria-label="${esc(misLabel())}">${misPieceInner()}</button>`;
+}
+
+/* contenido de la hoja: las 3 misiones con su barra y el cofre */
 function misHtml(){
-  const M = missions(), got = M.list.filter(m => m.got).length, done = M.list.filter(m => m.n >= m.goal).length;
+  const M = missions(), got = M.list.filter(m => m.got).length;
   const rows = M.list.map(m => {
-    const D = MDEF[m.k], pct = Math.min(100, Math.round(100 * m.n / m.goal)), full = m.n >= m.goal;
-    /* lo que ha avanzado desde la última vez que lo vio: la barra crece delante de él y sale «+N» */
+    const pct = Math.min(100, Math.round(100 * m.n / m.goal)), full = m.n >= m.goal;
+    /* lo que ha avanzado desde la última vez que la abrió: la barra crece delante de él y sale «+N» */
     const from = typeof m.s === "number" && m.s < m.n ? Math.max(0, m.s) : m.n, grow = Math.min(m.n, m.goal) - Math.min(from, m.goal);
     const pct0 = Math.min(100, Math.round(100 * from / m.goal));
-    const inner = `<span class="bd-ic" aria-hidden="true">${D.e}</span><span class="bd-mt"><b>${esc(mText(m))}</b>
-      <span class="bd-bar" role="progressbar" aria-valuemin="0" aria-valuemax="${m.goal}" aria-valuenow="${Math.min(m.n, m.goal)}"><i style="width:${grow > 0 ? pct0 : pct}%"${grow > 0 ? ` data-to="${pct}"` : ""}></i></span>
-      <small>${m.got ? "¡Conseguida! 🎉" : full ? "¡Lo lograste! 🎉" : `${m.n} de ${m.goal}`}${grow > 0 && !m.got ? `<span class="bd-plus" aria-hidden="true">+${grow}</span>` : ""}</small></span>`;
-    if(m.got) return `<div class="bd-row got" data-k="${m.k}">${inner}<span class="bd-check" aria-label="Recogida">✓</span></div>`;
-    if(full) return `<div class="bd-row done" data-k="${m.k}">${inner}<button type="button" class="bd-get" data-get="${m.k}">¡Recoger! +15 🪙</button></div>`;
-    return `<a class="bd-row" href="${D.href}" data-k="${m.k}" aria-label="${esc(mText(m))}: ${m.n} de ${m.goal}. ¡Vamos!">${inner}<span class="bd-go" aria-hidden="true">›</span></a>`;
+    const ic = `<span class="bd-ric" aria-hidden="true">${icon(m.got ? "check" : MIC[m.k] || "target", "bold", 20)}</span>`;
+    const txt = `<span class="bd-rt"><b>${esc(mText(m))}</b>
+      <span class="bd-bar" role="progressbar" aria-label="${esc(mText(m))}" aria-valuemin="0" aria-valuemax="${m.goal}" aria-valuenow="${Math.min(m.n, m.goal)}"><i style="width:${grow > 0 ? pct0 : pct}%"${grow > 0 ? ` data-to="${pct}"` : ""}></i></span>
+      <small>${m.got ? "¡Conseguida!" : full ? "¡Lo lograste!" : `${Math.min(m.n, m.goal)} de ${m.goal}`}${grow > 0 && !m.got ? `<span class="bd-plus" aria-hidden="true">+${grow}</span>` : ""}</small></span>`;
+    if(m.got) return `<div class="bd-row got" data-k="${m.k}">${ic}${txt}</div>`;
+    if(full) return `<div class="bd-row done" data-k="${m.k}">${ic}${txt}<button type="button" class="glass-btn glass-btn--pri glass-btn--sm" data-get="${m.k}" aria-label="Recoger 15 monedas">Recoger<span class="bd-c">${COIN}15</span></button></div>`;
+    return `<a class="bd-row" href="${MDEF[m.k].href}" data-k="${m.k}" aria-label="${esc(mText(m))}: ${m.n} de ${m.goal}. ¡Vamos!">${ic}${txt}${icon("caret-right", "bold", 16, "bd-chev")}</a>`;
   }).join("");
   const chest = M.chest
-    ? `<div class="bd-chest open"><span class="bd-box" aria-hidden="true">🎉</span><span class="bd-ct"><b>¡Cofre abierto! +25 🪙</b><small>Mañana habrá misiones nuevas 🌙</small></span></div>`
+    ? `<div class="bd-row bd-chest open"><span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>¡Cofre abierto!</b><small>Mañana habrá misiones nuevas</small></span></div>`
     : got === M.list.length
-    ? `<div class="bd-chest ready"><span class="bd-box" aria-hidden="true">🎁</span><span class="bd-ct"><b>¡Cofre sorpresa!</b><small>¡Hiciste las 3 misiones!</small></span><button type="button" class="bd-get" data-chest="1">¡Abrir! +25 🪙</button></div>`
-    : `<div class="bd-chest"><span class="bd-box" aria-hidden="true">🎁</span><span class="bd-ct"><b>Cofre sorpresa</b><small>Recoge las 3 misiones para abrirlo</small></span><span class="bd-cdots" aria-label="${got} de 3">${M.list.map(m => `<i class="${m.got ? "on" : ""}"></i>`).join("")}</span></div>`;
-  return `<div class="bd-mh"><h2>🎯 Misiones de hoy</h2><span class="bd-pill">⭐ ${done}/3</span></div><div class="bd-rows">${rows}</div>${chest}`;
+    ? `<div class="bd-row bd-chest ready"><span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>¡Cofre sorpresa!</b><small>Hiciste las 3 misiones</small></span><button type="button" class="glass-btn glass-btn--pri glass-btn--sm" data-chest="1" aria-label="Abrir el cofre: 25 monedas">Abrir<span class="bd-c">${COIN}25</span></button></div>`
+    : `<div class="bd-row bd-chest lock"><span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>Cofre sorpresa</b><small>Recoge las 3 misiones para abrirlo</small></span><span class="bd-cdots" role="img" aria-label="${got} de 3">${M.list.map(m => `<i class="${m.got ? "on" : ""}"></i>`).join("")}</span></div>`;
+  return `<div class="bd-ms-top"><h2 id="bd-ms-tt">Misiones de hoy</h2><button type="button" class="glass-btn glass-btn--sm" data-close>Listo</button></div>
+    <p class="bd-ms-sub">${M.chest ? "¡Todas hechas! Mañana hay más." : "Haz las 3 y abre el cofre sorpresa."}</p>
+    <div class="bd-ms-g">${rows}</div><div class="bd-ms-g">${chest}</div>`;
 }
-function paintMis(){ const el = document.getElementById("bd-mis"); if(el){ el.innerHTML = misHtml(); animBars(); } }
+/* pinta lo que se vea: la pieza de Hoy y la hoja (si está abierta) */
+function paintMis(){
+  const p = document.getElementById("bd-mis");
+  if(p){ p.innerHTML = misPieceInner(); p.setAttribute("aria-label", misLabel()); }
+  if(MS && MS.open){ MS.querySelector(".bd-ms-in").innerHTML = misHtml(); animBars(); }
+}
 /* las barras que han avanzado crecen hasta su sitio; se apunta lo que el niño ya ha visto */
 function animBars(){
   const M = missions(); let ch = false;
   M.list.forEach(m => { if(m.s !== m.n){ m.s = m.n; ch = true; } });
   if(ch) store.set(MKEY, M);
-  const bars = [...document.querySelectorAll("#bd-mis .bd-bar i[data-to]")]; if(!bars.length) return;
+  const bars = MS ? [...MS.querySelectorAll(".bd-bar i[data-to]")] : []; if(!bars.length) return;
   const go = () => bars.forEach(i => { i.style.width = i.dataset.to + "%"; i.removeAttribute("data-to"); });
   if(RM()) return go();
-  later(go, 380); later(() => snd("pop"), 420);
+  later(go, 420); later(() => snd("pop"), 460);
 }
-/* el botón «Mi granja» de la portada enseña las monedas: se pone al día al ganar en la portada */
-function homeCoins(){ const s = document.querySelector(".big-acts .a3 small"); if(s && /monedas/.test(s.textContent)) s.textContent = `🪙 ${game().coins} monedas`; }
-bus.on("coins", () => { if(isHome(curH())) homeCoins(); });
-function hopHello(){ const h = document.querySelector(".hello .hero"); if(!h || RM()) return; try{ h.animate([{transform: "none"}, {transform: "translateY(-18px) scale(1.06)"}, {transform: "none"}], {duration: 500, easing: "ease-out"}); }catch(e){} }
+/* la hoja: se crea la primera vez y se cierra sola si se va a otra pantalla (una fila lleva a su sitio) */
+let MS = null;
+function misSheet(){
+  if(MS && MS.isConnected) return MS;
+  MS = document.createElement("dialog"); MS.id = "bd-mis-s"; MS.className = "bd-ms"; MS.setAttribute("aria-labelledby", "bd-ms-tt");
+  MS.innerHTML = `<div class="bd-ms-in"></div>`;
+  MS.addEventListener("click", e => {
+    if(e.target.closest("[data-close]")){ closeMissions(); return; }
+    onMisClick(e);
+  });
+  document.body.appendChild(MS);
+  return MS;
+}
+function openMissions(from){
+  const d = misSheet();
+  d.querySelector(".bd-ms-in").innerHTML = misHtml();
+  let p;
+  try{ p = window.M && typeof M.openSheet === "function" ? M.openSheet(d, {from: from || null}) : (d.showModal(), Promise.resolve()); }catch(e){ console.error(e); p = Promise.resolve(); }
+  animBars();
+  return p;
+}
+function closeMissions(){
+  if(!MS || !MS.open) return;
+  if(window.M && typeof M.closeSheet === "function") M.closeSheet(MS); else MS.close();
+}
+addEventListener("hashchange", () => { if(MS && MS.open) MS.close(); });
+/* el zorro de la tarjeta de Hoy da un saltito (no con «Reducir movimiento») */
+function hop(){
+  const f = document.getElementById("hm-fox"); if(!f || RM()) return;
+  f.classList.remove("wave", "hop"); void f.offsetWidth; f.classList.add("hop");
+  f.addEventListener("animationend", () => f.classList.remove("hop"), {once: true});
+}
 /* recoger una misión cumplida: +15 🪙 que salen volando desde «desde» (el botón) hasta el contador */
 function claim(k, from){
   const M = missions(), m = M.list.find(x => x.k === k);
   if(!m || m.got || m.n < m.goal) return false;
   m.got = true; store.set(MKEY, M);
-  award(15, "¡Misión cumplida!", false, from || null); hopHello();
+  award(15, "¡Misión cumplida!", false, from || null); hop();
   paintMis();
-  const row = document.querySelector(`#bd-mis .bd-row[data-k="${m.k}"]`); if(row) row.classList.add("stamp");
-  if(M.list.every(x => x.got)) setTimeout(() => { snd("gift"); const c = document.querySelector("#bd-mis .bd-chest"); if(c && c.scrollIntoView && !RM()) c.scrollIntoView({block: "nearest", behavior: "smooth"}); }, 1300);
+  const row = MS && MS.querySelector(`.bd-row[data-k="${m.k}"]`);
+  if(row){ row.classList.add("stamp"); row.tabIndex = -1; try{ row.focus({preventScroll: true}); }catch(e){} }
+  if(M.list.every(x => x.got)) setTimeout(() => {
+    snd("gift");
+    const c = MS && MS.open && MS.querySelector(".bd-chest"); if(c && c.scrollIntoView) c.scrollIntoView({block: "nearest", behavior: RM() ? "auto" : "smooth"});
+  }, 1300);
   return true;
 }
 /* abrir el cofre cuando las 3 están recogidas: +25 🪙 */
 function openChest(from){
   const M = missions(); if(M.chest || !M.list.every(x => x.got)) return false;
   M.chest = true; store.set(MKEY, M);
-  const box = document.querySelector("#bd-mis .bd-box"); if(box) box.classList.add("boom");
+  const box = MS && MS.querySelector(".bd-chest .bd-ric"); if(box) box.classList.add("boom");
   snd("gift");
   const at = from && from.getBoundingClientRect ? from.getBoundingClientRect() : null;
   const pt = at && (at.width || at.height) ? {x: at.left + at.width / 2, y: at.top + at.height / 2} : null;
   setTimeout(() => {
     if(pt) spark(pt, 16);
-    award(25, "¡Cofre de misiones!", false, pt); hopHello(); paintMis();
+    award(25, "¡Cofre de misiones!", false, pt); hop(); paintMis();
   }, RM() ? 0 : 420);
   return true;
 }
@@ -358,70 +434,68 @@ function wState(){
   if(!w.known || typeof w.known !== "object") w.known = {};
   return w;
 }
-/* la tarjeta guarda qué palabra es (data-doc / data-es); se busca en CACHE al tocarla */
+/* la pieza guarda qué palabra es (data-doc / data-es); se busca en CACHE al tocarla */
 function wotdOf(el){
   const doc = el && CACHE[el.dataset.doc], r = doc && (doc.rows || []).find(x => x.es === el.dataset.es && x.l && x.l[lang]);
   return r ? {doc: el.dataset.doc, r} : null;
 }
-function wotdInner(x){
+/* dos caras: delante el dibujo y la palabra; detrás la traducción y «¡Me la sé!» (o «En tu repaso») */
+function wotdInner(x, back){
   if(!x) return "";
-  const r = x.r, d = r.l[lang], w = wState(), seen = !!w.seen[lang], known = !!w.known[lang];
-  const when = new Date().toLocaleDateString("es", {weekday: "long", day: "numeric"});
-  return `<div class="bd-mh"><h2>🌟 Palabra del día</h2><span class="bd-pill">📅 ${esc(when)}</span></div>
-    <div class="bd-wb">
-      <button type="button" class="bd-wimg" ${seen ? `data-say="${esc(d.word)}"` : ""} aria-label="${seen ? "Escuchar" : "Descubrir la palabra"}">${imgHtml(r)}</button>
-      <div class="bd-wt"><div class="bd-wes">${esc(r.es)}</div>
-        ${seen ? `<div class="bd-ww">${esc(d.word)}</div><div class="bd-wsay">${sayBtn(d.word)}${d.pron ? `<span class="pron">${esc(d.pron)}</span>` : ""}</div>`
-               : `<button type="button" class="bd-reveal" data-reveal="1">❓ ¿Cómo se dice en ${esc(LANGS[lang].name)}?<small>¡Toca para descubrirlo!</small></button>`}
-      </div></div>
-    ${seen && d.ex ? `<div class="ex">${esc(d.ex)} ${sayBtn(d.ex, 1)}<div class="tr">${esc(d.ex_es || "")}</div></div>` : ""}
-    ${!seen ? `<div class="bd-whint">👆 Descúbrela, escúchala y dila en voz alta${w.paid ? "" : " · ¡Te da +3 🪙!"}</div>` : ""}
-    ${seen ? `<div class="bd-wfoot">${known
-      ? `<div class="bd-known"><span>✅</span><div>¡Ya está en tu repaso!<small>Mañana habrá otra palabra 🌙</small></div></div>`
-      : `<button type="button" class="btn lc bd-know" data-know="1" style="--lc:#008932">✋ ¡Me la sé!${w.paid ? "" : " +3 🪙"}</button>`}</div>` : ""}`;
+  const r = x.r, d = r.l[lang], w = wState(), known = !!w.known[lang], code = (LANGS[lang] || {}).code || "";
+  const len = [...d.word].length, sz = len > 13 ? " xs" : len > 8 ? " s" : "";
+  const lbl = `<span class="bd-pl">${icon("sparkle", "fill", 18)}<span>Palabra del día</span></span>`;
+  return `<div class="bd-flip${back ? " back" : ""}">
+    <button type="button" class="card bd-face bd-wfront" aria-label="Palabra del día: ${esc(d.word)}. Toca para darle la vuelta y oírla"${back ? " inert" : ""}>
+      ${lbl}<span class="bd-wimg img"><img src="${esc(r.img)}" alt="" loading="lazy" draggable="false"></span><b class="bd-ww${sz}" lang="${esc(code)}">${esc(d.word)}</b></button>
+    <div class="card bd-face bd-wback" data-press="sink"${back ? "" : " inert"}>
+      <button type="button" class="bd-wtap" aria-label="${esc(d.word)} es ${esc(r.es)}. Toca para volver y oírla">${lbl}<b class="bd-wes">${esc(r.es)}</b><span class="bd-wsm" lang="${esc(code)}">${esc(d.word)}</span></button>
+      ${known ? `<span class="bd-wok">${icon("check", "bold", 16)}En tu repaso</span>`
+        : `<button type="button" class="glass-btn glass-btn--sm bd-know" data-know="1"${w.paid ? "" : ' aria-label="¡Me la sé! Gana 3 monedas"'}>¡Me la sé!${w.paid ? "" : `<span class="bd-c">${COIN}3</span>`}</button>`}
+    </div></div>`;
+}
+async function wotdPiece(){
+  let x = null; try{ x = await wotdPick(); }catch(e){ console.error(e); }
+  return x ? `<section class="bd-piece bd-wotd" id="bd-wotd" data-doc="${esc(x.doc)}" data-es="${esc(x.r.es)}" aria-label="Palabra del día">${wotdInner(x, false)}</section>` : "";
 }
 function paintWotd(flip){
   const el = document.getElementById("bd-wotd"), x = wotdOf(el); if(!x) return;
-  el.innerHTML = wotdInner(x);
-  if(flip){ const w = el.querySelector(".bd-ww"); if(w) w.classList.add("flip"); }
+  el.innerHTML = wotdInner(x, !!flip);
+}
+/* girar la pieza (y pasar el foco a la otra cara si estaba dentro) */
+function flipWotd(el, back){
+  const f = el.querySelector(".bd-flip"); if(!f) return;
+  const b = back == null ? !f.classList.contains("back") : !!back, had = el.contains(document.activeElement);
+  f.classList.toggle("back", b);
+  const fr = f.querySelector(".bd-wfront"), bk = f.querySelector(".bd-wback");
+  if(fr) fr.inert = b; if(bk) bk.inert = !b;
+  if(had){ const t = b ? bk && bk.querySelector(".bd-wtap") : fr; try{ if(t) t.focus({preventScroll: true}); }catch(e){} }
 }
 function onWotdClick(e){
-  const x = wotdOf(e.currentTarget); if(!x) return;
-  const d = x.r.l[lang];
-  if(e.target.closest("[data-reveal]") || (e.target.closest(".bd-wimg") && !wState().seen[lang])){
-    const w = wState(); w.seen[lang] = true; store.set(WKEY, w);
-    paintWotd(true); snd("pop");
-    setTimeout(() => { const b = document.querySelector("#bd-wotd .bd-wsay .say"); try{ say(d.word, b); }catch(err){} }, 250);
-    return;
-  }
-  const img = e.target.closest(".bd-wimg");
-  if(img){ img.classList.remove("boing"); void img.offsetWidth; img.classList.add("boing"); return; }
-  const k = e.target.closest("[data-know]");
+  const el = e.currentTarget, x = wotdOf(el); if(!x) return;
+  const d = x.r.l[lang], k = e.target.closest("[data-know]");
   if(k){
     const w = wState(); if(w.known[lang]) return;
-    w.known[lang] = true;
+    w.known[lang] = true; w.seen[lang] = true;
     let n = 0; try{ n = srsAdd(x.doc, [x.r], 1); }catch(err){}
     const pay = !w.paid; w.paid = true; store.set(WKEY, w);
-    spark(k, 12);
-    if(pay) award(3, "¡Palabra del día!", false, k); else { snd("ok"); toast(n ? "➕ ¡Añadida a tu repaso!" : "¡Ya estaba en tu repaso!"); }
-    hopHello(); paintWotd(false);
+    const rc = k.getBoundingClientRect(), pt = {x: rc.left + rc.width / 2, y: rc.top + rc.height / 2};
+    spark(pt, 12);
+    if(pay) award(3, "¡Palabra del día!", false, pt); else { snd("ok"); toast(n ? "➕ ¡Añadida a tu repaso!" : "¡Ya estaba en tu repaso!"); }
+    hop(); paintWotd(true);
+    const t = el.querySelector(".bd-wtap"); try{ if(t) t.focus({preventScroll: true}); }catch(err){}
+    return;
   }
+  if(!e.target.closest(".bd-face")) return;
+  const w = wState(); if(!w.seen[lang]){ w.seen[lang] = true; store.set(WKEY, w); }
+  flipWotd(el);
+  try{ say(d.word); }catch(err){}
 }
 
-/* ---------- portada ---------- */
-HOME_SLOTS.push(async () => `<section class="panel bd-slot bd-mis" id="bd-mis" aria-label="Misiones de hoy">${misHtml()}</section>`);
-HOME_SLOTS.push(async () => {
-  let x = null; try{ x = await wotdPick(); }catch(e){}
-  return x ? `<section class="panel bd-slot bd-wotd" id="bd-wotd" data-doc="${esc(x.doc)}" data-es="${esc(x.r.es)}" aria-label="Palabra del día">${wotdInner(x)}</section>` : "";
-});
+/* ---------- Hoy ---------- */
 function wireHome(){
-  const m = document.getElementById("bd-mis"); if(m) m.onclick = onMisClick;
+  const m = document.getElementById("bd-mis"); if(m) m.onclick = () => openMissions(m);
   const w = document.getElementById("bd-wotd"); if(w) w.onclick = onWotdClick;
-  /* las dos tarjetas en una rejilla (misma altura en escritorio) */
-  if(m && w && m.nextElementSibling === w && !m.parentElement.classList.contains("bd-duo")){
-    const d = document.createElement("div"); d.className = "bd-duo"; m.before(d); d.append(m, w);
-  }
-  if(m) animBars();
 }
 
 /* ---------- mapa: avatar y regalo ---------- */
@@ -487,7 +561,6 @@ function mapDeco(){
 bus.on("route", d => {
   const h = String((d && d.h) || "");
   clearLater(); streakN = 0; if(!h.startsWith("juegos/")) pendMis = [];
-  if(isHome(h)) wireHome();
   if(h.startsWith("mapa")){ try{ mapDeco(); }catch(e){ console.error(e); } }
   else if(!h.startsWith("leccion")) walk = null;
 });
@@ -513,5 +586,5 @@ bus.on("farm-harvest", d => bump("farm-harvest", d));
 bus.on("farm-collect", d => bump("farm-collect", d));
 bus.on("farm-find", d => bump("farm-find", d));
 
-window.vocabBuddy = {missions, misHtml, paintMis, claim, openChest, wotdPick, paintWotd, wire: wireHome, cheer};
+window.vocabBuddy = {missions, misHtml, paintMis, misPiece, openMissions, claim, openChest, wotdPick, wotdPiece, paintWotd, attention, wire: wireHome, cheer};
 })();

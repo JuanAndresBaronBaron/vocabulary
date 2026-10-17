@@ -521,10 +521,12 @@ def test_buddy_without_floating_fox():
         txt = page.evaluate("document.getElementById('m-toasts').textContent")
         if "Recoge" in txt:
             probs.append(f"el aviso de misión dice {txt!r}")
-        # recogerla en Hoy: +15 con monedas que vuelan
+        # recogerla en Hoy (en la hoja de Misiones): +15 con monedas que vuelan
         C.goto(page, "#/")
         c0 = page.evaluate("game().coins")
-        btn = page.locator("#bd-mis [data-get]")
+        page.locator("#bd-mis").click()
+        page.wait_for_selector("#bd-mis-s[open]", timeout=3000)
+        btn = page.locator("#bd-mis-s [data-get]")
         if not btn.count():
             probs.append("en Hoy no sale el botón de recoger la misión")
         else:
@@ -549,7 +551,7 @@ def test_calm_motion_matches_reduced_motion():
         C.seed(page)
         C.goto(page, "#/")
         st = page.evaluate("""() => { const host = document.createElement('div'); host.innerHTML =
-            '<button class="bd-reveal" id="t-rv">x</button><i id="t-inf" style="animation:m-dummy 1s infinite">y</i>';
+            '<button class="bd-bounce" id="t-rv">x</button><i id="t-inf" style="animation:m-dummy 1s infinite">y</i>';
           document.getElementById('app').appendChild(host);
           const css = id => getComputedStyle(document.getElementById(id));
           const a = [css('t-rv').animationName, css('t-inf').animationIterationCount];
