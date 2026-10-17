@@ -75,3 +75,5 @@ def all_routes(only=None):
 add("palabras", "#/palabras", "Aprender › Palabras (temas, las 3000 y avanzado)")
 # F4a: Oído de lince (js/lince.js), el juego nuevo de Juegos
 add("juego-lince", "#/juegos/lince", "Juego Oído de lince (inicio de partida)")
+# F4c: Premios › Mi zorro (js/rewards.js): el personaje y sus trajes
+add("mizorro", "#/mizorro", "Premios › Mi zorro (personaje y trajes)")

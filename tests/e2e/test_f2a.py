@@ -47,7 +47,7 @@ def _expect_tab(route_name):
         return "jugar"
     if n == "granja":
         return "granja"
-    if n == "progreso":
+    if n in ("progreso", "mizorro"):
         return "premios"
     return None
 
@@ -237,7 +237,7 @@ def test_tab_memory_and_active_tap():
 
 # ---------------------------------------------------------------- segmentos y título
 def test_segments_and_large_title():
-    """Aprender: Repasar · Camino · Palabras · Gramática; Jugar: Juegos · Álbum; Premios sin segmento (solo hay uno).
+    """Aprender: Repasar · Camino · Palabras · Gramática; Jugar: Juegos · Álbum; Premios: Medallas · Mi zorro (F4c).
     Título grande de 36 px solo en la raíz y sin fecha. #/palabras tiene las tarjetas de temas que antes estaban en Hoy."""
     page = C.new_page("phone")
     probs = []
@@ -252,7 +252,8 @@ def test_segments_and_large_title():
         "#/gramatica": ("Aprender", ["Repasar", "Camino", "Palabras", "Gramática"], "Gramática"),
         "#/juegos": ("Jugar", ["Juegos", "Álbum"], "Juegos"),
         "#/album": ("Jugar", ["Juegos", "Álbum"], "Álbum"),
-        "#/progreso": ("Premios", [], None),
+        "#/progreso": ("Premios", ["Medallas", "Mi zorro"], "Medallas"),
+        "#/mizorro": ("Premios", ["Medallas", "Mi zorro"], "Mi zorro"),
         "#/": ("Hoy", [], None),
     }
     try:

@@ -55,7 +55,7 @@ def _expect_tab(name):
         return "jugar"
     if name == "granja":
         return "granja"
-    if name == "progreso":
+    if name in ("progreso", "mizorro"):
         return "premios"
     return None
 
@@ -195,13 +195,15 @@ def test_each_tab_remembers_its_section():
 
 
 def test_segments_go_to_their_routes():
-    """Los segmentos de Aprender (Repasar · Camino · Palabras · Gramática) y de Jugar (Juegos · Álbum) llevan a su ruta y
+    """Los segmentos de Aprender (Repasar · Camino · Palabras · Gramática), de Jugar (Juegos · Álbum) y de Premios
+    (Medallas · Mi zorro) llevan a su ruta y
     quedan marcados (aria-selected) en ella, con la pestaña de arriba marcada también."""
     page = C.new_page("phone")
     probs = []
     seg = """() => [...document.querySelectorAll('#tabhead .seg .seg-i')].map(a => [a.textContent.trim(), a.getAttribute('href'), a.getAttribute('aria-selected')])"""
     want = {"aprender": [("Repasar", "#/repaso"), ("Camino", "#/mapa"), ("Palabras", "#/palabras"), ("Gramática", "#/gramatica")],
-            "jugar": [("Juegos", "#/juegos"), ("Álbum", "#/album")]}
+            "jugar": [("Juegos", "#/juegos"), ("Álbum", "#/album")],
+            "premios": [("Medallas", "#/progreso"), ("Mi zorro", "#/mizorro")]}
     try:
         C.seed(page)
         # F3b: con pendientes «Repasar» empieza el repaso en modo foco (sin segmentos); aquí, sin pendientes («Todo repasado»)
