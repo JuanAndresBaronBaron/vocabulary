@@ -322,7 +322,8 @@ dialog#rv-pause.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filte
 @media (forced-colors:active){.rv-face{border:2px solid CanvasText}.rv-prog i{background:Highlight}.rv-tint{display:none}}
 @media (max-height:700px){.rv-stage{padding-bottom:24px}.rv-face{padding:16px}.rv-pic{width:min(140px,70%,20vh);width:min(140px,70%,20svh)}.rv-es{margin-top:8px}.rv-qq{margin-top:4px}
   .rv-tap{margin-top:12px}.rv-audio{margin-top:12px}.rv-hints{margin-top:8px}.rv-end-card{padding:16px}}
-@media (max-height:600px){.rv-pic{width:min(96px,70%,17vh);width:min(96px,70%,17svh)}}
+/* aún más bajo (móvil pequeño, tumbado): el dibujo más pequeño, para que las pistas y el botón quepan sin bajar */
+@media (max-height:600px){.rv-pic{width:min(72px,70%,13vh);width:min(72px,70%,13svh)}}
 `;
 function css(){
   if(DOC.getElementById("css-review")) return;
