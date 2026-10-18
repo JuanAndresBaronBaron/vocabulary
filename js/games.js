@@ -388,7 +388,7 @@ const CSS = `
 .gm-ct{font:700 var(--fs-head)/1.2 var(--f-round);color:var(--label)}
 .gm-cs{font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
 /* el récord: en la línea de las estrellas; si no cabe a su lado, pasa entero a la línea de debajo (no se corta con «…») */
-.gm-cr{box-sizing:border-box;margin-top:auto;padding-top:12px;min-height:36px;width:100%;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}
+.gm-cr{box-sizing:border-box;margin-top:auto;padding-top:12px;min-height:36px;width:100%;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
 .gm-cr .gm-st{flex:none}
 .gm-rt{flex:none;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 var(--fs-min)/1.2 var(--f-text);color:var(--label2);font-variant-numeric:tabular-nums}
 .gm-new{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;
