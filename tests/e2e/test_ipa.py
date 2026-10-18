@@ -11,8 +11,8 @@ ficha del álbum, Oído de lince al contestar (las dos tarjetas) y la Palabra de
 ninguno; con ipa:true en todos. El interruptor sale encendido de serie y alterna (apagado = ipa:false; encendido quita
 la marca). La IPA va en gris secundario, con el idioma de la palabra, «IPA» para el lector de pantalla y una sola letra
 que tiene todos sus símbolos (nunca Nunito). Hoy, la lección (cada palabra nueva y tras un fallo) y el repaso girado
-caben sin scroll en 390×844 y 360×740, también con «Texto más grande». La exportación sigue igual a la base y no hay
-errores de consola. Capturas en capturas/ipa."""
+caben sin scroll en 390×844 y 360×740, también con «Texto más grande»; Oído de lince, en sus 8 rondas, también en
+320×568. La exportación sigue igual a la base y no hay errores de consola. Capturas en capturas/ipa."""
 from __future__ import annotations
 
 import json
@@ -507,6 +507,43 @@ def test_today_lesson_review_fit_without_scroll():
                 probs += [f"{tag}: {e}" for e in C.errors(page)]
             finally:
                 page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+def test_lince_fits_small_phones():
+    """Oído de lince con la IPA (su hueco reservado en cada tarjeta) cabe sin scroll en las 8 rondas, antes y después
+    de contestar, también en un móvil pequeño (320×568: salta la versión compacta), y la IPA queda dentro de su tarjeta."""
+    probs = []
+    for w, h in ((320, 568), (360, 740), (390, 844)):
+        tag = f"{w}×{h}"
+        page = C.new_page("phone", viewport={"width": w, "height": h})
+        try:
+            # con la explicación ya vista (sin ella, la primera vez, el juego sale más alto y ya va compacto)
+            C.seed(page, keys=_keys(ui={"gmIntro": ["memoria", "lluvia", "globos", "letras", "lince"]}), hash="#/juegos")
+            page.evaluate(J._HOOKS)
+            J._start(page, "lince")
+            for r in range(8):
+                page.wait_for_function(J._LN_READY, timeout=8000)
+                page.wait_for_timeout(250)
+                f = page.evaluate(_FIT)
+                if f["sh"] > f["ih"] + 1:
+                    probs.append(f"{tag} · ronda {r + 1}: no cabe antes de contestar ({f})")
+                J._lince_round(page, wrong=True)
+                page.wait_for_selector("#ln-go", timeout=6000)
+                page.wait_for_timeout(250)
+                f = page.evaluate(_FIT)
+                m = page.evaluate("""() => [...document.querySelectorAll('#ln-cards .ln-c')].map(c => { const i = c.querySelector('.ipa'), b = c.getBoundingClientRect();
+                  if (!i) return null; const r = i.getBoundingClientRect(); return {w: c.dataset.w, inside: r.top >= b.top - .5 && r.bottom <= b.bottom + .5 && r.left >= b.left - .5 && r.right <= b.right + .5}; })""")
+                if f["sh"] > f["ih"] + 1:
+                    probs.append(f"{tag} · ronda {r + 1}: no cabe al contestar ({f})")
+                for x in m:
+                    if x and not x["inside"]:
+                        probs.append(f"{tag} · ronda {r + 1}: la IPA de «{x['w']}» se sale de su tarjeta")
+                page.locator("#ln-go").click()
+            page.wait_for_selector("#gm-end", timeout=8000)
+            probs += [f"{tag}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
     assert not probs, "\n".join(probs)
 
 

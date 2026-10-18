@@ -145,6 +145,8 @@ def test_right_answers_advance_alone_and_lesson_ends_once():
                 probs.append(f"pregunta {q}: al acertar {look}")
             streak_seen[q + 1] = look["streak"]
             _wait_change(page, st["i"], 9000)
+            # el espía apunta el cambio cada 8 ms: se espera a que lo haya apuntado (si no, a veces se lee justo antes)
+            page.wait_for_function("i0 => __t.chg.some(x => x.i !== i0) && __t.chg[__t.chg.length - 1].i !== i0", arg=st["i"], timeout=2000)
             t = page.evaluate("""([na, nu, i0]) => { const a = __t.ans[na], au = __t.audio.slice(nu).find(x => x.s >= a.t),
               c = __t.chg.find(x => x.t > a.t && x.i !== i0); return {a: a.t, s: au && au.s, e: au && au.e, c: c && c.t}; }""", [n_ans, n_aud, st["i"]])
             if t["e"] is None or t["c"] is None:
