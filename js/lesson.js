@@ -339,13 +339,13 @@ async function gramLesson(id){
 function mount(){
   const s = LS, lc = LVS[s.lv] ? LVS[s.lv].c : "";
   offs.splice(0).forEach(f => { try{ f(); }catch(e){} });
-  $("#app").innerHTML = `<div class="ls${s.g ? " ls-g" : ""}" style="--lc:${lc}">
+  $("#app").innerHTML = `<div class="ls${s.g ? " ls-g" : ""}" style="--lc:${lc}" data-key-own>
     <div class="ls-top"><div class="ls-bar" role="progressbar" aria-label="Tu progreso" aria-valuemin="0" aria-valuemax="${s.steps.length}" aria-valuenow="0"><i></i></div></div>
     <div class="ls-stage"></div>
     <p class="vh" id="ls-say" aria-live="polite" aria-atomic="true"></p>
     <div class="ls-dock">
-      <button type="button" class="glass-btn glass-btn--lg ls-prev${s.g ? "" : " is-off"}" aria-label="Anterior"${s.g ? " hidden" : ' aria-hidden="true" tabindex="-1" disabled'}>${ico("caret-left", "bold", 22)}</button>
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg ls-go" id="ls-go" hidden>Continuar</button>
+      <button type="button" class="glass-btn glass-btn--lg ls-prev${s.g ? "" : " is-off"}" aria-label="Anterior" data-key="left"${s.g ? " hidden" : ' aria-hidden="true" tabindex="-1" disabled'}>${ico("caret-left", "bold", 22)}</button>
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg ls-go" id="ls-go" data-key="enter" hidden>Continuar</button>
     </div></div>`;
   const go = $("#ls-go"), prev = $(".ls .ls-prev");
   go.addEventListener("click", () => { const f = go._fn; if(typeof f === "function") f(); });
@@ -412,8 +412,8 @@ function swap(html, dir){
 /* ---------- piezas ---------- */
 const pic = r => r && r.img ? `<img src="${esc(r.img)}" alt="" draggable="false" decoding="async">`
   : `<span class="ls-ph" aria-hidden="true">${esc(((r && r.es) || "?").charAt(0).toUpperCase())}</span>`;
-const spkBtn = (t, xl) => `<button type="button" class="say ls-spk${xl ? " xl" : ""}" data-say="${esc(t)}" aria-label="Escuchar">${ico("speaker-high", "fill", xl ? 40 : 32)}</button>`;
-const slowBtn = t => `<button type="button" class="say ls-slow" data-say="${esc(t)}" data-slow aria-label="Escuchar despacio">${ico("turtle", "fill", 30)}</button>`;
+const spkBtn = (t, xl) => `<button type="button" class="say ls-spk${xl ? " xl" : ""}" data-say="${esc(t)}" data-key="space" aria-label="Escuchar">${ico("speaker-high", "fill", xl ? 40 : 32)}</button>`;
+const slowBtn = t => `<button type="button" class="say ls-slow" data-say="${esc(t)}" data-slow data-key="shift+space" aria-label="Escuchar despacio">${ico("turtle", "fill", 30)}</button>`;
 const streakHtml = n => `<span class="ls-streak" role="img" aria-label="${n} seguidas">${ico("fire", "fill", 20)}<b>${n}</b></span>`;
 const chip = s => s.streak >= 3 ? streakHtml(s.streak) : "";
 /* el artículo de una palabra en francés o danés («le», «la», «l'», «les», «un», «une», «des»; «en», «et», «at») */
@@ -431,7 +431,7 @@ function options(w, field){
   return mix(out).map(x => ({v: val(x), r: x.r}));
 }
 const optsHtml = (list, o = {}) => `<div class="ls-opts${list.length === 3 ? " is-3" : ""}${list.some(x => String(x.v).length > 11) ? " is-long" : ""}" role="group" aria-label="Respuestas">${list.map((x, k) =>
-  `<button type="button" class="ls-opt${o.pics ? " has-pic" : ""}" data-press="sink" data-k="${k}"${x.lang ? ` lang="${x.lang}"` : ""}><kbd class="ls-k" aria-hidden="true">${k + 1}</kbd>${o.pics ? `<img src="${esc(x.r.img)}" alt="" draggable="false">` : ""}<span class="ls-ot">${esc(x.v)}</span></button>`).join("")}</div>`;
+  `<button type="button" class="ls-opt${o.pics ? " has-pic" : ""}" data-press="sink" data-k="${k}" data-key="${k + 1}"${x.lang ? ` lang="${x.lang}"` : ""}><kbd class="ls-k" aria-hidden="true">${k + 1}</kbd>${o.pics ? `<img src="${esc(x.r.img)}" alt="" draggable="false">` : ""}<span class="ls-ot">${esc(x.v)}</span></button>`).join("")}</div>`;
 
 /* ninguna respuesta se parte a media palabra («grandmothe·r»): si una palabra no cabe en su botón, las 4 bajan de tamaño
    juntas (titular y luego 17 px); solo si ni así cabe, se parte */
@@ -715,7 +715,7 @@ function lsEnd(){
   const coins = prev ? 5 : 10 + 5 * stars;
   const ls = lvLessons(s.lv), k = ls.findIndex(l => l.id === s.id), nxt = nextOf(s.lv, k);
   const lvDone = ls.every(l => P[l.id]);
-  $("#app").innerHTML = `<div class="ls ls-end" style="--lc:${LVS[s.lv] ? LVS[s.lv].c : ""}">
+  $("#app").innerHTML = `<div class="ls ls-end" style="--lc:${LVS[s.lv] ? LVS[s.lv].c : ""}" data-key-own>
     <section class="card ls-card" aria-labelledby="ls-end-t">
       <div class="ls-fox">${heroHtml(96)}</div>
       <h1 class="ls-end-t" id="ls-end-t">${lvDone && !prev ? `¡Nivel ${esc(s.lv)} completado!` : "¡Lección completada!"}</h1>
@@ -726,7 +726,7 @@ function lsEnd(){
     </section>
     <div class="ls-dock">
       <button type="button" class="glass-btn glass-btn--lg ls-rep" id="ls-rep">${ico("arrow-counter-clockwise", "bold", 20)}Repetir</button>
-      ${nxt ? `<a class="glass-btn glass-btn--pri glass-btn--lg ls-go" id="ls-next" href="#/leccion/${esc(nxt.id)}">Siguiente lección</a>` : ""}
+      ${nxt ? `<a class="glass-btn glass-btn--pri glass-btn--lg ls-go" id="ls-next" href="#/leccion/${esc(nxt.id)}" data-key="enter">Siguiente lección</a>` : ""}
     </div></div>`;
   const fx = $("#fx-x"); if(fx) fx.setAttribute("href", "#/mapa/" + s.lv);
   if(scrollY > 0) scrollTo(0, 0);
@@ -796,7 +796,7 @@ function ask(from, viaBack){
     <p class="ls-pz-s">${left <= 3 && s.i > 0 ? "¡Ya casi la terminas!" : `Te ${left === 1 ? "queda 1 tarjeta" : `quedan ${left} tarjetas`}`}</p>
     <div class="ls-pz-b">
       <button type="button" class="glass-btn glass-btn--lg" id="ls-pz-out">Salir</button>
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="ls-pz-go" autofocus>Seguir</button>
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="ls-pz-go" data-key="enter" autofocus>Seguir</button>
     </div></div>`;
   quiet();
   try{
@@ -837,14 +837,14 @@ document.addEventListener("click", e => {
 }, true);
 
 /* teclado: Enter = el botón de abajo · Espacio = oír (Mayús, despacio) · 1-4 = responder · ← → = anterior y siguiente
-   palabra nueva · Esc = «¿Paramos aquí?» (en el final, al camino). Las etiquetas de las teclas (html[data-kbd]) salen con
-   la primera tecla y se van al tocar la pantalla. */
+   palabra nueva · Esc = «¿Paramos aquí?» (en el final, al camino). Las etiquetas de las teclas (html[data-kbd], que lee
+   kbdMode()) las pone js/keys.js con la primera tecla y las quita al tocar la pantalla; .ls lleva data-key-own: estas
+   teclas son de la lección y keys.js solo enseña las etiquetas de sus data-key. */
 function onKey(e){
   const s = LS; if(!s || hashPath() !== pathOf(s)) return;
   if(e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey || sheetOpen()) return;
   const t = e.target, tag = t && t.tagName;
   if(tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) return;
-  if(e.key !== "Shift") ROOT.setAttribute("data-kbd", "");
   const onCtl = !!(t && t !== document.body && t.closest && t.closest("button,a[href],summary,input"));
   if(e.key === "Escape"){
     e.preventDefault();
@@ -879,7 +879,6 @@ function onKey(e){
     else if(e.key === "ArrowLeft"){ e.preventDefault(); back(); }
   }
 }
-addEventListener("pointerdown", e => { if(e.isTrusted && ROOT.hasAttribute("data-kbd")) ROOT.removeAttribute("data-kbd"); }, {capture: true, passive: true});
 
 /* ---------- «Cómo suena»: la palabra en sílabas y el audio lento ---------- */
 /* sílabas con reglas sencillas por idioma (en, fr, da): núcleos de vocales; entre dos, una consonante va con la

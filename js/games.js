@@ -175,7 +175,7 @@ function pauseSheet(){
     <h2 class="gm-pz-t" id="gm-pz-t">¿Paramos aquí?</h2>
     <div class="gm-pz-b">
       <button type="button" class="glass-btn glass-btn--lg" id="gm-pz-out">Salir</button>
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="gm-pz-go" autofocus>Seguir</button></div></div>`;
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="gm-pz-go" data-key="enter" autofocus>Seguir</button></div></div>`;
   document.body.appendChild(d);
   PZ = {d, run: null, exit: false};
   d.addEventListener("click", e => {
@@ -637,7 +637,7 @@ function topHtml(g, stats){
   const G0 = GAMES[g];
   return `<div class="gm-top"><a class="gm-x" href="#/juegos" aria-label="Salir del juego">${IC("x", "bold", 20)}</a>
     <div class="gm-name"><img src="${esc(G0.img)}" alt="" width="32" height="32" draggable="false"><span class="t">${esc(G0.t)}</span></div>
-    <button type="button" class="glass lite gm-help" data-gm-how aria-label="Cómo se juega">${IC("question", "bold", 22)}</button>
+    <button type="button" class="glass lite gm-help" data-gm-how data-key="?" aria-label="Cómo se juega">${IC("question", "bold", 22)}</button>
     <div class="gm-stats">${stats}</div></div>`;
 }
 function bump(el){ if(!el) return; el.classList.remove("gm-bump"); void el.offsetWidth; el.classList.add("gm-bump"); }
@@ -687,7 +687,7 @@ function intro(run, g, go){
     <h2 class="gm-intro-t" id="gm-in-t">${esc(G0.t)}</h2>
     <p class="gm-intro-p" id="gm-in-p"${full ? "" : " hidden"}>${esc(G0.how)}</p>
     <div class="gm-intro-tp">${esc(wordsLabel(g))} · ${esc(Nm())}</div>
-    <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block gm-go">${IC("play", "fill", 22)}¡A jugar!</button>
+    <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block gm-go" data-key="enter">${IC("play", "fill", 22)}¡A jugar!</button>
     ${full ? `<a class="gm-intro-back" href="#/juegos">Elegir otro juego</a>`
       : `<button type="button" class="gm-intro-how" id="gm-in-how">${IC("question", "bold", 18)}Cómo se juega</button>`}</div></div>`);
   const ov = run.root.querySelector(".gm-intro"), b = ov.querySelector(".gm-go"), hw = ov.querySelector("#gm-in-how");
@@ -890,7 +890,7 @@ function finish(run, g, o){
     ${words.length ? `<p class="gm-wt">Palabras del juego · toca para oírlas</p>
     <div class="gm-wl">${words.map(w => `<button type="button" class="gm-wc${w.miss ? " gm-miss" : ""}" data-say="${esc(w.word)}" aria-label="Escuchar ${esc(w.word)}">${w.img ? imgTag(w) : `<span class="gm-wn" aria-hidden="true">${IC("speaker-high", "fill", 20)}</span>`}<span><b lang="${esc(code)}">${esc(w.word)}</b><small>${esc(w.es)}</small></span>${IC("speaker-high", "bold", 18)}</button>`).join("")}</div>` : ""}
     <div class="gm-end-b"><a class="glass-btn glass-btn--lg" href="#/juegos" id="gm-menu-b">Juegos</a>
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="gm-again">${IC("arrow-counter-clockwise", "bold", 20)}Otra vez</button></div></div>`;
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="gm-again" data-key="enter">${IC("arrow-counter-clockwise", "bold", 20)}Otra vez</button></div></div>`;
   window.scrollTo(0, 0);
   /* el resultado es una fase nueva: limpia lo del juego y deja solo sus propios temporizadores */
   run.timers.forEach(clearTimeout); run.timers = [];

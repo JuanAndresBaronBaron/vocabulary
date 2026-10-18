@@ -24,6 +24,7 @@ const SHELL = [
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png",
   "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2",
   "js/season.js", "data/season.json",
+  "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */
 const MEDIA_RE = /\.(png|jpe?g|gif|webp|svg|mp3|m4a|ogg|wav)$/i;

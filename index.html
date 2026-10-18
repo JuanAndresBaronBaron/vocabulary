@@ -788,7 +788,7 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 <symbol id="i-swap-bold" viewBox="0 0 256 256"><path d="M228,48V152a20,20,0,0,1-20,20H112.92a12,12,0,0,1-17.41,16.49l-20-20a12,12,0,0,1,0-17l20-20A12,12,0,0,1,112.92,148H204V52H100a12,12,0,0,1-24,0V48A20,20,0,0,1,96,28H208A20,20,0,0,1,228,48ZM168,192a12,12,0,0,0-12,12H52V108h91.08a12,12,0,0,0,17.41,16.49l20-20a12,12,0,0,0,0-17l-20-20A12,12,0,0,0,143.08,84H48a20,20,0,0,0-20,20V208a20,20,0,0,0,20,20H160a20,20,0,0,0,20-20v-4A12,12,0,0,0,168,192Z"/></symbol>
 </svg>
 <header class="topbar" id="topbar">
-  <a class="tb-back glass lite" id="dv-back" href="#/palabras"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-caret-left-bold"></use></svg><span>Palabras</span></a>
+  <a class="tb-back glass lite" id="dv-back" href="#/palabras" data-key="esc"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-caret-left-bold"></use></svg><span>Palabras</span></a>
   <button type="button" class="tb-flag glass" id="lang-b" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-m" aria-label="Idioma"></button>
   <div class="tb-right">
     <div class="tb-slot" data-sync-slot></div>
@@ -802,7 +802,7 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 <div class="lang-m glass" id="lang-m" role="menu" aria-label="Idioma que aprendes" hidden></div>
 <nav class="tabbar glass" id="tabbar" aria-label="Principal"></nav>
 <div class="focusbar" id="focusbar">
-  <a class="fx-x glass" id="fx-x" href="#/" aria-label="Salir"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-x-bold"></use></svg></a>
+  <a class="fx-x glass" id="fx-x" href="#/" aria-label="Salir" data-key="esc"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-x-bold"></use></svg></a>
   <span class="fx-coins" data-coin-target><svg class="coin-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFCC00"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7A000" stroke-opacity=".8"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B39000" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7.8 13.06 10.54 15.99 10.7 13.71 12.56 14.47 15.4 12 13.8 9.53 15.4 10.29 12.56 8.01 10.7 10.94 10.54Z" fill="#A88700" fill-opacity=".8"/><path d="M6.4 8.2a7 7 0 0 1 4.4-3.4" stroke="#fff" stroke-opacity=".85" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg><span data-coins-n>0</span><span class="vh"> monedas</span></span>
 </div>
 <dialog id="cfg" aria-labelledby="cfg-tt"></dialog>
@@ -1056,7 +1056,8 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2",
-  "js/season.js", "data/season.json"];
+  "js/season.js", "data/season.json",
+  "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
 const OFF_IMG_MB = 7.5, OFF_IMG_N = 970;          /* dibujos y personajes (los que ya están no se vuelven a pedir) */
@@ -1715,7 +1716,7 @@ async function home(){
       <p class="hm-say">${esc(na.say)}</p>
       <h2 class="hm-t" id="hm-t">${esc(na.title)}</h2>
       <p class="hm-sub">${esc(na.sub)}</p>
-      <a class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block hm-go" id="hm-go" href="${esc(na.href)}" data-kind="${na.kind}">${ico("play", "fill", 20)}${esc(na.btn)}</a>
+      <a class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block hm-go" id="hm-go" href="${esc(na.href)}" data-kind="${na.kind}" data-key="enter">${ico("play", "fill", 20)}${esc(na.btn)}</a>
     </section>
     <div class="hm-side">${row}${mis || wotd ? `<div class="hm-pair">${mis}${wotd}</div>` : ""}<div class="hm-slots" id="hm-slots"></div></div>
     <p class="hm-priv"><a href="privacy.html#es">Privacidad</a></p></div>`;
@@ -2118,6 +2119,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <!-- ?v= es la VERSION de sw.js (se sube con ella): así una versión nueva no sale con módulos viejos de la caché HTTP -->
 <script src="js/motion.js?v=19"></script>
 <script src="js/gestures.js?v=19"></script>
+<script src="js/keys.js?v=19"></script>
 <script src="js/lesson.js?v=19"></script>
 <script src="js/learn.js?v=19"></script>
 <script src="js/sfx.js?v=19"></script>
