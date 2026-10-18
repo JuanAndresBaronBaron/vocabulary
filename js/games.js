@@ -66,7 +66,7 @@ function speak(t, slow){
   try{ say(t, null, slow); }catch(e){}
 }
 /* la primera voz tiene que nacer de un toque (iOS): se llama dentro del toque que lleva a la partida */
-function unlockVoice(){ try{ if("speechSynthesis" in window) speechSynthesis.speak(new SpeechSynthesisUtterance(" ")); }catch(e){} }
+function unlockVoice(){ try{ if(!("speechSynthesis" in window)) return; const u = new SpeechSynthesisUtterance(" "); if(typeof useVoice === "function") useVoice(u, lang); speechSynthesis.speak(u); }catch(e){} }
 /* cada respuesta cuenta para las misiones («Acierta 15 respuestas»); el sonido ya lo pone el propio juego */
 const answer = (ok, it) => { try{ bus.emit("answer", {ok: !!ok, es: it && it.es, word: it && it.word, where: "game"}); }catch(e){} };
 const pick = a => a[Math.floor(Math.random() * a.length)];
