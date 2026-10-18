@@ -276,7 +276,11 @@ async function start(app, api, mode){
     else if(k === "t" || k === "T"){ e.preventDefault(); hear(true); }
     else if(k === "Enter" && answered && nextBox.firstChild && !(e.target.closest && e.target.closest("button:not(#ln-go),a"))){ e.preventDefault(); next(); }
   };
-  fit = api.autoFit(run, root.querySelector("#ln-sp"));
+  /* autoFit cuenta 8 px de margen bajo el hueco del dock, pero el de la página es mayor: con la IPA (una línea más) en
+     un móvil pequeño (320×568) se pasaría sin que saltara la versión compacta. Se mira también con el margen de verdad */
+  const tight = () => { const sp = root.querySelector("#ln-sp"), m = sp && sp.closest("main");
+    if(m && sp.getBoundingClientRect().bottom + scrollY + (parseFloat(getComputedStyle(m).paddingBottom) || 0) > innerHeight + .5) run.root.classList.add("gm-short"); };
+  fit = api.autoFit(run, root.querySelector("#ln-sp"), tight);
   round();
   api.intro(run, ID, () => { started = true; api.keys(run, kb); api.later(run, () => hear(false), RM() ? 200 : 450); });
 }
