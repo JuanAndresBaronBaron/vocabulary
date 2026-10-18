@@ -14,7 +14,7 @@
      este aparato, no va en la partida) sin tocar sus otras propiedades; el <head> de index.html los pone antes de pintar.
    - Para mayores: Progreso por tema › · Google (el bloque lo monta js/sync.js en [data-sync-block]) · instalar la app
      · Descargar todo (offlinePanel) · Atajos (vocabShortcuts.adultHtml(), js/shortcuts.js) · Mostrar pronunciación (IPA)
-     (vocab:ui.ipa) · Buzón del tío (vocabMailbox.adultHtml()) · Borrar grabaciones y fotos (vocabMailbox.mediaHtml(),
+     (encendido de serie: apagarlo guarda vocab:ui.ipa = false y encenderlo quita la marca; ipaOn() de index.html) · Buzón del tío (vocabMailbox.adultHtml()) · Borrar grabaciones y fotos (vocabMailbox.mediaHtml(),
      solo si hay algo) · créditos · Privacidad.
    - Progreso por tema (el informe de antes de Premios, solo lectura): las repeticiones de los últimos 14 días (store
      "act") y, por partes (Temas · Las 3000 · Avanzado, data/index.json), cada tema empezado con sus palabras
@@ -24,7 +24,8 @@
    - Avisos del bus: "settings" {page, el, focus} al pintar una página (sync.js pinta ahí lo suyo) · "ui" {k, v} al
      cambiar una preferencia.
    - window.vocabUI = {get(), set(k, v), apply()}: las preferencias de "vocab:ui" ({glass:"off", motion:"calm",
-     contrast:"more", text:"large", ipa:true, hints:{…} de js/gestures.js}). */
+     contrast:"more", text:"large", ipa:false, hints:{…} de js/gestures.js}). set(k, null | undefined) quita la clave;
+     false se guarda (ipa:false = la IPA apagada; sin clave, o con un ipa:true de antes, se ve). */
 (() => {
 "use strict";
 const D = document, ROOT = D.documentElement, UI = "vocab:ui";
@@ -46,7 +47,7 @@ const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 function uiGet(){ try{ const o = JSON.parse(localStorage.getItem(UI)); return isObj(o) ? o : {}; }catch(e){ return {}; } }
 function uiSet(k, v){
   const o = uiGet();
-  if(v === undefined || v === null || v === false) delete o[k]; else o[k] = v;
+  if(v === undefined || v === null) delete o[k]; else o[k] = v;
   try{ localStorage.setItem(UI, JSON.stringify(o)); }catch(e){}
   applyUI(o); emit("ui", {k, v: o[k]});
   return o;
@@ -386,7 +387,7 @@ function credits(){
 function installHtml(){ return typeof installRow === "function" ? installRow() : ""; }
 function voiceHelp(){ try{ return typeof voiceHelpRow === "function" ? voiceHelpRow() : ""; }catch(e){ return ""; } }
 function adultHtml(){
-  const ipa = !!uiGet().ipa;
+  const ipa = typeof ipaOn === "function" ? ipaOn() : uiGet().ipa !== false;
   return `<section class="st-sec" aria-label="Progreso"><div class="st-g ics">
       ${navRow("aj-prog", "graduation-cap", "ok", "Progreso por tema", {sub: "Palabras dominadas y repasos de 14 días"})}</div></section>
     <section class="st-sec" aria-labelledby="aj-g-h"><h3 class="st-h" id="aj-g-h">Google</h3><div data-sync-block>
@@ -522,7 +523,8 @@ function wire(p, el){
     wireInstall();
     mountOff();
     const ipa = el.querySelector("#aj-ipa");
-    if(ipa) ipa.onchange = () => { uiSet("ipa", ipa.checked ? true : null); haptic(); };
+    /* encendida es lo normal (sin marca); apagada se guarda como ipa:false */
+    if(ipa) ipa.onchange = () => { uiSet("ipa", ipa.checked ? null : false); haptic(); };
   }
 }
 /* la Puerta se cierra con su animación y, al cerrarse, el navegador devuelve el foco a la fila que la abrió (que ya está

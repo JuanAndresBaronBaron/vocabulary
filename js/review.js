@@ -6,7 +6,8 @@
      español en grande), la palabra en español, «¿Cómo se dice en inglés?» y «Toca para ver» (sin micrófono, «Piénsala… y
      toca para ver»). Abajo, siempre, el botón principal «Ver» (como tocar la tarjeta, Espacio o Intro: la gira en 3D,
      350 ms, sin quitar puntos) y una fila con «Dilo en inglés» (solo con micrófono) y «Pista». Cara de la respuesta: la
-     palabra en el idioma con su altavoz y la tortuga (y el IPA si un mayor lo activó, vocabUI.get().ipa); debajo «¿La
+     palabra en el idioma, su traducción, su IPA (ipaHtml() de index.html: se ve salvo que un mayor la apague; en la cara
+     de la pregunta y en las pistas no, que diría la respuesta) y el altavoz con la tortuga; debajo «¿La
      sabías?» con «No» (gris) y «¡Sí!» (verde). Deslizar la tarjeta girada a la derecha = Sí, a la izquierda = No: sigue
      al dedo, se inclina hasta ±8°, se tiñe de verde o de gris con el sello en una esquina y sale volando; la siguiente
      sube de la pila. Teclas: Espacio (girar / oír; Mayús+Espacio despacio), ← No, → Sí, Esc «¿Paramos aquí?». La pista
@@ -238,7 +239,7 @@ ${DARK(".rv-pic", "background:#F2F2F7;border-radius:var(--r-md);padding:6px")}
 .rv-tap .ico{color:var(--brand-tint)}
 .rv-word{margin:12px 0 0;max-width:100%;font:700 var(--fs-word)/1.15 var(--f-round);overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto;text-wrap:balance;outline:none}
 .rv-tr{margin:2px 0 0;color:var(--label2);font:400 var(--fs-body)/1.3 var(--f-text)}
-.rv-ipa{margin:2px 0 0;color:var(--label2);font:400 var(--fs-sub)/1.3 var(--f-text)}
+.rv-ipa{margin:2px 0 0;max-width:100%;font-size:var(--fs-sub);line-height:1.3;overflow-wrap:anywhere}
 .rv-audio{display:flex;align-items:center;gap:16px;margin-top:20px}
 .rv-spk,.rv-slow{position:relative;display:grid;place-items:center;padding:0;border:0;border-radius:50%;cursor:pointer;-webkit-tap-highlight-color:transparent;
   transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
@@ -336,7 +337,6 @@ const micOk = () => !ui.micOff && navigator.onLine !== false && typeof canListen
 const tapText = () => micOk() ? "Toca para ver" : "Piénsala… y toca para ver";
 /* la palabra del idioma dentro de un aviso para el lector de pantalla, con su idioma */
 const inL = t => `<span lang="${esc(code())}">${esc(t)}</span>`;
-const uiPrefs = () => { try{ return (W.vocabUI && typeof W.vocabUI.get === "function" && W.vocabUI.get()) || {}; }catch(e){ return {}; } };
 /* html: el texto (ya escapado) con las palabras del idioma en su <span lang> */
 function live(html){ const el = DOC.getElementById("rv-live"); if(!el) return; el.textContent = ""; setTimeout(() => { if(el.isConnected) el.innerHTML = html; }, 40); }
 function unbindSwipe(){ if(ui.offSwipe){ try{ ui.offSwipe(); }catch(e){} ui.offSwipe = null; } }
@@ -356,13 +356,13 @@ function qFace(it, c){
     <p class="rv-tap">${ico("hand-pointing", "bold", 20)}<span class="rv-tap-t">${tapText()}</span></p></div>`;
 }
 function aFace(it){
-  const r = it.r, d = r.l[lang], ipa = uiPrefs().ipa && d.ipa;
+  const r = it.r, d = r.l[lang], ipa = ipaHtml(d.ipa, code());
   return `<div class="rv-face rv-a" role="group" aria-label="Respuesta">
     <span class="rv-said" hidden>${CHK}</span>
     ${r.img ? `<div class="rv-picw"><img class="rv-pic" src="${esc(r.img)}" alt="" draggable="false"></div>` : ""}
     <p class="rv-word" lang="${esc(code())}" tabindex="-1">${esc(d.word)}</p>
     <p class="rv-tr">${esc(r.es)}</p>
-    ${ipa ? `<p class="rv-ipa">${esc(d.ipa)}</p>` : ""}
+    ${ipa ? `<p class="rv-ipa">${ipa}</p>` : ""}
     <div class="rv-audio">
       <button type="button" class="rv-spk" data-rv="spk" data-key="space" aria-label="Escuchar">${ico("speaker-high", "fill", 32)}</button>
       <button type="button" class="rv-slow" data-rv="slow" data-key="shift+space" aria-label="Escuchar despacio">${ico("turtle", "fill", 30)}</button></div></div>`;
