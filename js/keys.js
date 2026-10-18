@@ -12,7 +12,8 @@
    Declarativo: un botón dice qué tecla lo pulsa con data-key="<tecla>[ <tecla>…]", con las teclas
      space | shift+space | enter | left | right | 1 | 2 | 3 | 4 | esc | ?
    La primera es la que sale en su etiqueta (data-key-label="…" cambia el texto; data-key-pos="in" la pone dentro, arriba
-   a la derecha, en vez de en el borde de abajo). Al pulsar una tecla, keys.js hace click() en el primer elemento (orden
+   a la derecha, en vez de en el borde de abajo; data-key-pos="top", sobre el borde de arriba, como en los botones
+   redondos de icono, que la llevan así sin pedirlo; data-key-pos="right", a su derecha si cabe). Al pulsar una tecla, keys.js hace click() en el primer elemento (orden
    del DOM) con esa tecla que se vea y esté habilitado en la capa de arriba: el dialog modal abierto (el que tiene el
    foco) o, si no hay ninguno, la pantalla. En una hoja, su «Listo» de cabecera (.m-head-x) cuenta como data-key="esc".
 
@@ -38,8 +39,11 @@
    Etiquetas: la primera tecla de verdad (no Mayús/Ctrl/Alt/Meta sueltas, y no escribiendo en un campo) pone
    html[data-kbd]; el siguiente toque o clic real (pointerdown de verdad) lo quita. Con html[data-kbd], cada botón que
    pulsaría una tecla lleva una <kbd class="kb-tag"> gris (aria-hidden; el texto va en ::before para no cambiar el
-   textContent del botón) en posición absoluta, así que no cambia su tamaño. Un botón que ya trae su propia <kbd> (las
-   opciones de la lección, Preguntas y la temporada) no lleva otra. html[data-kbd] es el mismo que leen lesson.js
+   textContent del botón) en posición absoluta, así que no cambia su tamaño. Va en el borde de abajo (en los botones
+   redondos de icono, más pequeña y sobre el borde de arriba); si ahí tocaría otro botón, un texto, otra tarjeta u otra
+   etiqueta (con 4 px de aire) o se saldría de la pantalla, pasa encima, a la derecha o a la izquierda, y si no, dentro
+   del botón a la derecha (donde no llega su texto); las de un mismo grupo se alinean en una línea. Un botón que ya
+   trae su propia <kbd> (las opciones de la lección, Preguntas y la temporada) no lleva otra. html[data-kbd] es el mismo que leen lesson.js
    (kbdMode), learn.js (.ln-kbd) y season.js (.ss-k).
 
    window.vocabKeys = {help(from?) → dialog, closeHelp(), target(tecla) → Element | null, token(evento) → tecla | null,
@@ -67,6 +71,14 @@ kbd.kb-tag{position:absolute;z-index:3;left:50%;bottom:0;top:auto;right:auto;tra
   pointer-events:none;-webkit-user-select:none;user-select:none;animation:kb-in var(--d-fast,160ms) ease-out}
 kbd.kb-tag::before{content:attr(data-k)}
 [data-key-pos=in]>kbd.kb-tag{left:auto;bottom:auto;top:8px;right:8px;transform:none}
+/* dónde va cuando abajo tocaría algo (keys.js lo mira): encima, a la derecha o a la izquierda del botón */
+kbd.kb-tag[data-pos=t]{top:0;bottom:auto;transform:translate(-50%,-55%)}
+kbd.kb-tag[data-pos=r]{left:100%;top:50%;bottom:auto;transform:translate(4px,-50%)}
+kbd.kb-tag[data-pos=l]{left:auto;right:100%;top:50%;bottom:auto;transform:translate(-4px,-50%)}
+/* y si alrededor no hay sitio, dentro del botón, a la derecha (en los anchos, donde no llega el texto) */
+kbd.kb-tag[data-pos=i]{left:auto;right:12px;top:50%;bottom:auto;transform:translateY(-50%)}
+/* en los botones redondos de icono (altavoz, tortuga, micrófono, ✕), un poco más pequeña y sobre el borde de arriba */
+kbd.kb-tag.kb-sm{min-width:1.7em;height:1.5em;padding:0 .35em;border-radius:5px;font-size:11px}
 :root[data-theme=dark] kbd.kb-tag{border-color:rgba(255,255,255,.16);background:#48484A;color:#F2F2F7;box-shadow:0 1px 2px rgba(0,0,0,.5)}
 @keyframes kb-in{from{opacity:0}}
 @media (prefers-reduced-motion:reduce){kbd.kb-tag{animation:none}}
@@ -75,14 +87,16 @@ kbd.kb-tag::before{content:attr(data-k)}
 /* la hoja «Teclas» */
 dialog.kb-sh{max-width:560px}
 .kb-sub{margin:0 0 16px;font:400 var(--fs-note,.9375rem)/1.35 var(--f-text,system-ui);color:var(--label2);text-align:center}
-.kb-rows{list-style:none;margin:0 0 12px;padding:0;background:var(--card);border-radius:var(--r-card,24px);overflow:hidden;display:grid;grid-template-columns:max-content 1fr}
+.kb-rows{list-style:none;margin:0 0 12px;padding:0;background:var(--card);border-radius:var(--r-card,24px);overflow:hidden}
 :root[data-theme=dark] .kb-rows{background:var(--card-2)}
-.kb-row{position:relative;grid-column:1/-1;display:grid;grid-template-columns:8.5rem 1fr;grid-template-columns:subgrid;align-items:center;column-gap:16px;min-height:var(--row,52px);padding:8px 16px;box-sizing:border-box}
+/* como en iPadOS: la acción a la izquierda y sus teclas alineadas a la derecha */
+.kb-row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) max-content;align-items:center;column-gap:12px;min-height:var(--row,52px);padding:8px 16px;box-sizing:border-box}
 .kb-row+.kb-row::before{content:"";position:absolute;left:16px;right:0;top:0;border-top:.5px solid var(--sep)}
-.kb-keys{display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;gap:4px;font:600 var(--fs-note,.9375rem)/1 var(--f-text,system-ui);color:var(--label2)}
+.kb-keys{justify-self:end;display:flex;align-items:center;flex-wrap:nowrap;white-space:nowrap;gap:4px;font:600 var(--fs-note,.9375rem)/1 var(--f-text,system-ui);color:var(--label2)}
 .kb-keys kbd{min-width:2.1em;height:2em;padding:0 .5em;border-radius:7px;font:600 var(--fs-min,.8125rem)/1 var(--f-text,system-ui);
   background:#E5E5EA;color:#3A3A3C;box-shadow:inset 0 -1px 0 rgba(60,60,67,.25)}
 :root[data-theme=dark] .kb-keys kbd{background:#48484A;color:#F2F2F7;box-shadow:inset 0 -1px 0 rgba(0,0,0,.4)}
+.kb-to{padding:0 2px}
 .kb-what{min-width:0;display:flex;flex-direction:column;gap:2px;font:400 var(--fs-body,1.1875rem)/1.25 var(--f-text,system-ui);color:var(--label)}
 .kb-what small{font:400 var(--fs-note,.9375rem)/1.3 var(--f-text,system-ui);color:var(--label2)}
 .kb-note{margin:0 4px 8px;font:400 var(--fs-note,.9375rem)/1.35 var(--f-text,system-ui);color:var(--label2);text-align:center}
@@ -256,7 +270,108 @@ function refresh(){
   }
   [...TAGGED].forEach(el => { if(!want.has(el)) untag(el); });
   want.forEach((tok, el) => tag(el, tok));
+  layout();
   if(mo) mo.takeRecords();   /* lo que acabamos de cambiar no vuelve a pedir otra vuelta */
+}
+/* ¿botón redondo de icono? (sin texto, tan alto como ancho y con el radio de un círculo) */
+function round(el){
+  const p = el.getAttribute("data-key-pos"); if(p === "top") return true;
+  if(p || el.textContent.trim()) return false;
+  const r = el.getBoundingClientRect(); if(!r.width || Math.abs(r.width - r.height) > 4 || r.width > 120) return false;
+  const br = getComputedStyle(el).borderTopLeftRadius || "0";
+  return br.endsWith("%") ? parseFloat(br) >= 40 : parseFloat(br) >= r.width / 2 - 2;
+}
+/* dónde va cada etiqueta: abajo (en los redondos, encima); si ahí tocaría otra cosa (otro botón, un texto, otra
+   tarjeta, otra etiqueta; con 4 px de aire) o se saldría de la pantalla, prueba encima, a la derecha, a la izquierda
+   y, por fin, dentro del botón a la derecha si su texto no llega. Las de un mismo grupo (mismo contenedor, mismo lado) se alinean en una línea. Mientras algo se anima (una hoja que
+   entra), se vuelve a mirar al acabar. */
+const GAP = 4;
+let relay = 0, relayT = 0, SEEN = new Map();
+/* ¿se ve? (un contenedor transparente que solo coloca cosas no cuenta: sí un botón, un texto, un dibujo o una tarjeta) */
+function counts(e){
+  if(SEEN.has(e)) return SEEN.get(e);
+  let v = false;
+  try{
+    if(e.matches("button,a,input,select,textarea,img,svg,video,canvas,label,[role=button]")) v = true;
+    else if([...e.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) v = true;
+    else {
+      const c = getComputedStyle(e), bg = c.backgroundColor;
+      v = (bg && bg !== "transparent" && !/rgba?\([^)]*,\s*0\)$/.test(bg)) || c.backgroundImage !== "none" || parseFloat(c.borderTopWidth) > 0 || c.boxShadow !== "none";
+    }
+  }catch(err){ v = true; }
+  SEEN.set(e, v);
+  return v;
+}
+/* dónde caería la etiqueta (w×h) en cada sitio, sin moverla: probarla de verdad fuera de la pantalla ensancharía la
+   página (y en el móvil, la ventana), y lo de la derecha se movería */
+const box = (l, t, w, h) => ({left: l, top: t, right: l + w, bottom: t + h});
+function spot(p, hr, w, h){
+  const cx = hr.left + hr.width / 2, cy = hr.top + hr.height / 2;
+  if(p === "t") return box(cx - w / 2, hr.top - .55 * h, w, h);
+  if(p === "r") return box(hr.right + 4, cy - h / 2, w, h);
+  if(p === "l") return box(hr.left - 4 - w, cy - h / 2, w, h);
+  if(p === "i") return box(hr.right - 12 - w, cy - h / 2, w, h);
+  return box(cx - w / 2, hr.bottom - .45 * h, w, h);
+}
+/* lo que ocupa por dentro el botón (su texto y su icono), sin la etiqueta */
+function inner(el){
+  let l = Infinity, t = Infinity, r = -Infinity, b = -Infinity;
+  const add = q => { if(!q.width && !q.height) return; l = Math.min(l, q.left); t = Math.min(t, q.top); r = Math.max(r, q.right); b = Math.max(b, q.bottom); };
+  for(const n of el.childNodes){
+    if(n.nodeType === 1 && !n.classList.contains("kb-tag")) add(n.getBoundingClientRect());
+    else if(n.nodeType === 3 && n.textContent.trim()){ const g = D.createRange(); g.selectNodeContents(n); add(g.getBoundingClientRect()); }
+  }
+  return l === Infinity ? null : {left: l, top: t, right: r, bottom: b};
+}
+function touches(r, host, taken, vw, p){
+  const x0 = r.left - GAP, x1 = r.right + GAP, y0 = r.top - GAP, y1 = r.bottom + GAP;
+  const hits = q => q.left < x1 && q.right > x0 && q.top < y1 && q.bottom > y0;
+  if(r.left < 0 || r.top < 0 || r.right > vw || r.bottom > innerHeight) return true;
+  if(taken.some(hits)) return true;
+  if(p === "i"){ const c = inner(host), hr = host.getBoundingClientRect(); return r.left < hr.left + 8 || (!!c && hits(c)); }
+  for(const x of [x0 + 1, (x0 + x1) / 2, x1 - 1]) for(const y of [y0 + 1, (y0 + y1) / 2, y1 - 1]){
+    for(const e of D.elementsFromPoint(x, y)){
+      if(e === host || host.contains(e) || e.contains(host) || (e.closest && e.closest(".kb-tag"))) continue;
+      if(counts(e)) return true;
+    }
+  }
+  return false;
+}
+function layout(){
+  const taken = [], groups = new Map(), vw = Math.min(innerWidth, ROOT.clientWidth || innerWidth);
+  SEEN = new Map();
+  for(const el of [...TAGGED].sort((a, b) => a.compareDocumentPosition(b) & 4 ? -1 : 1)){
+    const k = el.querySelector(":scope > kbd.kb-tag"); if(!k) continue;
+    k.style.top = k.style.bottom = "";
+    if(el.getAttribute("data-key-pos") === "in"){ delete k.dataset.pos; taken.push(k.getBoundingClientRect()); continue; }
+    const rnd = round(el);
+    k.classList.toggle("kb-sm", rnd);
+    const base = rnd ? ["t", "b", "r", "l"] : ["b", "t", "r", "l", "i"], hr = el.getBoundingClientRect(), w = k.offsetWidth, h = k.offsetHeight;
+    const order = el.getAttribute("data-key-pos") === "right" ? ["r", ...base.filter(p => p !== "r")] : base;
+    let pos = order[0];
+    if(hr.bottom > 0 && hr.top < innerHeight){
+      const free = order.find(p => !touches(spot(p, hr, w, h), el, taken, vw, p));
+      if(free) pos = free;
+    }
+    if(pos === "b") delete k.dataset.pos; else k.dataset.pos = pos;
+    taken.push(spot(pos, hr, w, h));
+    if(pos === "t" || pos === "b"){
+      const g = el.parentElement;
+      if(!groups.has(g)) groups.set(g, {t: [], b: []});
+      groups.get(g)[pos].push([el, k, hr]);
+    }
+  }
+  /* un grupo, en una línea: encima, a la altura del más alto; abajo, a la del más bajo */
+  groups.forEach(g => {
+    if(g.t.length > 1){ const m = Math.min(...g.t.map(x => x[2].top)); g.t.forEach(([, k, r]) => { k.style.top = (m - r.top) + "px"; }); }
+    if(g.b.length > 1){ const m = Math.max(...g.b.map(x => x[2].bottom)); g.b.forEach(([, k, r]) => { k.style.bottom = (r.bottom - m) + "px"; }); }
+  });
+  /* algo se está moviendo (una hoja que sube, una página que entra): otra vuelta cuando acabe */
+  let moving = false;
+  try{ moving = D.getAnimations().some(a => a.playState === "running" && !(a.effect && a.effect.target && a.effect.target.classList && a.effect.target.classList.contains("kb-tag"))
+    && isFinite(a.effect && a.effect.getComputedTiming().endTime)); }catch(e){}
+  clearTimeout(relayT);
+  if(moving && relay < 12){ relay++; relayT = setTimeout(schedule, 120); } else if(!moving) relay = 0;
 }
 function tag(el, tok){
   if(!el.hasAttribute("aria-keyshortcuts")){
@@ -284,6 +399,7 @@ function untag(el){
 W.addEventListener("pointerdown", e => { if(e.isTrusted && ROOT.hasAttribute("data-kbd")) kbdOff(); }, {capture: true, passive: true});
 D.addEventListener("focusin", schedule, true);
 W.addEventListener("resize", schedule, {passive: true});
+W.addEventListener("scroll", schedule, {passive: true, capture: true});   /* lo que entra en pantalla se recoloca */
 
 /* ---------- la hoja «Teclas» (?) ---------- */
 const K = t => `<kbd>${t}</kbd>`, VH = t => `<span class="vh">${t}</span>`;
@@ -292,7 +408,7 @@ const ROWS = [
   {k: `${K("Mayús")} + ${K("Espacio")}`, t: "Oírla despacio"},
   {k: K("Enter"), t: "El botón azul", s: "Empezar, Seguir…"},
   {k: `${K(`←${VH(" flecha izquierda")}`)}${K(`→${VH(" flecha derecha")}`)}`, t: "Anterior y siguiente", s: "En el repaso: «No» y «¡Sí!»"},
-  {k: `${K("1")}${K("2")}${K("3")}${K("4")}`, t: "Elegir una respuesta", s: "En Hoy: abrir un atajo"},
+  {k: `${K("1")}<span class="kb-to" aria-hidden="true">–</span>${VH(" a ")}${K("4")}`, t: "Elegir una respuesta", s: "En Hoy: abrir un atajo"},
   {k: K("Esc"), t: "Volver o cerrar", s: "En un juego: pausa"},
   {k: K("?"), t: "Ver estas teclas"},
 ];
@@ -305,7 +421,7 @@ function helpSheet(){
   d.dataset.noHint = ""; d.dataset.noRenew = "";
   d.innerHTML = `<div class="m-head"><h2 id="kb-help-t">Teclas</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
     <p class="kb-sub">Con un teclado, también puedes usar estas teclas.</p>
-    <ul class="kb-rows">${ROWS.map(r => `<li class="kb-row"><span class="kb-keys">${r.k}</span><span class="kb-what">${r.t}${r.s ? `<small>${r.s}</small>` : ""}</span></li>`).join("")}</ul>
+    <ul class="kb-rows">${ROWS.map(r => `<li class="kb-row"><span class="kb-what">${r.t}${r.s ? `<small>${r.s}</small>` : ""}</span><span class="kb-keys">${r.k}</span></li>`).join("")}</ul>
     <p class="kb-note">Al pulsar una tecla, cada botón enseña la suya en gris. En los juegos, cada juego tiene sus teclas.</p>`;
   d.addEventListener("click", e => { if(e.target.closest && e.target.closest("[data-close]")) closeHelp(); });
   D.body.appendChild(d);

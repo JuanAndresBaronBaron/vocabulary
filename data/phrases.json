@@ -71,28 +71,16 @@
    "refs": [
     "familia|Padre",
     "familia|Madre",
-    "familia|Hijo",
-    "familia|Hija",
     "familia|Hermano",
     "familia|Hermana",
-    "familia|Esposo/Marido",
-    "familia|Esposa/Mujer",
     "familia|Abuelo",
     "familia|Abuela",
-    "familia|Nieto",
-    "familia|Nieta",
     "familia|Tío",
     "familia|Tía",
     "familia|Primo",
     "familia|Prima",
     "familia|Sobrino",
     "familia|Sobrina",
-    "familia|Suegro",
-    "familia|Suegra",
-    "familia|Cuñado",
-    "familia|Cuñada",
-    "familia|Novio",
-    "familia|Novia",
     "familia|Bebé",
     "w01|papá",
     "w01|mamá"
@@ -117,7 +105,6 @@
     "profesiones|Juez/a",
     "profesiones|Policía",
     "profesiones|Bombero/a",
-    "profesiones|Soldado",
     "profesiones|Cocinero/a",
     "profesiones|Camarero/a",
     "profesiones|Panadero/a",
@@ -447,6 +434,9 @@
    "use": "a",
    "pools": [
     "jobs"
+   ],
+   "except": [
+    "profesiones|Profesor/a"
    ]
   },
   {
@@ -587,6 +577,9 @@
     "objects",
     "places",
     "food"
+   ],
+   "except": [
+    "w14|juguete"
    ]
   },
   {
@@ -598,6 +591,9 @@
     "animals",
     "objects",
     "places"
+   ],
+   "except": [
+    "w14|juguete"
    ]
   },
   {
@@ -609,6 +605,9 @@
     "animals",
     "objects",
     "food"
+   ],
+   "except": [
+    "w14|juguete"
    ]
   },
   {
@@ -665,6 +664,9 @@
    "use": "bare",
    "pools": [
     "jobs"
+   ],
+   "except": [
+    "profesiones|Profesor/a"
    ]
   },
   {
@@ -675,6 +677,9 @@
    "pools": [
     "food",
     "small"
+   ],
+   "except": [
+    "w14|juguete"
    ]
   }
  ]

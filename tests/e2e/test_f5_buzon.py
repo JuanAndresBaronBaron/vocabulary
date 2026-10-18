@@ -110,6 +110,16 @@ def _letter(**kw):
     return o
 
 
+_SLOTS = "() => [...document.querySelectorAll('#hm-slots > .hm-slot')].filter(e => !e.hidden).map(e => e.dataset.slot || '?')"
+_GIFT = "() => ({own: !!game().owned.casa, coins: game().coins, b: document.getElementById('mb-gift-b').textContent, s: document.getElementById('mb-gift-s').textContent})"
+
+
+def _yesterday(page):
+    """El regalo de hoy pasa a ser de ayer (como si fuera otro día)."""
+    page.evaluate("""() => { const b = JSON.parse(localStorage.getItem('mail:box')); b.pd = '2026-03-10';
+      localStorage.setItem('mail:box', JSON.stringify(b)); }""")
+
+
 def _open_link(page, d):
     """Abre #/carta?d=… como un enlace que llega de fuera: una carga entera de la página, como en una pestaña limpia
     (con la app ya abierta, page.goto a otro hash sería una navegación dentro del mismo documento: se cambia la
@@ -183,10 +193,24 @@ def test_record_autostop_listen_and_keep_five():
             probs.append(f"elegir «Mi color» no cambia la frase o no la lee: {said}")
         page.locator("#mb-spk").click()
         page.locator("#mb-rb").click()
+        # 3 · 2 · 1 antes de grabar (para que no se pierda el principio)
+        page.wait_for_function("() => document.querySelector('#mb-rb.is-count')", timeout=3000)
+        if page.evaluate("() => window.__recs") != 0 or page.locator("#mb-rb .mb-rb-in").text_content().strip() not in ("3", "2"):
+            probs.append(f"la cuenta atrás: {page.locator('#mb-rb').text_content()!r}")
         page.wait_for_function("() => document.querySelector('#mb-rb.is-rec')", timeout=4000)
         r = page.evaluate("() => ({type: window.__mrType, gum: window.__gum, rl: document.getElementById('mb-rl').textContent, label: document.getElementById('mb-rb').getAttribute('aria-label')})")
         if r["type"] != "audio/mp4" or r["gum"] != 1 or "quedan 20 s" not in r["rl"] or r["label"] != "Parar la grabación":
             probs.append(f"al grabar: {r}")
+        # grabando, las frases y su altavoz no se tocan (su voz se colaría en el mensaje)
+        n0 = page.evaluate("() => window.__said.length")
+        dis = page.evaluate("() => [...document.querySelectorAll('.mb-tpl, #mb-spk')].map(b => b.getAttribute('aria-disabled'))")
+        page.locator('.mb-tpl[data-tpl="animal"]').click(force=True)
+        page.locator("#mb-spk").click(force=True)
+        page.keyboard.press("1")
+        page.wait_for_timeout(150)
+        if set(dis) != {"true"} or page.evaluate("() => window.__said.length") != n0 or page.locator("#mb-phr").text_content() != "My favourite colour is…" \
+                or not page.locator("#mb-rb.is-rec").count():
+            probs.append(f"grabando se puede cambiar o leer la frase: {dis}")
         page.clock.fast_forward(10000)
         page.wait_for_timeout(150)
         mid = page.evaluate("() => ({rl: document.getElementById('mb-rl').textContent, ring: +document.getElementById('mb-ring-fg').getAttribute('stroke-dasharray').split(' ')[0]})")
@@ -194,6 +218,10 @@ def test_record_autostop_listen_and_keep_five():
             probs.append(f"a los 10 s: {mid}")
         page.clock.fast_forward(10500)   # pasa de los 20 s: para sola
         page.wait_for_selector("#mb-send", timeout=5000)
+        if page.evaluate("async () => (await vocabMedia.list('mail'))[0].tpl") != "color":
+            probs.append("la grabación no guarda la frase con la que empezó")
+        if page.evaluate("() => [...document.querySelectorAll('.mb-tpl, #mb-spk')].some(b => b.hasAttribute('aria-disabled'))"):
+            probs.append("tras grabar, las frases siguen sin poder tocarse")
         idb = page.evaluate(_IDB)
         if len(idb) != 1 or idb[0]["dur"] != 20000 or idb[0]["type"] != "audio/mp4" or idb[0]["size"] != 3000 or idb[0]["kind"] != "mail":
             probs.append(f"la grabación de 20 s no se guardó bien: {idb}")
@@ -287,8 +315,9 @@ def test_no_mic_and_denied_are_kind():
 
 # ---------------------------------------------------------------- mandar
 def test_send_shares_file_with_reply_link_or_downloads():
-    """Con Web Share de archivos: «Mandar» llama a navigator.share con un File audio/mp4 (.m4a) y el texto «Un mensaje
-    de <nombre> desde la app Vocabulary… #/buzon/responder»; queda «¡Mensaje listo!». Sin Web Share: se descarga el
+    """«Mandar» abre otra app, así que antes pide la Puerta de mayores (se recuerda 5 minutos: la segunda vez manda al
+    momento). Con Web Share de archivos: navigator.share con un File audio/mp4 (.m4a) y el texto «Un mensaje de <nombre>
+    desde la app Vocabulary… #/buzon/responder?l=en&n=<nombre>»; queda «¡Mensaje listo!». Sin Web Share: se descarga el
     archivo y una hoja da el mismo texto con «Copiar el texto». Desde «Tus grabaciones», igual."""
     probs = []
     page = _page(share=True)
@@ -298,13 +327,17 @@ def test_send_shares_file_with_reply_link_or_downloads():
         _seed(page, keys=keys)
         _record(page)
         page.locator("#mb-send").click()
+        page.wait_for_selector("dialog#gate[open]", timeout=4000)
+        if page.evaluate("() => window.__shared.length"):
+            probs.append("comparte antes de la Puerta")
+        _pass_gate(page)
         page.wait_for_function("() => window.__shared.length === 1", timeout=3000)
         s = page.evaluate("() => window.__shared[0]")
         f = (s.get("files") or [{}])[0]
         if not f.get("file") or f.get("type") != "audio/mp4" or not f.get("name", "").endswith(".m4a") or f.get("size") != 3000:
             probs.append(f"el archivo compartido: {s}")
         base = C.base_url(page)
-        want = f"Un mensaje de Lucía desde la app Vocabulary. Para contestar con una carta, abre: {base}/#/buzon/responder"
+        want = f"Un mensaje de Lucía desde la app Vocabulary. Para contestar con una carta, abre: {base}/#/buzon/responder?l=en&n=Luc%C3%ADa"
         if s.get("text") != want:
             probs.append(f"texto compartido: {s.get('text')!r} (se esperaba {want!r})")
         page.wait_for_function("() => /Mensaje listo/.test(document.getElementById('mb-ctl').textContent)", timeout=3000)
@@ -312,6 +345,8 @@ def test_send_shares_file_with_reply_link_or_downloads():
             probs.append("la grabación mandada no queda marcada")
         page.locator("#mb-recs-l .mb-rr [data-send]").first.click()
         page.wait_for_function("() => window.__shared.length === 2", timeout=3000)
+        if page.evaluate("() => !!(document.getElementById('gate') || {}).open"):
+            probs.append("la segunda vez (antes de 5 minutos) vuelve a pedir la Puerta")
         probs += C.errors(page)
     finally:
         page.context.close()
@@ -319,14 +354,15 @@ def test_send_shares_file_with_reply_link_or_downloads():
     try:
         _seed(page)
         _record(page)
-        with page.expect_download(timeout=5000) as dl:
+        with page.expect_download(timeout=8000) as dl:
             page.locator("#mb-send").click()
+            _pass_gate(page)
         name = dl.value.suggested_filename
         if not re.match(r"mensaje-\d{4}-\d{2}-\d{2}-\d{4}\.m4a$", name):
             probs.append(f"descarga: {name!r}")
         page.wait_for_selector("dialog#mb-tx-s[open]", timeout=3000)
         t = page.evaluate("() => document.getElementById('mb-tx').value")
-        if not t.startswith("Un mensaje desde la app Vocabulary.") or not t.endswith("#/buzon/responder"):
+        if not t.startswith("Un mensaje desde la app Vocabulary.") or not t.endswith("#/buzon/responder?l=en"):
             probs.append(f"texto de la hoja: {t!r}")
         page.locator("#mb-tx-c").click()
         page.wait_for_function("() => document.getElementById('mb-tx-m').textContent.length > 0", timeout=3000)
@@ -341,19 +377,45 @@ def test_send_shares_file_with_reply_link_or_downloads():
 
 
 # ---------------------------------------------------------------- contestar
+def _make_res(page):
+    """«Crear el enlace» y espera la hoja «¡Carta lista!»; devuelve el JSON de la carta."""
+    page.locator("#mb-make").click()
+    page.wait_for_selector("dialog#mb-res[open]", timeout=4000)
+    return _unb64(page.locator("#mb-link").input_value().split("?d=")[1])
+
+
+def _pick(page, value):
+    """La fila «Regalo ›» o «Candado ›» abre su hoja; tocar una opción la elige y la cierra."""
+    page.locator("#mb-pick").click()
+    page.wait_for_selector("dialog#mb-pick-s[open]", timeout=3000)
+    page.locator(f'#mb-pick-s .mb-opt:has(input[value="{value}"])').click()
+    page.wait_for_function("() => !document.getElementById('mb-pick-s').open", timeout=3000)
+
+
+def _res_closed(page):
+    return page.evaluate("() => !(document.getElementById('mb-res') || {}).open")
+
+
 def test_reply_needs_the_gate_and_makes_the_link():
-    """#/buzon/responder enseña «Para mayores» (para qué es) y «Soy mayor» abre la Puerta; «Cancelar» la cierra y sigue
-    sin formulario. Pasada la Puerta: sin nombre o
-    sin mensaje, aviso gris con ✗ y no hay enlace; con todo, «Crear el enlace» da <app>#/carta?d=<base64url> cuyo JSON
-    es {v: 1, id (12), from, to, msg, lang, gift} (o lock, con el idioma elegido). Desde Para mayores entra sin volver a
-    preguntar. Salir con la Puerta abierta la cierra."""
+    """El enlace de «Mandar» (#/buzon/responder?l=fr&n=Lucía) enseña «Para mayores» con «Lucía te ha mandado un audio en
+    francés…» y «Soy mayor» abre la Puerta, siempre con una cuenta nueva (aunque se recuerde de otra cosa); «Cancelar» la
+    cierra y sigue sin formulario. Pasada la Puerta, el formulario trae «Para: Lucía» y el francés. Sin nombre o sin
+    mensaje, aviso gris con ✗ y no hay enlace; en la hoja del regalo, tocar una opción (también la que ya estaba
+    elegida) la cierra; con todo, «Crear el enlace» abre «¡Carta lista!» (lo que lleva, no el
+    enlace) con <app>#/carta?d=<base64url> cuyo JSON es {v: 1, id (12), from, to, msg, lang, gift}. La Puerta de entrar
+    vale para una carta con regalo: la siguiente con regalo la vuelve a pedir; con candado, no. Desde Para mayores entra
+    sin preguntar, pero el regalo sí la pide. Salir con la Puerta abierta la cierra."""
     probs = []
     page = _page()
     try:
-        _seed(page, "#/buzon/responder")
+        _seed(page, "#/buzon/responder?l=fr&n=Luc%C3%ADa")
         page.wait_for_selector("#mb-gate-go", timeout=4000)
+        who = page.locator("#mb-gate [data-t=who]").text_content()
+        if who != "Lucía te ha mandado un audio en francés. Contéstale con una carta.":
+            probs.append(f"para qué es: {who!r}")
         if page.locator("#mb-form").count() or page.evaluate("() => !!(document.getElementById('gate') || {}).open"):
             probs.append("el formulario o la Puerta se ven antes de tocar «Soy mayor»")
+        page.evaluate(_PASS)   # la Puerta recordada de otra cosa no vale aquí
         page.locator("#mb-gate-go").click()
         page.wait_for_selector("dialog#gate[open]", timeout=4000)
         if page.locator("#mb-form").count():
@@ -365,57 +427,83 @@ def test_reply_needs_the_gate_and_makes_the_link():
         page.locator("#mb-gate-go").click()
         _pass_gate(page)
         page.wait_for_selector("#mb-f", timeout=4000)
+        f0 = page.evaluate("""() => ({to: document.getElementById('mb-to').value,
+          l: (document.querySelector('.seg-i[data-l][aria-checked=true]') || {}).dataset.l, pick: document.getElementById('mb-pv').textContent})""")
+        if f0 != {"to": "Lucía", "l": "fr", "pick": "20 monedas"}:
+            probs.append(f"el formulario no trae lo del enlace: {f0}")
         page.locator("#mb-make").click()
-        e = page.evaluate("""() => { const e = document.getElementById('mb-e-from'); return {hidden: e.hidden, t: e.textContent, c: getComputedStyle(e).color, res: document.getElementById('mb-res').hidden}; }""")
+        e = page.evaluate("""() => { const e = document.getElementById('mb-e-from'); return {hidden: e.hidden, t: e.textContent, c: getComputedStyle(e).color}; }""")
         r, g, b = (int(x) for x in re.findall(r"\d+", e["c"])[:3])
-        if e["hidden"] or "✗" not in e["t"] or not e["res"] or abs(r - g) > 12 or abs(g - b) > 12:
+        if e["hidden"] or "✗" not in e["t"] or not _res_closed(page) or abs(r - g) > 12 or abs(g - b) > 12:
             probs.append(f"sin nombre: {e}")
         page.locator("#mb-from").fill("Tío Juan")
         page.locator("#mb-make").click()
-        if page.locator("#mb-e-msg").is_hidden() or page.locator("#mb-res").is_visible():
+        if page.locator("#mb-e-msg").is_hidden() or not _res_closed(page):
             probs.append("sin mensaje se crea el enlace")
-        page.locator("#mb-to").fill("Lucía")
         page.locator("#mb-msg").fill("¡Qué bien hablas!\nUn abrazo.")
         if page.locator("#mb-cnt").text_content() != "28 / 280":
             probs.append(f"contador: {page.locator('#mb-cnt').text_content()!r}")
-        page.locator('.mb-opt:has(input[value="50"])').click()
-        page.locator("#mb-make").click()
-        page.wait_for_selector("#mb-res:not([hidden])", timeout=3000)
+        _pick(page, "50")
+        if page.locator("#mb-pv").text_content() != "50 monedas":
+            probs.append(f"la fila del regalo: {page.locator('#mb-pv').text_content()!r}")
+        try:
+            _pick(page, "50")            # tocar la que ya estaba elegida también cierra la hoja
+        except Exception:  # noqa: BLE001
+            probs.append("tocar el regalo que ya estaba elegido no cierra la hoja")
+            page.keyboard.press("Escape")
+            page.wait_for_timeout(500)
+        o = _make_res(page)
+        if page.evaluate("() => !!(document.getElementById('gate') || {}).open"):
+            probs.append("la primera carta con regalo vuelve a pedir la Puerta")
         u = page.locator("#mb-link").input_value()
         base = C.base_url(page)
-        m = re.match(re.escape(base) + r"/#/carta\?d=([A-Za-z0-9_-]+)$", u)
-        if not m:
+        if not re.match(re.escape(base) + r"/#/carta\?d=([A-Za-z0-9_-]+)$", u):
             probs.append(f"enlace: {u!r}")
-        else:
-            o = _unb64(m.group(1))
-            if set(o) != {"v", "id", "from", "to", "msg", "lang", "gift"} or o["v"] != 1 or not re.match(r"^[A-Za-z0-9_-]{12}$", o["id"]) \
-                    or o["from"] != "Tío Juan" or o["to"] != "Lucía" or o["msg"] != "¡Qué bien hablas!\nUn abrazo." or o["lang"] != "en" or o["gift"] != 50:
-                probs.append(f"JSON del enlace: {o}")
+        if set(o) != {"v", "id", "from", "to", "msg", "lang", "gift"} or o["v"] != 1 or not re.match(r"^[A-Za-z0-9_-]{12}$", o["id"]) \
+                or o["from"] != "Tío Juan" or o["to"] != "Lucía" or o["msg"] != "¡Qué bien hablas!\nUn abrazo." or o["lang"] != "fr" or o["gift"] != 50:
+            probs.append(f"JSON del enlace: {o}")
+        pre = page.evaluate("() => [...document.querySelectorAll('#mb-res .mb-pre [data-t]')].map(x => x.textContent)")
+        if pre != ["Carta de Tío Juan", "Para Lucía · 50 monedas"]:
+            probs.append(f"lo que lleva la carta: {pre}")
+        if page.evaluate("() => document.getElementById('mb-link').getBoundingClientRect().height > 4"):
+            probs.append("la hoja enseña el enlace entero")
         page.locator("#mb-copy").click()
         page.wait_for_function("() => document.getElementById('mb-cp').textContent.length > 0", timeout=3000)
-        # con candado y en francés
+        # otra con regalo: otra Puerta
         page.locator("#mb-another").click()
-        page.locator('.seg-i[data-l="fr"]').click()
-        page.locator('.seg-i[data-mode="lock"]').click()
-        labels = page.evaluate("() => [...document.querySelectorAll('#mb-lock-l .mb-opt')].map(x => x.textContent.trim())")
-        if labels != ["Al terminar 3 lecciones de francés", "Al repasar 30 palabras de francés", "Tras 3 días seguidos practicando"]:
-            probs.append(f"candados: {labels}")
+        page.wait_for_function("() => !document.getElementById('mb-res').open", timeout=3000)
+        if page.locator("#mb-msg").input_value() != "":
+            probs.append("«Escribir otra» no vacía el mensaje")
         page.locator("#mb-msg").fill("Bravo !")
-        page.locator('.mb-opt:has(input[value="rev30"])').click()
         page.locator("#mb-make").click()
-        page.wait_for_selector("#mb-res:not([hidden])", timeout=3000)
-        o = _unb64(page.locator("#mb-link").input_value().split("?d=")[1])
-        if o.get("lock") != "rev30" or o.get("lang") != "fr" or "gift" in o:
-            probs.append(f"carta con candado: {o}")
+        _pass_gate(page)
+        page.wait_for_selector("dialog#mb-res[open]", timeout=4000)
+        o2 = _unb64(page.locator("#mb-link").input_value().split("?d=")[1])
+        if o2.get("gift") != 50 or o2.get("id") == o.get("id"):
+            probs.append(f"la segunda carta con regalo: {o2}")
+        # con candado: sin Puerta
+        page.locator("#mb-another").click()
+        page.wait_for_function("() => !document.getElementById('mb-res').open", timeout=3000)
+        page.locator('.seg-i[data-mode="lock"]').click()
+        page.locator("#mb-pick").click()
+        page.wait_for_selector("dialog#mb-pick-s[open]", timeout=3000)
+        labels = page.evaluate("() => [...document.querySelectorAll('#mb-lock-l .mb-opt')].map(x => x.textContent.trim())")
+        if labels != ["Al terminar 3 lecciones de francés", "Al repasar 30 palabras de francés", "Al practicar 3 días (no hace falta seguidos)"]:
+            probs.append(f"candados: {labels}")
+        page.locator('#mb-pick-s .mb-opt:has(input[value="rev30"])').click()
+        page.wait_for_function("() => !document.getElementById('mb-pick-s').open", timeout=3000)
+        page.locator("#mb-msg").fill("Bravo !")
+        o3 = _make_res(page)
+        if o3.get("lock") != "rev30" or o3.get("lang") != "fr" or "gift" in o3:
+            probs.append(f"carta con candado: {o3}")
         # salir con la Puerta abierta la cierra
         C.goto(page, "#/buzon")
-        page.evaluate("() => adultGate.forget()")
         C.goto(page, "#/buzon/responder")
         page.locator("#mb-gate-go").click()
         page.wait_for_selector("dialog#gate[open]", timeout=4000)
         C.goto(page, "#/juegos")
         page.wait_for_function("() => !document.getElementById('gate').open", timeout=3000)
-        # desde Para mayores, sin otra pregunta
+        # desde Para mayores, sin otra pregunta (el regalo sí la pide)
         page.evaluate(_PASS)
         page.evaluate("() => openSettings('mayores')")
         page.wait_for_selector("#aj-mb-reply", timeout=5000)
@@ -426,6 +514,11 @@ def test_reply_needs_the_gate_and_makes_the_link():
         page.wait_for_timeout(400)
         if page.evaluate("() => document.getElementById('gate') && document.getElementById('gate').open"):
             probs.append("desde Para mayores vuelve a pedir la Puerta")
+        page.locator('.seg-i[data-mode="gift"]').click()
+        page.locator("#mb-msg").fill("¡Ánimo!")
+        page.locator("#mb-make").click()
+        _pass_gate(page)
+        page.wait_for_selector("dialog#mb-res[open]", timeout=4000)
         probs += C.errors(page)
     finally:
         page.context.close()
@@ -437,7 +530,9 @@ def test_link_opens_once_coins_and_decoration():
     """En una pestaña limpia, el enlace enseña el sobre cerrado y queda #/carta/<id> (sin ?d=). «Abrir la carta»: la voz
     lee el mensaje (en inglés si lo parece; si no, en español) y luego llegan las 20 monedas, una sola vez: recargar,
     volver a abrir el mismo enlace u otro aparato con la partida copiada no dan nada. Un adorno (casa) pasa a ser suyo sin
-    gastar monedas, una vez; uno que ya tenía dice «Ya tenías…»."""
+    gastar monedas, una vez; uno que ya tenía da 20 monedas a cambio. Un regalo al día: el de una carta que llega cuando
+    ya se dio el de hoy espera («¡Tu regalo llega mañana!», sin fila en Hoy ese día); otro día, Hoy dice «¡Ya llegó tu
+    regalo!» y al tocarla llega."""
     probs = []
     d = _b64(_letter(id="cartaMoneda1", to="Lucía"))
     page = _page()
@@ -479,27 +574,47 @@ def test_link_opens_once_coins_and_decoration():
         if len(lets) != 1 or "Tío Juan" not in lets[0] or "Abierta" not in lets[0]:
             probs.append(f"la lista de cartas: {lets}")
         snap = C.storage(page)
-        # adorno: casa (no la tiene) y flor (ya la tiene)
+        # adorno el mismo día: llega con su mensaje y el regalo espera a otro día
         page.evaluate("() => window.__said.length = 0")
-        _open_link(page, _b64(_letter(id="cartaAdorno1", gift="casa", msg="¡Una casa para tu granja!")))
+        casa = _b64(_letter(id="cartaAdorno1", gift="casa", msg="¡Una casa para tu granja!"))
+        _open_link(page, casa)
         page.locator("#mb-open").click()
         page.wait_for_selector("#mb-gift:not([hidden])", timeout=8000)
         page.wait_for_timeout(300)
         said = page.evaluate("() => window.__said")
         if not any(x["t"] == "¡Una casa para tu granja!" and x["l"] == "es-ES" for x in said):
             probs.append(f"un mensaje en español no se lee en español: {said}")
-        a = page.evaluate("() => ({own: !!game().owned.casa, coins: game().coins, b: document.getElementById('mb-gift-b').textContent, s: document.getElementById('mb-gift-s').textContent})")
-        if not a["own"] or a["coins"] != c1 or a["b"] != "¡Es una casa para tu granja!" or a["s"] != "Ya está en tu granja.":
-            probs.append(f"regalo casa: {a}")
+        a = page.evaluate(_GIFT)
+        if a["own"] or a["coins"] != c1 or a["b"] != "¡Tu regalo llega mañana!" or a["s"] != "Hoy ya te llegó un regalo. Mañana abre esta carta otra vez.":
+            probs.append(f"segundo regalo el mismo día: {a}")
+        C.goto(page, "#/", reload=True)
+        if page.locator("#hm-slots [data-slot=mail]").count():
+            probs.append("el regalo que espera sale en Hoy el mismo día")
+        _yesterday(page)
+        C.goto(page, "#/", reload=True)
+        row = page.evaluate("() => (document.querySelector('#hm-slots [data-slot=mail] .hm-rt') || {}).textContent || ''")
+        if "¡Ya llegó tu regalo!" not in row:
+            probs.append(f"otro día, Hoy: {row!r}")
+        else:
+            page.locator("#hm-slots [data-slot=mail] a").click()
+            page.wait_for_selector("#mb-gift:not([hidden])", timeout=8000)
+            page.wait_for_timeout(300)
+            a = page.evaluate(_GIFT)
+            if not a["own"] or a["coins"] != c1 or a["b"] != "¡Es una casa para tu granja!" or a["s"] != "Ya está en tu granja.":
+                probs.append(f"regalo casa otro día: {a}")
         C.reload(page)
-        _open_link(page, _b64(_letter(id="cartaAdorno1", gift="casa", msg="¡Una casa para tu granja!")))
+        _open_link(page, casa)
         if page.evaluate("() => game().coins") != c1 or len(page.evaluate(_BOX)["paid"]) != 2:
             probs.append("reabrir la carta del adorno cambia algo")
+        # un adorno que ya tenía: 20 monedas a cambio
+        _yesterday(page)
         _open_link(page, _b64(_letter(id="cartaAdorno2", gift="flor")))
         page.locator("#mb-open").click()
         page.wait_for_selector("#mb-gift:not([hidden])", timeout=8000)
-        if page.locator("#mb-gift-b").text_content() != "Ya tenías una flor" or page.evaluate("() => game().coins") != c1:
-            probs.append(f"adorno que ya tenía: {page.locator('#mb-gift-b').text_content()!r}")
+        page.wait_for_timeout(300)
+        a = page.evaluate(_GIFT)
+        if a["b"] != "¡Ya lo tenías! Te regala 20 monedas" or a["coins"] != c1 + 20:
+            probs.append(f"adorno que ya tenía: {a}")
         probs += C.errors(page)
     finally:
         page.context.close()
@@ -580,12 +695,75 @@ def test_bad_links_break_nothing_and_give_nothing():
     assert not probs, "\n".join(probs)
 
 
+_IPHONE = ("Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 "
+           "Mobile/15E148 Safari/604.1")
+_WHERE = """() => ({wv: !!document.getElementById('mb-wv'), from: (document.querySelector('#mb-wv [data-t=from]') || {}).textContent,
+  pri: (document.querySelector('#mb-wv .glass-btn--pri') || {}).id, box: localStorage.getItem('mail:box'), h: location.hash})"""
+
+
+def test_where_to_open_on_iphone_or_new_game():
+    """En Safari del iPhone (fuera de la app instalada, que no ve lo que se guarda en ella) o con una partida nueva, el
+    enlace no da la carta a ciegas: «¡Tienes carta!» de quién, «¿Juegas con Vocabulary desde la pantalla de inicio?…» con
+    «Copiar el enlace» y «Abrir aquí», sin guardar nada ni dar monedas. Con una partida nueva, «Copiar el enlace» va
+    primero; con progreso, «Abrir aquí». «Abrir aquí» deja la carta en #/carta/<id>. «Pegar el enlace de una carta» la
+    abre sin preguntar, y una carta que ya está en el buzón tampoco pregunta. Un id mal escrito (%E0%A4%A) no rompe."""
+    probs = []
+    d = _b64(_letter(id="cartaDonde1"))
+    page = _page()
+    try:
+        C.seed(page, keys={}, hash="")
+        _open_link(page, d)
+        w = page.evaluate(_WHERE)
+        if not w["wv"] or w["from"] != "Tío Juan" or w["pri"] != "mb-wv-copy" or w["box"] is not None:
+            probs.append(f"partida nueva: {w}")
+        page.locator("#mb-wv-copy").click()
+        page.wait_for_function("() => document.getElementById('mb-wv-m').textContent.length > 0", timeout=3000)
+        page.locator("#mb-wv-here").click()
+        page.wait_for_selector("#mb-cv #mb-open", timeout=4000)
+        page.wait_for_timeout(200)
+        box = page.evaluate(_BOX)
+        if page.evaluate("location.hash") != "#/carta/cartaDonde1" or not box or [x["id"] for x in box["l"]] != ["cartaDonde1"]:
+            probs.append(f"«Abrir aquí»: {page.evaluate('location.hash')} · {box}")
+        _open_link(page, d)   # ya está en el buzón: no pregunta
+        if page.locator("#mb-wv").count() or not page.locator("#mb-cv").count():
+            probs.append("una carta que ya está en el buzón vuelve a preguntar dónde abrirla")
+        C.goto(page, "#/carta/%E0%A4%A")
+        t = page.evaluate("() => (document.querySelector('#app .mb-t') || {}).textContent || ''")
+        if t != "No encuentro esa carta":
+            probs.append(f"id mal escrito: {t!r}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    page = _page(user_agent=_IPHONE)
+    try:
+        _seed(page, "#/")
+        c0 = page.evaluate(_COINS)
+        _open_link(page, d)
+        w = page.evaluate(_WHERE)
+        if not w["wv"] or w["pri"] != "mb-wv-here" or w["box"] is not None or page.evaluate(_COINS) != c0:
+            probs.append(f"Safari del iPhone con progreso: {w}")
+        # «Pegar el enlace de una carta» no pregunta
+        C.goto(page, "#/buzon")
+        page.locator("#mb-paste").click()
+        page.wait_for_selector("dialog#mb-paste-s[open]", timeout=3000)
+        page.locator("#mb-ps-in").fill(f"{C.base_url(page)}/#/carta?d={d}")
+        page.locator("#mb-ps-go").click()
+        page.wait_for_selector("#mb-cv #mb-open", timeout=4000)
+        if page.locator("#mb-wv").count():
+            probs.append("el enlace pegado vuelve a preguntar dónde abrirla")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
 # ---------------------------------------------------------------- candados
 def test_locks_open_when_met():
-    """«Al terminar 3 lecciones de inglés»: sobre gris con candado, la condición y la barra 0 de 3 (cuenta desde que
-    llegó); con 2 lecciones nuevas, 2 de 3 (y Hoy sin sobre); con la 3.ª se abre: «¡Se abrió el candado!» en la carta y
-    en Hoy, y al abrirla no da monedas. «30 palabras» cuenta los repasos y «3 días seguidos», los días con actividad desde
-    que llegó."""
+    """«Al terminar 3 lecciones de inglés»: sobre con candado, la condición y 3 pasos sin hacer (cuenta desde que llegó);
+    con 2 lecciones nuevas, 2 de 3 y, en Hoy, la fila del candado «Carta de Tío Juan · Con candado · 2 de 3 lecciones»
+    (no la del sobre); con la 3.ª se abre: «¡Se abrió el candado!» en la carta y en Hoy, y al abrirla no da monedas.
+    «30 palabras» cuenta los repasos con una barra y «3 días», los días distintos con actividad desde que llegó, aunque
+    no sean seguidos."""
     probs = []
     page = _page()
     try:
@@ -593,16 +771,25 @@ def test_locks_open_when_met():
         c0 = page.evaluate(_COINS)
         _open_link(page, _b64(_letter(id="cartaLecci1", lock="les3", msg="Sorpresa")))
         s = page.evaluate("""() => ({t: document.querySelector('#mb-lv .mb-lk-t').textContent, n: document.querySelector('.mb-lk-n').textContent,
-          lock: !!document.querySelector('.mb-env.is-lock'), w: document.querySelector('.mb-bar > i').style.width, go: document.querySelector('#mb-lv a.glass-btn').getAttribute('href')})""")
-        if s != {"t": "Se abre al terminar 3 lecciones de inglés", "n": "0 de 3 lecciones", "lock": True, "w": "0%", "go": "#/mapa"}:
+          lock: !!document.querySelector('.mb-env.is-lock'), steps: document.querySelectorAll('.mb-steps li').length,
+          done: document.querySelectorAll('.mb-steps li.is-done').length, go: document.querySelector('#mb-lv a.glass-btn').getAttribute('href')})""")
+        if s != {"t": "Se abre al terminar 3 lecciones de inglés", "n": "0 de 3 lecciones", "lock": True, "steps": 3, "done": 0, "go": "#/mapa"}:
             probs.append(f"carta con candado: {s}")
         page.evaluate("() => { const m = JSON.parse(localStorage.getItem('map:english')); m['A1-050'] = 1; m['A1-051'] = 2; localStorage.setItem('map:english', JSON.stringify(m)); }")
         C.goto(page, "#/carta/cartaLecci1", reload=True)
         if page.locator(".mb-lk-n").text_content() != "2 de 3 lecciones":
             probs.append(f"con 2 lecciones: {page.locator('.mb-lk-n').text_content()!r}")
+        if page.locator(".mb-steps li.is-done").count() != 2:
+            probs.append("con 2 lecciones no hay 2 pasos hechos")
         C.goto(page, "#/")
         if page.locator("#hm-slots [data-slot=mail]").count():
             probs.append("con el candado cerrado sale el sobre en Hoy")
+        lk = page.evaluate("() => { const f = HOME_SLOTS.find(f => f.id === 'mail-lock'); return f ? f() : null; }")
+        if not lk or lk.get("t") != "Carta de Tío Juan" or lk.get("sub") != "Con candado · 2 de 3 lecciones" or lk.get("href") != "#/carta/cartaLecci1":
+            probs.append(f"la fila del candado para Hoy: {lk}")
+        row = page.evaluate("() => (document.querySelector('#hm-slots [data-slot=\"mail-lock\"]') || {}).textContent || ''")
+        if "2 de 3 lecciones" not in row:
+            probs.append(f"Hoy no enseña el candado pendiente: {row!r} · {page.evaluate(_SLOTS)}")
         page.evaluate("() => { const m = JSON.parse(localStorage.getItem('map:english')); m['A1-052'] = 3; localStorage.setItem('map:english', JSON.stringify(m)); }")
         C.goto(page, "#/juegos")
         C.goto(page, "#/")
@@ -619,22 +806,23 @@ def test_locks_open_when_met():
             probs.append("la carta con candado da un regalo")
         # 30 palabras
         _open_link(page, _b64(_letter(id="cartaRepas1", lock="rev30")))
-        if page.locator(".mb-lk-n").text_content() != "0 de 30 palabras":
+        if page.locator(".mb-lk-n").text_content() != "0 de 30 palabras" or page.locator(".mb-bar > i").count() != 1:
             probs.append(f"repasos al llegar: {page.locator('.mb-lk-n').text_content()!r}")
         page.evaluate("() => { const m = JSON.parse(localStorage.getItem('srs:english')); const k = Object.keys(m)[0]; m[k].n += 30; localStorage.setItem('srs:english', JSON.stringify(m)); }")
         C.goto(page, "#/carta/cartaRepas1", reload=True)
         if page.locator("#mb-open").count() != 1:
             probs.append("30 repasos no abren el candado")
-        # 3 días seguidos: llegó hace 2 días y hay actividad esos 3 días
+        # 3 días: llegó hace 6 días y desde entonces practicó 3 días sueltos (no seguidos)
         _open_link(page, _b64(_letter(id="cartaDias01", lock="days3")))
         n0 = page.locator(".mb-lk-n").text_content()
-        if n0 != "1 de 3 días":
+        if n0 != "1 de 3 días" or page.locator("#mb-lv .mb-lk-t").text_content() != "Se abre cuando practiques 3 días":
             probs.append(f"días al llegar (hoy ya hay actividad): {n0!r}")
-        page.evaluate("""() => { const b = JSON.parse(localStorage.getItem('mail:box')); b.l.find(x => x.id === 'cartaDias01').at = '2026-03-09';
-          localStorage.setItem('mail:box', JSON.stringify(b)); }""")
+        page.evaluate("""() => { const b = JSON.parse(localStorage.getItem('mail:box')); b.l.find(x => x.id === 'cartaDias01').at = '2026-03-05';
+          localStorage.setItem('mail:box', JSON.stringify(b));
+          localStorage.setItem('act', JSON.stringify({'2026-03-01': 9, '2026-03-05': 4, '2026-03-08': 6, '2026-03-11': 8})); }""")
         C.goto(page, "#/carta/cartaDias01", reload=True)
         if page.locator("#mb-open").count() != 1:
-            probs.append("3 días seguidos desde que llegó no abren el candado")
+            probs.append("3 días sueltos desde que llegó no abren el candado")
         probs += C.errors(page)
     finally:
         page.context.close()
@@ -855,11 +1043,16 @@ def test_captures_and_audit():
                 page.wait_for_selector("#mb-f", timeout=4000)
                 page.locator("#mb-from").fill("Tío Juan")
                 page.locator("#mb-msg").fill("¡Qué bien hablas inglés! Un abrazo muy fuerte.")
-                page.locator('.mb-opt:has(input[value="casa"])').click()
+                _pick(page, "casa")
+                page.evaluate("() => scrollTo(0, 0)")
                 snap("contestar")
+                page.locator("#mb-pick").click()
+                page.wait_for_selector("dialog#mb-pick-s[open]", timeout=3000)
+                snap("regalos")
+                page.keyboard.press("Escape")
+                page.wait_for_function("() => !document.getElementById('mb-pick-s').open", timeout=3000)
                 page.locator("#mb-make").click()
-                page.wait_for_selector("#mb-res:not([hidden])", timeout=3000)
-                page.evaluate("() => document.getElementById('mb-res').scrollIntoView({block: 'center'})")
+                page.wait_for_selector("dialog#mb-res[open]", timeout=4000)
                 snap("enlace")
                 _open_link(page, R.CARTA_D)
                 snap("carta")

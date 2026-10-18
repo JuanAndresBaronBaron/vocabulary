@@ -4,14 +4,19 @@
      b ≥ 1); si sabe menos de 4, se completan con las de la última lección del camino, luego con otras del repaso y por
      fin con las fáciles del tema (las primeras del grupo): nunca sale vacío. Tocar un dibujo (o arrastrarlo, G.drag, y
      soltarlo cerca del hueco) lo pone en el hueco con un pequeño muelle; la frase entera se ilumina y suena: la voz del
-     navegador dice lo de antes, después el audio grabado de la palabra (si lo tiene y el artículo no va pegado con
-     apóstrofo) y luego lo de detrás, en orden y sin pisarse; sin audio grabado, la voz dice la frase entera. Con la
-     tortuga todo va despacio. Se puede cambiar de dibujo cuantas veces quiera (no hay fallos). «Otra frase» trae otra
-     plantilla. «Dilo» (solo con canListen()) escucha y compara con vocabReview.matches (tolerante, sin artículo, también
-     dentro de una frase); si no la entiende, lo dice con calma y no cuenta como fallo.
+     navegador dice lo de antes, después el audio grabado de la palabra (si lo tiene, el artículo no va pegado con
+     apóstrofo y en inglés no va detrás de a/an/the) y luego lo de detrás, en orden y sin pisarse; si no, la voz dice la frase
+     entera. El altavoz es el de la lección (círculo azul claro, 48 px) con la tortuga gris al lado: todo va despacio.
+     En la bandeja, la pieza puesta deja su sitio atenuado; tocar otra las cambia y tocar la palabra del hueco la
+     devuelve (no hay fallos). «Otra frase» (gris con el hueco vacío, principal con la frase hecha) trae otra plantilla.
+     «Dilo» (solo con canListen()) escucha y compara con vocabReview.matches (tolerante, sin artículo, también dentro de
+     una frase); si no la entiende, lo dice con calma y no cuenta como fallo.
    · #/frases/cena: la frase de la cena ya hecha, con 🔊, 🐢 y «Dilo». Debajo (también en #/frases), la tarjeta «La frase
-     de la cena» con «Ya la dije en casa» (Puerta de mayores → sello animado con chispas → award(5, "Frase de la cena"),
-     una vez al día, también tras recargar o cambiar de idioma) y «Tus sellos: N» con los últimos sellos.
+     de la cena» con «Ya la dije en casa» (en #/frases/cena es el botón principal; Puerta de mayores con la frase y su
+     traducción → sello animado con chispas → award(5, "Frase de la cena"), una vez al día, también tras recargar o
+     cambiar de idioma) y «Tus sellos: N» con los últimos sellos. «Jugar con frases» lleva a #/frases.
+   · Palabras: los grupos de data/phrases.json solo tienen familia que un niño nombra en la mesa, y de los oficios solo
+     salen los que se dicen igual para un niño y una niña.
    · La frase de la cena: una por día local y por idioma, la misma en todos los aparatos ese día: de todas las parejas
      (plantilla, palabra que sabe) se queda con la de menor hash FNV-1a de «día|idioma|plantilla|palabra» (sin repetir la
      palabra de ayer si hay otra). En este aparato se guarda la del día (para que no cambie al aprender palabras nuevas).
@@ -100,6 +105,9 @@ function slot(L, use, r, pool){
   const x = r.l && r.l[L]; if(!x || !x.word) return null;
   const raw = x.word, w = clean(raw);
   if(!w || w.includes("/")) return null;
+  /* oficios: solo los que se dicen igual para un niño y para una niña («le dentiste / la dentiste» sí; «l'infirmier /
+     l'infirmière» o «waiter / waitress» no, para no poner a nadie en masculino) */
+  if(pool === "jobs" && new Set(String(raw).split(/\s\/\s/).map(a => a.replace(/\s*\([^)]*\)/g, "").trim().replace(/^(le |la |l'|en |et )/, ""))).size > 1) return null;
   const forms = () => { const f = clean(x.forms); return !f || f === "—" || f === "-" || f.includes("/") ? null : f; };
   if(L === "english"){
     if(use === "a") return {art: an(w) + " ", core: w};
@@ -191,7 +199,10 @@ function fillNow(L, tpl, ref){
   return {ref, tpl: tpl.id, lang: L, pre, art: s.art, core: s.core, post, text: pre + s.art + s.core + post,
     es: es.esPre + es.esWord + es.esPost, ...es, img: r.img,
     say: tpl.use === "forms" ? s.core : clean(x.word),   /* lo que se compara en «Dilo» */
-    clip: !/'$/.test(s.art)};                               /* ¿puede sonar el audio grabado de la palabra? */
+    /* ¿puede sonar el audio grabado de la palabra? No si el artículo va pegado con apóstrofo, ni en inglés cuando lo de
+       antes acaba en a/an/the: la voz diría sola «I can see a» y muchas leen esa «a» como la letra (o «the» como /ðiː/);
+       así la frase entera la dice la voz, con su forma débil */
+    clip: !/'$/.test(s.art) && !(L === "english" && (s.art || /\bthe\s*$/i.test(pre)))};
 }
 async function fill(L, id, ref){ await ready(); await loadDoc(docOf(ref)); return fillNow(L, tplOf(L, id), ref); }
 async function cands(L, id){
@@ -360,49 +371,61 @@ async function play(f, slow, ui){
 const DARK = (s, b) => `:root[data-theme=dark] ${s}{${b}}`;
 const CSS = `
 .ph{display:grid;gap:16px;max-width:640px;margin:0 auto}
-.ph-card{padding:20px 18px 16px;text-align:center}
-.ph-k{display:flex;align-items:center;justify-content:center;gap:6px;margin:0;color:var(--label2);font:700 var(--fs-note)/1.3 var(--f-text)}
+.ph-card{padding:20px 16px 16px;text-align:center}
+.ph-k{display:flex;align-items:center;justify-content:center;gap:8px;margin:0;color:var(--label2);font:700 var(--fs-note)/1.3 var(--f-text)}
 .ph-k .ico{color:var(--gold-ink)}
-.ph-line{margin:14px 0 6px;padding:4px 8px;border-radius:16px;color:var(--label);font:800 var(--fs-t2)/1.4 var(--f-round);
+.ph-line{margin:16px 0 8px;padding:4px 8px;border-radius:16px;color:var(--label);font:800 var(--fs-t2)/1.4 var(--f-round);
   overflow-wrap:normal;word-break:normal;hyphens:manual;transition:background-color var(--d-base,260ms),box-shadow var(--d-base,260ms)}
-.ph-line.is-lit{background:var(--gold-soft);box-shadow:0 0 0 4px var(--gold-soft)}
+.ph-line.is-lit{background:var(--brand-soft);box-shadow:0 0 0 4px var(--brand-soft)}
 .ph-gap{display:inline-block;vertical-align:baseline;border-radius:12px;transition:scale var(--d-fast,160ms),background-color var(--d-fast,160ms)}
 .ph-gap.is-empty{width:3.4em;height:1.15em;vertical-align:-.2em;border:3px dashed var(--brand-tint);background:var(--brand-soft)}
 .ph-gap.is-near{border-style:solid;scale:1.08}
 .ph-pc{display:inline-block;padding:0 .22em;border-radius:12px;background:var(--brand-soft);color:var(--brand-ink);transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
-.ph-pc.is-say{background:var(--gold);color:var(--gold-on)}
-.ph-es{margin:0 0 14px;color:var(--label2);font:400 var(--fs-sub)/1.35 var(--f-text)}
+.ph-pc.is-say{background:var(--brand-fill);color:#fff}
+.ph[data-mode=play] .ph-pc{cursor:pointer}
+.ph-tile img{transition:opacity var(--d-fast,160ms)}
+.ph-es{margin:0 0 16px;color:var(--label2);font:400 var(--fs-sub)/1.35 var(--f-text)}
 .ph-es b{color:var(--label);font-weight:700}
-.ph-acts{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.ph-acts{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 20px}   /* 20: sitio para las etiquetas de las teclas */
+/* el altavoz: el mismo que el de la lección (círculo azul claro que se rellena al sonar) y la tortuga gris al lado */
+.ph-spk{flex:none;display:grid;place-items:center;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:50%;background:var(--brand-soft);color:var(--brand-tint);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
+.ph-slow{flex:none;display:grid;place-items:center;width:44px;height:44px;margin:0;padding:0;border:0;border-radius:50%;background:var(--fill2);color:var(--label);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ph-spk.playing,.ph-slow.playing{background:var(--brand-fill);color:#fff}
+.ph-spk:focus-visible,.ph-slow:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 .ph-acts[data-off]{visibility:hidden}
 .ph-mic.is-on{color:#fff;background:var(--brand-fill)}
-.ph-msg{display:flex;align-items:center;justify-content:center;gap:6px;min-height:1.4em;margin:10px 0 0;color:var(--label2);font:600 var(--fs-note)/1.35 var(--f-text)}
+.ph-msg{display:flex;align-items:center;justify-content:center;gap:8px;min-height:1.4em;margin:12px 0 0;color:var(--label2);font:600 var(--fs-note)/1.35 var(--f-text)}
 .ph-msg:empty{margin:0;min-height:0}
 .ph-msg.ok{color:var(--ok-ink)}
-.ph-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:0;padding:0}
+.ph-tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0;padding:0}
 .ph-tiles.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
-.ph-tile{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;min-height:var(--tap);margin:0;padding:10px 4px 8px;border:0;border-radius:var(--r-md);
+.ph-tile{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;min-height:var(--tap);margin:0;padding:8px 4px;border:0;border-radius:var(--r-md);
   color:var(--label);font:700 var(--fs-note)/1.2 var(--f-round);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .ph-tile img{width:56px;height:56px;object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none}
 .ph-tile .ph-tw{display:block;max-width:100%;white-space:nowrap;overflow:hidden}
-.ph-tile[aria-pressed=true]{box-shadow:inset 0 0 0 3px var(--brand-tint)}
-.ph-hint{margin:-6px 0 0;text-align:center;color:var(--label2);font:400 var(--fs-note)/1.35 var(--f-text)}
-.ph-cena{padding:16px 18px}
+/* la pieza puesta deja su sitio en la bandeja: un hueco atenuado con borde de puntos (como mientras se arrastra) */
+.ph-tile[aria-pressed=true]{background:transparent;box-shadow:none;outline:2px dashed var(--sep);outline-offset:-2px}
+.ph-tile[aria-pressed=true] img{opacity:.35}
+.ph-tile[aria-pressed=true] .ph-tw{visibility:hidden}   /* la palabra está en el hueco (el botón la sigue diciendo) */
+.ph-tile:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
+.ph-hint{margin:-8px 0 0;text-align:center;color:var(--label2);font:400 var(--fs-note)/1.35 var(--f-text)}
+.ph-cena{padding:16px}
 .ph-ct{display:flex;align-items:center;gap:8px;margin:0;font:700 var(--fs-head)/1.25 var(--f-text);color:var(--label)}
 .ph-ct .ico{color:var(--gold-ink)}
-.ph-sn{flex:none;padding:4px 12px;border-radius:var(--r-pill);background:var(--gold-soft);color:var(--gold-ink);font:800 var(--fs-note)/1.3 var(--f-round);font-variant-numeric:tabular-nums}
-.ph-cl{display:flex;align-items:center;gap:8px;margin:10px 0 0}
+.ph-sn{flex:none;padding:4px 12px;border-radius:var(--r-pill);background:var(--fill2);color:var(--label);font:800 var(--fs-note)/1.3 var(--f-round);font-variant-numeric:tabular-nums}
+.ph-cl{display:flex;align-items:center;gap:8px;margin:12px 0 0}
 .ph-cl a{flex:1;min-width:0;color:var(--label);font:700 var(--fs-sub)/1.3 var(--f-round);text-decoration:none}
 .ph-cl a small{display:block;color:var(--label2);font:400 var(--fs-note)/1.3 var(--f-text)}
-.ph-say1{flex:none;width:var(--tap);height:var(--tap);border:0;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-ink);cursor:pointer}
+.ph-say1{flex:none;width:var(--tap);height:var(--tap);border:0;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-tint);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .ph-say1.playing{background:var(--brand-fill);color:#fff}
 .ph-stb{margin:12px 0 0}
-.ph-stn{margin:6px 0 0;text-align:center;color:var(--label2);font:400 var(--fs-min)/1.35 var(--f-text)}
-.ph-done{display:flex;align-items:center;gap:12px;margin:12px 0 0;padding:8px 12px;border-radius:var(--r-md);background:var(--gold-soft)}
+.ph-stn{margin:8px 0 0;text-align:center;color:var(--label2);font:400 var(--fs-min)/1.35 var(--f-text)}
+.ph-done{display:flex;align-items:center;gap:12px;margin:12px 0 0;padding:8px 12px;border-radius:var(--r-md);background:var(--fill2)}
 .ph-done b{display:block;font:800 var(--fs-sub)/1.25 var(--f-round);color:var(--label)}
 .ph-done small{display:block;color:var(--label2);font:400 var(--fs-note)/1.3 var(--f-text)}
 .ph-seal{flex:none;display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:var(--gold);color:var(--gold-on);rotate:-8deg}
-.ph-sr{display:flex;flex-wrap:wrap;align-items:flex-start;gap:10px 12px;margin:14px 0 0}
+.ph-sr{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px 12px;margin:16px 0 0}
 .ph-sr .ph-sn{margin-top:4px}
 .ph-seals{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none}
 .ph-seals li{display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--label2);font:600 var(--fs-min)/1.2 var(--f-text);font-variant-numeric:tabular-nums}
@@ -416,8 +439,9 @@ const CSS = `
 @media (max-width:380px){.ph-tile img{width:48px;height:48px}.ph-tiles{gap:8px}}
 @media (min-width:744px){.ph-tile img{width:72px;height:72px}.ph-line{font-size:var(--fs-t1)}}
 ${DARK(".ph-seals li .ico", "color:var(--gold)")}
+${DARK(".ph-tile img", "background:#F2F2F7;border-radius:var(--r-sm);padding:4px")}   /* la placa clara de los dibujos, como .img img */
 ${DARK(".ph-k .ico,.ph-ct .ico", "color:var(--gold)")}
-@media (prefers-reduced-motion:reduce){.ph-line,.ph-gap,.ph-pc{transition:none}}
+@media (prefers-reduced-motion:reduce){.ph-line,.ph-gap,.ph-pc,.ph-spk,.ph-tile img{transition:none}}
 `;
 function css(){
   if(DOC.getElementById("css-phrases")) return;
@@ -430,14 +454,14 @@ let NAV = 0, ORIGIN = null, LIS = false;
 let ST = null;
 const lng = () => ` lang="${esc(code())}"`;
 const gapHtml = f => f ? `<span class="ph-gap is-full" id="ph-gap"><span class="ph-pc" id="ph-pc">${esc(f.art + f.core)}</span></span>`
-  : `<span class="ph-gap is-empty" id="ph-gap" role="img" aria-label="hueco"></span>`;
+  : `<span class="ph-gap is-empty" id="ph-gap" role="img" lang="es" aria-label="espacio vacío"></span>`;
 function lineHtml(){
   const t = tplOf(ST.lang, ST.tpl), fr = frame(t), f = ST.f;
   return `${esc(fr.pre)}${gapHtml(f)}${esc(fr.post)}`;
 }
 const esHtml = () => ST.f ? `${esc(ST.f.esPre)}<b>${esc(ST.f.esWord)}</b>${esc(ST.f.esPost)}` : esc(esFrame(tplOf(ST.lang, ST.tpl).es));
 function tilesHtml(){
-  return ST.choices.map((f, i) => `<button type="button" class="card ph-tile" data-i="${i}" data-key="${i + 1}" aria-pressed="${ST.placed === i}" aria-label="${esc(f.core)}"${lng()}>
+  return ST.choices.map((f, i) => `<button type="button" class="card ph-tile" data-i="${i}" data-key="${i + 1}" data-key-pos="in" aria-pressed="${ST.placed === i}" aria-label="${esc(f.core)}"${lng()}>
     <img src="${esc(f.img)}" alt="" width="56" height="56" draggable="false"><span class="ph-tw">${esc(f.core)}</span></button>`).join("");
 }
 function dateShort(d){
@@ -448,7 +472,7 @@ function cenaHtml(dn){
   const phrase = ST.mode === "play" && dn ? `<p class="ph-cl"><a href="#/frases/cena" id="ph-cgo"><span${lng()}>${esc(dn.text)}</span><small>${esc(dn.es)}</small></a>
     <button type="button" class="ph-say1" id="ph-csay" aria-label="Escuchar la frase de la cena">${ico("speaker-high", "fill", 20)}</button></p>` : "";
   const act = today ? `<div class="ph-done" id="ph-done"><span class="ph-seal" aria-hidden="true">${ico("seal-check", "fill", 34)}</span><span><b>¡Sello de hoy!</b><small>Mañana hay otra frase.</small></span></div>`
-    : `<button type="button" class="glass-btn glass-btn--block ph-stb" id="ph-stamp">${ico("seal-check", "bold", 20)}Ya la dije en casa</button>
+    : `<button type="button" class="glass-btn${ST.mode === "cena" ? " glass-btn--pri glass-btn--lg" : ""} glass-btn--block ph-stb" id="ph-stamp"${ST.mode === "cena" ? ' data-key="enter"' : ""}>${ico("seal-check", "bold", 20)}Ya la dije en casa</button>
       <p class="ph-stn">Un mayor la sella después de decirla juntos.</p>`;
   return `<h2 class="ph-ct" id="ph-ct">${ico(ST.mode === "play" ? "sparkle" : "seal-check", "fill", 20)}${ST.mode === "play" ? "La frase de la cena" : "El sello de la cena"}</h2>
     ${phrase}${act}
@@ -459,6 +483,21 @@ function errHtml(){
   return `<div class="ph"><div class="card ph-err"><p>No se pudieron cargar las frases.</p><button type="button" class="glass-btn glass-btn--pri" id="ph-retry">${ico("arrow-counter-clockwise", "bold", 20)}Probar otra vez</button></div></div>`;
 }
 let DN = null;   /* la frase de la cena de ahora (para la tarjeta de abajo) */
+/* el botón de abajo. En #/frases, «Otra frase»: gris mientras el hueco está vacío (lo que toca es poner una pieza) y
+   principal en cuanto hay frase. En #/frases/cena, «Jugar con frases» (lleva a Frases mágicas): gris hasta que la frase
+   tiene su sello de hoy, porque lo principal ahí es «Ya la dije en casa» (y va debajo de la tarjeta del sello). */
+function nextHtml(){
+  const cena = ST.mode === "cena", pri = cena ? stamped() : ST.placed >= 0;
+  return `<button type="button" class="glass-btn${pri ? " glass-btn--pri glass-btn--lg" : ""} glass-btn--block ph-next" id="ph-next" data-key="${cena ? (pri ? "enter right" : "right") : "enter right"}">${ico(cena ? "sparkle" : "shuffle", "bold", 20)}${cena ? "Jugar con frases" : "Otra frase"}</button>`;
+}
+function repaintNext(){
+  const n = $("#ph-next"); if(!n) return;
+  const f = DOC.activeElement === n, t = DOC.createElement("div"); t.innerHTML = nextHtml();
+  const b = t.firstElementChild;
+  if(n.className === b.className && n.dataset.key === b.dataset.key) return;
+  n.className = b.className; n.dataset.key = b.dataset.key;
+  if(f) n.focus({preventScroll: true});
+}
 function paint(){
   const app = $("#app"), play1 = ST.mode === "play";
   const mic = canListen() ? `<button type="button" class="glass-btn ph-mic" id="ph-mic">${ico("microphone", "bold", 20)}<span>Dilo</span></button>` : "";
@@ -468,22 +507,24 @@ function paint(){
       <p class="ph-line" id="ph-line"${lng()}>${lineHtml()}</p>
       <p class="ph-es" id="ph-es">${esHtml()}</p>
       <div class="ph-acts" id="ph-acts"${ST.f ? "" : " data-off"}>
-        <button type="button" class="glass-btn ph-say" id="ph-say" data-key="space">${ico("speaker-high", "fill", 20)}Oír</button>
-        <button type="button" class="glass-btn glass-btn--icon ph-slow" id="ph-slow" data-key="shift+space" aria-label="Oír despacio" title="Oír despacio">${ico("turtle", "fill", 22)}</button>
+        <button type="button" class="ph-spk" id="ph-say" data-key="space" aria-label="Oír la frase" title="Oír la frase">${ico("speaker-high", "fill", 24)}</button>
+        <button type="button" class="ph-slow" id="ph-slow" data-key="shift+space" aria-label="Oír despacio" title="Oír despacio">${ico("turtle", "fill", 22)}</button>
         ${mic}
       </div>
       <p class="ph-msg" id="ph-msg" role="status" aria-live="polite"></p>
     </section>
     ${play1 ? `<div class="ph-tiles${ST.choices.length === 3 ? " n3" : ""}" id="ph-tiles" role="group" aria-label="Elige una palabra">${tilesHtml()}</div>
     <p class="ph-hint" id="ph-hint">Toca un dibujo o arrástralo al hueco.</p>` : ""}
-    <button type="button" class="glass-btn glass-btn--pri glass-btn--block ph-next" id="ph-next" data-key="enter right">${ico("shuffle", "bold", 20)}Otra frase</button>
+    ${play1 ? nextHtml() : ""}
     <section class="card ph-cena" id="ph-cena" aria-labelledby="ph-ct">${cenaHtml(DN)}</section>
+    ${play1 ? "" : nextHtml()}
   </div>`;
   wire();
 }
-const lineUI = () => ({
-  on(){ const l = $("#ph-line"); if(l) l.classList.add("is-lit"); },
-  off(){ const l = $("#ph-line"); if(l) l.classList.remove("is-lit"); },
+/* b (opcional): el altavoz o la tortuga que se pulsó, que se rellena mientras suena */
+const lineUI = b => ({
+  on(){ const l = $("#ph-line"); if(l) l.classList.add("is-lit"); if(b) b.classList.add("playing"); },
+  off(){ const l = $("#ph-line"); if(l) l.classList.remove("is-lit"); if(b) b.classList.remove("playing"); },
   word(on){ const p = $("#ph-pc"); if(p) p.classList.toggle("is-say", !!on); },
 });
 const btnUI = b => ({on(){ b.classList.add("playing"); }, off(){ b.classList.remove("playing"); }});
@@ -501,6 +542,7 @@ function place(i, from){
   if(!line) return;
   line.innerHTML = lineHtml(); es.innerHTML = esHtml(); acts.removeAttribute("data-off"); msg("");
   DOC.querySelectorAll(".ph-tile").forEach(b => b.setAttribute("aria-pressed", String(+b.dataset.i === i)));
+  repaintNext();
   const pc = $("#ph-pc");
   if(pc && from && W.M && typeof M.springTo === "function"){
     const r = pc.getBoundingClientRect(), dx = from.x - (r.left + r.width / 2), dy = from.y - (r.top + r.height / 2);
@@ -508,6 +550,20 @@ function place(i, from){
   }
   if(W.G && typeof G.haptic === "function") G.haptic("selection");
   play(f, false, lineUI());
+}
+/* tocar la palabra del hueco la devuelve a la bandeja (el hueco vuelve a estar vacío) */
+function unplace(){
+  if(!ST || ST.mode !== "play" || ST.placed < 0) return;
+  stopMic(); playTok++;
+  try{ if("speechSynthesis" in W) speechSynthesis.cancel(); else stopClip(); }catch(e){}
+  ST.placed = -1; ST.f = null;
+  const line = $("#ph-line"), es = $("#ph-es"), acts = $("#ph-acts");
+  if(!line) return;
+  line.classList.remove("is-lit"); DOC.querySelectorAll("#ph-acts .playing").forEach(b => b.classList.remove("playing"));
+  line.innerHTML = lineHtml(); es.innerHTML = esHtml(); acts.setAttribute("data-off", ""); msg("");
+  DOC.querySelectorAll(".ph-tile").forEach(b => b.setAttribute("aria-pressed", "false"));
+  repaintNext();
+  if(W.G && typeof G.haptic === "function") G.haptic("selection");
 }
 const center = el => { const r = el.getBoundingClientRect(); return {x: r.left + r.width / 2, y: r.top + r.height / 2}; };
 /* ¿se soltó cerca del hueco? (un poco de imán: 56 px alrededor, o encima de la frase) */
@@ -522,9 +578,10 @@ let OFFS = [];
 function wire(){
   OFFS.forEach(f => { try{ f(); }catch(e){} }); OFFS = [];
   const say = $("#ph-say"), slow = $("#ph-slow"), next = $("#ph-next"), mic = $("#ph-mic");
-  say.addEventListener("click", () => play(ST.f, false, lineUI()));
-  slow.addEventListener("click", () => play(ST.f, true, lineUI()));
+  say.addEventListener("click", () => play(ST.f, false, lineUI(say)));
+  slow.addEventListener("click", () => play(ST.f, true, lineUI(slow)));
   next.addEventListener("click", () => { if(ST.mode === "cena") navTo("#/frases"); else another(); });
+  $("#ph-line").addEventListener("click", e => { if(e.target.closest && e.target.closest("#ph-pc")) unplace(); });
   if(mic) mic.addEventListener("click", () => dilo(mic));
   DOC.querySelectorAll(".ph-tile").forEach(b => {
     const i = +b.dataset.i;
@@ -590,10 +647,10 @@ async function stamp(btn){
   if(stamping || stamped()) return repaintCena();
   stamping = true;
   let ok = false;
-  try{ ok = typeof W.adultGate === "function" ? await adultGate({reason: "Para sellar la frase de la cena.", from: btn}) : false; }catch(e){ console.error(e); }
+  try{ ok = typeof W.adultGate === "function" ? await adultGate({reason: DN ? `¿Ha dicho «${DN.text}» (${DN.es.replace(/\.$/, "")}) en casa? Resuelve la cuenta para darle su sello.` : "¿Ha dicho la frase de la cena en casa? Resuelve la cuenta para darle su sello.", from: btn}) : false; }catch(e){ console.error(e); }
   try{
     if(!ok || !addStamp()){ repaintCena(); return; }
-    repaintCena(); refreshHoy();
+    repaintCena(); refreshHoy(); repaintNext();
     const seal = $("#ph-done .ph-seal");
     if(seal){
       if(W.M && !M.rm() && seal.animate) seal.animate([{scale: 2.6, rotate: "-24deg", opacity: 0}, {scale: .9, rotate: "-6deg", opacity: 1, offset: .7}, {scale: 1, rotate: "-8deg", opacity: 1}],
@@ -648,9 +705,9 @@ let HOY = null;
 function rowHtml(f){
   const done = stamped();
   return `<div class="card hm-row ph-hrow" id="ph-hrow">
-    <a class="ph-hgo" href="#/frases/cena" aria-label="La frase de la cena: ${esc(f.text)}${done ? ". Ya tiene su sello" : ""}">
+    <a class="ph-hgo" href="#/frases/cena">
       <span class="hm-ric${done ? " gold" : ""}" aria-hidden="true">${ico(done ? "seal-check" : "chat-circle-text", done ? "fill" : "bold", 18)}</span>
-      <span class="hm-rt">La frase de la cena<small lang="${esc(LANGS[f.lang].code)}">${esc(f.text)}</small></span></a>
+      <span class="hm-rt">La frase de la cena${done ? '<span class="vh">. Ya tiene su sello.</span>' : ""}<small lang="${esc(LANGS[f.lang].code)}">${esc(f.text)}</small></span></a>
     <button type="button" class="ph-say1 ph-hsay" id="ph-hsay" aria-label="Escuchar la frase de la cena">${ico("speaker-high", "fill", 20)}</button></div>`;
 }
 async function homeSlot(){

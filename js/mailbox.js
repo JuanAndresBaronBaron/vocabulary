@@ -49,7 +49,7 @@
        count(kind?), stats() → {n, audio, photo, kinds}, keep(kind, n) (borra las más viejas), clear() (cierra y borra
        la base), persist()} (todo con promesas).
      window.vocabMailbox = {box(), letters(), clean(obj), encode(obj), decode(d), link(obj), receive(obj), open(id),
-       pay(id, desde), lockState(carta), unread(), adornos(), shareText(), slot, adultHtml(), images(), TPL, LOCKS,
+       pay(id, desde), lockState(carta), unread(), adornos(), shareText(), slot, adultHtml(), mediaHtml(), images(), TPL, LOCKS,
        KEY}. Emite bus "mail-new" {id} · "mail-open" {id} · "gift-open" {item} (adorno regalado). */
 (() => {
 "use strict";
@@ -83,6 +83,16 @@ function rid(n){
   return Array.from(a, x => A[x & 63]).join("");
 }
 function unlockVoice(){ try{ if("speechSynthesis" in W) speechSynthesis.speak(new SpeechSynthesisUtterance(" ")); }catch(e){} }
+/* iPhone o iPad fuera de la app instalada (Safari, o el navegador de dentro de otra app): no comparte lo guardado con
+   la app de la pantalla de inicio */
+const iosBrowser = () => { try{ return typeof IOS !== "undefined" && !!IOS && !(typeof iosPWA === "function" && iosPWA()); }catch(e){ return false; } };
+/* una partida que parece recién empezada (ningún día practicado ni palabras en el repaso de ningún idioma) */
+function freshSave(){
+  try{
+    const a = store.get("act", {}); if(isObj(a) && Object.keys(a).length) return false;
+    return Object.values(LK).every(L => { const m = store.get("srs:" + L, {}); return !isObj(m) || !Object.keys(m).length; });
+  }catch(e){ return false; }
+}
 const when = t => {
   const d = new Date(t), k = day(d), h = day(), y = new Date(); y.setDate(y.getDate() - 1);
   return k === h ? "hoy" : k === day(y) ? "ayer" : d.toLocaleDateString("es-ES", {day: "numeric", month: "long"});
@@ -186,8 +196,8 @@ const LOCKS = Object.freeze({
     go: "#/mapa", btn: "Ir al Camino", ic: "map-trifold", form: l => `Al terminar 3 lecciones de ${lname(l)}`}),
   rev30: Object.freeze({n: 30, one: "palabra", many: "palabras", t: l => `Se abre al repasar 30 palabras de ${lname(l)}`,
     go: "#/repaso", btn: "Ir a Repasar", ic: "arrow-counter-clockwise", form: l => `Al repasar 30 palabras de ${lname(l)}`}),
-  days3: Object.freeze({n: 3, one: "día", many: "días", t: () => "Se abre tras 3 días seguidos practicando",
-    go: "#/mapa", btn: "Practicar ahora", ic: "flame", form: () => "Tras 3 días seguidos practicando"}),
+  days3: Object.freeze({n: 3, one: "día", many: "días", t: () => "Se abre cuando practiques 3 días",
+    go: "#/mapa", btn: "Practicar ahora", ic: "flame", form: () => "Al practicar 3 días (no hace falta seguidos)"}),
 });
 const lessons = L => { const m = store.get("map:" + L, {}); return isObj(m) ? Object.values(m).filter(v => +v > 0).length : 0; };
 function reviews(L){
@@ -196,17 +206,14 @@ function reviews(L){
   return n;
 }
 const countOf = (lock, l) => lock === "les3" ? lessons(LK[l]) : lock === "rev30" ? reviews(LK[l]) : 0;
-/* días seguidos con actividad que acaban hoy (o ayer, si hoy aún no) y empiezan, como pronto, el día en que llegó */
-function streakFrom(at){
+/* días distintos con actividad desde el día en que llegó (ese incluido); no hace falta que sean seguidos */
+function daysFrom(at){
   const a = store.get("act", {}); if(!isObj(a)) return 0;
-  const d = new Date(); if(!(+a[day(d)] > 0)) d.setDate(d.getDate() - 1);
-  let s = 0;
-  while(s < 400 && day(d) >= at && +a[day(d)] > 0){ s++; d.setDate(d.getDate() - 1); }
-  return s;
+  return Object.keys(a).filter(k => DAY_RE.test(k) && k >= at && +a[k] > 0).length;
 }
 function lockState(L){
   const K = L && LOCKS[L.lock]; if(!K) return null;
-  const raw = L.lock === "days3" ? streakFrom(L.at) : countOf(L.lock, L.lang) - (L.b || 0);
+  const raw = L.lock === "days3" ? daysFrom(L.at) : countOf(L.lock, L.lang) - (L.b || 0);
   const have = L.u ? K.n : Math.max(0, Math.min(K.n, raw));
   return {lock: L.lock, need: K.n, have, done: !!L.u || have >= K.n, text: K.t(L.lang), unit: have === 1 ? K.one : K.many,
     units: K.many, go: K.go, btn: K.btn, ic: K.ic, lang: L.lock === "days3" ? "" : L.lang};
@@ -281,11 +288,12 @@ function stored(x){
   return L;
 }
 function box(){
-  const raw = store.get(KEY, null), b = {v: 1, l: [], paid: []};
+  const raw = store.get(KEY, null), b = {v: 1, l: [], paid: [], pd: ""};
   if(!isObj(raw)) return b;
   const seen = new Set();
   for(const x of Array.isArray(raw.l) ? raw.l : []){ const L = stored(x); if(L && !seen.has(L.id)){ seen.add(L.id); b.l.push(L); } }
   b.paid = [...new Set((Array.isArray(raw.paid) ? raw.paid : []).filter(id => typeof id === "string" && ID_RE.test(id)))];
+  if(DAY_RE.test(raw.pd)) b.pd = raw.pd;
   return b;
 }
 function saveBox(b){
@@ -293,8 +301,15 @@ function saveBox(b){
     let k = -1; for(let i = b.l.length - 1; i >= 0; i--) if(b.l[i].o){ k = i; break; }
     b.l.splice(k < 0 ? b.l.length - 1 : k, 1);
   }
-  store.set(KEY, {v: 1, l: b.l, paid: b.paid.slice(-MAXPAID)});
+  const o = {v: 1, l: b.l, paid: b.paid.slice(-MAXPAID)};
+  if(b.pd) o.pd = b.pd;
+  store.set(KEY, o);
 }
+/* como mucho un regalo al día en este aparato (y en los que comparten la partida): el de una carta que llega cuando
+   ya se dio el de hoy se guarda para otro día */
+const giftToday = b => b.pd === day();
+/* las cartas abiertas con el regalo aún por dar (porque hoy ya llegó otro) */
+const waitingGift = b => b.l.filter(L => L.o && L.gift != null && !b.paid.includes(L.id));
 const letters = () => box().l;
 /* una carta del enlace entra en el buzón (si ya estaba, no cambia nada) */
 function receive(o){
@@ -328,20 +343,27 @@ function open(id){
   if(first) bus.emit("mail-open", {id: L.id});
   return L;
 }
-/* el regalo de una carta abierta, una sola vez: primero se apunta en paid y se guarda, luego se da */
+/* el regalo de una carta abierta, una sola vez: primero se apunta en paid y se guarda, luego se da. Si hoy ya llegó un
+   regalo, este espera: {later: true} (se da al abrirla otro día). Las monedas vuelan desde from sin aviso (la tarjeta
+   ya dice de quién son); sin from, sale el aviso. */
+const OWNED_COINS = 20;
 function pay(id, from){
   const b = box(), L = b.l.find(x => x.id === id);
   if(!L || !L.o || L.gift == null || b.paid.includes(L.id)) return null;
-  b.paid.push(L.id); saveBox(b);
+  if(giftToday(b)) return {later: true};
+  b.paid.push(L.id); b.pd = day(); saveBox(b);
+  const el = from && from.isConnected ? from : null, why = el ? "" : `Regalo de ${L.from}`;
   if(typeof L.gift === "number"){
-    award(L.gift, `Regalo de ${L.from}`, false, from && from.isConnected ? from : null);
+    award(L.gift, why, false, el);
     return {coins: L.gift};
   }
   const it = adornos().find(x => x.id === L.gift);
   if(!it) return {none: true};
   const r = W.vocabShop && typeof vocabShop.gift === "function" ? vocabShop.gift(it.id) : {ok: false, reason: "unknown"};
-  if(r && r.ok) bus.emit("gift-open", {item: it});
-  return {item: it, had: !!(r && !r.ok && r.reason === "owned")};
+  if(r && r.ok){ bus.emit("gift-open", {item: it}); return {item: it}; }
+  /* ya lo tenía (quien escribe no sabe qué hay en la granja): a cambio, unas monedas */
+  if(r && r.reason === "owned"){ award(OWNED_COINS, why, false, el); return {item: it, had: true, coins: OWNED_COINS}; }
+  return {item: it};
 }
 
 /* ---------- la voz: ¿en qué idioma está el mensaje? ---------- */
@@ -352,13 +374,20 @@ const SW = {
   da: "og du dig jeg er det at et til med på hej godt gået meget min mit din dit kram elsker fortsæt sådan flot stolt af ikke har vi",
 };
 const ACC = {es: /[ñ¿¡áíóú]/g, fr: /[àâçèêëîïôûùœ]/g, da: /[æøå]/g};
+/* el idioma que más se parece (inglés, francés, danés o español: el tío puede escribir en cualquiera, no solo en el
+   que aprende el niño); en un empate gana el de la carta y, sin pistas, el español */
+const SWS = Object.fromEntries(Object.entries(SW).map(([k, v]) => [k, new Set(v.split(" "))]));
 function msgLang(msg, l){
   const s = String(msg || "").toLowerCase(), words = s.match(/[\p{L}'’]+/gu) || [];
-  const A = new Set((SW[l] || "").split(" ")), E = new Set(SW.es.split(" "));
-  let a = 0, e = 0;
-  for(const w of words){ const ia = A.has(w), ie = E.has(w); if(ia && !ie) a++; else if(ie && !ia) e++; }
-  a += 2 * (s.match(ACC[l] || /$^/g) || []).length; e += 2 * (s.match(ACC.es) || []).length;
-  return a > e ? l : "es";
+  const sc = {};
+  for(const k of Object.keys(SWS)){
+    let n = 0;
+    for(const w of words) if(SWS[k].has(w) && !Object.keys(SWS).some(o => o !== k && SWS[o].has(w))) n++;
+    sc[k] = n + 2 * (s.match(ACC[k] || /$^/g) || []).length;
+  }
+  const best = Math.max(...Object.values(sc));
+  if(best <= 0) return "es";
+  return sc[l] === best ? l : Object.keys(sc).find(k => sc[k] === best);
 }
 const codeOf = ab => ab === "es" ? "es-ES" : ((typeof LANGS !== "undefined" && LANGS[LK[ab]]) || {}).code || "en-GB";
 /* la voz para un idioma: la elegida en Ajustes si es el idioma que aprende; si no, la mejor de ese idioma */
@@ -369,17 +398,21 @@ function pickVoice(code){
   const c = vs.filter(v => n(v).startsWith(base));
   return c.find(v => n(v) === lc && /natural|online|google|neural/i.test(v.name)) || c.find(v => n(v) === lc) || c[0] || null;
 }
-function speak(text, code, btn){
+let SPK = null;   /* el botón que suena ahora (otro toque lo apaga) */
+function speak(text, code, btn, slow){
   return new Promise(res => {
     if(!text || !("speechSynthesis" in W)){ res(false); return; }
     try{ speechSynthesis.cancel(); }catch(e){}
+    if(SPK && SPK !== btn) SPK.classList.remove("playing");
+    SPK = btn || null;
     let done = false, t = 0;
-    const fin = v => { if(done) return; done = true; clearTimeout(t); if(btn) btn.classList.remove("playing"); res(v); };
+    const fin = v => { if(done) return; done = true; clearTimeout(t); if(btn) btn.classList.remove("playing"); if(SPK === btn) SPK = null; res(v); };
     let u; try{ u = new SpeechSynthesisUtterance(text); }catch(e){ res(false); return; }
-    u.lang = code; u.rate = typeof rate === "number" && rate > 0 ? rate : .9;
+    const r0 = typeof rate === "number" && rate > 0 ? rate : .9;
+    u.lang = code; u.rate = slow ? (typeof SLOW === "function" ? SLOW() : r0 * .6) : r0;
     const v = pickVoice(code); if(v) u.voice = v;
     u.onend = () => fin(true); u.onerror = () => fin(false);
-    t = setTimeout(() => fin(true), Math.min(30000, 2500 + text.length * 110));
+    t = setTimeout(() => fin(true), Math.min(40000, 2500 + text.length * (slow ? 180 : 110)));
     if(btn) btn.classList.add("playing");
     try{ speechSynthesis.speak(u); }catch(e){ fin(false); }
   });
@@ -388,34 +421,43 @@ function speak(text, code, btn){
 /* ---------- estilos ---------- */
 const CSS = `
 .mb{max-width:640px;margin:0 auto;padding:4px 0 8px}
-.mb-hd{display:flex;align-items:center;gap:14px;margin:4px 0 16px}
+.mb-hd{display:flex;align-items:center;gap:16px;margin:4px 0 16px}
 .mb-hd-i{flex:none;width:60px;height:60px}
 .mb-t{margin:0;font:800 var(--fs-t2)/1.15 var(--f-round);color:var(--label);overflow-wrap:anywhere}
 .mb-sub{margin:4px 0 0;font:400 var(--fs-sub)/1.35 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
 .mb-c{text-align:center}
 .mb-h{margin:0 0 12px;font:700 var(--fs-head)/1.25 var(--f-round);color:var(--label)}
-.mb-card{margin:0 0 22px;padding:16px;border-radius:var(--r-card)}
+.mb-card{margin:0 0 24px;padding:16px;border-radius:var(--r-card)}
 .mb-tpls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .mb-tpl{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;min-width:0;min-height:84px;margin:0;padding:8px 4px;border:0;
-  border-radius:18px;background:var(--fill2);color:var(--label);font:600 var(--fs-min)/1.2 var(--f-text);cursor:pointer;-webkit-tap-highlight-color:transparent}
+  border-radius:var(--r-md);background:var(--fill2);color:var(--label);font:600 var(--fs-min)/1.2 var(--f-text);cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:opacity var(--d-fast,160ms)}
 .mb-tpl img{width:40px;height:40px;pointer-events:none}
 .mb-tpl span{max-width:100%;overflow-wrap:anywhere;text-align:center}
 .mb-tpl[aria-checked=true]{background:var(--brand-soft);box-shadow:inset 0 0 0 2px var(--brand-tint);color:var(--brand-ink)}
 :root[data-theme=dark] .mb-tpl[aria-checked=true]{color:#7DBBFF}
-.mb-phr{display:flex;align-items:center;gap:12px;margin:14px 0 0;padding:12px 12px 12px 16px;border-radius:18px;background:var(--bg)}
+.mb-tpl:focus-visible,.mb-spk:focus-visible,.mb-slow:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
+.mb-phr{display:flex;align-items:center;gap:12px;margin:16px 0 0;padding:12px 12px 12px 16px;border-radius:var(--r-md);background:var(--bg)}
 :root[data-theme=dark] .mb-phr{background:var(--card-2)}
 .mb-phr-x{flex:1;min-width:0}
 .mb-phr-t{margin:0;font:700 var(--fs-t3)/1.25 var(--f-round);color:var(--label);overflow-wrap:anywhere}
-.mb-phr-es{margin:2px 0 0;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
-.mb-spk{flex:none;display:grid;place-items:center;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:50%;background:var(--brand-soft);color:var(--brand-tint);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.mb-spk.playing{background:var(--brand-fill);color:#fff}
-.mb-ctl{display:flex;flex-direction:column;align-items:center;gap:10px;margin:18px 0 0;text-align:center}
+.mb-phr-es{margin:4px 0 0;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
+/* mientras graba, las frases y su altavoz se apagan (no se pueden tocar: su voz se colaría en el mensaje) */
+.mb-card.is-busy :is(.mb-tpl,.mb-spk){opacity:.4;pointer-events:none}
+/* el altavoz: el mismo que el de la lección (círculo azul claro que se rellena al sonar) y la tortuga gris al lado */
+.mb-spk{flex:none;display:grid;place-items:center;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:50%;background:var(--brand-soft);color:var(--brand-tint);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms),opacity var(--d-fast,160ms)}
+.mb-spk.playing,.mb-slow.playing{background:var(--brand-fill);color:#fff}
+.mb-slow{flex:none;display:grid;place-items:center;width:44px;height:44px;margin:0;padding:0;border:0;border-radius:50%;background:var(--fill2);color:var(--label);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mb-aud{display:flex;align-items:center;gap:20px}   /* 20: sitio para las etiquetas de las teclas */
+.mb-ctl{display:flex;flex-direction:column;align-items:center;gap:8px;margin:16px 0 0;text-align:center}
 .mb-rb{position:relative;flex:none;width:120px;height:120px;margin:0;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.mb-rb-in{position:absolute;inset:10px;display:grid;place-items:center;border-radius:50%;background:var(--brand-fill);color:#fff;box-shadow:0 6px 16px -6px rgba(30,110,244,.6);transition:transform .15s ease}
+.mb-rb-in{position:absolute;inset:8px;display:grid;place-items:center;border-radius:50%;background:var(--brand-fill);color:#fff;box-shadow:0 6px 16px -6px rgba(30,110,244,.6);transition:transform .15s ease}
 .mb-rb:active .mb-rb-in{transform:scale(.95)}
 .mb-rb.is-rec .mb-rb-in{background:var(--brand-ink)}
 .mb-rb[aria-busy=true]{cursor:progress}
 .mb-rb[aria-busy=true] .mb-rb-in{background:#8E8E93;box-shadow:none}
+.mb-rb.is-count .mb-rb-in{background:var(--brand-ink);font:800 48px/1 var(--f-round);font-variant-numeric:tabular-nums}
 .mb-ring{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg);pointer-events:none}
 .mb-ring circle{fill:none;stroke-width:6}
 .mb-ring-bg{stroke:var(--fill)}
@@ -426,13 +468,13 @@ const CSS = `
 .mb-ok{display:flex;align-items:center;justify-content:center;gap:8px;margin:0;font:700 var(--fs-head)/1.25 var(--f-round);color:var(--ok-ink)}
 .mb-btns{display:flex;gap:8px;width:100%}
 .mb-btns>*{flex:1 1 0;min-width:0}
-.mb-info{display:flex;align-items:flex-start;gap:10px;width:100%;box-sizing:border-box;margin:0;padding:12px 14px;border-radius:16px;background:var(--fill2);color:var(--label);font:400 var(--fs-sub)/1.4 var(--f-text);text-align:left}
+.mb-info{display:flex;align-items:flex-start;gap:8px;width:100%;box-sizing:border-box;margin:0;padding:12px 16px;border-radius:var(--r-md);background:var(--fill2);color:var(--label);font:400 var(--fs-sub)/1.4 var(--f-text);text-align:left}
 .mb-info>.ico{flex:none;margin-top:2px;color:var(--label2)}
-.mb-sec{margin:0 0 22px}
+.mb-sec{margin:0 0 24px}
 .mb-sec .st-g{background:var(--card)}
 :root[data-theme=dark] .mb-sec .st-g{background:var(--card)}
-.mb-rr{gap:10px;padding-top:6px;padding-bottom:6px}
-.mb-rp{flex:none;display:grid;place-items:center;width:44px;height:44px;margin:0 0 0 -6px;padding:0;border:0;border-radius:50%;background:var(--brand-soft);color:var(--brand-tint);cursor:pointer}
+.mb-rr{gap:8px;padding-top:4px;padding-bottom:4px}
+.mb-rp{flex:none;display:grid;place-items:center;width:44px;height:44px;margin:0 0 0 -4px;padding:0;border:0;border-radius:50%;background:var(--brand-soft);color:var(--brand-tint);cursor:pointer}
 .mb-rp.playing{background:var(--brand-fill);color:#fff}
 .mb-rr .glass-btn{flex:none}
 a.st-r.mb-lr{color:var(--label);cursor:pointer}
@@ -442,64 +484,76 @@ a.st-r.mb-lr{color:var(--label);cursor:pointer}
 .mb-lr .st-l b{font-weight:600}
 .mb-chev{flex:none;color:var(--label3)}
 .mb-foot{display:flex;justify-content:center;margin:0 0 8px}
-.mb-quiet{display:inline-flex;align-items:center;gap:6px;min-height:var(--tap);padding:0 12px;border:0;border-radius:var(--r-pill);background:none;color:var(--brand-ink);font:600 var(--fs-sub)/1.2 var(--f-text);cursor:pointer}
+.mb-quiet{display:inline-flex;align-items:center;gap:8px;min-height:var(--tap);padding:0 12px;border:0;border-radius:var(--r-pill);background:none;color:var(--brand-ink);font:600 var(--fs-sub)/1.2 var(--f-text);cursor:pointer}
 :root[data-theme=dark] .mb-quiet{color:#7DBBFF}
-/* Hoy: la fila del sobre */
-.mb-ric{background:var(--gold-soft)!important}
+/* Hoy: la fila del sobre (sobre gris claro, como la de la temporada) */
 .mb-ric img{display:block;width:26px;height:26px}
 .mb-row.is-new .mb-ric img{animation:mb-shake .7s ease-in-out .35s 3}
 @keyframes mb-shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-14deg)}40%{transform:rotate(11deg)}60%{transform:rotate(-8deg)}80%{transform:rotate(5deg)}}
-/* el sobre */
-.mb-stage{display:grid;place-items:center;margin:8px 0 18px}
-.mb-env{position:relative;width:min(240px,64vw);aspect-ratio:3/2;perspective:800px}
+/* el sobre: de papel (el único color, el sello dorado), para que no parezca un botón */
+.mb-stage{display:grid;place-items:center;margin:8px 0 16px}
+.mb-env{--e-back:#E5E5EA;--e-front:#FFFFFF;--e-flap1:#F7F7FA;--e-flap2:#DCDCE2;--e-paper:#FFFFFF;--e-line:#D1D1D6;
+  position:relative;width:min(240px,64vw);aspect-ratio:3/2;perspective:800px}
+:root[data-theme=dark] .mb-env{--e-back:#2C2C2E;--e-front:#3A3A3C;--e-flap1:#545458;--e-flap2:#48484A;--e-paper:#F2F2F7;--e-line:#C7C7CC}
 .mb-env>i{position:absolute;display:block}
-.mb-e-back{inset:0;border-radius:16px;background:#1857C4}
-.mb-e-paper{left:8%;right:8%;top:8%;bottom:10%;z-index:2;border-radius:8px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .45s cubic-bezier(.2,.8,.2,1) .28s}
-.mb-e-paper::before,.mb-e-paper::after{content:"";position:absolute;left:14%;right:14%;height:6px;border-radius:3px;background:#D6E3F6}
-.mb-e-paper::before{top:22%}.mb-e-paper::after{top:40%;right:34%}
-.mb-e-front{inset:0;z-index:3;border-radius:16px;background:#1E6EF4;clip-path:polygon(0 0,50% 58%,100% 0,100% 100%,0 100%)}
-.mb-e-flap{left:0;right:0;top:0;height:62%;z-index:4;border-radius:16px 16px 0 0;background:#3F86F7;clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:50% 0;
+.mb-e-back{inset:0;border-radius:var(--r-md);background:var(--e-back);box-shadow:0 0 0 1px var(--sep),0 8px 20px rgba(0,0,0,.10)}
+:root[data-theme=dark] .mb-e-back{box-shadow:0 0 0 1px var(--sep),0 8px 20px rgba(0,0,0,.5)}
+.mb-e-paper{left:8%;right:8%;top:8%;bottom:12%;z-index:2;border-radius:8px;background:var(--e-paper);box-shadow:0 1px 3px rgba(0,0,0,.18);transition:transform .45s cubic-bezier(.2,.8,.2,1) .28s}
+.mb-e-paper::before,.mb-e-paper::after{content:"";position:absolute;left:12%;right:12%;height:6px;border-radius:4px;background:var(--e-line)}
+.mb-e-paper::before{top:20%}.mb-e-paper::after{top:40%;right:36%}
+.mb-e-front{inset:0;z-index:3;border-radius:var(--r-md);background:var(--e-front);clip-path:polygon(0 0,50% 58%,100% 0,100% 100%,0 100%)}
+.mb-e-flap{left:0;right:0;top:0;height:62%;z-index:4;border-radius:var(--r-md) var(--r-md) 0 0;background:linear-gradient(180deg,var(--e-flap1),var(--e-flap2));clip-path:polygon(0 0,100% 0,50% 100%);transform-origin:50% 0;
   transition:transform .4s ease,z-index 0s linear .2s}
-.mb-env>.mb-e-seal{left:50%;top:58%;z-index:5;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;display:grid;place-items:center;background:#FFCC00;color:#3D2B00;
-  box-shadow:0 0 0 3px #fff,0 2px 6px rgba(0,0,0,.25);transition:opacity .2s ease,transform .2s ease}
-.mb-env.is-lock .mb-e-back{background:#636366}.mb-env.is-lock .mb-e-front{background:#8E8E93}.mb-env.is-lock .mb-e-flap{background:#AEAEB2}
-.mb-env.is-lock .mb-e-seal{background:#48484A;color:#fff}
+.mb-env>.mb-e-seal{left:50%;top:58%;z-index:5;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;display:grid;place-items:center;background:#FFCC00;color:#3D2B00;
+  box-shadow:0 0 0 3px var(--e-front),0 2px 6px rgba(0,0,0,.25);transition:opacity .2s ease,transform .2s ease}
+.mb-env.is-lock>.mb-e-seal{background:#8E8E93;color:#fff}
 .mb-env.is-open .mb-e-flap{transform:rotateX(180deg);z-index:1}
-.mb-env.is-open .mb-e-paper{transform:translateY(-44%)}
+.mb-env.is-open .mb-e-paper{transform:translateY(-48%)}
 .mb-env.is-open .mb-e-seal{opacity:0;transform:scale(.6)}
-.mb-go{margin:18px 0 0}
+.mb-go{margin:16px 0 0}
 /* la carta */
-.mb-paper{margin:0 0 16px;padding:22px 20px 18px;border-radius:var(--r-card)}
+.mb-paper{margin:0 0 16px;padding:24px 20px 16px;border-radius:var(--r-card)}
 .mb-to{margin:0 0 8px;font:600 var(--fs-note)/1.3 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
 .mb-msg{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font:600 var(--fs-t3)/1.4 var(--f-round);color:var(--label)}
-.mb-sig{margin:14px 0 0;text-align:right;font:700 var(--fs-head)/1.3 var(--f-round);color:var(--brand-ink);overflow-wrap:anywhere}
-:root[data-theme=dark] .mb-sig{color:#7DBBFF}
-.mb-paper .mb-say{margin:16px 0 0}
-.mb-gift{display:flex;align-items:center;gap:14px;margin:0 0 16px;padding:16px;border-radius:var(--r-card)}
+.mb-sig{margin:16px 0 0;text-align:right;font:600 var(--fs-head)/1.3 var(--f-round);color:var(--label);overflow-wrap:anywhere}
+.mb-paper .mb-aud{margin:16px 0 0}
+.mb-gift{display:flex;align-items:center;gap:16px;margin:0 0 16px;padding:16px;border-radius:var(--r-card)}
 .mb-gift[hidden]{display:none}
 .mb-gift-i{flex:none;display:grid;place-items:center;width:64px;height:64px;font-size:44px;line-height:1}
 .mb-gift-i img,.mb-gift-i .pj{display:block;width:64px;height:64px;object-fit:contain}
 .mb-gift-t{flex:1;min-width:0}
 .mb-gift-t b{display:block;font:800 var(--fs-head)/1.25 var(--f-round);color:var(--label);overflow-wrap:anywhere}
-.mb-gift-t small{display:block;margin-top:2px;font:400 var(--fs-note)/1.35 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
-.mb-gift-w{display:flex;align-items:center;gap:6px;margin-top:4px;font:600 var(--fs-sub)/1.3 var(--f-text);color:var(--label)}
-.mb-gift-w .mb-spk{width:40px;height:40px}
+.mb-gift-t small{display:block;margin-top:4px;font:400 var(--fs-note)/1.35 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
+.mb-gift-w{display:flex;align-items:center;gap:8px;margin-top:4px;font:600 var(--fs-sub)/1.3 var(--f-text);color:var(--label)}
+.mb-gift.is-later .mb-gift-i{opacity:.5}
 .mb-in{animation:mb-in .35s ease-out both}
+.mb-in2{animation-delay:.3s}
 @keyframes mb-in{from{opacity:0;transform:translateY(12px)}}
-/* el candado */
+/* el candado: los pasos (3 lecciones o 3 días) o la barra (30 palabras) */
 .mb-lk-t{margin:0;font:700 var(--fs-head)/1.3 var(--f-round);color:var(--label)}
-.mb-bar{height:12px;margin:14px 0 6px;border-radius:6px;background:var(--fill);overflow:hidden}
+.mb-bar{height:12px;margin:16px 0 8px;border-radius:8px;background:var(--fill);overflow:hidden}
 .mb-bar>i{display:block;height:100%;border-radius:inherit;background:var(--teal)}
-.mb-lk-n{margin:0 0 14px;font:600 var(--fs-note)/1.3 var(--f-text);color:var(--label2);font-variant-numeric:tabular-nums}
+.mb-steps{display:flex;gap:12px;margin:16px 0 8px;padding:0;list-style:none}
+.mb-steps li{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--fill);color:var(--label2);font:700 var(--fs-note)/1 var(--f-round)}
+.mb-steps li.is-done{background:var(--teal);color:#fff}
+:root[data-theme=dark] .mb-steps li.is-done{color:#00363B}
+.mb-lk-n{margin:0 0 16px;font:600 var(--fs-note)/1.3 var(--f-text);color:var(--label2);font-variant-numeric:tabular-nums}
 .mb-lk-l{margin:12px 0 0;font:400 var(--fs-note)/1.4 var(--f-text);color:var(--label2)}
 /* error: gris con ✗ */
-.mb-bad{display:flex;flex-direction:column;align-items:center;gap:10px;padding:28px 20px;border-radius:var(--r-card);text-align:center}
+.mb-bad{display:flex;flex-direction:column;align-items:center;gap:12px;padding:28px 20px;border-radius:var(--r-card);text-align:center}
 .mb-bad-i{display:grid;place-items:center;width:56px;height:56px;border-radius:50%;background:var(--miss-fill);color:var(--miss-on);font:700 28px/1 var(--f-text)}
 .mb-bad p{margin:0;font:400 var(--fs-sub)/1.4 var(--f-text);color:var(--label2)}
-/* Contestar (mayores) */
-.mb-form .st-sec{margin:0 0 18px}
+.mb-lock-i{background:var(--fill2);color:var(--label)}
+/* ¿dónde se abre la carta? (iPhone o iPad fuera de la app instalada, o una partida nueva) */
+.mb-where{margin:0 0 16px}
+.mb-where p{margin:0 0 12px;font:400 var(--fs-sub)/1.4 var(--f-text);color:var(--label)}
+.mb-where p b{font-weight:700}
+.mb-where .glass-btn+.glass-btn{margin-top:8px}
+/* Contestar (mayores): como un formulario de Ajustes */
+.mb-form .st-sec{margin:0 0 20px}
 .mb-fr{cursor:text}
 .mb-fr:focus-within{box-shadow:inset 0 0 0 2px var(--brand-tint);border-radius:var(--r-card)}
+.mb-fl{flex:none;width:4.5em;font:600 var(--fs-body)/1.3 var(--f-text);color:var(--label)}
 .mb-fi{flex:1;min-width:0;width:100%;box-sizing:border-box;min-height:var(--tap);margin:0;padding:0;border:0;background:none;color:var(--label);font:400 var(--fs-body)/1.35 var(--f-text);-webkit-appearance:none;appearance:none}
 .mb-fi:focus,.mb-fi:focus-visible{outline:none}
 .mb-fi::placeholder{color:var(--label2);opacity:.75}
@@ -507,34 +561,52 @@ textarea.mb-fi{min-height:132px;padding:12px 0;resize:vertical}
 .mb-fr.col{flex-direction:column;align-items:stretch;gap:0}
 .mb-cnt{align-self:flex-end;font:400 var(--fs-min)/1.2 var(--f-text);color:var(--label2);font-variant-numeric:tabular-nums}
 .mb-seg{margin:0;max-width:none}
+.mb-fnote{margin:8px 16px 0;font:400 var(--fs-note)/1.35 var(--f-text);color:var(--label2)}
+.mb-pick{color:var(--label)}
+.mb-pick .st-l{font-weight:400}
+.mb-pv{flex:none;max-width:55%;font:400 var(--fs-body)/1.3 var(--f-text);color:var(--label2);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mb-pick .pj,.mb-pick img.mb-pi2{flex:none;display:block;width:32px;height:32px;object-fit:contain}
+.mb-pick .pj-fb{font-size:24px;line-height:32px}
 .mb-opts{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;padding:12px}
-.mb-opts.rows{grid-template-columns:1fr}
-.mb-opt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:88px;margin:0;padding:10px 6px;border-radius:16px;background:var(--fill2);
+.mb-opts.rows{grid-template-columns:1fr;gap:0;padding:0}
+.mb-opt{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-height:88px;margin:0;padding:8px;border-radius:var(--r-md);background:var(--fill2);
   color:var(--label);font:600 var(--fs-min)/1.2 var(--f-text);text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.mb-opts.rows .mb-opt{flex-direction:row;justify-content:flex-start;gap:12px;min-height:var(--row);padding:8px 14px;font:600 var(--fs-sub)/1.3 var(--f-text);text-align:left}
+.mb-opts.rows .mb-opt{flex-direction:row;justify-content:flex-start;gap:12px;min-height:var(--row);padding:8px 16px;border-radius:0;background:none;font:400 var(--fs-body)/1.3 var(--f-text);text-align:left}
+.mb-opts.rows .mb-opt+.mb-opt::before{content:"";position:absolute;top:0;left:52px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
+.mb-opts.rows .mb-opt .mb-ck{margin-left:auto;color:var(--brand-tint);visibility:hidden}
+.mb-opts.rows .mb-opt.is-on .mb-ck{visibility:visible}
 .mb-opt input{position:absolute;opacity:0;width:1px;height:1px;margin:0;pointer-events:none}
 .mb-opt img,.mb-opt .pj{display:block;width:44px;height:44px;object-fit:contain;pointer-events:none}
-.mb-opt .pj-fb{font-size:34px;line-height:44px}
+.mb-opt .pj-fb{font-size:32px;line-height:44px}
 .mb-opt .ico{flex:none}
-.mb-opt.is-on{background:var(--brand-soft);box-shadow:inset 0 0 0 2px var(--brand-tint);color:var(--brand-ink)}
-:root[data-theme=dark] .mb-opt.is-on{color:#7DBBFF}
-.mb-opt:focus-within{outline:3px solid var(--brand-tint);outline-offset:2px}
+.mb-opts:not(.rows) .mb-opt.is-on{background:var(--brand-soft);box-shadow:inset 0 0 0 2px var(--brand-tint);color:var(--brand-ink)}
+:root[data-theme=dark] .mb-opts:not(.rows) .mb-opt.is-on{color:#7DBBFF}
+.mb-opt:focus-within{outline:3px solid var(--brand-tint);outline-offset:-3px}
 .mb-opt:not(:focus-within){outline:none}
-.mb-err{display:flex;align-items:center;gap:6px;margin:6px 16px 0;font:600 var(--fs-note)/1.3 var(--f-text);color:var(--miss-ink)}
+.mb-gh{margin:16px 16px 0;font:600 var(--fs-note)/1.33 var(--f-text);color:var(--label2)}
+.mb-err{display:flex;align-items:center;gap:8px;margin:8px 16px 0;font:600 var(--fs-note)/1.3 var(--f-text);color:var(--miss-ink)}
 .mb-err[hidden]{display:none}
-.mb-link{display:block;width:100%;box-sizing:border-box;min-height:96px;margin:0 0 12px;padding:12px 14px;border:0;border-radius:16px;background:var(--fill2);color:var(--label);
+.mb-link{display:block;width:100%;box-sizing:border-box;min-height:96px;margin:0 0 12px;padding:12px 16px;border:0;border-radius:var(--r-md);background:var(--fill2);color:var(--label);
   font:400 var(--fs-note)/1.35 ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;resize:none}
+.mb-link.vh{position:absolute;width:1px;height:1px;min-height:0;margin:0;padding:0;opacity:0;pointer-events:none}
 .mb-cp{min-height:1.3em;margin:8px 0 0;font:600 var(--fs-note)/1.3 var(--f-text);color:var(--label2);text-align:center}
-.mb-res .mb-btns{margin:0 0 10px}
-.mb-res p{margin:0 0 12px;font:400 var(--fs-sub)/1.4 var(--f-text);color:var(--label2)}
+.mb-pre{display:flex;align-items:center;gap:12px;margin:0 0 16px;padding:12px 16px;border-radius:var(--r-md);background:var(--card)}
+.mb-pre img{flex:none;width:44px;height:44px}
+.mb-pre b{display:block;font:700 var(--fs-head)/1.25 var(--f-round);color:var(--label);overflow-wrap:anywhere}
+.mb-pre small{display:block;margin-top:2px;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
+dialog.mb-sh .mb-res-b>*+*{margin-top:8px}
 /* hojas */
 dialog.mb-sh{max-width:560px}
 dialog.mb-sh.m-sheet.glass{background:var(--bg);-webkit-backdrop-filter:none;backdrop-filter:none}
 dialog.mb-sh p{margin:0 0 12px;font:400 var(--fs-sub)/1.4 var(--f-text);color:var(--label2)}
-dialog.mb-sh .mb-fi{min-height:48px;padding:0 14px;border-radius:14px;background:var(--card)}
+dialog.mb-sh .mb-fi{min-height:48px;padding:0 16px;border-radius:var(--r-sm);background:var(--card)}
 dialog.mb-sh .mb-fi:focus-visible{box-shadow:inset 0 0 0 2px var(--brand-tint)}
 dialog.mb-sh .mb-btns{margin:12px 0 0}
 dialog.mb-sh .mb-link{background:var(--card)}
+dialog.mb-sh .st-g{background:var(--card)}
+dialog.mb-sh .mb-opts:not(.rows) .mb-opt{background:var(--fill2)}
+/* dibujos con fondo blanco en modo oscuro: sobre una placa clara, como la Palabra del día */
+:root[data-theme=dark] :is(.mb-tpl,.mb-gift-i,.mb-opt,.mb-pick) img:not([src*="om_1FA99"]){background:#F2F2F7;border-radius:var(--r-sm);padding:4px;box-sizing:border-box}
 @media (prefers-reduced-motion:reduce){
   .mb-row.is-new .mb-ric img,.mb-in{animation:none}
   .mb-env>i,.mb-rb-in{transition:none}
@@ -571,10 +643,36 @@ function permCheck(){
 const stopStream = s => { try{ if(s) s.getTracks().forEach(t => t.stop()); }catch(e){} };
 function setRec(st){ R.st = st; if(onBuzon()) paintCtl(); }
 function live(t){ const el = $id("mb-live"); if(el) el.textContent = t; }
+const busy = () => R.st === "ask" || R.st === "count" || R.st === "rec" || R.st === "saving";
+/* mientras graba (o espera al micrófono), las frases y su altavoz no se pueden tocar: su voz se colaría en el mensaje */
+function lockTpls(){
+  const card = D.querySelector("#mb-home .mb-card"); if(!card) return;
+  const on = busy();
+  card.classList.toggle("is-busy", on);
+  card.querySelectorAll(".mb-tpl, #mb-spk").forEach(b => { if(on) b.setAttribute("aria-disabled", "true"); else b.removeAttribute("aria-disabled"); });
+}
+/* la cuenta atrás antes de grabar (1,5 s: 3 · 2 · 1), para que no se pierda el principio; sin ella con «Reducir movimiento» */
+const COUNT_MS = 1500;
+function countdown(tok){
+  return new Promise(res => {
+    if(rm()){ res(true); return; }
+    const t0 = performance.now();
+    const step = () => {
+      if(tok !== R.tok || R.st !== "count"){ res(false); return; }
+      const left = COUNT_MS - (performance.now() - t0);
+      if(left <= 0){ res(true); return; }
+      const n = String(Math.ceil(left / (COUNT_MS / 3))), el = D.querySelector("#mb-rb .mb-rb-in");
+      if(el && el.textContent !== n){ el.textContent = n; live(n); }
+      R.cd = setTimeout(step, 50);
+    };
+    step();
+  });
+}
 async function startRec(){
-  if(R.st === "ask" || R.st === "rec" || R.st === "saving") return;
+  if(busy()) return;
   if(!canRec()){ setRec("nomic"); return; }
   stopAudio(); try{ if("speechSynthesis" in W) speechSynthesis.cancel(); }catch(e){}
+  R.tpl = TPLID;   /* la frase elegida al empezar es la que se guarda con la grabación */
   const tok = ++R.tok; setRec("ask");
   let stream;
   try{ stream = await navigator.mediaDevices.getUserMedia({audio: {echoCancellation: true, noiseSuppression: true}}); }
@@ -586,10 +684,14 @@ async function startRec(){
   }
   if(tok !== R.tok || !onBuzon()){ stopStream(stream); if(tok === R.tok) R.st = "idle"; return; }
   PERM = "granted";
+  R.stream = stream;
+  setRec("count");
+  if(!(await countdown(tok))){ if(R.stream === stream){ stopStream(stream); R.stream = null; } return; }
+  if(tok !== R.tok || !onBuzon()){ stopStream(stream); if(R.stream === stream) R.stream = null; if(tok === R.tok) setRec("idle"); return; }
   const type = mimePick(); let mr = null;
   try{ mr = new MediaRecorder(stream, type ? {mimeType: type, audioBitsPerSecond: 64000} : undefined); }
   catch(e){ try{ mr = new MediaRecorder(stream); }catch(e2){ mr = null; } }
-  if(!mr){ stopStream(stream); setRec("fail"); return; }
+  if(!mr){ stopStream(stream); R.stream = null; setRec("fail"); return; }
   R.mr = mr; R.stream = stream; R.chunks = []; R.type = type; R.dur = 0;
   mr.ondataavailable = ev => { if(ev.data && ev.data.size) R.chunks.push(ev.data); };
   mr.onstop = () => finish(tok, mr);
@@ -624,7 +726,7 @@ async function finish(tok, mr){
   const blob = new Blob(chunks, {type});
   if(R.dur < MINMS || !blob.size){ if(tok === R.tok){ setRec("short"); live("Muy cortito"); } return; }
   let buf; try{ buf = await blob.arrayBuffer(); }catch(e){ if(tok === R.tok) setRec("fail"); return; }
-  const rec = {id: "mb-" + Date.now().toString(36) + rid(5), kind: "mail", t: Date.now(), type, dur: Math.round(R.dur), buf, tpl: TPLID, lang: curAb()};
+  const rec = {id: "mb-" + Date.now().toString(36) + rid(5), kind: "mail", t: Date.now(), type, dur: Math.round(R.dur), buf, tpl: R.tpl || TPLID, lang: curAb()};
   let saved = true;
   try{ await Media.put(rec); await Media.keep("mail", MAXREC); Media.persist(); }catch(e){ saved = false; }
   await refreshMedia();
@@ -635,13 +737,13 @@ async function finish(tok, mr){
 }
 function cancelRec(){
   R.tok++;
-  clearTimeout(R.timer); cancelAnimationFrame(R.raf);
+  clearTimeout(R.timer); clearTimeout(R.cd); cancelAnimationFrame(R.raf);
   if(R.mr){ const mr = R.mr; R.mr = null; R.dur = 0; try{ if(mr.state !== "inactive") mr.stop(); }catch(e){} }
   stopStream(R.stream); R.stream = null;
-  if(R.st === "rec" || R.st === "ask" || R.st === "saving") R.st = "idle";
+  if(busy()) R.st = "idle";
 }
 /* parar a medias (otra pantalla, la app escondida): se guarda lo grabado */
-function stopSoon(){ if(R.st === "rec") stopRec(); else if(R.st === "ask") cancelRec(); }
+function stopSoon(){ if(R.st === "rec") stopRec(); else if(R.st === "ask" || R.st === "count") cancelRec(); }
 
 /* ---------- oír ---------- */
 let AUD = null;
@@ -674,7 +776,9 @@ function fileOf(rec){
   const name = `mensaje-${day(d)}-${hh}${mm}.${ext}`, type = ext === "m4a" ? "audio/mp4" : base;
   try{ return new File([rec.buf], name, {type}); }catch(e){ const b = new Blob([rec.buf], {type}); try{ b.name = name; }catch(e2){} return b; }
 }
-const shareText = () => { const n = kidName(); return `Un mensaje ${n ? `de ${n} ` : ""}desde la app Vocabulary. Para contestar con una carta, abre: ${appUrl()}#/buzon/responder`; };
+/* el enlace para contestar lleva el idioma que aprende y su nombre (así el formulario del mayor ya los trae) */
+const replyUrl = () => { const n = kidName(); return `${appUrl()}#/buzon/responder?l=${curAb()}${n ? "&n=" + encodeURIComponent(n) : ""}`; };
+const shareText = () => { const n = kidName(); return `Un mensaje ${n ? `de ${n} ` : ""}desde la app Vocabulary. Para contestar con una carta, abre: ${replyUrl()}`; };
 function download(file){
   let url; try{ url = URL.createObjectURL(file); }catch(e){ return false; }
   const a = D.createElement("a"); a.href = url; a.download = file.name || "mensaje.webm"; a.rel = "noopener"; a.hidden = true;
@@ -682,10 +786,21 @@ function download(file){
   setTimeout(() => { try{ URL.revokeObjectURL(url); }catch(e){} }, 60000);
   return true;
 }
-/* dentro del toque: Web Share con el archivo si se puede; si no, se descarga y una hoja da el texto para mandarlo */
+/* «Mandar» abre otra app (el menú de compartir del aparato): antes, la Puerta de mayores (se recuerda 5 minutos, así
+   que dentro de ese rato manda al momento, dentro del toque). Web Share con el archivo si se puede; si no, se descarga
+   y una hoja da el texto para mandarlo. */
 function send(rec, from){
   if(!rec || !rec.buf) return;
   stopAudio();
+  if(W.adultGate && !adultGate.passed()){
+    Promise.resolve(adultGate({reason: "Para mandar tu audio con otra app. Tú eliges a quién.", from: from || null})).catch(() => false).then(ok => {
+      if(ok && onBuzon()) share(rec, from, true);
+    });
+    return;
+  }
+  share(rec, from, false);
+}
+function share(rec, from, late){
   const file = fileOf(rec), text = shareText(), N = navigator;
   let can = false;
   try{ can = typeof N.share === "function" && typeof N.canShare === "function" && N.canShare({files: [file]}); }catch(e){ can = false; }
@@ -693,6 +808,8 @@ function send(rec, from){
     let p; try{ p = N.share({files: [file], text, title: "Un mensaje para ti"}); }catch(e){ p = Promise.reject(e); }
     Promise.resolve(p).then(() => sent(rec, false), e => {
       if(e && e.name === "AbortError") return;   /* lo cerró sin mandar: no pasa nada */
+      /* tras la Puerta, el navegador puede pedir otro toque para abrir el menú de compartir */
+      if(late && e && e.name === "NotAllowedError"){ notice("¡Listo! Toca «Mandar» otra vez.", IC("paper-plane-tilt", "bold", 22)); return; }
       download(file); sent(rec, true); textSheet(file, from);
     });
     return;
@@ -726,11 +843,11 @@ function closeSheet(d, now){
   if(!d || !d.open) return;
   if(!now && W.M && typeof M.closeSheet === "function" && d.classList.contains("m-sheet")) M.closeSheet(d); else d.close();
 }
-const closeSheets = () => ["mb-tx-s", "mb-paste-s"].forEach(id => closeSheet($id(id), true));
+const closeSheets = () => ["mb-tx-s", "mb-paste-s", "mb-pick-s", "mb-res"].forEach(id => closeSheet($id(id), true));
 function textSheet(file, from){
   const d = sheet("mb-tx-s", "mb-tx-t");
   d.innerHTML = `<div class="m-head"><h2 id="mb-tx-t">Audio guardado</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
-    <p>Se ha guardado «<b data-t="f"></b>». Mándaselo a tu tío con este texto:</p>
+    <p>Se ha guardado «<b data-t="f"></b>». Mándaselo a tu tío, o a quien quieras, con este texto:</p>
     <textarea class="mb-link" id="mb-tx" readonly rows="4" aria-label="Texto para mandar"></textarea>
     <button type="button" class="glass-btn glass-btn--pri glass-btn--block" id="mb-tx-c">${IC("copy", "bold", 20)}Copiar el texto</button>
     <p class="mb-cp" id="mb-tx-m" role="status" aria-live="polite"></p>`;
@@ -752,7 +869,7 @@ function pasteSheet(from){
   const go = () => {
     const v = String(inp.value || "").trim(), m = /[#?&]d=([A-Za-z0-9_-]+)/.exec(v), dd = m ? m[1] : /^[A-Za-z0-9_-]{8,}$/.test(v) ? v : "";
     if(!dd || !decode(dd)){ err.hidden = false; return; }
-    closeSheet(d, true); location.hash = "#/carta?d=" + dd;
+    closeSheet(d, true); HERE = dd; location.hash = "#/carta?d=" + dd;
   };
   inp.addEventListener("input", () => { err.hidden = true; });
   inp.addEventListener("keydown", e => { if(e.key === "Enter"){ e.preventDefault(); go(); } });
@@ -767,10 +884,10 @@ function homeHtml(){
   const T = tplOf(TPLID), ab = curAb(), L = LANGS[lang] || {};
   return `<div class="mb" id="mb-home">
     <header class="mb-hd"><img class="mb-hd-i" src="${IMG.box}" alt="" width="60" height="60" draggable="false">
-      <div><h1 class="mb-t">Buzón del tío</h1><p class="mb-sub">Grábale un mensaje en ${esc(L.name || "")}</p></div></header>
+      <div><h1 class="mb-t">Buzón del tío</h1><p class="mb-sub">Graba un mensaje en ${esc(L.name || "")} para tu tío o para quien quieras</p></div></header>
     <section class="card mb-card" aria-labelledby="mb-rec-h">
       <h2 class="mb-h" id="mb-rec-h">¿Qué le dices?</h2>
-      <div class="mb-tpls" role="radiogroup" aria-label="Frases para empezar">${TPL.map((t, i) => `<button type="button" class="mb-tpl" role="radio" data-tpl="${t.id}" data-key="${i + 1}" aria-checked="${t === T}"><img src="${t.img}" alt="" width="40" height="40" draggable="false"><span>${esc(t.t)}</span></button>`).join("")}</div>
+      <div class="mb-tpls" role="radiogroup" aria-label="Frases para empezar">${TPL.map((t, i) => `<button type="button" class="mb-tpl" role="radio" data-tpl="${t.id}" data-key="${i + 1}" data-key-pos="in" aria-checked="${t === T}" tabindex="${t === T ? 0 : -1}"><img src="${t.img}" alt="" width="40" height="40" draggable="false"><span>${esc(t.t)}</span></button>`).join("")}</div>
       <div class="mb-phr"><div class="mb-phr-x"><p class="mb-phr-t" id="mb-phr" lang="${esc(L.code || ab)}">${esc(T.w[ab])}</p><p class="mb-phr-es" id="mb-phr-es">${esc(T.es)}</p></div>
         <button type="button" class="mb-spk" id="mb-spk" data-key="space" aria-label="Oír la frase">${IC("speaker-high", "fill", 24)}</button></div>
       <div class="mb-ctl" id="mb-ctl"></div>
@@ -781,13 +898,23 @@ function homeHtml(){
     <p class="mb-foot"><button type="button" class="mb-quiet" id="mb-paste" aria-haspopup="dialog">${IC("clipboard-text", "bold", 20)}Pegar el enlace de una carta</button></p>
   </div>`;
 }
-const recBtn = (st) => `<button type="button" class="mb-rb${st === "rec" ? " is-rec" : ""}" id="mb-rb" data-key="enter" aria-label="${st === "rec" ? "Parar la grabación" : "Grabar"}"${st === "ask" || st === "saving" ? ' aria-busy="true"' : ""}>
+const recBtn = (st) => `<button type="button" class="mb-rb${st === "rec" ? " is-rec" : st === "count" ? " is-count" : ""}" id="mb-rb" data-key="enter" aria-label="${st === "rec" ? "Parar la grabación" : "Grabar"}"${st === "ask" || st === "saving" || st === "count" ? ' aria-busy="true"' : ""}>
     <svg class="mb-ring" viewBox="0 0 120 120" aria-hidden="true"><circle class="mb-ring-bg" cx="60" cy="60" r="56"/><circle class="mb-ring-fg" id="mb-ring-fg" cx="60" cy="60" r="56" pathLength="100" stroke-dasharray="${st === "rec" ? "100 100" : "0 100"}"/></svg>
-    <span class="mb-rb-in" aria-hidden="true">${st === "rec" ? IC("stop", "fill", 40) : IC("microphone", "fill", 44)}</span></button>`;
-const NOTE = "Para grabarte, el navegador te preguntará si puede usar el micrófono. Tu voz se queda en este aparato.";
+    <span class="mb-rb-in" aria-hidden="true">${st === "rec" ? IC("stop", "fill", 40) : st === "count" ? "3" : IC("microphone", "fill", 44)}</span></button>`;
+const NOTE = "Para grabarte, el navegador te preguntará si puede usar el micrófono. Tu voz se queda en este aparato hasta que tú la mandes.";
 const info = (t, again) => `<p class="mb-info">${IC("info", "bold", 22)}<span>${esc(t)}</span></p>${again ? `<button type="button" class="glass-btn" id="mb-retry">${IC("arrow-counter-clockwise", "bold", 20)}Probar otra vez</button>` : ""}`;
 function paintCtl(){
   const el = $id("mb-ctl"); if(!el) return;
+  /* el foco vuelve al botón equivalente después de pintar (con teclado o lector de pantalla no se pierde el sitio) */
+  const ae = D.activeElement, had = ae && ae !== D.body && el.contains(ae) ? (ae.id || "x") : "";
+  paintCtl0(el);
+  lockTpls();
+  if(had){
+    const t = (had !== "x" && $id(had) && el.contains($id(had)) ? $id(had) : null) || el.querySelector("#mb-rb, #mb-send, #mb-new, #mb-retry, button");
+    if(t) try{ t.focus({preventScroll: true}); }catch(e){}
+  }
+}
+function paintCtl0(el){
   const st = R.st;
   if(st === "nomic"){ el.innerHTML = info("Este aparato no puede grabar. ¡Puedes oír las frases y decirlas en voz alta!", false); return; }
   if(st === "denied"){ el.innerHTML = info("El micrófono está apagado para esta web. Pide a un mayor que lo active en los ajustes del navegador.", true); wireCtl(el); return; }
@@ -800,9 +927,10 @@ function paintCtl(){
         ${R.saved === false ? `<p class="mb-note">En este navegador no se puede guardar: mándalo ahora.</p>` : ""}
         <div class="mb-btns"><button type="button" class="glass-btn" id="mb-play" aria-pressed="false"><span class="mb-pi">${IC("play", "fill", 20)}</span>Escucharme</button>
           <button type="button" class="glass-btn" id="mb-again">${IC("arrow-counter-clockwise", "bold", 20)}Otra vez</button></div>
-        <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="mb-send" data-key="enter">${IC("paper-plane-tilt", "bold", 22)}Mandar</button>`
+        <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="mb-send" data-key="enter">${IC("paper-plane-tilt", "bold", 22)}Mandar</button>
+        <p class="mb-note" id="mb-send-n">${esc(SEND_NOTE)}</p>`
       : `<p class="mb-ok">${IC("check-circle", "fill", 24)}${R.fb ? "¡Audio guardado!" : "¡Mensaje listo!"}</p>
-        <p class="mb-note">${R.fb ? "Mándaselo a tu tío con el texto para contestar." : "Cuando tu tío conteste, su carta llegará aquí."}</p>
+        <p class="mb-note">${R.fb ? "Mándaselo a tu tío, o a quien quieras, con el texto para contestar." : "Cuando te contesten, te llegará un enlace: ábrelo y la carta aparecerá aquí."}</p>
         <div class="mb-btns"><button type="button" class="glass-btn" id="mb-play" aria-pressed="false"><span class="mb-pi">${IC("play", "fill", 20)}</span>Escucharme</button>
           <button type="button" class="glass-btn glass-btn--pri" id="mb-new" data-key="enter">${IC("microphone", "fill", 20)}Grabar otro</button></div>`;
     const p = $id("mb-play"); if(p && c) p.onclick = () => playRec(c, p);
@@ -811,12 +939,13 @@ function paintCtl(){
     const n = $id("mb-new"); if(n) n.onclick = () => { stopAudio(); R.cur = null; R.st = "idle"; paintCtl(); };
     return;
   }
-  const lbl = st === "ask" ? "Esperando al micrófono…" : st === "saving" ? "Guardando…" : st === "rec" ? `Grabando… quedan ${Math.max(0, Math.ceil((MAXMS - (performance.now() - R.t0)) / 1000))} s`
+  const lbl = st === "ask" ? "Esperando al micrófono…" : st === "count" ? "¡Prepárate!" : st === "saving" ? "Guardando…" : st === "rec" ? `Grabando… quedan ${Math.max(0, Math.ceil((MAXMS - (performance.now() - R.t0)) / 1000))} s`
     : st === "short" ? "Muy cortito. ¡Prueba otra vez!" : "Toca para grabar";
   el.innerHTML = `${recBtn(st)}<p class="mb-rl" id="mb-rl">${esc(lbl)}</p>${PERM !== "granted" && (st === "idle" || st === "short" || st === "ask") ? `<p class="mb-note" id="mb-note">${NOTE}</p>` : ""}`;
   wireCtl(el);
   if(st === "rec") ring();
 }
+const SEND_NOTE = "Se manda tu audio y un enlace para que te contesten. Tú eliges a quién.";
 function wireCtl(el){
   const b = el.querySelector("#mb-rb");
   if(b) b.onclick = () => { if(R.st === "rec") stopRec(); else if(R.st === "idle" || R.st === "short") startRec(); };
@@ -856,22 +985,35 @@ function paintLetters(){
   }).join("");
   [...el.querySelectorAll("[data-id]")].forEach((a, i) => { txt(a, "[data-t=from]", b.l[i].from); });
 }
+/* un grupo de opciones (role=radio): flechas para moverse y un solo botón en el orden de tabulación */
+function radioKeys(group, sel, pick){
+  group.addEventListener("keydown", e => {
+    const k = e.key; if(!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Home", "End"].includes(k)) return;
+    const all = [...group.querySelectorAll(sel)].filter(b => b.getAttribute("aria-disabled") !== "true"); if(!all.length) return;
+    const i = Math.max(0, all.indexOf(D.activeElement));
+    const j = k === "Home" ? 0 : k === "End" ? all.length - 1 : (i + (k === "ArrowLeft" || k === "ArrowUp" ? -1 : 1) + all.length) % all.length;
+    e.preventDefault(); all[j].focus(); pick(all[j]);
+  });
+}
+const roving = (group, sel, on) => group.querySelectorAll(sel).forEach(b => { b.setAttribute("aria-checked", String(b === on)); b.tabIndex = b === on ? 0 : -1; });
 function homeView(my){
   const app = $id("app");
-  if(R.st === "rec" || R.st === "ask") cancelRec();
+  if(busy() && R.st !== "saving") cancelRec();
   /* al volver al Buzón se empieza otra vez: lo ya grabado está en «Tus grabaciones» */
   if(R.st !== "saving" && R.st !== "nomic"){ stopAudio(); R.cur = null; R.st = canRec() ? (PERM === "denied" ? "denied" : "idle") : "nomic"; }
   app.innerHTML = homeHtml();
   paintCtl(); paintLetters(); paintRecs(); permCheck();
   const tp = app.querySelector(".mb-tpls");
-  tp.addEventListener("click", e => {
-    const b = e.target.closest(".mb-tpl"); if(!b) return;
+  const pickTpl = (b, talk) => {
+    if(busy() || !b) return;   /* grabando: la frase no cambia ni suena */
     TPLID = b.dataset.tpl;
-    tp.querySelectorAll(".mb-tpl").forEach(x => x.setAttribute("aria-checked", String(x === b)));
+    roving(tp, ".mb-tpl", b);
     const T = tplOf(TPLID); txt(app, "#mb-phr", T.w[curAb()]); txt(app, "#mb-phr-es", T.es);
-    if(typeof say === "function") say(T.w[curAb()], $id("mb-spk"));
-  });
-  $id("mb-spk").onclick = e => { if(typeof say === "function") say(tplOf(TPLID).w[curAb()], e.currentTarget); };
+    if(talk && typeof say === "function") say(T.w[curAb()], $id("mb-spk"));
+  };
+  tp.addEventListener("click", e => pickTpl(e.target.closest(".mb-tpl"), true));
+  radioKeys(tp, ".mb-tpl", b => pickTpl(b, true));
+  $id("mb-spk").onclick = e => { if(busy()) return; if(typeof say === "function") say(tplOf(TPLID).w[curAb()], e.currentTarget); };
   $id("mb-recs-l").addEventListener("click", e => {
     const row = e.target.closest(".mb-rr"), r = row && RECS.find(x => x.id === row.dataset.id); if(!r) return;
     if(e.target.closest("[data-play]")) playRec(r, e.target.closest("[data-play]"));
@@ -881,73 +1023,120 @@ function homeView(my){
 }
 
 /* ---------- #/buzon/responder (mayores) ---------- */
-const FORM = {from: "", to: "", lang: "", msg: "", mode: "gift", gift: "20", lock: "les3"};
+const FORM = {from: "", to: "", lang: "", msg: "", mode: "gift", gift: "20", lock: "les3", made: null};
+/* una carta con regalo necesita la Puerta resuelta para ella: la de entrar al formulario vale para una; después (o si
+   se entró con la Puerta aún recordada de otra cosa) se vuelve a preguntar. Así un niño no se fabrica monedas. */
+let GIFTOK = false;
+/* lo que trae el enlace de «Mandar»: ?l=<en|fr|da>&n=<nombre del niño> */
+function replyParams(){
+  const q = new URLSearchParams(location.hash.split("?")[1] || ""), l = q.get("l"), n = q.get("n");
+  return {lang: l && has(LK, l) ? l : "", name: n ? cleanText(n, 24, false) || "" : ""};
+}
 function gateHtml(){
+  const p = replyParams();
+  const who = p.name ? `${p.name} te ha mandado un audio${p.lang ? ` en ${lname(p.lang)}` : ""}. Contéstale con una carta.` : "Aquí un mayor contesta con una carta.";
   return `<div class="mb" id="mb-gate"><div class="card mb-bad">
-    <div class="mb-bad-i" aria-hidden="true">${IC("lock", "bold", 28)}</div>
+    <div class="mb-bad-i mb-lock-i" aria-hidden="true">${IC("envelope-simple", "bold", 28)}</div>
     <h1 class="mb-t">Para mayores</h1>
-    <p>Aquí un mayor escribe la carta de respuesta. Antes, una cuenta muy fácil.</p>
-    <button type="button" class="glass-btn glass-btn--pri" id="mb-gate-go" data-key="enter">${IC("lock-open", "bold", 20)}Soy mayor</button>
+    <p><span data-t="who">${esc(who)}</span> Antes, una cuenta muy fácil.</p>
+    <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="mb-gate-go" data-key="enter">${IC("lock-open", "bold", 20)}Soy mayor</button>
     <a class="glass-btn" href="#/buzon">Volver al Buzón</a></div></div>`;
 }
 function askGate(my, from){
-  if(!W.adultGate){ formView(my); return; }
+  if(!W.adultGate){ GIFTOK = true; formView(my); return; }
   GATE = true;
+  try{ adultGate.forget(); }catch(e){}   /* siempre una cuenta de verdad, aunque quede abierta de otra cosa */
   Promise.resolve(adultGate({reason: "Para escribir una carta de respuesta.", from: from || null})).catch(() => false).then(ok => {
     GATE = false;
     if(my !== NAV || hashPath() !== "buzon/responder") return;
-    if(ok) formView(my);
+    if(ok){ GIFTOK = true; formView(my); }
   });
 }
 function replyView(my){
   const app = $id("app");
-  if(W.adultGate && (adultGate.passed() || Date.now() - PASS < 8000)){ PASS = 0; formView(my); return; }
+  const p = replyParams();
+  if(p.lang || p.name){ FORM.lang = p.lang || FORM.lang; FORM.to = p.name || FORM.to; FORM.made = null; }
+  /* desde Ajustes › Para mayores (acaba de pasar la Puerta) entra sin otra pregunta; una carta con regalo la pedirá */
+  if(W.adultGate && Date.now() - PASS < 8000){ PASS = 0; GIFTOK = false; formView(my); return; }
   /* antes de nada, para qué es (quien abre el enlace de la respuesta no ve una cuenta de la nada): la Puerta sale al tocar */
   app.innerHTML = gateHtml();
   $id("mb-gate-go").onclick = e => askGate(my, e.currentTarget);
 }
-const giftOpts = () => [{v: "20", img: IMG.coin, t: "20 monedas"}, {v: "50", img: IMG.coin, t: "50 monedas"},
-  ...adornos().map(it => ({v: it.id, html: W.vocabShop && typeof vocabShop.img === "function" ? vocabShop.img(it) : "", t: it.n}))];
+const COIN_OPTS = () => [{v: "20", img: IMG.coin, t: "20 monedas"}, {v: "50", img: IMG.coin, t: "50 monedas"}];
+const deco = () => adornos().map(it => ({v: it.id, html: W.vocabShop && typeof vocabShop.img === "function" ? vocabShop.img(it) : "", t: it.n}));
+const giftOpts = () => [...COIN_OPTS(), ...deco()];
+const giftName = v => { const o = giftOpts().find(x => x.v === v); return o ? cap(o.t) : ""; };
+const lockName = (k, l) => { const K = LOCKS[k]; return K ? K.form(l) : ""; };
+const pickValue = () => FORM.mode === "gift" ? giftName(FORM.gift) : ({les3: "3 lecciones", rev30: "30 palabras", days3: "3 días"})[FORM.lock] || "";
 function formHtml(){
   const l = FORM.lang || curAb();
   return `<div class="mb mb-form" id="mb-form">
     <header class="mb-hd"><img class="mb-hd-i" src="${IMG.env}" alt="" width="60" height="60" draggable="false">
-      <div><h1 class="mb-t">Contestar con una carta</h1><p class="mb-sub">La carta va dentro del enlace: no pasa por ningún servidor.</p></div></header>
+      <div><h1 class="mb-t">Contestar con una carta</h1><p class="mb-sub">La carta va dentro del enlace: no pasa por ningún servidor de la app, solo por la app con la que lo mandes.</p></div></header>
     <form id="mb-f" novalidate autocomplete="off">
-    <section class="st-sec"><h2 class="st-h" id="mb-f-de">De</h2><div class="st-g">
-      <label class="st-r mb-fr"><input class="mb-fi" id="mb-from" name="from" maxlength="24" placeholder="Tu nombre, por ejemplo «Tío Juan»" aria-labelledby="mb-f-de" required></label></div>
+    <section class="st-sec"><div class="st-g">
+      <label class="st-r mb-fr"><span class="mb-fl" id="mb-f-de">De</span><input class="mb-fi" id="mb-from" name="from" maxlength="24" placeholder="Tu nombre: «Tío Juan»" aria-labelledby="mb-f-de" required></label>
+      <label class="st-r mb-fr"><span class="mb-fl" id="mb-f-para">Para</span><input class="mb-fi" id="mb-to" name="to" maxlength="24" placeholder="Su nombre (si quieres)" aria-labelledby="mb-f-para"></label></div>
       <p class="mb-err" id="mb-e-from" hidden><span aria-hidden="true">✗</span><span>Escribe tu nombre</span></p></section>
-    <section class="st-sec"><h2 class="st-h" id="mb-f-para">Para (si quieres)</h2><div class="st-g">
-      <label class="st-r mb-fr"><input class="mb-fi" id="mb-to" name="to" maxlength="24" placeholder="Su nombre" aria-labelledby="mb-f-para"></label></div></section>
-    <section class="st-sec"><h2 class="st-h" id="mb-f-l">Idioma de la carta</h2>
-      <div class="seg mb-seg" role="radiogroup" aria-labelledby="mb-f-l">${Object.keys(LK).map(k => `<button type="button" class="seg-i" role="radio" data-l="${k}" aria-checked="${k === l}">${esc(cap(lname(k)))}</button>`).join("")}</div></section>
+    <section class="st-sec"><h2 class="st-h" id="mb-f-l">Idioma que aprende</h2>
+      <div class="seg mb-seg" role="radiogroup" aria-labelledby="mb-f-l" aria-describedby="mb-f-ln">${Object.keys(LK).map(k => `<button type="button" class="seg-i" role="radio" data-l="${k}" aria-checked="${k === l}" tabindex="${k === l ? 0 : -1}">${esc(cap(lname(k)))}</button>`).join("")}</div>
+      <p class="mb-fnote" id="mb-f-ln">Puedes escribir en español. La voz lee la carta en el idioma en que la escribas.</p></section>
     <section class="st-sec"><h2 class="st-h" id="mb-f-m">Mensaje</h2><div class="st-g">
       <label class="st-r mb-fr col"><textarea class="mb-fi" id="mb-msg" name="msg" maxlength="280" rows="5" placeholder="¡Qué bien hablas! Estoy muy orgulloso de ti." aria-labelledby="mb-f-m" aria-describedby="mb-cnt"></textarea>
         <span class="mb-cnt" id="mb-cnt" aria-live="polite">0 / 280</span></label></div>
       <p class="mb-err" id="mb-e-msg" hidden><span aria-hidden="true">✗</span><span>Escribe el mensaje</span></p></section>
     <section class="st-sec"><h2 class="st-h" id="mb-f-s">Sorpresa</h2>
       <div class="seg mb-seg" role="radiogroup" aria-labelledby="mb-f-s">
-        <button type="button" class="seg-i" role="radio" data-mode="gift" aria-checked="${FORM.mode === "gift"}">${IC("gift", "bold", 18)}Un regalo</button>
-        <button type="button" class="seg-i" role="radio" data-mode="lock" aria-checked="${FORM.mode === "lock"}">${IC("lock", "bold", 18)}Un candado</button></div>
-      <div class="st-g" id="mb-gifts" style="margin-top:10px"${FORM.mode === "gift" ? "" : " hidden"}><div class="mb-opts" role="radiogroup" aria-label="Regalo">${giftOpts().map(o => `<label class="mb-opt${FORM.gift === o.v ? " is-on" : ""}"><input type="radio" name="gift" value="${esc(o.v)}"${FORM.gift === o.v ? " checked" : ""}>${o.img ? `<img src="${o.img}" alt="" width="44" height="44" draggable="false">` : o.html || ""}<span>${esc(cap(o.t))}</span></label>`).join("")}</div></div>
-      <div class="st-g" id="mb-locks" style="margin-top:10px"${FORM.mode === "lock" ? "" : " hidden"}><div class="mb-opts rows" role="radiogroup" aria-label="Candado" id="mb-lock-l"></div></div>
-      <p class="mb-foot" style="margin:8px 16px 0;justify-content:flex-start"><span class="mb-note" id="mb-s-note"></span></p></section>
-    <button type="submit" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="mb-make" data-key="enter">${IC("envelope-simple", "bold", 22)}Crear el enlace</button>
+        <button type="button" class="seg-i" role="radio" data-mode="gift" aria-checked="${FORM.mode === "gift"}" tabindex="${FORM.mode === "gift" ? 0 : -1}">${IC("gift", "bold", 18)}Un regalo</button>
+        <button type="button" class="seg-i" role="radio" data-mode="lock" aria-checked="${FORM.mode === "lock"}" tabindex="${FORM.mode === "lock" ? 0 : -1}">${IC("lock", "bold", 18)}Un candado</button></div>
+      <div class="st-g" style="margin-top:8px"><button type="button" class="st-r mb-pick" id="mb-pick" aria-haspopup="dialog">
+        <span class="st-l" id="mb-pick-l"></span><span class="mb-pv" id="mb-pv"></span>${IC("caret-right", "bold", 16, "mb-chev")}</button></div>
+      <p class="mb-fnote" id="mb-s-note"></p></section>
+    <button type="submit" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="mb-make" data-key="enter"></button>
     </form>
-    <section class="card mb-card mb-res" id="mb-res" hidden aria-labelledby="mb-res-h" style="margin-top:18px">
-      <h2 class="mb-h" id="mb-res-h">¡Carta lista!</h2>
-      <p>Mándale este enlace por WhatsApp o por correo. Al abrirlo, la carta llega a su Buzón.</p>
-      <textarea class="mb-link" id="mb-link" readonly rows="4" aria-label="Enlace de la carta"></textarea>
-      <div class="mb-btns">${typeof navigator.share === "function" ? `<button type="button" class="glass-btn glass-btn--pri" id="mb-share">${IC("share-network", "bold", 20)}Compartir</button>` : ""}
-        <button type="button" class="glass-btn${typeof navigator.share === "function" ? "" : " glass-btn--pri"}" id="mb-copy">${IC("copy", "bold", 20)}Copiar</button></div>
-      <button type="button" class="glass-btn glass-btn--block" id="mb-another">${IC("pencil-simple", "bold", 20)}Escribir otra</button>
-      <p class="mb-cp" id="mb-cp" role="status" aria-live="polite"></p></section>
   </div>`;
 }
 const cap = s => s ? s[0].toUpperCase() + s.slice(1) : s;
-function lockOpts(l){
-  const el = $id("mb-lock-l"); if(!el) return;
-  el.innerHTML = Object.keys(LOCKS).map(k => `<label class="mb-opt${FORM.lock === k ? " is-on" : ""}"><input type="radio" name="lock" value="${k}"${FORM.lock === k ? " checked" : ""}>${IC(LOCKS[k].ic, "bold", 22)}<span>${esc(LOCKS[k].form(l))}</span></label>`).join("");
+/* la fila «Regalo ……… 50 monedas ›» o «Candado ……… 3 lecciones ›», su nota y el botón de abajo */
+function paintPick(){
+  const g = FORM.mode === "gift";
+  txt(D, "#mb-pick-l", g ? "Regalo" : "Candado");
+  txt(D, "#mb-pv", pickValue());
+  const pk = $id("mb-pick"); if(pk) pk.setAttribute("aria-label", `${g ? "Regalo" : "Candado"}: ${g ? pickValue() : lockName(FORM.lock, FORM.lang || curAb())}. Cambiar`);
+  txt(D, "#mb-s-note", g ? "El regalo se da una sola vez, al abrir la carta." : `${lockName(FORM.lock, FORM.lang || curAb())}: la carta llega cerrada y se abre sola al conseguirlo.`);
+  const mk = $id("mb-make"); if(!mk) return;
+  /* con el enlace ya hecho, el botón pasa a gris («Ver el enlace»); cualquier cambio hace otra carta */
+  mk.classList.toggle("glass-btn--pri", !FORM.made);
+  mk.innerHTML = FORM.made ? `${IC("eye", "bold", 22)}Ver el enlace` : `${IC("envelope-simple", "bold", 22)}Crear el enlace`;
+}
+function changed(){ if(FORM.made){ FORM.made = null; paintPick(); } }
+/* las hojas para elegir el regalo (Monedas · Adornos) o el candado: tocar una opción la elige y cierra */
+function pickSheet(from){
+  const g = FORM.mode === "gift", l = FORM.lang || curAb();
+  const d = sheet("mb-pick-s", "mb-pk-t");
+  const opt = o => `<label class="mb-opt${FORM.gift === o.v ? " is-on" : ""}"><input type="radio" name="gift" value="${esc(o.v)}"${FORM.gift === o.v ? " checked" : ""}>${o.img ? `<img src="${o.img}" alt="" width="44" height="44" draggable="false">` : o.html || ""}<span>${esc(cap(o.t))}</span></label>`;
+  d.innerHTML = `<div class="m-head"><h2 id="mb-pk-t">${g ? "Regalo" : "Candado"}</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
+    ${g ? `<h3 class="mb-gh">Monedas</h3><div class="st-g"><div class="mb-opts" role="radiogroup" aria-label="Monedas">${COIN_OPTS().map(opt).join("")}</div></div>
+      <h3 class="mb-gh">Adornos para la granja</h3><div class="st-g"><div class="mb-opts" role="radiogroup" aria-label="Adornos">${deco().map(opt).join("")}</div></div>
+      <p class="mb-fnote">Si ya tiene ese adorno, le llegan 20 monedas.</p>`
+    : `<div class="st-g"><div class="mb-opts rows" role="radiogroup" aria-label="Candado" id="mb-lock-l">${Object.keys(LOCKS).map(k => `<label class="mb-opt${FORM.lock === k ? " is-on" : ""}"><input type="radio" name="lock" value="${k}"${FORM.lock === k ? " checked" : ""}>${IC(LOCKS[k].ic, "bold", 22)}<span>${esc(LOCKS[k].form(l))}</span>${IC("check", "bold", 20, "mb-ck")}</label>`).join("")}</div></div>
+      <p class="mb-fnote">Cuenta lo que haga desde que abra el enlace.</p>`}`;
+  d.onchange = e => {
+    const r = e.target; if(!r || r.type !== "radio") return;
+    if(r.name === "gift") FORM.gift = r.value; else if(r.name === "lock") FORM.lock = r.value; else return;
+    d.querySelectorAll(`input[name="${r.name}"]`).forEach(x => x.closest(".mb-opt").classList.toggle("is-on", x.checked));
+    changed(); paintPick();
+    setTimeout(() => closeSheet(d), rm() ? 0 : 120);
+  };
+  /* tocar la que ya estaba elegida también cierra la hoja (no hay cambio que avise) */
+  let pre = null;
+  d.onpointerdown = e => { const o = e.target.closest && e.target.closest(".mb-opt"), r = o && o.querySelector("input"); pre = r && r.checked ? r : null; };
+  d.onclick = e => {
+    const o = e.target.closest && e.target.closest(".mb-opt"); if(!o || !pre || o.querySelector("input") !== pre) return;
+    pre = null; setTimeout(() => closeSheet(d), rm() ? 0 : 120);
+  };
+  openSheet(d, from);
+  const on = d.querySelector("input:checked"); if(on) setTimeout(() => { try{ on.focus({preventScroll: true}); }catch(e){} }, 60);
 }
 function formView(my){
   const app = $id("app");
@@ -957,35 +1146,57 @@ function formView(my){
   const f = $id("mb-f"), from = $id("mb-from"), to = $id("mb-to"), msg = $id("mb-msg"), cnt = $id("mb-cnt");
   from.value = FORM.from; to.value = FORM.to; msg.value = FORM.msg;
   const count = () => { cnt.textContent = `${[...msg.value].length} / 280`; };
-  count();
-  lockOpts(FORM.lang);
-  const note = () => txt(app, "#mb-s-note", FORM.mode === "gift" ? "El regalo se da una sola vez, al abrir la carta." : "La carta llega cerrada y se abre sola al conseguirlo.");
-  note();
-  from.addEventListener("input", () => { FORM.from = from.value; $id("mb-e-from").hidden = true; });
-  to.addEventListener("input", () => { FORM.to = to.value; });
-  msg.addEventListener("input", () => { FORM.msg = msg.value; count(); $id("mb-e-msg").hidden = true; });
-  app.querySelectorAll("[data-l]").forEach(b => b.addEventListener("click", () => {
-    FORM.lang = b.dataset.l; app.querySelectorAll("[data-l]").forEach(x => x.setAttribute("aria-checked", String(x === b))); lockOpts(FORM.lang);
-  }));
-  app.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
-    FORM.mode = b.dataset.mode; app.querySelectorAll("[data-mode]").forEach(x => x.setAttribute("aria-checked", String(x === b)));
-    $id("mb-gifts").hidden = FORM.mode !== "gift"; $id("mb-locks").hidden = FORM.mode !== "lock"; note();
-  }));
-  app.addEventListener("change", e => {
-    const r = e.target; if(!r || r.type !== "radio") return;
-    if(r.name === "gift") FORM.gift = r.value; else if(r.name === "lock") FORM.lock = r.value; else return;
-    app.querySelectorAll(`input[name="${r.name}"]`).forEach(x => x.closest(".mb-opt").classList.toggle("is-on", x.checked));
-  });
-  f.addEventListener("submit", e => { e.preventDefault(); make(app); });
-  $id("mb-copy").onclick = async () => { const ta = $id("mb-link"), ok = await copy(ta.value, ta); txt(app, "#mb-cp", ok ? "¡Copiado! Pégalo en un mensaje." : "Mantén pulsado el enlace para copiarlo."); };
-  const sh = $id("mb-share");
-  if(sh) sh.onclick = () => {
-    const u = $id("mb-link").value, t = FORM.to ? `¡${cleanText(FORM.to, 24, false) || ""}, tienes carta en el Buzón!` : "¡Tienes carta en el Buzón!";
-    try{ Promise.resolve(navigator.share({title: "Una carta para ti", text: t, url: u})).catch(() => {}); }catch(e){}
-  };
-  $id("mb-another").onclick = () => { FORM.msg = ""; formView(my); window.scrollTo(0, 0); };
+  count(); paintPick();
+  from.addEventListener("input", () => { FORM.from = from.value; $id("mb-e-from").hidden = true; changed(); });
+  to.addEventListener("input", () => { FORM.to = to.value; changed(); });
+  msg.addEventListener("input", () => { FORM.msg = msg.value; count(); $id("mb-e-msg").hidden = true; changed(); });
+  const segL = app.querySelector('[aria-labelledby="mb-f-l"]'), segS = app.querySelector('[aria-labelledby="mb-f-s"]');
+  const pickL = b => { FORM.lang = b.dataset.l; roving(segL, "[data-l]", b); changed(); paintPick(); };
+  const pickS = b => { FORM.mode = b.dataset.mode; roving(segS, "[data-mode]", b); changed(); paintPick(); };
+  segL.querySelectorAll("[data-l]").forEach(b => b.addEventListener("click", () => pickL(b)));
+  segS.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => pickS(b)));
+  radioKeys(segL, "[data-l]", pickL); radioKeys(segS, "[data-mode]", pickS);
+  $id("mb-pick").onclick = e => pickSheet(e.currentTarget);
+  f.addEventListener("submit", e => { e.preventDefault(); if(FORM.made) resSheet($id("mb-make")); else make(app, my); });
 }
-function make(app){
+/* «¡Carta lista!»: una hoja con lo que lleva la carta (no el enlace entero), «Compartir» (o «Copiar» sin Web Share) */
+function resSheet(from){
+  const m = FORM.made; if(!m) return;
+  const share = typeof navigator.share === "function";
+  const d = sheet("mb-res", "mb-res-h");
+  const what = m.o.gift != null ? giftName(String(m.o.gift)) : lockName(m.o.lock, m.o.lang);
+  d.innerHTML = `<div class="m-head"><h2 id="mb-res-h">¡Carta lista!</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
+    <div class="mb-pre"><img src="${IMG.env}" alt="" width="44" height="44"><span><b data-t="t"></b><small data-t="s"></small></span></div>
+    <p>Mándale este enlace por WhatsApp o por correo. Al abrirlo, la carta llega a su Buzón.</p>
+    <p>Si usa la app desde la pantalla de inicio del iPhone o el iPad, que copie el enlace y lo pegue en Juegos › Buzón.</p>
+    <textarea class="mb-link vh" id="mb-link" readonly rows="3" aria-label="Enlace de la carta" tabindex="-1"></textarea>
+    <div class="mb-res-b">${share ? `<button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="mb-share" data-key="enter">${IC("share-network", "bold", 22)}Compartir</button>` : ""}
+      <button type="button" class="glass-btn glass-btn--block${share ? "" : " glass-btn--pri glass-btn--lg"}" id="mb-copy"${share ? "" : ' data-key="enter"'}>${IC("copy", "bold", 20)}Copiar el enlace</button>
+      <button type="button" class="glass-btn glass-btn--block" id="mb-another">${IC("pencil-simple", "bold", 20)}Escribir otra</button></div>
+    <p class="mb-cp" id="mb-cp" role="status" aria-live="polite"></p>`;
+  txt(d, "[data-t=t]", `Carta de ${m.o.from}`);
+  txt(d, "[data-t=s]", [m.o.to ? `Para ${m.o.to}` : "", what].filter(Boolean).join(" · "));
+  const ta = d.querySelector("#mb-link"); ta.value = m.u;
+  d.querySelector("#mb-copy").onclick = async () => {
+    const ok = await copy(ta.value, ta);
+    if(!ok){ ta.classList.remove("vh"); ta.removeAttribute("tabindex"); }
+    txt(d, "#mb-cp", ok ? "¡Copiado! Pégalo en un mensaje." : "Mantén pulsado el enlace para copiarlo.");
+  };
+  const sh = d.querySelector("#mb-share");
+  if(sh) sh.onclick = () => {
+    const t = m.o.to ? `¡${m.o.to}, tienes carta en el Buzón!` : "¡Tienes carta en el Buzón!";
+    try{ Promise.resolve(navigator.share({title: "Una carta para ti", text: t, url: m.u})).catch(() => {}); }catch(e){}
+  };
+  d.querySelector("#mb-another").onclick = () => {
+    FORM.msg = ""; FORM.made = null;
+    closeSheet(d, true);
+    const app = $id("app"); if(app && $id("mb-f")){ $id("mb-msg").value = ""; $id("mb-cnt").textContent = "0 / 280"; paintPick(); }
+    try{ $id("mb-msg").focus({preventScroll: true}); }catch(e){}
+    window.scrollTo(0, 0);
+  };
+  openSheet(d, from);
+}
+async function make(app, my){
   const from = cleanText(FORM.from, 24, false), to = FORM.to.trim() ? cleanText(FORM.to, 24, false) : "", msg = cleanText(FORM.msg, 280, true);
   $id("mb-e-from").hidden = !!from; $id("mb-e-msg").hidden = !!msg;
   if(!from){ $id("mb-from").focus(); return; }
@@ -995,14 +1206,25 @@ function make(app){
   o.msg = msg; o.lang = has(LK, FORM.lang) ? FORM.lang : curAb();
   if(FORM.mode === "lock") o.lock = has(LOCKS, FORM.lock) ? FORM.lock : "les3";
   else o.gift = /^\d+$/.test(FORM.gift) ? +FORM.gift : FORM.gift;
+  /* una carta con regalo: la Puerta, salvo la recién resuelta para entrar (vale para una carta) */
+  if(o.gift != null && W.adultGate){
+    if(!GIFTOK){
+      try{ adultGate.forget(); }catch(e){}
+      GATE = true;
+      const ok = await Promise.resolve(adultGate({reason: "Para mandar un regalo en la carta.", from: $id("mb-make")})).catch(() => false);
+      GATE = false;
+      if(!ok || my !== NAV || !$id("mb-f")) return;
+    }
+    GIFTOK = false;
+  }
   const u = link(o);
   /* comprobación: el enlace se lee igual que se escribió */
   const back = u && decode(u.split("?d=")[1]);
-  if(!u || !back || JSON.stringify(back) !== JSON.stringify(clean(o))){ txt(app, "#mb-cp", "No se ha podido crear el enlace. Prueba con un mensaje más corto."); return; }
-  const res = $id("mb-res"); res.hidden = false;
-  $id("mb-link").value = u; txt(app, "#mb-cp", "");
-  try{ res.scrollIntoView({block: "start", behavior: rm() ? "auto" : "smooth"}); }catch(e){}
-  try{ ($id("mb-share") || $id("mb-copy")).focus({preventScroll: true}); }catch(e){}
+  if(!u || !back || JSON.stringify(back) !== JSON.stringify(clean(o))){ notice("No se ha podido crear el enlace. Prueba con un mensaje más corto."); return; }
+  if(o.gift != null) try{ adultGate.forget(); }catch(e){}   /* la siguiente con regalo vuelve a preguntar */
+  FORM.made = {u, o: back};
+  paintPick();
+  resSheet($id("mb-make"));
 }
 
 /* ---------- #/carta ---------- */
@@ -1012,18 +1234,60 @@ function badHtml(t, sub){
   return `<div class="mb"><div class="card mb-bad"><div class="mb-bad-i" aria-hidden="true">✗</div><h1 class="mb-t">${esc(t)}</h1><p>${esc(sub)}</p>
     <a class="glass-btn glass-btn--pri" href="#/buzon" data-key="enter">${IC("envelope-simple", "bold", 20)}Ir al Buzón</a></div></div>`;
 }
+/* el enlace pegado en «Pegar el enlace de una carta» o con «Abrir aquí» ya elegido: no se pregunta dónde abrirla */
+let HERE = "";
+/* #/carta?d=… → #/carta/<id> sin dejar el enlace en el historial */
+function applyRepl(){
+  const to = REPL; REPL = null;
+  if(!to || typeof hashPath !== "function" || hashPath() !== "carta") return;
+  try{ history.replaceState(history.state, "", location.pathname + location.search + to); }catch(e){ return; }
+  try{ if(TABMEM.jugar){ TABMEM.jugar.h = to; memSave(); } }catch(e){}
+}
 function cartaView(parts, my){
   const app = $id("app");
   if(!parts[0]){
     const q = new URLSearchParams(location.hash.split("?")[1] || "");
     if(!q.has("d")){ location.replace("#/buzon"); return; }
-    const r = receive(decode(q.get("d")));
-    if(!r){ REPL = "#/carta"; app.innerHTML = badHtml("Esta carta no se puede abrir", "Puede que el enlace llegara cortado. Pide que te lo manden otra vez."); return; }
+    const d = q.get("d"), c = decode(d);
+    if(!c){ REPL = "#/carta"; app.innerHTML = badHtml("Esta carta no se puede abrir", "Puede que el enlace llegara cortado. Pide que te lo manden otra vez."); return; }
+    /* en el iPhone o el iPad fuera de la app instalada (no ve lo guardado en ella), o con una partida nueva: antes de
+       que llegue (y de dar el regalo a una partida vacía), dónde abrirla */
+    const known = box().l.some(x => x.id === c.id);
+    if(!known && HERE !== d && (iosBrowser() || freshSave())){ whereView(app, d, c, my); return; }
+    HERE = "";
+    const r = receive(c);
     REPL = "#/carta/" + r.letter.id;
     letterView(app, r.letter.id, my);
     return;
   }
-  letterView(app, decodeURIComponent(parts[0]), my);
+  let id = ""; try{ id = decodeURIComponent(parts[0]); }catch(e){ id = ""; }
+  if(!ID_RE.test(id)){ app.innerHTML = badHtml("No encuentro esa carta", "Puede que se borrara. ¡Mira en tu Buzón!"); return; }
+  letterView(app, id, my);
+}
+function whereView(app, d, c, my){
+  const fresh = freshSave(), url = `${appUrl()}#/carta?d=${d}`;
+  app.innerHTML = `<div class="mb" id="mb-wv"><div class="mb-stage">${envHtml(!!c.lock)}</div>
+    <h1 class="mb-t mb-c">¡Tienes carta!</h1>
+    <p class="mb-sub mb-c"><span>De </span><b data-t="from"></b></p>
+    <section class="card mb-card mb-where" style="margin-top:16px" aria-labelledby="mb-wv-q">
+      <p id="mb-wv-q"><b>¿Juegas con Vocabulary desde la pantalla de inicio?</b> Copia este enlace y pégalo allí, en Juegos › Buzón, para que la carta llegue a tu partida.</p>
+      <button type="button" class="glass-btn glass-btn--block${fresh ? " glass-btn--pri glass-btn--lg" : ""}" id="mb-wv-copy"${fresh ? ' data-key="enter"' : ""}>${IC("copy", "bold", 20)}Copiar el enlace</button>
+      <button type="button" class="glass-btn glass-btn--block${fresh ? "" : " glass-btn--pri glass-btn--lg"}" id="mb-wv-here"${fresh ? "" : ' data-key="enter"'}>${IC("envelope-open", "bold", 20)}Abrir aquí</button>
+      <textarea class="mb-link vh" id="mb-wv-l" readonly rows="3" aria-label="Enlace de la carta" tabindex="-1"></textarea>
+      <p class="mb-cp" id="mb-wv-m" role="status" aria-live="polite"></p></section></div>`;
+  txt(app, "[data-t=from]", c.from);
+  const ta = $id("mb-wv-l"); ta.value = url;
+  $id("mb-wv-copy").onclick = async () => {
+    const ok = await copy(url, ta);
+    if(!ok){ ta.classList.remove("vh"); ta.removeAttribute("tabindex"); }
+    txt(app, "#mb-wv-m", ok ? "¡Copiado! Ahora abre Vocabulary y pégalo en Juegos › Buzón." : "Mantén pulsado el enlace para copiarlo.");
+  };
+  $id("mb-wv-here").onclick = () => {
+    if(my !== NAV) return;
+    HERE = d;
+    cartaView([], my);
+    applyRepl();
+  };
 }
 function letterView(app, id, my){
   const b = box(), L = b.l.find(x => x.id === id);
@@ -1044,51 +1308,75 @@ function closedView(app, L, my){
   if(AUTO === L.id){ AUTO = ""; go(); }   /* desde la fila de Hoy: el toque ya fue el de abrir */
 }
 function lockedView(app, L){
-  const s = lockState(L), pct = Math.round(100 * s.have / s.need);
+  const s = lockState(L), pct = Math.round(100 * s.have / s.need), steps = s.need <= 5;
+  const prog = steps
+    ? `<ol class="mb-steps" role="img" aria-label="${s.have} de ${s.need} ${esc(s.units)}">${Array.from({length: s.need}, (x, i) => `<li${i < s.have ? ' class="is-done"' : ""}>${i < s.have ? IC("check", "bold", 18) : i + 1}</li>`).join("")}</ol>`
+    : `<div class="mb-bar" role="progressbar" aria-label="Lo que llevas" aria-valuemin="0" aria-valuemax="${s.need}" aria-valuenow="${s.have}" aria-valuetext="${s.have} de ${s.need} ${esc(s.units)}"><i style="width:${pct}%"></i></div>`;
   app.innerHTML = `<div class="mb" id="mb-lv"><div class="mb-stage">${envHtml(true)}</div>
     <h1 class="mb-t mb-c">Carta con candado</h1>
     <p class="mb-sub mb-c"><span>De </span><b data-t="from"></b></p>
-    <section class="card mb-card" style="margin-top:18px">
+    <section class="card mb-card" style="margin-top:16px">
       <p class="mb-lk-t">${esc(s.text)}</p>
-      <div class="mb-bar" role="progressbar" aria-label="Lo que llevas" aria-valuemin="0" aria-valuemax="${s.need}" aria-valuenow="${s.have}" aria-valuetext="${s.have} de ${s.need} ${esc(s.units)}"><i style="width:${pct}%"></i></div>
+      ${prog}
       <p class="mb-lk-n">${s.have} de ${s.need} ${esc(s.units)}</p>
-      <a class="glass-btn glass-btn--pri glass-btn--block" href="${s.go}" data-key="enter">${IC(s.ic, "bold", 20)}${esc(s.btn)}</a>
+      <a class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" href="${s.go}" data-key="enter">${IC(s.ic, "bold", 20)}${esc(s.btn)}</a>
       ${s.lang && LK[s.lang] !== lang ? `<p class="mb-lk-l">Cuenta lo que hagas en ${esc(lname(s.lang))}: cámbialo con la bandera de arriba.</p>` : ""}
     </section></div>`;
   txt(app, "[data-t=from]", L.from);
 }
-/* el sobre se abre, luego la carta y su voz, luego el regalo */
+/* el sobre se abre, la hoja sale de él y se hace la carta; luego su voz y el regalo */
 async function runOpen(app, id, my){
   const L = open(id); if(!L){ letterView(app, id, my); return; }
   PEND = L.gift != null ? L.id : "";
   const env = $id("mb-env"), btn = $id("mb-open");
   if(btn){ btn.disabled = true; btn.setAttribute("aria-disabled", "true"); }
-  if(env && !rm()){ env.classList.add("is-open"); await sleep(780); }
+  let from = null;
+  if(env && !rm()){
+    env.classList.add("is-open");
+    await sleep(720);
+    const p = env.querySelector(".mb-e-paper"); if(p) from = p.getBoundingClientRect();
+  }
   if(my !== NAV) return;
-  openView(app, L, true, my);
+  openView(app, L, true, my, from);
 }
 function giftHtml(){
   return `<section class="card mb-gift" id="mb-gift" hidden aria-live="polite"><span class="mb-gift-i" id="mb-gift-i" aria-hidden="true"></span>
     <span class="mb-gift-t"><b id="mb-gift-b"></b><small id="mb-gift-s"></small><span class="mb-gift-w" id="mb-gift-w" hidden></span></span></section>`;
 }
-function openView(app, L, fresh, my){
-  const ab = msgLang(L.msg, L.lang), code = codeOf(ab);
+function openView(app, L, fresh, my, from){
+  const ab = msgLang(L.msg, L.lang), code = codeOf(ab), anim = fresh && !rm();
   app.innerHTML = `<div class="mb" id="mb-ov">
-    <article class="card mb-paper${fresh && !rm() ? " mb-in" : ""}" aria-labelledby="mb-sig">
+    <article class="card mb-paper" aria-labelledby="mb-sig">
       <p class="mb-to" data-t="to"${L.to ? "" : " hidden"}></p>
       <p class="mb-msg" data-t="msg" lang="${esc(code)}"></p>
       <p class="mb-sig" id="mb-sig" data-t="from"></p>
-      <button type="button" class="glass-btn glass-btn--sm mb-say" id="mb-say" data-key="space">${IC("speaker-high", "fill", 18)}Escuchar</button>
+      <div class="mb-aud"><button type="button" class="mb-spk" id="mb-say" data-key="space" aria-label="Escuchar la carta">${IC("speaker-high", "fill", 24)}</button>
+        <button type="button" class="mb-slow" id="mb-say-s" data-key="shift+space" aria-label="Escuchar despacio">${IC("turtle", "fill", 22)}</button></div>
     </article>
-    ${L.gift != null ? giftHtml() : L.lock ? `<p class="mb-note mb-c" style="margin:0 auto 16px">${IC("lock-open", "bold", 18)} Carta secreta: la abriste ${esc(LOCKS[L.lock].form(L.lang).toLowerCase())}.</p>` : ""}
-    <a class="glass-btn glass-btn--block" href="#/buzon">${IC("envelope-simple", "bold", 20)}Ir al Buzón</a></div>`;
+    ${L.gift != null ? giftHtml() : L.lock ? `<p class="mb-note mb-c${anim ? " mb-in mb-in2" : ""}" style="margin:0 auto 16px">${IC("lock-open", "bold", 18)} Carta secreta: la abriste ${esc(LOCKS[L.lock].form(L.lang).toLowerCase())}.</p>` : ""}
+    <a class="glass-btn glass-btn--block${anim ? " mb-in mb-in2" : ""}" href="#/buzon">${IC("envelope-simple", "bold", 20)}Ir al Buzón</a></div>`;
   if(L.to) txt(app, "[data-t=to]", `Para ${L.to}`);
   txt(app, "[data-t=msg]", L.msg); txt(app, "[data-t=from]", `— ${L.from}`);
-  const sb = $id("mb-say");
+  /* la hoja que salió del sobre se hace la carta, en su sitio */
+  const paper = app.querySelector(".mb-paper");
+  if(anim && paper && paper.animate){
+    const r = paper.getBoundingClientRect();
+    const kf = from && r.width ? [{transform: `translate(${(from.left + from.width / 2) - (r.left + r.width / 2)}px, ${from.top - r.top}px) scale(${Math.max(.2, from.width / r.width)})`, opacity: .85},
+      {transform: "none", opacity: 1}] : [{transform: "translateY(12px)", opacity: 0}, {transform: "none", opacity: 1}];
+    try{ paper.style.transformOrigin = "50% 0"; paper.animate(kf, {duration: 420, easing: "cubic-bezier(.2,.8,.2,1)", fill: "backwards"}); }catch(e){}
+  }
+  const sb = $id("mb-say"), ss = $id("mb-say-s");
   sb.onclick = () => speak(L.msg, code, sb);
+  ss.onclick = () => speak(L.msg, code, ss, true);
   if(L.gift == null) return;
   const b0 = box(), paid = b0.paid.includes(L.id);
-  if(!fresh || paid){ showGift(app, L, paid ? null : pay(L.id, null), true); PEND = ""; return; }
+  if(paid){ showGift(app, L, null, true); PEND = ""; return; }
+  if(!fresh){   /* abierta antes con el regalo guardado para otro día: si hoy ya puede, llega ahora */
+    PEND = "";
+    const g = $id("mb-gift"); if(g) g.hidden = false;
+    showGift(app, L, pay(L.id, $id("mb-gift-i")), false);
+    return;
+  }
   /* la primera vez: la voz lee el mensaje y luego sale el regalo (sin voz, al momento) */
   const t0 = Date.now();
   Promise.race([speak(L.msg, code, sb), sleep(9000)]).then(async () => {
@@ -1102,38 +1390,52 @@ function openView(app, L, fresh, my){
 function showGift(app, L, r, past){
   const g = $id("mb-gift"); if(!g) return;
   g.hidden = false;
+  const later = !!(r && r.later);
+  g.classList.toggle("is-later", later);
   const gi = $id("mb-gift-i"), gw = $id("mb-gift-w");
   let it = null;
   if(typeof L.gift === "number"){
     gi.innerHTML = `<img src="${IMG.coin}" alt="" width="64" height="64">`;
-    txt(app, "#mb-gift-b", past ? `Te regaló ${L.gift} monedas` : `¡${L.gift} monedas!`);
+    txt(app, "#mb-gift-b", later ? "¡Tu regalo llega mañana!" : past ? `Te regaló ${L.gift} monedas` : `¡${L.gift} monedas!`);
   } else {
     it = adornos().find(x => x.id === L.gift) || (typeof itemById === "function" ? itemById(L.gift) : null);
     gi.innerHTML = it && W.vocabShop && typeof vocabShop.img === "function" ? vocabShop.img(it) : `<img src="${IMG.gift}" alt="" width="64" height="64">`;
     const n = it ? (typeof art === "function" ? art(it.n) : it.n) : "un regalo";
-    txt(app, "#mb-gift-b", r && r.had ? `Ya tenías ${n}` : past ? `Te regaló ${n}` : `¡Es ${n} para tu granja!`);
+    txt(app, "#mb-gift-b", later ? "¡Tu regalo llega mañana!" : r && r.had ? `¡Ya lo tenías! Te regala ${r.coins} monedas` : past ? `Te regaló ${n}` : `¡Es ${n} para tu granja!`);
   }
-  txt(app, "#mb-gift-s", it ? (r && r.had ? "¡Ahora sabes cómo se dice!" : "Ya está en tu granja.") : `Regalo de ${L.from}`);
-  if(it && typeof itemWord === "function"){
+  txt(app, "#mb-gift-s", later ? "Hoy ya te llegó un regalo. Mañana abre esta carta otra vez." : it && !(r && r.had) ? "Ya está en tu granja." : `Regalo de ${L.from}`);
+  gw.hidden = true; gw.innerHTML = "";
+  if(it && !later && typeof itemWord === "function"){
     const w = itemWord(it); gw.hidden = false;
-    gw.innerHTML = `<span data-t="w"></span><button type="button" class="mb-spk" id="mb-gift-say" aria-label="Oír la palabra">${IC("speaker-high", "fill", 20)}</button>`;
+    gw.innerHTML = `<span data-t="w"></span><button type="button" class="mb-spk" id="mb-gift-say" aria-label="Oír la palabra">${IC("speaker-high", "fill", 24)}</button>`;
     txt(gw, "[data-t=w]", w);
     $id("mb-gift-say").onclick = e => { if(typeof say === "function") say(w, e.currentTarget); };
     if(!past && typeof say === "function") setTimeout(() => { if($id("mb-gift-say")) say(w, $id("mb-gift-say")); }, 500);
   }
-  if(!past && !rm() && W.M && typeof M.burst === "function") try{ M.burst(gi, {n: 14}); }catch(e){}
+  if(!past && !later && !rm() && W.M && typeof M.burst === "function") try{ M.burst(gi, {n: 14}); }catch(e){}
 }
 
 /* ---------- Hoy ---------- */
-function slot(){
-  const L = unread()[0]; if(!L) return null;
-  css();
+function slotRow(L, t, s, icon){
   const a = D.createElement("a");
   a.className = "card hm-row mb-row"; a.id = "mb-row"; a.href = "#/carta/" + encodeURIComponent(L.id);
-  a.innerHTML = `<span class="hm-ric emo mb-ric" aria-hidden="true"><img src="${IMG.env}" alt="" width="26" height="26" draggable="false"></span><span class="hm-rt"><span data-t="t"></span><small data-t="s"></small></span>${IC("caret-right", "bold", 16, "hm-chev")}`;
-  const t = L.lock ? "¡Se abrió el candado!" : "¡Tienes carta!", s = L.lock ? `Carta de ${L.from} · Toca para leerla` : `De ${L.from} · Toca para abrirla`;
+  a.innerHTML = `<span class="hm-ric emo mb-ric" aria-hidden="true">${icon}</span><span class="hm-rt"><span data-t="t"></span><small data-t="s"></small></span>${IC("caret-right", "bold", 16, "hm-chev")}`;
   txt(a, "[data-t=t]", t); txt(a, "[data-t=s]", s);
-  a.setAttribute("aria-label", `${t} ${s}`);
+  a.setAttribute("aria-label", `${t}. ${s}`);
+  return a;
+}
+function slot(){
+  const L = unread()[0];
+  if(!L){
+    /* un regalo que se guardó para hoy */
+    const b = box(), w = giftToday(b) ? null : waitingGift(b)[0];
+    if(!w) return null;
+    css();
+    return slotRow(w, "¡Ya llegó tu regalo!", `De ${w.from} · Toca para verlo`, IC("gift", "bold", 18));
+  }
+  css();
+  const t = L.lock ? "¡Se abrió el candado!" : "¡Tienes carta!", s = L.lock ? `Carta de ${L.from} · Toca para leerla` : `De ${L.from} · Toca para abrirla`;
+  const a = slotRow(L, t, s, `<img src="${IMG.env}" alt="" width="26" height="26" draggable="false">`);
   a.addEventListener("click", () => { unlockVoice(); AUTO = L.id; });
   /* un solo reclamo en Hoy: el sobre tiembla (3 veces) y el zorro no saluda esta vez */
   if(!rm()){ a.classList.add("is-new"); try{ waveAt = Date.now(); }catch(e){} }
@@ -1141,6 +1443,17 @@ function slot(){
 }
 slot.id = "mail";
 if(typeof HOME_SLOTS !== "undefined") HOME_SLOTS.unshift(slot);
+/* una carta con candado aún cerrada: el reto y cómo va (la fila que menos manda de Hoy) */
+function lockSlot(){
+  const b = box(); if(!b.l.length) return null;
+  unlockDue(b);
+  const L = b.l.find(x => x.lock && !x.u && !x.o); if(!L) return null;
+  const s = lockState(L); if(!s) return null;
+  return {icon: "lock", tone: "gray", t: `Carta de ${L.from}`, sub: `Con candado · ${s.have} de ${s.need} ${s.units}`, href: "#/carta/" + encodeURIComponent(L.id),
+    label: `Carta con candado de ${L.from}: ${s.have} de ${s.need} ${s.units}`};
+}
+lockSlot.id = "mail-lock";
+if(typeof HOME_SLOTS !== "undefined") HOME_SLOTS.push(lockSlot);
 
 /* ---------- Juegos: la tarjeta que lleva al Buzón ---------- */
 function cardLine(){
@@ -1160,7 +1473,12 @@ function adultHtml(){
   return `<section class="st-sec" aria-labelledby="aj-mb-h"><h3 class="st-h" id="aj-mb-h">Buzón del tío</h3><div class="st-g ics">
       <button type="button" class="st-r aj-go" id="aj-mb-reply"><span class="st-ic" aria-hidden="true">${IC("envelope-simple", "bold", 18)}</span>
         <span class="st-l">Contestar una carta del Buzón<small>Un mensaje con un regalo o un candado.</small></span><span class="aj-chev" aria-hidden="true">${IC("caret-right", "bold", 16)}</span></button>
-      <button type="button" class="st-r st-btn" id="aj-mb-del"${MEDIA.n > 0 ? "" : " hidden"}><span class="st-ic gr" aria-hidden="true">${IC("trash", "bold", 18)}</span>
+    </div></section>`;
+}
+/* va aparte, más abajo en Para mayores (después de los atajos), y solo si hay algo guardado */
+function mediaHtml(){
+  return `<section class="st-sec" id="aj-mb-media" aria-labelledby="aj-mb-mh"${MEDIA.n > 0 ? "" : " hidden"}><h3 class="st-h" id="aj-mb-mh">Grabaciones y fotos</h3><div class="st-g ics">
+      <button type="button" class="st-r st-btn" id="aj-mb-del"><span class="st-ic gr" aria-hidden="true">${IC("trash", "bold", 18)}</span>
         <span class="st-l">Borrar grabaciones y fotos<small id="aj-mb-ds">${esc(mediaText(MEDIA))}</small></span></button>
     </div></section>`;
 }
@@ -1173,7 +1491,8 @@ bus.on("settings", d => {
     location.hash = "#/buzon/responder";
   };
   if(!del) return;
-  refreshMedia().then(s => { if(!del.isConnected) return; del.hidden = !(s.n > 0); if(ds) ds.textContent = mediaText(s); });
+  const sec = d.el.querySelector("#aj-mb-media");
+  refreshMedia().then(s => { if(!del.isConnected) return; if(sec) sec.hidden = !(s.n > 0); if(ds) ds.textContent = mediaText(s); });
   let armed = 0;
   del.onclick = () => {
     const t = Date.now();
@@ -1213,16 +1532,11 @@ function leave(){
 addEventListener("hashchange", leave);
 D.addEventListener("visibilitychange", () => { if(D.hidden){ stopSoon(); stopAudio(); if(PEND){ const id = PEND; PEND = ""; pay(id, null); } } });
 /* #/carta?d=… → #/carta/<id> sin dejar el enlace en el historial (después de pintar: así route() pone las barras) */
-bus.on("route", () => {
-  const to = REPL; REPL = null;
-  if(!to || typeof hashPath !== "function" || hashPath() !== "carta") return;
-  try{ history.replaceState(history.state, "", location.pathname + location.search + to); }catch(e){ return; }
-  try{ if(TABMEM.jugar){ TABMEM.jugar.h = to; memSave(); } }catch(e){}
-});
+bus.on("route", applyRepl);
 refreshMedia();
 
 W.vocabMailbox = Object.freeze({
-  KEY, TPL, LOCKS, box, letters, clean, encode, decode, link, receive, open, pay, lockState, unread, adornos, shareText, slot, adultHtml,
+  KEY, TPL, LOCKS, box, letters, clean, encode, decode, link, receive, open, pay, lockState, unread, adornos, shareText, slot, adultHtml, mediaHtml,
   images: () => [...new Set([IMG.box, IMG.env, IMG.coin, IMG.gift, IMG.lock, ...TPL.map(t => t.img)])],
 });
 })();

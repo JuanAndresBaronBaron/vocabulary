@@ -31,7 +31,7 @@ _ROW = """() => { const s = document.getElementById('hm-sc'); if (!s) return nul
     role: s.querySelector('.sc-ps').getAttribute('role'), labelled: s.getAttribute('aria-labelledby'),
     items: [...s.querySelectorAll('.sc-p')].map(a => { const r = a.getBoundingClientRect();
       return {k: a.dataset.sc || null, half: a.hasAttribute('data-half'), href: a.getAttribute('href'), label: a.getAttribute('aria-label'),
-        name: (a.querySelector('.sc-n') || {}).textContent, pin: !!a.querySelector('.sc-pin'), key: a.dataset.key, h: r.height, w: r.width,
+        name: [...a.querySelectorAll('.sc-n > span')].map(x => x.textContent).join(' / '), pin: !!a.querySelector('.sc-pin'), key: a.dataset.key, h: r.height, w: r.width,
         img: !!a.querySelector('.sc-pic img, .sc-pic .sc-tile'), ring: (a.querySelector('.sc-rf') || {getAttribute: () => null}).getAttribute('stroke-dasharray')}; })}; }"""
 _KEYS = "() => [...document.querySelectorAll('#hm-sc .sc-p')].map(a => a.dataset.sc || 'half')"
 _SC = "() => JSON.parse(localStorage.getItem('vocab:sc') || 'null')"
@@ -184,7 +184,7 @@ def test_three_games_make_a_shortcut_that_survives_reload():
         page.wait_for_timeout(300)
         row = page.evaluate(_ROW)
         it = row and next((x for x in row["items"] if x["k"] == GLOBOS), None)
-        if not it or it["href"] != "#/juegos/globos?t=animales" or it["label"] != "Globos · Animales" or it["name"] != "Animales" or not it["img"]:
+        if not it or it["href"] != "#/juegos/globos?t=animales" or it["label"] != "Globos · Animales" or it["name"] != "Globos / Animales" or not it["img"]:
             probs.append(f"tras 3 partidas no sale el atajo de Globos · Animales: {row}")
         if row and (row["title"] != "Tus atajos" or row["n"] != len(row["items"])):
             probs.append(f"la fila: {row}")
@@ -355,8 +355,9 @@ def test_each_keeps_its_place_and_new_ones_need_20_percent_more():
 
 # ---------------------------------------------------------------- Fijar · No sugerir
 def test_pin_persists_and_syncs():
-    """Mantener pulsada una pieza abre su hoja; «Fijar» la deja fija (chincheta, «fijado» en su nombre) aunque pierda los
-    puntos, sigue al recargar y va en sc:prefs (en la exportación y al cargarla). «Editar › Quitar de fijados» la suelta."""
+    """Mantener pulsada una pieza abre su hoja; «Fijar» es un conmutador (aria-pressed): pasa a «Fijado» con el foco en
+    el mismo botón y la deja fija (chincheta, «fijado» en su nombre) aunque pierda los puntos, sigue al recargar y va en
+    sc:prefs (en la exportación y al cargarla). «Editar › Fijado» la suelta. El botón cabe entero en su cápsula."""
     probs = []
     page = C.new_page("phone")
     try:
@@ -365,11 +366,19 @@ def test_pin_persists_and_syncs():
         sh = page.evaluate(_SHEET)
         if not sh or sh["title"] != "Globos · Animales" or [r["k"] for r in sh["rows"]] != [GLOBOS] or sh["rows"][0]["pin"].strip() != "Fijar":
             probs.append(f"mantener pulsado no abre la hoja de esa pieza: {sh}")
-        page.locator("#sc-sheet [data-pin]").click()
+        page.evaluate(_FINISH)
+        page.wait_for_timeout(100)
+        geo = page.evaluate("() => ({sheet: document.getElementById('sc-sheet').getBoundingClientRect().top, row: document.querySelector('#hm-sc .sc-ps').getBoundingClientRect().bottom})")
+        if geo["sheet"] < geo["row"] - 1:
+            probs.append(f"la hoja de una pieza tapa la fila: {geo}")
+        page.locator("#sc-sheet [data-pin]").focus()
+        page.keyboard.press("Enter")
         page.wait_for_timeout(500)
         sh = page.evaluate(_SHEET)
-        if not sh or sh["rows"][0]["pin"].strip() != "Quitar de fijados":
-            probs.append(f"tras «Fijar» la hoja no dice «Quitar de fijados»: {sh}")
+        b = page.evaluate("""() => { const b = document.querySelector('#sc-sheet [data-pin]');
+          return {p: b.getAttribute('aria-pressed'), focus: document.activeElement === b, sw: b.scrollWidth, w: b.clientWidth, name: b.getAttribute('aria-label')}; }""")
+        if not sh or sh["rows"][0]["pin"].strip() != "Fijado" or b["p"] != "true" or not b["focus"] or b["sw"] > b["w"] + 1 or b["name"] != "Fijar «Globos · Animales»":
+            probs.append(f"tras «Fijar» la hoja no dice «Fijado» (o pierde el foco, o no cabe): {sh} {b}")
         _close_sheet(page)
         if (page.evaluate(_PREFS) or {}).get("pinned") != [GLOBOS]:
             probs.append(f"sc:prefs tras fijar: {page.evaluate(_PREFS)}")
@@ -393,7 +402,7 @@ def test_pin_persists_and_syncs():
         page.locator(f'#sc-sheet .sc-er[data-k="{GLOBOS}"] [data-pin]').click()
         page.wait_for_timeout(500)
         if (page.evaluate(_PREFS) or {}).get("pinned") != []:
-            probs.append(f"«Quitar de fijados» no lo suelta: {page.evaluate(_PREFS)}")
+            probs.append(f"«Fijado» no lo suelta: {page.evaluate(_PREFS)}")
         _close_sheet(page)
         probs += C.errors(page)
     finally:
@@ -402,8 +411,10 @@ def test_pin_persists_and_syncs():
 
 
 def test_dont_suggest_hides_and_undo_brings_it_back():
-    """«Editar › No sugerir» cierra la hoja, quita la pieza 30 días y avisa con «Deshacer» (botón de 44 px); «Deshacer»
-    la devuelve a su mismo sitio. Pasados los 5 s el aviso se va y sigue oculta; «Volver a sugerir» la trae."""
+    """«Editar › No sugerir» (con la nota «Sale de Hoy 30 días») cierra la hoja, quita la pieza 30 días y avisa «Ya no
+    sale en Hoy» con «Deshacer» (botón de 44 px); tocar el texto del aviso no lo cierra; «Deshacer» la devuelve a su
+    mismo sitio. El aviso dura 9 s y se para con el puntero encima; luego se va y sigue oculta; «Volver a sugerir» la
+    trae."""
     probs = []
     page = C.new_page("phone")
     try:
@@ -413,6 +424,9 @@ def test_dont_suggest_hides_and_undo_brings_it_back():
         sh = page.evaluate(_SHEET)
         if not sh or [r["k"] for r in sh["rows"]] != [GLOBOS, MEMORIA, LETRAS] or not all(r["hide"] for r in sh["rows"]):
             probs.append(f"la hoja «Editar»: {sh}")
+        notes = page.evaluate("() => [...document.querySelectorAll('#sc-sheet .sc-hn')].map(x => x.textContent)")
+        if notes != ["Sale de Hoy 30 días"] * 3:
+            probs.append(f"la nota de «No sugerir»: {notes}")
         page.locator(f'#sc-sheet .sc-er[data-k="{MEMORIA}"] [data-hide]').click()
         page.wait_for_function("() => !document.querySelector('#sc-sheet[open]')", timeout=3000)
         page.wait_for_timeout(500)
@@ -422,8 +436,12 @@ def test_dont_suggest_hides_and_undo_brings_it_back():
         if hid.get(MEMORIA) != D0 + 30:
             probs.append(f"oculta hasta el día {hid.get(MEMORIA)}, no {D0 + 30}")
         t = page.evaluate(_TOAST)
-        if not t or "No sugiero" not in (t["t"] or "") or t["btn"] != "Deshacer" or t["bh"] < 44:
+        if not t or t["t"] != "Ya no sale en Hoy" or t["btn"] != "Deshacer" or t["bh"] < 44:
             probs.append(f"el aviso con «Deshacer»: {t}")
+        page.locator("#m-toasts .m-tt").click()
+        page.wait_for_timeout(300)
+        if not page.evaluate(_TOAST):
+            probs.append("tocar el texto del aviso lo cierra (y se pierde «Deshacer»)")
         page.locator("#m-toasts .m-ta").click()
         page.wait_for_timeout(600)
         if page.evaluate(_KEYS) != [GLOBOS, MEMORIA, LETRAS]:
@@ -437,8 +455,18 @@ def test_dont_suggest_hides_and_undo_brings_it_back():
         page.wait_for_timeout(800)
         page.clock.fast_forward(6000)
         page.wait_for_timeout(400)
+        if not page.evaluate(_TOAST):
+            probs.append("el aviso con «Deshacer» se va antes de 9 s")
+        page.locator("#m-toasts .m-tt").hover()   # con el puntero encima, el tiempo se para
+        page.clock.fast_forward(6000)
+        page.wait_for_timeout(300)
+        if not page.evaluate(_TOAST):
+            probs.append("con el puntero encima el aviso se va igual")
+        page.mouse.move(5, 400)
+        page.clock.fast_forward(4500)
+        page.wait_for_timeout(500)
         if page.evaluate(_TOAST):
-            probs.append("el aviso no se va a los 5 s")
+            probs.append("el aviso no se va al terminar su tiempo")
         if MEMORIA in _reload(page)["items"].__repr__():
             probs.append("al recargar vuelve la oculta")
         page.locator("#sc-ed").click()
@@ -487,7 +515,8 @@ def test_device_only_log_and_synced_prefs():
 
 def test_switch_off_and_forget_in_para_mayores():
     """Para mayores › Atajos: «Atajos automáticos» apagado (sc:prefs.off) quita la fila y deja de apuntar; encendido
-    vuelve. «Olvidar lo aprendido» pide un segundo toque y borra vocab:sc; los fijados y ocultos se quedan."""
+    vuelve. «Olvidar lo aprendido» (con la nota de que las palabras y el progreso no se tocan) pide un segundo toque y
+    borra vocab:sc; los fijados y ocultos se quedan."""
     probs = []
     page = C.new_page("phone")
     try:
@@ -498,7 +527,8 @@ def test_switch_off_and_forget_in_para_mayores():
         sec = page.evaluate("""() => { const s = document.getElementById('aj-sc-h'); const on = document.getElementById('aj-sc-on');
           return {h: s && s.textContent, on: on && on.checked, role: on && on.getAttribute('role'),
             lab: (on && on.closest('label') || {}).textContent, forget: (document.getElementById('aj-sc-forget') || {}).textContent}; }""")
-        if sec["h"] != "Atajos" or not sec["on"] or sec["role"] != "switch" or "Atajos automáticos" not in (sec["lab"] or "") or "Olvidar lo aprendido" not in (sec["forget"] or ""):
+        if sec["h"] != "Atajos" or not sec["on"] or sec["role"] != "switch" or "Atajos automáticos" not in (sec["lab"] or "") or "Olvidar lo aprendido" not in (sec["forget"] or "") \
+                or "Las palabras y el progreso no se tocan" not in (sec["forget"] or ""):
             probs.append(f"la sección Atajos: {sec}")
         page.locator("label[for=aj-sc-on]").click()
         page.wait_for_timeout(200)
@@ -577,6 +607,8 @@ def test_turtle_question_once_and_yes_sets_slow():
             fox: !!d.querySelector('.sc-slow-fox *'), modal: d.matches(':modal')}; }""")
         if q["t"] != "¿Lo pongo siempre despacio?" or q["yes"] != "Sí, despacio" or q["no"] != "No, así está bien" or not q["fox"] or not q["modal"]:
             probs.append(f"la pregunta: {q}")
+        if page.evaluate("() => !!document.activeElement.closest('[data-yes]')"):
+            probs.append("la pregunta abre con el foco en «Sí, despacio» (empuja la respuesta)")
         if page.evaluate("() => store.get('rate')") != 0.9:
             probs.append("cambia la velocidad antes de contestar")
         C.shot(page, "F5a-tortuga-phone", OUT, full_page=False)
@@ -609,6 +641,56 @@ def test_turtle_question_once_and_yes_sets_slow():
         page.wait_for_timeout(1300)
         if page.locator("#sc-slow[open]").count():
             probs.append("tras «No» vuelve a preguntar")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+def test_piece_rule_short_names_prune_and_listens():
+    """Cada pieza sigue una regla: el dibujo grande es qué se hace (el del juego; el icono del modo con tinte; la
+    gramática, su dibujo sobre una ficha gris, nunca un círculo azul relleno) y la insignia, el tema; debajo, dos
+    líneas «Globos / Animales», «Preguntas / Cuerpo», «Gramática / To be», sin cortar. vocab:sc no pasa de 60 claves
+    y la que se acaba de usar siempre se queda. Las escuchas cuentan el «Oír» de Frases y no las grabaciones propias."""
+    probs = []
+    page = C.new_page("phone")
+    try:
+        row = _hoy(page, _sc({GLOBOS: 3, TEST: 4, GRAM: 2.5}))
+        P = page.evaluate("""() => [...document.querySelectorAll('#hm-sc .sc-p')].map(a => {
+          const pic = a.querySelector('.sc-pic'), big = pic.querySelector(':scope > img, :scope > .sc-tile'), tile = pic.querySelector(':scope > .sc-tile');
+          const bg = tile ? getComputedStyle(tile).backgroundColor : '', lines = [...a.querySelectorAll('.sc-n > span')];
+          return {k: a.dataset.sc, big: big && big.tagName === 'IMG' ? big.getAttribute('src') : tile ? (tile.querySelector('img') ? 'tile-img:' + tile.querySelector('img').getAttribute('src') : 'tile-icon') : null,
+            soft: !!(tile && tile.classList.contains('soft')), bg, badge: (pic.querySelector('.sc-bdg img') || {getAttribute: () => null}).getAttribute('src'),
+            lines: lines.map(x => x.textContent), cut: lines.some(x => x.scrollWidth > x.clientWidth + 1)}; })""")
+        want = {GLOBOS: ("img/games/globos.png", ["Globos", "Animales"]), TEST: ("tile-icon", ["Preguntas", "Cuerpo"]), GRAM: ("tile-img:img/om_1F4D6.png", ["Gramática", "To be"])}
+        for x in P:
+            w = want.get(x["k"])
+            if not w or x["big"] != w[0] or x["lines"] != w[1] or x["cut"]:
+                probs.append(f"pieza {x['k']}: {x}")
+            if x["k"] == GLOBOS and (not x["badge"] or "om_1F436" not in x["badge"]):
+                probs.append(f"la insignia de Globos no es el tema: {x}")
+            if x["k"] == TEST and (not x["soft"] or not x["badge"]):
+                probs.append(f"un modo: icono con tinte y el tema en la insignia: {x}")
+            if x["bg"] in ("rgb(30, 110, 244)", "rgb(0, 145, 255)"):
+                probs.append(f"pieza con un círculo azul relleno: {x}")
+        # la poda: 60 claves con 3 puntos y luego 5 nuevas de 1 punto
+        r = page.evaluate("""() => { const o = {v: 1, k: {}, row: {}, o: {}, sl: ''}, d = today();
+          for (let i = 0; i < 60; i++) o.k['en/juego:memoria:t' + i] = {s: 3, t: d};
+          localStorage.setItem('vocab:sc', JSON.stringify(o));
+          const out = [];
+          for (let i = 0; i < 5; i++) { const k = 'en/juego:globos:n' + i; vocabShortcuts.log(k); const s = JSON.parse(localStorage.getItem('vocab:sc'));
+            out.push([Object.keys(s.k).length, !!s.k[k], i ? !!s.k['en/juego:globos:n' + (i - 1)] : true]); }
+          return out; }""")
+        if any(n > 60 or not here for n, here, _ in r):
+            probs.append(f"la poda deja más de 60 claves o quita la recién usada: {r}")
+        # escuchas: «Oír» de Frases cuenta; «Escuchar» de una grabación propia del Buzón, no
+        sl = page.evaluate("""() => { const o = JSON.parse(localStorage.getItem('vocab:sc')); o.sl = ''; localStorage.setItem('vocab:sc', JSON.stringify(o));
+          const mk = (html) => { const w = document.createElement('div'); w.innerHTML = html; document.body.append(w); const b = w.firstElementChild; b.click(); w.remove(); };
+          mk('<button type="button" id="ph-say">Oír</button>'); mk('<button type="button" id="ph-slow" aria-label="Oír despacio"></button>');
+          mk('<button type="button" class="mb-rp" aria-label="Escuchar la grabación"></button>');
+          return JSON.parse(localStorage.getItem('vocab:sc')).sl; }""")
+        if sl != "01":
+            probs.append(f"las escuchas apuntadas: {sl!r} (se esperaba '01')")
         probs += C.errors(page)
     finally:
         page.context.close()
@@ -649,12 +731,16 @@ def test_hoy_fits_at_390x844_with_the_row():
                     probs.append(f"{label}: pieza {i + 1}: {it}")
             if row["role"] != "list" or row["labelled"] != "sc-h" or not row["ed"]:
                 probs.append(f"{label}: accesibilidad de la fila: {row}")
-            ed = page.evaluate("""() => { const e = document.getElementById('sc-ed'), b = e.getBoundingClientRect();
+            # «Editar», al final de la cabecera «Tus atajos», con un toque de 44 px o más (su ::after) que no pisa las piezas
+            ed = page.evaluate("""() => { const e = document.getElementById('sc-ed'), b = e.getBoundingClientRect(), a = getComputedStyle(e, '::after');
+              const hd = document.querySelector('#hm-sc .sc-hd'), h2 = document.getElementById('sc-h').getBoundingClientRect(), ps = document.querySelector('#hm-sc .sc-ps').getBoundingClientRect();
+              const top = b.top + parseFloat(a.top), bot = b.bottom - parseFloat(a.bottom), lft = b.left + parseFloat(a.left), rgt = b.right - parseFloat(a.right);
               const hit = (x, y) => { const t = document.elementFromPoint(x, y); return !!t && !!t.closest('#sc-ed'); };
-              return {w: b.width, h: b.height, t: e.textContent.trim(), name: e.getAttribute('aria-label'),
-                hit: hit(b.left + b.width / 2, b.top + 3) && hit(b.left + b.width / 2, b.bottom - 3) && hit(b.left + 3, b.top + b.height / 2) && hit(b.right - 3, b.top + b.height / 2)}; }""")
-            if ed["w"] < 44 or ed["h"] < 44 or not ed["hit"] or ed["t"] != "Editar" or not ed["name"].startswith("Editar"):
-                probs.append(f"{label}: «Editar» no es un botón de 44 px o más: {ed}")
+              return {w: rgt - lft, h: bot - top, t: e.textContent.trim(), name: e.getAttribute('aria-label'), inHead: e.parentElement === hd,
+                mid: Math.abs((b.top + b.bottom) / 2 - (h2.top + h2.bottom) / 2) < 2, over: bot - ps.top,
+                hit: hit((lft + rgt) / 2, top + 2) && hit((lft + rgt) / 2, bot - 2) && hit(lft + 2, (top + bot) / 2) && hit(rgt - 2, (top + bot) / 2)}; }""")
+            if ed["w"] < 44 or ed["h"] < 44 or not ed["hit"] or ed["t"] != "Editar" or not ed["name"].startswith("Editar") or not ed["inHead"] or not ed["mid"] or ed["over"] > 4:
+                probs.append(f"{label}: «Editar» no es un botón de 44 px o más al final de la cabecera: {ed}")
             if label == "390×844":
                 C.shot(page, "F5a-hoy-phone-light", OUT, full_page=False)
             elif few:
@@ -705,7 +791,7 @@ def test_half_done_comes_first_with_a_ring():
         row = _reload(page)
         page.wait_for_timeout(300)
         first = row and row["items"][0]
-        if not first or not first["half"] or first["href"] != "#/leccion/A1-004" or first["name"] != "Lección 4" or not first["ring"] or first["ring"].startswith("0.0"):
+        if not first or not first["half"] or first["href"] != "#/leccion/A1-004" or first["name"] != "Seguir / Lección 4" or not first["ring"] or first["ring"].startswith("0.0"):
             probs.append(f"la lección a medias no sale primera con su anillo: {row}")
         if page.evaluate(_ACC):
             probs.append("en Hoy el accesorio repite la lección de la fila")
@@ -727,7 +813,8 @@ def test_half_done_comes_first_with_a_ring():
         page.evaluate(f"() => localStorage.setItem('vocab:sc', JSON.stringify({json.dumps(_sc({}, o={'en/tema:w03:practica': D0 - 1}))}))")
         row = _reload(page)
         first = row and row["items"][0]
-        if not first or not first["half"] or first["href"] != "#/doc/w03?m=practica" or not first["ring"] or not first["ring"].startswith("44.4"):
+        if not first or not first["half"] or first["href"] != "#/doc/w03?m=practica" or not first["ring"] or not first["ring"].startswith("44.4") \
+                or first["name"] != "Seguir / Comida":
             probs.append(f"la práctica a medias: {row}")
         page.evaluate(f"() => localStorage.setItem('vocab:sc', JSON.stringify({json.dumps(_sc({}, o={'en/tema:w03:practica': D0 - 4}))}))")
         if _reload(page):

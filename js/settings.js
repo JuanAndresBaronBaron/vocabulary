@@ -13,8 +13,9 @@
      contraste (data-contrast=more) · Texto más grande (data-text=large). Se guardan en localStorage "vocab:ui" (solo
      este aparato, no va en la partida) sin tocar sus otras propiedades; el <head> de index.html los pone antes de pintar.
    - Para mayores: Progreso por tema › · Google (el bloque lo monta js/sync.js en [data-sync-block]) · instalar la app
-     · Descargar todo (offlinePanel) · Mostrar pronunciación (IPA) (vocab:ui.ipa) · Atajos (vocabShortcuts.adultHtml(),
-     js/shortcuts.js) · créditos · Privacidad.
+     · Descargar todo (offlinePanel) · Atajos (vocabShortcuts.adultHtml(), js/shortcuts.js) · Mostrar pronunciación (IPA)
+     (vocab:ui.ipa) · Buzón del tío (vocabMailbox.adultHtml()) · Borrar grabaciones y fotos (vocabMailbox.mediaHtml(),
+     solo si hay algo) · créditos · Privacidad.
    - Progreso por tema (el informe de antes de Premios, solo lectura): las repeticiones de los últimos 14 días (store
      "act") y, por partes (Temas · Las 3000 · Avanzado, data/index.json), cada tema empezado con sus palabras
      dominadas (caja ≥ MASTER) y aprendiendo de su total, con una barra; los que faltan, contados al pie. Lee srsAll()
@@ -393,12 +394,13 @@ function adultHtml(){
     <section class="st-sec" aria-labelledby="aj-app-h"><h3 class="st-h" id="aj-app-h">La app</h3><div class="st-g ics">
       <div id="aj-inst">${installHtml()}</div>
       <div class="aj-off" id="aj-off"></div></div></section>
+    ${window.vocabShortcuts && typeof vocabShortcuts.adultHtml === "function" ? vocabShortcuts.adultHtml() : ""}
     <section class="st-sec" aria-labelledby="aj-l-h"><h3 class="st-h" id="aj-l-h">Lecciones</h3><div class="st-g ics">
       <label class="st-r" for="aj-ipa"><span class="st-ic tl" aria-hidden="true">${ico("text-aa", "bold", 18)}</span>
         <span class="st-l">Mostrar pronunciación (IPA)<small>Símbolos de cómo suena cada palabra.</small></span>
         <input type="checkbox" role="switch" class="st-sw" id="aj-ipa" ${ipa ? "checked" : ""}></label>${voiceHelp()}</div></section>
     ${window.vocabMailbox && typeof vocabMailbox.adultHtml === "function" ? vocabMailbox.adultHtml() : ""}
-    ${window.vocabShortcuts && typeof vocabShortcuts.adultHtml === "function" ? vocabShortcuts.adultHtml() : ""}
+    ${window.vocabMailbox && typeof vocabMailbox.mediaHtml === "function" ? vocabMailbox.mediaHtml() : ""}
     <section class="st-sec" aria-labelledby="aj-c-h"><h3 class="st-h" id="aj-c-h">Créditos</h3><div class="st-g ics">
       <p class="st-cred">${credits()}</p>
       <a class="st-r" href="privacy.html#es" id="aj-priv"><span class="st-ic" aria-hidden="true">${ico("shield-check", "bold", 18)}</span><span class="st-l">Privacidad</span>${chev()}</a>
