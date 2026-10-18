@@ -142,6 +142,13 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   actualización desde la versión publicada (el commit 1721796 sacado con `git archive`, o la copia de `VOCAB_BASE`;
   sw `vocab-v13`) en el mismo origen: partida y granja intactas, la app nueva entera (también con las cabeceras de caché
   de GitHub Pages y recargando al momento) y sin conexión.
+- `test_f5_teclado.py` (F5b, `js/keys.js` y los `shortcuts` del manifest): en la lección Espacio suena una vez,
+  Mayús+Espacio más despacio, 1-4 eligen, Enter pasa una sola vez (con el foco en la página y en el botón) y Esc abre
+  «¿Paramos aquí?»; en el repaso ← es «No» y → «¡Sí!» (una nota cada una); en Hoy Enter es «Empezar»; ? abre la hoja
+  «Teclas» y Esc la cierra; Tarjetas (Espacio gira y luego oye, → y Enter pasan una); escribiendo en un campo no pasa
+  nada; en un juego las teclas son del juego y Esc pausa una vez; las etiquetas grises salen con la primera tecla y se
+  van con un toque; el manifest sin errores en Chrome con 4 atajos e iconos PNG 96×96, y cada URL de atajo abre su
+  pantalla en frío y con el service worker; la partida exportada como la base.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

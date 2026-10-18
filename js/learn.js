@@ -58,8 +58,9 @@ const hint = (el, o) => { try{ if(el && W.G && typeof G.hint === "function") ret
 const PRAISE = ["¡Muy bien!", "¡Genial!", "¡Eso es!", "¡Perfecto!"];
 /* ✓ que se dibuja (M.ok la anima con stroke-dashoffset) */
 const CHK = `<svg class="chk" viewBox="0 0 256 256" width="22" height="22" aria-hidden="true" focusable="false"><polyline points="40 144 96 200 224 72" fill="none" stroke="currentColor" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const spk = (t, cls = "") => t ? `<button type="button" class="say ln-spk${cls ? " " + cls : ""}" data-say="${esc(t)}" aria-label="Escuchar">${ico("speaker-high", "fill", cls.includes("lg") ? 30 : 22)}</button>` : "";
-const slowB = t => t ? `<button type="button" class="say ln-slow" data-say="${esc(t)}" data-slow aria-label="Escuchar despacio">${ico("turtle", "fill", 26)}</button>` : "";
+/* key: la tecla de js/keys.js que lo pulsa (data-key), solo en el altavoz y la tortuga principales de cada pantalla */
+const spk = (t, cls = "", key = "") => t ? `<button type="button" class="say ln-spk${cls ? " " + cls : ""}" data-say="${esc(t)}"${key ? ` data-key="${key}"` : ""} aria-label="Escuchar">${ico("speaker-high", "fill", cls.includes("lg") ? 30 : 22)}</button>` : "";
+const slowB = (t, key = "") => t ? `<button type="button" class="say ln-slow" data-say="${esc(t)}" data-slow${key ? ` data-key="${key}"` : ""} aria-label="Escuchar despacio">${ico("turtle", "fill", 26)}</button>` : "";
 const picHtml = (r, cls = "") => `<div class="ln-pic${cls ? " " + cls : ""}${r.img && r.img.includes("fam_") ? " wide" : ""}">${r.img
   ? `<img src="${esc(r.img)}" alt="" loading="lazy" decoding="async" draggable="false">` : `<span class="ln-ph" aria-hidden="true">${esc((r.es || "?").charAt(0).toUpperCase())}</span>`}</div>`;
 const norm = t => String(t || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9æøåœ]/g, "");
@@ -857,7 +858,7 @@ function detailHtml(doc, r){
   const pron = d.pron && norm(d.pron) !== norm(d.word) ? d.pron : "";
   const formsK = !r.pos || r.pos === "noun" ? "Plural" : "Formas";
   return `<div class="dl-dd">${r.img ? picHtml(r, "dl-pic") : ""}<div class="dl-info">
-    <div class="dl-hear">${spk(d.word, "lg")}${slowB(d.word)}</div>
+    <div class="dl-hear">${spk(d.word, "lg", "space")}${slowB(d.word, "shift+space")}</div>
     ${pron ? `<p class="dl-ln"><span class="dl-k">Se dice</span>«${esc(pron)}»</p>` : ""}
     ${d.forms ? `<p class="dl-ln"><span class="dl-k">${formsK}</span><span lang="${esc(lc)}">${esc(d.forms)}</span></p>` : ""}
     ${ipa && d.ipa ? `<p class="dl-ln"><span class="dl-k">IPA</span>${esc(d.ipa)}</p>` : ""}
@@ -888,18 +889,18 @@ function tarjetas(doc, anim){
   const d = r.l[lang], ipa = !!ui().ipa;
   const pron = d.pron && norm(d.pron) !== norm(d.word) ? d.pron : "";
   const front = s.rev
-    ? `<p class="fcx-w" lang="${esc(lc)}">${esc(d.word)}</p><div class="fcx-hear">${spk(d.word, "lg")}</div>`
+    ? `<p class="fcx-w" lang="${esc(lc)}">${esc(d.word)}</p><div class="fcx-hear">${spk(d.word, "lg", "space")}</div>`
     : `${picHtml(r)}<p class="fcx-w">${esc(r.es)}</p>`;
   const back = `${picHtml(r)}<p class="fcx-es">${esc(r.es)}</p><p class="fcx-w" lang="${esc(lc)}">${esc(d.word)}</p>
-    <div class="fcx-hear">${spk(d.word, "lg")}${slowB(d.word)}</div>
+    <div class="fcx-hear">${spk(d.word, "lg", "space")}${slowB(d.word, "shift+space")}</div>
     ${pron || (ipa && d.ipa) ? `<p class="fcx-meta">${pron ? `Se dice «${esc(pron)}»` : ""}${pron && ipa && d.ipa ? " · " : ""}${ipa && d.ipa ? esc(d.ipa) : ""}</p>` : ""}
     ${d.forms ? `<p class="fcx-meta" lang="${esc(lc)}">${esc(d.forms)}</p>` : ""}
     ${d.ex ? `<div class="fcx-ex"><p lang="${esc(lc)}">${esc(d.ex)} ${spk(d.ex, "sm")}</p>${d.ex_es ? `<p class="fcx-tr">${esc(d.ex_es)}</p>` : ""}</div>` : ""}`;
   v.innerHTML = `<div class="fcx">
     <p class="fcx-n" aria-live="polite">${s.i + 1} / ${list.length}</p>
-    <div class="fcx-card${s.flip ? " is-back" : ""}" id="card" role="button" tabindex="0" aria-label="${s.flip ? `${esc(r.es)}: ${esc(d.word)}. Toca para volver` : "Toca para ver la respuesta"}">${s.flip ? back : front}${s.flip ? "" : `<p class="fcx-tap">${ico("hand-pointing", "bold", 20)}Toca para ver</p>`}</div>
-    <div class="fcx-nav"><button type="button" class="glass-btn glass-btn--icon fcx-prev" id="prev" aria-label="Anterior">${ico("caret-left", "bold", 26)}</button>
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg fcx-next" id="next">Siguiente</button></div>
+    <div class="fcx-card${s.flip ? " is-back" : ""}" id="card" role="button" tabindex="0"${!s.flip && !s.rev ? ' data-key="space" data-key-pos="in"' : ""} aria-label="${s.flip ? `${esc(r.es)}: ${esc(d.word)}. Toca para volver` : "Toca para ver la respuesta"}">${s.flip ? back : front}${s.flip ? "" : `<p class="fcx-tap">${ico("hand-pointing", "bold", 20)}Toca para ver</p>`}</div>
+    <div class="fcx-nav"><button type="button" class="glass-btn glass-btn--icon fcx-prev" id="prev" aria-label="Anterior" data-key="left">${ico("caret-left", "bold", 26)}</button>
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg fcx-next" id="next" data-key="right enter">Siguiente</button></div>
     <div class="fcx-more">
       <button type="button" class="glass-btn glass-btn--sm" id="auto" aria-pressed="${!!s.auto}">${s.auto ? `${ico("pause", "bold", 18)}Parar` : `${ico("play", "bold", 18)}Automático`}</button>
       <button type="button" class="glass-btn glass-btn--sm" id="shuf">${ico("shuffle", "bold", 18)}Barajar</button>
@@ -916,7 +917,8 @@ function tarjetas(doc, anim){
   const go = k => { stop(); s.i = (s.i + k + list.length) % list.length; s.flip = false; tarjetas(doc, k > 0 ? "next" : "prev"); };
   const flip = () => { stop(); s.flip = !s.flip; tarjetas(doc, "flip"); if(s.flip && !s.rev) say(d.word); const c = $("#card"); if(c) c.focus({preventScroll: true}); };
   card.addEventListener("click", e => { if(e.target.closest("[data-say]")) return; flip(); });
-  card.addEventListener("keydown", e => { if(e.key === "Enter" || e.key === " "){ e.preventDefault(); flip(); } });
+  /* con el foco en la tarjeta: Enter la gira; Espacio también mientras no hay altavoz (si lo hay, Espacio es oír: js/keys.js) */
+  card.addEventListener("keydown", e => { if(e.target === card && (e.key === "Enter" || (e.key === " " && !s.flip && !s.rev))){ e.preventDefault(); flip(); } });
   $("#auto").onclick = () => { if(s.auto){ stop(); tarjetas(doc); } else fcAuto(doc); };
   $("#prev").onclick = () => go(-1); $("#next").onclick = () => go(1);
   $("#shuf").onclick = () => { stop(); s.order = shuffle(list.map((_, i) => i)); s.i = 0; s.flip = false; tarjetas(doc, "next"); };
@@ -982,7 +984,7 @@ function test(doc){
       <div class="qz-fox">${typeof heroHtml === "function" ? heroHtml(84) : ""}</div>
       <p class="qz-score" id="qz-score"><b>${t.ok}</b> / ${N}</p>
       <p class="qz-msg">${t.ok === N ? "¡Perfecto!" : t.ok >= N * 0.7 ? "¡Muy bien!" : "¡Sigue así! Las tarjetas te ayudan."}</p></div>
-      <div class="qz-go"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="again">${ico("arrow-counter-clockwise", "bold", 20)}Otra ronda</button></div></div>`;
+      <div class="qz-go"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="again" data-key="enter">${ico("arrow-counter-clockwise", "bold", 20)}Otra ronda</button></div></div>`;
     if(!t.paid){ t.paid = true; if(t.ok) award(t.ok, "¡Preguntas terminadas!", false, $("#qz-score")); }
     $("#again").onclick = () => { state.test = null; test(doc); };
     D.onkeydown = e => { if(state.mode !== "test" || !$("#again")){ D.onkeydown = null; return; } if(e.key === "Enter" && !(e.target.closest && e.target.closest("button,a,input"))){ e.preventDefault(); $("#again").click(); } };
@@ -996,9 +998,9 @@ function test(doc){
       <span class="qz-n">${t.i + 1}/${t.qs.length}</span></div>
     <div class="qz-card">${picHtml(r)}<h2 class="qz-ask">¿Cuál es <q>${esc(inQ(r.es, state.doc))}</q>?</h2></div>
     <div class="qz-opts${long ? " is-long" : ""}" role="group" aria-label="Respuestas">${opts.map((o, i) =>
-      `<button type="button" class="qz-opt" data-i="${i}" data-press="sink" lang="${esc(lc)}"><kbd class="ln-kbd" aria-hidden="true">${i + 1}</kbd><span class="qz-ot">${esc(o.l[lang].word)}</span></button>`).join("")}</div>
+      `<button type="button" class="qz-opt" data-i="${i}" data-press="sink" data-key="${i + 1}" lang="${esc(lc)}"><kbd class="ln-kbd" aria-hidden="true">${i + 1}</kbd><span class="qz-ot">${esc(o.l[lang].word)}</span></button>`).join("")}</div>
     <p class="qz-fb" id="qz-fb" role="status"></p>
-    <div class="qz-go"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="nextq" hidden>Seguir</button></div></div>`;
+    <div class="qz-go"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="nextq" data-key="enter" hidden>Seguir</button></div></div>`;
   const btns = [...v.querySelectorAll(".qz-opt")], fb = $("#qz-fb"), next = $("#nextq");
   fitQz(v);
   btns.forEach(b => b.onclick = () => {

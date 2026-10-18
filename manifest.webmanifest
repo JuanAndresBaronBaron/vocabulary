@@ -14,5 +14,15 @@
     {"src": "icons/icon-192-maskable.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable"},
     {"src": "icons/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
     {"src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ],
+  "shortcuts": [
+    {"name": "Repasar", "short_name": "Repasar", "description": "Repasa las palabras que te esperan hoy", "url": "./#/repaso",
+     "icons": [{"src": "icons/sc-repasar.png", "sizes": "96x96", "type": "image/png", "purpose": "any"}]},
+    {"name": "Seguir el camino", "short_name": "Camino", "description": "Sigue por tu lección del camino", "url": "./#/mapa",
+     "icons": [{"src": "icons/sc-camino.png", "sizes": "96x96", "type": "image/png", "purpose": "any"}]},
+    {"name": "Juegos", "short_name": "Juegos", "description": "Juega con tus palabras", "url": "./#/juegos",
+     "icons": [{"src": "icons/sc-juegos.png", "sizes": "96x96", "type": "image/png", "purpose": "any"}]},
+    {"name": "Mi granja", "short_name": "Granja", "description": "Visita a tus animales de la granja", "url": "./#/granja",
+     "icons": [{"src": "icons/sc-granja.png", "sizes": "96x96", "type": "image/png", "purpose": "any"}]}
   ]
 }

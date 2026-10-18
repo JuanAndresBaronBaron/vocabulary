@@ -364,8 +364,8 @@ function aFace(it){
     <p class="rv-tr">${esc(r.es)}</p>
     ${ipa ? `<p class="rv-ipa">${esc(d.ipa)}</p>` : ""}
     <div class="rv-audio">
-      <button type="button" class="rv-spk" data-rv="spk" aria-label="Escuchar">${ico("speaker-high", "fill", 32)}</button>
-      <button type="button" class="rv-slow" data-rv="slow" aria-label="Escuchar despacio">${ico("turtle", "fill", 30)}</button></div></div>`;
+      <button type="button" class="rv-spk" data-rv="spk" data-key="space" aria-label="Escuchar">${ico("speaker-high", "fill", 32)}</button>
+      <button type="button" class="rv-slow" data-rv="slow" data-key="shift+space" aria-label="Escuchar despacio">${ico("turtle", "fill", 30)}</button></div></div>`;
 }
 function hintsHtml(it, c){
   if(!c || !c.hint) return "";
@@ -378,15 +378,15 @@ function dockHtml(){
     if(c.said) return `<p class="rv-good">${ico("check-circle", "fill", 30)}¡Muy bien!</p>`;
     /* «No me sale»: ya dijo que no la sabía, así que no se le pregunta; nota 0 y vuelve luego */
     if(c.gaveUp) return `<p class="rv-ask rv-ask--give">Así se dice. ¡La verás otra vez!</p>
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block rv-next" data-rv="next">Seguir</button>`;
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block rv-next" data-rv="next" data-key="enter">Seguir</button>`;
     return `<p class="rv-ask" id="rv-ask">¿La sabías?</p>
       <div class="rv-yn" role="group" aria-labelledby="rv-ask">
-        <button type="button" class="glass-btn glass-btn--lg rv-no" data-rv="no">${ico("x", "bold", 22)}No</button>
-        <button type="button" class="glass-btn glass-btn--ok glass-btn--lg rv-yes" data-rv="yes">${ico("check", "bold", 22)}¡Sí!</button></div>`;
+        <button type="button" class="glass-btn glass-btn--lg rv-no" data-rv="no" data-key="left">${ico("x", "bold", 22)}No</button>
+        <button type="button" class="glass-btn glass-btn--ok glass-btn--lg rv-yes" data-rv="yes" data-key="right">${ico("check", "bold", 22)}¡Sí!</button></div>`;
   }
   /* la pregunta: «Ver» siempre es lo principal (tocando todo se puede); el micrófono solo da extra */
   const msg = c.msg ? `<p class="rv-msg" role="status">${esc(c.msg)}</p>` : "";
-  const look = `<button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block rv-look" data-rv="look">${ico("eye", "bold", 22)}Ver</button>`;
+  const look = `<button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block rv-look" data-rv="look" data-key="space enter">${ico("eye", "bold", 22)}Ver</button>`;
   const on = c.mic === "listening";
   const mic = micOk() && c.miss < 2 ? `<button type="button" class="glass-btn glass-btn--sm rv-mic${on ? " is-on" : ""}" id="rv-mic" data-rv="mic" aria-pressed="${on}"
       aria-label="${on ? "Te escucho. Toca para parar" : c.miss ? `Otra vez: dilo en ${esc(name)}` : `Dilo en ${esc(name)}`}">${ico("microphone", "bold", 20)}${on ? "Te escucho…" : c.miss ? "Otra vez" : `Dilo en ${esc(name)}`}</button>` : "";
@@ -417,7 +417,7 @@ function setInert(card){
   if(a){ a.inert = !c.flip; a.setAttribute("aria-hidden", String(!c.flip)); }
 }
 function shell(){
-  return `<div class="rv" id="rv"${micOk() ? " data-mic" : ""}>
+  return `<div class="rv" id="rv"${micOk() ? " data-mic" : ""} data-key-own>
     <div class="rv-top"><div class="rv-prog" id="rv-prog" role="progressbar" aria-label="Progreso del repaso" aria-valuemin="0"><i></i></div></div>
     <div class="rv-stage"><div class="rv-stack" id="rv-stack"></div></div>
     <div class="rv-dock" id="rv-dock"></div>
@@ -660,7 +660,7 @@ function drawEnd(){
         <span class="rv-chip coin" id="rv-earn" aria-label="Ganaste ${earned} monedas">${COIN}+${earned}</span>
         <span class="rv-chip" aria-label="Racha: ${st === 1 ? "1 día seguido" : `${st} días seguidos`}">${ico("fire", "fill", 22)}${st === 1 ? "1 día seguido" : `${st} días seguidos`}</span></div>
       <div class="pr-row rv-more"></div></section></div>
-    <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block rv-end-go" id="rv-end-go">Seguir</button></div>`;
+    <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block rv-end-go" id="rv-end-go" data-key="enter">Seguir</button></div>`;
   updFocus(); scrollTo(0, 0);
   const go = $("#rv-end-go");
   go.addEventListener("click", goHome);
@@ -695,7 +695,7 @@ async function drawEmpty(){
     <div class="rv-fox">${heroHtml(110)}</div>
     <h2 class="rv-empty-t" id="rv-empty-t">Todo repasado</h2>
     <p class="rv-empty-p">${esc(txt)}</p>
-    <a class="glass-btn glass-btn--pri glass-btn--lg" id="rv-learn" href="${esc(href)}">${ico("sparkle", "bold", 20)}Aprender nuevas</a></section>`;
+    <a class="glass-btn glass-btn--pri glass-btn--lg" id="rv-learn" href="${esc(href)}" data-key="enter">${ico("sparkle", "bold", 20)}Aprender nuevas</a></section>`;
 }
 function drawCantLoad(){
   $("#app").innerHTML = `<section class="rv-empty" aria-labelledby="rv-empty-t">
@@ -744,7 +744,7 @@ function pauseSheet(){
     <p class="rv-pz-p">Luego sigues donde lo dejaste.</p>
     <div class="rv-pz-b">
       <button type="button" class="glass-btn glass-btn--lg" id="rv-pz-out">Salir</button>
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="rv-pz-go" autofocus>Seguir</button></div></div>`;
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="rv-pz-go" data-key="enter" autofocus>Seguir</button></div></div>`;
   DOC.body.appendChild(d);
   d.addEventListener("click", e => {
     if(e.target.closest("#rv-pz-go")){ if(W.M && W.M.closeSheet) W.M.closeSheet(d); else d.close(); }
