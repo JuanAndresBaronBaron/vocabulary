@@ -18,6 +18,9 @@
      "act") y, por partes (Temas · Las 3000 · Avanzado, data/index.json), cada tema empezado con sus palabras
      dominadas (caja ≥ MASTER) y aprendiendo de su total, con una barra; los que faltan, contados al pie. Lee srsAll()
      del idioma actual; no guarda nada.
+   - Voz y velocidad: una fila por idioma (primero el que aprende); cada una entra en su página "voz-en" · "voz-fr" ·
+     "voz-da" (título: el idioma; «‹ Voz y velocidad» vuelve y deja el foco en su fila) con las voces de este aparato
+     (voiceListPage de index.html). Si las voces llegan tarde (bus "voices"), la página abierta se repinta en su sitio.
    - Sub-páginas con navegación de iOS dentro de la hoja: «‹ Ajustes» vuelve; Esc vuelve (en la portada cierra).
    - Avisos del bus: "settings" {page, el, focus} al pintar una página (sync.js pinta ahí lo suyo) · "ui" {k, v} al
      cambiar una preferencia.
@@ -135,6 +138,7 @@ dialog#ajustes a.st-r{color:var(--label)}
 dialog#ajustes .st-g .seg{margin:0;max-width:none}
 .aj-seg{padding:8px}
 dialog#ajustes .st-cred{margin:0}
+dialog#ajustes #aj-vh>.st-r::before{content:"";position:absolute;top:0;left:58px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
 dialog#ajustes .aj-off .off-rows>.st-r:first-child::before{content:"";position:absolute;top:0;left:58px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
 .aj-hint{margin:0 0 16px;padding:0 4px;font:400 var(--fs-sub,1.0625rem)/1.38 var(--f-text,system-ui);color:var(--label2)}
 /* Progreso por tema: barras de 14 días y una barra por tema (dorado = dominadas, verde azulado = aprendiendo) */
@@ -165,7 +169,8 @@ const PAGES = {
   mayores: {t: "Para mayores", gate: true},
   progreso: {t: "Progreso"},   /* corto: cabe en la barra con «‹ Para mayores» y «Listo» */
 };
-const SECTIONS = {"": [], root: [], sonido: [], apariencia: [], voz: ["voz"], accesibilidad: ["acc"], acc: ["acc"],
+const SECTIONS = {"": [], root: [], sonido: [], apariencia: [], voz: ["voz"], "voz-en": ["voz", "voz-en"], "voz-fr": ["voz", "voz-fr"],
+  "voz-da": ["voz", "voz-da"], accesibilidad: ["acc"], acc: ["acc"],
   mayores: ["mayores"], google: ["mayores"], descargar: ["mayores"], instalar: ["mayores"], creditos: ["mayores"]};
 const GATE_WHY = {mayores: "Aquí están Google, instalar la app y descargar todo.", google: "Para guardar la partida en Google.",
   descargar: "Para descargar todo y usarla sin internet."};
@@ -232,6 +237,9 @@ function detent(name, anim = true){
   try{ dlg.animate([{height: h0 + "px"}, {height: h1 + "px"}], {duration: M.snappy.ms, easing: M.snappy.easing}); }catch(e){}
 }
 const pageEl = p => dlg && dlg.querySelector(`.aj-pg[data-pg="${p}"]`);
+/* "voz-en" → "english" (la página de voces de ese idioma) */
+const vozLang = p => { try{ return /^voz-/.test(p || "") && typeof CLIP_AB === "object" ? Object.keys(CLIP_AB).find(k => "voz-" + CLIP_AB[k] === p) || null : null; }catch(e){ return null; } };
+const ttl = p => { const L = vozLang(p); return L ? (typeof LANG_ES === "object" && LANG_ES[L] ? LANG_ES[L][0] : LANGS[L].name) : (PAGES[p] || PAGES.root).t; };
 const curPage = () => stack[stack.length - 1];
 function pageNode(p){
   let el = pageEl(p);
@@ -240,9 +248,9 @@ function pageNode(p){
 }
 function paintBar(){
   const p = curPage(), prev = stack[stack.length - 2];
-  $("aj-tt").textContent = (PAGES[p] || PAGES.root).t;
+  $("aj-tt").textContent = ttl(p);
   const b = $("aj-back"); b.hidden = !prev;
-  if(prev){ $("aj-back-t").textContent = (PAGES[prev] || PAGES.root).t; b.setAttribute("aria-label", "Volver a " + (PAGES[prev] || PAGES.root).t); }
+  if(prev){ $("aj-back-t").textContent = ttl(prev); b.setAttribute("aria-label", "Volver a " + ttl(prev)); }
 }
 /* pinta una página (y avisa por el bus, para que sync.js ponga lo suyo) */
 function render(p, focus){
@@ -251,7 +259,7 @@ function render(p, focus){
   else if(p === "acc") el.innerHTML = accHtml();
   else if(p === "mayores") el.innerHTML = adultHtml();
   else if(p === "progreso"){ el.innerHTML = ""; progFill(el); }
-  else if(p === "voz") el.innerHTML = "";
+  else if(p === "voz" || vozLang(p)) el.innerHTML = "";
   wire(p, el);
   emit("settings", {page: p, el, focus: focus || ""});
   return el;
@@ -298,11 +306,17 @@ function back(){
   const out = stack.pop(), outEl = pageEl(out), inEl = pageEl(curPage());
   if(out === "voz"){ try{ if(typeof voiceNote === "function") voiceNote(); }catch(e){} }
   if(curPage() === "root") paintRoot();
+  /* de la página de un idioma a Voz y velocidad: su fila dice ya la voz elegida y recibe el foco (como en iOS) */
+  let row = null;
+  if(curPage() === "voz" && vozLang(out) && inEl){
+    try{ if(typeof paintVoz === "function") paintVoz(inEl); }catch(e){ console.error(e); }
+    row = inEl.querySelector("#cfg-l-" + out.slice(4));
+  }
   paintBar();
   const h0 = boxH();
   slide(inEl, outEl, -1);
   fitH(h0);
-  try{ $("aj-tt").focus({preventScroll: true}); }catch(e){}
+  try{ (row || $("aj-tt")).focus({preventScroll: true}); }catch(e){}
 }
 function close(){
   if(!dlg || !dlg.open) return;
@@ -395,7 +409,7 @@ function adultHtml(){
     <section class="st-sec" aria-labelledby="aj-l-h"><h3 class="st-h" id="aj-l-h">Lecciones</h3><div class="st-g ics">
       <label class="st-r" for="aj-ipa"><span class="st-ic tl" aria-hidden="true">${ico("text-aa", "bold", 18)}</span>
         <span class="st-l">Mostrar pronunciación (IPA)<small>Símbolos de cómo suena cada palabra.</small></span>
-        <input type="checkbox" role="switch" class="st-sw" id="aj-ipa" ${ipa ? "checked" : ""}></label>${voiceHelp()}</div></section>
+        <input type="checkbox" role="switch" class="st-sw" id="aj-ipa" ${ipa ? "checked" : ""}></label><div id="aj-vh">${voiceHelp()}</div></div></section>
     <section class="st-sec" aria-labelledby="aj-c-h"><h3 class="st-h" id="aj-c-h">Créditos</h3><div class="st-g ics">
       <p class="st-cred">${credits()}</p>
       <a class="st-r" href="privacy.html#es" id="aj-priv"><span class="st-ic" aria-hidden="true">${ico("shield-check", "bold", 18)}</span><span class="st-l">Privacidad</span>${chev()}</a>
@@ -505,7 +519,9 @@ function wire(p, el){
       gate("mayores", b).then(ok => { if(ok && dlg.open && curPage() === "root"){ push("mayores"); afterGate(); } });
     };
   } else if(p === "voz"){
-    if(typeof openCfg === "function") openCfg(null, null, el);
+    if(typeof openCfg === "function") openCfg(null, null, el, L => { if(curPage() === "voz" && typeof CLIP_AB === "object" && CLIP_AB[L]) push("voz-" + CLIP_AB[L]); });
+  } else if(vozLang(p)){
+    if(typeof voiceListPage === "function") voiceListPage(el, vozLang(p));
   } else if(p === "acc"){
     el.querySelectorAll("[data-ui]").forEach(c => c.onchange = () => {
       const a = A11Y.find(x => x.k === c.dataset.ui); if(!a) return;
@@ -574,6 +590,14 @@ async function openSettings(a, b){
 window.openSettings = openSettings;
 window.vocabSettings = Object.freeze({open: openSettings, close, back, get page(){ return dlg && dlg.open ? curPage() : null; }, detent: () => dlg && dlg.dataset.detent});
 
+/* las voces del aparato llegan tarde (Chrome, Edge, Safari): lo abierto se repinta en su sitio, sin cambiar de página */
+try{ if(typeof bus !== "undefined") bus.on("voices", () => {
+  if(!dlg || !dlg.open) return;
+  const vz = pageEl("voz"), L = vozLang(curPage()), vh = $("aj-vh");
+  if(vz && typeof paintVoz === "function") paintVoz(vz);
+  if(L && typeof voiceListPage === "function") voiceListPage(pageEl(curPage()), L, {keep: true});
+  if(vh) vh.innerHTML = voiceHelp();
+}); }catch(e){}
 /* el sonido cambió desde otro sitio */
 try{ if(typeof bus !== "undefined") bus.on("mute", () => { const s = $("aj-snd"); if(s && typeof sfx !== "undefined") s.checked = !sfx.muted; }); }catch(e){}
 })();

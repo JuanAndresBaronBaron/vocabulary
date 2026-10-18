@@ -28,7 +28,8 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
    Prácticas por documento: pr:<docId>:<lang>
    Solo de este aparato (no se exporta ni se restaura): offline (si ya descargó la web para usarla sin internet) ·
      vocab:ui (pistas de gestos vistas, de js/gestures.js, y ajustes de accesibilidad) · vocab:lsdraft (la lección a
-     medias por si se cierra la pestaña, de js/lesson.js; caduca a las 72 horas).
+     medias por si se cierra la pestaña, de js/lesson.js; caduca a las 72 horas) · vocab:voice (la voz elegida para
+     cada idioma, {english, français, dansk: nombre}: cada aparato trae voces distintas; voice:<lang> queda de respaldo).
    Propias de este módulo (no se exportan ni se restauran desde un archivo):
      save:last (fecha de la última vez que se cargó una partida) · save:first (primer día de uso, para el aviso) ·
      save:snooze («Ahora no» hasta…) · save:undo (copia para deshacer) · save:sync (estado de Google Drive) ·
@@ -41,7 +42,7 @@ const EXACT = {
   season: "o",
 };
 const PER_LANG = {"srs:": "o", "map:": "o", "voice:": "*", "album:seen:": "*", "album:done:": "*", "album:uniq:": "*", "album:orph:": "*"};
-const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft"];
+const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft", "vocab:voice"];
 const META = {last: "save:last", first: "save:first", snooze: "save:snooze", undo: "save:undo", sync: "save:sync", tok: "save:tok"};
 const langs = () => { try{ return Object.keys(LANGS); }catch(e){ return ["english", "français", "dansk"]; } };
 /* tipo de una clave de la app, o null si no es nuestra */
