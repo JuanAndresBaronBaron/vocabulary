@@ -137,7 +137,7 @@ def test_modules_load_order_sw_save_and_manifest():
     vez, detrás del script principal, de motion.js y de gestures.js (los tres últimos detrás de games.js, shop.js, sync.js
     y review.js, que usan). Al primer route() ya están ROUTES.buzon, carta y frases, vocabKeys, vocabShortcuts,
     vocabMailbox, vocabMedia y vocabPhrases, las tarjetas «Buzón del tío» y «Frases mágicas» en vocabGames, los
-    HOME_SLOTS "mail" y "phrase" y las secciones de Jugar. sw.js va por la versión 20 o más con OFF_SHELL igual, cada
+    HOME_SLOTS "mail" y "phrase" y las secciones de Jugar. sw.js va por la versión 21 o más con OFF_SHELL igual, cada
     <script> de index.html y privacy.html lleva «?v=<VERSION>», y SHELL = OFF_APP con los ficheros nuevos. save.js:
     sc:prefs, mail:box y phrase:stamps en la partida (objetos); vocab:sc y phrase:day solo del aparato. El manifest
     trae los 4 atajos dentro de su scope con iconos que existen."""
@@ -145,8 +145,8 @@ def test_modules_load_order_sw_save_and_manifest():
     html = (C.REPO / "index.html").read_text(encoding="utf-8")
     priv = (C.REPO / "privacy.html").read_text(encoding="utf-8")
     v, sw = I4._sw_version()
-    if v < 20:
-        probs.append(f"sw.js sigue en la versión {v} (F5 sube a 20 o más)")
+    if v < 21:
+        probs.append(f"sw.js sigue en la versión {v} (F5 con fix-voces y fix-imagenes-movil sube a 21 o más)")
     if f'OFF_SHELL = "vocab-shell-v{v}"' not in html:
         probs.append(f"OFF_SHELL de index.html no es vocab-shell-v{v}")
     for name, src in (("index.html", html), ("privacy.html", priv)):
@@ -1025,7 +1025,10 @@ def _v19_then_new(gh_cache):
     """Sirve la versión publicada (main 2e7dc3f con su service worker vocab-shell-v19) en plena temporada de Halloween
     con la partida sembrada; el niño la usa (Hoy, abre una puerta de Truco o trato, la granja, juegos, Premios, un tema).
     Luego se publica esta versión en el mismo origen y el niño vuelve (otro día de la misma temporada sin caché HTTP, o
-    recargando en menos de 10 minutos con la de GitHub Pages). Devuelve una lista de problemas."""
+    recargando en menos de 10 minutos con la de GitHub Pages). Con las voces de Edge simuladas, en la versión publicada
+    eligió una voz para inglés (voice:english, que va con la partida): tras actualizar se sigue usando. Devuelve una
+    lista de problemas."""
+    import test_voces as V
     probs = []
     base_dir = _base19_dir()
     assert base_dir, f"no se pudo sacar la versión publicada (commit {_BASE19_COMMIT}); VOCAB_BASE19=<copia de ese commit>"
@@ -1056,6 +1059,7 @@ def _v19_then_new(gh_cache):
     srv = C.Server(base_dir, "localhost", handler=Handler)
     ctx = C.new_context("phone", sw=True, server=srv, block_external=not gh_cache, now=HALLOWEEN, reduced_motion="reduce")
     ctx.add_init_script(T._RANDOM)
+    ctx.add_init_script(f"{V._FAKE}({json.dumps({'voices': V.EDGE, 'delay': 0}, ensure_ascii=False)})")
     page = ctx.new_page()
     stopped = False
     try:
@@ -1073,6 +1077,11 @@ def _v19_then_new(gh_cache):
         for h in ("#/granja", "#/juegos", "#/progreso", "#/doc/animales", "#/"):
             C.goto(page, h)
             page.wait_for_timeout(250)
+        # la voz de inglés elegida en Ajustes de la versión publicada (se guardaba en voice:english, con la partida)
+        page.evaluate("n => store.set('voice:english', n)", _HAZEL)
+        v19 = page.evaluate("() => (voiceFor('en-GB') || {}).name")
+        if v19 != _HAZEL:
+            probs.append(f"{tag}: la versión publicada no usa la voz elegida: {v19}")
         old = page.evaluate(I4._STORE)
         old_snap = C.export(page)
         if "season" not in old:
@@ -1152,6 +1161,7 @@ def _v19_then_new(gh_cache):
              if not x.startswith("cambia 'album:uniq:") and not x.startswith("cambia 'farm:state'")]
         if d:
             probs.append(f"{tag}: la exportación tras actualizar no es la de la versión publicada: {d}")
+        probs += _after_update_voice_and_new_keys(page, tag, old, old_snap)
         for h, sel in (("#/buzon", "#mb-rb"), ("#/frases", "#ph-line"), ("#/juegos", ".gm-card[data-g=buzon]"),
                        ("#/progreso", "#rw .rw-meds"), ("#/mizorro", "#mz-shop .sc")):
             C.goto(page, h)
@@ -1190,11 +1200,90 @@ def _v19_then_new(gh_cache):
     return probs
 
 
+def _after_update_voice_and_new_keys(page, tag, old, old_snap):
+    """Tras actualizar desde v19: la voz elegida antes (voice:english = Hazel) se respeta (sin crear vocab:voice ni tocar
+    voice:english) y Frases mágicas suena con ella; elegir otra en este aparato la guarda en vocab:voice, que manda, no va
+    en la exportación y deja voice:english como estaba; las claves nuevas de F5 (sc:prefs al fijar un atajo, mail:box al
+    llegar una carta, phrase:stamps al sellar la frase de la cena) se crean al usarse y van en la exportación."""
+    probs = []
+    vo = page.evaluate("""() => ({pick: (pickVoice('english') || {}).name, vf: (voiceFor('en-GB') || {}).name, ch: voiceChoiceOf('english'),
+      own: localStorage.getItem('vocab:voice'), old: localStorage.getItem('voice:english')})""")
+    if vo["pick"] != _HAZEL or vo["vf"] != _HAZEL or vo["ch"] != {"n": _HAZEL, "own": False} or vo["own"] is not None \
+            or vo["old"] != old.get("voice:english") or not vo["old"]:
+        probs.append(f"{tag}: tras actualizar no se respeta la voz elegida antes (voice:english): {vo}")
+    try:
+        C.goto(page, "#/frases")
+        page.wait_for_selector(".ph-tile", timeout=8000)
+        page.evaluate("() => { window.__spoken.length = 0; }")
+        page.locator(".ph-tile").first.click()
+        sp = _said(page, "s.text.trim().length > 2")
+        if any(x["voice"] != _HAZEL or x["lang"] != "en-GB" for x in sp):
+            probs.append(f"{tag}: tras actualizar Frases mágicas no suena con la voz elegida antes: {sp}")
+        page.wait_for_function("() => !document.querySelector('#ph-line.is-lit')", timeout=8000)
+    except Exception as e:  # noqa: BLE001
+        probs.append(f"{tag}: tras actualizar Frases mágicas no habla: {str(e).splitlines()[0]}")
+    # otra voz elegida en este aparato
+    page.evaluate("n => setVoiceChoice('english', n)", _GEORGE)
+    nv = page.evaluate("""() => ({pick: (pickVoice('english') || {}).name, own: JSON.parse(localStorage.getItem('vocab:voice') || 'null'),
+      old: localStorage.getItem('voice:english')})""")
+    if nv["pick"] != _GEORGE or nv["own"] != {"english": _GEORGE} or nv["old"] != old.get("voice:english"):
+        probs.append(f"{tag}: elegir otra voz tras actualizar: {nv}")
+    try:
+        C.goto(page, "#/buzon")
+        page.wait_for_selector("#mb-spk", timeout=8000)
+        page.evaluate("() => { window.__spoken.length = 0; }")
+        page.locator("#mb-spk").click()
+        sp = _said(page, "s.text.trim().length > 2")
+        if any(x["voice"] != _GEORGE for x in sp):
+            probs.append(f"{tag}: el Buzón no suena con la voz elegida ahora: {sp}")
+    except Exception as e:  # noqa: BLE001
+        probs.append(f"{tag}: el Buzón no habla: {str(e).splitlines()[0]}")
+    # las claves nuevas de F5, al usarse
+    page.evaluate("() => vocabShortcuts.pin('en/juego:globos', true)")
+    page.evaluate("o => vocabMailbox.receive(o)", dict(LET, id="cartaTrasV19"))
+    try:
+        C.goto(page, "#/frases/cena")
+        page.wait_for_selector("#ph-stamp", timeout=8000)
+        page.evaluate(_PASS)
+        page.locator("#ph-stamp").click()
+        _gate_if_open(page)
+        page.wait_for_selector("#ph-done", timeout=6000)
+    except Exception as e:  # noqa: BLE001
+        probs.append(f"{tag}: tras actualizar no se puede sellar la frase de la cena: {str(e).splitlines()[0]}")
+    page.wait_for_timeout(300)
+    ls = C.storage(page)
+    snap = C.export(page)
+    ks = snap["keys"]
+    for k, ok in (("sc:prefs", lambda v: "en/juego:globos" in v["pinned"]), ("mail:box", lambda v: any(x["id"] == "cartaTrasV19" for x in v["l"])),
+                  ("phrase:stamps", lambda v: v["n"] == 1)):
+        try:
+            good = ok(json.loads(ls[k])) and ks.get(k) == ls[k]
+        except Exception:  # noqa: BLE001
+            good = False
+        if not good:
+            probs.append(f"{tag}: {k} tras usarse: guardada {_short(ls.get(k))}, en la exportación {_short(ks.get(k))}")
+    if "vocab:voice" in ks:
+        probs.append(f"{tag}: vocab:voice (de este aparato) va en la exportación")
+    if ks.get("voice:english") != old_snap["keys"].get("voice:english"):
+        probs.append(f"{tag}: cambia voice:english en la exportación: {ks.get('voice:english')}")
+    extra = C.new_keys(old_snap, snap)
+    if sorted(extra) != ["mail:box", "phrase:stamps", "sc:prefs"]:
+        probs.append(f"{tag}: claves nuevas en la exportación: {sorted(extra)}")
+    return probs
+
+
+def _short(s, n=120):
+    s = "" if s is None else str(s)
+    return s if len(s) <= n else s[:n] + "…"
+
+
 def test_update_from_published_v19():
     """Un niño con la versión publicada (main 2e7dc3f, sw vocab-shell-v19), la partida sembrada y una puerta de Halloween
     abierta abre la app nueva otro día: se carga la app nueva entera (los módulos de F5 incluidos), el sw nuevo se
-    instala (vocab-shell-v20 con los ficheros nuevos, sin vocab-shell-v19, vocab-media entera) y controla la página; la
-    partida queda igual (cada clave, y la exportación como la de la versión publicada), la granja enseña lo comprado en su
+    instala (vocab-shell-v<VERSION> con los ficheros nuevos, sin vocab-shell-v19, vocab-media entera) y controla la
+    página; la partida queda igual (cada clave, y la exportación como la de la versión publicada), la voz de inglés
+    elegida en la versión publicada se sigue usando (y una elegida ahora en este aparato manda sin ir en la
+    exportación), las claves nuevas de F5 se crean al usarse y van en la exportación, la granja enseña lo comprado en su
     sitio, la puerta de Halloween sigue abierta, el Buzón, Frases, Juegos, Medallas y Mi zorro pintan, y sin conexión
     sale la app nueva con Frases mágicas y el Buzón. Sin errores."""
     probs = _v19_then_new(gh_cache=False)
@@ -1203,9 +1292,149 @@ def test_update_from_published_v19():
 
 def test_update_from_v19_with_github_pages_http_cache():
     """Lo mismo con las cabeceras de GitHub Pages (Cache-Control: max-age=600) y la caché HTTP del navegador: el niño
-    tenía la app abierta al publicar y recarga en menos de 10 minutos. Los <script> llevan «?v=20», así que ningún
+    tenía la app abierta al publicar y recarga en menos de 10 minutos. Los <script> llevan «?v=<VERSION>», así que ningún
     módulo viejo sale de la caché HTTP: la primera carga ya es la app nueva entera y sin errores."""
     probs = _v19_then_new(gh_cache=True)
+    assert not probs, "\n".join(probs)
+
+
+# ---------------------------------------------------------------- voces de F5 (unión con fix-voces)
+_HAZEL = "Microsoft Hazel - English (United Kingdom)"
+_HORTENSE = "Microsoft Hortense - French (France)"
+_SONIA = "Microsoft Sonia Online (Natural) - English (United Kingdom)"
+_GEORGE = "Microsoft George - English (United Kingdom)"
+_ELVIRA = "Microsoft Elvira Online (Natural) - Spanish (Spain)"
+_SPOKEN = "() => window.__spoken.filter(s => s.text.trim())"
+
+
+def _said(page, pred_js, ms=6000):
+    """Espera a que __spoken (test_voces._FAKE) tenga una frase que cumpla pred_js (texto JS con s) y la devuelve."""
+    page.wait_for_function(f"() => window.__spoken.some(s => {pred_js})", timeout=ms)
+    return page.evaluate(f"() => window.__spoken.filter(s => {pred_js})")
+
+
+def test_f5_voices_use_the_voice_of_each_language():
+    """Las voces de F5 eligen la voz con la función central de index.html (useVoice), la de su idioma en este aparato:
+    con Edge y la voz elegida en Ajustes (vocab:voice: Hazel para inglés, Hortense para francés), Frases mágicas, la frase
+    de la cena, la plantilla del Buzón y una carta en inglés suenan con Hazel (lang en-GB); una carta en francés con
+    Hortense aunque aprenda inglés; una en español con la mejor voz española (Elvira, es-ES); el toque que desbloquea la
+    voz (un atajo de un juego en Hoy, la tarjeta de un juego) lleva la voz del idioma. En francés, Frases y el Buzón con
+    Hortense. Si la voz elegida es de internet y falla (Sonia sin red), Frases lo dice otra vez con una del aparato y
+    sigue. Sin errores."""
+    import test_voces as V
+    probs = []
+    choice = {"english": _HAZEL, "français": _HORTENSE}
+    page = V._page(V.EDGE, lang="english", reduced_motion="reduce",
+                   keys={"vocab:voice": choice, "vocab:ui": _HINTS, "vocab:sc": _sc(C.day_num(C.FIXED_NOW))})
+    try:
+        page.evaluate("() => sessionStorage.setItem('__mic', 'ok')")
+        # Frases mágicas: una ficha en el hueco y la frase entera con la voz elegida
+        C.goto(page, "#/frases")
+        page.wait_for_selector(".ph-tile", timeout=8000)
+        page.evaluate("() => { window.__spoken.length = 0; }")
+        page.locator(".ph-tile").first.click()
+        sp = _said(page, "s.text.trim().length > 2")
+        if any(x["voice"] != _HAZEL or x["lang"] != "en-GB" for x in sp):
+            probs.append(f"Frases mágicas no usa la voz elegida del inglés: {sp}")
+        # la frase de la cena
+        C.goto(page, "#/frases/cena")
+        page.wait_for_selector("#ph-say", timeout=8000)
+        page.evaluate("() => { window.__spoken.length = 0; }")
+        page.locator("#ph-say").click()
+        sp = _said(page, "s.text.trim().length > 2")
+        if any(x["voice"] != _HAZEL for x in sp):
+            probs.append(f"la frase de la cena no usa la voz elegida: {sp}")
+        # el Buzón: la plantilla
+        C.goto(page, "#/buzon")
+        page.wait_for_selector("#mb-spk", timeout=8000)
+        page.evaluate("() => { window.__spoken.length = 0; }")
+        page.locator("#mb-spk").click()
+        sp = _said(page, "s.text.trim().length > 2")
+        if any(x["voice"] != _HAZEL or x["lang"] != "en-GB" for x in sp):
+            probs.append(f"la plantilla del Buzón no usa la voz elegida: {sp}")
+        # cartas en inglés, en francés y en español
+        for lt, want, lang_tag in ((dict(LET, id="cartaVozEn01"), _HAZEL, "en-GB"),
+                                   ({"v": 1, "id": "cartaVozFr01", "from": "Mamie", "msg": "Bravo ! Je suis très fière de toi, mon petit.", "lang": "fr", "lock": "les3"}, _HORTENSE, "fr-FR"),
+                                   ({"v": 1, "id": "cartaVozEs01", "from": "Abuela", "msg": "¡Qué bien lo haces! Estoy muy orgullosa de ti.", "lang": "en", "lock": "les3"}, _ELVIRA, "es-ES")):
+            page.evaluate("o => vocabMailbox.receive(o)", lt)
+            if "lock" in lt:
+                # el candado, ya cumplido: la carta se abre como las demás
+                page.evaluate("id => { const b = JSON.parse(localStorage.getItem('mail:box')); const l = b.l.find(x => x.id === id); l.b = -99; l.u = l.at; localStorage.setItem('mail:box', JSON.stringify(b)); }", lt["id"])
+            C.goto(page, "#/carta/" + lt["id"])
+            try:
+                page.wait_for_selector("#mb-open", timeout=6000)
+                page.locator("#mb-open").click()
+                page.wait_for_selector("#mb-say", timeout=6000)
+                page.wait_for_timeout(1200)
+                # el altavoz de la carta (la de regalo ya se leyó sola al abrirla: aquí, otra vez con el botón)
+                page.evaluate("() => { speechSynthesis.cancel(); window.__spoken.length = 0; }")
+                page.locator("#mb-say").click()
+                sp = _said(page, f"s.text === {json.dumps(lt['msg'])}", ms=9000)
+                if any(x["voice"] != want or x["lang"] != lang_tag for x in sp):
+                    probs.append(f"la carta {lt['id']} no suena con {want} ({lang_tag}): {sp}")
+            except Exception as e:  # noqa: BLE001
+                probs.append(f"la carta {lt['id']} no se lee: {str(e).splitlines()[0]} · {page.evaluate(_SPOKEN)}")
+        # el toque que desbloquea la voz: un atajo de juego en Hoy y una tarjeta de Juegos
+        _hoy(page)
+        _hoy(page)
+        if page.locator("#hm-sc .sc-p[data-game]").count():
+            page.evaluate("() => { window.__spoken.length = 0; }")
+            page.locator("#hm-sc .sc-p[data-game]").first.click()
+            page.wait_for_timeout(300)
+            un = page.evaluate("() => window.__spoken.filter(s => !s.text.trim())")
+            if not un or any(x["voice"] != _HAZEL for x in un):
+                probs.append(f"el atajo de un juego desbloquea la voz sin la voz del idioma: {un}")
+        else:
+            probs.append(f"Hoy sin atajos de juego: {page.evaluate(_SCROW)}")
+        C.goto(page, "#/juegos")
+        page.wait_for_selector(".gm-card[data-g=globos]", timeout=8000)
+        page.evaluate("() => { window.__spoken.length = 0; }")
+        page.locator(".gm-card[data-g=globos]").click()
+        page.wait_for_timeout(300)
+        un = page.evaluate("() => window.__spoken.filter(s => !s.text.trim())")
+        if not un or any(x["voice"] != _HAZEL for x in un):
+            probs.append(f"la tarjeta de un juego desbloquea la voz sin la voz del idioma: {un}")
+        probs += [f"inglés: {e}" for e in C.errors(page)]
+    finally:
+        page.context.close()
+    # en francés: Frases y el Buzón con Hortense
+    page = V._page(V.EDGE, lang="français", reduced_motion="reduce", keys={"vocab:voice": choice, "vocab:ui": _HINTS})
+    try:
+        C.goto(page, "#/frases")
+        page.wait_for_selector(".ph-tile", timeout=8000)
+        page.evaluate("() => { window.__spoken.length = 0; }")
+        page.locator(".ph-tile").first.click()
+        sp = _said(page, "s.text.trim().length > 2")
+        if any(x["voice"] != _HORTENSE or x["lang"] != "fr-FR" for x in sp):
+            probs.append(f"francés: Frases mágicas no usa Hortense: {sp}")
+        C.goto(page, "#/buzon")
+        page.wait_for_selector("#mb-spk", timeout=8000)
+        page.evaluate("() => { window.__spoken.length = 0; }")
+        page.locator("#mb-spk").click()
+        sp = _said(page, "s.text.trim().length > 2")
+        if any(x["voice"] != _HORTENSE for x in sp):
+            probs.append(f"francés: la plantilla del Buzón no usa Hortense: {sp}")
+        probs += [f"francés: {e}" for e in C.errors(page)]
+    finally:
+        page.context.close()
+    # una voz de internet que falla: Frases lo repite con una del aparato y la cadena sigue
+    page = V._page(V.EDGE, lang="english", reduced_motion="reduce", keys={"vocab:voice": {"english": _SONIA}, "vocab:ui": _HINTS})
+    try:
+        C.goto(page, "#/frases")
+        page.wait_for_selector(".ph-tile", timeout=8000)
+        page.evaluate("""() => { window.__spoken.length = 0; const ss = window.speechSynthesis, sp = ss.speak;
+          ss.speak = u => { if (u.voice && u.voice.localService === false && u.text.trim()) { window.__spoken.push({text: u.text, lang: u.lang, voice: u.voice.name, fail: true});
+            setTimeout(() => u.onerror && u.onerror({error: 'network'}), 10); } else sp(u); }; }""")
+        page.locator(".ph-tile").first.click()
+        page.wait_for_function("() => window.__spoken.some(s => s.fail) && window.__spoken.some(s => !s.fail && s.text.trim())", timeout=8000)
+        page.wait_for_function("() => !document.querySelector('#ph-line.is-lit')", timeout=8000)
+        sp = page.evaluate(_SPOKEN)
+        loc = [x for x in sp if not x.get("fail")]
+        if not sp or sp[0]["voice"] != _SONIA or not loc or any("Online" in (x["voice"] or "") for x in loc):
+            probs.append(f"la voz de internet que falla no se repite con una del aparato: {sp}")
+        probs += [f"reintento: {e}" for e in C.errors(page)]
+    finally:
+        page.context.close()
     assert not probs, "\n".join(probs)
 
 

@@ -14,7 +14,11 @@ encogen), el acierto sale en la misma frase (sin pastilla encima de los globos),
 (fuera del dibujo), las banderas llevan su filete, ningún globo es gris, tumbado con los márgenes de un iPhone (47 px) y
 en 667×375 y 568×320 los globos son grandes y no se baja, con «Reducir movimiento» los globos no saltan de tamaño, en
 Memoria oscuro la cara del dibujo es blanca, y no se baja tras un fallo en «Escucha y elige» (también con «Texto más
-grande» y en 1280×720), con dos pistas en el repaso ni en Letras con «Texto más grande»."""
+grande» y en 1280×720), con dos pistas en el repaso ni en Letras con «Texto más grande».
+
+Y las pantallas de F5 con dibujos, con el mismo criterio (MIN_F5): la bandeja de Frases mágicas (con los árboles de
+familia recortados), las plantillas del Buzón, las tarjetas de Juegos del Buzón y de Frases y la fila «Tus atajos» de Hoy,
+sin scroll donde antes no lo había; y img/fam2 fuera de SHELL, en «Descargar todo» y sin conexión una vez visto."""
 from __future__ import annotations
 
 import json
@@ -581,4 +585,214 @@ def test_no_scroll_after_answers():
             probs.append(f"390x844 oscuro: caras de Memoria con dibujo {bg}")
     finally:
         page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+# ---------------------------------------------------------------- las pantallas de F5 con dibujos
+# lado mínimo en los móviles: las fichas de Frases mágicas (antes 48 en 360 y 56 en 390), las plantillas del Buzón
+# (antes 40), el dibujo de las piezas de «Tus atajos» en Hoy (24; en un móvil alto, 32) y las tarjetas de Juegos del Buzón
+# y de Frases (iguales que las de los demás juegos). Frases y el Buzón llenan el ancho de su ficha: con 4 fichas en una
+# fila no llegan a 96 px sin hacer bajar la pantalla, y Hoy no tiene sitio para piezas más altas en 390×844.
+MIN_F5 = {
+    "frases": {"360x740": 64, "390x844": 72, "430x932": 80},
+    "buzon": {"360x740": 56, "390x844": 60, "430x932": 60},
+    "atajos": {"360x740": 24, "390x844": 24, "430x932": 32},
+}
+BEFORE_F5 = {"820x1180": {"frases": 72, "buzon": 40, "atajos": 32}, "1280x800": {"frases": 72, "buzon": 40, "atajos": 32}}
+# donde la pantalla ya bajaba antes (la tarjeta de la cena debajo de la bandeja; el Buzón con su explicación): ahí se mira
+# que lo principal (la bandeja con «Otra frase», el botón de grabar) se vea sin bajar
+SCROLLED_F5 = {"frases": {"360x740", "1280x800"}, "buzon": {"360x740"}}
+# lo alto de la barra de pestañas cuando va abajo (móvil); en el ordenador va arriba: cuenta la ventana entera
+_BAR_TOP = """() => { const b = document.querySelector('.tabbar'), r = b && b.offsetHeight ? b.getBoundingClientRect() : null;
+  return r && r.top > innerHeight / 2 ? Math.round(r.top) : innerHeight; }"""
+_BOTTOM = "sel => { const e = document.querySelector(sel); return e ? Math.round(e.getBoundingClientRect().bottom) : null; }"
+_FAM2 = """() => [...document.querySelectorAll('.ph-tile img')].filter(i => /fam_/.test(i.getAttribute('src') || '')).map(i =>
+  ({src: i.getAttribute('src'), ok: i.complete && i.naturalWidth > 0}))"""
+
+
+def _f5_keys():
+    """La partida sembrada con tres atajos hechos hoy (para la fila de Hoy) y sus pistas ya vistas."""
+    keys = C.seed_keys()
+    day = C.day_num(C.FIXED_NOW)
+    keys["vocab:sc"] = json.dumps({"v": 1, "k": {"en/juego:globos:animales": {"s": 4, "t": day}, "en/juego:memoria:w03": {"s": 3, "t": day},
+                                                  "en/tema:w02:test": {"s": 2.5, "t": day}}, "row": {}, "o": {}, "sl": ""})
+    keys["vocab:ui"] = json.dumps(dict(_UI, hints=dict(_UI["hints"], **{"sc-hold": 1000})))
+    return keys
+
+
+def _f5_screens(page, vp, probs, dark=False):
+    tag = vp + (" oscuro" if dark else "")
+    lim = lambda k: MIN_F5[k].get(vp, BEFORE_F5.get(vp, {}).get(k))   # noqa: E731
+
+    def need(name, sides, ref, n=None):
+        if not sides or (n and len(sides) != n):
+            probs.append(f"{tag}: {name}: dibujos {sides}")
+        elif ref and min(sides) < ref - (4 if dark else 0):   # en oscuro, la placa clara lleva un margen
+            probs.append(f"{tag}: {name}: dibujos {sorted(sides)[:3]} (mínimo {ref})")
+
+    def fit(name, key, main_sel):
+        ok, f = _fits(page)
+        if vp in SCROLLED_F5.get(key, ()):
+            bottom, bar = page.evaluate(_BOTTOM, main_sel), page.evaluate(_BAR_TOP)
+            if bottom is None or bottom > bar:
+                probs.append(f"{tag}: {name}: {main_sel} queda debajo de la barra ({bottom} > {bar})")
+        elif not ok:
+            probs.append(f"{tag}: {name} baja {f} (antes cabía)")
+
+    # Frases mágicas: la bandeja de dibujos (sin poner y con uno puesto en el hueco); los árboles de familia, recortados
+    _fresh(page, "#/frases")
+    page.wait_for_selector(".ph-tile img", timeout=8000)
+    _settle(page)
+    need("Frases mágicas", _sides(page, ".ph-tile img"), lim("frases"))
+    fit("Frases mágicas", "frases", "#ph-next")
+    fam = page.evaluate(_FAM2)
+    for _ in range(10):
+        if fam:
+            break
+        page.locator("#ph-next").click()
+        page.wait_for_timeout(500)
+        fam = page.evaluate(_FAM2)
+    if not fam:
+        probs.append(f"{tag}: Frases mágicas no sacó ninguna plantilla con la familia")
+    elif not all("img/fam2/" in x["src"] and x["ok"] for x in fam):
+        probs.append(f"{tag}: Frases mágicas no usa los árboles recortados (img/fam2/) o no cargan: {fam}")
+    page.locator(".ph-tile").first.click()
+    page.wait_for_timeout(700)
+    _settle(page)
+    need("Frases mágicas con el hueco lleno", _sides(page, ".ph-tile img"), lim("frases"))
+    fit("Frases mágicas con el hueco lleno", "frases", "#ph-next")
+    # el Buzón: las 4 plantillas con su dibujo
+    _fresh(page, "#/buzon")
+    page.wait_for_selector(".mb-tpl img", timeout=8000)
+    _settle(page)
+    need("plantillas del Buzón", _sides(page, ".mb-tpl img"), lim("buzon"), 4)
+    fit("el Buzón", "buzon", "#mb-rb")
+    # Juegos: las tarjetas del Buzón y de Frases, como las de los demás juegos
+    _fresh(page, "#/juegos")
+    page.wait_for_selector('.gm-card[data-g="frases"] .gm-ci', timeout=8000)
+    _settle(page)
+    cards = {g: _sides(page, f'.gm-card[data-g="{g}"] .gm-ci') for g in ("globos", "memoria", "buzon", "frases")}
+    if any(len(v) != 1 for v in cards.values()) or len({v[0] for v in cards.values()}) != 1 or cards["buzon"][0] < 56:
+        probs.append(f"{tag}: dibujos de las tarjetas de Juegos distintos o pequeños: {cards}")
+    # Hoy: la fila «Tus atajos» (y Hoy sin scroll, con la frase de la cena donde cabe). La segunda visita de la sesión:
+    # en la primera sale el aviso de guardar en Google, que va antes que la frase de la cena
+    _fresh(page, "")
+    C.goto(page, "#/juegos")
+    C.goto(page, "")
+    page.wait_for_selector("#hm-sc .sc-p", timeout=8000)
+    _settle(page, 600)
+    need("«Tus atajos»", _sides(page, "#hm-sc .sc-pic>img"), lim("atajos"))
+    ok, f = _fits(page)
+    if not ok:
+        probs.append(f"{tag}: Hoy con «Tus atajos» baja {f}")
+    slots = page.evaluate("() => [...document.querySelectorAll('#hm-slots > .hm-slot')].filter(e => !e.hidden).map(e => e.dataset.slot)")
+    if vp in ("390x844", "430x932") and "phrase" not in slots:
+        probs.append(f"{tag}: Hoy pierde la frase de la cena ({slots})")
+
+
+def test_f5_screens_big_drawings_on_phones():
+    """Frases mágicas (la bandeja de dibujos, también con el hueco lleno), las plantillas del Buzón, las tarjetas de Juegos
+    del Buzón y de Frases y la fila «Tus atajos» de Hoy en 360×740, 390×844 (también oscuro) y 430×932: el lado del
+    dibujo llega a MIN_F5 (Frases 72 y el Buzón 60 en 390×844, antes 56 y 40), sin scroll donde antes no lo había (Hoy,
+    Frases y el Buzón en 390×844; donde ya bajaba, la bandeja con «Otra frase» y el botón de grabar se ven sin bajar);
+    Frases usa los árboles de familia recortados de img/fam2/; Hoy no pierde la frase de la cena."""
+    probs = []
+    for vp, dark in (("360x740", False), ("390x844", False), ("390x844", True), ("430x932", False)):
+        page = _page(vp, color_scheme="dark" if dark else "light")
+        try:
+            C.seed(page, _f5_keys())
+            _f5_screens(page, vp, probs, dark)
+            probs += [f"{vp}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+def test_f5_screens_tablet_and_desktop_not_smaller():
+    """iPad 820×1180 y ordenador 1280×800: los dibujos de Frases, del Buzón, de las tarjetas de Juegos y de «Tus atajos»
+    no son más pequeños que antes y no bajan donde antes no bajaban."""
+    probs = []
+    for vp in BIG:
+        page = _page(vp)
+        try:
+            C.seed(page, _f5_keys())
+            _f5_screens(page, vp, probs)
+            probs += [f"{vp}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+# ---------------------------------------------------------------- img/fam2 sin conexión
+_FAM2_FILES = sorted(p.name for p in (C.REPO / "img" / "fam2").glob("*.png"))
+
+
+def test_fam2_in_download_all_and_offline():
+    """Los árboles de familia recortados (img/fam2/, los de los juegos) no van en SHELL sino en vocab-media: «Descargar
+    todo» los guarda los 26 (con los demás dibujos de los temas) y el service worker, sin conexión, sirve los que ya se
+    vieron (una partida de Globos con Familia y luego sin red: los dibujos recortados cargan)."""
+    import urllib.parse as up
+    probs = []
+    sw = (C.REPO / "sw.js").read_text(encoding="utf-8")
+    if "img/fam2" in sw.split("const SHELL = [", 1)[1].split("];", 1)[0]:
+        probs.append("img/fam2 está en SHELL (va en «Descargar todo»)")
+    if len(_FAM2_FILES) != 26:
+        probs.append(f"img/fam2 tiene {len(_FAM2_FILES)} dibujos (se esperaban 26)")
+    # «Descargar todo» de verdad, sin audios y con solo el tema Familia (los demás temas, vacíos: más rápido)
+    page = _page("390x844")
+    try:
+        def route(rt):
+            path = up.urlparse(rt.request.url).path
+            if path.startswith("/data/") and path.endswith(".json") and path.count("/") == 2:
+                name = path.rsplit("/", 1)[1][:-5]
+                if name not in ("familia", "index", "map", "game", "sprites", "lince", "season", "phrases") and not name.startswith("grammar_"):
+                    return rt.fulfill(status=200, content_type="application/json", body='{"rows":[]}')
+            return rt.fallback()
+        page.route("**/*", route)
+        page.evaluate("() => { window.audioIds = async () => []; }")
+        res = page.evaluate("""async () => { await downloadAll(); for (let i = 0; i < 900 && offJob && !offJob.end; i++) await new Promise(r => setTimeout(r, 100));
+          const m = await caches.open('vocab-media');
+          return {end: offJob ? offJob.end : 'sin trabajo', fam2: (await m.keys()).map(r => decodeURIComponent(new URL(r.url).pathname)).filter(p => p.startsWith('/img/fam2/')).map(p => p.slice(10)).sort()}; }""")
+        miss = [f for f in _FAM2_FILES if f not in res["fam2"]]
+        if miss:
+            probs.append(f"«Descargar todo» no guarda {len(miss)} árboles de img/fam2 ({miss[:4]}…): {res['end']}")
+        probs += [f"Descargar todo: {e}" for e in C.errors(page)]
+    finally:
+        page.context.close()
+    # el service worker: lo visto con red sale sin conexión
+    srv = C.Server(C.ROOT, "localhost")
+    ctx = C.new_context("phone", sw=True, server=srv)
+    ctx.add_init_script(_RANDOM)
+    page = ctx.new_page()
+    stopped = False
+    try:
+        keys = C.seed_keys()
+        keys["vocab:ui"] = json.dumps(_UI)
+        C.seed(page, keys)
+        page.wait_for_function("() => !!(navigator.serviceWorker && navigator.serviceWorker.controller)", timeout=20000)
+        _game(page, "globos", "familia")
+        page.wait_for_function("() => document.querySelectorAll('#gm-air .gm-bal-i img').length === 4", timeout=8000)
+        page.wait_for_timeout(1500)
+        seen = page.evaluate("() => [...document.querySelectorAll('#gm-air .gm-bal-i img')].map(i => i.getAttribute('src'))")
+        if not seen or not all(s.startswith("img/fam2/") for s in seen):
+            probs.append(f"Globos con Familia no usa img/fam2: {seen}")
+        cached = page.evaluate("""async urls => { const m = await caches.open('vocab-media'), out = [];
+          for (const u of urls) out.push(!!(await m.match(new URL(u, location.href).href))); return out; }""", seen)
+        if not all(cached):
+            probs.append(f"los árboles vistos no se guardaron en vocab-media: {list(zip(seen, cached))}")
+        srv.stop()
+        stopped = True
+        ctx.set_offline(True)
+        off = page.evaluate("""async urls => Promise.all(urls.map(u => new Promise(res => { const i = new Image();
+          i.onload = () => res(i.naturalWidth > 0); i.onerror = () => res(false); i.src = u + '?off=' + Math.random(); })))""", seen)
+        if not all(off):
+            probs.append(f"sin conexión no salen los árboles ya vistos: {list(zip(seen, off))}")
+    finally:
+        try:
+            ctx.set_offline(False)
+        except Exception:  # noqa: BLE001
+            pass
+        ctx.close()
+        if not stopped:
+            srv.stop()
     assert not probs, "\n".join(probs)

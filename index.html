@@ -1549,7 +1549,7 @@ let rv = null;
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v20", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v21", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
@@ -1561,7 +1561,7 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
-const OFF_IMG_MB = 7.5, OFF_IMG_N = 970;          /* dibujos y personajes (los que ya están no se vuelven a pedir) */
+const OFF_IMG_MB = 8, OFF_IMG_N = 996;            /* dibujos y personajes, con img/fam2 (los que ya están no se vuelven a pedir) */
 const AUDIO_KB = {en:7.1, fr:9.5, da:8.2}, ENTRY_KB = .4;    /* audio medio de cada idioma y lo que suma cada entrada */
 const OFF_NET_FAILS = 10;                         /* tantos fallos de red seguidos = no hay conexión: se para */
 const OFF_MEDIA_RE = /\.(png|jpe?g|gif|webp|svg|mp3)$/i;
@@ -1706,6 +1706,9 @@ async function downloadAll(){
     Object.keys(sprites || {}).forEach(k => /^[\w-]+$/.test(k) && imgs.add(`img/pj/${k}.png`));
     if(window.vocabShop) vocabShop.images().forEach(u => imgs.add(u));   /* los dibujos de la tienda (img/shop) */
     if(window.vocabGames && vocabGames.images) vocabGames.images().forEach(u => imgs.add(u));   /* los de Juegos (img/games y temas) */
+    /* y la versión de los juegos de los dibujos de los temas: los árboles de familia recortados (img/fam2/, unos 470 KB). Van
+       aquí y no en SHELL (sw.js): solo hacen falta con Familia y, sin ellos, los juegos vuelven al dibujo de siempre */
+    if(window.vocabGames && typeof vocabGames.pic === "function") [...imgs].forEach(u => { const p = vocabGames.pic(u); if(p && p !== u) imgs.add(p); });
     if(window.vocabSeason && vocabSeason.images) (await vocabSeason.images()).forEach(u => imgs.add(u));   /* los de las temporadas (img/season) */
     if(window.vocabMailbox && vocabMailbox.images) vocabMailbox.images().forEach(u => imgs.add(u));   /* los del Buzón del tío */
     const second = [...[...imgs].map(u => [u, media]), ...ids.map(id => [`audio/${ab}/${id}.mp3`, media])];
@@ -2644,27 +2647,27 @@ renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
 document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmCss(); bus.emit("boot"); route(); });
 </script>
 <!-- ?v= es la VERSION de sw.js (se sube con ella): así una versión nueva no sale con módulos viejos de la caché HTTP -->
-<script src="js/motion.js?v=20"></script>
-<script src="js/gestures.js?v=20"></script>
-<script src="js/keys.js?v=20"></script>
-<script src="js/lesson.js?v=20"></script>
-<script src="js/learn.js?v=20"></script>
-<script src="js/sfx.js?v=20"></script>
-<script src="js/shop.js?v=20"></script>
-<script src="js/farm.js?v=20"></script>
-<script src="js/games.js?v=20"></script>
-<script src="js/lince.js?v=20"></script>
-<script src="js/buddy.js?v=20"></script>
-<script src="js/album.js?v=20"></script>
-<script src="js/rewards.js?v=20"></script>
-<script src="js/save.js?v=20"></script>
-<script src="js/sync.js?v=20"></script>
-<script src="js/gate.js?v=20"></script>
-<script src="js/settings.js?v=20"></script>
-<script src="js/review.js?v=20"></script>
-<script src="js/season.js?v=20"></script>
-<script src="js/shortcuts.js?v=20"></script>
-<script src="js/mailbox.js?v=20"></script>
-<script src="js/phrases.js?v=20"></script>
+<script src="js/motion.js?v=21"></script>
+<script src="js/gestures.js?v=21"></script>
+<script src="js/keys.js?v=21"></script>
+<script src="js/lesson.js?v=21"></script>
+<script src="js/learn.js?v=21"></script>
+<script src="js/sfx.js?v=21"></script>
+<script src="js/shop.js?v=21"></script>
+<script src="js/farm.js?v=21"></script>
+<script src="js/games.js?v=21"></script>
+<script src="js/lince.js?v=21"></script>
+<script src="js/buddy.js?v=21"></script>
+<script src="js/album.js?v=21"></script>
+<script src="js/rewards.js?v=21"></script>
+<script src="js/save.js?v=21"></script>
+<script src="js/sync.js?v=21"></script>
+<script src="js/gate.js?v=21"></script>
+<script src="js/settings.js?v=21"></script>
+<script src="js/review.js?v=21"></script>
+<script src="js/season.js?v=21"></script>
+<script src="js/shortcuts.js?v=21"></script>
+<script src="js/mailbox.js?v=21"></script>
+<script src="js/phrases.js?v=21"></script>
 </body>
 </html>

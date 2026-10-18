@@ -174,7 +174,7 @@ compartida no responde).
   Puerta (+5 una vez al día, en la partida como `phrase:stamps`); la fila de Hoy con su altavoz y sin scroll; la tarjeta
   de Juegos; inglés, francés y danés; capturas `F5d-*`; la partida exportada como la base.
 - `test_f5_int.py` (F5 entero): orden de carga de `js/keys.js` (justo detrás de `gestures.js`), `js/shortcuts.js`,
-  `js/mailbox.js` y `js/phrases.js` y lo que registran antes del primer `route()`; `sw.js` en la versión 20 o más con
+  `js/mailbox.js` y `js/phrases.js` y lo que registran antes del primer `route()`; `sw.js` en la versión 21 o más con
   `OFF_SHELL` igual, cada `<script>` con `?v=<VERSION>` y `SHELL` = `OFF_APP` con los ficheros nuevos (módulos,
   `data/phrases.json`, iconos de los atajos y dibujos de Juegos); las claves nuevas en `js/save.js`; el manifest; cada
   ruta de F5 (y las URL de los atajos del manifest) por enlace directo, al recargar, el primer día y navegando; una
@@ -186,7 +186,12 @@ compartida no responde).
   recorrido en inglés, francés y danés (lección con teclado, 3 partidas que hacen un atajo, Frases con sello, grabar y
   mandar, contestar como mayor y abrir la carta en otra pestaña); la actualización desde main 2e7dc3f (sw
   `vocab-shell-v19`, con `VOCAB_BASE19=<copia de ese commit>` o sacada con `git archive`), también con la caché HTTP de
-  GitHub Pages y sin conexión; y las capturas `capturas/F5/F5-*.png` con su auditoría.
+  GitHub Pages y sin conexión, en la que la voz de inglés elegida en v19 (`voice:english`) se sigue usando, una elegida
+  después en este aparato va en `vocab:voice` (no en la exportación) y `sc:prefs`, `mail:box` y `phrase:stamps` se crean
+  al usarse y van en la exportación; con las voces de Edge simuladas (unión con fix-voces), Frases, la frase de la cena,
+  el Buzón, las cartas (en inglés, francés y español) y el toque que desbloquea la voz usan `useVoice` (la voz de su
+  idioma) y una voz de internet que falla se repite con una del aparato (`retryLocal`); y las capturas
+  `capturas/F5/F5-*.png` con su auditoría.
 - `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en
   Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso, «Escucha y elige» de la lección y
   «Elige el dibujo» de Truco o trato, en 360×740 y 390×844 (Globos también en 320, 375, 430 y 844×390) contra un mínimo;
@@ -197,6 +202,11 @@ compartida no responde).
   márgenes seguros de 47 px, 667×375 y 568×320) los globos son grandes y no se baja, con «Reducir movimiento» no saltan
   de tamaño; tras un fallo en «Escucha y elige» la lección no baja (también en 1280×720 y con «Texto más grande») y la
   ✓/✗ va en la esquina del dibujo; el repaso con dos pistas, Letras con texto grande y la cara blanca de Memoria oscuro.
+  Desde la unión con F5, también las pantallas nuevas con dibujos (`MIN_F5`): la bandeja de Frases mágicas (72 px en
+  390×844, con los árboles recortados de `img/fam2/`), las plantillas del Buzón (60), las tarjetas de Juegos del Buzón y
+  de Frases (como las demás) y «Tus atajos» de Hoy (24; 32 en un móvil de 900 px de alto) en 360×740, 390×844 (también
+  oscuro) y 430×932, sin scroll donde no lo había y sin perder la frase de la cena; en el iPad y el ordenador, no más
+  pequeños; e `img/fam2/` fuera de `SHELL`, guardado por «Descargar todo» y servido sin conexión una vez visto.
 - `test_voces.py` (voz de cada idioma): `speechSynthesis` simulado con listas de voces de aparatos reales (iPhone con
   Safari, Windows con Edge y con Chrome, Android con Chrome, Firefox de Android con el motor de Samsung, Chromebook) y
   lista vacía que llega tarde. Ajustes › Voz y velocidad con el grupo «Voces» de una fila por idioma (el que aprende
