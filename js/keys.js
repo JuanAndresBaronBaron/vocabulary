@@ -86,6 +86,8 @@ dialog.kb-sh{max-width:560px}
 .kb-what{min-width:0;display:flex;flex-direction:column;gap:2px;font:400 var(--fs-body,1.1875rem)/1.25 var(--f-text,system-ui);color:var(--label)}
 .kb-what small{font:400 var(--fs-note,.9375rem)/1.3 var(--f-text,system-ui);color:var(--label2)}
 .kb-note{margin:0 4px 8px;font:400 var(--fs-note,.9375rem)/1.35 var(--f-text,system-ui);color:var(--label2);text-align:center}
+/* el texto que va directo sobre el vidrio de la hoja, un gris más fuerte (como .st-h en Ajustes) */
+:root[data-theme=light] .kb-sub,:root[data-theme=light] .kb-note{color:rgba(60,60,67,.9)}
 @media (forced-colors:active){.kb-keys kbd{border:1px solid CanvasText}}
 `;
 function css(){

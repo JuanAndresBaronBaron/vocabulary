@@ -12,7 +12,9 @@ python3 tests/e2e/shots.py --out /mnt/project-files/rediseno/capturas/F1        
 ```
 
 `run.py` ejecuta cada función `test_*` de cada `test_*.py`, imprime PASS/FAIL y sale con código 1 si algo falla.
-Una prueba falla lanzando una excepción (normalmente `assert`).
+Una prueba falla lanzando una excepción (normalmente `assert`). Las capturas de las pruebas van a
+`/mnt/project-files/rediseno/capturas/<fase>`; `VOCAB_CAPTURAS=<carpeta>` las manda a otra (p. ej. si la carpeta
+compartida no responde).
 
 ## Ficheros
 
@@ -165,6 +167,24 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   aparato con la partida copiada, nada); enlaces rotos o con `<script>` no dan nada; los 3 candados se abren; el sobre
   en Hoy (tiembla 3 veces, quieto con movimiento reducido, sin scroll); la tarjeta de Juegos; IndexedDB fuera de la
   partida y «Borrar grabaciones y fotos»; capturas en `capturas/F5/F5c-*`; la partida exportada como la base.
+- `test_f5_frases.py` (F5d, `js/phrases.js` y `data/phrases.json`; audio y voz simulados): las plantillas de los tres
+  idiomas se rellenan bien con palabras de verdad (a/an, la elisión del francés, en/et y min/mit del danés); #/frases con
+  el hueco y 3-4 dibujos de palabras que sabe (tocar o arrastrar los pone), la voz y el audio grabado en orden, «Otra
+  frase» y «Dilo» (no entender no es fallo); la frase de la cena igual todo el día y en otro aparato; el sello con la
+  Puerta (+5 una vez al día, en la partida como `phrase:stamps`); la fila de Hoy con su altavoz y sin scroll; la tarjeta
+  de Juegos; inglés, francés y danés; capturas `F5d-*`; la partida exportada como la base.
+- `test_f5_int.py` (F5 entero): orden de carga de `js/keys.js` (justo detrás de `gestures.js`), `js/shortcuts.js`,
+  `js/mailbox.js` y `js/phrases.js` y lo que registran antes del primer `route()`; `sw.js` en la versión 20 o más con
+  `OFF_SHELL` igual, cada `<script>` con `?v=<VERSION>` y `SHELL` = `OFF_APP` con los ficheros nuevos (módulos,
+  `data/phrases.json`, iconos de los atajos y dibujos de Juegos); las claves nuevas en `js/save.js`; el manifest; cada
+  ruta de F5 (y las URL de los atajos del manifest) por enlace directo, al recargar, el primer día y navegando; una
+  vuelta sin hacer nada que deja la partida como la base; Hoy con todo a la vez (atajos, carta, refugio, temporada, aviso
+  de Google y frase de la cena) en el orden de prioridad de `HOME_SLOTS` y sin scroll (móvil claro y oscuro, móvil bajo,
+  tableta, escritorio); el teclado en el Buzón, Frases, la carta y las teclas 1-4 de los atajos sin nada repetido; un
+  recorrido en inglés, francés y danés (lección con teclado, 3 partidas que hacen un atajo, Frases con sello, grabar y
+  mandar, contestar como mayor y abrir la carta en otra pestaña); la actualización desde main 2e7dc3f (sw
+  `vocab-shell-v19`, con `VOCAB_BASE19=<copia de ese commit>` o sacada con `git archive`), también con la caché HTTP de
+  GitHub Pages y sin conexión; y las capturas `capturas/F5/F5-*.png` con su auditoría.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

@@ -69,6 +69,10 @@ const CSS = `
 .gt-k:disabled{cursor:default;opacity:.4}
 .gt-msg{min-height:1.4em;margin:12px 0 0;font:600 var(--fs-sub,1.0625rem)/1.35 var(--f-text,system-ui);color:var(--label2,#3c3c43)}
 .gt-x{margin-top:8px}
+/* el texto gris va directo sobre el vidrio de la hoja: un gris más fuerte en claro (como .st-h en Ajustes); privacy.html
+   no pone data-theme y sigue al sistema */
+:root[data-theme=light] .gt-why,:root[data-theme=light] .gt-msg{color:rgba(60,60,67,.9)}
+@media (prefers-color-scheme:light){:root:not([data-theme]) .gt-why,:root:not([data-theme]) .gt-msg{color:rgba(60,60,67,.9)}}
 :root[data-contrast=more] .gt-k,:root[data-contrast=more] .gt-f{box-shadow:inset 0 0 0 2px var(--sep)}
 @media (prefers-contrast:more){.gt-k,.gt-f{box-shadow:inset 0 0 0 2px var(--sep,rgba(60,60,67,.6))}}
 @media (forced-colors:active){.gt-k,.gt-f{border:2px solid ButtonText}}
