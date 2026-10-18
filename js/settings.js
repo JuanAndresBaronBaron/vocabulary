@@ -397,6 +397,7 @@ function adultHtml(){
       <label class="st-r" for="aj-ipa"><span class="st-ic tl" aria-hidden="true">${ico("text-aa", "bold", 18)}</span>
         <span class="st-l">Mostrar pronunciación (IPA)<small>Símbolos de cómo suena cada palabra.</small></span>
         <input type="checkbox" role="switch" class="st-sw" id="aj-ipa" ${ipa ? "checked" : ""}></label>${voiceHelp()}</div></section>
+    ${window.vocabMailbox && typeof vocabMailbox.adultHtml === "function" ? vocabMailbox.adultHtml() : ""}
     ${window.vocabShortcuts && typeof vocabShortcuts.adultHtml === "function" ? vocabShortcuts.adultHtml() : ""}
     <section class="st-sec" aria-labelledby="aj-c-h"><h3 class="st-h" id="aj-c-h">Créditos</h3><div class="st-g ics">
       <p class="st-cred">${credits()}</p>

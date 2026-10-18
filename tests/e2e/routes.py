@@ -77,6 +77,14 @@ add("palabras", "#/palabras", "Aprender › Palabras (temas, las 3000 y avanzado
 add("juego-lince", "#/juegos/lince", "Juego Oído de lince (inicio de partida)")
 # F4c: Premios › Mi zorro (js/rewards.js): el personaje y sus trajes
 add("mizorro", "#/mizorro", "Premios › Mi zorro (personaje y trajes)")
+# F5c: el Buzón del tío (js/mailbox.js): grabar, contestar (tras la Puerta de mayores) y una carta que llega por enlace
+import base64 as _b64  # noqa: E402
+CARTA = {"v": 1, "id": "rutaCarta01", "from": "Tío Juan", "to": "Lucía", "msg": "¡Hola, campeona! Me ha encantado tu mensaje. ¡Sigue así!",
+         "lang": "en", "gift": 20}
+CARTA_D = _b64.urlsafe_b64encode(json.dumps(CARTA, ensure_ascii=False, separators=(",", ":")).encode()).rstrip(b"=").decode()
+add("juegos-buzon", "#/buzon", "Jugar › Buzón del tío (grabar un mensaje)")
+add("juegos-buzon-responder", "#/buzon/responder", "Jugar › Buzón › Contestar con una carta (Puerta de mayores)")
+add("juegos-carta", f"#/carta?d={CARTA_D}", "Jugar › Buzón › Una carta que llega por enlace (sin abrir)")
 # F4d: las temporadas (js/season.js). La partida sembrada es de marzo (sin temporada): ?season=halloween la fuerza en
 # esta sesión, así que van las últimas (lo que venga detrás en la misma página ve Halloween)
 add("temporada", "#/temporada?season=halloween", "Hoy › Truco o trato (Halloween forzado)")

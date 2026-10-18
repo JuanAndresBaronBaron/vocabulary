@@ -18,7 +18,9 @@
         register: def = {t, sub, how, img, words (texto en lugar del tema), rec(best) → texto del récord, fresh (chip
         «Nuevo» en su tarjeta hasta la primera partida), start(app, api, intro)}; start monta el juego con
         api = {mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml,
-        dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla)}. */
+        dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla)}.
+        Tarjeta que solo lleva a otra pantalla (el Buzón, js/mailbox.js): def = {t, sub, img, href: "#/…", line() → el
+        texto de abajo} sin start: sin estrellas, récord ni vistazo, y #/juegos/<id> va a su href. */
 (() => {
 "use strict";
 
@@ -718,7 +720,19 @@ function intro(run, g, go){
 const recLine = (g, b) => b && typeof b === "object" && GAMES[g].rec ? GAMES[g].rec(b) : "Sin récord";
 /* una frase con su punto final, salvo si ya acaba en «?», «!», «.» o «…» */
 const sent = t => /[.?!…]$/.test(t) ? t : t + ".";
+/* tarjeta que solo lleva a otra pantalla (register con href y sin start) */
+const isLink = id => !!GAMES[id] && typeof GAMES[id].start !== "function" && typeof GAMES[id].href === "string";
+function linkHtml(id){
+  const G0 = GAMES[id]; let line = "";
+  try{ line = typeof G0.line === "function" ? String(G0.line() || "") : ""; }catch(e){ console.error(e); }
+  return `<a class="gm-card card gm-link" href="${esc(G0.href)}" data-g="${esc(id)}" draggable="false"
+    aria-label="${esc(sent(G0.t))}${G0.sub ? " " + esc(sent(G0.sub)) : ""}${line ? " " + esc(sent(line)) : ""}">
+    <img class="gm-ci" src="${esc(G0.img)}" alt="" width="64" height="64" draggable="false">
+    <b class="gm-ct">${esc(G0.t)}</b><small class="gm-cs">${esc(G0.sub)}</small>
+    <span class="gm-cr" aria-hidden="true"><span class="gm-rt">${esc(line)}</span></span></a>`;
+}
 function cardHtml(id, b){
+  if(isLink(id)) return linkHtml(id);
   const G0 = GAMES[id], st = b && typeof b === "object" ? Math.max(0, Math.min(3, num(b.stars))) : 0, rec = recLine(id, b);
   const fresh = !!G0.fresh && !b;   /* un juego nuevo lleva «Nuevo» hasta su primera partida */
   return `<a class="gm-card card" href="#/juegos/${esc(id)}" data-g="${esc(id)}" draggable="false"
@@ -742,7 +756,7 @@ async function menu(){
   /* tocar = jugar (el enlace); dentro del toque se desbloquea la voz para que la partida pueda hablar (iOS) */
   $("#gm-cards").addEventListener("click", e => { if(e.target.closest(".gm-card")) unlockVoice(); });
   /* mantener pulsado = vistazo (cómo se juega y el récord) */
-  if(window.G && typeof window.G.hold === "function") cards.forEach(c => GEST.push(window.G.hold(c, {onHold: () => { haptic("selection"); peek(c.dataset.g, c); }})));
+  if(window.G && typeof window.G.hold === "function") cards.filter(c => !isLink(c.dataset.g)).forEach(c => GEST.push(window.G.hold(c, {onHold: () => { haptic("selection"); peek(c.dataset.g, c); }})));
   /* la pista del vistazo (una por pantalla y sesión, 3 veces como mucho; nunca en partida). Sale debajo de la primera
      tarjeta, sobre la parte de arriba (el dibujo) de la fila siguiente: no tapa ni la pastilla del tema ni ningún récord */
   setTimeout(() => {
@@ -808,7 +822,7 @@ function chooseTopic(id, d){
 }
 /* vistazo (mantener pulsada una tarjeta): cómo se juega, el récord y con qué palabras; «Jugar» abre la partida */
 function peek(id, from){
-  const G0 = GAMES[id]; if(!G0) return false;
+  const G0 = GAMES[id]; if(!G0 || isLink(id)) return false;
   css();
   const b = obj("games:best")[id], st = b && typeof b === "object" ? Math.max(0, Math.min(3, num(b.stars))) : 0;
   const d = mkSheet("gm-peek", "gm-pk-t");
@@ -1372,7 +1386,9 @@ function letras(app, P, mode){
 const API = Object.freeze({mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml, dotsHtml, nm,
   nav: () => NAV, here: (my, g) => here(my, g), kbd: () => KBD});
 function register(id, def){
-  if(typeof id !== "string" || !/^[a-z][a-z0-9-]*$/.test(id) || GAMES[id] || !def || typeof def.start !== "function" || !def.t || !def.img) return false;
+  if(typeof id !== "string" || !/^[a-z][a-z0-9-]*$/.test(id) || GAMES[id] || !def || !def.t || !def.img) return false;
+  /* sin start, solo una tarjeta que lleva a otra pantalla de la app (href "#/…") */
+  if(typeof def.start !== "function" && !(typeof def.href === "string" && /^#\/[a-z]/.test(def.href))) return false;
   GAMES[id] = Object.assign({sub: "", how: "", need: 0}, def);
   return true;
 }
@@ -1391,6 +1407,7 @@ Object.defineProperty(window.vocabGames, "paused", {configurable: true, enumerab
 ROUTES["juegos"] = async parts => {
   NAV++; stop(); css();
   const g = parts[0];
+  if(isLink(g)){ location.replace(GAMES[g].href); return; }
   if(GAMES[g]) await play(g, true);
   else await menu();
 };

@@ -253,7 +253,7 @@ def test_menu_cards_and_topic_sheet():
     try:
         _open(page)
         m = page.evaluate("""() => { const app = document.getElementById('app'), t = app.textContent;
-          const cards = [...app.querySelectorAll('.gm-card')].map(c => { const cs = getComputedStyle(c);
+          const cards = [...app.querySelectorAll('.gm-card:not(.gm-link)')].map(c => { const cs = getComputedStyle(c);   /* las de juego (sin las que solo llevan a otra pantalla, F5) */
             return {g: c.dataset.g, r: cs.borderTopLeftRadius, bg: cs.backgroundColor, on: c.querySelectorAll('.gm-st i.on').length,
               onColor: (c.querySelector('.gm-st i.on') ? getComputedStyle(c.querySelector('.gm-st i.on')).color : null),
               offColor: (c.querySelector('.gm-st i:not(.on)') ? getComputedStyle(c.querySelector('.gm-st i:not(.on)')).color : null),
