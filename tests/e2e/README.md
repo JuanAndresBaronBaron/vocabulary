@@ -142,6 +142,11 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   actualización desde la versión publicada (el commit 1721796 sacado con `git archive`, o la copia de `VOCAB_BASE`;
   sw `vocab-v13`) en el mismo origen: partida y granja intactas, la app nueva entera (también con las cabeceras de caché
   de GitHub Pages y recargando al momento) y sin conexión.
+- `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en
+  Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso, «Escucha y elige» de la lección y
+  «Elige el dibujo» de Truco o trato, en 360×740 y 390×844 (Globos también en 320, 375, 430 y 844×390) contra un mínimo;
+  la zona de juego sin scroll en los celulares de la lista con 4 globos (que no se tocan ni se salen; un fallo, gris con
+  ✗, sigue cabiendo); y en el iPad 820×1180 y el ordenador 1280×800 ningún dibujo más pequeño que antes (`BEFORE`).
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

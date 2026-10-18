@@ -57,8 +57,9 @@ const CSS = `
   box-shadow:0 1px 3px rgba(0,0,0,.06),inset 0 0 0 2px var(--sep);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;
   transition:background-color .2s,color .2s,box-shadow .2s,transform .2s;animation:gm-in .3s calc(var(--i) * 70ms) backwards}
 .ln-c.ln-txt{min-height:clamp(156px,calc(100dvh - 480px),300px)}
-.ln-pic{width:min(148px,76%);aspect-ratio:1;border-radius:22px;background:var(--gm-tile);display:grid;place-items:center;transition:opacity .2s,filter .2s}
-.ln-pic img{width:82%;height:82%;object-fit:contain;pointer-events:none}
+/* el dibujo, casi a lo ancho de la tarjeta (.lx-pic: nombre propio, para que no le alcancen las reglas de los dibujos de Aprender) */
+.lx-pic{width:min(240px,94%);aspect-ratio:1;border-radius:22px;background:var(--gm-tile);display:grid;place-items:center;transition:opacity .2s,filter .2s}
+.lx-pic img{width:94%;height:94%;object-fit:contain;pointer-events:none;mix-blend-mode:multiply}
 .ln-w{display:block;max-width:100%;font:800 1.5rem/1.15 var(--f-round);overflow-wrap:anywhere}
 .ln-w .ln-a{font-weight:600;opacity:.72;margin-right:.25em}
 .ln-es{display:block;min-height:1.3em;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2);visibility:hidden}
@@ -69,7 +70,7 @@ const CSS = `
 .ln-c.is-ok .ln-mk,.ln-c.is-right .ln-mk{display:grid;background:var(--ok-fill);color:#fff;box-shadow:0 0 0 3px var(--card),0 2px 6px rgba(0,0,0,.2)}
 .ln-c.is-miss{background:var(--miss-fill);color:var(--miss-on);box-shadow:none}
 .ln-c.is-miss .ln-es{color:var(--miss-on)}
-.ln-c.is-miss .ln-pic{filter:grayscale(1);opacity:.6}
+.ln-c.is-miss .lx-pic{filter:grayscale(1);opacity:.6}
 .ln-c.is-miss .ln-mk{display:grid;background:var(--miss);color:#fff;box-shadow:0 0 0 3px var(--card),0 2px 6px rgba(0,0,0,.2)}
 .ln-c.ln-now{transform:scale(1.04)}   /* la que está sonando (sin anillo: el color ya dice si es la buena) */
 @media (hover:hover){.ln:not(.ln-done) .ln-c:hover{box-shadow:0 1px 3px rgba(0,0,0,.06),inset 0 0 0 2px var(--brand-tint)}}
@@ -90,10 +91,10 @@ const CSS = `
 .ln-sp{height:calc(var(--btn-main) + 24px)}
 .gm-short .ln-c{min-height:150px;padding:12px 8px}
 .gm-short .ln-c.ln-txt{min-height:112px}
-.gm-short .ln-pic{width:min(88px,60%)}
+.gm-short .lx-pic{width:min(120px,86%,24vh);width:min(120px,86%,24svh)}
 .gm-short .ln-sp{height:calc(var(--btn-main) + 16px)}
 @media (max-width:360px){.ln-w{font-size:1.25rem}}
-@media (prefers-reduced-motion: reduce){.ln-c,.ln-pic{transition:none}.ln-c.ln-now{transform:none}}`;
+@media (prefers-reduced-motion: reduce){.ln-c,.lx-pic{transition:none}.ln-c.ln-now{transform:none}}`;
 function css(){
   if(document.getElementById("css-lince")) return;
   const s = document.createElement("style"); s.id = "css-lince"; s.textContent = CSS; document.head.appendChild(s);
@@ -152,7 +153,7 @@ async function start(app, api, mode){
   function cardHtml(x, i, pics){
     const {art, base} = splitArt(x.w);
     return `<button type="button" class="ln-c${pics ? "" : " ln-txt"}" data-i="${i}" data-w="${esc(x.w)}" style="--i:${i}">
-      ${pics ? `<span class="ln-pic" aria-hidden="true"><img src="${esc(x.img)}" alt="" draggable="false"></span>` : ""}
+      ${pics ? `<span class="lx-pic" aria-hidden="true"><img src="${esc(x.img)}" alt="" draggable="false"></span>` : ""}
       <span class="ln-w" lang="${esc(code)}" style="font-size:${wordFs(x.w)}">${art ? `<span class="ln-a">${esc(art)}</span>` : ""}${esc(base)}</span>
       <span class="ln-es" aria-hidden="true">${esc(x.es)}</span>
       <span class="ln-mk" aria-hidden="true"></span><span class="vh ln-st"></span></button>`;
