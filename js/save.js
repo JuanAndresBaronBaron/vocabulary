@@ -23,12 +23,14 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
      prEx · prAuto · prPrefs (prácticas) · farm:state (farm.js) · games:best · games:topic · games:day (games.js) ·
      buddy:hide · buddy:missions · buddy:wotd (buddy.js) · album:tab (album.js)
      season (fiestas: puertas, pegatinas y ventanitas por año, js/season.js)
+     sc:prefs (atajos de Hoy fijados y ocultos, interruptor y pregunta de la tortuga, js/shortcuts.js)
    Por idioma (<lang> = una clave de LANGS: english, français, dansk):
      srs:<lang> (repaso) · map:<lang> (lecciones del camino) · voice:<lang> · album:seen|done|uniq|orph:<lang>
    Prácticas por documento: pr:<docId>:<lang>
    Solo de este aparato (no se exporta ni se restaura): offline (si ya descargó la web para usarla sin internet) ·
      vocab:ui (pistas de gestos vistas, de js/gestures.js, y ajustes de accesibilidad) · vocab:lsdraft (la lección a
-     medias por si se cierra la pestaña, de js/lesson.js; caduca a las 72 horas).
+     medias por si se cierra la pestaña, de js/lesson.js; caduca a las 72 horas) · vocab:sc (lo que más se usa, para
+     los atajos de Hoy, de js/shortcuts.js; sin horas).
    Propias de este módulo (no se exportan ni se restauran desde un archivo):
      save:last (fecha de la última vez que se cargó una partida) · save:first (primer día de uso, para el aviso) ·
      save:snooze («Ahora no» hasta…) · save:undo (copia para deshacer) · save:sync (estado de Google Drive) ·
@@ -39,9 +41,10 @@ const EXACT = {
   "games:best": "*", "games:topic": "*", "games:day": "*",
   "buddy:hide": "*", "buddy:missions": "*", "buddy:wotd": "*", "album:tab": "*",
   season: "o",
+  "sc:prefs": "o",
 };
 const PER_LANG = {"srs:": "o", "map:": "o", "voice:": "*", "album:seen:": "*", "album:done:": "*", "album:uniq:": "*", "album:orph:": "*"};
-const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft"];
+const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft", "vocab:sc"];
 const META = {last: "save:last", first: "save:first", snooze: "save:snooze", undo: "save:undo", sync: "save:sync", tok: "save:tok"};
 const langs = () => { try{ return Object.keys(LANGS); }catch(e){ return ["english", "français", "dansk"]; } };
 /* tipo de una clave de la app, o null si no es nuestra */
