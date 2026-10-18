@@ -37,7 +37,8 @@ TZ = "Europe/Madrid"
 LOCALE = "es-ES"
 FIXED_NOW = _dt.datetime(2026, 3, 11, 10, 0, 0, tzinfo=ZoneInfo(TZ))   # miércoles, de día, fuera de toda temporada
 BASELINE = HERE / "baseline" / "export.json"
-CAPTURAS = Path("/mnt/project-files/rediseno/capturas")
+# las capturas de las pruebas (VOCAB_CAPTURAS cambia la carpeta, p. ej. si la carpeta compartida no responde)
+CAPTURAS = Path(os.environ.get("VOCAB_CAPTURAS") or "/mnt/project-files/rediseno/capturas")
 
 # carpeta que se sirve por defecto (run.py --root o la variable VOCAB_ROOT)
 ROOT = Path(os.environ.get("VOCAB_ROOT") or REPO).resolve()

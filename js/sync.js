@@ -708,6 +708,7 @@ const remSlot = async () => {
     id: "sv-rem", chev: true, popup: true};
 };
 remSlot.id = "sync";
+remSlot.skip = () => { shownVisit = false; };   /* Hoy no tenía sitio para la fila (otras van antes): no gasta la visita */
 HOME_SLOTS.unshift(remSlot);
 function kidSheet(from){
   css();

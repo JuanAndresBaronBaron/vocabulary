@@ -1062,15 +1062,15 @@ let rv = null;
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v19", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v20", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2",
   "js/season.js", "data/season.json",
   "js/shortcuts.js",
-  "js/mailbox.js",
-  "js/phrases.js", "data/phrases.json",
+  "js/mailbox.js", "img/games/buzon.png",
+  "js/phrases.js", "data/phrases.json", "img/games/frases.png",
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
@@ -1716,11 +1716,21 @@ async function homeSlots(){
      quita los que sobren; en tableta, solo fit()) */
   const sc = window.vocabShortcuts ? await vocabShortcuts.wantsRow().catch(e => { console.error(e); return false; }) : false;
   const max = SHORT.matches || (sc && !matchMedia("(min-width:744px)").matches) ? 1 : SLOT_MAX;
-  /* en un móvil bajo solo cabe una fila: la carta sin abrir del Buzón (js/mailbox.js) y luego la de la temporada (la
-     única entrada a #/temporada) van antes que las demás */
-  const ord = vals.map((v, i) => i), PRI = {mail: 2, season: 1}, pri = i => PRI[(HOME_SLOTS[i] || {}).id] || 0;
-  if(SHORT.matches) ord.sort((a, b) => pri(b) - pri(a));
-  ord.forEach(i => { if(out.length < max){ const el = slotEl(vals[i], HOME_SLOTS[i]); if(el) out.push(el); } });
+  /* el orden de las filas (en cualquier pantalla; las de igual prioridad, en el orden en que se apuntaron):
+     1) «¡Tienes carta!» (mail, js/mailbox.js): una carta sin abrir o un candado recién abierto; llega pocas veces y es
+        de alguien de casa; 2) un animal que se fue al refugio por hambre (granja, js/farm.js): espera a que lo traigan;
+     3) la temporada (season, js/season.js): pocas semanas al año y la única entrada a #/temporada; 4) «Guarda tu
+     partida» (sync, js/sync.js): solo si no está guardada, una vez por visita, y un mayor lo aplaza 2 días; 5) «La frase
+     de la cena» (phrase, js/phrases.js): sale cada día y también está en Juegos › Frases mágicas; 6) el resto.
+     fit() de js/shortcuts.js quita del final, así que lo último en irse es lo primero de esta lista. Una fila que no
+     cabe no gasta su vez: se llama a su .skip() (el aviso de Google vuelve a poder salir en esta visita). */
+  const PRI = {mail: 5, granja: 4, season: 3, sync: 2, phrase: 1}, pri = i => PRI[(HOME_SLOTS[i] || {}).id] || 0;
+  const ord = vals.map((v, i) => i).sort((a, b) => pri(b) - pri(a) || a - b);
+  ord.forEach(i => {
+    const f = HOME_SLOTS[i], el = out.length < max ? slotEl(vals[i], f) : null;
+    if(el) out.push(el);
+    else if(vals[i] && f && typeof f.skip === "function") try{ f.skip(); }catch(e){ console.error(e); }
+  });
   return out;
 }
 let waveAt = 0;
@@ -2142,27 +2152,27 @@ renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
 document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmCss(); bus.emit("boot"); route(); });
 </script>
 <!-- ?v= es la VERSION de sw.js (se sube con ella): así una versión nueva no sale con módulos viejos de la caché HTTP -->
-<script src="js/motion.js?v=19"></script>
-<script src="js/gestures.js?v=19"></script>
-<script src="js/keys.js?v=19"></script>
-<script src="js/lesson.js?v=19"></script>
-<script src="js/learn.js?v=19"></script>
-<script src="js/sfx.js?v=19"></script>
-<script src="js/shop.js?v=19"></script>
-<script src="js/farm.js?v=19"></script>
-<script src="js/games.js?v=19"></script>
-<script src="js/lince.js?v=19"></script>
-<script src="js/buddy.js?v=19"></script>
-<script src="js/album.js?v=19"></script>
-<script src="js/rewards.js?v=19"></script>
-<script src="js/save.js?v=19"></script>
-<script src="js/sync.js?v=19"></script>
-<script src="js/gate.js?v=19"></script>
-<script src="js/settings.js?v=19"></script>
-<script src="js/review.js?v=19"></script>
-<script src="js/season.js?v=19"></script>
-<script src="js/shortcuts.js?v=19"></script>
-<script src="js/mailbox.js?v=19"></script>
-<script src="js/phrases.js?v=19"></script>
+<script src="js/motion.js?v=20"></script>
+<script src="js/gestures.js?v=20"></script>
+<script src="js/keys.js?v=20"></script>
+<script src="js/lesson.js?v=20"></script>
+<script src="js/learn.js?v=20"></script>
+<script src="js/sfx.js?v=20"></script>
+<script src="js/shop.js?v=20"></script>
+<script src="js/farm.js?v=20"></script>
+<script src="js/games.js?v=20"></script>
+<script src="js/lince.js?v=20"></script>
+<script src="js/buddy.js?v=20"></script>
+<script src="js/album.js?v=20"></script>
+<script src="js/rewards.js?v=20"></script>
+<script src="js/save.js?v=20"></script>
+<script src="js/sync.js?v=20"></script>
+<script src="js/gate.js?v=20"></script>
+<script src="js/settings.js?v=20"></script>
+<script src="js/review.js?v=20"></script>
+<script src="js/season.js?v=20"></script>
+<script src="js/shortcuts.js?v=20"></script>
+<script src="js/mailbox.js?v=20"></script>
+<script src="js/phrases.js?v=20"></script>
 </body>
 </html>

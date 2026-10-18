@@ -1,0 +1,1170 @@
+"""F5 entero (integración): «Tus atajos» de Hoy (js/shortcuts.js), el teclado en toda la app y los atajos de la app
+instalada (js/keys.js, manifest «shortcuts»), el Buzón del tío (js/mailbox.js) y Frases mágicas con «La frase de la
+cena» (js/phrases.js) juntos sobre la app de F4.
+
+Se comprueba: el orden de carga de los cuatro módulos (detrás del script principal, de motion.js y de gestures.js;
+keys.js justo detrás de gestures.js) y lo que registran antes del primer route(); sw.js en la versión 20 o más con
+OFF_SHELL igual, cada <script> de index.html y privacy.html con «?v=<VERSION>», y los ficheros nuevos (los módulos,
+data/phrases.json, los iconos de los atajos y los dibujos nuevos de Juegos) en SHELL y en OFF_APP; save.js con sc:prefs,
+mail:box y phrase:stamps en la partida y vocab:sc y phrase:day solo del aparato, e IndexedDB nunca en la partida.
+Cada ruta nueva por enlace directo, al recargar y navegando (#/buzon, #/buzon/responder, #/carta?d=…, #/frases,
+#/frases/cena, los enlaces de los atajos y las URL de los atajos del manifest). Hoy con todo a la vez (atajos, carta sin
+abrir, refugio, temporada, aviso de Google y frase de la cena): el orden de prioridad de HOME_SLOTS (carta > refugio >
+temporada > Google > frase de la cena > el resto) y sin scroll a 390×844 claro y oscuro, en un móvil bajo, en tableta y
+en el escritorio. El teclado en las pantallas nuevas (Buzón, Frases, la carta y las teclas 1-4 de los atajos) sin que
+nada se dispare dos veces. Un recorrido con la partida sembrada en inglés, francés y danés: Hoy, una lección con el
+teclado, 3 partidas que hacen un atajo, Frases mágicas con su sello, grabar y mandar al Buzón (simulado), contestar
+como mayor y abrir la carta en otra pestaña. Una vuelta sin hacer nada deja la partida como la base. Y la actualización
+desde la versión publicada (main 2e7dc3f, sw vocab-shell-v19) en el mismo origen: la partida, la granja y la temporada
+siguen intactas y se carga la app nueva entera, también con la caché HTTP de GitHub Pages y sin conexión. Además, las
+capturas de F5 con nombre descriptivo (capturas/F5/F5-*.png) con su auditoría de contraste y paleta."""
+from __future__ import annotations
+
+import atexit
+import base64
+import datetime as dt
+import json
+import os
+import re
+import shutil
+import subprocess
+import tempfile
+import time
+from pathlib import Path
+from zoneinfo import ZoneInfo
+
+import common as C
+import routes as R
+import test_f4_int as I4
+import test_f4_temporadas as T
+import test_f5_atajos as SC
+import test_f5_buzon as BZ
+import test_f5_teclado as K
+
+OUT = C.CAPTURAS / "F5"
+_AUDIT = (C.HERE / "audit.js").read_text(encoding="utf-8")
+_TZ = ZoneInfo(C.TZ)
+_MODS = ["js/keys.js", "js/shortcuts.js", "js/mailbox.js", "js/phrases.js"]
+_FILES = _MODS + ["data/phrases.json", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png",
+                  "icons/sc-granja.png", "img/games/buzon.png", "img/games/frases.png"]
+_AB = {"english": "en", "français": "fr", "dansk": "da"}
+HALLOWEEN = dt.datetime(2026, 10, 28, 10, 0, 0, tzinfo=_TZ)      # en plena temporada de Halloween (por la fecha)
+_ROUTE_N = "() => window.__vocabRouteN || 0"
+_COINS = "() => game().coins"
+_SLOTS = "() => [...document.querySelectorAll('#hm-slots > .hm-slot')].filter(e => !e.hidden).map(e => e.dataset.slot || '?')"
+_FIT = "() => ({sh: document.documentElement.scrollHeight, ih: innerHeight})"
+_TAB = """() => { const t = document.querySelector('.tabbar [role=tab][aria-selected=true]'); return t ? t.dataset.nav : null; }"""
+_SCROW = "() => [...document.querySelectorAll('#hm-sc .sc-p')].map(a => ({k: a.dataset.sc || 'half', href: a.getAttribute('href'), key: a.dataset.key}))"
+_PASS = "() => sessionStorage.setItem('vocab:gate', String(Date.now() + adultGate.MS))"
+_HINTS = {"hints": {"sc-hold": 1000, "gm-peek": 1000, "al-swipe": 1000, "fm-regadera": 1000}}
+_FINISH = SC._FINISH
+# una carta sin abrir (regalo de 20 monedas) y otra con candado
+LET = {"v": 1, "id": "cartaTodo001", "from": "Tío Juan", "to": "Lucía", "msg": "Well done! I am so proud of you.", "lang": "en", "gift": 20}
+LOCK = {"v": 1, "id": "cartaLlave01", "from": "Abuela", "msg": "Keep going! You can do it.", "lang": "en", "lock": "les3"}
+
+
+def _sc(day, ab="en"):
+    """vocab:sc con tres atajos de ese idioma ya hechos (puntos de hoy)."""
+    return {"v": 1, "k": {f"{ab}/juego:globos:animales": {"s": 4, "t": day}, f"{ab}/juego:memoria:w03": {"s": 3, "t": day},
+                          f"{ab}/tema:w02:test": {"s": 2.5, "t": day}}, "row": {}, "o": {}, "sl": ""}
+
+
+def _keys(now=C.FIXED_NOW, sc=True, shelter=False, lang=None, **top):
+    k = C.seed_keys(now)
+    if sc:
+        k["vocab:sc"] = json.dumps(_sc(C.day_num(now), _AB.get(lang or "english", "en")))
+    k["vocab:ui"] = json.dumps(_HINTS)
+    if shelter:
+        f = json.loads(k["farm:state"])
+        f["shelter"] = {"gallina": {"t": int(now.timestamp() * 1000) - 3600 * 1000, "seen": False}}
+        k["farm:state"] = json.dumps(f)
+    if lang:
+        k["lang"] = json.dumps(lang, ensure_ascii=False)
+    for n, v in top.items():
+        k[n.replace("__", ":")] = v if isinstance(v, str) else json.dumps(v, ensure_ascii=False)
+    return k
+
+
+def _wait_route(page, n0, timeout=8000):
+    page.wait_for_function("n => (window.__vocabRouteN || 0) > n", arg=n0, timeout=timeout)
+    C.settle(page, quiet_ms=200)
+
+
+def _click_nav(page, sel):
+    n0 = page.evaluate(_ROUTE_N)
+    page.locator(sel).first.click()
+    _wait_route(page, n0)
+
+
+def _fits(page, tag, probs):
+    m = page.evaluate(_FIT)
+    if m["sh"] > m["ih"] + 1:
+        probs.append(f"{tag}: Hoy necesita scroll ({m['sh']} > {m['ih']})")
+
+
+def _gate_if_open(page, ms=1500):
+    """Si se abre la Puerta de mayores, la pasa con su suma (si la Puerta sigue abierta de antes, no sale)."""
+    try:
+        page.wait_for_selector("dialog#gate[open]", timeout=ms)
+    except Exception:  # noqa: BLE001
+        return False
+    BZ._pass_gate(page)
+    return True
+
+
+def _reply_form(page):
+    """#/buzon/responder hasta el formulario: «Soy mayor» y la Puerta (si la Puerta se pasó hace poco, sale ya)."""
+    C.goto(page, "#/buzon/responder")
+    page.wait_for_selector("#mb-gate-go, #mb-f", timeout=6000)
+    if page.locator("#mb-gate-go").count():
+        page.locator("#mb-gate-go").click()
+        _gate_if_open(page)
+    page.wait_for_selector("#mb-f", timeout=6000)
+
+
+def _hoy(page):
+    """Vuelve a Hoy pasando por otra pantalla (Hoy se pinta de nuevo) y espera a la fila de atajos y a sus HOME_SLOTS."""
+    C.goto(page, "#/juegos")
+    C.goto(page, "")
+    page.wait_for_timeout(500)
+    page.evaluate(_FINISH)
+
+
+# ---------------------------------------------------------------- carga, sw.js, save.js y manifest
+def test_modules_load_order_sw_save_and_manifest():
+    """index.html carga js/keys.js (justo detrás de gestures.js), js/shortcuts.js, js/mailbox.js y js/phrases.js una
+    vez, detrás del script principal, de motion.js y de gestures.js (los tres últimos detrás de games.js, shop.js, sync.js
+    y review.js, que usan). Al primer route() ya están ROUTES.buzon, carta y frases, vocabKeys, vocabShortcuts,
+    vocabMailbox, vocabMedia y vocabPhrases, las tarjetas «Buzón del tío» y «Frases mágicas» en vocabGames, los
+    HOME_SLOTS "mail" y "phrase" y las secciones de Jugar. sw.js va por la versión 20 o más con OFF_SHELL igual, cada
+    <script> de index.html y privacy.html lleva «?v=<VERSION>», y SHELL = OFF_APP con los ficheros nuevos. save.js:
+    sc:prefs, mail:box y phrase:stamps en la partida (objetos); vocab:sc y phrase:day solo del aparato. El manifest
+    trae los 4 atajos dentro de su scope con iconos que existen."""
+    probs = []
+    html = (C.REPO / "index.html").read_text(encoding="utf-8")
+    priv = (C.REPO / "privacy.html").read_text(encoding="utf-8")
+    v, sw = I4._sw_version()
+    if v < 20:
+        probs.append(f"sw.js sigue en la versión {v} (F5 sube a 20 o más)")
+    if f'OFF_SHELL = "vocab-shell-v{v}"' not in html:
+        probs.append(f"OFF_SHELL de index.html no es vocab-shell-v{v}")
+    for name, src in (("index.html", html), ("privacy.html", priv)):
+        for s in I4._tags(src):
+            if not s.startswith(("http:", "https:", "//")) and not s.endswith(f"?v={v}"):
+                probs.append(f"{name}: <script src=\"{s}\"> no lleva ?v={v}")
+    tags = [s.split("?")[0] for s in I4._tags(html)]
+    main_end = html.find("</script>", html.find("async function route("))
+    for m in _MODS:
+        if tags.count(m) != 1:
+            probs.append(f"index.html carga {m} {tags.count(m)} veces")
+            continue
+        if html.find(f'<script src="{m}') < main_end:
+            probs.append(f"{m} carga antes que el script principal")
+        for dep in ("js/motion.js", "js/gestures.js"):
+            if tags.index(dep) > tags.index(m):
+                probs.append(f"{m} carga antes que {dep}")
+    if "js/keys.js" in tags and tags.index("js/keys.js") != tags.index("js/gestures.js") + 1:
+        probs.append("js/keys.js no va justo detrás de js/gestures.js")
+    for m in ("js/shortcuts.js", "js/mailbox.js", "js/phrases.js"):
+        for dep in ("js/games.js", "js/learn.js", "js/shop.js", "js/sync.js", "js/review.js", "js/settings.js"):
+            if m in tags and dep in tags and tags.index(dep) > tags.index(m):
+                probs.append(f"{m} carga antes que {dep}")
+    shell = re.findall(r'"([^"]+)"', re.search(r"const SHELL = \[(.*?)\];", sw, re.S).group(1))
+    off = re.findall(r'"([^"]+)"', re.search(r"const OFF_APP = \[(.*?)\];", html, re.S).group(1))
+    for f in _FILES:
+        if f not in shell:
+            probs.append(f"falta {f} en SHELL de sw.js")
+        if f not in off:
+            probs.append(f"falta {f} en OFF_APP de index.html")
+        if not (C.REPO / f).exists():
+            probs.append(f"{f} no existe")
+    if sorted(shell) != sorted(off):
+        probs.append(f"SHELL y OFF_APP no son la misma lista: {sorted(set(shell) ^ set(off))}")
+    man = json.loads((C.REPO / "manifest.webmanifest").read_text(encoding="utf-8"))
+    scs = man.get("shortcuts") or []
+    if [s.get("url") for s in scs] != ["./#/repaso", "./#/mapa", "./#/juegos", "./#/granja"]:
+        probs.append(f"atajos del manifest: {[s.get('url') for s in scs]}")
+    for s in scs:
+        for ic in s.get("icons") or []:
+            if not (C.REPO / ic["src"]).exists() or ic["src"] not in shell:
+                probs.append(f"el icono {ic['src']} del atajo {s.get('name')} no existe o no está en SHELL")
+    page = C.new_page("phone")
+    try:
+        page.add_init_script("""document.addEventListener('DOMContentLoaded', () => { try { const J = TABS.find(t => t.id === 'jugar');
+            window.__atBoot = {routes: Object.keys(ROUTES).sort(), keys: typeof window.vocabKeys, sc: typeof window.vocabShortcuts,
+              mail: typeof window.vocabMailbox, media: typeof window.vocabMedia, phr: typeof window.vocabPhrases,
+              games: window.vocabGames ? vocabGames.list() : null, slots: HOME_SLOTS.map(f => f && f.id || '?'), secs: J ? J.secs.slice() : []};
+          } catch (e) { window.__atBoot = {err: String(e)}; } }, {capture: true});""")
+        C.seed(page)
+        b = page.evaluate("window.__atBoot")
+        if not b or b.get("err"):
+            probs.append(f"no se pudo ver el estado al arrancar: {b}")
+        else:
+            for r in ("buzon", "carta", "frases"):
+                if r not in b["routes"]:
+                    probs.append(f"al primer route() falta ROUTES.{r}")
+            for k in ("keys", "sc", "mail", "media", "phr"):
+                if b[k] != "object":
+                    probs.append(f"al primer route() falta {k}: {b[k]}")
+            for g in ("buzon", "frases"):
+                if g not in (b["games"] or []):
+                    probs.append(f"vocabGames no tiene la tarjeta «{g}» al arrancar: {b['games']}")
+            for s in ("mail", "phrase", "sync", "granja", "season"):
+                if s not in b["slots"]:
+                    probs.append(f"falta el HOME_SLOT {s}: {b['slots']}")
+            for s in ("buzon", "carta", "frases"):
+                if s not in b["secs"]:
+                    probs.append(f"la sección {s} no es de la pestaña Jugar: {b['secs']}")
+        inv = page.evaluate("""() => ({t: ['sc:prefs', 'mail:box', 'phrase:stamps', 'vocab:sc', 'phrase:day'].map(k => vocabSave.typeOf(k)),
+          dev: vocabSave.inventory.deviceOnly})""")
+        if inv["t"] != ["o", "o", "o", None, None] or not {"vocab:sc", "phrase:day"} <= set(inv["dev"]):
+            probs.append(f"inventario de save.js: {inv}")
+        for h, css in (("#/buzon", "css-mailbox"),):
+            C.goto(page, h)
+            C.goto(page, "#/juegos")
+            C.goto(page, h)
+            if page.locator(f"style#{css}").count() != 1:
+                probs.append(f"<style id={css}> está {page.locator(f'style#{css}').count()} veces")
+        if C.errors(page):
+            probs.append(f"errores: {C.errors(page)}")
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+# ---------------------------------------------------------------- rutas
+_ROUTES5 = [
+    # (hash, lo que pinta, pestaña, hash final sin «#/»)
+    ("#/buzon", "#mb-rb", "jugar", "buzon"),
+    ("#/buzon/responder", "#mb-gate-go", "jugar", "buzon/responder"),
+    (f"#/carta?d={R.CARTA_D}", "#mb-open", "jugar", "carta/rutaCarta01"),
+    ("#/frases", "#ph-line", "jugar", "frases"),
+    ("#/frases/cena", "#ph-cena", "jugar", "frases/cena"),
+    ("#/juegos/globos?t=animales", "html[data-gm-play]", "jugar", "juegos/globos?t=animales"),
+    ("#/doc/w02?m=test", "#dv-tab-test[aria-selected=true]", "aprender", "doc/w02?m=test"),
+    ("#/doc/animales?m=tarjetas", "#dv-tab-tarjetas[aria-selected=true]", "aprender", "doc/animales?m=tarjetas"),
+    ("#/leccion/G-A1-01", ".ls-stage .ls-page", "aprender", "leccion/G-A1-01"),
+    # las URL de los atajos del manifest
+    ("#/repaso", "#rv-card", "aprender", "repaso"),
+    ("#/mapa", "#app .mp-node, #app [data-lesson], #app .lv-node, #app svg", "aprender", "mapa"),
+    ("#/juegos", "#gm-cards .gm-card", "jugar", "juegos"),
+    ("#/granja", "#app .fm-stage", "granja", "granja"),
+]
+
+
+def test_f5_routes_direct_reload_and_navigation():
+    """Cada ruta de F5 (y las URL de los atajos del manifest) por enlace directo con la partida, al recargar y el primer
+    día sin partida: pinta, marca su pestaña y queda en su hash (#/carta?d=… pasa a #/carta/<id>). Navegando: Jugar ›
+    Buzón y Frases mágicas (y la cápsula de volver a Juegos), Hoy › «La frase de la cena» (y volver a Hoy), Hoy › un atajo
+    (#/juegos/globos?t=animales), Para mayores › «Contestar una carta del Buzón» (el formulario sin otra Puerta) y la
+    carta › volver al Buzón. Sin errores."""
+    probs = []
+    for h, sel, tab, final in _ROUTES5:
+        page = C.new_page("phone")
+        try:
+            C.seed(page, _keys(), hash=h)
+            for when in ("enlace directo", "al recargar"):
+                if when == "al recargar":
+                    C.reload(page)
+                try:
+                    page.wait_for_selector(sel, timeout=9000, state="attached")
+                except Exception:  # noqa: BLE001
+                    probs.append(f"{h} ({when}): no pinta {sel}")
+                got = C.current_hash(page)
+                if got != final:
+                    probs.append(f"{h} ({when}): queda en #/{got} (se esperaba #/{final})")
+                if page.evaluate(_TAB) != tab:
+                    probs.append(f"{h} ({when}): la pestaña marcada es {page.evaluate(_TAB)} (se esperaba {tab})")
+            probs += [f"{h}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
+    # el primer día, sin partida
+    page = C.new_page("phone")
+    try:
+        for h, sel, tab, final in _ROUTES5[:6]:
+            C.goto(page, h, reload=True)
+            try:
+                page.wait_for_selector(sel, timeout=9000, state="attached")
+            except Exception:  # noqa: BLE001
+                probs.append(f"{h} (primer día): no pinta {sel}")
+        probs += [f"primer día: {e}" for e in C.errors(page)]
+    finally:
+        page.context.close()
+    # navegando
+    page = C.new_page("phone")
+    try:
+        C.seed(page, _keys())
+        _click_nav(page, "#tab-jugar")
+        _click_nav(page, ".gm-card[data-g=buzon]")
+        bk = page.evaluate("() => { const b = document.getElementById('dv-back'); return b && {h: b.getAttribute('href'), t: b.textContent.trim()}; }")
+        if C.current_hash(page) != "buzon" or page.evaluate(_TAB) != "jugar" or not bk or bk["h"] != "#/juegos":
+            probs.append(f"Juegos › Buzón: #/{C.current_hash(page)}, pestaña {page.evaluate(_TAB)}, volver {bk}")
+        _click_nav(page, "#dv-back")
+        if C.current_hash(page) != "juegos":
+            probs.append(f"volver desde el Buzón lleva a #/{C.current_hash(page)}")
+        _click_nav(page, ".gm-card[data-g=frases]")
+        page.wait_for_selector("#ph-line", timeout=8000)
+        bk = page.evaluate("() => document.getElementById('dv-back').getAttribute('href')")
+        if C.current_hash(page) != "frases" or bk != "#/juegos":
+            probs.append(f"Juegos › Frases: #/{C.current_hash(page)}, volver a {bk}")
+        _click_nav(page, "#tab-hoy")
+        _hoy(page)
+        if not page.locator("#ph-hrow .ph-hgo").count():
+            probs.append(f"en Hoy no sale «La frase de la cena» tras el aviso de Google: {page.evaluate(_SLOTS)}")
+        else:
+            _click_nav(page, "#ph-hrow .ph-hgo")
+            bk = page.evaluate("() => { const b = document.getElementById('dv-back'); return {h: b.getAttribute('href'), t: b.textContent.trim()}; }")
+            if C.current_hash(page) != "frases/cena" or bk != {"h": "#/", "t": "Hoy"}:
+                probs.append(f"Hoy › frase de la cena: #/{C.current_hash(page)}, volver {bk}")
+            _click_nav(page, "#dv-back")
+            if C.current_hash(page) != "":
+                probs.append(f"volver desde la frase de la cena lleva a #/{C.current_hash(page)}")
+        page.wait_for_selector("#hm-sc .sc-p", timeout=6000)
+        href = page.locator("#hm-sc .sc-p").first.get_attribute("href")
+        _click_nav(page, "#hm-sc .sc-p")
+        if "#/" + C.current_hash(page) != href or page.evaluate(_TAB) != "jugar":
+            probs.append(f"Hoy › atajo {href}: #/{C.current_hash(page)} ({page.evaluate(_TAB)})")
+        C.goto(page, "#/juegos")
+        page.evaluate(_PASS)
+        page.evaluate("() => openSettings('mayores')")
+        page.wait_for_selector("#aj-mb-reply", timeout=5000)
+        page.wait_for_timeout(300)
+        page.locator("#aj-mb-reply").click()
+        page.wait_for_selector("#mb-f", timeout=6000)
+        if C.current_hash(page) != "buzon/responder" or page.evaluate("() => !!(document.getElementById('gate') || {}).open"):
+            probs.append(f"Para mayores › Contestar: #/{C.current_hash(page)}")
+        BZ._open_link(page, R.CARTA_D)
+        if C.current_hash(page) != "carta/rutaCarta01":
+            probs.append(f"el enlace de la carta queda en #/{C.current_hash(page)}")
+        _click_nav(page, "#dv-back")
+        if C.current_hash(page) != "buzon":
+            probs.append(f"volver desde la carta lleva a #/{C.current_hash(page)}")
+        probs += [f"navegando: {e}" for e in C.errors(page)]
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+def test_f5_tour_without_acting_keeps_export():
+    """Una vuelta por todo F5 sin hacer nada (Hoy con la fila de atajos y la frase de la cena, el Buzón, contestar, Frases
+    mágicas, la frase de la cena, los enlaces de los atajos, la hoja «Teclas», la de editar atajos y Para mayores) deja la
+    partida exportada igual que la base (ni claves nuevas: vocab:sc y phrase:day son solo del aparato)."""
+    probs = []
+    page = BZ._page()
+    try:
+        C.seed(page, _keys())
+        for h in ("", "#/buzon", "#/buzon/responder", "#/frases", "#/frases/cena", "#/juegos", "#/doc/w02?m=test", "#/juegos/globos?t=animales", ""):
+            C.goto(page, h)
+            page.wait_for_timeout(250)
+        page.wait_for_selector("#hm-sc .sc-p", timeout=6000)
+        page.keyboard.press("?")
+        page.wait_for_selector("dialog#kb-help[open]", timeout=4000)
+        page.keyboard.press("Escape")
+        page.wait_for_function("() => !document.querySelector('dialog#kb-help[open]')", timeout=4000)
+        page.locator("#sc-ed").click()
+        page.wait_for_selector("dialog#sc-sheet[open]", timeout=4000)
+        SC._close_sheet(page)
+        page.evaluate(_PASS)
+        page.evaluate("() => openSettings('mayores')")
+        page.wait_for_selector("#aj-sc-on", timeout=5000)
+        page.evaluate("() => vocabSettings.close()")
+        page.wait_for_timeout(500)
+        d = C.diff_exports(C.load_baseline(), C.export(page), allow_new=False)
+        if d:
+            probs.append(f"la partida cambia tras la vuelta por F5: {d}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+# ---------------------------------------------------------------- Hoy con todo a la vez
+def _all_at_once(page, now=HALLOWEEN, letter=True, hash=""):
+    C.seed(page, _keys(now, shelter=True), now=now)
+    if letter:
+        page.evaluate("o => vocabMailbox.receive(o)", LET)
+    if hash:
+        C.goto(page, hash)
+    _hoy(page)
+
+
+def test_hoy_everything_at_once_priority_and_no_scroll():
+    """En pleno Halloween, con atajos, una carta sin abrir, la gallina en el refugio, el aviso de Google y la frase de la
+    cena a la vez: en el móvil (390×844, claro y oscuro) la fila de atajos y un solo HOME_SLOT, la carta; en tableta
+    (820×1180) y en el escritorio, dos: la carta y el refugio. Al irse cada uno sale el siguiente por orden: carta >
+    refugio > temporada > aviso de Google > frase de la cena (el aviso de Google sale una vez por visita, pero si no cabe
+    no gasta su vez). Con «Repasar 6» y en un móvil bajo (375×667) tampoco hay scroll. Sin errores."""
+    probs = []
+    for tag, kind, kw, want in (("móvil claro", "phone", {}, ["mail"]), ("móvil oscuro", "phone", {"color_scheme": "dark"}, ["mail"]),
+                                ("tableta 820", "phone", {"viewport": {"width": 820, "height": 1180}}, ["mail", "granja"]),
+                                ("escritorio", "desk", {}, ["mail", "granja"])):
+        page = C.new_page(kind, now=HALLOWEEN, **kw)
+        try:
+            _all_at_once(page)
+            got = page.evaluate(_SLOTS)
+            if got != want:
+                probs.append(f"{tag}: los HOME_SLOTS son {got} (se esperaba {want})")
+            if not page.evaluate("() => +(document.documentElement.dataset.sc || 0)") >= 3:
+                probs.append(f"{tag}: no sale la fila de atajos con sus 3 piezas")
+            _fits(page, tag, probs)
+            if page.locator("#mb-hrow, [data-slot=mail] .hm-row").count() and "carta" not in page.locator("[data-slot=mail]").text_content():
+                probs.append(f"{tag}: la fila del sobre no dice «carta»")
+            # y al irse cada uno, el siguiente (en el móvil, uno; en los grandes, dos)
+            steps = [["granja"], ["season"], ["sync"], ["phrase"]] if len(want) == 1 else \
+                [["granja", "season"], ["season", "sync"], ["phrase"]]
+            # 1) se abre la carta
+            C.goto(page, "#/carta/" + LET["id"])
+            page.locator("#mb-open").click()
+            page.wait_for_selector("#mb-gift:not([hidden])", timeout=9000)
+            _hoy(page)
+            seq = [page.evaluate(_SLOTS)]
+            _fits(page, f"{tag} sin la carta", probs)
+            # 2) ya vio el refugio
+            page.evaluate("() => { const s = store.get('farm:state', {}); s.shelter.gallina.seen = true; store.set('farm:state', s); }")
+            _hoy(page)
+            seq.append(page.evaluate(_SLOTS))
+            _fits(page, f"{tag} sin el refugio", probs)
+            # 3) sin temporada (el aviso de Google ya salió en esta visita si cabía)
+            C.goto(page, "#/?season=off")          # (es Hoy otra vez)
+            page.wait_for_timeout(500)
+            if len(want) == 1:
+                seq.append(page.evaluate(_SLOTS))   # el aviso de Google (no cabía antes: no gastó su vez)
+                _fits(page, f"{tag} con el aviso de Google", probs)
+            _hoy(page)
+            seq.append(page.evaluate(_SLOTS))
+            if seq != steps:
+                probs.append(f"{tag}: al irse uno tras otro salen {seq} (se esperaba {steps})")
+            # otra visita: el aviso de Google vuelve (y va antes que la frase de la cena)
+            C.reload(page)
+            page.wait_for_timeout(500)
+            again = page.evaluate(_SLOTS)
+            if again != (["sync"] if len(want) == 1 else ["sync", "phrase"]):
+                probs.append(f"{tag}: en otra visita salen {again} (el aviso de Google y luego la frase de la cena)")
+            _fits(page, f"{tag} otra visita", probs)
+            probs += [f"{tag}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
+    # con «Repasar 6» (la tarjeta pasa a la lección) y en un móvil bajo
+    for tag, kw in (("Repasar 6", {}), ("móvil bajo 375×667", {"viewport": {"width": 375, "height": 667}})):
+        page = C.new_page("phone", now=HALLOWEEN, **kw)
+        try:
+            _all_at_once(page)
+            if tag == "Repasar 6":
+                page.evaluate(SC._FEW)
+                _hoy(page)
+                if not page.locator("#hm-rev").count():
+                    probs.append(f"{tag}: no sale la fila «Repasar»")
+            got = page.evaluate(_SLOTS)
+            if got not in ([], ["mail"]):
+                probs.append(f"{tag}: los HOME_SLOTS son {got} (la carta o nada)")
+            _fits(page, tag, probs)
+            probs += [f"{tag}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+# ---------------------------------------------------------------- teclado en las pantallas nuevas
+def test_keyboard_on_new_screens_fires_once():
+    """Hoy: 1-3 abren el atajo N (una sola navegación; 4 con 3 piezas no hace nada) y Enter en una pieza enfocada es la
+    activación del navegador (keys.js no pulsa además). Buzón: 1-4 eligen la frase (una voz), Espacio la lee, Enter
+    graba y para (un solo micrófono y una grabación) y Enter otra vez «Mandar» (un solo envío); ? abre «Teclas» y Esc la
+    cierra. Frases mágicas: 1 pone el dibujo 1, Espacio «Oír» una vez, Enter «Otra frase» una vez (sin cambiar de
+    pantalla). La carta: Enter «Abrir la carta» paga una sola vez. Las etiquetas de las teclas salen en las pantallas
+    nuevas. Sin errores."""
+    probs = []
+    page = BZ._page(share=True)
+    try:
+        C.seed(page, _keys())
+        page.evaluate("() => sessionStorage.setItem('__mic', 'ok')")
+        _hoy(page)
+        page.evaluate(K._SPY)
+        row = page.evaluate(_SCROW)
+        if [x["key"] for x in row] != ["1", "2", "3"]:
+            probs.append(f"las piezas de los atajos no llevan las teclas 1-3: {row}")
+        for i in (1, 3):
+            page.evaluate(K._BLUR)
+            page.evaluate(K._RESET)
+            n0 = page.evaluate(_ROUTE_N)
+            page.keyboard.press(str(i))
+            try:
+                _wait_route(page, n0)
+            except Exception:  # noqa: BLE001
+                probs.append(f"la tecla {i} en Hoy no abre el atajo {i}")
+                continue
+            page.wait_for_timeout(500)
+            n = page.evaluate(_ROUTE_N) - n0
+            clk = [c for c in page.evaluate(K._K)["clk"] if c["key"] == str(i)]
+            if "#/" + C.current_hash(page) != row[i - 1]["href"] or n != 1 or len(clk) != 1:
+                probs.append(f"tecla {i}: #/{C.current_hash(page)} (quería {row[i - 1]['href']}), {n} navegaciones, clics {clk}")
+            if page.evaluate("() => !!document.documentElement.dataset.gmPlay"):
+                page.keyboard.press("Escape")
+                page.wait_for_timeout(300)
+            C.goto(page, "")
+            page.wait_for_timeout(400)
+        page.evaluate(K._RESET)
+        n0 = page.evaluate(_ROUTE_N)
+        page.keyboard.press("4")
+        page.wait_for_timeout(700)
+        if page.evaluate(_ROUTE_N) != n0 or C.current_hash(page) != "":
+            probs.append(f"la tecla 4 con 3 atajos hace algo: #/{C.current_hash(page)}")
+        page.focus('#hm-sc .sc-p[data-key="2"]')
+        page.evaluate(K._RESET)
+        n0 = page.evaluate(_ROUTE_N)
+        page.keyboard.press("Enter")
+        _wait_route(page, n0)
+        page.wait_for_timeout(500)
+        k = page.evaluate(K._K)
+        if page.evaluate(_ROUTE_N) - n0 != 1 or [c for c in k["clk"] if not c["trusted"]] or "#/" + C.current_hash(page) != row[1]["href"]:
+            probs.append(f"Enter en el atajo 2 enfocado: #/{C.current_hash(page)}, {page.evaluate(_ROUTE_N) - n0} navegaciones, clics {k['clk']}")
+        if page.evaluate("() => !!document.documentElement.dataset.gmPlay"):
+            page.keyboard.press("Escape")
+            page.wait_for_timeout(300)
+        # el Buzón
+        C.goto(page, "#/buzon")
+        page.wait_for_selector("#mb-rb", timeout=6000)
+        page.evaluate(K._BLUR)
+        page.evaluate("() => { window.__said.length = 0; }")
+        page.evaluate(K._RESET)
+        page.keyboard.press("2")
+        page.wait_for_timeout(300)
+        t = page.evaluate("""() => ({on: [...document.querySelectorAll('.mb-tpl')].map(b => b.getAttribute('aria-checked')), said: window.__said.map(x => x.t),
+          phr: document.getElementById('mb-phr').textContent})""")
+        if t["on"] != ["false", "true", "false", "false"] or t["said"].count(t["phr"]) != 1:
+            probs.append(f"la tecla 2 en el Buzón: {t}")
+        page.wait_for_timeout(300)
+        page.evaluate(K._RESET)
+        page.keyboard.press("Space")
+        page.wait_for_timeout(400)
+        clk = [c for c in page.evaluate(K._K)["clk"] if c["id"] == "mb-spk"]
+        if len(clk) != 1:
+            probs.append(f"Espacio en el Buzón pulsa el altavoz {len(clk)} veces")
+        if not page.evaluate(K._KBD) or not page.evaluate(K._TAGS):
+            probs.append("en el Buzón no salen las etiquetas de las teclas")
+        page.keyboard.press("Enter")
+        page.wait_for_function("() => document.querySelector('#mb-rb.is-rec')", timeout=4000)
+        page.clock.fast_forward(2500)
+        page.wait_for_timeout(100)
+        page.evaluate(K._BLUR)
+        page.keyboard.press("Enter")
+        page.wait_for_selector("#mb-send", timeout=5000)
+        page.wait_for_timeout(300)
+        r = page.evaluate("async () => ({gum: window.__gum, recs: window.__recs, idb: (await vocabMedia.list('mail')).length})")
+        if r != {"gum": 1, "recs": 1, "idb": 1}:
+            probs.append(f"Enter para grabar y parar: {r} (un micrófono, una grabación)")
+        page.evaluate(K._BLUR)
+        page.keyboard.press("Enter")
+        page.wait_for_function("() => window.__shared.length >= 1", timeout=4000)
+        page.wait_for_timeout(600)
+        if page.evaluate("() => window.__shared.length") != 1:
+            probs.append(f"Enter en «Mandar» comparte {page.evaluate('() => window.__shared.length')} veces")
+        page.keyboard.press("?")
+        try:
+            page.wait_for_selector("dialog#kb-help[open]", timeout=3000)
+            page.keyboard.press("Escape")
+            page.wait_for_function("() => !document.querySelector('dialog#kb-help[open]')", timeout=3000)
+        except Exception:  # noqa: BLE001
+            probs.append("? no abre (o Esc no cierra) «Teclas» en el Buzón")
+        # Frases mágicas
+        C.goto(page, "#/frases")
+        page.wait_for_selector("#ph-line", timeout=8000)
+        page.evaluate(K._BLUR)
+        page.evaluate(K._RESET)
+        page.keyboard.press("1")
+        page.wait_for_timeout(300)
+        st = page.evaluate("() => vocabPhrases.state()")
+        clk = [c for c in page.evaluate(K._K)["clk"] if c["key"] == "1"]
+        if st["placed"] != 0 or len(clk) != 1:
+            probs.append(f"la tecla 1 en Frases: puesta {st['placed']}, clics {clk}")
+        page.wait_for_function("() => !document.querySelector('#ph-line.is-lit')", timeout=6000)
+        page.evaluate(K._RESET)
+        page.keyboard.press("Space")
+        page.wait_for_timeout(300)
+        clk = [c for c in page.evaluate(K._K)["clk"] if c["id"] == "ph-say"]
+        if len(clk) != 1:
+            probs.append(f"Espacio en Frases pulsa «Oír» {len(clk)} veces")
+        page.wait_for_function("() => !document.querySelector('#ph-line.is-lit')", timeout=6000)
+        tpl0, n0 = st["tpl"], page.evaluate(_ROUTE_N)
+        page.evaluate(K._RESET)
+        page.keyboard.press("Enter")
+        page.wait_for_timeout(600)
+        clk = [c for c in page.evaluate(K._K)["clk"] if c["id"] == "ph-next"]
+        st = page.evaluate("() => vocabPhrases.state()")
+        if len(clk) != 1 or st["tpl"] == tpl0 or st["placed"] != -1 or page.evaluate(_ROUTE_N) != n0:
+            probs.append(f"Enter en Frases: clics {clk}, plantilla {tpl0} → {st['tpl']}, puesta {st['placed']}")
+        # la carta
+        page.evaluate("o => vocabMailbox.receive(o)", LET)
+        C.goto(page, "#/carta/" + LET["id"])
+        page.wait_for_selector("#mb-open", timeout=6000)
+        c0 = page.evaluate(_COINS)
+        page.evaluate(K._BLUR)
+        page.evaluate(K._RESET)
+        page.keyboard.press("Enter")
+        page.wait_for_selector("#mb-gift:not([hidden])", timeout=9000)
+        page.wait_for_timeout(500)
+        clk = [c for c in page.evaluate(K._K)["clk"] if c["id"] == "mb-open"]
+        if page.evaluate(_COINS) != c0 + 20 or len(clk) != 1:
+            probs.append(f"Enter en «Abrir la carta»: {c0} → {page.evaluate(_COINS)} monedas, clics {clk}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+# ---------------------------------------------------------------- recorrido en inglés, francés y danés
+def _lesson_by_keys(page, max_steps=70):
+    """Hace la lección abierta solo con el teclado (Enter en las palabras nuevas y tras contestar; la tecla de la buena en
+    cada pregunta). Devuelve los problemas."""
+    probs = []
+    page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-page')", timeout=9000)
+    page.evaluate(K._SPY)
+    page.wait_for_timeout(900)
+    for _ in range(max_steps):
+        st = page.evaluate(K._LS)
+        if not st or st["ended"]:
+            break
+        page.evaluate(K._BLUR)
+        page.evaluate(K._RESET)
+        if st["t"] == "learn" or st["done"]:
+            page.keyboard.press("Enter")
+        else:
+            opts = page.evaluate(K._OPTS)
+            if st["right"] not in opts:
+                page.wait_for_timeout(400)
+                continue
+            page.keyboard.press(str(opts.index(st["right"]) + 1))
+        try:
+            page.wait_for_function("i => { const s = vocabLesson.state; return !s || s.ended || s.i !== i; }", arg=st["i"], timeout=6000)
+        except Exception:  # noqa: BLE001
+            probs.append(f"la lección no avanza con el teclado en el paso {st}")
+            break
+        k = page.evaluate(K._K)
+        if len(k["ans"]) > 1:
+            probs.append(f"una tecla responde {len(k['ans'])} veces en el paso {st['i']}")
+        page.wait_for_timeout(150)
+    else:
+        probs.append("la lección no termina con el teclado")
+    return probs
+
+
+def _tour(lang):
+    ab = _AB[lang]
+    probs = []
+    page = BZ._page(share=True)
+    ctx = page.context
+    try:
+        C.seed(page, _keys(sc=False, lang=lang))
+        page.evaluate("() => sessionStorage.setItem('__mic', 'ok')")
+        page.evaluate(SC._FINISH)
+        _fits(page, f"{lang}: Hoy", probs)
+        # 1) una lección con el teclado
+        c0 = page.evaluate(_COINS)
+        if lang == "english":       # en inglés la tarjeta de Hoy es el repaso: la lección sale del camino
+            C.goto(page, "#/leccion/" + R.LESSON)
+        else:
+            page.evaluate(K._BLUR)
+            n0 = page.evaluate(_ROUTE_N)
+            page.keyboard.press("Enter")
+            _wait_route(page, n0)
+        lid = C.current_hash(page).split("/")[-1]
+        if not C.current_hash(page).startswith("leccion/"):
+            probs.append(f"{lang}: Enter en Hoy no abre la lección (#/{C.current_hash(page)})")
+        else:
+            probs += [f"{lang}: {p}" for p in _lesson_by_keys(page)]
+            page.wait_for_timeout(1500)
+            done = page.evaluate("l => Object.keys(store.get('map:' + l, {}))", lang)
+            if lid not in done:
+                probs.append(f"{lang}: la lección {lid} hecha con el teclado no queda en el camino: {done}")
+            if page.evaluate(_COINS) <= c0:
+                probs.append(f"{lang}: la lección no da monedas")
+        # 2) tres partidas de Globos: sale su atajo en Hoy
+        C.goto(page, "#/juegos/globos")
+        for n in range(3):
+            SC._start_game(page)
+            SC._play_globos(page)
+            page.wait_for_timeout(800)
+            if n < 2:
+                page.locator("#gm-again").click()
+                page.wait_for_timeout(500)
+        sc = page.evaluate("() => JSON.parse(localStorage.getItem('vocab:sc') || 'null')")
+        pts = {k: round(v["s"], 3) for k, v in (sc or {}).get("k", {}).items() if k.startswith(f"{ab}/juego:globos")}
+        if sum(pts.values()) < 3:
+            probs.append(f"{lang}: 3 partidas de Globos no suman 3 puntos: {pts}")
+        C.goto(page, "#/juegos")
+        _hoy(page)
+        row = page.evaluate(_SCROW)
+        if not any(x["k"].startswith(f"{ab}/juego:globos") for x in row):
+            probs.append(f"{lang}: tras 3 partidas no sale el atajo de Globos en Hoy: {row}")
+        _fits(page, f"{lang}: Hoy con el atajo", probs)
+        # 3) Frases mágicas y el sello de la cena
+        C.goto(page, "#/frases")
+        page.wait_for_selector("#ph-line", timeout=10000)
+        page.locator(".ph-tile").first.click()
+        page.wait_for_timeout(300)
+        st = page.evaluate("() => vocabPhrases.state()")
+        if st["placed"] != 0 or st["lang"] != lang or "_" in st["text"] or not st["text"]:
+            probs.append(f"{lang}: Frases mágicas: {st}")
+        page.wait_for_function("() => !document.querySelector('#ph-line.is-lit')", timeout=8000)
+        C.goto(page, "#/frases/cena")
+        page.wait_for_selector("#ph-stamp", timeout=8000)
+        c1 = page.evaluate(_COINS)
+        page.locator("#ph-stamp").click()
+        _gate_if_open(page)
+        page.wait_for_selector("#ph-done", timeout=6000)
+        page.wait_for_timeout(400)
+        s = page.evaluate("() => JSON.parse(localStorage.getItem('phrase:stamps') || 'null')")
+        if not s or s["n"] != 1 or page.evaluate(_COINS) != c1 + 5:
+            probs.append(f"{lang}: el sello: {s}, monedas {c1} → {page.evaluate(_COINS)}")
+        # 4) grabar y mandar al Buzón (micrófono y Web Share simulados)
+        C.goto(page, "#/buzon")
+        page.wait_for_selector("#mb-rb", timeout=6000)
+        BZ._record(page)
+        page.locator("#mb-send").click()
+        page.wait_for_function("() => window.__shared.length === 1", timeout=4000)
+        sh = page.evaluate("() => window.__shared[0]")
+        if not (sh.get("text") or "").endswith("#/buzon/responder") or not sh.get("files"):
+            probs.append(f"{lang}: «Mandar»: {sh}")
+        # 5) contestar como mayor
+        _reply_form(page)
+        page.locator("#mb-from").fill("Abuela")
+        msg = {"english": "Lovely! I am so proud of you.", "français": "Bravo ! Je suis fière de toi.", "dansk": "Flot! Jeg er stolt af dig."}[lang]
+        page.locator("#mb-msg").fill(msg)
+        page.locator('.mb-opt:has(input[value="20"])').click()
+        page.locator("#mb-make").click()
+        page.wait_for_selector("#mb-res:not([hidden])", timeout=4000)
+        link = page.locator("#mb-link").input_value()
+        o = BZ._unb64(link.split("?d=")[1])
+        if o.get("lang") != ab or o.get("gift") != 20 or o.get("msg") != msg or o.get("from") != "Abuela":
+            probs.append(f"{lang}: el enlace de la carta: {o}")
+        # 6) la carta en otra pestaña limpia (el mismo aparato)
+        c2 = page.evaluate(_COINS)
+        p2 = ctx.new_page()
+        try:
+            p2.goto(link, wait_until="domcontentloaded")
+            p2.wait_for_function("() => (window.__vocabRouteN || 0) > 0", timeout=20000)
+            C.settle(p2, 250)
+            p2.wait_for_selector("#mb-open", timeout=8000)
+            if C.current_hash(p2) != "carta/" + o["id"]:
+                probs.append(f"{lang}: la carta queda en #/{C.current_hash(p2)}")
+            p2.locator("#mb-open").click()
+            p2.wait_for_selector("#mb-gift:not([hidden])", timeout=9000)
+            p2.wait_for_timeout(400)
+            said = p2.evaluate("() => window.__said")
+            if not any(x["t"] == msg for x in said):
+                probs.append(f"{lang}: la voz no lee la carta: {said}")
+            C.reload(p2)
+            p2.wait_for_timeout(400)
+            if p2.evaluate(_COINS) != c2 + 20:
+                probs.append(f"{lang}: abrir la carta (y recargar) da {p2.evaluate(_COINS) - c2} monedas (20)")
+            probs += [f"{lang} (otra pestaña): {e}" for e in C.errors(p2)]
+        finally:
+            p2.close()
+        # 7) la partida: solo claves de save.js, sin nada de IndexedDB, y se vuelve a cargar
+        snap = C.export(page)
+        bad = [k for k in snap["keys"] if page.evaluate("k => vocabSave.typeOf(k)", k) is None]
+        if bad:
+            probs.append(f"{lang}: la exportación lleva claves sin registrar: {bad}")
+        txt = json.dumps(snap)
+        if "vocab-media" in txt or "ArrayBuffer" in txt or len(txt) > 400_000:
+            probs.append(f"{lang}: la exportación lleva cosas de IndexedDB ({len(txt)} caracteres)")
+        for k in ("mail:box", "phrase:stamps"):
+            if k not in snap["keys"]:
+                probs.append(f"{lang}: la exportación no lleva {k}")
+        if not page.evaluate("t => vocabSave.parse(t).ok", txt):
+            probs.append(f"{lang}: vocabSave.parse() no acepta la exportación")
+        probs += [f"{lang}: {e}" for e in C.errors(page)]
+    finally:
+        ctx.close()
+    return probs
+
+
+def test_tour_english():
+    """Inglés: Hoy, la lección siguiente del camino con el teclado (queda en el camino y da monedas), 3 partidas de
+    Globos que hacen su atajo en Hoy (y Hoy sin scroll), Frases mágicas (tocar un dibujo completa la frase) y el sello de
+    la cena (+5, con la Puerta), grabar y mandar al Buzón (archivo y enlace de respuesta), contestar como mayor con 20
+    monedas y abrir la carta en otra pestaña (la voz la lee, paga una vez aunque se recargue). La exportación solo lleva
+    claves registradas (mail:box y phrase:stamps incluidas), nada de IndexedDB, y se vuelve a cargar. Sin errores."""
+    probs = _tour("english")
+    assert not probs, "\n".join(probs)
+
+
+def test_tour_french():
+    """Lo mismo en francés (Enter en Hoy abre la lección que toca)."""
+    probs = _tour("français")
+    assert not probs, "\n".join(probs)
+
+
+def test_tour_danish():
+    """Lo mismo en danés (sin palabras sabidas: Frases mágicas usa palabras fáciles de un tema)."""
+    probs = _tour("dansk")
+    assert not probs, "\n".join(probs)
+
+
+# ---------------------------------------------------------------- actualización desde la versión publicada (v19)
+# main 2e7dc3f (sw vocab-shell-v19): la carpeta de VOCAB_BASE19 si se da (p. ej. un git worktree de ese commit) o, si
+# no, una copia sacada del repo con git archive a una carpeta temporal
+_BASE19_COMMIT = "2e7dc3f"
+_BASE19_DIRS = [Path(p) for p in [os.environ.get("VOCAB_BASE19", "")] if p]
+_BASE19_TMP = {}
+_NEW5 = """() => ({tabbar: !!document.getElementById('tabbar'), granja: typeof ROUTES !== 'undefined' && !!ROUTES.granja,
+  shop: typeof window.vocabShop === 'object', rewards: typeof window.vocabRewards === 'object', season: typeof window.vocabSeason === 'object',
+  save: !!(window.vocabSave && vocabSave.inventory), keys: !!(window.vocabKeys && vocabKeys.target), sc: !!(window.vocabShortcuts && vocabShortcuts.paint),
+  mail: !!(window.vocabMailbox && vocabMailbox.receive), media: !!window.vocabMedia, phr: !!(window.vocabPhrases && vocabPhrases.dinner),
+  routes: typeof ROUTES !== 'undefined' && !!ROUTES.buzon && !!ROUTES.carta && !!ROUTES.frases,
+  games: !!(window.vocabGames && vocabGames.meta && vocabGames.list().includes('frases') && vocabGames.list().includes('buzon')),
+  toast: !!(window.M && M.toast)})"""
+
+
+def _is_base19(d):
+    return (d / "index.html").exists() and (d / "sw.js").exists() and "const VERSION = 19;" in (d / "sw.js").read_text(encoding="utf-8") \
+        and not (d / "js" / "keys.js").exists()
+
+
+def _base19_dir():
+    for d in _BASE19_DIRS:
+        if _is_base19(d):
+            return d
+    if "dir" not in _BASE19_TMP:
+        d = Path(tempfile.mkdtemp(prefix="vocab-base19-"))
+        arch = subprocess.run(["git", "-C", str(C.REPO), "archive", "--format=tar", _BASE19_COMMIT], capture_output=True)
+        if arch.returncode == 0:
+            subprocess.run(["tar", "-x", "-C", str(d)], input=arch.stdout, check=True)
+            atexit.register(shutil.rmtree, d, True)
+        _BASE19_TMP["dir"] = d
+    d = _BASE19_TMP["dir"]
+    return d if _is_base19(d) else None
+
+
+def _v19_then_new(gh_cache):
+    """Sirve la versión publicada (main 2e7dc3f con su service worker vocab-shell-v19) en plena temporada de Halloween
+    con la partida sembrada; el niño la usa (Hoy, abre una puerta de Truco o trato, la granja, juegos, Premios, un tema).
+    Luego se publica esta versión en el mismo origen y el niño vuelve (otro día de la misma temporada sin caché HTTP, o
+    recargando en menos de 10 minutos con la de GitHub Pages). Devuelve una lista de problemas."""
+    probs = []
+    base_dir = _base19_dir()
+    assert base_dir, f"no se pudo sacar la versión publicada (commit {_BASE19_COMMIT}); VOCAB_BASE19=<copia de ese commit>"
+    roots = {"cur": base_dir}
+
+    class Handler(C._Quiet):
+        def __init__(self, *a, directory=None, **kw):
+            super().__init__(*a, directory=str(roots["cur"]), **kw)
+
+        def end_headers(self):
+            if gh_cache:
+                self.send_header("Cache-Control", "max-age=600")
+                super(C._Quiet, self).end_headers()
+            else:
+                super().end_headers()
+
+        def send_head(self):
+            # GitHub Pages revalida por el contenido (ETag). Aquí la copia de la versión publicada puede ser más nueva en
+            # disco que el repo (un worktree recién sacado), y con If-Modified-Since el servidor diría 304 a ficheros que
+            # sí cambiaron: sin cabeceras condicionales, revalidar siempre trae lo que hay ahora
+            for h in ("If-Modified-Since", "If-None-Match"):
+                if h in self.headers:
+                    del self.headers[h]
+            return super().send_head()
+
+    tag = "caché de GitHub Pages" if gh_cache else "sin caché HTTP"
+    v, _ = I4._sw_version()
+    srv = C.Server(base_dir, "localhost", handler=Handler)
+    ctx = C.new_context("phone", sw=True, server=srv, block_external=not gh_cache, now=HALLOWEEN, reduced_motion="reduce")
+    ctx.add_init_script(T._RANDOM)
+    page = ctx.new_page()
+    stopped = False
+    try:
+        C.seed(page, C.seed_keys(HALLOWEEN), now=HALLOWEEN)
+        page.wait_for_function("() => !!(navigator.serviceWorker && navigator.serviceWorker.controller)", timeout=20000)
+        C.reload(page)
+        keys0 = page.evaluate("() => caches.keys()")
+        if page.evaluate("() => !!window.vocabKeys || !!window.vocabShortcuts") or "vocab-shell-v19" not in keys0:
+            probs.append(f"{tag}: la versión publicada no es la de antes (cachés {keys0})")
+        # una puerta de Truco o trato (la temporada guarda su clave "season")
+        C.goto(page, "#/temporada")
+        page.evaluate(T._SPY)
+        page.wait_for_selector("#app .ss-door", timeout=8000)
+        T._door(page, 0)
+        for h in ("#/granja", "#/juegos", "#/progreso", "#/doc/animales", "#/"):
+            C.goto(page, h)
+            page.wait_for_timeout(250)
+        old = page.evaluate(I4._STORE)
+        old_snap = C.export(page)
+        if "season" not in old:
+            probs.append(f"{tag}: la versión publicada no guardó la puerta de Halloween")
+        old_media = page.evaluate("async () => (await (await caches.open('vocab-media')).keys()).map(r => new URL(r.url).pathname)")
+        # se publica esta versión
+        roots["cur"] = C.ROOT
+        C.clear_errors(page)
+        if gh_cache:
+            page.reload(wait_until="domcontentloaded")
+        else:
+            page.goto(C.base_url(page) + "/", wait_until="domcontentloaded")
+        page.wait_for_function("() => (window.__vocabRouteN || 0) > 0", timeout=20000)
+        page.wait_for_timeout(800)
+        first = page.evaluate(_NEW5)
+        if not all(first.values()):
+            probs.append(f"{tag}: la primera carga tras publicar mezcla versiones o es la vieja: {first}")
+        t0 = time.time()
+        keys = []
+        while time.time() - t0 < 25:
+            keys = page.evaluate("() => caches.keys()")
+            if f"vocab-shell-v{v}" in keys and "vocab-shell-v19" not in keys:
+                break
+            page.wait_for_timeout(250)
+        if f"vocab-shell-v{v}" not in keys or "vocab-media" not in keys or "vocab-shell-v19" in keys:
+            probs.append(f"{tag}: el service worker nuevo no se instaló o no borró vocab-shell-v19: {keys}")
+        media = set(page.evaluate("async () => (await (await caches.open('vocab-media')).keys()).map(r => new URL(r.url).pathname)"))
+        lost = [p for p in old_media if p not in media]
+        if lost:
+            probs.append(f"{tag}: se perdieron dibujos, audios o datos de vocab-media: {lost[:5]}")
+        shell = set(page.evaluate(f"async () => (await (await caches.open('vocab-shell-v{v}')).keys()).map(r => new URL(r.url).pathname)"))
+        miss = [f for f in _FILES if "/" + f not in shell]
+        if miss:
+            probs.append(f"{tag}: el shell nuevo no guardó {miss}")
+        C.reload(page)
+        again = page.evaluate(_NEW5)
+        if not all(again.values()):
+            probs.append(f"{tag}: tras recargar con el sw nuevo no está la app nueva entera: {again}")
+        if not page.evaluate("() => navigator.serviceWorker.controller && navigator.serviceWorker.controller.scriptURL"):
+            probs.append(f"{tag}: la página no la controla el service worker nuevo")
+        # la partida, la granja y la temporada intactas
+        C.goto(page, "#/granja")
+        page.wait_for_selector("#app .fm-stage .fm-it", timeout=9000)
+        page.wait_for_timeout(400)
+        farm = json.loads(old["farm:state"])
+        shop = {x["id"]: x for x in json.loads((C.ROOT / "data" / "game.json").read_text(encoding="utf-8"))}
+        owned_farm = sorted(i for i in json.loads(old["game"])["owned"] if shop.get(i, {}).get("t") == "farm")
+        scene = page.evaluate("() => [...document.querySelectorAll('#app .fm-layer > .fm-it[data-fid]')].map(e => e.dataset.fid)")
+        if sorted(scene) != owned_farm:
+            probs.append(f"{tag}: la granja nueva no enseña lo comprado: {sorted(scene)} ≠ {owned_farm}")
+        if json.loads(page.evaluate("() => localStorage.getItem('farm:state')"))["pos"] != farm["pos"]:
+            probs.append(f"{tag}: cambian los sitios guardados de la granja")
+        C.goto(page, "#/temporada")
+        page.wait_for_selector("#app .ss-door", timeout=8000)
+        page.wait_for_timeout(300)
+        if not page.evaluate("() => { const s = vocabSeason.state.street; return !!s && s.run.ok.includes(0); }"):
+            probs.append(f"{tag}: tras actualizar, la puerta abierta de Halloween ya no está abierta")
+        C.goto(page, "")
+        page.wait_for_timeout(500)
+        new = page.evaluate(I4._STORE)
+        device = ("vocab:ui", "phrase:day", "vocab:sc")
+        for k in sorted(set(old) | set(new)):
+            if k in device or k.startswith("album:uniq:"):
+                continue
+            if old.get(k) != new.get(k):
+                if k == "farm:state":
+                    a, b = json.loads(old[k]), json.loads(new.get(k) or "{}")
+                    a.pop("visit", None), b.pop("visit", None)
+                    if a == b:
+                        continue
+                    probs.append(f"{tag}: cambia farm:state: {[x for x in set(a) | set(b) if a.get(x) != b.get(x)]}")
+                elif k not in old:
+                    probs.append(f"{tag}: clave nueva {k}")
+                else:
+                    probs.append(f"{tag}: cambia o falta {k}")
+        d = [x for x in C.diff_exports(old_snap, C.export(page), allow_new=False)
+             if not x.startswith("cambia 'album:uniq:") and not x.startswith("cambia 'farm:state'")]
+        if d:
+            probs.append(f"{tag}: la exportación tras actualizar no es la de la versión publicada: {d}")
+        for h, sel in (("#/buzon", "#mb-rb"), ("#/frases", "#ph-line"), ("#/juegos", ".gm-card[data-g=buzon]"),
+                       ("#/progreso", "#rw .rw-meds"), ("#/mizorro", "#mz-shop .sc")):
+            C.goto(page, h)
+            try:
+                page.wait_for_selector(sel, timeout=8000)
+            except Exception:  # noqa: BLE001
+                probs.append(f"{tag}: tras actualizar {h} no pinta")
+        errs = C.errors(page)
+        if errs:
+            probs.append(f"{tag}: errores tras publicar: {errs[:5]}")
+        # sin conexión: el servidor parado sirve la app nueva (y lo nuevo de F5) desde vocab-shell
+        srv.stop()
+        stopped = True
+        ctx.set_offline(True)
+        C.clear_errors(page)
+        C.reload(page)
+        offl = page.evaluate(_NEW5)
+        if not all(offl.values()):
+            probs.append(f"{tag}: sin conexión no sale la app nueva entera: {offl}")
+        for h, sel in (("#/frases", "#ph-line"), ("#/buzon", "#mb-rb"), ("#/juegos", ".gm-card[data-g=frases] img")):
+            C.goto(page, h)
+            try:
+                page.wait_for_selector(sel, timeout=8000)
+            except Exception:  # noqa: BLE001
+                probs.append(f"{tag}: sin conexión {h} no pinta")
+        if not page.evaluate("() => { const i = document.querySelector('.gm-card[data-g=frases] img'); return !!i && i.complete && i.naturalWidth > 0; }"):
+            probs.append(f"{tag}: sin conexión no sale el dibujo de Frases mágicas")
+    finally:
+        try:
+            ctx.set_offline(False)
+        except Exception:  # noqa: BLE001
+            pass
+        ctx.close()
+        if not stopped:
+            srv.stop()
+    return probs
+
+
+def test_update_from_published_v19():
+    """Un niño con la versión publicada (main 2e7dc3f, sw vocab-shell-v19), la partida sembrada y una puerta de Halloween
+    abierta abre la app nueva otro día: se carga la app nueva entera (los módulos de F5 incluidos), el sw nuevo se
+    instala (vocab-shell-v20 con los ficheros nuevos, sin vocab-shell-v19, vocab-media entera) y controla la página; la
+    partida queda igual (cada clave, y la exportación como la de la versión publicada), la granja enseña lo comprado en su
+    sitio, la puerta de Halloween sigue abierta, el Buzón, Frases, Juegos, Medallas y Mi zorro pintan, y sin conexión
+    sale la app nueva con Frases mágicas y el Buzón. Sin errores."""
+    probs = _v19_then_new(gh_cache=False)
+    assert not probs, "\n".join(probs)
+
+
+def test_update_from_v19_with_github_pages_http_cache():
+    """Lo mismo con las cabeceras de GitHub Pages (Cache-Control: max-age=600) y la caché HTTP del navegador: el niño
+    tenía la app abierta al publicar y recarga en menos de 10 minutos. Los <script> llevan «?v=20», así que ningún
+    módulo viejo sale de la caché HTTP: la primera carga ya es la app nueva entera y sin errores."""
+    probs = _v19_then_new(gh_cache=True)
+    assert not probs, "\n".join(probs)
+
+
+# ---------------------------------------------------------------- capturas de F5
+def test_captures_f5():
+    """Capturas con nombre descriptivo en capturas/F5 (F5-*.png), móvil salvo la lección con etiquetas (escritorio):
+    Hoy con «Tus atajos», la hoja Fijar/No sugerir, la pregunta de la tortuga, la hoja «Teclas», la lección con las
+    etiquetas de las teclas, el Buzón (frases, grabando y grabado), el formulario del mayor, la carta con regalo y con
+    candado, el sobre en Hoy, Frases mágicas (hueco vacío y frase completa), la frase de la cena en Hoy y el sello; Hoy
+    con todo a la vez (móvil, oscuro y tableta), y Hoy y Frases en oscuro. En cada una: contraste suficiente y sin
+    colores fuera de la paleta. Sin errores."""
+    probs = []
+
+    def snap(page, name, full=False):
+        page.evaluate(_FINISH)
+        page.wait_for_timeout(200)
+        a = page.evaluate(_AUDIT, {"what": ["contrast", "palette"]})
+        for x in a["contrast"] + a["palette"]:
+            probs.append(f"{name}: {x}")
+        C.shot(page, name, OUT, full_page=full)
+
+    # Hoy con atajos, editar, tortuga, Teclas, el sobre, la frase de la cena
+    page = BZ._page(share=True, reduced_motion="reduce")
+    try:
+        C.seed(page, _keys())
+        page.evaluate("() => sessionStorage.setItem('__mic', 'ok')")
+        _hoy(page)                                  # la segunda visita: sin el aviso de Google, la frase de la cena
+        page.wait_for_selector("#hm-sc .sc-p", timeout=6000)
+        snap(page, "F5-hoy-atajos-phone-light")
+        if page.locator("#ph-hrow").count():
+            snap(page, "F5-hoy-frase-cena-phone-light")
+        else:
+            probs.append(f"la frase de la cena no sale en Hoy: {page.evaluate(_SLOTS)}")
+        SC._hold(page, "#hm-sc .sc-p[data-sc]")
+        try:
+            page.wait_for_selector("dialog#sc-sheet[open]", timeout=4000)
+            page.wait_for_timeout(400)
+            snap(page, "F5-atajos-fijar-no-sugerir-phone-light")
+            SC._close_sheet(page)
+        except Exception:  # noqa: BLE001
+            probs.append("mantener pulsado un atajo no abre su hoja")
+        page.evaluate("() => vocabShortcuts.askSlow(true)")
+        try:
+            page.wait_for_selector("dialog#sc-slow[open]", timeout=4000)
+            page.wait_for_timeout(400)
+            snap(page, "F5-tortuga-pregunta-phone-light")
+            page.locator("dialog#sc-slow [data-no]").click()
+            page.wait_for_function("() => !document.querySelector('dialog#sc-slow[open]')", timeout=4000)
+        except Exception:  # noqa: BLE001
+            probs.append("no sale la pregunta de la tortuga")
+        page.keyboard.press("?")
+        page.wait_for_selector("dialog#kb-help[open]", timeout=4000)
+        page.wait_for_timeout(400)
+        snap(page, "F5-hoja-teclas-phone-light")
+        page.keyboard.press("Escape")
+        page.wait_for_function("() => !document.querySelector('dialog#kb-help[open]')", timeout=4000)
+        page.evaluate("o => vocabMailbox.receive(o)", LET)
+        _hoy(page)
+        page.wait_for_selector("[data-slot=mail]", timeout=6000)
+        snap(page, "F5-hoy-sobre-phone-light")
+        # el Buzón: frases, grabando, grabado
+        C.goto(page, "#/buzon")
+        page.wait_for_selector("#mb-rb", timeout=6000)
+        snap(page, "F5-buzon-frases-phone-light")
+        page.locator("#mb-rb").click()
+        page.wait_for_function("() => document.querySelector('#mb-rb.is-rec')", timeout=4000)
+        page.clock.fast_forward(6000)
+        page.wait_for_timeout(200)
+        C.shot(page, "F5-buzon-grabando-phone-light", OUT, full_page=False, animations="allow")
+        page.locator("#mb-rb").click()
+        page.wait_for_selector("#mb-send", timeout=5000)
+        snap(page, "F5-buzon-grabado-phone-light")
+        # el formulario del mayor
+        _reply_form(page)
+        page.locator("#mb-from").fill("Tío Juan")
+        page.locator("#mb-to").fill("Lucía")
+        page.locator("#mb-msg").fill("Well done! I loved your message.")
+        page.locator('.mb-opt:has(input[value="50"])').click()
+        page.evaluate("() => scrollTo(0, 0)")
+        snap(page, "F5-buzon-contestar-phone-light", full=True)
+        # la carta con regalo y con candado
+        C.goto(page, "#/carta/" + LET["id"])
+        page.locator("#mb-open").click()
+        page.wait_for_selector("#mb-gift:not([hidden])", timeout=9000)
+        page.wait_for_timeout(2600)
+        snap(page, "F5-carta-regalo-phone-light")
+        page.evaluate("o => vocabMailbox.receive(o)", LOCK)
+        C.goto(page, "#/carta/" + LOCK["id"])
+        page.wait_for_timeout(500)
+        snap(page, "F5-carta-candado-phone-light")
+        # Frases mágicas: hueco vacío, frase completa y el sello
+        C.goto(page, "#/frases")
+        page.wait_for_selector("#ph-line", timeout=8000)
+        snap(page, "F5-frases-hueco-phone-light")
+        page.locator(".ph-tile").first.click()
+        page.wait_for_function("() => !document.querySelector('#ph-line.is-lit')", timeout=8000)
+        snap(page, "F5-frases-completa-phone-light")
+        C.goto(page, "#/frases/cena")
+        page.wait_for_selector("#ph-stamp", timeout=6000)
+        page.evaluate(_PASS)
+        page.locator("#ph-stamp").click()
+        page.wait_for_selector("#ph-done", timeout=6000)
+        page.wait_for_timeout(2600)
+        page.evaluate("() => document.getElementById('ph-cena').scrollIntoView({block: 'center'})")
+        snap(page, "F5-frases-sello-phone-light")
+        probs += [f"móvil claro: {e}" for e in C.errors(page)]
+    finally:
+        page.context.close()
+    # Hoy con todo a la vez (móvil claro y oscuro, tableta) y Hoy y Frases en oscuro
+    for name, kind, kw in (("F5-hoy-todo-phone-light", "phone", {}), ("F5-hoy-todo-phone-dark", "phone", {"color_scheme": "dark"}),
+                           ("F5-hoy-todo-tableta-light", "phone", {"viewport": {"width": 820, "height": 1180}})):
+        page = C.new_page(kind, now=HALLOWEEN, reduced_motion="reduce", **kw)
+        try:
+            _all_at_once(page)
+            snap(page, name)
+            probs += [f"{name}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
+    page = BZ._page(color_scheme="dark", reduced_motion="reduce")
+    try:
+        C.seed(page, _keys())
+        _hoy(page)
+        snap(page, "F5-hoy-phone-dark")
+        C.goto(page, "#/frases")
+        page.wait_for_selector("#ph-line", timeout=8000)
+        page.locator(".ph-tile").first.click()
+        page.wait_for_function("() => !document.querySelector('#ph-line.is-lit')", timeout=8000)
+        snap(page, "F5-frases-phone-dark")
+        probs += [f"oscuro: {e}" for e in C.errors(page)]
+    finally:
+        page.context.close()
+    # la lección con las etiquetas de las teclas (escritorio)
+    page = BZ._page("desk", reduced_motion="reduce")
+    try:
+        C.seed(page, _keys())
+        C.goto(page, "#/leccion/" + R.LESSON)
+        page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-page')", timeout=9000)
+        page.wait_for_timeout(900)
+        page.evaluate(K._BLUR)
+        page.keyboard.press("Space")
+        page.wait_for_timeout(500)
+        if not page.evaluate(K._TAGS):
+            probs.append("la lección no enseña las etiquetas de las teclas")
+        snap(page, "F5-leccion-teclas-desk-light")
+        probs += [f"lección escritorio: {e}" for e in C.errors(page)]
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)

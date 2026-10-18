@@ -273,10 +273,12 @@ function render(res, slots){
   if(!list.length) return;
   COVER = half && half.kind !== "practica" ? {kind: half.kind, id: half.id} : null;
   SHOWN = list.filter(it => !it.half).map(it => it.key);
+  /* columnas: las piezas que hay (3 como mínimo, para que una sola no ocupe toda la fila); en tableta con 3 piezas, 3
+     columnas anchas y el nombre entero, no 4 con un hueco al final */
   const sec = D.createElement("section");
   sec.id = "hm-sc"; sec.className = "sc-row"; sec.setAttribute("aria-labelledby", "sc-h");
   sec.innerHTML = `<h2 class="sc-h" id="sc-h">Tus atajos</h2>
-    <div class="sc-body"><ul class="sc-ps" role="list" style="--sc-n:${res.n}">${list.map(pieceHtml).join("")}</ul>${SHOWN.length
+    <div class="sc-body"><ul class="sc-ps" role="list" style="--sc-n:${Math.max(list.length, Math.min(3, res.n))}">${list.map(pieceHtml).join("")}</ul>${SHOWN.length
       ? `<button type="button" class="sc-ed" id="sc-ed" aria-haspopup="dialog" aria-label="Editar atajos"><span class="sc-edi" aria-hidden="true">${IC("pencil-simple", "bold", 18)}</span><span class="sc-edt">Editar</span></button>` : ""}</div>`;
   slots.before(sec);
   ROOT.dataset.sc = String(list.length);
