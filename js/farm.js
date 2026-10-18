@@ -758,7 +758,7 @@ function mount(host){
     /* nunca dos a la vez (toques rápidos, teclado…) */
     root.querySelectorAll("dialog.fm-dlg").forEach(x => { try{ x.close(); }catch(e){} x.remove(); });
     closePop(true);
-    const d = document.createElement("dialog"); d.className = "m-sheet glass fm-dlg" + (cl ? " " + cl : ""); d.innerHTML = html;
+    const d = document.createElement("dialog"); d.className = "m-sheet glass lite fm-dlg" + (cl ? " " + cl : ""); d.innerHTML = html;
     root.appendChild(d); d.addEventListener("close", () => { d.remove(); later(nextIntro, 350); });
     d.addEventListener("click", e => { if(e.target.closest("[data-x]")) shut(d); });
     if(window.M && typeof M.openSheet === "function") M.openSheet(d); else { try{ d.showModal(); }catch(e){ d.setAttribute("open", ""); } }
@@ -1607,7 +1607,7 @@ function mount(host){
     closePop(true); setWater(false); setFood(null); closeTray(); hideBub(); noHint();
     if(!shopDlg){
       const d = shopDlg = document.createElement("dialog");
-      d.id = "fm-shop"; d.className = "m-sheet glass fm-sheet"; d.setAttribute("aria-labelledby", "fm-shop-t");
+      d.id = "fm-shop"; d.className = "m-sheet glass lite fm-sheet"; d.setAttribute("aria-labelledby", "fm-shop-t");
       root.appendChild(d);
       d.addEventListener("click", e => {
         if(e.target.closest("[data-x]")) return shut(d);
@@ -2191,8 +2191,10 @@ function css(){
 .fm-qm.ok{color:var(--ok-ink)}.fm-qm.info{color:var(--label)}
 .fm-pa{display:flex;justify-content:center}
 .fm-pa .btn-fill{min-width:140px}
-/* las hojas: tienda, refugio y «se fue al refugio» */
+/* las hojas: tienda, refugio y «se fue al refugio». Llevan contenido: fondo opaco y sin desenfoque (vidrio lite, como
+   las de Juegos), así no se transparenta la escena detrás */
 dialog.fm-sheet,dialog.fm-dlg{color:var(--label)}
+dialog.fm-sheet.m-sheet.glass,dialog.fm-dlg.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}
 @media (max-width:819px){
   dialog#fm-shop.m-sheet{height:calc(100dvh - var(--safe-t,0px) - 24px)}
   dialog#fm-shop.m-sheet[data-detent=medium]{height:min(calc(100dvh - var(--safe-t,0px) - 24px),max(440px,64dvh))}

@@ -77,3 +77,7 @@ add("palabras", "#/palabras", "Aprender › Palabras (temas, las 3000 y avanzado
 add("juego-lince", "#/juegos/lince", "Juego Oído de lince (inicio de partida)")
 # F4c: Premios › Mi zorro (js/rewards.js): el personaje y sus trajes
 add("mizorro", "#/mizorro", "Premios › Mi zorro (personaje y trajes)")
+# F4d: las temporadas (js/season.js). La partida sembrada es de marzo (sin temporada): ?season=halloween la fuerza en
+# esta sesión, así que van las últimas (lo que venga detrás en la misma página ve Halloween)
+add("temporada", "#/temporada?season=halloween", "Hoy › Truco o trato (Halloween forzado)")
+add("temporada-cosas", "#/temporada/cosas?season=halloween", "Hoy › Truco o trato › Mis cosas de Halloween")

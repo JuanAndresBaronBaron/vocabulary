@@ -803,6 +803,7 @@ def test_module_and_saved_game():
     #/repaso sin tocar nada no cambia la partida exportada (sigue siendo la de tests/e2e/baseline/export.json)."""
     probs = []
     html = (C.REPO / "index.html").read_text(encoding="utf-8")
+    html = re.sub(r'(<script src="[^"?]+)\?v=\d+"', r'\1"', html)   # desde F4: los scripts llevan ?v=<VERSION> de sw.js
     sw = (C.REPO / "sw.js").read_text(encoding="utf-8")
     shell = re.search(r"const SHELL = \[(.*?)\];", sw, re.S).group(1)
     if '"js/review.js"' not in shell:
