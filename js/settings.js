@@ -20,6 +20,13 @@
      "act") y, por partes (Temas · Las 3000 · Avanzado, data/index.json), cada tema empezado con sus palabras
      dominadas (caja ≥ MASTER) y aprendiendo de su total, con una barra; los que faltan, contados al pie. Lee srsAll()
      del idioma actual; no guarda nada.
+   - Voz y velocidad: una fila por idioma (primero el que aprende); cada una entra en su página "voz-en" · "voz-fr" ·
+     "voz-da" (título: el idioma; «‹ Voz y velocidad» vuelve y deja el foco en su fila) con las voces de este aparato
+     (voiceListPage de index.html). Entrar sube la hoja a toda altura y volver la deja como estaba; en escritorio la
+     página de un idioma mide al menos lo que Voz y velocidad. Si las voces llegan tarde (bus "voices"), la página
+     abierta se repinta en su sitio.
+   - Barra: el título siempre en el centro; si la etiqueta de volver no cabe a su lado se acorta a «Atrás» y, si
+     tampoco, queda solo ‹ (fitBackLabel de index.html; aria-label sigue diciendo adónde vuelve).
    - Sub-páginas con navegación de iOS dentro de la hoja: «‹ Ajustes» vuelve; Esc vuelve (en la portada cierra).
    - Avisos del bus: "settings" {page, el, focus} al pintar una página (sync.js pinta ahí lo suyo) · "ui" {k, v} al
      cambiar una preferencia.
@@ -84,10 +91,12 @@ dialog#ajustes.m-sheet.glass{background:linear-gradient(180deg,rgb(255 255 255/.
 /* tableta grande y ordenador: hoja de formulario centrada, tan alta como la página que enseña (las páginas se apilan en
    la misma celda; la que no cabe se desplaza dentro) */
 @media (min-width:820px){
-  dialog#ajustes.m-sheet{--aj-max:min(760px,calc(100dvh - 96px));height:fit-content;max-height:var(--aj-max);padding:0}
+  dialog#ajustes.m-sheet{--aj-max:min(760px,calc(100dvh - 152px));height:fit-content;max-height:var(--aj-max);padding:0}
   dialog#ajustes .aj-bar{padding-top:12px}
   dialog#ajustes .aj-pgs{display:grid;flex:0 1 auto}
   dialog#ajustes .aj-pg{position:relative;inset:auto;grid-area:1/1;max-height:calc(var(--aj-max) - 72px)}
+  /* la página de un idioma no es más baja que Voz y velocidad: «‹» no salta de sitio al entrar en una corta */
+  dialog#ajustes .aj-pg[data-pg^="voz-"]{min-height:var(--aj-vozh,0px)}
   :root dialog#ajustes.m-sheet.glass{background:#F2F2F7;-webkit-backdrop-filter:none;backdrop-filter:none}
   :root[data-theme=dark] dialog#ajustes.m-sheet.glass{background:#1C1C1E}}
 dialog#ajustes .m-grab{flex:none;margin:0;position:relative}
@@ -99,7 +108,7 @@ dialog#ajustes .m-grab{flex:none;margin:0;position:relative}
   border:0;border-radius:var(--r-pill,999px);background:none;color:var(--brand-ink);font:400 var(--fs-sub,1.0625rem)/1.2 var(--f-text,system-ui);cursor:pointer;white-space:nowrap}
 .aj-back[hidden]{display:none}
 .aj-back span{overflow:hidden;text-overflow:ellipsis}
-.aj-done{grid-column:3;justify-self:end}
+.aj-done{grid-column:3;justify-self:end;white-space:nowrap;min-width:max-content}
 .aj-pgs{position:relative;flex:1 1 auto;min-height:0;overflow:hidden}
 .aj-pg{position:absolute;inset:0;overflow:auto;overscroll-behavior:contain;padding:4px 16px max(28px,calc(var(--safe-b,0px) + 16px))}
 .aj-pg[hidden]{display:none}
@@ -137,6 +146,7 @@ dialog#ajustes a.st-r{color:var(--label)}
 dialog#ajustes .st-g .seg{margin:0;max-width:none}
 .aj-seg{padding:8px}
 dialog#ajustes .st-cred{margin:0}
+dialog#ajustes #aj-vh>.st-r::before{content:"";position:absolute;top:0;left:58px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
 dialog#ajustes .aj-off .off-rows>.st-r:first-child::before{content:"";position:absolute;top:0;left:58px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
 .aj-hint{margin:0 0 16px;padding:0 4px;font:400 var(--fs-sub,1.0625rem)/1.38 var(--f-text,system-ui);color:var(--label2)}
 /* Progreso por tema: barras de 14 días y una barra por tema (dorado = dominadas, verde azulado = aprendiendo) */
@@ -159,7 +169,7 @@ dialog#ajustes .aj-off .off-rows>.st-r:first-child::before{content:"";position:a
 function css(){ if($("css-settings")) return; const s = D.createElement("style"); s.id = "css-settings"; s.textContent = CSS; D.head.appendChild(s); }
 
 /* ---------- la hoja ---------- */
-let dlg = null, stack = [], opt = {}, offHome = null;
+let dlg = null, stack = [], opt = {}, offHome = null, vozUp = false;
 const PAGES = {
   root: {t: "Ajustes"},
   voz: {t: "Voz y velocidad"},
@@ -167,7 +177,8 @@ const PAGES = {
   mayores: {t: "Para mayores", gate: true},
   progreso: {t: "Progreso"},   /* corto: cabe en la barra con «‹ Para mayores» y «Listo» */
 };
-const SECTIONS = {"": [], root: [], sonido: [], apariencia: [], voz: ["voz"], accesibilidad: ["acc"], acc: ["acc"],
+const SECTIONS = {"": [], root: [], sonido: [], apariencia: [], voz: ["voz"], "voz-en": ["voz", "voz-en"], "voz-fr": ["voz", "voz-fr"],
+  "voz-da": ["voz", "voz-da"], accesibilidad: ["acc"], acc: ["acc"],
   mayores: ["mayores"], google: ["mayores"], descargar: ["mayores"], instalar: ["mayores"], creditos: ["mayores"]};
 const GATE_WHY = {mayores: "Aquí están Google, instalar la app y descargar todo.", google: "Para guardar la partida en Google.",
   descargar: "Para descargar todo y usarla sin internet."};
@@ -184,6 +195,8 @@ function build(){
       <button type="button" class="glass-btn glass-btn--sm aj-done" id="aj-done">Listo</button></div>
     <div class="aj-pgs" id="aj-pgs"></div>`;
   D.body.appendChild(dlg);
+  /* el ancho de la barra cambia al abrir la hoja, al girar el móvil o con letra más grande */
+  try{ if(typeof ResizeObserver === "function") new ResizeObserver(() => fitBack()).observe(dlg.querySelector(".aj-bar")); }catch(e){}
   $("aj-done").onclick = () => close();
   $("aj-back").onclick = () => back();
   /* Esc en una sub-página vuelve atrás (en la portada, la hoja se cierra como siempre) */
@@ -195,7 +208,7 @@ function build(){
     /* al cerrar Ajustes, la Puerta se vuelve a cerrar: el niño no entra después en Para mayores sin pregunta */
     try{ if(window.adultGate && typeof adultGate.forget === "function") adultGate.forget(); }catch(e){}
     /* fuera las páginas (la próxima vez empieza en la portada, y sus ids no se repiten con la hoja de voz) */
-    dlg.querySelectorAll(".aj-pg").forEach(x => x.remove()); stack = [];
+    dlg.querySelectorAll(".aj-pg").forEach(x => x.remove()); stack = []; vozUp = false;
     try{ if(typeof voiceNote === "function") voiceNote(); }catch(e){}
     emit("settings", {page: null});
     if(typeof a === "function") try{ a(); }catch(e){ console.error(e); }
@@ -234,6 +247,9 @@ function detent(name, anim = true){
   try{ dlg.animate([{height: h0 + "px"}, {height: h1 + "px"}], {duration: M.snappy.ms, easing: M.snappy.easing}); }catch(e){}
 }
 const pageEl = p => dlg && dlg.querySelector(`.aj-pg[data-pg="${p}"]`);
+/* "voz-en" → "english" (la página de voces de ese idioma) */
+const vozLang = p => { try{ return /^voz-/.test(p || "") && typeof CLIP_AB === "object" ? Object.keys(CLIP_AB).find(k => "voz-" + CLIP_AB[k] === p) || null : null; }catch(e){ return null; } };
+const ttl = p => { const L = vozLang(p); return L ? (typeof LANG_ES === "object" && LANG_ES[L] ? LANG_ES[L][0] : LANGS[L].name) : (PAGES[p] || PAGES.root).t; };
 const curPage = () => stack[stack.length - 1];
 function pageNode(p){
   let el = pageEl(p);
@@ -242,9 +258,16 @@ function pageNode(p){
 }
 function paintBar(){
   const p = curPage(), prev = stack[stack.length - 2];
-  $("aj-tt").textContent = (PAGES[p] || PAGES.root).t;
+  $("aj-tt").textContent = ttl(p);
   const b = $("aj-back"); b.hidden = !prev;
-  if(prev){ $("aj-back-t").textContent = (PAGES[prev] || PAGES.root).t; b.setAttribute("aria-label", "Volver a " + (PAGES[prev] || PAGES.root).t); }
+  if(prev){ $("aj-back-t").textContent = ttl(prev); b.setAttribute("aria-label", "Volver a " + ttl(prev)); }
+  fitBack();
+}
+/* el título queda en el centro: si «‹ Voz y velocidad» no cabe a su lado, «‹ Atrás» y, si tampoco, solo ‹ (como en iOS) */
+function fitBack(){
+  const prev = stack[stack.length - 2];
+  if(!dlg || !prev) return;
+  try{ if(typeof fitBackLabel === "function") fitBackLabel($("aj-back"), $("aj-back-t"), $("aj-tt"), ttl(prev)); }catch(e){}
 }
 /* pinta una página (y avisa por el bus, para que sync.js ponga lo suyo) */
 function render(p, focus){
@@ -253,7 +276,7 @@ function render(p, focus){
   else if(p === "acc") el.innerHTML = accHtml();
   else if(p === "mayores") el.innerHTML = adultHtml();
   else if(p === "progreso"){ el.innerHTML = ""; progFill(el); }
-  else if(p === "voz") el.innerHTML = "";
+  else if(p === "voz" || vozLang(p)) el.innerHTML = "";
   wire(p, el);
   emit("settings", {page: p, el, focus: focus || ""});
   return el;
@@ -290,6 +313,10 @@ function push(p, o = {}){
   const el = render(p, o.focus);
   el.scrollTop = 0;
   paintBar();
+  if(vozLang(p) && curPage() === p && stack[stack.length - 2] === "voz"){
+    vozUp = dlg.dataset.detent === "medium";
+    const vz = pageEl("voz"); if(vz && !PHONE.matches) dlg.style.setProperty("--aj-vozh", vz.offsetHeight + "px");
+  }
   if(p !== "voz") detent("large", !o.instant);   /* Voz y velocidad es corta: se queda a media altura */
   if(o.instant){ if(from) from.hidden = true; el.hidden = false; }
   else { slide(el, from, 1); fitH(h0); try{ $("aj-tt").focus({preventScroll: true}); }catch(e){} }
@@ -300,11 +327,19 @@ function back(){
   const out = stack.pop(), outEl = pageEl(out), inEl = pageEl(curPage());
   if(out === "voz"){ try{ if(typeof voiceNote === "function") voiceNote(); }catch(e){} }
   if(curPage() === "root") paintRoot();
+  /* de la página de un idioma a Voz y velocidad: su fila dice ya la voz elegida y recibe el foco (como en iOS) */
+  let row = null;
+  if(curPage() === "voz" && vozLang(out) && inEl){
+    try{ if(typeof paintVoz === "function") paintVoz(inEl); }catch(e){ console.error(e); }
+    row = inEl.querySelector("#cfg-l-" + out.slice(4));
+    if(vozUp) detent("medium");
+  }
+  if(curPage() === "voz") vozUp = false;
   paintBar();
   const h0 = boxH();
   slide(inEl, outEl, -1);
   fitH(h0);
-  try{ $("aj-tt").focus({preventScroll: true}); }catch(e){}
+  try{ (row || $("aj-tt")).focus({preventScroll: true}); }catch(e){}
 }
 function close(){
   if(!dlg || !dlg.open) return;
@@ -398,7 +433,7 @@ function adultHtml(){
     <section class="st-sec" aria-labelledby="aj-l-h"><h3 class="st-h" id="aj-l-h">Lecciones</h3><div class="st-g ics">
       <label class="st-r" for="aj-ipa"><span class="st-ic tl" aria-hidden="true">${ico("text-aa", "bold", 18)}</span>
         <span class="st-l">Mostrar pronunciación (IPA)<small>Símbolos de cómo suena cada palabra.</small></span>
-        <input type="checkbox" role="switch" class="st-sw" id="aj-ipa" ${ipa ? "checked" : ""}></label>${voiceHelp()}</div></section>
+        <input type="checkbox" role="switch" class="st-sw" id="aj-ipa" ${ipa ? "checked" : ""}></label><div id="aj-vh">${voiceHelp()}</div></div></section>
     ${window.vocabMailbox && typeof vocabMailbox.adultHtml === "function" ? vocabMailbox.adultHtml() : ""}
     ${window.vocabMailbox && typeof vocabMailbox.mediaHtml === "function" ? vocabMailbox.mediaHtml() : ""}
     <section class="st-sec" aria-labelledby="aj-c-h"><h3 class="st-h" id="aj-c-h">Créditos</h3><div class="st-g ics">
@@ -510,7 +545,9 @@ function wire(p, el){
       gate("mayores", b).then(ok => { if(ok && dlg.open && curPage() === "root"){ push("mayores"); afterGate(); } });
     };
   } else if(p === "voz"){
-    if(typeof openCfg === "function") openCfg(null, null, el);
+    if(typeof openCfg === "function") openCfg(null, null, el, L => { if(curPage() === "voz" && typeof CLIP_AB === "object" && CLIP_AB[L]) push("voz-" + CLIP_AB[L]); });
+  } else if(vozLang(p)){
+    if(typeof voiceListPage === "function") voiceListPage(el, vozLang(p));
   } else if(p === "acc"){
     el.querySelectorAll("[data-ui]").forEach(c => c.onchange = () => {
       const a = A11Y.find(x => x.k === c.dataset.ui); if(!a) return;
@@ -579,6 +616,14 @@ async function openSettings(a, b){
 window.openSettings = openSettings;
 window.vocabSettings = Object.freeze({open: openSettings, close, back, get page(){ return dlg && dlg.open ? curPage() : null; }, detent: () => dlg && dlg.dataset.detent});
 
+/* las voces del aparato llegan tarde (Chrome, Edge, Safari): lo abierto se repinta en su sitio, sin cambiar de página */
+try{ if(typeof bus !== "undefined") bus.on("voices", () => {
+  if(!dlg || !dlg.open) return;
+  const vz = pageEl("voz"), L = vozLang(curPage()), vh = $("aj-vh");
+  if(vz && typeof paintVoz === "function") paintVoz(vz);
+  if(L && typeof voiceListPage === "function") voiceListPage(pageEl(curPage()), L, {keep: true});
+  if(vh) vh.innerHTML = voiceHelp();
+}); }catch(e){}
 /* el sonido cambió desde otro sitio */
 try{ if(typeof bus !== "undefined") bus.on("mute", () => { const s = $("aj-snd"); if(s && typeof sfx !== "undefined") s.checked = !sfx.muted; }); }catch(e){}
 })();
