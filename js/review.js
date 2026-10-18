@@ -324,6 +324,8 @@ dialog#rv-pause.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filte
   .rv-tap{margin-top:12px}.rv-audio{margin-top:12px}.rv-hints{margin-top:8px}.rv-end-card{padding:16px}}
 /* aún más bajo (móvil pequeño, tumbado): el dibujo más pequeño, para que las pistas y el botón quepan sin bajar */
 @media (max-height:600px){.rv-pic{width:min(72px,70%,13vh);width:min(72px,70%,13svh)}}
+/* tumbado (unos 390 px de alto): el dibujo como antes, para no bajar más el botón «Ver» */
+@media (max-height:440px){.rv-pic{width:min(44px,70%,11vh);width:min(44px,70%,11svh)}}
 `;
 function css(){
   if(DOC.getElementById("css-review")) return;
