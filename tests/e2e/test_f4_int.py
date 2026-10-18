@@ -950,7 +950,7 @@ def _published_then_new(gh_cache):
             probs.append(f"{tag}: cambian los sitios guardados de la granja")
         new = page.evaluate(_STORE)
         for k in sorted(set(old) | set(new)):
-            if k in ("vocab:ui",) or k.startswith("album:uniq:"):
+            if k in ("vocab:ui", "phrase:day") or k.startswith("album:uniq:"):   # phrase:day: la frase de la cena de hoy (solo del aparato)
                 continue
             if old.get(k) != new.get(k):
                 if k == "farm:state":

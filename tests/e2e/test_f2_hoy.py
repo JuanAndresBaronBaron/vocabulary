@@ -72,8 +72,10 @@ def test_hoy_fits_without_scroll():
 
     page = C.new_page("phone")
     try:
-        # un HOME_SLOT de prueba (objeto para homeRow) desde que arranca la app
+        # un HOME_SLOT de prueba (objeto para homeRow) desde que arranca la app (sin la frase de la cena de js/phrases.js,
+        # que con la partida sembrada también pinta su fila: aquí se prueba el mecanismo de los huecos)
         page.add_init_script("""document.addEventListener('DOMContentLoaded', () => { if (typeof HOME_SLOTS === 'undefined') return;
+          const p = HOME_SLOTS.findIndex(f => f && f.id === 'phrase'); if (p >= 0) HOME_SLOTS.splice(p, 1);
           const f = async () => ({t: 'Sobres nuevos', e: '✉️', badge: 2, href: '#/mapa'}); f.id = 'prueba'; HOME_SLOTS.push(f); })""")
         C.seed(page)
         c = page.evaluate(_CARD)

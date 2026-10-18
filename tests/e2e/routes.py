@@ -85,6 +85,9 @@ CARTA_D = _b64.urlsafe_b64encode(json.dumps(CARTA, ensure_ascii=False, separator
 add("juegos-buzon", "#/buzon", "Jugar › Buzón del tío (grabar un mensaje)")
 add("juegos-buzon-responder", "#/buzon/responder", "Jugar › Buzón › Contestar con una carta (Puerta de mayores)")
 add("juegos-carta", f"#/carta?d={CARTA_D}", "Jugar › Buzón › Una carta que llega por enlace (sin abrir)")
+# F5d: Frases mágicas y la frase de la cena (js/phrases.js)
+add("juegos-frases", "#/frases", "Jugar › Frases mágicas (una plantilla con el hueco y 4 dibujos)")
+add("juegos-frases-cena", "#/frases/cena", "Jugar › La frase de la cena (la de hoy, con el sello)")
 # F4d: las temporadas (js/season.js). La partida sembrada es de marzo (sin temporada): ?season=halloween la fuerza en
 # esta sesión, así que van las últimas (lo que venga detrás en la misma página ve Halloween)
 add("temporada", "#/temporada?season=halloween", "Hoy › Truco o trato (Halloween forzado)")
