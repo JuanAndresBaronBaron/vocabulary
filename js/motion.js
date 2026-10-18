@@ -16,7 +16,8 @@
    - M.burst(x, y, {colors, n}) o M.burst(el, {…}) chispas oro, azul y verde azulado · M.confetti({x, y, n}) ≤60 piezas.
    - M.toast(text, {icon, ms}) cápsula de avisos arriba (role=status), en cola y de una en una. icon: "coin", un emoji
      o un "<svg…>". Usa .glass si la página la tiene; si no, un vidrio propio. Con action: {t, fn} lleva un botón
-     (.m-ta, «Deshacer») que la cierra y llama a fn; esa pasa delante de la cola.
+     (.m-ta, «Deshacer») que la cierra y llama a fn; esa pasa delante de la cola, dura 9 s como mínimo, se para con el
+     puntero encima o el foco dentro y no se cierra al tocar su texto.
    - M.openSheet(dialog, {from}) · M.closeSheet(dialog, {velocity}) → Promise: hoja que sube desde abajo (@starting-style,
      o animate() si el navegador no lo tiene; desde su botón con from), con agarre (.m-grab o [data-sheet-grab]) que se
      arrastra 1:1, y que se cierra al bajarla, al tocar fuera y con Esc, siempre con dialog.close() de verdad (los
@@ -507,9 +508,20 @@ function nextToast(){
     const b = DOC.createElement("button"); b.type = "button"; b.className = "m-ta"; b.textContent = t.act.t;
     b.addEventListener("click", e => { e.stopPropagation(); if(t.gone) return; hide(); try{ t.act.fn(); }catch(err){ console.error(err); } });
     el.appendChild(b);
+    el.classList.add("m-tact");
   }
-  t.timer = setTimeout(hide, ms);
-  el.addEventListener("click", hide);
+  /* con acción («Deshacer»), 9 s como mínimo, y el tiempo se para con el puntero encima o el foco dentro (WCAG 2.2.1);
+     tocar el texto solo cierra los avisos sin acción (así no se pierde el «Deshacer») */
+  let left = t.act ? Math.max(ms, 9000) : ms, t0 = 0, over = false, focus = false;
+  const run = () => { clearTimeout(t.timer); t0 = Date.now(); t.timer = setTimeout(hide, left); };
+  const pause = () => { if(t.gone || !t0) return; clearTimeout(t.timer); left = Math.max(2000, left - (Date.now() - t0)); t0 = 0; };
+  const resume = () => { if(t.gone || t0 || over || focus) return; run(); };
+  el.addEventListener("pointerenter", () => { over = true; pause(); });
+  el.addEventListener("pointerleave", () => { over = false; resume(); });
+  el.addEventListener("focusin", () => { focus = true; pause(); });
+  el.addEventListener("focusout", () => { focus = false; setTimeout(resume, 0); });
+  run();
+  if(!t.act) el.addEventListener("click", hide);
 }
 
 /* ---------- muelle que sigue al dedo ---------- */

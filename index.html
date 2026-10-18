@@ -178,6 +178,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 :where(:root[data-theme=dark][data-menu]) .glass:where(.acc){
   background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),var(--g-lite-d,rgba(28,28,30,.9))}
 #m-toasts{--g-lite:rgba(255,255,255,.94);--g-lite-d:rgba(28,28,30,.94)}
+#m-toasts .m-tact{--g-lite:#fff;--g-lite-d:#2C2C2E}   /* con «Deshacer», opaca: no se trasluce el título grande */
 
 /* ---------- vidrio sobre contenido: botones de acción (sin desenfoque, tinte opaco) ---------- */
 .glass-btn{--g-rim1:rgba(255,255,255,.75);--g-rim2:rgba(255,255,255,.12);
@@ -469,6 +470,8 @@ button.st-r:disabled .st-ic{background:#8E8E93}
    «Privacidad». Columna de 600 px como mucho; desde 820 px, dos columnas. El título y la columna empiezan donde en las
    otras pestañas (el mismo marco .wrap): cambiar de pestaña no mueve el título. */
 .hm{display:flex;flex-direction:column;gap:12px;max-width:600px}
+/* tableta pequeña (744-819 px): la columna, de todo el ancho como el título (no apoyada a la izquierda con un hueco) */
+@media (min-width:744px) and (max-width:819px){.hm{max-width:none}}
 .hm-side{display:flex;flex-direction:column;gap:12px;min-width:0}
 .hm-hero{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;column-gap:10px;padding:16px;text-align:center}
 .hm-fox{flex:none;display:flex;transform-origin:50% 92%}
@@ -802,7 +805,7 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 <symbol id="i-envelope-open-bold" viewBox="0 0 256 256"><path d="M230.66,86l-96-64a12,12,0,0,0-13.32,0l-96,64A12,12,0,0,0,20,96V200a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V96A12,12,0,0,0,230.66,86ZM89.81,152,44,184.31v-65ZM114.36,164h27.28L187,196H69.05ZM166.19,152,212,119.29v65ZM128,46.42l74.86,49.91L141.61,140H114.39L53.14,96.33Z"/></symbol>
 </svg>
 <header class="topbar" id="topbar">
-  <a class="tb-back glass lite" id="dv-back" href="#/palabras" data-key="esc"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-caret-left-bold"></use></svg><span>Palabras</span></a>
+  <a class="tb-back glass lite" id="dv-back" href="#/palabras" data-key="esc" data-key-pos="right"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-caret-left-bold"></use></svg><span>Palabras</span></a>
   <button type="button" class="tb-flag glass" id="lang-b" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-m" aria-label="Idioma"></button>
   <div class="tb-right">
     <div class="tb-slot" data-sync-slot></div>
@@ -1365,7 +1368,7 @@ function paintTabs(h){
   const root = document.documentElement;
   root.dataset.tab = curTab || ""; root.dataset.sec = secOf(h);
   const bk = backOf(h), bb = $("#dv-back");
-  if(bk && bb){ root.dataset.back = ""; bb.setAttribute("href", bk.h); bb.lastElementChild.textContent = bk.t; } else delete root.dataset.back;
+  if(bk && bb){ root.dataset.back = ""; bb.setAttribute("href", bk.h); bb.querySelector(":scope > span").textContent = bk.t; } else delete root.dataset.back;   /* el <span>: detrás puede ir la etiqueta de la tecla */
   for(const x of TABS){
     const a = document.getElementById("tab-" + x.id); if(!a) continue;
     const on = x.id === curTab, m = TABMEM[x.id];
@@ -1723,11 +1726,12 @@ async function homeSlots(){
      1) «¡Tienes carta!» (mail, js/mailbox.js): una carta sin abrir o un candado recién abierto; llega pocas veces y es
         de alguien de casa; 2) un animal que se fue al refugio por hambre (granja, js/farm.js): espera a que lo traigan;
      3) la temporada (season, js/season.js): pocas semanas al año y la única entrada a #/temporada; 4) «Guarda tu
-     partida» (sync, js/sync.js): solo si no está guardada, una vez por visita, y un mayor lo aplaza 2 días; 5) «La frase
-     de la cena» (phrase, js/phrases.js): sale cada día y también está en Juegos › Frases mágicas; 6) el resto.
+     partida» (sync, js/sync.js): solo si no está guardada, una vez por visita, y un mayor lo aplaza 2 días; 5) una carta
+     con candado aún cerrada y cómo va (mail-lock, js/mailbox.js): dura pocos días; 6) «La frase de la cena» (phrase,
+     js/phrases.js): sale cada día y también está en Juegos › Frases mágicas; 7) el resto.
      fit() de js/shortcuts.js quita del final, así que lo último en irse es lo primero de esta lista. Una fila que no
      cabe no gasta su vez: se llama a su .skip() (el aviso de Google vuelve a poder salir en esta visita). */
-  const PRI = {mail: 5, granja: 4, season: 3, sync: 2, phrase: 1}, pri = i => PRI[(HOME_SLOTS[i] || {}).id] || 0;
+  const PRI = {mail: 6, granja: 5, season: 4, sync: 3, "mail-lock": 2, phrase: 1}, pri = i => PRI[(HOME_SLOTS[i] || {}).id] || 0;
   const ord = vals.map((v, i) => i).sort((a, b) => pri(b) - pri(a) || a - b);
   ord.forEach(i => {
     const f = HOME_SLOTS[i], el = out.length < max ? slotEl(vals[i], f) : null;

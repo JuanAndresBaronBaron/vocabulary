@@ -255,7 +255,8 @@ _ROUTES5 = [
 
 def test_f5_routes_direct_reload_and_navigation():
     """Cada ruta de F5 (y las URL de los atajos del manifest) por enlace directo con la partida, al recargar y el primer
-    día sin partida: pinta, marca su pestaña y queda en su hash (#/carta?d=… pasa a #/carta/<id>). Navegando: Jugar ›
+    día sin partida: pinta, marca su pestaña y queda en su hash (#/carta?d=… pasa a #/carta/<id>; el primer día, la
+    carta pregunta antes dónde abrirla, con «Abrir aquí»). Navegando: Jugar ›
     Buzón y Frases mágicas (y la cápsula de volver a Juegos), Hoy › «La frase de la cena» (y volver a Hoy), Hoy › un atajo
     (#/juegos/globos?t=animales), Para mayores › «Contestar una carta del Buzón» (el formulario sin otra Puerta) y la
     carta › volver al Buzón. Sin errores."""
@@ -283,6 +284,8 @@ def test_f5_routes_direct_reload_and_navigation():
     page = C.new_page("phone")
     try:
         for h, sel, tab, final in _ROUTES5[:6]:
+            if h.startswith("#/carta"):
+                sel = "#mb-wv-here"     # con la partida nueva, antes pregunta dónde abrirla (o «Abrir aquí»)
             C.goto(page, h, reload=True)
             try:
                 page.wait_for_selector(sel, timeout=9000, state="attached")
@@ -623,6 +626,7 @@ def test_keyboard_on_new_screens_fires_once():
         if r != {"gum": 1, "recs": 1, "idb": 1}:
             probs.append(f"Enter para grabar y parar: {r} (un micrófono, una grabación)")
         page.evaluate(K._BLUR)
+        page.evaluate(_PASS)            # «Mandar» pide la Puerta de mayores (aquí, pasada hace un momento)
         page.keyboard.press("Enter")
         page.wait_for_function("() => window.__shared.length >= 1", timeout=4000)
         page.wait_for_timeout(600)
@@ -678,6 +682,116 @@ def test_keyboard_on_new_screens_fires_once():
         probs += C.errors(page)
     finally:
         page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+# las etiquetas de las teclas que se ven: dónde caen y qué tocan (otra etiqueta, otro botón, un texto, otra tarjeta)
+_TAGHIT = r"""() => {
+  const vis = e => { const r = e.getBoundingClientRect(), c = getComputedStyle(e); return r.width > 0 && r.height > 0 && c.visibility !== 'hidden' && +c.opacity > 0.05; };
+  const tags = [...document.querySelectorAll('.kb-tag')].filter(vis), out = [];
+  const R = tags.map(t => t.getBoundingClientRect());
+  const near = (a, b, g) => a.left - g < b.right && a.right + g > b.left && a.top - g < b.bottom && a.bottom + g > b.top;
+  const who = e => (e.id ? '#' + e.id : e.tagName.toLowerCase() + (e.className && typeof e.className === 'string' ? '.' + e.className.trim().split(/\s+/)[0] : ''));
+  const top = document.querySelector('dialog[open]:modal') || document.body;
+  /* lo que se ve de verdad (una cara de tarjeta girada no: el navegador no la toca) */
+  const seen = e => { const r = e.getBoundingClientRect(), x = r.left + r.width / 2, y = r.top + r.height / 2;
+    return x < 0 || y < 0 || x > innerWidth || y > innerHeight || document.elementsFromPoint(x, y).some(n => n === e || e.contains(n)); };
+  const stuff = [...top.querySelectorAll('button, a, p, h1, h2, h3, img, label, small, .card, .kb-what, .kb-keys')].filter(e => vis(e) && seen(e));
+  tags.forEach((t, i) => {
+    const host = t.parentElement, r = R[i];
+    if (r.left < 0 || r.top < 0 || r.right > innerWidth + 0.5 || r.bottom > innerHeight + 0.5) out.push(`«${t.dataset.k}» de ${who(host)} se sale de la pantalla`);
+    if (t.textContent.trim()) out.push(`«${t.dataset.k}» de ${who(host)} lleva texto dentro: «${t.textContent.trim()}»`);   /* p. ej. el nombre de la cápsula de volver */
+    R.forEach((q, j) => { if (j > i && near(r, q, 3.5)) out.push(`«${t.dataset.k}» (${who(host)}) toca «${tags[j].dataset.k}» (${who(tags[j].parentElement)})`); });
+    for (const e of stuff) {
+      if (e === host || host.contains(e) || e.contains(host) || t.contains(e)) continue;
+      if (near(r, e.getBoundingClientRect(), 3.5)) { out.push(`«${t.dataset.k}» (${who(host)}) toca ${who(e)} «${(e.textContent || '').trim().slice(0, 24)}»`); break; }
+    }
+  });
+  if (document.documentElement.scrollWidth > innerWidth + 0.5) out.push(`la página se ensancha (${document.documentElement.scrollWidth} > ${innerWidth})`);
+  return {n: tags.length, hits: out, pos: tags.map(t => [t.dataset.k, who(t.parentElement), t.dataset.pos || 'b'])};
+}"""
+
+
+def test_key_tags_never_touch_their_neighbours():
+    """Con el teclado, cada etiqueta de tecla deja al menos 4 px con lo de al lado (otra etiqueta, otro botón, un
+    texto u otra tarjeta) y no se sale de la pantalla: en Hoy con «Tus atajos» (1-3 dentro de cada pieza), en la
+    lección (Esc, Espacio y ⇧ Espacio en una línea sobre los botones redondos, Enter), en el repaso, en Tarjetas (sin
+    ensanchar la página: nunca se prueba un sitio fuera de la pantalla), en el Buzón (1-4 dentro, Espacio,
+    Enter del micrófono), en Frases mágicas, en la frase de la cena y en la hoja «Teclas» (Esc de «Listo»), en claro y
+    en oscuro. Al cambiar de pantalla con las etiquetas puestas, el nombre de «‹ Volver» no se mete en la suya. En la hoja «Teclas» la acción va a la izquierda y las teclas a la derecha, sin partir las acciones."""
+    probs = []
+    for scheme in ("light", "dark"):
+        page = BZ._page(color_scheme=scheme)
+        try:
+            C.seed(page, _keys())
+            page.evaluate("() => sessionStorage.setItem('__mic', 'ok')")
+            _hoy(page)
+
+            def look(tag, need):
+                page.keyboard.press("ArrowUp")          # no es de nadie: solo enseña las etiquetas
+                page.wait_for_timeout(700)
+                page.evaluate(_FINISH)
+                page.wait_for_timeout(300)
+                res = page.evaluate(_TAGHIT)
+                ks = [p[0] for p in res["pos"]]
+                for k in need:
+                    if k not in ks:
+                        probs.append(f"{scheme} {tag}: falta la etiqueta «{k}» ({res['pos']})")
+                probs.extend(f"{scheme} {tag}: {h}" for h in res["hits"])
+                if scheme == "light":
+                    C.shot(page, f"F5-etiquetas-{tag}-phone-light", OUT, full_page=False)
+                return res
+            res = look("hoy", ["Enter", "1", "2", "3"])
+            ins = [p for p in res["pos"] if p[0] in "123"]
+            if not ins or any(p[1] != "a.card" for p in ins):
+                probs.append(f"{scheme} hoy: las teclas de los atajos {ins}")
+            C.goto(page, "#/mapa")
+            C.goto(page, "#/leccion/" + K.LESSON)
+            page.wait_for_selector(".ls-stage .ls-page .ls-spk", timeout=8000)
+            page.wait_for_timeout(1200)
+            res = look("leccion", ["Esc", "Espacio", "⇧ Espacio"])
+            line = page.evaluate("""() => [...document.querySelectorAll('.ls-stage .ls-page:not(.ls-ghost) .say > .kb-tag')].map(t => Math.round(t.getBoundingClientRect().top))""")
+            if len(line) == 2 and abs(line[0] - line[1]) > 1:
+                probs.append(f"{scheme} leccion: las etiquetas del altavoz y la tortuga no van en una línea {line}")
+            C.goto(page, "#/repaso")
+            page.wait_for_selector("#rv-card", timeout=8000)
+            page.wait_for_timeout(600)
+            page.keyboard.press("Space")
+            page.wait_for_function("() => vocabReview.state.flip", timeout=3000)
+            page.wait_for_timeout(600)
+            look("repaso", ["Esc", "Espacio", "⇧ Espacio"])
+            C.goto(page, f"#/doc/{R.TOPIC}?m=tarjetas")
+            page.wait_for_selector("#card", timeout=6000)
+            page.wait_for_timeout(500)
+            look("tarjetas", ["Esc", "Espacio", "Enter"])
+            C.goto(page, "#/buzon")
+            page.wait_for_selector("#mb-rb", timeout=6000)
+            look("buzon", ["1", "2", "3", "4", "Espacio", "Enter"])
+            C.goto(page, "#/frases")
+            page.wait_for_selector(".ph-tile", timeout=8000)
+            page.locator(".ph-tile").first.click()
+            page.wait_for_timeout(300)
+            look("frases", ["1", "2", "3", "Espacio", "⇧ Espacio", "Enter"])
+            C.goto(page, "#/frases/cena")
+            page.wait_for_selector("#ph-stamp", timeout=8000)
+            look("cena", ["Espacio", "⇧ Espacio", "Enter"])
+            bk = page.evaluate("() => document.querySelector('#dv-back > span').textContent")
+            if bk != "Juegos":
+                probs.append(f"{scheme} cena: la cápsula de volver dice «{bk}» (tras Tarjetas, Buzón y Frases)")
+            C.goto(page, "")
+            page.wait_for_timeout(500)
+            page.keyboard.press("?")
+            page.wait_for_selector("dialog#kb-help[open]", timeout=4000)
+            look("teclas", ["Esc"])
+            rows = page.evaluate("""() => [...document.querySelectorAll('#kb-help .kb-row')].map(r => { const w = r.querySelector('.kb-what'), k = r.querySelector('.kb-keys'),
+              a = w.getBoundingClientRect(), b = k.getBoundingClientRect(), rr = r.getBoundingClientRect(), t = w.firstChild;
+              const rg = document.createRange(); rg.selectNodeContents(t); return {t: t.textContent, left: a.left < b.left, right: Math.round(rr.right - b.right), lines: rg.getClientRects().length}; })""")
+            for r in rows:
+                if not r["left"] or r["right"] > 17 or r["lines"] != 1:
+                    probs.append(f"{scheme} teclas: fila «{r['t']}» {r}")
+            probs += C.errors(page)
+        finally:
+            page.context.close()
     assert not probs, "\n".join(probs)
 
 
@@ -790,18 +904,20 @@ def _tour(lang):
         page.wait_for_selector("#mb-rb", timeout=6000)
         BZ._record(page)
         page.locator("#mb-send").click()
+        _gate_if_open(page)              # «Mandar» pide la Puerta (si no se pasó hace poco)
         page.wait_for_function("() => window.__shared.length === 1", timeout=4000)
         sh = page.evaluate("() => window.__shared[0]")
-        if not (sh.get("text") or "").endswith("#/buzon/responder") or not sh.get("files"):
+        if f"#/buzon/responder?l={ab}" not in (sh.get("text") or "") or not sh.get("files"):
             probs.append(f"{lang}: «Mandar»: {sh}")
         # 5) contestar como mayor
         _reply_form(page)
         page.locator("#mb-from").fill("Abuela")
         msg = {"english": "Lovely! I am so proud of you.", "français": "Bravo ! Je suis fière de toi.", "dansk": "Flot! Jeg er stolt af dig."}[lang]
         page.locator("#mb-msg").fill(msg)
-        page.locator('.mb-opt:has(input[value="20"])').click()
+        BZ._pick(page, "20")
         page.locator("#mb-make").click()
-        page.wait_for_selector("#mb-res:not([hidden])", timeout=4000)
+        _gate_if_open(page, 1200)        # un regalo: la Puerta, salvo la recién resuelta para entrar
+        page.wait_for_selector("dialog#mb-res[open]", timeout=4000)
         link = page.locator("#mb-link").input_value()
         o = BZ._unb64(link.split("?d=")[1])
         if o.get("lang") != ab or o.get("gift") != 20 or o.get("msg") != msg or o.get("from") != "Abuela":
@@ -1103,13 +1219,13 @@ def test_captures_f5():
     colores fuera de la paleta. Sin errores."""
     probs = []
 
-    def snap(page, name, full=False):
+    def snap(page, name):
         page.evaluate(_FINISH)
         page.wait_for_timeout(200)
         a = page.evaluate(_AUDIT, {"what": ["contrast", "palette"]})
         for x in a["contrast"] + a["palette"]:
             probs.append(f"{name}: {x}")
-        C.shot(page, name, OUT, full_page=full)
+        C.shot(page, name, OUT, full_page=False)
 
     # Hoy con atajos, editar, tortuga, Teclas, el sobre, la frase de la cena
     page = BZ._page(share=True, reduced_motion="reduce")
@@ -1167,9 +1283,17 @@ def test_captures_f5():
         page.locator("#mb-from").fill("Tío Juan")
         page.locator("#mb-to").fill("Lucía")
         page.locator("#mb-msg").fill("Well done! I loved your message.")
-        page.locator('.mb-opt:has(input[value="50"])').click()
+        BZ._pick(page, "50")
+        page.wait_for_timeout(400)
         page.evaluate("() => scrollTo(0, 0)")
-        snap(page, "F5-buzon-contestar-phone-light", full=True)
+        # el formulario entero: un móvil tan alto como la página (en una captura de página entera, la barra de abajo,
+        # que es fija, se quedaría en medio del formulario)
+        vp = page.viewport_size
+        page.set_viewport_size({"width": vp["width"], "height": max(vp["height"], page.evaluate("() => document.documentElement.scrollHeight"))})
+        page.wait_for_timeout(400)
+        snap(page, "F5-buzon-contestar-phone-light")
+        page.set_viewport_size(vp)
+        page.wait_for_timeout(200)
         # la carta con regalo y con candado
         C.goto(page, "#/carta/" + LET["id"])
         page.locator("#mb-open").click()

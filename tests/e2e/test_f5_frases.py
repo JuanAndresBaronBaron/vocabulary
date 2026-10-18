@@ -226,6 +226,51 @@ def test_json_templates_fill_with_real_words():
     assert not probs, "\n".join(probs)
 
 
+def test_words_fit_a_child_at_the_dinner_table():
+    """Las frases las dice un niño de 8 años (y la de la cena, en la mesa): en la familia no hay parejas, suegros,
+    cuñados, hijos ni nietos; de los oficios no sale «soldado», y solo los que se dicen igual para un niño y una niña
+    (en francés, «Je veux être dentiste» sí y «infirmier» no; en inglés, ni «waiter / waitress» ni «sportsman»).
+    «Profesor/a» no sale en inglés («lecturer») ni en danés («professor»): ya está «Maestro/a» (teacher, lærer). En
+    danés, «legetøj» (incontable) no va con «Det er / Jeg har / Jeg kan se / Må jeg få»."""
+    probs = []
+    fam = _DATA["pools"]["family"]["refs"]
+    adult = {"Hijo", "Hija", "Esposo/Marido", "Esposa/Mujer", "Nieto", "Nieta", "Suegro", "Suegra", "Cuñado", "Cuñada", "Novio", "Novia"}
+    if [r for r in fam if r.split("|", 1)[1] in adult]:
+        probs.append(f"familia de adultos: {[r for r in fam if r.split('|', 1)[1] in adult]}")
+    for keep in ("familia|Padre", "familia|Madre", "familia|Hermano", "familia|Abuela", "familia|Tío", "familia|Prima", "familia|Bebé", "w01|mamá"):
+        if keep not in fam:
+            probs.append(f"falta {keep} en la familia")
+    if "profesiones|Soldado" in _DATA["pools"]["jobs"]["refs"]:
+        probs.append("«Soldado» sigue en los oficios")
+    page = _page()
+    try:
+        _open(page)
+        res = page.evaluate("""async () => { const o = {};
+          for (const [L, id] of [['english', 'job'], ['français', 'job'], ['dansk', 'job'], ['dansk', 'det'], ['dansk', 'see'], ['dansk', 'got'], ['dansk', 'have'],
+                                 ['english', 'love'], ['français', 'voici'], ['dansk', 'mine']])
+            o[L + '/' + id] = (await vocabPhrases.cands(L, id)).map(f => f.text);
+          return o; }""")
+        fr = res["français/job"]
+        bad = [t for t in fr if re.search(r"infirmier|avocat|chanteur|serveur|professeur|boulanger|cuisinier|policier|pompier", t)]
+        if bad or not any("dentiste" in t for t in fr) or len(fr) < 5:
+            probs.append(f"francés/job: {fr}")
+        en = res["english/job"]
+        if [t for t in en if re.search(r"lecturer|waiter|sports(wo)?man|soldier", t)] or not any("teacher" in t for t in en):
+            probs.append(f"inglés/job: {en}")
+        if [t for t in res["dansk/job"] if "professor" in t] or not any("lærer" in t for t in res["dansk/job"]):
+            probs.append(f"danés/job: {res['dansk/job']}")
+        for tid in ("det", "see", "got", "have"):
+            if [t for t in res["dansk/" + tid] if "legetøj" in t]:
+                probs.append(f"danés/{tid} con «legetøj»")
+        for tag in ("english/love", "français/voici", "dansk/mine"):
+            if [t for t in res[tag] if re.search(r"girlfriend|boyfriend|wife|husband|-in-law|son\b|daughter|grand(son|daughter)|mari\b|femme|kone|svigermor|kæreste", t)]:
+                probs.append(f"{tag}: {res[tag]}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
 # ---------------------------------------------------------------- #/frases
 def test_known_words_tap_and_drag_place_the_word():
     """Con la partida sembrada, los 3-4 dibujos son palabras que ya sabe (srs:english con b ≥ 1), con su dibujo cargado.
@@ -307,10 +352,105 @@ def test_known_words_tap_and_drag_place_the_word():
     assert not probs, "\n".join(probs)
 
 
+def test_buttons_tray_placeholder_and_a11y():
+    """En #/frases, «Otra frase» va gris con el hueco vacío (lo que toca es poner una pieza) y pasa a principal (azul,
+    56 px) al ponerla. La pieza puesta deja en la bandeja su sitio (el dibujo atenuado, sin la palabra, con borde de
+    puntos; el botón sigue diciendo la palabra); tocar la palabra del
+    hueco la devuelve (hueco vacío, «Otra frase» gris otra vez). El hueco vacío se lee en español («espacio vacío»).
+    En #/frases/cena, «Ya la dije en casa» es el principal (56 px, Enter) y «Jugar con frases» va gris; ya sellada,
+    «Jugar con frases» pasa a principal. La Puerta dice qué frase tiene que haber dicho y su traducción. En oscuro, los
+    dibujos van sobre su placa clara y «Tus sellos» no es dorado. La fila de Hoy no mezcla idiomas en una etiqueta."""
+    probs = []
+    BLUE = "rgb(30, 110, 244)"
+    look = """() => { const n = document.getElementById('ph-next'), r = n.getBoundingClientRect();
+      return {pri: n.classList.contains('glass-btn--pri'), h: Math.round(r.height), bg: getComputedStyle(n).backgroundColor, t: n.textContent.trim(), key: n.dataset.key}; }"""
+    page = _page()
+    try:
+        _open(page)
+        n0 = page.evaluate(look)
+        if n0["pri"] or n0["bg"] == BLUE or n0["t"] != "Otra frase":
+            probs.append(f"«Otra frase» con el hueco vacío: {n0}")
+        gap = page.evaluate("() => { const g = document.getElementById('ph-gap'); return [g.getAttribute('lang'), g.getAttribute('aria-label'), g.getAttribute('role')]; }")
+        if gap != ["es", "espacio vacío", "img"]:
+            probs.append(f"el hueco: {gap}")
+        page.locator(".ph-tile").nth(0).click()
+        page.wait_for_timeout(200)
+        n1 = page.evaluate(look)
+        if not n1["pri"] or n1["h"] != 56 or n1["bg"] != BLUE:
+            probs.append(f"«Otra frase» con la frase hecha: {n1}")
+        tile = page.evaluate("""() => { const b = document.querySelector('.ph-tile[data-i="0"]'), cs = getComputedStyle(b);
+          return {pressed: b.getAttribute('aria-pressed'), op: +getComputedStyle(b.querySelector('img')).opacity, ol: cs.outlineStyle, bg: cs.backgroundColor,
+            word: getComputedStyle(b.querySelector('.ph-tw')).visibility, label: b.getAttribute('aria-label')}; }""")
+        if tile["pressed"] != "true" or tile["op"] > 0.4 or tile["ol"] != "dashed" or tile["word"] != "hidden" or not tile["label"]:
+            probs.append(f"la pieza puesta en la bandeja: {tile}")
+        _wait_quiet(page)
+        page.locator("#ph-pc").click()
+        page.wait_for_timeout(200)
+        st = page.evaluate(_ST)
+        back = page.evaluate("""() => ({empty: !!document.querySelector('#ph-gap.is-empty'), off: document.getElementById('ph-acts').hasAttribute('data-off'),
+          pressed: [...document.querySelectorAll('.ph-tile')].map(b => b.getAttribute('aria-pressed')), es: document.getElementById('ph-es').textContent})""")
+        if st["placed"] != -1 or not back["empty"] or not back["off"] or "true" in back["pressed"] or "___" not in back["es"] or page.evaluate(look)["pri"]:
+            probs.append(f"tocar la palabra del hueco no la devuelve: {st} {back}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    # la frase de la cena: el sello es lo principal
+    page = _page()
+    try:
+        _open(page, "#/frases/cena")
+        b = page.evaluate("""() => { const s = document.getElementById('ph-stamp'), r = s.getBoundingClientRect();
+          return {pri: s.classList.contains('glass-btn--pri'), h: Math.round(r.height), bg: getComputedStyle(s).backgroundColor, key: s.dataset.key}; }""")
+        n = page.evaluate(look)
+        if not b["pri"] or b["h"] != 56 or b["bg"] != BLUE or b["key"] != "enter":
+            probs.append(f"«Ya la dije en casa» no es el principal: {b}")
+        if n["pri"] or n["t"] != "Jugar con frases" or n["bg"] == BLUE or "enter" in n["key"].split():
+            probs.append(f"«Jugar con frases» antes del sello: {n}")
+        dn = page.evaluate(_ST)
+        page.locator("#ph-stamp").click()
+        page.wait_for_selector("dialog#gate[open]", timeout=4000)
+        why = page.evaluate("() => document.getElementById('gt-why').textContent")
+        want = f"¿Ha dicho «{dn['text']}» ({dn['es'].rstrip('.')}) en casa? Resuelve la cuenta para darle su sello."
+        if why != want:
+            probs.append(f"la Puerta dice «{why}» (quería «{want}»)")
+        q = page.evaluate("() => document.querySelector('#gate #gt-q b').textContent")
+        for ch in str(_sum_words(q)):
+            page.locator(f'#gt-ks .gt-k[data-k="{ch}"]').click()
+        page.locator('#gt-ks .gt-k[data-k="ok"]').click()
+        page.wait_for_selector("#ph-done", timeout=4000)
+        page.wait_for_timeout(200)
+        n = page.evaluate(look)
+        if not n["pri"] or n["h"] != 56 or n["t"] != "Jugar con frases" or "enter" not in n["key"].split():
+            probs.append(f"«Jugar con frases» ya sellada: {n}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    # oscuro: placa clara en los dibujos y «Tus sellos» sin dorado; Hoy sin etiqueta mezclada
+    page = _page(color_scheme="dark")
+    try:
+        _open(page)
+        d = page.evaluate("""() => { const i = document.querySelector('.ph-tile img'), s = document.getElementById('ph-sn');
+          return {ibg: getComputedStyle(i).backgroundColor, sbg: getComputedStyle(s).backgroundColor, sc: getComputedStyle(s).color,
+            fill2: getComputedStyle(document.documentElement).getPropertyValue('--fill2').trim()}; }""")
+        if d["ibg"] != "rgb(242, 242, 247)":
+            probs.append(f"oscuro: los dibujos no van sobre su placa ({d['ibg']})")
+        if "255, 214, 0" in d["sbg"] or "255, 204, 0" in d["sbg"]:
+            probs.append(f"oscuro: «Tus sellos» sigue dorado ({d})")
+        C.goto(page, "")
+        page.wait_for_selector("#ph-hrow", timeout=6000)
+        if page.evaluate("() => document.querySelector('#ph-hrow .ph-hgo').hasAttribute('aria-label')"):
+            probs.append("la fila de Hoy lleva una etiqueta que mezcla idiomas")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
 def test_audio_word_clip_then_voice_in_order():
-    """Al poner la palabra: la voz dice lo de antes (con el artículo), después suena el audio grabado de la palabra y
-    luego la voz dice lo de detrás; nada empieza antes de que acabe lo anterior. Sin audio grabado (o con l'), la voz
-    dice la frase entera. Con la tortuga, la voz va a SLOW() y el audio a 0,7. «Oír» lo repite."""
+    """Al poner la palabra: la voz dice lo de antes, después suena el audio grabado de la palabra y luego la voz dice lo
+    de detrás (si tiene letras); nada empieza antes de que acabe lo anterior. Sin audio grabado, con l' o en inglés
+    detrás de a/an/the («I can see a», «Look at the»), la voz dice la frase entera, para que la «a» suene /ə/ y no como
+    la letra. Con la tortuga, la voz va a SLOW() y el audio a 0,7. El altavoz (redondo, 48 px, «Oír la frase») lo repite
+    y se rellena mientras suena; la tortuga es un círculo gris de 44."""
     probs = []
     page = _page()
     try:
@@ -334,15 +474,26 @@ def test_audio_word_clip_then_voice_in_order():
                 else:
                     on = None
             return ""
-        # «Can I have a bottle, please?»: voz + audio + voz
-        f = page.evaluate("async () => { for (const r of ['w03|botella', 'w04|cepillo', 'w03|taza']) { const f = await vocabPhrases.fill('english', 'have', r); if (f && clipFor(f.core)) return f; } return null; }")
+        # inglés con a/an/the delante del hueco: la frase entera con la voz, aunque la palabra tenga audio grabado
+        for tid, refs in (("have", "['w03|botella', 'w04|cepillo', 'w03|taza']"), ("see", "['animales|Perro', 'animales|Gato', 'w03|manzana']"),
+                          ("look", "['animales|Perro', 'animales|Gato', 'w04|cama']")):
+            h = page.evaluate(f"async () => {{ for (const r of {refs}) {{ const f = await vocabPhrases.fill('english', '{tid}', r); if (f && clipFor(f.core)) return f; }} return null; }}")
+            if not h:
+                probs.append(f"no hay ninguna frase «{tid}» con audio grabado")
+                continue
+            log = chain(h)
+            seq = [(x["k"], x.get("t")) for x in log if x["k"] in ("speak", "play")]
+            if h["clip"] or seq != [("speak", h["text"])]:
+                probs.append(f"«{h['text']}»: {seq} (la voz tiene que decirla entera)")
+        # «My favourite colour is red.»: voz + audio (y la voz otra vez si detrás hay letras)
+        f = page.evaluate("async () => (await vocabPhrases.cands('english', 'colour')).find(f => f.clip && clipFor(f.core)) || null")
         if not f:
-            probs.append("no hay ninguna frase «have» con audio grabado")
+            probs.append("no hay ninguna frase «colour» con audio grabado")
         else:
             clip = page.evaluate("c => clipFor(c)", f["core"])
             log = chain(f)
             seq = [(x["k"], x.get("t") or x.get("src", "").split("/")[-1]) for x in log if x["k"] in ("speak", "play")]
-            want = [("speak", f["pre"] + f["art"]), ("play", f"{clip}.mp3"), ("speak", f["post"].strip())]
+            want = [("speak", f["pre"] + f["art"]), ("play", f"{clip}.mp3")] + ([("speak", f["post"])] if re.search(r"[A-Za-z]", f["post"]) else [])
             want = [(k, v.strip()) for k, v in want]
             if [(k, v.strip()) for k, v in seq] != want:
                 probs.append(f"orden: {seq} (quería {want})")
@@ -379,10 +530,22 @@ def test_audio_word_clip_then_voice_in_order():
             probs.append(f"al tocar: {starts} {overlaps(log)} ({cur['text']})")
         if "play" in starts and starts.index("play") == 0:
             probs.append(f"al tocar, el audio va antes que la voz: {starts}")
-        # «Oír» lo repite
+        # el altavoz lo repite (y se rellena mientras suena)
+        spk = page.evaluate("""() => { const b = document.getElementById('ph-say'), t = document.getElementById('ph-slow'), r = b.getBoundingClientRect(), q = t.getBoundingClientRect();
+          return {w: r.width, h: r.height, tw: q.width, th: q.height, rad: getComputedStyle(b).borderRadius, trad: getComputedStyle(t).borderRadius,
+            bg: getComputedStyle(b).backgroundColor, tbg: getComputedStyle(t).backgroundColor, label: b.getAttribute('aria-label'), text: b.textContent.trim()}; }""")
+        if round(spk["w"]) != 48 or round(spk["h"]) != 48 or round(spk["tw"]) != 44 or round(spk["th"]) != 44 or spk["rad"] != "50%" or spk["trad"] != "50%":
+            probs.append(f"el altavoz no es el de la lección (48 y 44, redondos): {spk}")
+        if spk["label"] != "Oír la frase" or spk["text"]:
+            probs.append(f"el altavoz: {spk['label']!r} {spk['text']!r}")
         page.evaluate("() => { window.__log = []; }")
         page.locator("#ph-say").click()
+        page.wait_for_timeout(60)
+        if not page.locator("#ph-say.playing").count():
+            probs.append("el altavoz no se rellena mientras suena")
         _wait_quiet(page, 5000)
+        if page.locator("#ph-say.playing").count():
+            probs.append("el altavoz sigue relleno al acabar")
         page.wait_for_timeout(150)
         if [x["k"] for x in page.evaluate("() => window.__log") if x["k"] in ("speak", "play")] != starts:
             probs.append("«Oír» no repite la misma cadena")

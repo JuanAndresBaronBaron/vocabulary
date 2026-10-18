@@ -15,18 +15,21 @@
      medias se miran al pintar Hoy (accState() de index.html), así que lo terminado ya no sale.
    - Cuántos: hasta 3 en el móvil y 4 en tableta (ancho ≥ 744 px). Cada atajo conserva su sitio (vocab:sc.row): uno
      nuevo solo entra si supera en un 20 % al que saldría. El primer día (store "act" sin días de antes) no hay fila.
-   - Fila en Hoy (paint(), la llama home() de index.html): entre las dos piezas y los HOME_SLOTS; piezas sólidas con su
-     dibujo encima y un nombre corto debajo (el tema; el nombre entero va en aria-label), cada una un enlace de 56 px
-     o más con data-key 1-4 (js/keys.js). Mantener pulsada una pieza (G.hold) o el botón «Editar» (la última pieza de
-     la fila, sin fondo) abre una hoja con «Fijar» (o «Quitar de fijados») y «No sugerir» (30 días; M.toast con
-     «Deshacer» 5 s). Hoy sigue sin scroll: con la fila, en el móvil (< 744 px) homeSlots() deja 1 HOME_SLOT
+   - Fila en Hoy (paint(), la llama home() de index.html): entre las dos piezas y los HOME_SLOTS; piezas sólidas con una
+     sola regla: el dibujo grande es qué se hace (el dibujo del juego; el icono del modo con tinte; la gramática o la
+     lección, su dibujo sobre una ficha gris) y la insignia, de qué tema; debajo, dos líneas: «Globos» / «Animales» (el
+     nombre corto del tema; el entero va en aria-label). Cada una, un enlace de 56 px o más con data-key 1-4
+     (js/keys.js). Mantener pulsada una pieza (G.hold: se hunde y crece al cumplirse) o «Editar» (al final de la
+     cabecera de la sección) abre una hoja con «Fijar» ↔ «Fijado» (conmutador) y «No sugerir» (30 días; M.toast «Ya no
+     sale en Hoy» con «Deshacer» 9 s). Hoy sigue sin scroll: con la fila, en el móvil (< 744 px) homeSlots() deja 1 HOME_SLOT
      (wantsRow()) y, si aun así no cabe, fit() quita los HOME_SLOTS que sobren, del último al primero (la fila manda);
-     en un móvil muy bajo esconde el título y, como último recurso, la fila. html[data-sc] = cuántas piezas enseña.
+     en un móvil muy bajo compacta la fila y, como último recurso, la quita. html[data-sc] = cuántas piezas enseña.
    - «¿Lo pongo siempre despacio?»: si de las últimas 20 escuchas tocadas (altavoces y tortugas) el 60 % o más fueron
      con la tortuga, el zorro lo pregunta una vez en Hoy. «Sí, despacio» pone la velocidad «Lenta» del ajuste de siempre
      (store "rate", Ajustes › Voz y velocidad). Nunca cambia nada sin preguntar.
    - Para mayores (Ajustes): interruptor «Atajos automáticos» (apagado: ni fila ni registro ni pregunta) y «Olvidar lo
-     aprendido» (borra vocab:sc; los fijados y ocultos se quedan). adultHtml() lo pinta js/settings.js.
+     aprendido» (borra solo vocab:sc; las palabras, el progreso, los fijados y los ocultos se quedan). adultHtml() lo
+     pinta js/settings.js.
    Guardado:
      localStorage "vocab:sc" (solo este aparato: DEVICE_ONLY en js/save.js; no se exporta ni se sube) =
        {v: 1, k: {clave: {s: puntos, t: día}} (60 claves como mucho; se quitan las de menos puntos), row: {en|fr|da:
@@ -42,7 +45,7 @@
 "use strict";
 const D = document, W = window, ROOT = D.documentElement;
 const SC = "vocab:sc", PREFS = "sc:prefs";
-const MIN = 2, HALF_LIFE = 7, BEAT = 1.2, MAX_KEYS = 60, HIDE_DAYS = 30, MAX_PIN = 3, OPEN_DAYS = 3, UNDO_MS = 5000;
+const MIN = 2, HALF_LIFE = 7, BEAT = 1.2, MAX_KEYS = 60, HIDE_DAYS = 30, MAX_PIN = 3, OPEN_DAYS = 3, UNDO_MS = 9000;
 const SLOW_N = 20, SLOW_P = .6, SLOW_RATE = .7, CARDS_MIN = 8;
 const TABLET = matchMedia("(min-width:744px)");
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
@@ -96,8 +99,12 @@ function log(key, n = 1){
   if(!key || prefs().off) return 0;
   const o = scGet(), d = day(), p = r3(pts(o.k[key], d) + n);
   o.k[key] = {s: p, t: d};
+  /* 60 claves como mucho: se van las de menos puntos de las demás (la que acaba de sumar se queda siempre) */
   const ks = Object.keys(o.k);
-  if(ks.length > MAX_KEYS){ ks.sort((a, b) => pts(o.k[a], d) - pts(o.k[b], d)); ks.slice(0, ks.length - MAX_KEYS).forEach(k => { if(k !== key) delete o.k[k]; }); }
+  if(ks.length > MAX_KEYS){
+    const others = ks.filter(k => k !== key).sort((a, b) => pts(o.k[a], d) - pts(o.k[b], d));
+    others.slice(0, ks.length - MAX_KEYS).forEach(k => { delete o.k[k]; });
+  }
   scSet(o);
   return p;
 }
@@ -110,7 +117,25 @@ function firstDay(){
 }
 
 /* ---------- de una clave a su atajo ---------- */
+/* cada pieza dice dos cosas: qué se hace (el dibujo grande y la 1.ª línea: «Globos», «Tarjetas», «Gramática», «Seguir»)
+   y de qué (la insignia y la 2.ª línea, con un nombre corto: «Animales», «Cuerpo», «To be») */
 const GSHORT = {lluvia: "Lluvia", letras: "Letras", lince: "Lince"};
+const IMG_GRAM = "img/om_1F4D6.png", IMG_LES = "img/om_1F393.png";
+const cap1 = t => t ? t[0].toUpperCase() + t.slice(1) : t;
+/* «El cuerpo y la salud» → «Cuerpo»; «Ideas y conceptos (2)» → «Ideas 2»; «Números (0–110)» → «Números» */
+function short(t){
+  let x = String(t || "").trim(), n = "";
+  const m = /\s*\(([^)]*)\)$/.exec(x);
+  if(m){ if(/^\d+$/.test(m[1])) n = " " + m[1]; x = x.slice(0, m.index); }
+  x = x.split(/:|,| y | e /)[0].trim().replace(/^(el|la|los|las|le|les|l')\s*/i, "");
+  return cap1(x) + n;
+}
+/* «El verbo to be» → «To be»; «Presente simple: afirmativa» → «Presente simple»; «Can y can't» → «Can y can't» */
+function shortGram(t){
+  let x = String(t || "").trim().replace(/^(el|la|los|las) (verbo |verbos )?/i, "");
+  x = x.split(/:| \(/)[0].trim();
+  return cap1(x);
+}
 const MODE_T = {tarjetas: "Tarjetas", test: "Preguntas", practica: "Escribir"};
 const MODE_IC = {tarjetas: "cards", test: "question", practica: "pencil-simple"};
 function parse(key){
@@ -129,19 +154,22 @@ function resolve(key){
     if(g.topic){ tp = k.b && typeof VG.topic === "function" ? VG.topic(k.b) : null; if(!tp) return null; }
     else if(k.b) return null;
     return {key, type: "juego", href: `#/juegos/${encodeURIComponent(g.id)}${tp ? "?t=" + encodeURIComponent(tp.id) : ""}`, t: g.t,
-      name: tp ? tp.name : GSHORT[g.id] || g.t, sub: tp ? tp.name : "Juego", label: tp ? `${g.t} · ${tp.name}` : g.t, img: g.img, badge: tp ? {img: tp.img} : null, game: true};
+      name: tp ? tp.name : GSHORT[g.id] || g.t, act: GSHORT[g.id] || g.t, top: tp ? short(tp.name) : "Juego",
+      sub: tp ? tp.name : "Juego", label: tp ? `${g.t} · ${tp.name}` : g.t, img: g.img, badge: tp ? {img: tp.img} : null, game: true};
   }
   if(k.type === "tema"){
     const meta = docMeta(k.a), mt = MODE_T[k.b];
     if(!meta || !mt || !(meta.langs || []).includes(lang)) return null;
     let pic = "img/om_1F4D6.png"; try{ if(W.vocabLearn && typeof vocabLearn.topicPic === "function") pic = vocabLearn.topicPic(meta); }catch(e){}
-    return {key, type: "tema", href: `#/doc/${encodeURIComponent(meta.id)}?m=${k.b}`, t: meta.title, name: meta.title, sub: mt, label: `${meta.title} · ${mt}`, img: pic, badge: {ic: MODE_IC[k.b]}};
+    return {key, type: "tema", href: `#/doc/${encodeURIComponent(meta.id)}?m=${k.b}`, t: meta.title, name: meta.title, act: mt, top: short(meta.title),
+      sub: mt, label: `${meta.title} · ${mt}`, ic: MODE_IC[k.b], tone: "soft", badge: {img: pic}};
   }
   if(k.type === "gram"){
     const m = /^G-([A-C][12])-(\d{2})$/.exec(k.a);
     let x = null; try{ x = m && typeof GRAM !== "undefined" ? ((GRAM[lang] || {})[m[1]] || [])[+m[2] - 1] : null; }catch(e){ x = null; }
     if(!x || !x.t) return null;
-    return {key, type: "gram", href: `#/leccion/${k.a}`, t: "Gramática", name: x.t, sub: x.t, label: `Gramática · ${x.t}`, ic: "book-open-text"};
+    return {key, type: "gram", href: `#/leccion/${k.a}`, t: "Gramática", name: x.t, act: "Gramática", top: shortGram(x.t), sub: x.t, label: `Gramática · ${x.t}`,
+      img: IMG_GRAM, plate: true};
   }
   return null;
 }
@@ -160,8 +188,8 @@ async function halfItem(o, d){
   let st = null;
   try{ st = typeof accState === "function" ? await accState() : null; }catch(e){ st = null; }
   if(st && (st.kind === "repaso" || st.kind === "leccion") && !sameOffer(st, await cardOffer()))
-    return {half: true, kind: st.kind, id: st.id || "", href: st.href, t: st.label, name: st.label, sub: "Seguir", p: +st.p || 0, label: st.aria,
-      ic: st.kind === "repaso" ? "arrow-counter-clockwise" : "graduation-cap", ics: st.kind === "repaso" ? "bold" : "fill"};
+    return {half: true, kind: st.kind, id: st.id || "", href: st.href, t: st.label, name: st.label, act: "Seguir", top: st.label, sub: "Seguir", p: +st.p || 0, label: st.aria,
+      img: st.kind === "repaso" ? "" : st.label === "Gramática" ? IMG_GRAM : IMG_LES, plate: true, ic: "arrow-counter-clockwise"};
   /* una práctica de Escribir a medias (pr:<tema>:<idioma>, js/learn.js), tocada en los últimos 3 días */
   let best = null;
   for(const [k, dd] of Object.entries(o.o)){
@@ -173,7 +201,7 @@ async function halfItem(o, d){
     const p = s.words.reduce((a, w) => a + Math.min(+(w && w.n) || 0, s.reps), 0) / (s.words.length * s.reps);
     if(!best || dd > best.dd) best = {dd, it, p};
   }
-  if(best) return Object.assign({}, best.it, {half: true, kind: "practica", id: best.it.key, sub: "Escribir", p: best.p, label: `Seguir: ${best.it.label}`});
+  if(best) return Object.assign({}, best.it, {half: true, kind: "practica", id: best.it.key, act: "Seguir", sub: "Escribir", p: best.p, label: `Seguir: ${best.it.label}`});
   return null;
 }
 
@@ -231,14 +259,17 @@ function ring(p){
   return `<svg class="sc-rs" viewBox="0 0 44 44" aria-hidden="true"><circle class="sc-rb" cx="22" cy="22" r="20"/><circle class="sc-rf" cx="22" cy="22" r="20" pathLength="100" stroke-dasharray="${v.toFixed(1)} 100"/></svg>`;
 }
 function picHtml(it, z = 36){
-  const pic = it.img ? `<img src="${h(it.img)}" alt="" width="${z}" height="${z}" draggable="false">` : `<span class="sc-tile">${IC(it.ic || "sparkle", it.ics || "fill", Math.round(z * .56))}</span>`;
+  /* el dibujo del juego tal cual; la gramática y la lección, su dibujo sobre una ficha gris; un modo, su icono con tinte */
+  const pic = it.img && it.plate ? `<span class="sc-tile sc-ti"><img src="${h(it.img)}" alt="" width="${Math.round(z * .72)}" height="${Math.round(z * .72)}" draggable="false"></span>`
+    : it.img ? `<img src="${h(it.img)}" alt="" width="${z}" height="${z}" draggable="false">`
+    : `<span class="sc-tile${it.tone === "soft" ? " soft" : ""}">${IC(it.ic || "sparkle", it.ics || "bold", Math.round(z * .56))}</span>`;
   const b = it.badge ? `<span class="sc-bdg">${it.badge.img ? `<img src="${h(it.badge.img)}" alt="" width="16" height="16" draggable="false">` : IC(it.badge.ic, "bold", 12)}</span>` : "";
   return `<span class="sc-pic${it.half ? " sc-ringed" : ""}" aria-hidden="true">${it.half ? ring(it.p) : ""}${pic}${b}</span>`;
 }
 function pieceHtml(it, i){
   const lab = it.half ? `${it.label}. Vas por el ${Math.round((+it.p || 0) * 100)} %` : it.label + (it.pinned ? ", fijado" : "");
-  return `<li class="sc-li"><a class="card sc-p${it.half ? " sc-half" : ""}" href="${h(it.href)}" ${it.half ? "data-half" : `data-sc="${h(it.key)}"`} data-key="${i + 1}" aria-label="${h(lab)}"${it.game ? " data-game" : ""}>
-    ${picHtml(it, 32)}<span class="sc-n">${h(it.name || it.t)}</span>${it.pinned ? `<span class="sc-pin" aria-hidden="true">${IC("push-pin", "fill", 12)}</span>` : ""}</a></li>`;
+  return `<li class="sc-li"><a class="card sc-p${it.half ? " sc-half" : ""}" href="${h(it.href)}" ${it.half ? "data-half" : `data-sc="${h(it.key)}"`} data-key="${i + 1}" data-key-pos="in" aria-label="${h(lab)}"${it.game ? " data-game" : ""}>
+    ${picHtml(it, 32)}<span class="sc-n" aria-hidden="true"><span class="sc-a">${h(it.act || it.t)}</span><span class="sc-tp">${h(it.top || it.name || "")}</span></span>${it.pinned ? `<span class="sc-pin" aria-hidden="true">${IC("push-pin", "fill", 12)}</span>` : ""}</a></li>`;
 }
 /* home() de index.html la llama con Hoy ya pintado (entre las piezas y los HOME_SLOTS) */
 function paint(){
@@ -277,17 +308,19 @@ function render(res, slots){
      columnas anchas y el nombre entero, no 4 con un hueco al final */
   const sec = D.createElement("section");
   sec.id = "hm-sc"; sec.className = "sc-row"; sec.setAttribute("aria-labelledby", "sc-h");
-  sec.innerHTML = `<h2 class="sc-h" id="sc-h">Tus atajos</h2>
-    <div class="sc-body"><ul class="sc-ps" role="list" style="--sc-n:${Math.max(list.length, Math.min(3, res.n))}">${list.map(pieceHtml).join("")}</ul>${SHOWN.length
-      ? `<button type="button" class="sc-ed" id="sc-ed" aria-haspopup="dialog" aria-label="Editar atajos"><span class="sc-edi" aria-hidden="true">${IC("pencil-simple", "bold", 18)}</span><span class="sc-edt">Editar</span></button>` : ""}</div>`;
+  /* «Editar», al final de la cabecera de la sección (como en iOS): las piezas se reparten todo el ancho */
+  sec.innerHTML = `<div class="sc-hd"><h2 class="sc-h" id="sc-h">Tus atajos</h2>${SHOWN.length
+      ? `<button type="button" class="sc-ed" id="sc-ed" aria-haspopup="dialog" aria-label="Editar atajos">Editar</button>` : ""}</div>
+    <ul class="sc-ps" role="list" style="--sc-n:${Math.max(list.length, Math.min(3, res.n))}">${list.map(pieceHtml).join("")}</ul>`;
   slots.before(sec);
   ROOT.dataset.sc = String(list.length);
   wire(sec);
   fit(true);   /* la medida buena llega con "acc", tras "route" (con la cabecera de Hoy y el accesorio ya puestos), y al cargar la letra */
   try{ if(D.fonts && D.fonts.status !== "loaded") D.fonts.ready.then(() => { if(sec.isConnected) fit(); }); }catch(e){}
 }
-/* Hoy sin scroll. Si con la fila no cabe: 1) se van los HOME_SLOTS, del último al primero; 2) el título «Tus atajos» se
-   queda solo para el lector de pantalla; 3) si aun así no cabe (un móvil muy bajo con mucho en Hoy), la fila se va.
+/* Hoy sin scroll. Si con la fila no cabe: 1) se van los HOME_SLOTS, del último al primero; 2) la fila se compacta (piezas
+   de 44 px con el dibujo al lado; «Editar» sigue en la cabecera); 3) si aun así no cabe (un móvil muy bajo con mucho en
+   Hoy), la fila se va.
    Se puede volver a llamar (con "route", al cargar la letra o al girar): antes de medir, vuelve a poner lo que quitó.
    soft: sin el paso 3 (al pintar, antes de que route() ponga la cabecera de Hoy).
    El paso 1 vale también sin la fila (atajos apagados o aún sin atajos): con el accesorio «Seguir» en Hoy y dos
@@ -328,7 +361,14 @@ function wire(sec){
     /* un juego habla: la primera voz tiene que nacer de un toque (iOS), como en el menú de juegos */
     if(a.hasAttribute("data-game")) a.addEventListener("click", () => { try{ if("speechSynthesis" in W) speechSynthesis.speak(new SpeechSynthesisUtterance(" ")); }catch(e){} });
     const k = a.dataset.sc;
-    if(k && W.G && typeof G.hold === "function") GEST.push(G.hold(a, {onHold: () => { haptic("selection"); openItem(k, a); }}));
+    /* al mantener: la pieza se hunde un poco (CSS :active) y, al cumplirse, crece un instante antes de abrir su hoja */
+    if(k && W.G && typeof G.hold === "function") GEST.push(G.hold(a, {onHold: () => {
+      haptic("selection");
+      const rmo = !!(W.M && typeof M.rm === "function" && M.rm());
+      if(rmo){ openItem(k, a); return; }
+      a.classList.add("is-held");
+      setTimeout(() => { a.classList.remove("is-held"); openItem(k, a); }, 140);
+    }}));
   });
   const first = sec.querySelector(".sc-p[data-sc]");
   if(first) setTimeout(() => {
@@ -358,7 +398,8 @@ function pin(key, on){
   }
   prefsSet(P);
   haptic("selection");
-  toast(on ? (dropped ? `Fijado. «${nameOf(dropped)}» ya no está fijado` : "Fijado: no se moverá") : "Ya no está fijado", {icon: IC("push-pin", on ? "fill" : "bold", 22)});
+  /* el botón ya enseña «Fijado»; el aviso, solo si otro deja de estarlo */
+  if(dropped) toast(`Fijado. «${nameOf(dropped)}» ya no está fijado`, {icon: IC("push-pin", "fill", 22)});
   return refreshRow();
 }
 function hide(key){
@@ -376,9 +417,16 @@ function hide(key){
     const o2 = scGet(); o2.row[L] = before.row; scSet(o2);
     refreshRow();
   };
-  toast(`No sugiero «${t}»`, {icon: IC("eye-slash", "bold", 22), ms: UNDO_MS, action: {t: "Deshacer", fn: undo}});
+  toast("Ya no sale en Hoy", {icon: IC("eye-slash", "bold", 22), ms: UNDO_MS, action: {t: "Deshacer", fn: undo}});
+  live(`«${t}» ya no sale en Hoy durante 30 días`);
   refreshRow();
   return undo;
+}
+/* lo que el lector de pantalla tiene que oír además del aviso */
+function live(t){
+  let el = D.getElementById("sc-live");
+  if(!el){ el = D.createElement("p"); el.id = "sc-live"; el.className = "sc-sr"; el.setAttribute("role", "status"); el.setAttribute("aria-live", "polite"); D.body.appendChild(el); }
+  el.textContent = ""; setTimeout(() => { el.textContent = t; }, 60);
 }
 function unhide(key){
   const P = prefs(); delete P.hidden[key]; prefsSet(P);
@@ -403,23 +451,33 @@ function sheetEl(){
   D.body.appendChild(SH);
   return SH;
 }
-function rowHtml(it, P){
+/* «Fijar» es un conmutador (como en iOS): «Fijar» ↔ «Fijado» (con tinte); «No sugerir» lleva debajo lo que hace */
+/* one: la hoja de una sola pieza (al mantenerla): solo los botones, bajo su nombre en el título; así es baja y no tapa la fila */
+function rowHtml(it, P, one){
   const pinned = P.pinned.includes(it.key);
-  return `<div class="sc-er" data-k="${h(it.key)}">${picHtml(it)}<span class="sc-tx"><span class="sc-t">${h(it.t)}</span><span class="sc-s">${h(it.sub)}</span></span>
-    <div class="sc-eb"><button type="button" class="glass-btn glass-btn--sm" data-pin="${pinned ? 0 : 1}">${IC("push-pin", pinned ? "fill" : "bold", 18)}${pinned ? "Quitar de fijados" : "Fijar"}</button>
-      <button type="button" class="glass-btn glass-btn--sm" data-hide aria-label="No sugerir «${h(it.label)}»">${IC("eye-slash", "bold", 18)}No sugerir</button></div></div>`;
+  return `<div class="sc-er${one ? " sc-er1" : ""}" data-k="${h(it.key)}">${one ? "" : `${picHtml(it)}<span class="sc-tx"><span class="sc-t">${h(it.act || it.t)}</span><span class="sc-s">${h(it.name && it.name !== it.act ? it.name : it.sub)}</span></span>`}
+    <div class="sc-eb"><button type="button" class="glass-btn glass-btn--sm sc-pinb" data-pin aria-pressed="${pinned}" aria-label="Fijar «${h(it.label)}»">${IC("push-pin", pinned ? "fill" : "bold", 18)}<span>${pinned ? "Fijado" : "Fijar"}</span></button>
+      <span class="sc-hb"><button type="button" class="glass-btn glass-btn--sm" data-hide aria-label="No sugerir «${h(it.label)}»" aria-describedby="sc-hn-${h(it.key).replace(/[^\w-]/g, "_")}">${IC("eye-slash", "bold", 18)}No sugerir</button>
+        <small class="sc-hn" id="sc-hn-${h(it.key).replace(/[^\w-]/g, "_")}">Sale de Hoy 30 días</small></span></div></div>`;
 }
 function paintSheet(){
   const d = sheetEl(), P = prefs(), now = day(), L = ab();
+  const ae = D.activeElement, ar = ae && d.contains(ae) && ae.closest ? ae.closest(".sc-er[data-k]") : null;
+  const fk = ar ? {k: ar.dataset.k, sel: ae.hasAttribute("data-pin") ? "[data-pin]" : ae.hasAttribute("data-unhide") ? "[data-unhide]" : "[data-hide]"} : null;
   const items = (ONE ? [ONE] : SHOWN).map(resolve).filter(Boolean);
   const hid = ONE ? [] : Object.keys(P.hidden).filter(k => P.hidden[k] > now && k.startsWith(L + "/")).map(resolve).filter(Boolean);
   const title = ONE && items[0] ? items[0].label : "Tus atajos";
   d.querySelector(".sc-sh-in").innerHTML = `<div class="m-head"><h2 id="sc-sh-t">${h(title)}</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
     ${ONE ? "" : `<p class="sc-sh-sub">Salen solos con lo que más usas. Fija los que quieras tener siempre.</p>`}
-    ${items.length ? `<div class="sc-g">${items.map(it => rowHtml(it, P)).join("")}</div>` : `<p class="sc-sh-sub">Ahora no hay atajos.</p>`}
-    ${hid.length ? `<h3 class="st-h sc-hh">No sugeridos</h3><div class="sc-g">${hid.map(it => `<div class="sc-er" data-k="${h(it.key)}">${picHtml(it)}<span class="sc-tx"><span class="sc-t">${h(it.t)}</span><span class="sc-s">${h(it.sub)}</span></span>
-      <div class="sc-eb"><button type="button" class="glass-btn glass-btn--sm" data-unhide>${IC("eye", "bold", 18)}Volver a sugerir</button></div></div>`).join("")}</div>` : ""}
-    <p class="sc-sh-foot">«No sugerir» lo quita durante 30 días.</p>`;
+    ${items.length ? `<div class="sc-g">${items.map(it => rowHtml(it, P, !!ONE)).join("")}</div>` : `<p class="sc-sh-sub">Ahora no hay atajos.</p>`}
+    ${hid.length ? `<h3 class="st-h sc-hh">No sugeridos</h3><div class="sc-g">${hid.map(it => `<div class="sc-er" data-k="${h(it.key)}">${picHtml(it)}<span class="sc-tx"><span class="sc-t">${h(it.act || it.t)}</span><span class="sc-s">${h(it.name && it.name !== it.act ? it.name : it.sub)}</span></span>
+      <div class="sc-eb"><button type="button" class="glass-btn glass-btn--sm" data-unhide aria-label="Volver a sugerir «${h(it.label)}»">${IC("eye", "bold", 18)}Volver a sugerir</button></div></div>`).join("")}</div>` : ""}`;
+  /* el foco vuelve al mismo botón de la misma fila (o a «Listo»): con teclado o lector de pantalla no se pierde el sitio */
+  if(fk){
+    const row = [...d.querySelectorAll(".sc-er[data-k]")].find(r => r.dataset.k === fk.k);
+    const t = (row && row.querySelector(fk.sel)) || (row && row.querySelector("button")) || d.querySelector("[data-close]");
+    if(t) try{ t.focus({preventScroll: true}); }catch(e){}
+  }
 }
 function openSheet(from){
   const d = sheetEl();
@@ -438,10 +496,19 @@ function onSheet(e){
   const t = e.target.closest ? e.target.closest("button") : null; if(!t) return;
   if(t.hasAttribute("data-close")){ closeSheet(); return; }
   const k = (t.closest("[data-k]") || {}).dataset ? t.closest("[data-k]").dataset.k : ""; if(!k) return;
-  if(t.hasAttribute("data-pin")){ pin(k, t.dataset.pin === "1").then(() => { if(SH && SH.open) paintSheet(); }); }
+  if(t.hasAttribute("data-pin")){
+    const on = t.getAttribute("aria-pressed") !== "true";
+    t.setAttribute("aria-pressed", String(on));   /* se ve al momento; luego se repinta igual */
+    pin(k, on).then(() => { if(SH && SH.open) paintSheet(); });
+  }
   else if(t.hasAttribute("data-hide")){
-    /* con la hoja abierta el aviso no se podría tocar (la hoja es modal): primero se cierra, luego «Deshacer» */
-    closeSheet().then(() => hide(k));
+    /* con la hoja abierta el aviso no se podría tocar (la hoja es modal): primero se cierra, luego «Deshacer». Con
+       teclado (un clic sin puntero), el foco va al «Deshacer» del aviso; si no, a «Editar» */
+    const kb = e.detail === 0;
+    closeSheet().then(() => { hide(k); if(kb) setTimeout(() => {
+      const u = D.querySelector("#m-toasts .m-ta") || D.getElementById("sc-ed");
+      if(u) try{ u.focus({preventScroll: true}); }catch(err){}
+    }, 120); });
   }
   else if(t.hasAttribute("data-unhide")){ unhide(k).then(() => { if(SH && SH.open) paintSheet(); }); toast("Vuelve a salir en Hoy", {icon: IC("eye", "bold", 22)}); }
 }
@@ -476,11 +543,13 @@ on("acc", () => { if(onHoy()) fit(); });
 on("lang", () => { PENDING = null; });
 
 /* ---------- «¿Lo pongo siempre despacio?» ---------- */
-/* cada escucha tocada: un altavoz (aria-label «Escuchar…» o [data-say]) o una tortuga («Escuchar despacio» o [data-slow]) */
+/* cada escucha tocada: un altavoz (aria-label «Escuchar…» u «Oír…», [data-say], el «Oír» de Frases) o una tortuga
+   («… despacio», [data-slow]). Oír sus propias grabaciones del Buzón no cuenta */
+const LISTEN = '[data-say], button[aria-label^="Escuchar"], button[aria-label^="Oír"], #ph-say, #ph-slow';
 D.addEventListener("click", e => {
-  const b = e.target && e.target.closest ? e.target.closest('[data-say], button[aria-label^="Escuchar"]') : null;
-  if(!b || b.disabled || b.getAttribute("aria-disabled") === "true" || prefs().off) return;
-  const slow = b.hasAttribute("data-slow") || /despacio/i.test(b.getAttribute("aria-label") || "");
+  const b = e.target && e.target.closest ? e.target.closest(LISTEN) : null;
+  if(!b || b.closest(".mb-rp, #mb-play") || b.disabled || b.getAttribute("aria-disabled") === "true" || prefs().off) return;
+  const slow = b.hasAttribute("data-slow") || b.id === "ph-slow" || /despacio/i.test(b.getAttribute("aria-label") || "");
   const o = scGet(); o.sl = (o.sl + (slow ? "1" : "0")).slice(-SLOW_N); scSet(o);
 }, true);
 function slowWanted(){
@@ -517,7 +586,7 @@ function askSlow(force){
       <h2 id="sc-slow-t">¿Lo pongo siempre despacio?</h2>
       <p class="sc-slow-p">Usas mucho la tortuga. Puedo hacer que todo suene más despacio.</p>
       <div class="sc-slow-b"><button type="button" class="glass-btn glass-btn--lg" data-no>No, así está bien</button>
-        <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" data-yes autofocus>${IC("turtle", "fill", 22)}Sí, despacio</button></div>
+        <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" data-yes>${IC("turtle", "fill", 22)}Sí, despacio</button></div>
       <p class="sc-slow-n">Se puede cambiar en Ajustes › Voz y velocidad.</p></div>`;
   /* ya preguntado desde que sale (aunque se cierre la app sin contestar) */
   const P = prefs(); P.slowAsked = true; prefsSet(P);
@@ -526,6 +595,7 @@ function askSlow(force){
 }
 
 /* ---------- Ajustes › Para mayores ---------- */
+const FORGET_SUB = "Borra solo lo que usan los atajos. Las palabras y el progreso no se tocan; los fijados se quedan.";
 function adultHtml(){
   const P = prefs();
   return `<section class="st-sec" aria-labelledby="aj-sc-h"><h3 class="st-h" id="aj-sc-h">Atajos</h3><div class="st-g ics">
@@ -533,7 +603,7 @@ function adultHtml(){
         <span class="st-l">Atajos automáticos<small>Hoy sugiere lo que más usa. Lo aprendido se queda en este aparato.</small></span>
         <input type="checkbox" role="switch" class="st-sw" id="aj-sc-on" ${P.off ? "" : "checked"}></label>
       <button type="button" class="st-r st-btn" id="aj-sc-forget"><span class="st-ic gr" aria-hidden="true">${IC("arrow-counter-clockwise", "bold", 18)}</span>
-        <span class="st-l">Olvidar lo aprendido<small id="aj-sc-fs">Los atajos fijados se quedan.</small></span></button>
+        <span class="st-l">Olvidar lo aprendido<small id="aj-sc-fs">${h(FORGET_SUB)}</small></span></button>
     </div></section>`;
 }
 let DIRTY = false;
@@ -550,7 +620,7 @@ on("settings", d => {
       if(!armed || t - armed > 5000){   /* confirmación corta: un segundo toque en 5 s */
         armed = t;
         if(fs) fs.textContent = "¿Seguro? Toca otra vez para olvidar.";
-        setTimeout(() => { if(armed === t && fs && fs.isConnected){ armed = 0; fs.textContent = "Los atajos fijados se quedan."; } }, 5000);
+        setTimeout(() => { if(armed === t && fs && fs.isConnected){ armed = 0; fs.textContent = FORGET_SUB; } }, 5000);
         return;
       }
       if(t - armed < 400) return;   /* un doble toque sin querer no cuenta */
@@ -563,39 +633,76 @@ on("settings", d => {
 
 /* ---------- estilos ---------- */
 const CSS = `
-/* «Tus atajos» en Hoy: piezas sólidas (contenido, sin vidrio) con el dibujo encima y un nombre corto debajo (como las
-   sugerencias de apps del iPhone), 3 en el móvil y 4 en tableta */
+/* «Tus atajos» en Hoy: piezas sólidas (contenido, sin vidrio) con el dibujo encima y dos líneas debajo (qué se hace y de
+   qué), 3 en el móvil y 4 en tableta; «Editar», al final de la cabecera de la sección */
 .sc-row{display:flex;flex-direction:column;gap:4px;min-width:0;margin:0}
-.sc-h{margin:0;padding:0 0 0 8px;font:600 var(--fs-min,.8125rem)/18px var(--f-text);color:var(--label2)}
-.sc-body{display:flex;gap:8px;min-width:0}
-.sc-ps{flex:1;min-width:0;display:grid;grid-template-columns:repeat(var(--sc-n,3),minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
-/* «Editar»: la última pieza de la fila, sin fondo (no es un atajo), del mismo alto: un toque de 52 × 56 px o más */
-.sc-ed{flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:52px;min-height:56px;margin:0;padding:5px 0 4px;
-  border:0;border-radius:18px;background:none;color:var(--brand-ink);font:600 calc(.8125rem*var(--k,1))/1.2 var(--f-text);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.sc-edi{display:grid;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--fill)}
+.sc-hd{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:20px;padding:0 4px 0 8px}
+.sc-h{margin:0;font:600 var(--fs-note,.9375rem)/20px var(--f-text);color:rgba(60,60,67,.9)}
+:root[data-theme=dark] .sc-h{color:var(--label2)}
+/* un toque de 44 px sin hacer más alta la cabecera: lo que sobra va hacia arriba (el hueco entre bloques de Hoy) y
+   casi nada hacia las piezas */
+.sc-ed{position:relative;flex:none;margin:0;padding:0 8px;border:0;border-radius:var(--r-sm);background:none;color:var(--brand-ink);
+  font:600 var(--fs-note,.9375rem)/20px var(--f-text);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sc-ed::after{content:"";position:absolute;inset:-16px -4px -8px}
 .sc-ed:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
-/* sin sitio (móvil bajo con mucho en Hoy): el título se queda solo para el lector de pantalla (fit()) */
-.sc-row.sc-tight .sc-h{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.sc-ps{min-width:0;display:grid;grid-template-columns:repeat(var(--sc-n,3),minmax(0,1fr));gap:8px;margin:0;padding:0;list-style:none}
+.sc-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+/* sin sitio (móvil bajo con mucho en Hoy, fit()): la fila se compacta: cabecera de 16 px y piezas de 44 px con el dibujo
+   al lado de sus dos líneas */
+.sc-row.sc-tight{gap:2px}
+.sc-row.sc-tight .sc-hd{min-height:16px}
+.sc-row.sc-tight :is(.sc-h,.sc-ed){font-size:calc(.8125rem*var(--k,1));line-height:16px}
+.sc-row.sc-tight .sc-ed::after{inset:-22px -4px -6px}   /* zona de toque de 44 px (no se ve) */
+.sc-row.sc-tight .sc-p{flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;min-height:var(--tap,44px);padding:4px 8px;text-align:left}
+.sc-row.sc-tight .sc-n{align-items:flex-start}
 .sc-li{min-width:0;display:flex}
-.sc-p{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:0;min-height:56px;margin:0;
-  padding:5px 6px 4px;border-radius:18px;color:var(--label);text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.sc-p{position:relative;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:2px;min-width:0;min-height:56px;margin:0;
+  padding:4px 8px;border-radius:var(--r-md);color:var(--label);text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent;
+  transition:transform .15s ease,box-shadow .15s ease}
+/* mantener: se hunde a los 80 ms; al cumplirse, crece un instante (js) */
+.sc-p:active{transform:scale(.97);transition-delay:.08s}
+.sc-p.is-held{transform:scale(1.06);box-shadow:0 8px 24px rgb(11 37 69/.18);transition-delay:0s}
+@media (prefers-reduced-motion:reduce){.sc-p,.sc-p:active,.sc-p.is-held{transform:none;transition:none}}
 .sc-pic{position:relative;flex:none;width:36px;height:36px;display:grid;place-items:center}
 .sc-pic>img{display:block;width:36px;height:36px;max-width:none;object-fit:contain}
-.sc-tile{display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--brand-fill);color:#fff}
-.sc-p .sc-pic,.sc-p .sc-pic>img,.sc-p .sc-tile{width:32px;height:32px}
-.sc-ringed>img,.sc-ringed>.sc-tile,.sc-p .sc-ringed>img,.sc-p .sc-ringed>.sc-tile{width:24px;height:24px}
+.sc-tile{display:grid;place-items:center;width:36px;height:36px;border-radius:var(--r-sm);background:var(--fill2);color:var(--label2)}
+.sc-tile.soft{background:var(--brand-soft);color:var(--brand-ink)}
+.sc-ti img{display:block;width:72%;height:72%;max-width:none;object-fit:contain}
+/* en el móvil, el dibujo de 24 px (Hoy cabe sin scroll con la fila y un HOME_SLOT); en tableta, de 32 */
+.sc-p .sc-pic,.sc-p .sc-pic>img,.sc-p .sc-tile{width:24px;height:24px}
+.sc-p .sc-tile{border-radius:8px}
+.sc-p .sc-bdg{right:-8px;bottom:-4px;width:16px;height:16px}
+.sc-p .sc-bdg img{width:12px;height:12px}
+.sc-ringed>img,.sc-ringed>.sc-tile{width:24px;height:24px;border-radius:50%}
+.sc-p .sc-ringed>img,.sc-p .sc-ringed>.sc-tile{width:16px;height:16px;border-radius:50%}
+@media (min-width:744px){
+  .sc-p{padding:8px}
+  .sc-p .sc-pic,.sc-p .sc-pic>img,.sc-p .sc-tile{width:32px;height:32px}
+  .sc-p .sc-tile{border-radius:var(--r-sm)}
+  .sc-p .sc-bdg{right:-4px;bottom:-4px;width:20px;height:20px}
+  .sc-p .sc-bdg img{width:16px;height:16px}
+  .sc-p .sc-ringed>img,.sc-p .sc-ringed>.sc-tile{width:24px;height:24px}
+}
 .sc-ringed>.sc-tile svg{width:14px;height:14px}
 .sc-rs{position:absolute;inset:-2px;width:calc(100% + 4px);height:calc(100% + 4px);rotate:-90deg}
-.sc-n{display:block;max-width:100%;font:600 calc(.875rem*var(--k,1))/1.2 var(--f-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* dos líneas de 13 px: qué se hace (600) y de qué (400, gris), con nombres cortos; en tableta, el tema puede ir en 2 */
+.sc-n{display:flex;flex-direction:column;align-items:center;max-width:100%;min-width:0;font:400 calc(.8125rem*var(--k,1))/calc(14px*var(--k,1)) var(--f-text)}
+.sc-a,.sc-tp{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sc-a{font-weight:600}
+.sc-tp{color:var(--label2)}
+@media (min-width:744px){.sc-tp{white-space:normal;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;text-wrap:balance}}
 .sc-rs circle{fill:none;stroke-width:3.5}
 .sc-rb{stroke:var(--fill)}
 .sc-rf{stroke:var(--teal);stroke-linecap:round}
-.sc-bdg{position:absolute;right:-5px;bottom:-5px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--card);color:var(--brand-tint);box-shadow:0 0 0 1px var(--sep)}
+.sc-bdg{position:absolute;right:-4px;bottom:-4px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--card);color:var(--brand-tint);box-shadow:0 0 0 1px var(--sep)}
 .sc-bdg img{display:block;width:16px;height:16px;max-width:none}
-.sc-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-.sc-t{font:600 var(--fs-note,.9375rem)/1.2 var(--f-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sc-s{font:400 var(--fs-min,.8125rem)/1.25 var(--f-text);color:var(--label2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sc-pin{position:absolute;top:6px;right:8px;display:flex;color:var(--label2)}
+/* en oscuro, los dibujos (hechos para fondo claro) sobre una ficha clara, como en el resto de la app */
+:root[data-theme=dark] .sc-pic>img{background:#F2F2F7;border-radius:var(--r-sm);padding:2px}
+:root[data-theme=dark] .sc-ti,:root[data-theme=dark] .sc-bdg{background:#F2F2F7}
+.sc-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.sc-t{font:600 var(--fs-note,.9375rem)/1.2 var(--f-text);overflow-wrap:anywhere}
+.sc-s{font:400 var(--fs-min,.8125rem)/1.25 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
+.sc-pin{position:absolute;top:8px;right:8px;display:flex;color:var(--label2)}
 .sc-p:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 @media (forced-colors:active){.sc-p{border:1px solid CanvasText}.sc-rf{stroke:CanvasText}}
 /* hojas: «Editar», una pieza y la pregunta del zorro (M.openSheet); dentro, grupos sólidos */
@@ -603,14 +710,21 @@ dialog.sc-sheet{max-width:560px}
 .sc-sh-sub{margin:0 0 16px;font:400 var(--fs-note)/1.33 var(--f-text);color:var(--label2);text-align:center}
 .sc-g{margin:0 0 12px;background:var(--card);border-radius:var(--r-card,24px);overflow:hidden}
 :root[data-theme=dark] .sc-g{background:var(--card-2)}
-.sc-er{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr);align-items:center;column-gap:12px;row-gap:10px;padding:12px 14px}
-.sc-er+.sc-er::before{content:"";position:absolute;top:0;left:62px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
+.sc-er{position:relative;display:grid;grid-template-columns:36px minmax(0,1fr);align-items:center;column-gap:12px;row-gap:12px;padding:12px 16px}
+.sc-er+.sc-er::before{content:"";position:absolute;top:0;left:64px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
 .sc-er .sc-t{font-size:var(--fs-sub,1.0625rem)}
 .sc-er .sc-s{font-size:var(--fs-note,.9375rem)}
-.sc-eb{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
-.sc-eb .glass-btn{flex:1 1 140px}
+.sc-eb{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px}
+.sc-eb>.glass-btn,.sc-hb{flex:1 1 140px;min-width:0}
+.sc-eb .glass-btn{white-space:normal;padding-inline:16px}
+.sc-hb{display:flex;flex-direction:column;gap:4px}
+.sc-hn{font:400 var(--fs-min,.8125rem)/1.25 var(--f-text);color:var(--label2);text-align:center}
+/* «Fijado»: el estado se ve (tinte de la marca), como un conmutador de iOS */
+:root:root .sc-eb .glass-btn.sc-pinb[aria-pressed=true]{background:color-mix(in srgb,var(--brand-tint) 14%,var(--card));color:var(--brand-ink);box-shadow:none}
+:root:root[data-theme=dark] .sc-eb .glass-btn.sc-pinb[aria-pressed=true]{background:color-mix(in srgb,var(--brand-tint) 30%,var(--card-2));color:#fff}
+.sc-pinb[aria-pressed=true]::before{display:none}
+.sc-er1{display:block;padding:12px 16px}
 .sc-hh{margin-top:4px}
-.sc-sh-foot{margin:4px 16px 0;font:400 var(--fs-note)/1.33 var(--f-text);color:var(--label2);text-align:center}
 .sc-slow{display:flex;flex-direction:column;align-items:center;gap:8px;padding:8px 0 4px;text-align:center}
 .sc-slow-fox{display:flex}
 .sc-slow h2{margin:4px 0 0;font:700 var(--fs-t3,1.375rem)/1.2 var(--f-round);color:var(--label);text-wrap:balance}
@@ -619,7 +733,7 @@ dialog.sc-sheet{max-width:560px}
 .sc-slow-b .glass-btn{flex:1 1 200px}
 .sc-slow-n{margin:4px 0 0;font:400 var(--fs-note)/1.33 var(--f-text);color:var(--label2)}
 /* sobre el vidrio de la hoja (y el fondo oscurecido), el gris secundario un poco más fuerte: contraste ≥ 4,5:1 */
-.sc-sh-sub,.sc-sh-foot,.sc-slow-p,.sc-slow-n{color:color-mix(in srgb,var(--label2),var(--label) 25%)}
+.sc-sh-sub,.sc-hn,.sc-slow-p,.sc-slow-n{color:color-mix(in srgb,var(--label2),var(--label) 25%)}
 `;
 function css(){
   if(D.getElementById("css-shortcuts")) return;
