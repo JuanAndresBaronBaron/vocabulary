@@ -22,8 +22,9 @@
      (js/keys.js). Mantener pulsada una pieza (G.hold: se hunde y crece al cumplirse) o «Editar» (al final de la
      cabecera de la sección) abre una hoja con «Fijar» ↔ «Fijado» (conmutador) y «No sugerir» (30 días; M.toast «Ya no
      sale en Hoy» con «Deshacer» 9 s). Hoy sigue sin scroll: con la fila, en el móvil (< 744 px) homeSlots() deja 1 HOME_SLOT
-     (wantsRow()) y, si aun así no cabe, fit() quita los HOME_SLOTS que sobren, del último al primero (la fila manda);
-     en un móvil muy bajo compacta la fila y, como último recurso, la quita. html[data-sc] = cuántas piezas enseña.
+     (wantsRow()) y, si aun así no cabe, fit() quita los HOME_SLOTS que sobren, del último al primero (la fila manda,
+     salvo ante una carta sin abrir); en un móvil muy bajo compacta la fila y, como último recurso, la quita.
+     html[data-sc] = cuántas piezas enseña.
    - «¿Lo pongo siempre despacio?»: si de las últimas 20 escuchas tocadas (altavoces y tortugas) el 60 % o más fueron
      con la tortuga, el zorro lo pregunta una vez en Hoy. «Sí, despacio» pone la velocidad «Lenta» del ajuste de siempre
      (store "rate", Ajustes › Voz y velocidad). Nunca cambia nada sin preguntar.
@@ -319,12 +320,17 @@ function render(res, slots){
   try{ if(D.fonts && D.fonts.status !== "loaded") D.fonts.ready.then(() => { if(sec.isConnected) fit(); }); }catch(e){}
 }
 /* Hoy sin scroll. Si con la fila no cabe: 1) se van los HOME_SLOTS, del último al primero; 2) la fila se compacta (piezas
-   de 44 px con el dibujo al lado; «Editar» sigue en la cabecera); 3) si aun así no cabe (un móvil muy bajo con mucho en
-   Hoy), la fila se va.
+   de 44 px con el dibujo al lado; «Editar» sigue en la cabecera); 3) si aun así no cabe (un móvil bajo con mucho en Hoy),
+   la fila se va (y vuelven las filas que entonces quepan).
+   La carta sin abrir («¡Tienes carta!», el primer HOME_SLOT cuando la hay: llega pocas veces y es de alguien de casa) va
+   antes que la fila: en el paso 1 se queda y, si con la fila compacta sigue sin caber, se va la fila (los atajos siguen
+   en Juegos). Salvo si la fila hace de accesorio «Seguir» (su pieza a medias): entonces la fila manda.
    Se puede volver a llamar (con "route", al cargar la letra o al girar): antes de medir, vuelve a poner lo que quitó.
-   soft: sin el paso 3 (al pintar, antes de que route() ponga la cabecera de Hoy).
+   soft: sin el paso 3 (al pintar, antes de que route() ponga la cabecera de Hoy); ahí la carta también se va, y vuelve
+   con la medida buena ("acc").
    El paso 1 vale también sin la fila (atajos apagados o aún sin atajos): con el accesorio «Seguir» en Hoy y dos
    HOME_SLOTS, el último se va. Un HOME_SLOT que se va llama a su .skip() (el aviso de Google no gasta su vez). */
+const FIRST = new Set(["mail"]);   /* los HOME_SLOTS que van antes que la fila de atajos */
 let CUT = [];
 function fit(soft){
   const sec = D.getElementById("hm-sc"), box = D.getElementById("hm-slots");
@@ -334,16 +340,19 @@ function fit(soft){
   if(CUT.box === box) CUT.forEach(el => box.append(el));
   CUT = []; CUT.box = box;
   if(!over()) return;
-  const trim = () => {
+  const trim = (keep = 0) => {
     const ss = [...box.querySelectorAll(":scope > .hm-slot")];
-    while(ss.length && over()){
+    while(ss.length > keep && over()){
       const el = ss.pop(); el.remove(); CUT.unshift(el);
       try{ const f = typeof HOME_SLOTS !== "undefined" && HOME_SLOTS.find(s => s && s.id && s.id === el.dataset.slot); if(f && typeof f.skip === "function") f.skip(); }catch(e){}
     }
   };
-  trim();
+  const first = box.querySelector(":scope > .hm-slot");
+  const vip = !!(sec && !COVER && first && FIRST.has(first.dataset.slot));
+  trim(vip ? 1 : 0);
   if(!sec) return;
   if(over()) sec.classList.add("sc-tight");
+  if(over() && soft) trim();
   if(over() && !soft){
     sec.remove(); clearGest(); ROOT.removeAttribute("data-sc"); SHOWN = [];
     CUT.forEach(el => box.append(el)); CUT = []; CUT.box = box;   /* sin la fila vuelven las filas… */

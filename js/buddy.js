@@ -76,7 +76,10 @@ const STYLE = `
 .bd-flip.back{transform:rotateY(180deg)}
 .bd-face{grid-area:1/1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:4px;margin:0;padding:14px 12px;border:0;text-align:center;color:var(--label);
   font:inherit;-webkit-backface-visibility:hidden;backface-visibility:hidden;cursor:pointer;-webkit-tap-highlight-color:transparent}
-.bd-face .bd-pl{align-self:stretch;margin:0 4px 2px}
+/* la etiqueta, a la izquierda como la de Misiones (también si pasa a dos líneas); en un móvil estrecho, 2 px más cerca del
+   borde para que «Palabra del día» quepa en una línea (en 360 px no cabía y la pareja crecía 16 px) */
+.bd-face .bd-pl{align-self:stretch;margin:0 4px 2px;text-align:left}
+@media (max-width:379px){.bd-face .bd-pl{margin:0 2px 2px}}
 .bd-wback{gap:2px;transform:rotateY(180deg)}
 .bd-wimg{display:block;flex:none;width:64px;height:64px}
 .bd-wotd .bd-wimg img{display:block;width:64px;height:64px;max-width:none;max-height:none;object-fit:contain}

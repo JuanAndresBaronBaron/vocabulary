@@ -610,6 +610,20 @@ _FAM2 = """() => [...document.querySelectorAll('.ph-tile img')].filter(i => /fam
   ({src: i.getAttribute('src'), ok: i.complete && i.naturalWidth > 0}))"""
 
 
+def _white_px(page, sel):
+    """Píxeles casi blancos (los tres canales ≥ 250) en la captura del primer elemento sel (None sin Pillow)."""
+    try:
+        import io
+        from PIL import Image
+    except ImportError:
+        return None
+    el = page.locator(sel).first
+    if not el.count():
+        return None
+    im = Image.open(io.BytesIO(el.screenshot(animations="disabled"))).convert("RGB")
+    return sum(1 for r, g, b in im.getdata() if r >= 250 and g >= 250 and b >= 250)
+
+
 def _f5_keys():
     """La partida sembrada con tres atajos hechos hoy (para la fila de Hoy) y sus pistas ya vistas."""
     keys = C.seed_keys()
@@ -656,6 +670,11 @@ def _f5_screens(page, vp, probs, dark=False):
         probs.append(f"{tag}: Frases mágicas no sacó ninguna plantilla con la familia")
     elif not all("img/fam2/" in x["src"] and x["ok"] for x in fam):
         probs.append(f"{tag}: Frases mágicas no usa los árboles recortados (img/fam2/) o no cargan: {fam}")
+    elif dark:
+        # el fondo blanco de los árboles (PNG opacos) se funde con la placa clara: ningún rectángulo blanco dentro
+        white = _white_px(page, ".ph-tile img[src*='img/fam2/']")
+        if white is not None and white > 8:
+            probs.append(f"{tag}: Frases mágicas: el árbol de familia lleva un rectángulo blanco sobre la placa ({white} px blancos)")
     page.locator(".ph-tile").first.click()
     page.wait_for_timeout(700)
     _settle(page)

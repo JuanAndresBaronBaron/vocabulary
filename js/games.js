@@ -380,15 +380,17 @@ const CSS = `
 .gm-tpill b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
 .gm-tpill .ico{flex:none;color:var(--label2)}
 .gm-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:12px;margin:0 0 24px}
+/* en el ordenador, 4 columnas como mucho: con 6, las tarjetas bajaban de 170 px y el récord no cabía */
+@media (min-width:1000px){.gm-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .gm-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:184px;padding:16px;border-radius:var(--r-card);
   background:var(--card);color:var(--label);text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
 .gm-ci{width:64px;height:64px;margin:0 0 8px;pointer-events:none}
 .gm-ct{font:700 var(--fs-head)/1.2 var(--f-round);color:var(--label)}
 .gm-cs{font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
-/* el récord: siempre una sola línea del mismo alto (si no cabe, con «…») */
-.gm-cr{box-sizing:border-box;margin-top:auto;padding-top:12px;height:36px;width:100%;min-width:0;display:flex;align-items:center;gap:8px;white-space:nowrap}
+/* el récord: en la línea de las estrellas; si no cabe a su lado, pasa entero a la línea de debajo (no se corta con «…») */
+.gm-cr{box-sizing:border-box;margin-top:auto;padding-top:12px;min-height:36px;width:100%;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}
 .gm-cr .gm-st{flex:none}
-.gm-rt{min-width:0;overflow:hidden;text-overflow:ellipsis;font:600 var(--fs-min)/1.2 var(--f-text);color:var(--label2);font-variant-numeric:tabular-nums}
+.gm-rt{flex:none;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 var(--fs-min)/1.2 var(--f-text);color:var(--label2);font-variant-numeric:tabular-nums}
 .gm-new{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;
   background:var(--gold-soft);color:var(--gold-ink);font:700 var(--fs-min)/1 var(--f-text)}
 .gm-st{display:inline-flex;gap:1px;line-height:0}
@@ -502,6 +504,11 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-bigsay{position:relative;width:72px;height:72px;border-radius:50%;border:0;background:var(--brand-soft);color:var(--brand-tint);display:grid;place-items:center;flex:none;cursor:pointer;
   transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
 .gm-bigsay.playing{background:var(--brand-fill);color:#fff}
+/* los botones redondos junto al altavoz grande (despacio y ver): los mismos que la tortuga de la lección y de Oído de lince */
+.gm-sec{position:relative;flex:none;display:grid;place-items:center;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:50%;background:var(--fill2);color:var(--label);
+  cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
+.gm-sec.playing{background:var(--brand-fill);color:#fff}
+.gm-sec:focus-visible{outline:3px solid var(--brand-tint);outline-offset:3px}
 .gm-bigsay.playing::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:3px solid var(--brand-tint);opacity:0;animation:gm-wave .9s ease-out 3;pointer-events:none}
 @keyframes gm-wave{0%{opacity:.55;scale:.9}100%{opacity:0;scale:1.28}}
 .gm-bigsay.ring{animation:gm-ring 1.1s ease-out 2}
@@ -1233,8 +1240,8 @@ function globos(app, P, mode){
     ${topHtml("globos", `<span class="gm-pill" title="Ronda">${IC("balloon", "fill", 18)}<span><b id="gm-rd">1</b>/${R}</span></span><span class="gm-pill" title="Aciertos">${IC("star", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
     <div class="gm-listen" id="gm-listen">
       <button type="button" class="gm-bigsay" id="gm-play" aria-label="Escuchar la palabra">${IC("speaker-high", "fill", 34)}</button>
-      <button type="button" class="glass-btn glass-btn--icon" id="gm-slow" aria-label="Escuchar despacio">${IC("turtle", "bold", 24)}</button>
-      <button type="button" class="glass-btn glass-btn--icon" id="gm-peek" aria-label="Ver la palabra escrita">${IC("eye", "bold", 24)}</button>
+      <button type="button" class="gm-sec" id="gm-slow" aria-label="Escuchar despacio">${IC("turtle", "fill", 28)}</button>
+      <button type="button" class="gm-sec" id="gm-peek" aria-label="Ver la palabra escrita">${IC("eye", "fill", 28)}</button>
       <div class="gm-ltxt" id="gm-ltxt">Escucha y toca el globo correcto</div>
     </div>
     <div class="gm-air" id="gm-air"></div>

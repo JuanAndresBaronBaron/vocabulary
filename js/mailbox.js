@@ -413,10 +413,15 @@ function speak(text, code, btn, slow){
     u.rate = slow ? (typeof SLOW === "function" ? SLOW() : r0 * .6) : r0;
     if(typeof useVoice === "function") useVoice(u, code);
     else { u.lang = code; const v = pickVoice(code); if(v) u.voice = v; }
-    /* una voz de internet que falla: otra vez con una del aparato (retryLocal de index.html) */
+    /* por si el navegador no avisa al acabar; se vuelve a armar si hay que reintentar */
+    const arm = () => { clearTimeout(t); t = setTimeout(() => fin(true), Math.min(40000, 2500 + text.length * (slow ? 180 : 110))); };
+    /* una voz de internet que falla: otra vez con una del aparato (retryLocal de index.html), con su tiempo entero */
     u.onend = () => fin(true);
-    u.onerror = e => { if(!(typeof retryLocal === "function" && retryLocal(u, e, ev => fin(!(ev && ev.type === "error"))))) fin(false); };
-    t = setTimeout(() => fin(true), Math.min(40000, 2500 + text.length * (slow ? 180 : 110)));
+    u.onerror = e => {
+      if(!done && typeof retryLocal === "function" && retryLocal(u, e, ev => fin(!(ev && ev.type === "error")))) arm();
+      else fin(false);
+    };
+    arm();
     if(btn) btn.classList.add("playing");
     try{ speechSynthesis.speak(u); }catch(e){ fin(false); }
   });
@@ -430,6 +435,10 @@ const CSS = `
 .mb-t{margin:0;font:800 var(--fs-t2)/1.15 var(--f-round);color:var(--label);overflow-wrap:anywhere}
 .mb-sub{margin:4px 0 0;font:400 var(--fs-sub)/1.35 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
 .mb-c{text-align:center}
+/* la carta cerrada, en el móvil: el sobre, el título y «Abrir la carta» en el centro del sitio libre (no pegados arriba con
+   media pantalla vacía debajo) */
+@media (max-width:743px){:root:not([data-acc]) #mb-cv{box-sizing:border-box;display:flex;flex-direction:column;justify-content:center;
+  min-height:calc(100vh - var(--topbar-h) - var(--tabbar-h) - var(--tabbar-b) - 28px);min-height:calc(100svh - var(--topbar-h) - var(--tabbar-h) - var(--tabbar-b) - 28px)}}
 .mb-h{margin:0 0 12px;font:700 var(--fs-head)/1.25 var(--f-round);color:var(--label)}
 .mb-card{margin:0 0 24px;padding:16px;border-radius:var(--r-card)}
 .mb-tpls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
@@ -437,9 +446,9 @@ const CSS = `
   border-radius:var(--r-md);background:var(--fill2);color:var(--label);font:600 var(--fs-min)/1.2 var(--f-text);cursor:pointer;-webkit-tap-highlight-color:transparent;
   transition:opacity var(--d-fast,160ms)}
 /* el dibujo de cada frase llena el ancho de su botón, hasta 64 px (antes 40); en el móvil, huecos algo más cortos entre
-   bloques para que la pantalla no baje más que antes */
+   bloques (y 4 px alrededor en el botón) para que la pantalla no baje más que antes */
 .mb-tpl img{box-sizing:border-box;width:min(100%,64px);height:auto;aspect-ratio:1;pointer-events:none}
-@media (max-width:743px){.mb-hd{margin-bottom:12px}.mb-card{margin-bottom:16px}.mb-tpl{gap:2px;padding:6px 4px}.mb-phr{margin-top:12px}.mb-ctl{margin-top:12px}}
+@media (max-width:743px){.mb-hd{margin-bottom:12px}.mb-card{margin-bottom:16px}.mb-tpl{padding:4px}.mb-phr{margin-top:12px}.mb-ctl{margin-top:12px}}
 .mb-tpl span{max-width:100%;overflow-wrap:anywhere;text-align:center}
 .mb-tpl[aria-checked=true]{background:var(--brand-soft);box-shadow:inset 0 0 0 2px var(--brand-tint);color:var(--brand-ink)}
 :root[data-theme=dark] .mb-tpl[aria-checked=true]{color:#7DBBFF}
@@ -455,7 +464,7 @@ const CSS = `
 .mb-spk{flex:none;display:grid;place-items:center;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:50%;background:var(--brand-soft);color:var(--brand-tint);cursor:pointer;
   -webkit-tap-highlight-color:transparent;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms),opacity var(--d-fast,160ms)}
 .mb-spk.playing,.mb-slow.playing{background:var(--brand-fill);color:#fff}
-.mb-slow{flex:none;display:grid;place-items:center;width:44px;height:44px;margin:0;padding:0;border:0;border-radius:50%;background:var(--fill2);color:var(--label);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.mb-slow{flex:none;display:grid;place-items:center;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:50%;background:var(--fill2);color:var(--label);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .mb-aud{display:flex;align-items:center;gap:20px}   /* 20: sitio para las etiquetas de las teclas */
 .mb-ctl{display:flex;flex-direction:column;align-items:center;gap:8px;margin:16px 0 0;text-align:center}
 .mb-rb{position:relative;flex:none;width:120px;height:120px;margin:0;padding:0;border:0;border-radius:50%;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -1358,7 +1367,7 @@ function openView(app, L, fresh, my, from){
       <p class="mb-msg" data-t="msg" lang="${esc(code)}"></p>
       <p class="mb-sig" id="mb-sig" data-t="from"></p>
       <div class="mb-aud"><button type="button" class="mb-spk" id="mb-say" data-key="space" aria-label="Escuchar la carta">${IC("speaker-high", "fill", 24)}</button>
-        <button type="button" class="mb-slow" id="mb-say-s" data-key="shift+space" aria-label="Escuchar despacio">${IC("turtle", "fill", 22)}</button></div>
+        <button type="button" class="mb-slow" id="mb-say-s" data-key="shift+space" aria-label="Escuchar despacio">${IC("turtle", "fill", 26)}</button></div>
     </article>
     ${L.gift != null ? giftHtml() : L.lock ? `<p class="mb-note mb-c${anim ? " mb-in mb-in2" : ""}" style="margin:0 auto 16px">${IC("lock-open", "bold", 18)} Carta secreta: la abriste ${esc(LOCKS[L.lock].form(L.lang).toLowerCase())}.</p>` : ""}
     <a class="glass-btn glass-btn--block${anim ? " mb-in mb-in2" : ""}" href="#/buzon">${IC("envelope-simple", "bold", 20)}Ir al Buzón</a></div>`;

@@ -182,6 +182,8 @@ compartida no responde).
   de Google y frase de la cena) en el orden de prioridad de `HOME_SLOTS` y sin scroll (móvil claro y oscuro, móvil bajo,
   tableta, escritorio); Hoy con el accesorio «Seguir» (lección a medias) llegando desde Juegos o desde la lección, con y
   sin atajos y con y sin «Reducir movimiento» (la carta sigue, sin scroll, y la fila vuelve cuando el accesorio se va);
+  Hoy en un móvil bajo (360×740 claro, oscuro y en Halloween; 375×667) con atajos y una carta sin abrir (la carta se
+  queda, la fila se compacta o, si no cabe, se va; «Palabra del día» en una línea y a la izquierda);
   el teclado en el Buzón, Frases, la carta y las teclas 1-4 de los atajos sin nada repetido; un
   recorrido en inglés, francés y danés (lección con teclado, 3 partidas que hacen un atajo, Frases con sello, grabar y
   mandar, contestar como mayor y abrir la carta en otra pestaña); la actualización desde main 2e7dc3f (sw
@@ -190,7 +192,8 @@ compartida no responde).
   después en este aparato va en `vocab:voice` (no en la exportación) y `sc:prefs`, `mail:box` y `phrase:stamps` se crean
   al usarse y van en la exportación; con las voces de Edge simuladas (unión con fix-voces), Frases, la frase de la cena,
   el Buzón, las cartas (en inglés, francés y español) y el toque que desbloquea la voz usan `useVoice` (la voz de su
-  idioma) y una voz de internet que falla se repite con una del aparato (`retryLocal`); y las capturas
+  idioma) y una voz de internet que falla se repite con una del aparato (`retryLocal`; en una carta que falla tarde, la
+  del aparato la lee entera y el regalo sale al acabar); y las capturas
   `capturas/F5/F5-*.png` con su auditoría.
 - `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en
   Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso, «Escucha y elige» de la lección y
@@ -203,7 +206,8 @@ compartida no responde).
   de tamaño; tras un fallo en «Escucha y elige» la lección no baja (también en 1280×720 y con «Texto más grande») y la
   ✓/✗ va en la esquina del dibujo; el repaso con dos pistas, Letras con texto grande y la cara blanca de Memoria oscuro.
   Desde la unión con F5, también las pantallas nuevas con dibujos (`MIN_F5`): la bandeja de Frases mágicas (72 px en
-  390×844, con los árboles recortados de `img/fam2/`), las plantillas del Buzón (60), las tarjetas de Juegos del Buzón y
+  390×844, con los árboles recortados de `img/fam2/`, sin un rectángulo blanco sobre la placa en oscuro), las plantillas
+  del Buzón (60), las tarjetas de Juegos del Buzón y
   de Frases (como las demás) y «Tus atajos» de Hoy (24; 32 en un móvil de 900 px de alto) en 360×740, 390×844 (también
   oscuro) y 430×932, sin scroll donde no lo había y sin perder la frase de la cena; en el iPad y el ordenador, no más
   pequeños; e `img/fam2/` fuera de `SHELL`, guardado por «Descargar todo» y servido sin conexión una vez visto.

@@ -379,7 +379,7 @@ def test_buttons_tray_placeholder_and_a11y():
         if not n1["pri"] or n1["h"] != 56 or n1["bg"] != BLUE:
             probs.append(f"«Otra frase» con la frase hecha: {n1}")
         tile = page.evaluate("""() => { const b = document.querySelector('.ph-tile[data-i="0"]'), cs = getComputedStyle(b);
-          return {pressed: b.getAttribute('aria-pressed'), op: +getComputedStyle(b.querySelector('img')).opacity, ol: cs.outlineStyle, bg: cs.backgroundColor,
+          return {pressed: b.getAttribute('aria-pressed'), op: +getComputedStyle(b.querySelector('.ph-pic')).opacity, ol: cs.outlineStyle, bg: cs.backgroundColor,
             word: getComputedStyle(b.querySelector('.ph-tw')).visibility, label: b.getAttribute('aria-label')}; }""")
         if tile["pressed"] != "true" or tile["op"] > 0.4 or tile["ol"] != "dashed" or tile["word"] != "hidden" or not tile["label"]:
             probs.append(f"la pieza puesta en la bandeja: {tile}")
@@ -428,7 +428,7 @@ def test_buttons_tray_placeholder_and_a11y():
     page = _page(color_scheme="dark")
     try:
         _open(page)
-        d = page.evaluate("""() => { const i = document.querySelector('.ph-tile img'), s = document.getElementById('ph-sn');
+        d = page.evaluate("""() => { const i = document.querySelector('.ph-tile .ph-pic'), s = document.getElementById('ph-sn');
           return {ibg: getComputedStyle(i).backgroundColor, sbg: getComputedStyle(s).backgroundColor, sc: getComputedStyle(s).color,
             fill2: getComputedStyle(document.documentElement).getPropertyValue('--fill2').trim()}; }""")
         if d["ibg"] != "rgb(242, 242, 247)":
@@ -534,8 +534,8 @@ def test_audio_word_clip_then_voice_in_order():
         spk = page.evaluate("""() => { const b = document.getElementById('ph-say'), t = document.getElementById('ph-slow'), r = b.getBoundingClientRect(), q = t.getBoundingClientRect();
           return {w: r.width, h: r.height, tw: q.width, th: q.height, rad: getComputedStyle(b).borderRadius, trad: getComputedStyle(t).borderRadius,
             bg: getComputedStyle(b).backgroundColor, tbg: getComputedStyle(t).backgroundColor, label: b.getAttribute('aria-label'), text: b.textContent.trim()}; }""")
-        if round(spk["w"]) != 48 or round(spk["h"]) != 48 or round(spk["tw"]) != 44 or round(spk["th"]) != 44 or spk["rad"] != "50%" or spk["trad"] != "50%":
-            probs.append(f"el altavoz no es el de la lección (48 y 44, redondos): {spk}")
+        if round(spk["w"]) != 48 or round(spk["h"]) != 48 or round(spk["tw"]) != 48 or round(spk["th"]) != 48 or spk["rad"] != "50%" or spk["trad"] != "50%":
+            probs.append(f"el altavoz y la tortuga no son los de la lección (48 px, redondos): {spk}")
         if spk["label"] != "Oír la frase" or spk["text"]:
             probs.append(f"el altavoz: {spk['label']!r} {spk['text']!r}")
         page.evaluate("() => { window.__log = []; }")
