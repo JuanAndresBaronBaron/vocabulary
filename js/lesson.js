@@ -414,7 +414,7 @@ const pic = r => r && r.img ? `<img src="${esc(r.img)}" alt="" draggable="false"
   : `<span class="ls-ph" aria-hidden="true">${esc(((r && r.es) || "?").charAt(0).toUpperCase())}</span>`;
 const spkBtn = (t, xl) => `<button type="button" class="say ls-spk${xl ? " xl" : ""}" data-say="${esc(t)}" aria-label="Escuchar">${ico("speaker-high", "fill", xl ? 40 : 32)}</button>`;
 const slowBtn = t => `<button type="button" class="say ls-slow" data-say="${esc(t)}" data-slow aria-label="Escuchar despacio">${ico("turtle", "fill", 30)}</button>`;
-const streakHtml = n => `<span class="ls-streak" role="img" aria-label="${n} seguidas">${ico("flame", "fill", 20)}<b>${n}</b></span>`;
+const streakHtml = n => `<span class="ls-streak" role="img" aria-label="${n} seguidas">${ico("fire", "fill", 20)}<b>${n}</b></span>`;
 const chip = s => s.streak >= 3 ? streakHtml(s.streak) : "";
 /* el artículo de una palabra en francés o danés («le», «la», «l'», «les», «un», «une», «des»; «en», «et», «at») */
 const ARTS = {fr: /^(l['’]|les\s|le\s|la\s|une\s|un\s|des\s)/i, da: /^(en\s|et\s|at\s)/i};

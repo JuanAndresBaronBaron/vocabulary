@@ -12,8 +12,12 @@
    - Accesibilidad: Reducir transparencia (html[data-glass=off]) · Reducir movimiento (data-motion=calm) · Aumentar
      contraste (data-contrast=more) · Texto más grande (data-text=large). Se guardan en localStorage "vocab:ui" (solo
      este aparato, no va en la partida) sin tocar sus otras propiedades; el <head> de index.html los pone antes de pintar.
-   - Para mayores: Google (el bloque lo monta js/sync.js en [data-sync-block]) · instalar la app · Descargar todo
-     (offlinePanel) · Mostrar pronunciación (IPA) (vocab:ui.ipa) · créditos · Privacidad.
+   - Para mayores: Progreso por tema › · Google (el bloque lo monta js/sync.js en [data-sync-block]) · instalar la app
+     · Descargar todo (offlinePanel) · Mostrar pronunciación (IPA) (vocab:ui.ipa) · créditos · Privacidad.
+   - Progreso por tema (el informe de antes de Premios, solo lectura): las repeticiones de los últimos 14 días (store
+     "act") y, por partes (Temas · Las 3000 · Avanzado, data/index.json), cada tema empezado con sus palabras
+     dominadas (caja ≥ MASTER) y aprendiendo de su total, con una barra; los que faltan, contados al pie. Lee srsAll()
+     del idioma actual; no guarda nada.
    - Sub-páginas con navegación de iOS dentro de la hoja: «‹ Ajustes» vuelve; Esc vuelve (en la portada cierra).
    - Avisos del bus: "settings" {page, el, focus} al pintar una página (sync.js pinta ahí lo suyo) · "ui" {k, v} al
      cambiar una preferencia.
@@ -133,6 +137,21 @@ dialog#ajustes .st-g .seg{margin:0;max-width:none}
 dialog#ajustes .st-cred{margin:0}
 dialog#ajustes .aj-off .off-rows>.st-r:first-child::before{content:"";position:absolute;top:0;left:58px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
 .aj-hint{margin:0 0 16px;padding:0 4px;font:400 var(--fs-sub,1.0625rem)/1.38 var(--f-text,system-ui);color:var(--label2)}
+/* Progreso por tema: barras de 14 días y una barra por tema (dorado = dominadas, verde azulado = aprendiendo) */
+.aj-dbox{padding:16px 16px 12px}
+.aj-days{display:flex;align-items:flex-end;gap:4px;height:72px}
+.aj-days i{flex:1;border-radius:4px;background:var(--fill)}
+.aj-days i.on{background:var(--teal)}
+.aj-dl{display:flex;justify-content:space-between;margin-top:4px;font:400 var(--fs-min,.8125rem)/1.3 var(--f-text,system-ui);color:var(--label2)}
+.aj-ds{margin:8px 0 0;font:400 var(--fs-sub,1.0625rem)/1.3 var(--f-text,system-ui);color:var(--label)}
+.aj-lg{display:flex;gap:16px;margin:-8px 4px 16px;font:400 var(--fs-note,.9375rem)/1.3 var(--f-text,system-ui);color:var(--label2)}
+.aj-lg span{display:inline-flex;align-items:center;gap:8px}
+.aj-lg i{width:12px;height:12px;border-radius:4px}
+.aj-pb{display:flex;height:8px;margin-top:8px;border-radius:4px;background:var(--fill);overflow:hidden}
+.aj-pb i{display:block;height:100%}
+.aj-lg .m,.aj-pb .m{background:var(--gold)}
+.aj-lg .l,.aj-pb .l{background:var(--teal)}
+.aj-pn{flex:none;min-width:48px;text-align:right;font:600 var(--fs-sub,1.0625rem)/1 var(--f-text,system-ui);font-variant-numeric:tabular-nums;color:var(--label2)}
 @media (forced-colors:active){.st-ic{border:1px solid CanvasText}}
 `;
 function css(){ if($("css-settings")) return; const s = D.createElement("style"); s.id = "css-settings"; s.textContent = CSS; D.head.appendChild(s); }
@@ -144,6 +163,7 @@ const PAGES = {
   voz: {t: "Voz y velocidad"},
   acc: {t: "Accesibilidad"},
   mayores: {t: "Para mayores", gate: true},
+  progreso: {t: "Progreso"},   /* corto: cabe en la barra con «‹ Para mayores» y «Listo» */
 };
 const SECTIONS = {"": [], root: [], sonido: [], apariencia: [], voz: ["voz"], accesibilidad: ["acc"], acc: ["acc"],
   mayores: ["mayores"], google: ["mayores"], descargar: ["mayores"], instalar: ["mayores"], creditos: ["mayores"]};
@@ -230,6 +250,7 @@ function render(p, focus){
   if(p === "root") el.innerHTML = rootHtml();
   else if(p === "acc") el.innerHTML = accHtml();
   else if(p === "mayores") el.innerHTML = adultHtml();
+  else if(p === "progreso"){ el.innerHTML = ""; progFill(el); }
   else if(p === "voz") el.innerHTML = "";
   wire(p, el);
   emit("settings", {page: p, el, focus: focus || ""});
@@ -315,7 +336,7 @@ function rootHtml(){
       <div class="aj-me-t">
         <label class="aj-nm">${ico("pencil-simple", "bold", 16)}<input class="aj-name" id="aj-name" maxlength="20" autocomplete="off" enterkeyhint="done"
           placeholder="Escribe tu nombre" aria-label="Tu nombre" value="${h(name)}"></label>
-        <p class="aj-st">${ico("flame", "fill", 18)}<span id="aj-streak">${h(streakText())}</span></p></div></div>
+        <p class="aj-st">${ico("fire", "fill", 18)}<span id="aj-streak">${h(streakText())}</span></p></div></div>
     <section class="st-sec" aria-label="Sonido y voz"><div class="st-g ics">
       <label class="st-r" for="aj-snd"><span class="st-ic tl" aria-hidden="true">${ico("speaker-high", "bold", 18)}</span><span class="st-l">Sonido</span>
         <input type="checkbox" role="switch" class="st-sw" id="aj-snd" ${muted ? "" : "checked"}></label>
@@ -364,7 +385,9 @@ function installHtml(){ return typeof installRow === "function" ? installRow() :
 function voiceHelp(){ try{ return typeof voiceHelpRow === "function" ? voiceHelpRow() : ""; }catch(e){ return ""; } }
 function adultHtml(){
   const ipa = !!uiGet().ipa;
-  return `<section class="st-sec" aria-labelledby="aj-g-h"><h3 class="st-h" id="aj-g-h">Google</h3><div data-sync-block>
+  return `<section class="st-sec" aria-label="Progreso"><div class="st-g ics">
+      ${navRow("aj-prog", "graduation-cap", "ok", "Progreso por tema", {sub: "Palabras dominadas y repasos de 14 días"})}</div></section>
+    <section class="st-sec" aria-labelledby="aj-g-h"><h3 class="st-h" id="aj-g-h">Google</h3><div data-sync-block>
       <p class="st-foot">Guardar en Google no está disponible ahora.</p></div></section>
     <section class="st-sec" aria-labelledby="aj-app-h"><h3 class="st-h" id="aj-app-h">La app</h3><div class="st-g ics">
       <div id="aj-inst">${installHtml()}</div>
@@ -405,6 +428,52 @@ function unmountOff(){
   if(o && o.isConnected && typeof offlinePanel === "function") offlinePanel(o);
 }
 
+/* ---------- Progreso por tema ---------- */
+const PGROUPS = [["temas", "Temas"], ["3000", "Las 3000"], ["avanzado", "Avanzado"]];
+async function progFill(el){
+  let idx = [];
+  try{ idx = typeof getIndex === "function" ? await getIndex() : []; }catch(e){ idx = []; }
+  if(!el.isConnected || curPage() !== "progreso") return;
+  el.innerHTML = progHtml(Array.isArray(idx) ? idx : []);
+  emit("settings", {page: "progreso", el, focus: ""});
+}
+function progHtml(idx){
+  const L = typeof lang === "string" ? lang : "", m = Object.values(typeof srsAll === "function" ? srsAll() : {});
+  const MB = typeof MASTER === "number" ? MASTER : 4;
+  let act = {}; try{ act = typeof store !== "undefined" ? store.get("act", {}) || {} : {}; }catch(e){ act = {}; }
+  const key = d => typeof dayKey === "function" ? dayKey(d) : d.toLocaleDateString("sv");
+  const days = [];
+  for(let k = 13; k >= 0; k--){ const d = new Date(); d.setDate(d.getDate() - k); const n = +act[key(d)] || 0; days.push({n, lbl: d.toLocaleDateString("es", {weekday: "short"})}); }
+  const max = Math.max(1, ...days.map(x => x.n)), total = days.reduce((a, x) => a + x.n, 0);
+  const by = {};
+  for(const x of m){ if(!x || !x.d) continue; const o = by[x.d] = by[x.d] || {l: 0, m: 0}; if(+x.b >= MB) o.m++; else o.l++; }
+  const all = {m: 0, l: 0}; Object.values(by).forEach(o => { all.m += o.m; all.l += o.l; });
+  const pct = (a, b) => b ? Math.min(100, 100 * a / b).toFixed(1) : "0";
+  const row = d => {
+    const o = by[d.id], n = Math.max(1, +d.count || 0), mm = Math.min(o.m, n), ll = Math.min(o.l, n - mm);
+    return `<div class="st-r aj-pr"><span class="st-l">${h(d.title)}<small>${mm} de ${n} dominadas${ll ? ` · ${ll} aprendiendo` : ""}</small>
+      <span class="aj-pb" aria-hidden="true"><i class="m" style="width:${pct(mm, n)}%"></i><i class="l" style="width:${pct(ll, n)}%"></i></span></span>
+      <span class="aj-pn">${Math.round(100 * mm / n)}%</span></div>`;
+  };
+  const groups = PGROUPS.map(([g, t], i) => {
+    const docs = idx.filter(d => d && d.group === g && (d.langs || []).includes(L));
+    if(!docs.length) return "";
+    const on = docs.filter(d => by[d.id]), off = docs.length - on.length;
+    const foot = off ? `<p class="st-foot">${on.length ? "Y " : ""}${off} ${off === 1 ? "tema" : "temas"} por empezar.</p>` : "";
+    return `<section class="st-sec" aria-labelledby="aj-pr-${i}"><h3 class="st-h" id="aj-pr-${i}">${t}</h3>
+      ${on.length ? `<div class="st-g">${on.map(row).join("")}</div>` : ""}${foot}</section>`;
+  }).join("");
+  const nm = typeof LANGS === "object" && LANGS[L] ? LANGS[L].name : "";
+  return `<p class="aj-hint">Lo aprendido en ${h(nm)}: ${all.m} ${all.m === 1 ? "palabra dominada" : "palabras dominadas"} y ${all.l} aprendiendo. Una palabra está dominada cuando su repaso toca cada 14 días o más.</p>
+    <section class="st-sec" aria-labelledby="aj-pr-d"><h3 class="st-h" id="aj-pr-d">Últimos 14 días</h3><div class="st-g aj-dbox">
+      <div class="aj-days" role="img" aria-label="${total} ${total === 1 ? "repetición" : "repeticiones"} en los últimos 14 días">${days.map(x =>
+        `<i class="${x.n ? "on" : ""}" style="height:${x.n ? Math.max(8, Math.round(100 * x.n / max)) : 6}%"></i>`).join("")}</div>
+      <div class="aj-dl" aria-hidden="true"><span>${h(days[0].lbl)}</span><span>hoy</span></div>
+      <p class="aj-ds"><b>${total}</b> ${total === 1 ? "repetición" : "repeticiones"} en total</p></div></section>
+    <div class="aj-lg" aria-hidden="true"><span><i class="m"></i>Dominadas</span><span><i class="l"></i>Aprendiendo</span></div>
+    ${groups}`;
+}
+
 /* ---------- qué hace cada cosa ---------- */
 function wire(p, el){
   if(p === "root"){
@@ -443,6 +512,8 @@ function wire(p, el){
       uiSet(a.k, c.checked ? a.v : null); haptic();
     });
   } else if(p === "mayores"){
+    const pr = el.querySelector("#aj-prog");
+    if(pr) pr.onclick = () => push("progreso");
     wireInstall();
     mountOff();
     const ipa = el.querySelector("#aj-ipa");

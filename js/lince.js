@@ -2,8 +2,10 @@
    Ruta: #/juegos/lince. Suena una palabra grabada y el niño elige entre 2 tarjetas que suenan casi igual (ship / sheep):
      con dibujo y palabra escrita si las dos tienen dibujo; si no, solo la palabra. 8 rondas.
      Acierto: la tarjeta se pone verde con ✓ y la palabra vuelve a sonar. Fallo: la elegida se pone gris con ✗ (sin
-     temblor ni sonido triste), la buena se marca con ✓ y suenan las dos, una detrás de otra, para comparar; «Seguir».
-     El altavoz grande repite la palabra y la tortuga la dice despacio. Estrellas por aciertos (7-8 ★★★, 5-6 ★★, 0-4 ★).
+     temblor ni sonido triste), la buena se pone verde con ✓, «¡Casi! Es «…»» y suenan las dos, una detrás de otra,
+     para comparar (la que suena se agranda un poco); «Seguir» sale enseguida en el dock de abajo, como en la lección.
+     El altavoz grande (tintado, como el de la lección) repite la palabra y la tortuga la dice despacio. Estrellas por
+     aciertos (7-8 ★★★, 5-6 ★★, 0-4 ★).
    Usa de games.js lo mismo que los otros juegos: tarjeta del menú, récord, explicación la primera vez, «?», pausa
      (Esc y la ✕ del modo foco) y finish() (récord en "games:best".lince, monedas con award desde «+N»).
    Datos: data/lince.json {v, about, english|français|dansk: [[{w, es, img|null, d}, {…}], …]}: pares mínimos del
@@ -49,38 +51,49 @@ const wordFs = w => { const n = [...w].length; return n <= 5 ? "1.75rem" : n <= 
 const CSS = `
 .ln-listen{margin-bottom:12px}
 .ln-cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:560px;margin:0 auto}
-.ln-c{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:208px;padding:16px 10px 14px;margin:0;border:0;
+/* las tarjetas crecen con la pantalla (en el móvil llenan el hueco hasta el dock) */
+.ln-c{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:clamp(208px,calc(100dvh - 420px),400px);padding:16px 12px;margin:0;border:0;
   border-radius:var(--r-card);background:var(--card);color:var(--label);font:inherit;text-align:center;cursor:pointer;touch-action:manipulation;
   box-shadow:0 1px 3px rgba(0,0,0,.06),inset 0 0 0 2px var(--sep);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;
-  transition:background-color .2s,color .2s,box-shadow .2s;animation:gm-in .3s calc(var(--i) * 70ms) backwards}
-.ln-c.ln-txt{min-height:156px}
-.ln-pic{width:min(124px,72%);aspect-ratio:1;border-radius:22px;background:var(--gm-tile);display:grid;place-items:center;transition:opacity .2s,filter .2s}
+  transition:background-color .2s,color .2s,box-shadow .2s,transform .2s;animation:gm-in .3s calc(var(--i) * 70ms) backwards}
+.ln-c.ln-txt{min-height:clamp(156px,calc(100dvh - 480px),300px)}
+.ln-pic{width:min(148px,76%);aspect-ratio:1;border-radius:22px;background:var(--gm-tile);display:grid;place-items:center;transition:opacity .2s,filter .2s}
 .ln-pic img{width:82%;height:82%;object-fit:contain;pointer-events:none}
 .ln-w{display:block;max-width:100%;font:800 1.5rem/1.15 var(--f-round);overflow-wrap:anywhere}
 .ln-w .ln-a{font-weight:600;opacity:.72;margin-right:.25em}
 .ln-es{display:block;min-height:1.3em;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2);visibility:hidden}
 .ln.ln-done .ln-es{visibility:visible}
 .ln-mk{position:absolute;right:-6px;top:-6px;width:34px;height:34px;border-radius:50%;display:none;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:2}
-.ln-c.is-ok{background:var(--ok-fill);color:#fff;box-shadow:none}
-.ln-c.is-ok .ln-es{color:#fff}
+.ln-c.is-ok,.ln-c.is-right{background:var(--ok-fill);color:#fff;box-shadow:none}
+.ln-c.is-ok .ln-es,.ln-c.is-right .ln-es{color:#fff}
 .ln-c.is-ok .ln-mk,.ln-c.is-right .ln-mk{display:grid;background:var(--ok-fill);color:#fff;box-shadow:0 0 0 3px var(--card),0 2px 6px rgba(0,0,0,.2)}
-.ln-c.is-right{box-shadow:inset 0 0 0 3px var(--ok)}
 .ln-c.is-miss{background:var(--miss-fill);color:var(--miss-on);box-shadow:none}
 .ln-c.is-miss .ln-es{color:var(--miss-on)}
 .ln-c.is-miss .ln-pic{filter:grayscale(1);opacity:.6}
 .ln-c.is-miss .ln-mk{display:grid;background:var(--miss);color:#fff;box-shadow:0 0 0 3px var(--card),0 2px 6px rgba(0,0,0,.2)}
-.ln-c.ln-now{outline:4px solid var(--brand-tint);outline-offset:3px}
+.ln-c.ln-now{transform:scale(1.04)}   /* la que está sonando (sin anillo: el color ya dice si es la buena) */
 @media (hover:hover){.ln:not(.ln-done) .ln-c:hover{box-shadow:0 1px 3px rgba(0,0,0,.06),inset 0 0 0 2px var(--brand-tint)}}
 .ln-c:focus-visible{outline:3px solid var(--brand-tint);outline-offset:3px}
-.ln-next{display:flex;justify-content:center;align-items:center;min-height:60px;margin-top:12px}
-.ln-next .glass-btn{min-width:180px}
-.gm-bigsay.playing{box-shadow:0 0 0 6px color-mix(in srgb,var(--brand-fill) 30%,transparent)}
-.gm-short .ln-c{min-height:150px;padding:10px 8px}
+.ln .gm-ltxt b{color:var(--ok-ink)}
+/* la tortuga: círculo gris, como la de la lección */
+.ln-slow{width:48px;height:48px;padding:0;border:0;border-radius:50%;display:grid;place-items:center;flex:none;background:var(--fill2);color:var(--label);
+  cursor:pointer;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
+.ln-slow.playing{background:var(--brand-fill);color:#fff}
+.ln-slow:focus-visible,.gm-bigsay:focus-visible{outline:3px solid var(--brand-tint);outline-offset:3px}
+/* «Seguir»: dock fijo abajo, igual que .ls-dock de la lección; el hueco de debajo (.ln-sp) deja ver los puntos */
+.ln-dock{position:fixed;z-index:5;left:max(16px,var(--safe-l),calc(50% - 280px));right:max(16px,var(--safe-r),calc(50% - 280px));
+  bottom:calc(var(--safe-b) + 16px);display:flex;gap:12px;pointer-events:none}
+.ln-dock:empty{display:none}
+.ln-dock>*{pointer-events:auto;flex:1}
+.ln-dock::before{content:"";position:absolute;z-index:-1;left:-16px;right:-16px;top:-20px;bottom:calc(-1 * (var(--safe-b) + 16px));
+  background:linear-gradient(to bottom,transparent,var(--bg) 45%);pointer-events:none}
+.ln-sp{height:calc(var(--btn-main) + 24px)}
+.gm-short .ln-c{min-height:150px;padding:12px 8px}
 .gm-short .ln-c.ln-txt{min-height:112px}
 .gm-short .ln-pic{width:min(88px,60%)}
-.gm-short .ln-next{min-height:52px;margin-top:8px}
+.gm-short .ln-sp{height:calc(var(--btn-main) + 16px)}
 @media (max-width:360px){.ln-w{font-size:1.25rem}}
-@media (prefers-reduced-motion: reduce){.ln-c,.ln-pic{transition:none}}`;
+@media (prefers-reduced-motion: reduce){.ln-c,.ln-pic{transition:none}.ln-c.ln-now{transform:none}}`;
 function css(){
   if(document.getElementById("css-lince")) return;
   const s = document.createElement("style"); s.id = "css-lince"; s.textContent = CSS; document.head.appendChild(s);
@@ -107,15 +120,16 @@ async function start(app, api, mode){
   if(!api.here(my, ID) || lang !== L) return;
   const code = LANGS[lang].code;
   const run = api.mount(app, `<div class="gm ln" id="ln">
-    ${api.topHtml(ID, `<span class="gm-pill" title="Ronda">👂 <span><b id="gm-rd">1</b>/${ROUNDS}</span></span><span class="gm-pill" title="Aciertos">⭐ <b id="gm-sc">0</b></span>`)}
+    ${api.topHtml(ID, `<span class="gm-pill" title="Ronda">${IC("ear", "bold", 18)}<span><b id="gm-rd">1</b>/${ROUNDS}</span></span><span class="gm-pill" title="Aciertos">${IC("star", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
     <div class="gm-listen ln-listen">
       <button type="button" class="gm-bigsay" id="ln-play" aria-label="Escuchar otra vez">${IC("speaker-high", "fill", 34)}</button>
-      <button type="button" class="glass-btn glass-btn--icon" id="ln-slow" aria-label="Escuchar despacio">${IC("turtle", "bold", 24)}</button>
+      <button type="button" class="ln-slow" id="ln-slow" aria-label="Escuchar despacio">${IC("turtle", "fill", 30)}</button>
       <div class="gm-ltxt" id="ln-txt" aria-live="polite">¿Cuál oyes?</div>
     </div>
     <div class="ln-cards" id="ln-cards"></div>
-    <div class="ln-next" id="ln-next"></div>
-    ${api.dotsHtml(ROUNDS)}</div>`, mode);
+    ${api.dotsHtml(ROUNDS)}
+    <div class="ln-sp" id="ln-sp" aria-hidden="true"></div>
+    <div class="ln-dock" id="ln-next"></div></div>`, mode);
   const root = run.root, box = root.querySelector("#ln-cards"), nextBox = root.querySelector("#ln-next"), txt = root.querySelector("#ln-txt");
   const playB = root.querySelector("#ln-play");
   let r = 0, score = 0, cur = null, answered = false, started = false, tok = 0, talkN = 0, fit = null;
@@ -137,11 +151,11 @@ async function start(app, api, mode){
 
   function cardHtml(x, i, pics){
     const {art, base} = splitArt(x.w);
-    return `<button type="button" class="ln-c${pics ? "" : " ln-txt"}" data-i="${i}" data-w="${esc(x.w)}" style="--i:${i}" aria-label="${esc(x.w)}">
+    return `<button type="button" class="ln-c${pics ? "" : " ln-txt"}" data-i="${i}" data-w="${esc(x.w)}" style="--i:${i}">
       ${pics ? `<span class="ln-pic" aria-hidden="true"><img src="${esc(x.img)}" alt="" draggable="false"></span>` : ""}
       <span class="ln-w" lang="${esc(code)}" style="font-size:${wordFs(x.w)}">${art ? `<span class="ln-a">${esc(art)}</span>` : ""}${esc(base)}</span>
       <span class="ln-es" aria-hidden="true">${esc(x.es)}</span>
-      <span class="ln-mk" aria-hidden="true"></span></button>`;
+      <span class="ln-mk" aria-hidden="true"></span><span class="vh ln-st"></span></button>`;
   }
   function round(){
     cur = rounds[r]; answered = false; tok++;
@@ -169,7 +183,7 @@ async function start(app, api, mode){
       /* acierto: verde con ✓ y la palabra suena otra vez; luego, la ronda siguiente */
       score++;
       c.classList.add("is-ok"); c.querySelector(".ln-mk").innerHTML = IC("check", "bold", 20);
-      c.setAttribute("aria-label", `${t.w}: ¡bien!`);
+      c.querySelector(".ln-st").textContent = ": ¡bien!";
       api.haptic("success"); api.snd("ok");
       try{ if(window.M && typeof M.ok === "function") M.ok(c); }catch(e){}
       txt.innerHTML = `¡Muy bien! <b lang="${esc(code)}">${esc(t.w)}</b> = ${esc(t.es)}`;
@@ -186,10 +200,11 @@ async function start(app, api, mode){
     }
     /* fallo: la elegida en gris con ✗ (sin temblor ni sonido triste), la buena con ✓ y suenan las dos para compararlas */
     c.classList.add("is-miss"); c.querySelector(".ln-mk").innerHTML = IC("x", "bold", 18);
-    c.setAttribute("aria-label", `${x.w}: no era esta. Toca para oírla`);
+    c.querySelector(".ln-st").textContent = ": no era esta. Toca para oírla";
     const right = cards().find(el => el.dataset.w === t.w);
-    if(right){ right.classList.add("is-right"); right.querySelector(".ln-mk").innerHTML = IC("check", "bold", 20); right.setAttribute("aria-label", `${t.w}: era esta. Toca para oírla`); }
-    txt.innerHTML = `Sonaba <b lang="${esc(code)}">${esc(t.w)}</b>. ¡Escucha las dos!`;
+    if(right){ right.classList.add("is-right"); right.querySelector(".ln-mk").innerHTML = IC("check", "bold", 20); right.querySelector(".ln-st").textContent = ": era esta. Toca para oírla"; }
+    txt.innerHTML = `¡Casi! Es «<b lang="${esc(code)}">${esc(t.w)}</b>»`;
+    showNext();   /* «Seguir» enseguida; la comparación sigue sonando (next() la corta) */
     const n0 = talkN;
     (async () => {
       await wait(250);
@@ -198,7 +213,6 @@ async function start(app, api, mode){
         await sayCard(w);
         await wait(300);
       }
-      if(tok === my) showNext();
     })();
   }
   function showNext(){
@@ -207,7 +221,7 @@ async function start(app, api, mode){
     nextBox.innerHTML = `<button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="ln-go">${last ? "Ver el premio" : "Seguir"}${IC("caret-right", "bold", 20)}</button>`;
     const b = nextBox.querySelector("#ln-go");
     b.onclick = next;
-    try{ b.focus({preventScroll: true}); }catch(e){}
+    if(api.kbd && api.kbd()) try{ b.focus({preventScroll: true}); }catch(e){}
   }
   function next(){
     if(!answered || !live()) return;
@@ -241,7 +255,7 @@ async function start(app, api, mode){
     else if(k === "t" || k === "T"){ e.preventDefault(); hear(true); }
     else if(k === "Enter" && answered && nextBox.firstChild && !(e.target.closest && e.target.closest("button:not(#ln-go),a"))){ e.preventDefault(); next(); }
   };
-  fit = api.autoFit(run, root.querySelector("#gm-dots"));
+  fit = api.autoFit(run, root.querySelector("#ln-sp"));
   round();
   api.intro(run, ID, () => { started = true; api.keys(run, kb); api.later(run, () => hear(false), RM() ? 200 : 450); });
 }
@@ -250,6 +264,7 @@ const reg = window.vocabGames && typeof vocabGames.register === "function" && vo
   t: "Oído de lince", sub: "¿Cuál suena?", img: "img/games/lince.png",
   how: "Escucha la palabra. Las dos suenan casi igual: toca la que oyes.",
   words: "Palabras que suenan casi igual",
+  fresh: true,   /* chip «Nuevo» en su tarjeta hasta la primera partida */
   rec: b => `${Number.isFinite(+b.score) ? +b.score : 0} de ${ROUNDS}`,
   start,
 });

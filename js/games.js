@@ -14,8 +14,9 @@
            (partidas de hoy) · "vocab:ui".gmIntro (juegos cuya explicación ya se vio; solo de este aparato)
    API: window.vocabGames = {pause(desde), paused, how(desde), openTopics(desde), peek(id, desde), list(), images(),
         register(id, def)}. register: def = {t, sub, how, img, words (texto en lugar del tema), rec(best) → texto del
-        récord, start(app, api, intro)}; start monta el juego con api = {mount, intro, later, keys, live, finish,
-        answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml, dotsHtml, nav, here, nm}. */
+        récord, fresh (chip «Nuevo» en su tarjeta hasta la primera partida), start(app, api, intro)}; start monta el
+        juego con api = {mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml,
+        starsHtml, dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla)}. */
 (() => {
 "use strict";
 
@@ -31,7 +32,8 @@ const GAMES = {
   letras:  {t: "Letras locas",       sub: "Ordena las letras",       img: "img/games/letras.png",  need: 3, how: "Toca las letras en orden (o arrástralas) para escribir la palabra.",
     rec: b => `${num(b.score)} puntos`},
 };
-/* temas con muchas imágenes: [id, dibujo (OpenMoji ya guardado en img/om_<código>.png), nombre, para empezar] */
+/* temas con muchas imágenes: [id, dibujo (OpenMoji ya guardado en img/om_<código>.png), nombre, para empezar].
+   En la hoja de temas van agrupados como en Palabras: «Temas» y «Las 3000» (los documentos wNN); los de empezar, primero */
 const TOPICS = [
   ["animales", "1F436", "Animales", 1], ["colores", "1F3A8", "Colores", 1], ["familia", "1F46A", "Familia", 1], ["w03", "1F34E", "Comida", 1],
   ["w02", "1F4AA", "El cuerpo", 1], ["w04", "1F3E0", "La casa", 1], ["w05", "1F455", "La ropa", 1], ["w07", "1F697", "Transporte", 1],
@@ -42,6 +44,8 @@ const TOPICS = [
   ["w20", "1F4AD", "Sentimientos", 0], ["w10", "1F3EB", "El colegio", 0], ["w11", "1F4BC", "Trabajos", 0], ["w12", "1F6D2", "Compras", 0],
   ["nacionalidades", "1F30E", "Nacionalidades", 0],
 ];
+const W3000 = t => /^w\d+$/.test(t[0]);
+const START = (a, b) => b[3] - a[3];   /* los de empezar, primero (sort estable: el resto, en su orden) */
 const MIS_INFO = [MIS, "2B50", "Mis palabras", 1];
 const MIS_MIN = 8;   /* «Mis palabras» necesita al menos 8 palabras con dibujo en el repaso de este idioma */
 const BALLOONS = ["#1E6EF4", "#008198", "#34C759", "#FFCC00", "#30B0C7", "#d64545", "#22409a", "#4b5563"];
@@ -92,7 +96,7 @@ const live = run => !!run && run.alive && RUN === run && run.root.isConnected;
 /* con la partida en pausa, lo que tocaba hacer espera a que siga */
 function later(run, fn, ms){ const id = setTimeout(() => { if(!live(run)) return; if(run.paused) run.held.push(fn); else fn(); }, ms); run.timers.push(id); return id; }
 function keys(run, fn){ run.keys = e => { if(!live(run)){ document.onkeydown = null; return; } if(run.paused) return; fn(e); }; document.onkeydown = run.keys; }
-const hparts = () => location.hash.replace(/^#\/?/, "").split("/");
+const hparts = () => location.hash.replace(/^#\/?/, "").split("?")[0].split("/");   /* sin el ?query */
 const here = (my, g) => { const h = hparts(); return my === NAV && h[0] === "juegos" && (g === undefined || (h[1] || "") === g); };
 /* lectura segura del almacenamiento (por si alguna clave está estropeada) */
 const obj = (k) => { const v = store.get(k, null); return v && typeof v === "object" && !Array.isArray(v) ? v : {}; };
@@ -336,13 +340,18 @@ const CSS = `
 .gm-name{font:700 var(--fs-head)/1.2 var(--f-round);display:flex;align-items:center;gap:8px;min-width:0;color:var(--label)}
 .gm-name img{flex:none;width:32px;height:32px}
 .gm-name .t{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.gm-help{flex:none;color:var(--label);margin-right:auto}
+/* «?»: el mismo vidrio ligero que la ✕ de la barra de arriba */
+.gm-help{position:relative;flex:none;width:var(--tap);height:var(--tap);padding:0;border:0;border-radius:50%;display:grid;place-items:center;
+  color:var(--label);margin-right:auto;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gm-help:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 /* en el móvil, en modo foco la fila es la barra de arriba (entre la ✕ y las monedas): sin el dibujo del juego para que quepa */
 @media (max-width:560px){:root[data-focus] .gm-name{display:none}}
 .gm-stats{display:flex;gap:6px;flex:none}
-.gm-pill{display:inline-flex;align-items:center;gap:5px;min-height:36px;padding:0 12px;border-radius:999px;background:var(--fill);color:var(--label);
+.gm-pill{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 12px;border-radius:999px;background:var(--fill);color:var(--label);
   font:700 var(--fs-sub)/1 var(--f-round);font-variant-numeric:tabular-nums;white-space:nowrap}
 .gm-pill b{font-size:1.1em}
+.gm-pill>.ico{color:var(--label2)}
+.gm-pill>.ico.gm-gold{color:var(--gold);filter:drop-shadow(0 1px 0 rgba(0,0,0,.14))}
 .gm-pill.bump,.gm-bump{animation:gm-bump .4s}
 @keyframes gm-bump{40%{transform:scale(1.2)}}
 .gm-tip{color:var(--label2);text-align:center;margin:12px 0 0;font:400 var(--fs-note)/1.35 var(--f-text)}
@@ -355,11 +364,15 @@ const CSS = `
 .gm-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:12px;margin:0 0 24px}
 .gm-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:184px;padding:16px;border-radius:var(--r-card);
   background:var(--card);color:var(--label);text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
-.gm-ci{width:64px;height:64px;margin:0 0 10px;pointer-events:none}
+.gm-ci{width:64px;height:64px;margin:0 0 8px;pointer-events:none}
 .gm-ct{font:700 var(--fs-head)/1.2 var(--f-round);color:var(--label)}
 .gm-cs{font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
-.gm-cr{margin-top:auto;padding-top:12px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.gm-rt{font:600 var(--fs-min)/1.2 var(--f-text);color:var(--label2);font-variant-numeric:tabular-nums}
+/* el récord: siempre una sola línea del mismo alto (si no cabe, con «…») */
+.gm-cr{box-sizing:border-box;margin-top:auto;padding-top:12px;height:36px;width:100%;min-width:0;display:flex;align-items:center;gap:8px;white-space:nowrap}
+.gm-cr .gm-st{flex:none}
+.gm-rt{min-width:0;overflow:hidden;text-overflow:ellipsis;font:600 var(--fs-min)/1.2 var(--f-text);color:var(--label2);font-variant-numeric:tabular-nums}
+.gm-new{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;
+  background:var(--gold-soft);color:var(--gold-ink);font:700 var(--fs-min)/1 var(--f-text)}
 .gm-st{display:inline-flex;gap:1px;line-height:0}
 .gm-st i{display:inline-grid;color:var(--fill2,rgba(120,120,128,.24))}
 .gm-st i.on{color:var(--gold)}
@@ -451,14 +464,22 @@ dialog.gm-sh .st-g{background:var(--card)}
 @keyframes gm-up{to{translate:0 -60px;opacity:0}}
 .gm-over{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:rgba(5,15,30,.5);color:#fff;font-size:2rem;font-weight:900;text-align:center;animation:gm-fade .3s;padding:16px}
 .gm-over span{font-size:4rem;line-height:1}
-.gm-lives{letter-spacing:2px}
-.gm-lives i{font-style:normal;display:inline-block}
-.gm-lives i.lost{filter:grayscale(1);opacity:.35}
+/* vidas: corazones dorados; el que se pierde queda en contorno gris (nunca rojo) */
+.gm-lives{gap:2px}
+.gm-lives i{font-style:normal;display:inline-flex;color:var(--gold);filter:drop-shadow(0 1px 0 rgba(0,0,0,.14))}
+.gm-lives i .ico+.ico,.gm-lives i.lost .ico:first-child{display:none}
+.gm-lives i.lost .ico+.ico{display:inline-block}
+.gm-lives i.lost{color:var(--label2);filter:none}
 .gm-lives i.hurt{animation:gm-hurt .6s}
 @keyframes gm-hurt{30%{transform:scale(1.6)}100%{transform:scale(1)}}
 /* globos */
 .gm-listen{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;background:var(--card);border-radius:var(--r-card);padding:12px;margin-bottom:12px;min-height:96px}
-.gm-bigsay{width:72px;height:72px;border-radius:50%;border:0;background:var(--brand-fill);color:#fff;display:grid;place-items:center;flex:none;cursor:pointer}
+/* el altavoz grande, tintado como el de la lección (el único botón relleno de la pantalla es el de seguir) */
+.gm-bigsay{position:relative;width:72px;height:72px;border-radius:50%;border:0;background:var(--brand-soft);color:var(--brand-tint);display:grid;place-items:center;flex:none;cursor:pointer;
+  transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
+.gm-bigsay.playing{background:var(--brand-fill);color:#fff}
+.gm-bigsay.playing::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:3px solid var(--brand-tint);opacity:0;animation:gm-wave .9s ease-out 3;pointer-events:none}
+@keyframes gm-wave{0%{opacity:.55;scale:.9}100%{opacity:0;scale:1.28}}
 .gm-bigsay.ring{animation:gm-ring 1.1s ease-out 2}
 @keyframes gm-ring{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--brand-fill) 55%,transparent)}100%{box-shadow:0 0 0 22px transparent}}
 .gm-ltxt{flex-basis:100%;text-align:center;color:var(--label2);font:600 var(--fs-sub)/1.3 var(--f-text);min-height:1.5em}
@@ -540,8 +561,10 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-plus .coin-ico{width:24px;height:24px;flex:none}
 .gm-end-n{margin:4px 0 0;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
 .gm-wt{margin:16px 0 8px;font:600 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
-.gm-wl{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-.gm-wc{display:inline-flex;align-items:center;gap:8px;min-height:52px;border:0;background:var(--fill);color:var(--label);border-radius:14px;padding:4px 12px 4px 4px;text-align:left;font:inherit;cursor:pointer}
+/* las palabras del juego: rejilla de 2 columnas, cada palabra a lo ancho de su columna y alineada a la izquierda */
+.gm-wl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;max-width:440px;margin:0 auto}
+.gm-wc{display:flex;width:100%;min-width:0;align-items:center;gap:8px;min-height:52px;border:0;background:var(--fill);color:var(--label);border-radius:14px;padding:4px 12px 4px 4px;text-align:left;font:inherit;cursor:pointer}
+.gm-wc>span:not(.gm-wn){flex:1;min-width:0;overflow-wrap:anywhere}
 @media (hover:hover){.gm-wc:hover{box-shadow:inset 0 0 0 2px var(--brand-tint)}}
 .gm-wc img,.gm-wc .gm-wn{width:40px;height:40px;object-fit:contain;background:var(--gm-tile);border-radius:10px;padding:3px;flex:none}
 .gm-wc .gm-wn{display:grid;place-items:center;color:var(--brand-tint);background:var(--card)}
@@ -553,10 +576,15 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-end-b>*{flex:1}
 @media (max-width:560px){
   .gm-name .t{display:none}
-  .gm-pill{padding:0 10px}
-  .gm-card{min-height:176px;padding:14px}
+  .gm-pill{padding:0 12px}
+  .gm-card{min-height:176px;padding:12px}
   .gm-ci{width:56px;height:56px}
-  .gm-board{grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+  .gm-board{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  /* dos columnas en el móvil; si sobra una tarjeta, va a lo ancho (dibujo a la izquierda) */
+  .gm-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gm-card:last-child:nth-child(odd){grid-column:1/-1;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:16px;align-content:center;align-items:center}
+  .gm-card:last-child:nth-child(odd) .gm-ci{grid-row:1/4;margin:0}
+  .gm-card:last-child:nth-child(odd) .gm-cr{padding-top:4px}
   .gm-mc{aspect-ratio:1/1.08}
   .gm-catch{gap:8px;padding-left:12px}
   .gm-catch b{font-size:1.35rem}
@@ -609,13 +637,18 @@ function topHtml(g, stats){
   const G0 = GAMES[g];
   return `<div class="gm-top"><a class="gm-x" href="#/juegos" aria-label="Salir del juego">${IC("x", "bold", 20)}</a>
     <div class="gm-name"><img src="${esc(G0.img)}" alt="" width="32" height="32" draggable="false"><span class="t">${esc(G0.t)}</span></div>
-    <button type="button" class="glass-btn glass-btn--icon gm-help" data-gm-how aria-label="Cómo se juega">${IC("question", "bold", 22)}</button>
+    <button type="button" class="glass lite gm-help" data-gm-how aria-label="Cómo se juega">${IC("question", "bold", 22)}</button>
     <div class="gm-stats">${stats}</div></div>`;
 }
 function bump(el){ if(!el) return; el.classList.remove("gm-bump"); void el.offsetWidth; el.classList.add("gm-bump"); }
 /* vibración cortita (G.haptic de js/gestures.js: respeta el Sonido; en el iPhone tiene que ir dentro del toque).
    Solo al acertar ("success") o al elegir ("selection"); al fallar, nada. */
 const haptic = k => { try{ if(window.G && typeof window.G.haptic === "function") window.G.haptic(k); }catch(e){} };
+/* ¿se juega con el teclado? (la última entrada fue una tecla). Solo entonces se enfoca solo el botón principal: al
+   cargar o al tocar, sin anillo de foco */
+let KBD = false;
+addEventListener("keydown", e => { if(e.key !== "Shift") KBD = true; }, {capture: true, passive: true});
+addEventListener("pointerdown", () => { KBD = false; }, {capture: true, passive: true});
 /* pantallas bajitas (móvil pequeño): si el juego no cabe, versión compacta .gm-short */
 function autoFit(run, el, after){
   const chk = keep => {
@@ -627,6 +660,8 @@ function autoFit(run, el, after){
   const onR = () => chk(false);
   addEventListener("resize", onR); run.clean.push(() => removeEventListener("resize", onR));
   chk(false);
+  /* otra vez antes de pintar: el modo foco (sin barras de arriba) entra justo después de montar la partida */
+  requestAnimationFrame(() => chk(false));
   return chk;
 }
 /* que cada palabra quepa en su carta sin partirse por la mitad */
@@ -671,15 +706,19 @@ function intro(run, g, go){
     if(e.key === "Escape") return;   /* Esc es la pausa (el oyente de arriba), nunca salir de golpe */
     if((e.key === "Enter" || e.key === " ") && !(e.target.closest && e.target.closest("a,#gm-in-how"))){ e.preventDefault(); goNow(); }
   });
-  try{ b.focus({preventScroll: true}); }catch(e){}
+  if(KBD) try{ b.focus({preventScroll: true}); }catch(e){}
 }
 
 /* ---------- menú ---------- */
 const recLine = (g, b) => b && typeof b === "object" && GAMES[g].rec ? GAMES[g].rec(b) : "Sin récord";
+/* una frase con su punto final, salvo si ya acaba en «?», «!», «.» o «…» */
+const sent = t => /[.?!…]$/.test(t) ? t : t + ".";
 function cardHtml(id, b){
   const G0 = GAMES[id], st = b && typeof b === "object" ? Math.max(0, Math.min(3, num(b.stars))) : 0, rec = recLine(id, b);
+  const fresh = !!G0.fresh && !b;   /* un juego nuevo lleva «Nuevo» hasta su primera partida */
   return `<a class="gm-card card" href="#/juegos/${esc(id)}" data-g="${esc(id)}" draggable="false"
-    aria-label="${esc(G0.t)}. ${esc(G0.sub)}. ${b ? `Récord: ${esc(rec)}, ${st} de 3 estrellas` : "Sin récord todavía"}">
+    aria-label="${fresh ? "Nuevo. " : ""}${esc(sent(G0.t))} ${G0.sub ? esc(sent(G0.sub)) + " " : ""}${b ? `Récord: ${esc(rec)}, ${st} de 3 estrellas` : "Sin récord todavía"}">
+    ${fresh ? `<span class="gm-new" aria-hidden="true">Nuevo</span>` : ""}
     <img class="gm-ci" src="${esc(G0.img)}" alt="" width="64" height="64" draggable="false">
     <b class="gm-ct">${esc(G0.t)}</b><small class="gm-cs">${esc(G0.sub)}</small>
     <span class="gm-cr" aria-hidden="true">${starsHtml(st, 18)}<span class="gm-rt">${esc(rec)}</span></span></a>`;
@@ -699,12 +738,12 @@ async function menu(){
   $("#gm-cards").addEventListener("click", e => { if(e.target.closest(".gm-card")) unlockVoice(); });
   /* mantener pulsado = vistazo (cómo se juega y el récord) */
   if(window.G && typeof window.G.hold === "function") cards.forEach(c => GEST.push(window.G.hold(c, {onHold: () => { haptic("selection"); peek(c.dataset.g, c); }})));
-  /* la pista del vistazo (una por pantalla y sesión, 3 veces como mucho; nunca en partida). Sale encima de su tarjeta:
-     la primera de la segunda fila (o, con una sola fila, la última) para no tapar la pastilla del tema */
+  /* la pista del vistazo (una por pantalla y sesión, 3 veces como mucho; nunca en partida). Sale debajo de la primera
+     tarjeta, sobre la parte de arriba (el dibujo) de la fila siguiente: no tapa ni la pastilla del tema ni ningún récord */
   setTimeout(() => {
-    const c = cards.find(x => x.offsetTop > cards[0].offsetTop + 8) || cards[cards.length - 1];
+    const c = cards[0];
     if(!here(my) || !c || !c.isConnected || !window.G || typeof window.G.hint !== "function") return;
-    try{ window.G.hint(c, {id: "gm-peek", gesture: "hold", text: "Mantén para ver"}); }catch(e){}
+    try{ window.G.hint(c, {id: "gm-peek", gesture: "hold", text: "Mantén para ver", side: "bottom"}); }catch(e){}
   }, 900);
   /* «Mis palabras» elegido sin palabras suficientes (otro idioma, o un repaso pequeño): vuelve a Animales */
   if(topicId() === MIS){
@@ -740,8 +779,8 @@ function openTopics(from){
     <p class="gm-tp-sub">Los juegos usan sus dibujos y sus palabras en ${esc(nm())}.</p>
     <div role="radiogroup" aria-labelledby="gm-tp-t">
       <section class="st-sec"><div class="st-g" id="gm-tp-mis">${misRow(MIS_LANG === lang ? MIS_N : null)}</div></section>
-      <section class="st-sec" aria-labelledby="gm-tp-h1"><h3 class="st-h" id="gm-tp-h1">Para empezar</h3><div class="st-g">${TOPICS.filter(t => t[3]).map(t => row(t)).join("")}</div></section>
-      <section class="st-sec" aria-labelledby="gm-tp-h2"><h3 class="st-h" id="gm-tp-h2">Más temas</h3><div class="st-g">${TOPICS.filter(t => !t[3]).map(t => row(t)).join("")}</div></section>
+      <section class="st-sec" aria-labelledby="gm-tp-h1"><h3 class="st-h" id="gm-tp-h1">Temas</h3><div class="st-g">${TOPICS.filter(t => !W3000(t)).sort(START).map(t => row(t)).join("")}</div></section>
+      <section class="st-sec" aria-labelledby="gm-tp-h2"><h3 class="st-h" id="gm-tp-h2">Las 3000</h3><div class="st-g">${TOPICS.filter(W3000).sort(START).map(t => row(t)).join("")}</div></section>
     </div>`;
   sheetOpen(d, from);
   if(MIS_LANG !== lang || MIS_N === null) countMis().then(n => { const box = d.querySelector("#gm-tp-mis"); if(box && d.open) box.innerHTML = misRow(n); });
@@ -780,7 +819,7 @@ function peek(id, from){
     <div class="gm-pk"><img class="gm-pk-i" src="${esc(G0.img)}" alt="" width="72" height="72" draggable="false"><p class="gm-pk-p">${esc(G0.how)}</p></div>
     <div class="st-g gm-pk-g">
       <div class="gm-pk-r"><span>Récord</span>${b ? `<span class="gm-st-l" role="img" aria-label="${st} de 3 estrellas">${starsHtml(st, 20)}</span><b>${esc(recLine(id, b))}</b>` : "<b>Aún sin récord</b>"}</div>
-      <div class="gm-pk-r"><span>Palabras</span><b>${esc(G0.words || topicName(topicId()))}</b></div>
+      <div class="gm-pk-r">${G0.words ? `<b>${esc(G0.words)}</b>` : `<span>Palabras</span><b>${esc(topicName(topicId()))}</b>`}</div>
       ${b && num(b.plays) ? `<div class="gm-pk-r"><span>Partidas</span><b>${num(b.plays)}</b></div>` : ""}
     </div>
     <a class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" href="#/juegos/${esc(id)}" data-go>${IC("play", "fill", 22)}Jugar</a>`;
@@ -886,7 +925,7 @@ function memoria(app, P, mode){
   const cards = shuffle(items.flatMap((it, i) => [{i, kind: "img", it}, {i, kind: "word", it}]));
   preload(items);
   const run = mount(app, `<div class="gm gm-mem">
-    ${topHtml("memoria", `<span class="gm-pill" title="Intentos">🔁 <b id="gm-tries">0</b></span><span class="gm-pill" title="Parejas">✅ <span><b id="gm-pairs">0</b>/${N}</span></span>`)}
+    ${topHtml("memoria", `<span class="gm-pill" title="Intentos">${IC("arrow-counter-clockwise", "bold", 18)}<b id="gm-tries">0</b></span><span class="gm-pill" title="Parejas">${IC("check-circle", "fill", 18)}<span><b id="gm-pairs">0</b>/${N}</span></span>`)}
     <div class="gm-board" id="gm-board">${cards.map((c, k) => `
       <button class="gm-mc" data-k="${k}" data-press="sink" aria-label="Carta tapada">
         <span class="gm-mc-in"><span class="gm-mc-f gm-mc-back" aria-hidden="true"><span>?</span></span>
@@ -937,7 +976,7 @@ function lluvia(app, P, mode){
   const DUR = 60, LIVES = 3;
   preload(P.slice(0, 40));
   const run = mount(app, `<div class="gm gm-rain">
-    ${topHtml("lluvia", `<span class="gm-pill gm-lives" id="gm-lives" aria-label="Vidas">${"<i>❤️</i>".repeat(LIVES)}</span><span class="gm-pill" title="Atrapadas">⭐ <b id="gm-sc">0</b></span>`)}
+    ${topHtml("lluvia", `<span class="gm-pill gm-lives" id="gm-lives" role="img" aria-label="${LIVES} vidas">${`<i>${IC("heart", "fill", 18)}${IC("heart", "bold", 18)}</i>`.repeat(LIVES)}</span><span class="gm-pill" title="Atrapadas">${IC("star", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
     <div class="gm-catch"><span class="gm-catch-l">Atrapa:</span><b id="gm-tg">…</b><button type="button" class="gm-say" id="gm-say" aria-label="Escuchar la palabra">${IC("speaker-high", "fill", 26)}</button></div>
     <div class="gm-tbar" id="gm-tbar"><i id="gm-tb"></i></div>
     <div class="gm-sky" id="gm-sky"><span class="gm-cl c1">☁️</span><span class="gm-cl c2">☁️</span><span class="gm-cl c3">☁️</span></div>
@@ -1011,7 +1050,7 @@ function lluvia(app, P, mode){
       missed.add(target.k);
       floatTxt(b, `✗ ${b.it.es}`, true);
       const L = $("#gm-lives");
-      if(L){ const hs = L.querySelectorAll("i"); const h = hs[lives]; if(h){ h.classList.add("lost", "hurt"); } }
+      if(L){ const hs = L.querySelectorAll("i"); const h = hs[lives]; if(h){ h.classList.add("lost", "hurt"); } L.setAttribute("aria-label", lives === 1 ? "1 vida" : `${Math.max(0, lives)} vidas`); }
       const el = b.el; later(run, () => { el.classList.add("gone"); }, 380); later(run, () => el.remove(), 800);
       if(lives <= 0) end(false);
     }
@@ -1072,7 +1111,7 @@ function globos(app, P, mode){
   order = order.slice(0, R);
   preload(P.slice(0, 40));
   const run = mount(app, `<div class="gm gm-bal-g">
-    ${topHtml("globos", `<span class="gm-pill" title="Ronda">🎈 <span><b id="gm-rd">1</b>/${R}</span></span><span class="gm-pill" title="Aciertos">⭐ <b id="gm-sc">0</b></span>`)}
+    ${topHtml("globos", `<span class="gm-pill" title="Ronda">${IC("balloon", "fill", 18)}<span><b id="gm-rd">1</b>/${R}</span></span><span class="gm-pill" title="Aciertos">${IC("star", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
     <div class="gm-listen" id="gm-listen">
       <button type="button" class="gm-bigsay" id="gm-play" aria-label="Escuchar la palabra">${IC("speaker-high", "fill", 34)}</button>
       <button type="button" class="glass-btn glass-btn--icon" id="gm-slow" aria-label="Escuchar despacio">${IC("turtle", "bold", 24)}</button>
@@ -1146,7 +1185,7 @@ function letras(app, P, mode){
   const NW = list.length;
   preload(list.map(o => o.it));
   const run = mount(app, `<div class="gm gm-let">
-    ${topHtml("letras", `<span class="gm-pill" title="Palabra">🔤 <span><b id="gm-wn">1</b>/${NW}</span></span><span class="gm-pill" title="Puntos">⭐ <b id="gm-sc">0</b></span>`)}
+    ${topHtml("letras", `<span class="gm-pill" title="Palabra">${IC("text-aa", "bold", 18)}<span><b id="gm-wn">1</b>/${NW}</span></span><span class="gm-pill" title="Puntos">${IC("star", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
     <div class="gm-lt" id="gm-lt"></div>
     ${dotsHtml(NW)}</div>`, mode);
   const box = run.root.querySelector("#gm-lt");
@@ -1325,7 +1364,7 @@ function letras(app, P, mode){
 
 /* ---------- juegos de otros módulos ---------- */
 const API = Object.freeze({mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml, dotsHtml, nm,
-  nav: () => NAV, here: (my, g) => here(my, g)});
+  nav: () => NAV, here: (my, g) => here(my, g), kbd: () => KBD});
 function register(id, def){
   if(typeof id !== "string" || !/^[a-z][a-z0-9-]*$/.test(id) || GAMES[id] || !def || typeof def.start !== "function" || !def.t || !def.img) return false;
   GAMES[id] = Object.assign({sub: "", how: "", need: 0}, def);

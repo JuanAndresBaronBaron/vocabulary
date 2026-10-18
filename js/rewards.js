@@ -92,7 +92,7 @@ const achDate = id => {
 };
 
 /* ---------- piezas ---------- */
-const ring = (p, cls = "") => `<svg class="rw-rs ${cls}" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle class="rw-rb" cx="18" cy="18" r="15.5" pathLength="100"/><circle class="rw-rf${p > 0 ? "" : " zero"}" cx="18" cy="18" r="15.5" pathLength="100" stroke-dasharray="${(Math.max(0, Math.min(1, p)) * 100).toFixed(1)} 100"/></svg>`;
+const ring = (p, cls = "") => `<svg class="rw-rs ${cls}" viewBox="0 0 36 36" aria-hidden="true" focusable="false"><circle class="rw-rb" cx="18" cy="18" r="15.5" pathLength="100"/>${p > 0 ? `<circle class="rw-rf" cx="18" cy="18" r="15.5" pathLength="100" stroke-dasharray="${(Math.min(1, p) * 100).toFixed(1)} 100"/>` : ""}</svg>`;   /* al 0 % no hay arco (ni el puntito del extremo redondo) */
 const medalFace = (a, big) => `<span class="rw-mc${a.ok ? " ok" : " lock"}${big ? " big" : ""}" aria-hidden="true"><span class="rw-me">${esc(a.e)}</span></span>`;
 const barHtml = (a, cls = "") => `<div class="rw-pb ${cls}" aria-hidden="true"><i style="width:${(100 * Math.min(1, a.v / a.goal)).toFixed(1)}%"></i></div>`;
 function medalBtn(a){
@@ -103,7 +103,7 @@ function medalBtn(a){
 function weekHtml(st){
   const days = week();
   return `<section class="card rw-week" aria-labelledby="rw-st">
-    <div class="rw-fl"><span class="rw-flame${st ? "" : " off"}" aria-hidden="true">${ico("flame", "fill", 56)}</span>
+    <div class="rw-fl"><span class="rw-flame${st ? "" : " off"}" aria-hidden="true">${ico("fire", "fill", 56)}</span>
       <div class="rw-fl-t"><b class="rw-n t-num" id="rw-st">${st}</b><span>${st ? plural(st, "día seguido", "días seguidos") : "¡Empieza tu racha hoy!"}</span></div></div>
     <ol class="rw-days" aria-label="Esta semana">${days.map(d => {
       const lbl = `${d.name}${d.today ? ", hoy" : ""}: ${d.done ? "practicaste" : d.future ? "aún no ha llegado" : d.today ? "aún no has practicado" : "sin practicar"}`;
@@ -205,7 +205,7 @@ function openMedal(id, from){
   d.innerHTML = `<div class="m-head"><h2 id="rw-sh-t">${esc(a.t)}</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
     <div class="rw-sh">
       ${medalFace(a, true)}
-      <p class="rw-sh-st${a.ok ? " ok" : ""}">${a.ok ? `${ico("check-circle", "fill", 22)}<span>${when ? `¡Conseguida el ${esc(when)}!` : "¡Conseguida!"}</span>` : `<span>Aún no la tienes</span>`}</p>
+      <p class="rw-sh-st${a.ok ? " ok" : ""}">${a.ok ? `${ico("check-circle", "fill", 22)}<span>${when ? `¡Conseguida el ${esc(when)}!` : "¡Conseguida!"}</span>` : `<span>¡A por ella!</span>`}</p>
       <div class="rw-sh-g">
         <h3 class="st-h">Cómo se gana</h3>
         <p class="rw-sh-how">${esc(a.d)}</p>
@@ -236,7 +236,7 @@ const heroSize = () => matchMedia("(min-width:820px)").matches ? 168 : 132;
 function wornHtml(){
   const g = game(), parts = ["hat", "face", "hand", "pet"].map(t => g.wear && g.wear[t] ? itemById(g.wear[t]) : null).filter(Boolean);
   if(!parts.length) return `<span class="mz-none">¡Elige algo para ponerte!</span>`;
-  return parts.map(it => `<span class="mz-chip"><span aria-hidden="true">${esc(it.e || "")}</span>${esc(it.n)}</span>`).join("");
+  return parts.map(it => `<span class="mz-chip"><span class="mz-ci" aria-hidden="true">${W.vocabShop ? vocabShop.img(it.id) : esc(it.e || "")}</span>${esc(it.n)}</span>`).join("");   /* el mismo dibujo que la pieza */
 }
 function heroName(){
   const id = W.vocabShop ? vocabShop.worn("hero") : "zorro", it = itemById(id) || itemById("zorro");
@@ -337,7 +337,7 @@ const CSS = `
 .rw-fl-t{display:flex;flex-direction:column;min-width:0}
 .rw-n{font:700 calc(2.75rem*var(--k))/1 var(--f-round);color:var(--label)}
 .rw-fl-t span{font:400 var(--fs-sub)/1.25 var(--f-text);color:var(--label2)}
-.rw-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:14px 0 0;padding:0;list-style:none}
+.rw-days{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:16px 0 0;padding:0;list-style:none}
 .rw-d{display:flex;flex-direction:column;align-items:center;gap:4px}
 .rw-dot{display:grid;place-items:center;width:min(36px,100%);aspect-ratio:1;border-radius:50%;background:var(--fill);color:var(--gold-on)}
 .rw-d.on .rw-dot{background:var(--gold)}
@@ -362,7 +362,6 @@ const CSS = `
 .rw-rs circle{fill:none;stroke-width:4;stroke-linecap:round}
 .rw-rb{stroke:var(--fill)}
 .rw-rf{stroke:var(--lc)}
-.rw-rf.zero{stroke:none}
 :root[data-theme=dark] .rw-rf{stroke:color-mix(in srgb,var(--lc) 60%,#fff)}
 .rw-lv.full .rw-rf{stroke:var(--gold)}
 .rw-ring b{position:relative;display:grid;place-items:center;font:700 var(--fs-note)/1 var(--f-round);color:var(--label)}
@@ -370,7 +369,7 @@ const CSS = `
 .rw-lv small{font:600 var(--fs-min)/1.2 var(--f-text);color:var(--label2)}
 /* próxima medalla */
 .rw-next .rw-h2{margin-bottom:10px}
-.rw-nx{display:flex;align-items:center;gap:14px;width:100%;margin:0;padding:0;border:0;background:none;color:var(--label);text-align:left;cursor:pointer}
+.rw-nx{display:flex;align-items:center;gap:12px;width:100%;margin:0;padding:0;border:0;background:none;color:var(--label);text-align:left;cursor:pointer}
 .rw-nx-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .rw-nx-t b{font:600 var(--fs-sub)/1.25 var(--f-text)}
 .rw-nx-t>span{font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
@@ -394,7 +393,7 @@ const CSS = `
 /* medallas */
 .rw-mh{margin:8px 0 10px 4px}
 .rw-meds{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 8px}
-.rw-m{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:0;margin:0;padding:6px 2px;border:0;border-radius:var(--r-md);background:none;color:var(--label);cursor:pointer}
+.rw-m{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;margin:0;padding:8px 4px;border:0;border-radius:var(--r-md);background:none;color:var(--label);cursor:pointer}
 .rw-mc{position:relative;flex:none;display:grid;place-items:center;width:64px;height:64px;border-radius:50%;background:var(--gold-soft);box-shadow:inset 0 0 0 3px var(--gold);backface-visibility:visible}
 .rw-mc.lock{background:var(--fill);box-shadow:none}
 .rw-me{font-size:34px;line-height:1}
@@ -419,7 +418,7 @@ dialog.rw-sh-d{max-width:520px}
 /* (texto en el color normal: la hoja de vidrio claro sobre el fondo oscurecido queda gris y el oro no llega a 4,5:1) */
 .rw-sh-c{display:inline-flex;align-items:center;gap:6px;margin:6px 0 0;font:600 var(--fs-note)/1.3 var(--f-text);color:var(--label)}
 /* Mi zorro */
-.mz{display:flex;flex-direction:column;gap:16px}
+.mz{display:flex;flex-direction:column;gap:16px;max-width:960px}
 .mz-hero{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 16px 18px;text-align:center}
 .mz-fox{display:grid;place-items:center;min-height:calc(132px * 1.25 + 8px);padding-top:8px}
 .mz-name{margin:0;font:700 var(--fs-t3)/1.2 var(--f-round);color:var(--label)}
@@ -429,6 +428,16 @@ dialog.rw-sh-d{max-width:520px}
 .mz-seg{overflow-x:auto;scrollbar-width:none;margin:0 0 12px;max-width:none}
 .mz-seg::-webkit-scrollbar{display:none}
 .mz-seg .seg-i{flex:1 0 auto;padding:0 12px}
+/* en el móvil los 5 tipos no caben en un segmentado: fichas que pasan a otra fila (todas a la vista, sin scroll oculto) */
+@media (max-width:819px){
+  .mz-seg{flex-wrap:wrap;gap:8px;min-height:0;padding:0;border-radius:0;background:none;overflow:visible}
+  .mz-seg .seg-i{flex:0 0 auto;padding:0 16px;background:var(--fill2)}
+  .mz-seg .seg-i[aria-selected=true]{background:var(--brand-soft);color:var(--brand-ink);box-shadow:inset 0 0 0 2px var(--brand-tint)}
+  :root[data-theme=dark] .mz-seg .seg-i[aria-selected=true]{background:var(--brand-soft);color:var(--brand-ink)}
+}
+.mz-ci{display:grid;place-items:center;width:24px;height:24px}
+.mz-ci .pj{display:block;width:24px;height:24px;object-fit:contain}
+.mz-ci .pj-fb{font-size:18px;line-height:1}
 .mz-tic{display:grid;place-items:center;width:30px;height:30px}
 .mz-tic .hero{font-size:24px}
 @media (min-width:820px){

@@ -3,7 +3,7 @@
      actual (srsAll() tiene "doc|es") y es DORADA cuando está dominada (caja b >= MASTER).
    - #/album (portada): un anillo con lo conseguido (verde azulado; la parte dorada, en oro) y una línea «91 de 6327
      pegatinas»; los temas con pegatinas nuevas sin pegar (filas); un control segmentado con las partes del álbum
-     (Temas · Las 3000 · Expertos, con el nº de nuevas en su aviso) y las miniaturas de esa parte sobre fondo neutro,
+     (Temas · Las 3000 · Avanzado, con el nº de nuevas en su aviso) y las miniaturas de esa parte sobre fondo neutro,
      cada una con su anillo de progreso. La parte elegida se guarda en store "album:tab".
    - #/album/<docId> (página de un tema): «‹ Álbum» y la pastilla «Tema: … ▾», que abre una hoja con los temas de cada
      parte (control segmentado arriba) para saltar a otro; la cabecera con su anillo, «9 de 26 pegatinas» y el sello
@@ -43,7 +43,7 @@ function hash(s){ let h = 2166136261 >>> 0; for(const c of String(s)){ h ^= c.co
 /* color de las iniciales de las pegatinas sin dibujo: azul marino, azul, verde azulado, verde y gris (texto blanco legible) */
 const PAL = ["#1f6fd1", "#117c74", "#23803f", "#22409a", "#0f3d75", "#4b5563", "#1a7f9e"];   /* todos con texto blanco a 4,5:1 */
 const colorOf = s => PAL[hash(s) % PAL.length];
-const tilt = k => ((hash(k) % 800) / 100 - 4).toFixed(2);              /* giro estable entre -4° y 4° */
+const tilt = k => ((hash(k) % 500) / 100 - 2.5).toFixed(2);            /* giro estable entre -2,5° y 2,5° (no rebasa la tarjeta) */
 const delay = k => ((hash("d" + k) % 300) / 100).toFixed(2);           /* desfase estable de animaciones */
 
 const K = {
@@ -59,7 +59,7 @@ const now = () => (typeof performance !== "undefined" ? performance.now() : Date
 const GROUPS = [
   {g: "temas",    tab: "Temas"},
   {g: "3000",     tab: "Las 3000"},
-  {g: "avanzado", tab: "Expertos"},
+  {g: "avanzado", tab: "Avanzado"},
 ];
 const EMO_ID = {animales: "🐶", colores: "🎨", familia: "👪", nacionalidades: "🧑‍🤝‍🧑", paises: "🌍", profesiones: "👷", numeros: "🔢"};
 const EMO_RX = [
@@ -156,7 +156,7 @@ const ringHtml = (x, cls = "") => `<span class="al-ring${cls}">${ringSvg(x.t ? x
 
 /* ---------- estilos ---------- */
 const CSS = `
-.al-st[hidden],.al-sec[hidden],.al-ths[hidden],.al-empty[hidden],.al-pall[hidden]{display:none!important}
+.al-st[hidden],.al-sec[hidden],.al-ths[hidden],.al-empty[hidden],.al-pall[hidden],.al-tip[hidden]{display:none!important}
 .al{display:flex;flex-direction:column;gap:12px;max-width:960px}
 .al .card{padding:16px}
 .al .seg{margin:0}
@@ -171,7 +171,7 @@ const CSS = `
 .al-full .al-rf,.al-th.full .al-rf{stroke:var(--gold)}
 .al-ring-e{position:relative;font-size:28px;line-height:1}
 /* portada */
-.al-sum{display:flex;align-items:center;gap:14px}
+.al-sum{display:flex;align-items:center;gap:16px}
 .al-sum .al-ring{width:68px;height:68px}
 .al-sum-t{flex:1;min-width:0;margin:0;font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
 .al-sum-t b{font:700 var(--fs-t2)/1 var(--f-round);color:var(--label)}
@@ -201,7 +201,7 @@ const CSS = `
 .al-bar .al-tpill{flex:0 1 auto;min-width:0;max-width:100%;gap:6px;font-weight:400}
 .al-tpill b{min-width:0;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .al-tpill .ico{flex:none;color:var(--label2)}
-.al-ph{position:relative;display:flex;align-items:center;gap:14px}
+.al-ph{position:relative;display:flex;align-items:center;gap:16px}
 .al-ph .al-ring{width:72px;height:72px}
 .al-ph .al-ring-e{font-size:32px}
 .al-ph-tx{flex:1;min-width:0}
@@ -227,9 +227,9 @@ const CSS = `
 @keyframes al-turnin{from{opacity:0;transform:perspective(1400px) rotateY(8deg);transform-origin:left center}to{opacity:1;transform:none}}
 @keyframes al-in-n{from{opacity:0;transform:translateX(64px)}to{opacity:1;transform:none}}
 @keyframes al-in-p{from{opacity:0;transform:translateX(-64px)}to{opacity:1;transform:none}}
-.al-sec+.al-sec{margin-top:22px}
-.al-cat{margin:0 4px 12px;font:600 var(--fs-min)/1.2 var(--f-text);letter-spacing:.04em;text-transform:uppercase;color:var(--label2)}
-.al-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:18px 16px}
+.al-sec+.al-sec{margin-top:24px}
+.al-cat{margin:0 4px 12px;font:600 var(--fs-note)/1.2 var(--f-text);color:var(--label2)}
+.al-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:16px}
 .al-empty{text-align:center;color:var(--label2);font:600 var(--fs-sub)/1.4 var(--f-text);padding:26px 10px}
 .al-st{position:relative;display:flex;flex-direction:column;align-items:stretch;padding:7px 7px 8px;border:0;border-radius:16px;background:#fff;color:#16202c;
   box-shadow:0 1px 0 rgba(15,30,50,.1),0 6px 14px rgba(15,30,50,.16);transform:rotate(var(--r,0deg));transition:transform .15s,box-shadow .15s;text-align:center;
@@ -241,10 +241,10 @@ const CSS = `
 .al-face img{width:80%;height:80%;object-fit:contain;background:transparent!important}
 .al-ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--pc);color:#fff;font-weight:900;font-size:2.6rem;text-shadow:0 2px 0 rgba(0,0,0,.2);border-radius:inherit}
 .al-ini.l3{font-size:2rem}.al-ini.l4{font-size:1.6rem}
-.al-num{position:absolute;left:5px;top:4px;z-index:1;font-size:.66rem;font-weight:900;color:rgba(22,32,44,.75);background:rgba(255,255,255,.8);border-radius:6px;padding:0 4px}
-.al-lb{display:flex;flex-direction:column;justify-content:center;padding:6px 2px 0;line-height:1.15;min-height:2.7em}
-.al-lb b{font-size:.92rem;overflow-wrap:anywhere}
-.al-lb small{font-size:.72rem;color:#5b6778;overflow-wrap:anywhere}
+.al-num{position:absolute;left:4px;top:4px;z-index:1;font:700 var(--fs-min)/1.3 var(--f-text);color:rgba(22,32,44,.8);background:rgba(255,255,255,.85);border-radius:8px;padding:0 4px}
+.al-lb{display:flex;flex-direction:column;justify-content:center;gap:2px;padding:8px 2px 0;line-height:1.15;min-height:2.7em}
+.al-lb b{font:600 var(--fs-sub)/1.15 var(--f-text);overflow-wrap:anywhere}
+.al-lb small{font:400 var(--fs-min)/1.2 var(--f-text);color:#4f5a6a;overflow-wrap:anywhere}
 .al-st.gold{background:linear-gradient(135deg,#FFF6D1 0%,#FFCC00 30%,#FFF5CC 50%,#E6B800 75%,#FFE066 100%)}
 .al-st.gold .al-face{background:#fffaf0}
 /* un solo brillo al entrar (sin bucle) */
@@ -259,7 +259,7 @@ const CSS = `
 [data-theme=dark] .al-st.lock .al-face img{filter:url(#al-sil) invert(1);opacity:.15}
 .al-st.lock .al-num{background:none;color:var(--label2)}
 .al-q{position:absolute;font-size:2.3rem;font-weight:900;color:var(--label2)}
-.al-st.lock .al-lb b{color:var(--label2);font-size:.8rem}
+.al-st.lock .al-lb b{color:var(--label2);font-size:var(--fs-min)}
 @media (hover:hover){.al-st.lock:hover{transform:translateY(-2px);box-shadow:none;border-color:var(--brand-tint)}}
 .al-pack{position:absolute;inset:-4px;z-index:4;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#fff;
   background:linear-gradient(135deg,#1E6EF4,#008198);box-shadow:inset 0 0 0 3px rgba(255,255,255,.75),0 6px 14px rgba(15,30,50,.25);transform-origin:0 0;pointer-events:none}
@@ -325,12 +325,19 @@ dialog.al-tp-d{max-width:560px}
 [data-theme=dark] .al-cf-img.lk img{filter:url(#al-sil) invert(1);opacity:.18}
 .al-cf-img.lk .al-q{font-size:4.2rem}
 .al-cf-w{font:700 2rem/1.1 var(--f-round);overflow-wrap:anywhere;margin-top:4px}
-.al-cf .sayg{gap:10px}
-.al-cf .say{width:54px;height:54px;font-size:1.45rem}
-.al-cf .say.sm{width:44px;height:44px;font-size:1.1rem;margin-left:2px}
-.al-cf-alt{font-size:.95rem;color:var(--label2)}.al-cf-alt b{color:var(--label)}
-.al-cf-es{font-size:1.1rem;font-weight:700;color:var(--label2)}
-.al-cf-pr{font-size:1rem}.al-cf-pr b{font-style:italic}
+.al-sayg{display:flex;align-items:center;justify-content:center;gap:12px}
+.al-cf .say.al-spk{position:relative;flex:none;display:inline-grid;place-items:center;width:56px;height:56px;padding:0;border:0;border-radius:50%;font-size:inherit;
+  background:var(--brand-soft);color:var(--brand-tint);vertical-align:middle;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
+.al-cf .say.al-spk.sm{width:44px;height:44px}
+.al-cf .say.al-spk.playing,.al-cf .say.al-slow.playing{background:var(--brand-fill);color:#fff}
+.al-cf .say.al-spk.playing::after{content:"";position:absolute;inset:-5px;border-radius:50%;border:3px solid var(--brand-tint);opacity:0;animation:al-wave .9s ease-out 3;pointer-events:none}
+@keyframes al-wave{0%{opacity:.55;scale:.9}100%{opacity:0;scale:1.28}}
+.al-cf .say.al-slow{flex:none;display:inline-grid;place-items:center;width:48px;height:48px;padding:0;border:0;border-radius:50%;font-size:inherit;background:var(--fill2);color:var(--label)}
+.al-cf-alt{font-size:var(--fs-note);color:var(--label2)}.al-cf-alt b{color:var(--label)}
+.al-cf-es,.al-cf-pr{display:flex;flex-direction:column;align-items:center;gap:2px}
+.al-cf-es{font:600 var(--fs-body)/1.25 var(--f-text);color:var(--label)}
+.al-cf-pr{font-size:var(--fs-sub)}.al-cf-pr b{font-style:italic}
+.al-cf-es small,.al-cf-pr small{font:400 var(--fs-min)/1.2 var(--f-text);color:var(--label2)}
 .al-cf-ex{width:100%;margin-top:4px;padding:10px 12px;border-radius:14px;background:var(--fill2);font-size:.98rem;text-align:left}
 .al-cf-ex small{display:block;color:var(--label2);font-style:italic;margin-top:2px}
 .al-bh{font-weight:800;font-size:1.15rem;text-align:center;margin:2px 0 6px}
@@ -355,10 +362,10 @@ dialog.al-tp-d{max-width:560px}
   .al-th{padding:16px 6px 12px}
   .al-th .al-ring{width:64px;height:64px}.al-th .al-ring-e{font-size:28px}
   .al-ph .al-ring{width:60px;height:60px}.al-ph .al-ring-e{font-size:26px}
-  .al-page{padding:14px 10px 18px}
-  .al-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px 10px}
+  .al-page{padding:16px 12px 20px}
+  .al-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:16px 12px}
   .al-st{padding:5px 5px 6px;border-radius:13px}.al-st.got::after{border-radius:13px}
-  .al-lb b{font-size:.8rem}.al-lb small{font-size:.66rem}.al-ini{font-size:2rem}.al-ini.l3{font-size:1.5rem}.al-ini.l4{font-size:1.2rem}
+  .al-lb b{font-size:var(--fs-note)}.al-ini{font-size:2rem}.al-ini.l3{font-size:1.5rem}.al-ini.l4{font-size:1.2rem}
   .al-pack span{font-size:1.5rem}.al-pack b{font-size:.9rem}.al-pack small{font-size:.66rem}
   .al-q{font-size:1.9rem}
   .al-bigstamp b{font-size:1.5rem}.al-bigstamp span{font-size:3.4rem}
@@ -366,7 +373,7 @@ dialog.al-tp-d{max-width:560px}
 }
 @media (max-height:720px){.al-cf-img{width:min(100%,170px)}}
 @media (prefers-reduced-motion: reduce){
-  .al-st,.al-st *,.al-card,.al-flip,.al-stamp,.al-page,.al-rib,.al-bigstamp,.al-bigstamp>div{animation:none!important;transition:none!important}
+  .al-st,.al-st *,.al-card,.al-flip,.al-stamp,.al-page,.al-rib,.al-bigstamp,.al-bigstamp>div,.al-cf .say::after{animation:none!important;transition:none!important}
   .al-st.gold .al-face::after{display:none}
 }`;
 function css(){
@@ -473,17 +480,17 @@ function stHtml(s){
       ${s.newGold ? `<span class="al-rib g">¡Dorada!</span>` : ""}
       ${s.isNew ? `<span class="al-pack" aria-hidden="true"><span>✨</span><b>¡Nueva!</b><small>Tócala</small></span>` : ""}</button>`;
 }
-const backBtn = `<a class="glass-btn glass-btn--sm al-bk" href="#/album">${IC("caret-left", "bold", 18)}Álbum</a>`;
+/* volver: la cápsula «‹ Álbum» de la barra de arriba (#dv-back, index.html), fija como en Palabras */
 const pillHtml = t => `<span>Tema:</span> <b>${esc(t)}</b>${IC("caret-down", "bold", 16)}`;
 async function page(id, nav){
   const idx = await getIndex(), meta = idx.find(d => d.id === id);
   if(!alive(nav)) return;
   if(!meta || !meta.langs.includes(lang)){
     SLIDE = null;
-    $("#app").innerHTML = `<div class="al"><div class="al-bar">${backBtn}</div><p class="empty">${meta ? `Esta página todavía no está lista en ${esc(LANGS[lang].name)}.` : "No encontramos esta página del álbum."}</p></div>`;
+    $("#app").innerHTML = `<div class="al"><p class="empty">${meta ? `Esta página todavía no está lista en ${esc(LANGS[lang].name)}.` : "No encontramos esta página del álbum."}</p></div>`;
     return;
   }
-  if(!CACHE[id]) $("#app").innerHTML = `<div class="al"><div class="al-bar">${backBtn}</div><p class="empty">Abriendo la página…</p></div>`;
+  if(!CACHE[id]) $("#app").innerHTML = `<div class="al"><p class="empty">Abriendo la página…</p></div>`;
   const doc = await getDoc(id);
   if(!alive(nav)) return;
   const {st, secs} = build(id, doc);
@@ -501,7 +508,7 @@ async function page(id, nav){
   const slide = SLIDE; SLIDE = null;
   P = {id, meta, doc, st, secs, f: "all", nav, prev, next, byK: new Map(st.map(s => [s.k, s]))};
   $("#app").innerHTML = `<div class="al al-pg">
-    <div class="al-bar">${backBtn}<button type="button" class="glass-btn glass-btn--sm al-tpill" id="al-tpill" aria-haspopup="dialog" aria-controls="al-tp-s"
+    <div class="al-bar"><button type="button" class="glass-btn glass-btn--sm al-tpill" id="al-tpill" aria-haspopup="dialog" aria-controls="al-tp-s"
       aria-label="Tema: ${esc(meta.title)}. Elegir otro tema">${pillHtml(meta.title)}</button></div>
     <section class="card al-ph" aria-labelledby="al-ph-h">
       <span class="al-ring" id="al-ph-ring">${ringSvg(0, 0, "al-ph-rf")}<span class="al-ring-e" aria-hidden="true">${emo(meta)}</span></span>
@@ -592,8 +599,9 @@ function paintHead(){
 }
 function paintTip(c){
   const tip = $("#al-tip"); if(!tip || !P) return;
-  const msg = c.nw ? `¡Tienes ${c.nw} ${plural(c.nw, "pegatina nueva", "pegatinas nuevas")}! Tócala${c.nw > 1 ? "s" : ""} para pegarla${c.nw > 1 ? "s" : ""}.`
-    : !c.got ? "Aprende palabras de este tema en el Camino para llenar la página."
+  /* con pegatinas nuevas lo dice el botón «Pegar…» (no se repite aquí) */
+  tip.hidden = !!c.nw; if(c.nw){ tip.innerHTML = ""; return; }
+  const msg = !c.got ? "Aprende palabras de este tema en el Camino para llenar la página."
     : c.got >= c.tot ? (c.gold >= c.tot ? "¡Todas doradas! ¡Eres un campeón!" : "¡Página completa! Repasa para que todas sean doradas.")
     : `Te ${plural(c.lock, "falta", "faltan")} ${c.lock}. Toca una pegatina para verla en grande.`;
   const x = !c.nw && c.lock && P.more;
@@ -857,6 +865,10 @@ document.addEventListener("keydown", e => {
 });
 function closeDlg(){ try{ if(DLG && DLG.open) DLG.close(); }catch(e){} CARD = null; }
 function show(d){ try{ if(!d.open) d.showModal(); }catch(e){ d.setAttribute("open", ""); } }
+/* el altavoz de la lección (F3): tintado, azul relleno mientras suena; la tortuga gris; el pequeño para «También» y el ejemplo */
+const spkB = t => `<button type="button" class="say al-spk" data-say="${esc(t)}" aria-label="Escuchar">${IC("speaker-high", "fill", 30)}</button>`;
+const slowB = t => `<button type="button" class="say al-slow" data-say="${esc(t)}" data-slow aria-label="Escuchar despacio">${IC("turtle", "fill", 26)}</button>`;
+const spkS = t => `<button type="button" class="say al-spk sm" data-say="${esc(t)}" aria-label="Escuchar «${esc(t)}»">${IC("speaker-high", "fill", 20)}</button>`;
 function frontHtml(s){
   const r = s.r, d = r.l[lang], alts = s.alts.map(a => a.l[lang]).filter(a => a && a.word && a.word !== d.word);
   const ipa = ipaOn() && d.ipa ? d.ipa : "";
@@ -864,11 +876,11 @@ function frontHtml(s){
     <div class="al-cf-top"><span class="al-n2">Nº ${s.n}</span>${s.gold ? `<span class="al-gtag">⭐ Dorada</span>` : `<span class="al-ntag">Toca para ver la ficha</span>`}</div>
     <div class="al-cf-img">${face(r)}</div>
     <div class="al-cf-w">${esc(d.word)}</div>
-    <div>${sayBtn(d.word)}</div>
-    ${alts.length ? `<div class="al-cf-alt">También: ${alts.map(a => `<b>${esc(a.word)}</b> ${sayBtn(a.word, 1)}`).join(" · ")}</div>` : ""}
-    <div class="al-cf-es">🇪🇸 ${esc(r.es)}</div>
-    ${d.pron || ipa ? `<div class="al-cf-pr">🗣️ Suena: ${d.pron ? `<b>${esc(d.pron)}</b>` : ""} ${ipa ? `<span class="ipa">${esc(ipa)}</span>` : ""}</div>` : ""}
-    ${d.ex ? `<div class="al-cf-ex"><div>${esc(d.ex)} ${sayBtn(d.ex, 1)}</div>${d.ex_es ? `<small>${esc(d.ex_es)}</small>` : ""}</div>` : ""}
+    <div class="al-sayg">${spkB(d.word)}${slowB(d.word)}</div>
+    ${alts.length ? `<div class="al-cf-alt">También: ${alts.map(a => `<b>${esc(a.word)}</b> ${spkS(a.word)}`).join(" · ")}</div>` : ""}
+    <div class="al-cf-es"><small>En español</small>${esc(r.es)}</div>
+    ${d.pron || ipa ? `<div class="al-cf-pr"><small>Suena</small>${d.pron ? `<b>${esc(d.pron)}</b>` : ""} ${ipa ? `<span class="ipa">${esc(ipa)}</span>` : ""}</div>` : ""}
+    ${d.ex ? `<div class="al-cf-ex"><div>${esc(d.ex)} ${spkS(d.ex)}</div>${d.ex_es ? `<small>${esc(d.ex_es)}</small>` : ""}</div>` : ""}
   </div>`;
 }
 function backHtml(s){

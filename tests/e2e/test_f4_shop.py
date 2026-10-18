@@ -35,7 +35,7 @@ _HOOKS = """() => {
 }"""
 _GAME = "() => JSON.parse(localStorage.getItem('game'))"
 # el sombrero del personaje tal como se pinta (heroHtml de index.html)
-_HAT = "() => { const d = document.createElement('div'); d.innerHTML = heroHtml(60); const h = d.querySelector('.h-hat'); return h ? h.textContent : null; }"
+_HAT = "() => { const d = document.createElement('div'); d.innerHTML = heroHtml(60); const h = d.querySelector('.h-hat'), i = h && h.querySelector('img[data-e]'); return h ? (i ? i.dataset.e : h.textContent) : null; }"
 _CARD = """id => { const c = document.querySelector(`#app .sc[data-id="${id}"], #tst-cards .sc[data-id="${id}"]`); if (!c) return null;
   const b = c.querySelector('.sx button'), own = c.querySelector('span.own');
   return {st: c.dataset.st, cls: c.className, btn: b ? b.textContent.replace(/\\s+/g, ' ').trim() : null,
@@ -191,7 +191,7 @@ def test_buy_outfit_wears_it_and_double_tap_is_safe():
         # (F4b: ya no hay personaje encima de la tienda; se mira heroHtml() y el de la escena de la granja)
         me = page.evaluate(_HAT)
         C.goto(page, "#/granja")
-        farm = page.evaluate("() => document.querySelector('#farm-host .fm-hero .h-hat')?.textContent")
+        farm = page.evaluate("() => { const h = document.querySelector('#farm-host .fm-hero .h-hat'), i = h && h.querySelector('img[data-e]'); return h ? (i ? i.dataset.e : h.textContent) : undefined; }")
         if me != "🎩" or farm != "🎩":
             probs.append(f"el personaje no lleva el sombrero nuevo: {me} / granja {farm}")
         probs += C.errors(page)

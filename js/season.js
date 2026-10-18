@@ -3,9 +3,13 @@
      de adviento del 1 al 24 de diciembre (los tres idiomas).
    - Pruebas: ?season=halloween|bonfire|advent fuerza una temporada y ?season=off las apaga, en la dirección
      (index.html?season=… o #/…?season=…). Vale para esta sesión (sessionStorage "vocab:season"); ?season=auto vuelve a la
-     fecha. Bonfire Night sigue siendo solo en inglés.
+     fecha. Bonfire Night sigue siendo solo en inglés. Fuera de sus fechas es una vista previa (preview()): se ve y se
+     juega igual pero no se guarda (MEM), ni da monedas ni pegatinas, y lo dice una nota «Vista previa».
+   - El premio de cada día se paga solo si la fecha es posterior a la del último (AAAA-MM-DD como texto): cambiar la
+     hora o la zona horaria hacia atrás y adelante no vuelve a pagar.
    - Hoy: una fila compacta (HOME_SLOTS, id "season"): «Truco o trato», «Bonfire Night» o «Calendario» con la ventanita del
-     día. Lleva a #/temporada, una pantalla de Hoy (la pestaña Hoy queda marcada y al tocarla vuelve a Hoy).
+     día. Lleva a #/temporada, una pantalla de Hoy (la pestaña Hoy queda marcada y al tocarla vuelve a Hoy; «‹ Hoy» es la
+     cápsula de la barra de arriba). La tarjeta de Hoy lleva dos dibujos de la temporada en sus esquinas (HOY_DECO).
    - Halloween, «Truco o trato» (#/temporada): una calle de noche con 10 puertas. Al tocar una se abre y sale un dibujo; en
      una hoja suena la palabra y se elige entre 3 palabras escritas (o, la mitad de las veces, se oye y se elige entre 3
      dibujos). Acierto: ✓ verde, suena, la hoja se cierra sola al acabar el audio (nunca antes de 0,9 s) y un caramelo vuela
@@ -18,9 +22,10 @@
      blanco), «Mis cosas de Bonfire Night» y award(10, "¡Bonfire Night!") una vez al día.
    - Adviento: 24 ventanitas. Se abren la de hoy y todas las de antes (nunca caducan); las de después dicen con amabilidad
      cuándo se abren. Cada una enseña su dibujo, suena su palabra y pregunta «¿Qué palabra has oído?» con 2 opciones; luego
-     se ve la palabra. Abrir la del día da award(5, "¡Ventanita del día!") una vez al día (al cerrar su hoja).
-   - Granja: en Halloween, 4 calabazas y 2 murciélagos en posiciones fijas en la capa .fm-season (bus "farm-mounted"),
-     debajo de los animales; los murciélagos vuelan un poco (3 veces) y con «Reducir movimiento» están quietos. Sin la capa,
+     se ve la palabra (una vez, debajo del dibujo). Son tarjetas sólidas: la de hoy dorada, las abiertas con su dibujo y
+     su palabra, las de después grises. Abrir la del día da award(5, "¡Ventanita del día!") una vez al día (al cerrar su hoja).
+   - Granja: en Halloween, 4 calabazas (junto a la valla, lejos del Refugio y del dock) y 2 murciélagos en posiciones
+     fijas en la capa .fm-season (bus "farm-mounted"), debajo de los animales; los murciélagos vuelan un poco (3 veces) y con «Reducir movimiento» están quietos. Sin la capa,
      nada.
    Datos: data/season.json {v, about, halloween: [10], bonfire: [5], advent: [24 en orden]}; cada palabra {id, es, img,
      w: {english, français?, dansk?}}. Suena con say()/sayP(): el audio grabado si audio/<ab>.json tiene la palabra y, si
@@ -55,10 +60,10 @@ const FIRE = ["#FFCC00", "#1E6EF4", "#008198", "#34C759", "#FFFFFF"];   /* fuego
 /* la granja en Halloween: x en % del ancho; y en % de la altura del mundo (dy: desde el horizonte); s en unidades de la
    granja (--u). Las calabazas, junto a la valla y en una esquina; los murciélagos, en el cielo. */
 const FARM_DECO = [
-  {img: "img/season/pumpkin.png", x: 7, dy: 7, s: .8},
-  {img: "img/season/pumpkin.png", x: 30, dy: 4, s: .6},
-  {img: "img/season/pumpkin.png", x: 85, dy: 6, s: .72},
-  {img: "img/season/pumpkin.png", x: 91, y: 98, s: .9},
+  {img: "img/season/pumpkin.png", x: 22, dy: 3, s: .62},
+  {img: "img/season/pumpkin.png", x: 46, dy: 2, s: .5},
+  {img: "img/season/pumpkin.png", x: 80, dy: 3, s: .62},
+  {img: "img/season/pumpkin.png", x: 94, dy: 9, s: .72},
   {img: "img/season/bat.png", x: 18, y: 20, s: .62, bat: 1},
   {img: "img/season/bat.png", x: 71, y: 14, s: .5, bat: 2},
 ];
@@ -95,18 +100,29 @@ function active(){
   const f = forced(), id = f === "off" ? null : f || byDate();
   return id && (!ONLY[id] || ONLY[id].includes(lang)) ? id : null;
 }
+/* ?season=… fuera de sus fechas es una vista previa: se ve y se juega igual, pero no se guarda nada ni da monedas ni
+   pegatinas (así no sirve para ganar monedas todo el año). Lo de esa visita vive en MEM y se pierde al recargar */
+const preview = id => !!id && byDate() !== id;
+const MEM = {};
+const prevNote = id => preview(id) ? `<p class="ss-prev">${IC("eye", "bold", 18)}<span>Vista previa: aún no es su fecha, así que no se guarda</span></p>` : "";
 /* la ventanita de hoy: el día de diciembre (si se fuerza el adviento otro mes, el día del mes, hasta 24) */
 const advToday = () => Math.max(1, Math.min(24, new Date().getDate()));
 
 /* ---------- guardado: localStorage "season" ---------- */
 function rootSt(){ const o = store.get(KEY, null); return isObj(o) ? o : {}; }
-function get(id){ const Y = rootSt()[yearKey()], s = isObj(Y) ? Y[id] : null; return isObj(s) ? JSON.parse(JSON.stringify(s)) : {}; }
+function get(id){
+  if(preview(id)) return isObj(MEM[id]) ? JSON.parse(JSON.stringify(MEM[id])) : {};
+  const Y = rootSt()[yearKey()], s = isObj(Y) ? Y[id] : null; return isObj(s) ? JSON.parse(JSON.stringify(s)) : {};
+}
 function put(id, s){
+  if(preview(id)){ MEM[id] = JSON.parse(JSON.stringify(s)); return; }
   const o = rootSt(), y = yearKey();
   for(const k of Object.keys(o)) if(/^\d{4}$/.test(k) && +k < +y - 1) delete o[k];
   o[y] = Object.assign({}, isObj(o[y]) ? o[y] : {}, {[id]: s});
   store.set(KEY, o);
 }
+/* las monedas de la temporada (solo por award(), y nunca en la vista previa) */
+const pay = (id, n, why, from) => { if(!preview(id)) award(n, why, false, from); };
 const openSet = s => new Set((Array.isArray(s.open) ? s.open : []).filter(n => Number.isInteger(n) && n >= 1 && n <= 24));
 
 /* ---------- palabras ---------- */
@@ -126,16 +142,18 @@ async function clipsReady(){ for(let i = 0; i < 20 && !clipsLoaded(); i++) await
 
 /* ---------- estilos ---------- */
 const CSS = `
-.ss{max-width:640px;margin:0 auto}
-.ss-back{display:inline-flex;align-items:center;gap:2px;min-height:var(--tap);margin:0 0 0 -8px;padding:0 12px 0 4px;border-radius:var(--r-pill);
-  color:var(--brand-ink);font:600 var(--fs-sub)/1 var(--f-text);text-decoration:none;-webkit-tap-highlight-color:transparent}
-.ss-back .ico{color:var(--brand-tint)}
+/* el mismo marco que Hoy y Premios (alineado a la izquierda en .wrap): el título no salta al navegar. Volver: la cápsula
+   «‹ Hoy» de la barra de arriba (#dv-back, index.html) */
+.ss{max-width:680px}
+.ss-prev{display:flex;align-items:center;gap:8px;margin:-4px 0 16px;padding:8px 12px;border-radius:var(--r-md);background:var(--fill2);
+  font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label)}
+.ss-prev .ico{flex:none;color:var(--label2)}
 .ss-t{margin:0 0 12px;font:700 var(--fs-t1)/1.1 var(--f-round);color:var(--label)}
 .ss .ss-seg{margin-bottom:16px}
 .ss-sub{margin:-4px 0 16px;font:400 var(--fs-sub)/1.35 var(--f-text);color:var(--label2)}
 .ss-empty{margin:24px 0;text-align:center;font:400 var(--fs-sub)/1.4 var(--f-text);color:var(--label2)}
 /* la calle (contenido sólido: azul marino de noche) */
-.ss-street{position:relative;overflow:hidden;isolation:isolate;border-radius:var(--r-card);background:#0B2545;color:#fff;padding:12px 10px 0}
+.ss-street{position:relative;overflow:hidden;isolation:isolate;border-radius:var(--r-card);background:#0B2545;color:#fff;padding:12px 8px 0}
 .ss-street::after{content:"";position:absolute;left:0;right:0;bottom:0;height:18px;background:#071A31;z-index:0}
 .ss-sky{position:relative;height:92px}
 .ss-moon{position:absolute;left:12px;top:6px;width:44px;height:44px;border-radius:50%;background:#F4F1DE;
@@ -146,7 +164,7 @@ const CSS = `
 .ss-bag{position:absolute;right:12px;top:12px;z-index:2;display:flex;align-items:center;gap:6px;min-height:40px;padding:0 14px 0 10px;
   border-radius:var(--r-pill);background:#1D3A5F;color:#fff;font:700 var(--fs-sub)/1 var(--f-round);font-variant-numeric:tabular-nums}
 .ss-bag .ico{color:#FFCC00}
-.ss-doors{position:relative;z-index:1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px 6px;padding:0 0 18px}
+.ss-doors{position:relative;z-index:1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px 8px;padding:0 0 16px}
 .ss-door{position:relative;display:flex;flex-direction:column;align-items:center;min-width:0;min-height:96px;padding:0;margin:0;border:0;
   background:none;color:#fff;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;
   -webkit-touch-callout:none;user-select:none;--wall:#2E4A6B;--roof:#152C47;--dr:#5C4433}
@@ -212,26 +230,30 @@ const CSS = `
 :root[data-theme=dark] .ss-stk.is-off img{filter:brightness(0) invert(1);opacity:.2}
 .ss-stk.is-off .ss-sw{color:var(--label2)}
 /* adviento */
-.ss-cal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ss-cal{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 @media (min-width:560px){.ss-cal{grid-template-columns:repeat(6,minmax(0,1fr))}}
-.ss-w{position:relative;aspect-ratio:1;min-height:64px;padding:0;margin:0;border:0;border-radius:var(--r-md);background:#0B2545;color:#fff;font:inherit;
-  cursor:pointer;overflow:hidden;display:grid;place-items:center;box-shadow:inset 0 0 0 2px rgba(255,255,255,.14);perspective:320px;
+/* ventanitas: tarjetas sólidas de contenido (nada de marino en lo que se toca); la de hoy, dorada; las abiertas enseñan
+   su dibujo y su palabra; las de después, grises y quietas */
+.ss-w{position:relative;aspect-ratio:4/5;min-height:64px;padding:0;margin:0;border:0;border-radius:var(--r-card);background:var(--card);color:var(--label);font:inherit;
+  cursor:pointer;overflow:hidden;display:grid;place-items:center;perspective:320px;
   -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
-.ss-wl{display:flex;flex-direction:column;align-items:center;gap:2px}
+.ss-wl{display:flex;flex-direction:column;align-items:center;gap:4px}
 .ss-wl b,.ss-wleaf b{font:700 1.75rem/1 var(--f-round)}
-.ss-w.is-past::after{content:"";position:absolute;right:8px;top:8px;width:8px;height:8px;border-radius:50%;background:#FFCC00}
-.ss-w.is-today{box-shadow:0 0 0 3px var(--gold),inset 0 0 0 2px rgba(255,255,255,.2)}
+.ss-w.is-past::after{content:"";position:absolute;right:8px;top:8px;width:8px;height:8px;border-radius:50%;background:var(--gold-deep)}
+.ss-w.is-today{background:var(--gold-soft);color:var(--gold-ink);box-shadow:inset 0 0 0 3px var(--gold)}
 .ss-w.ss-call{animation:ss-call 1.1s ease-in-out 3}
 @keyframes ss-call{50%{transform:scale(1.06)}}
-.ss-w.is-future{background:#21385A;color:rgba(255,255,255,.72);cursor:default}
+.ss-w.is-future{background:var(--fill2);color:var(--label2);cursor:default}
 .ss-w.is-future .ico{opacity:.8}
-.ss-w.is-open{background:#fff;box-shadow:inset 0 0 0 2px var(--sep)}
-.ss-w.is-open img{width:68%;height:68%;object-fit:contain;-webkit-user-drag:none}
-.ss-wn{position:absolute;left:8px;top:6px;font:700 var(--fs-note)/1 var(--f-round);color:#3C3C43}
-.ss-wleaf{position:absolute;inset:0;display:grid;place-items:center;background:#0B2545;color:#fff;transform-origin:0 50%;transition:transform .42s cubic-bezier(.3,1.1,.5,1)}
+.ss-w.is-open{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:20px 4px 8px}
+.ss-w.is-open img{flex:none;width:58%;aspect-ratio:1;object-fit:contain;-webkit-user-drag:none}
+.ss-ww{max-width:100%;font:600 var(--fs-note)/1.15 var(--f-text);overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ss-wn{position:absolute;left:8px;top:8px;font:700 var(--fs-min)/1 var(--f-round);color:var(--label2)}
+.ss-wleaf{position:absolute;inset:0;display:grid;place-items:center;background:var(--gold-soft);color:var(--gold-ink);box-shadow:inset 0 0 0 3px var(--gold);transform-origin:0 50%;transition:transform .42s cubic-bezier(.3,1.1,.5,1)}
 .ss-w.is-opening .ss-wleaf{transform:rotateY(-112deg)}
 .ss-w:focus-visible{outline:3px solid var(--brand-tint);outline-offset:3px}
-:root[data-theme=dark] .ss-w.is-open{background:#F2F2F7}
+:root[data-theme=dark] .ss-w.is-open{background:#F2F2F7;color:#1C1C1E}
+:root[data-theme=dark] .ss-w.is-open .ss-wn{color:#3C3C43}
 /* la hoja de cada puerta o ventanita */
 dialog.ss-q{max-width:560px}
 dialog#ss-q.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}   /* sólida, como las hojas de los juegos */
@@ -253,7 +275,7 @@ dialog#ss-q.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:no
 .ss-opts.is-pic{grid-template-columns:repeat(3,minmax(0,1fr))}
 .ss-o{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:60px;padding:8px 46px;margin:0;border:0;
   border-radius:20px;background:var(--card-2);color:var(--label);font:700 var(--fs-t3)/1.15 var(--f-round);text-align:center;overflow-wrap:anywhere;cursor:pointer;
-  box-shadow:inset 0 0 0 2px var(--sep);transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+  transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .ss-op{min-height:108px;padding:10px 6px}
 .ss-op img{width:76px;height:76px;object-fit:contain;-webkit-user-drag:none}
 :root[data-theme=dark] .ss-op img{background:#F2F2F7;border-radius:16px;padding:4px}
@@ -274,9 +296,14 @@ dialog#ss-q.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:no
 @media (hover:hover){.ss-o:not([aria-disabled=true]):hover{box-shadow:inset 0 0 0 2px var(--brand-tint)}}
 .ss-o:focus-visible{outline:3px solid var(--brand-tint);outline-offset:3px}
 .ss-q-dock{min-height:56px;display:flex;justify-content:center;align-items:center;width:100%}
+.ss-q-dock:has(> [hidden]:only-child){min-height:0}
 .ss-q-dock .glass-btn{min-width:200px}
 /* Hoy */
 .ss-ric img{width:26px;height:26px;object-fit:contain}
+/* el adorno de la temporada en la tarjeta de Hoy (sin vidrio ni toques) */
+.ss-hd{position:absolute;z-index:0;width:30px;height:30px;object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.ss-hd.l{left:12px;top:12px;rotate:-10deg}.ss-hd.r{right:12px;top:12px;rotate:8deg}
+.hm-hero:has(.ss-hd){position:relative}
 :root[data-theme=dark] .ss-ric{background:#F2F2F7}
 /* la granja */
 .ss-fd{position:absolute;transform:translate(-50%,-100%);pointer-events:none;-webkit-user-drag:none;user-select:none;filter:drop-shadow(0 3px 2px rgba(0,0,0,.18))}
@@ -299,16 +326,26 @@ function css(){
 const rowHtml = (img, t, sub) => `<a class="card hm-row ss-row" href="#/temporada" id="ss-row" aria-label="${esc(t)}. ${esc(sub)}">`
   + `<span class="hm-ric emo ss-ric" aria-hidden="true"><img src="${esc(img)}" alt="" width="26" height="26"></span>`
   + `<span class="hm-rt">${esc(t)}<small>${esc(sub)}</small></span>${IC("caret-right", "bold", 16, "hm-chev")}</a>`;
+/* el adorno de la tarjeta de Hoy: dos dibujos de la temporada en sus esquinas (se pinta después de la fila) */
+const HOY_DECO = {halloween: ["img/season/pumpkin.png", "img/season/bat.png"], bonfire: ["img/season/firework.png", "img/season/sparkler.png"],
+  advent: ["img/season/christmas-tree.png", "img/season/snowman.png"]};
+function decoHoy(id){
+  const go = () => {
+    const h = document.querySelector("#hm .hm-hero"); if(!h || h.querySelector(".ss-hd") || active() !== id) return;
+    h.insertAdjacentHTML("afterbegin", HOY_DECO[id].map((src, k) => `<img class="ss-hd ${k ? "r" : "l"}" src="${src}" alt="" aria-hidden="true" draggable="false">`).join(""));
+  };
+  setTimeout(go, 0); setTimeout(go, 400);
+}
 function slot(){
   const id = active(); if(!id) return null;
-  css();
+  css(); decoHoy(id);
   if(id === "advent"){
     const n = advToday(), open = openSet(get("advent")).has(n);
     return rowHtml(ADV_ROW, "Calendario", open ? `¡Ventanita ${n} abierta!` : `Abre la ventanita ${n}`);
   }
   const C = STREET[id], s = get(id), d = today(), r = isObj(s.run) && s.run.d === d && Array.isArray(s.run.ok) ? s.run : null;
   const n = id === "halloween" ? 10 : 5, k = r ? Math.min(n, new Set(r.ok).size) : 0;
-  const sub = s.last === d ? C.over : k ? `${k} de ${n} ${C.unit}` : C.fresh;
+  const sub = (s.last || "") >= d ? C.over : k ? `${k} de ${n} ${C.unit}` : C.fresh;
   return rowHtml(C.row, C.title, sub);
 }
 slot.id = "season";
@@ -319,12 +356,15 @@ try{ const T = TABS.find(t => t.id === "hoy"); if(T && !T.secs.includes("tempora
 
 /* ---------- la hoja de una puerta o una ventanita ----------
    o = {w, pool, mode: "word" (dibujo + 3 palabras) | "pic" (se oye + 3 dibujos) | "quiz" (dibujo + 2 palabras, luego se ve
-   la palabra) | "show" (solo la palabra), title, from, close: texto del botón de arriba}. Se crea una hoja nueva cada vez.
+   la palabra) | "show" (solo la palabra), title, from}. Arriba, «Listo» (gris); abajo, «Seguir» solo tras un fallo en la calle. Sin
+   voz para la palabra, «pic» pasa a «word» y el adviento pregunta «¿Cuál es?». Se crea una hoja nueva cada vez.
    Devuelve una promesa con {ok, answered} al cerrarse (de cualquier forma: botón, fondo, arrastre, Esc o cambio de ruta). */
 let Q = null;
 function ask(o){
   return new Promise(resolve => {
-    const w = o.w, word = wd(w), L = code(), mode = o.mode;
+    const w = o.w, word = wd(w), L = code(), hear = typeof canHear !== "function" || canHear(word);
+    /* sin audio grabado ni voz de ese idioma, «¿Qué has oído?» no es justo: el dibujo y las palabras escritas */
+    const mode = o.mode === "pic" && !hear ? "word" : o.mode;
     const n = mode === "quiz" ? 2 : mode === "show" ? 0 : 3;
     const opts = n ? shuf([w, ...shuf(o.pool.filter(x => x.id !== w.id)).slice(0, n - 1)]) : [];
     const d = document.createElement("dialog");
@@ -332,15 +372,15 @@ function ask(o){
     const q = Q = {d, w, word, mode, answered: false, ok: false, closed: false};
     const pic = mode !== "pic" ? `<div class="ss-q-pic"><img src="${esc(w.img)}" alt="${esc(w.es)}"></div>` : "";
     const shown = mode === "show" ? `<p class="ss-q-w" lang="${L}">${esc(word)}</p><p class="ss-q-es">${esc(w.es)}</p>` : "";
-    const ask = mode === "word" ? "¿Cuál es? Elige la palabra" : mode === "pic" ? "¿Qué has oído? Elige el dibujo" : mode === "quiz" ? "¿Qué palabra has oído?" : "";
-    d.innerHTML = `<div class="m-head"><h2 id="ss-q-t">${esc(o.title)}</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>${esc(o.close || "Cerrar")}</button></div>
+    const ask = mode === "word" || (mode === "quiz" && !hear) ? "¿Cuál es? Elige la palabra" : mode === "pic" ? "¿Qué has oído? Elige el dibujo" : mode === "quiz" ? "¿Qué palabra has oído?" : "";
+    d.innerHTML = `<div class="m-head"><h2 id="ss-q-t">${esc(o.title)}</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
       <div class="ss-q-b">${pic}${shown}
         <div class="ss-q-say"><button type="button" class="say ss-spk" id="ss-q-spk" aria-label="Escuchar">${IC("speaker-high", "fill", 34)}</button><button type="button" class="say ss-slow" id="ss-q-slow" aria-label="Escuchar despacio">${IC("turtle", "bold", 24)}</button></div>
         ${n ? `<p class="ss-q-p" id="ss-q-p" aria-live="polite">${ask}</p>
         <div class="ss-opts ${mode === "pic" ? "is-pic" : "is-word"}" role="group" aria-labelledby="ss-q-p">${opts.map((x, k) => mode === "pic"
           ? `<button type="button" class="ss-o ss-op" data-id="${esc(x.id)}" aria-label="${esc(x.es)}"><kbd class="ss-k" aria-hidden="true">${k + 1}</kbd><img src="${esc(x.img)}" alt=""><span class="ss-mk" aria-hidden="true"></span></button>`
           : `<button type="button" class="ss-o" data-id="${esc(x.id)}"><kbd class="ss-k" aria-hidden="true">${k + 1}</kbd><span class="ss-ow" lang="${L}">${esc(wd(x))}</span><span class="ss-mk" aria-hidden="true"></span></button>`).join("")}</div>` : ""}
-        <div class="ss-q-dock"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="ss-q-go"${mode === "show" ? "" : " hidden"}>${mode === "quiz" || mode === "show" ? "Listo" : "Seguir"}</button></div>
+        ${mode === "word" || mode === "pic" ? `<div class="ss-q-dock"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="ss-q-go" hidden>Seguir</button></div>` : ""}
       </div>`;
     document.body.appendChild(d);
     const spk = d.querySelector("#ss-q-spk");
@@ -388,7 +428,7 @@ async function pick(q, b){
   d.querySelectorAll(".ss-o").forEach(x => { x.setAttribute("aria-disabled", "true"); if(x !== b && x !== right) x.classList.add("is-dim"); });
   mark(right, true);
   const said = `«<b lang="${L}">${esc(q.word)}</b>» · ${esc(q.w.es)}`;
-  if(q.mode === "quiz"){   /* adviento: después de contestar se ve la palabra */
+  if(q.mode === "quiz"){   /* adviento: después de contestar se ve la palabra (una sola vez: debajo del dibujo) */
     const pic = d.querySelector(".ss-q-pic");
     if(pic) pic.insertAdjacentHTML("afterend", `<p class="ss-q-w" lang="${L}">${esc(q.word)}</p><p class="ss-q-es">${esc(q.w.es)}</p>`);
   }
@@ -396,7 +436,7 @@ async function pick(q, b){
     q.ok = true;
     try{ M.ok(b, {haptic: true}); }catch(e){}
     snd("ok");
-    if(p) p.innerHTML = `<span>¡Muy bien! ${said}</span>`;
+    if(p) p.innerHTML = q.mode === "quiz" ? "<span>¡Muy bien!</span>" : `<span>¡Muy bien! ${said}</span>`;
     if(q.mode === "quiz"){ showGo(d); try{ M.burst(b, {n: 10}); }catch(e){} sayP(q.word, spk); return; }
     const t0 = Date.now();
     await sayP(q.word, spk);
@@ -404,7 +444,7 @@ async function pick(q, b){
     if(Q === q && !q.closed) closeQ();
   } else {
     mark(b, false);
-    if(p) p.innerHTML = `<span>¡Casi! Es ${said}</span>`;
+    if(p) p.innerHTML = q.mode === "quiz" ? "<span>¡Casi! Mira cómo se dice</span>" : `<span>¡Casi! Es ${said}</span>`;
     say(q.word, spk);
     showGo(d);
   }
@@ -416,8 +456,7 @@ let NAV = 0, S = null, A = null;
 const STARS = [[22, 64], [30, 14], [44, 40], [55, 10], [62, 58], [70, 28], [80, 70], [88, 18], [12, 78], [38, 80], [94, 46], [5, 30]];
 function head(id, sub){
   const C = STREET[id];
-  return `<a class="ss-back" href="#/">${IC("caret-left", "bold", 20)}<span>Hoy</span></a>
-    <h1 class="ss-t">${esc(C.title)}</h1>
+  return `<h1 class="ss-t">${esc(C.title)}</h1>${prevNote(id)}
     <div class="seg ss-seg" role="tablist" aria-label="${esc(C.title)}">
       <a class="seg-i" role="tab" href="#/temporada" aria-selected="${!sub}" tabindex="${sub ? -1 : 0}">${esc(C.seg)}</a>
       <a class="seg-i" role="tab" href="#/temporada/cosas" aria-selected="${!!sub}" tabindex="${sub ? 0 : -1}">Mis cosas</a></div>`;
@@ -459,7 +498,7 @@ function streetPage(id, D, sub){
   st.root = app.querySelector("#ss");
   st.root.querySelector(".ss-doors").addEventListener("click", e => { const b = e.target.closest(".ss-door"); if(b) knock(st, b); });
   /* la bolsa ya está llena: el premio de hoy, si se fue de la pantalla antes de verlo; si no, la tarjeta de antes */
-  if(st.run.ok.length >= N){ if(get(id).last !== today()) full(st); else { st.full = true; showFull(st, {fresh: null, pay: false}); } }
+  if(st.run.ok.length >= N){ if(!((get(id).last || "") >= today())) full(st); else { st.full = true; showFull(st, {fresh: null, pay: false}); } }
 }
 async function knock(st, b){
   if(S !== st || st.busy || st.full) return;
@@ -541,7 +580,7 @@ function fireworks(st){
 function claim(st){
   const s = get(st.id), d = today();
   let fresh = null, pay = false;
-  if(s.last !== d){
+  if(d > (s.last || "")){   /* AAAA-MM-DD se comparan bien como texto: un día anterior (otra zona horaria) no vuelve a pagar */
     pay = true;
     const have = isObj(s.st) ? s.st : {};
     fresh = st.W.find(w => !have[w.id]) || null;
@@ -554,7 +593,7 @@ function claim(st){
 }
 function full(st){ st.full = true; showFull(st, claim(st)); }
 /* la última puerta acertada justo al irse a otra pantalla: la pegatina y las monedas, igual (sin la tarjeta) */
-function left(st){ const r = claim(st); if(r.pay) award(10, st.C.why); }
+function left(st){ const r = claim(st); if(r.pay) pay(st.id, 10, st.C.why); }
 function showFull(st, o){
   const box = st.root.querySelector("#ss-full"), street = st.root.querySelector("#ss-street"); if(!box) return;
   const s = get(st.id), have = isObj(s.st) ? s.st : {}, d = today(), L = code();
@@ -576,7 +615,7 @@ function showFull(st, o){
     if(o.fresh) snd("gift");
     /* las monedas salen de la pegatina cuando ya se ve; si mientras tanto se va a otra pantalla, se dan igual */
     const img = box.querySelector("#ss-fimg");
-    if(o.pay) setTimeout(() => award(10, st.C.why, false, img && img.isConnected ? img : undefined), RM() ? 150 : 650);
+    if(o.pay) setTimeout(() => pay(st.id, 10, st.C.why, img && img.isConnected ? img : undefined), RM() ? 150 : 650);
   }
 }
 function again(st){
@@ -611,23 +650,23 @@ function winState(n, t, open){ return open.has(n) ? "open" : n > t ? "future" : 
 function winHtml(n, w, stt){
   const lbl = stt === "open" ? `Ventanita ${n}: ${w.es}` : stt === "future" ? `Ventanita ${n}. Se abre el día ${n}` : `Ventanita ${n}${stt === "today" ? ", la de hoy" : ", puedes abrirla"}`;
   return `<button type="button" class="ss-w is-${stt}" data-n="${n}" aria-label="${esc(lbl)}"${stt === "future" ? ' aria-disabled="true"' : ""}>${stt === "open"
-    ? `<img src="${esc(w.img)}" alt=""><b class="ss-wn" aria-hidden="true">${n}</b>`
+    ? `<img src="${esc(w.img)}" alt=""><span class="ss-ww" lang="${code()}">${esc(wd(w))}</span><b class="ss-wn" aria-hidden="true">${n}</b>`
     : `<span class="ss-wl" aria-hidden="true"><b>${n}</b>${stt === "future" ? IC("lock", "bold", 14) : ""}</span>`}</button>`;
 }
 function advSub(t, open){
-  if(open.has(t)) return t === 24 ? "¡Feliz Navidad! Ya abriste todas las de hoy." : `¡Ya abriste la ${t}! Mañana, otra ventanita.`;
+  if(open.has(t)) return t === 24 ? "¡Feliz Navidad! Ya abriste la última ventanita." : `¡Ya abriste la ${t}! Mañana, otra ventanita.`;
   return `Hoy toca la ventanita ${t}. ¡Tócala!`;
 }
 function advent(D){
   const W = wordsOf(D, "advent"), app = $("#app");
   if(W.length < 24){
-    app.innerHTML = `<div class="ss ss-advent" data-season="advent"><a class="ss-back" href="#/">${IC("caret-left", "bold", 20)}<span>Hoy</span></a><h1 class="ss-t">Calendario</h1><p class="ss-empty">Ahora no se puede abrir. ¡Prueba otra vez en un rato!</p></div>`;
+    app.innerHTML = `<div class="ss ss-advent" data-season="advent"><h1 class="ss-t">Calendario</h1><p class="ss-empty">Ahora no se puede abrir. ¡Prueba otra vez en un rato!</p></div>`;
     return;
   }
   const t = advToday(), open = openSet(get("advent"));
   const st = A = {W, t, busy: false, root: null};
-  app.innerHTML = `<div class="ss ss-advent" id="ss" data-season="advent"><a class="ss-back" href="#/">${IC("caret-left", "bold", 20)}<span>Hoy</span></a>
-    <h1 class="ss-t">Calendario</h1>
+  app.innerHTML = `<div class="ss ss-advent" id="ss" data-season="advent">
+    <h1 class="ss-t">Calendario</h1>${prevNote("advent")}
     <p class="ss-sub" id="ss-asub" aria-live="polite">${esc(advSub(t, open))}</p>
     <div class="ss-cal" role="group" aria-label="Ventanitas">${W.slice(0, 24).map((w, i) => winHtml(i + 1, w, winState(i + 1, t, open))).join("")}</div></div>`;
   st.root = app.querySelector("#ss");
@@ -639,10 +678,10 @@ function advent(D){
 }
 function payToday(st){
   const s = get("advent"), d = today();
-  if(s.paid === d || !openSet(s).has(st.t)) return false;
+  if(!(d > (s.paid || "")) || !openSet(s).has(st.t)) return false;   /* una vez al día, y nunca hacia atrás */
   s.paid = d; put("advent", s);
   const b = st.root && st.root.isConnected ? st.root.querySelector(`.ss-w[data-n="${st.t}"]`) : null;
-  award(5, "¡Ventanita del día!", false, b || undefined);
+  pay("advent", 5, "¡Ventanita del día!", b || undefined);
   return true;
 }
 async function openWin(st, b){
@@ -660,7 +699,7 @@ async function openWin(st, b){
     b.className = "ss-w is-open";
     b.removeAttribute("aria-disabled");
     b.setAttribute("aria-label", `Ventanita ${n}: ${w.es}`);
-    b.innerHTML = `<img src="${esc(w.img)}" alt=""><b class="ss-wn" aria-hidden="true">${n}</b><span class="ss-wleaf" aria-hidden="true"><b>${n}</b></span>`;
+    b.innerHTML = `<img src="${esc(w.img)}" alt=""><span class="ss-ww" lang="${code()}">${esc(wd(w))}</span><b class="ss-wn" aria-hidden="true">${n}</b><span class="ss-wleaf" aria-hidden="true"><b>${n}</b></span>`;
     if(!RM()){ void b.offsetWidth; b.classList.add("is-opening"); await wait(440); } else { b.classList.add("is-opening"); await wait(160); }
     const lf = b.querySelector(".ss-wleaf"); if(lf) lf.remove();
     b.classList.remove("is-opening");
@@ -685,7 +724,7 @@ ROUTES.temporada = async parts => {
   try{ D = await load(); }catch(e){ console.error(e); }
   if(my !== NAV || !onRoute()) return;
   if(id === "advent") advent(D);
-  else streetPage(id, D, parts && parts[0] === "cosas" ? "cosas" : "");
+  else streetPage(id, D, parts && String(parts[0] || "").split("?")[0] === "cosas" ? "cosas" : "");
 };
 
 /* ---------- la granja: calabazas y murciélagos en Halloween ---------- */
@@ -727,7 +766,7 @@ bus.on("boot", () => { if(active()) load().catch(() => {}); });
 /* los dibujos de las temporadas para «Descargar todo»: los de img/season de la calle, la fila de Hoy y la granja, y los
    de sus palabras (data/season.json) */
 async function images(){
-  const out = new Set([ADV_ROW, ...FARM_DECO.map(p => p.img)]);
+  const out = new Set([ADV_ROW, ...FARM_DECO.map(p => p.img), ...Object.values(HOY_DECO).flat()]);
   for(const s of Object.values(STREET)) for(const k of ["row", "fly", "deco"]) if(s[k]) out.add(s[k]);
   try{ const D = await load(); for(const id of IDS) (Array.isArray(D[id]) ? D[id] : []).forEach(w => { if(okW(w)) out.add(w.img); }); }
   catch(e){ console.warn("[season] sin data/season.json:", (e && e.message) || e); }

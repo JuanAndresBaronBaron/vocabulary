@@ -5,7 +5,7 @@ ligero tiene 3 botones (Regar · Comida · Tienda); la hoja de la tienda solo tr
 resta una vez y no vuelve a montar la granja, y la pastilla de monedas abre la misma hoja (también desde otra pestaña);
 arrastrar la comida hasta un animal deja la partida igual que tocar la comida y luego el animal (y que elegirla en su
 globo); arrastrar la regadera hasta una planta, igual que «Regar» y tocarla; acariciar no cambia s.fed; mantener
-pulsado y mover se guarda (sigue tras recargar) y soltar sin mover la deja donde estaba; ni bienvenida ni ayuda (la
+pulsado y mover se guarda (sigue tras recargar) y soltar sin mover la deja donde estaba (y la acaricia); ni bienvenida ni ayuda (la
 primera vez, la mano que enseña a arrastrar); «¿Cómo me llamo?» con «Dilo»: el reconocedor que acierta pone la
 palabra en el repaso como una lección y el que no entiende nunca cuenta como fallo; un animal con hambre dice la frase
 en el idioma con su voz (speechSynthesis simulado); la capa .fm-season y el evento "farm-mounted"; contraste y
@@ -494,7 +494,8 @@ def test_pet_keeps_fed_and_hold_moves_and_persists():
     """Tocar la gallina (llena) la acaricia: corazones y su nombre, sin globo de comer y sin tocar s.fed ni la despensa;
     tocar el pato (puede comer) abre su globo junto a él, sin tocar s.fed. Mantener pulsada 500 ms la gallina la levanta
     (escala 1,06, sombra, G.haptic('selection')); al moverla y soltar se guarda en farm:state.pos y sigue ahí tras
-    recargar; mantener y soltar sin mover la deja donde estaba (y ese toque no hace nada más)."""
+    recargar; mantener y soltar sin mover la deja donde estaba y también la acaricia (mantener el dedo siempre responde:
+    F4 #38), sin tocar s.fed."""
     probs = []
     page = _page("phone", reduced_motion="reduce")
     try:
@@ -530,9 +531,9 @@ def test_pet_keeps_fed_and_hold_moves_and_persists():
         page.mouse.up()
         page.wait_for_timeout(300)
         f2 = page.evaluate(_FARM)
-        st = page.evaluate("() => ({bub: !document.querySelector('#app .fm-bub').hidden, lift: !!document.querySelector('.fm-it.lift'), hap: __hap})")
-        if f2["pos"]["gallina"] != f0["pos"]["gallina"] or st["bub"] or st["lift"]:
-            probs.append(f"soltar sin mover: pos {f0['pos']['gallina']} → {f2['pos']['gallina']}, bocadillo {st['bub']}, levantada {st['lift']}")
+        st = page.evaluate("() => { const b = document.querySelector('#app .fm-bub'); return {bub: !b.hidden, text: b.textContent, lift: !!document.querySelector('.fm-it.lift'), hap: __hap}; }")
+        if f2["pos"]["gallina"] != f0["pos"]["gallina"] or not st["bub"] or "hen" not in st["text"] or st["lift"] or f2["fed"] != f0["fed"]:
+            probs.append(f"soltar sin mover (se queda y la acaricia): pos {f0['pos']['gallina']} → {f2['pos']['gallina']}, bocadillo {st['bub']} {st['text']!r}, levantada {st['lift']}")
         if "selection" not in st["hap"]:
             probs.append(f"al levantarla no vibra: {st['hap']}")
         # mantener, mover y soltar

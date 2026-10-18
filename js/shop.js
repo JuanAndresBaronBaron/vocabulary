@@ -5,7 +5,7 @@
    el mismo bus "buy" {item}. Las monedas solo se gastan aquí (y en la comida/rescate de la granja); nunca entran.
    · Pieza (card): sólida, radio 24. Dibujo (img/pj si hay personaje de cuerpo entero; si no, img/shop/<id>.png de
      OpenMoji; si no carga, el emoji), el nombre en español, la palabra en el idioma con su altavoz y abajo un botón:
-     - no la tiene: cápsula «Conseguir · 🪙 N» (.btn-fill azul) si le llega; si no, cápsula gris «Te faltan N» (sigue
+     - no la tiene: cápsula tintada «Conseguir · 🪙 N» (fondo azul suave, como en App Store) si le llega; si no, cápsula gris «Te faltan N» (sigue
        siendo tocable: explica con un aviso amable lo que falta, sin sonido triste) y encima «Cuesta 🪙 N»;
      - granja: «✓ En tu granja», o «En el refugio» con «Ir al refugio» si el animal se fue al refugio;
      - zorro: «Ponérmelo» / «Quitármelo» (con el género: «Ponérmela», «Quitármelas»…); el personaje: «✓ Eres tú» (no se
@@ -107,7 +107,7 @@ const images = () => list().filter(it => IMG.has(it.id) && !(typeof pjHas === "f
 /* ---------- la pieza ---------- */
 function actionHtml(it, st){
   const id = esc(it.id), n = esc(it.n), p = it.p, k = st.split(":")[0];
-  if(k === "buy") return `<span class="sb" data-sb="${id}"><button type="button" class="btn-fill shp-b buy" data-buy="${id}" aria-label="Conseguir: ${n}, ${p} ${p === 1 ? "moneda" : "monedas"}"><span>Conseguir</span><span class="shp-dot" aria-hidden="true">·</span>${COIN}<span class="t-num">${p}</span></button></span>`;
+  if(k === "buy") return `<span class="sb" data-sb="${id}"><button type="button" class="btn-fill shp-b shp-tint buy" data-buy="${id}" aria-label="Conseguir: ${n}, ${p} ${p === 1 ? "moneda" : "monedas"}"><span>Conseguir</span><span class="shp-dot" aria-hidden="true">·</span>${COIN}<span class="t-num">${p}</span></button></span>`;
   if(k === "short"){
     const need = +st.split(":")[1] || 0;
     return `<span class="sb" data-sb="${id}"><small class="shp-cost" aria-hidden="true">Cuesta ${COIN}<span class="t-num">${p}</span></small><button type="button" class="btn-fill shp-b shp-short buy no" data-buy="${id}" aria-disabled="true" aria-label="${n}: cuesta ${p}, te ${need === 1 ? "falta 1 moneda" : `faltan ${need} monedas`}"><span>Te ${need === 1 ? "falta" : "faltan"}</span><span class="t-num">${need}</span>${COIN}</button></span>`;
@@ -295,6 +295,7 @@ const STYLE = `
 .shp-b .coin-ico{display:block;width:18px;height:18px;flex:none}
 .shp-b .shp-dot{opacity:.8}
 .btn-fill.shp-tint{background:var(--brand-soft);color:var(--brand-ink)}
+:root[data-theme=dark] .btn-fill.shp-tint{color:#7DBBFF}   /* sobre el tinte oscuro, --brand-ink no llega a 4,5:1 */
 .btn-fill.shp-short,.btn-fill.shp-short[aria-disabled=true]{background:var(--fill);color:var(--label2);cursor:default}
 .shp-short .coin-ico{filter:grayscale(1);opacity:.55}
 .shp-c .shp-cost{display:inline-flex;align-items:center;gap:3px;color:var(--label2);font:400 var(--fs-min)/1.2 var(--f-text)}

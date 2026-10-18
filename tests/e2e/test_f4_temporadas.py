@@ -276,7 +276,7 @@ def test_hoy_row_fits_without_scroll():
                   sel: document.querySelector('#tab-hoy') && document.querySelector('#tab-hoy').getAttribute('aria-selected')})""")
                 if h != {"tab": "hoy", "head": True, "sel": "true"}:
                     probs.append(f"{tag}: #/temporada no es una pantalla de Hoy: {h}")
-                page.click("#app .ss-back")
+                page.click("#dv-back")
                 page.wait_for_selector("#hm", timeout=6000)
                 probs += [f"{tag}: {e}" for e in C.errors(page)]
             finally:
@@ -591,15 +591,17 @@ def test_farm_layer_is_under_the_animals():
 
 
 # ---------------------------------------------------------------- adviento
-def _win(page, n, right=True, close="go"):
+def _win(page, n, right=True):
+    """Abre la ventanita n, contesta (si pregunta) y cierra con «Listo» (la hoja del adviento no tiene botón abajo)."""
     page.evaluate("() => { __said.length = 0; }")
     page.click(f"#app .ss-w[data-n='{n}']")
     sh = _sheet(page)
     if sh["mode"] == "quiz":
         sel = f"dialog#ss-q .ss-o[data-id='{sh['target']}']" if right else f"dialog#ss-q .ss-o:not([data-id='{sh['target']}'])"
         page.locator(sel).first.click()
-        page.wait_for_selector("#ss-q-go:not([hidden])", timeout=4000)
-    page.click("#ss-q-go" if close == "go" else "dialog#ss-q [data-close]")
+        page.wait_for_function("() => vocabSeason.state.sheet && vocabSeason.state.sheet.answered", timeout=4000)
+    assert not page.locator("#ss-q-go").count(), "la hoja del adviento tiene un botón de cerrar abajo (solo «Listo» arriba)"
+    page.click("dialog#ss-q [data-close]")
     _closed(page)
     page.wait_for_function("() => vocabSeason.state.advent && !vocabSeason.state.advent.busy", timeout=6000)
     page.wait_for_timeout(300)
@@ -642,7 +644,7 @@ def test_advent_windows_today_past_future_and_coins():
             probs.append(f"guardado tras la 5: {s}")
         if "is-open" not in page.evaluate("() => document.querySelector('#app .ss-w[data-n=\"5\"]').className"):
             probs.append("la ventanita 5 no queda abierta")
-        sh = _win(page, 5, close="x")
+        sh = _win(page, 5)
         if sh["mode"] != "show":
             probs.append(f"volver a abrir la 5 no enseña solo la palabra: {sh}")
         _win(page, 2, right=False)
@@ -743,8 +745,10 @@ def test_words_drawings_and_recorded_audio():
 
 # ---------------------------------------------------------------- partida
 def test_export_baseline_except_season_key():
-    """La partida al arrancar es la de la base. Mirar la temporada sin jugar no guarda nada; jugar solo añade la clave
-    "season" (objeto, en el inventario de js/save.js con tipo "o"), que se exporta y se vuelve a leer bien."""
+    """La partida al arrancar es la de la base. Mirar la temporada sin jugar no guarda nada. Forzada fuera de su fecha
+    (?season=… en marzo) es una vista previa con su nota: jugar (una puerta, la ventanita de hoy) no guarda nada ni da
+    monedas (F4 #32). En su fecha, jugar solo añade la clave "season" (objeto, en el inventario de js/save.js con tipo
+    "o"), que se exporta y se vuelve a leer bien, y la ventanita de hoy da sus 5 monedas."""
     probs = []
     base = C.load_baseline()
     assert base, "falta tests/e2e/baseline/export.json"
@@ -758,6 +762,8 @@ def test_export_baseline_except_season_key():
         for sid in ("halloween", "advent", "bonfire"):
             C.goto(page, f"#/temporada?season={sid}")
             page.wait_for_selector("#app .ss", timeout=6000)
+            if not page.locator("#app .ss-prev").count():
+                probs.append(f"?season={sid} en marzo no dice «Vista previa»")
             if sid != "advent":
                 page.click("#app .ss-seg a[href='#/temporada/cosas']")
             page.wait_for_timeout(300)
@@ -770,21 +776,42 @@ def test_export_baseline_except_season_key():
         _door(page, 0)
         C.goto(page, "#/temporada?season=advent")
         _win(page, 11)
+        if page.evaluate("() => __aw"):
+            probs.append(f"la vista previa da monedas: {page.evaluate('() => __aw')}")
+        C.goto(page, "#/?season=auto")
+        d = C.diff_exports(snap, C.export(page), allow_new=False)
+        if d:
+            probs.append("jugar en la vista previa guarda algo:\n  " + "\n  ".join(d))
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+
+    page = _page(now=DEC)
+    try:
+        _open(page, DEC, hash="")
+        snap = C.export(page)
+        C.goto(page, "#/temporada")
+        page.wait_for_selector("#app .ss-cal", timeout=6000)
+        if page.locator("#app .ss-prev").count():
+            probs.append("en diciembre el calendario dice «Vista previa»")
+        _win(page, 5)
         after = C.export(page)
-        # abrir la ventanita de hoy da award(5): solo cambia game (las monedas) además de la clave nueva
+        if page.evaluate("() => __aw") != [[5, "¡Ventanita del día!"]]:
+            probs.append(f"la ventanita de hoy en su fecha: award {page.evaluate('() => __aw')}")
+        # solo cambian las monedas (game) además de la clave nueva
         keys = dict(after["keys"])
         g0, g1 = json.loads(snap["keys"]["game"]), json.loads(keys["game"])
         if g1.get("coins") - g0.get("coins") != 5 or {k: v for k, v in g1.items() if k not in ("coins", "earned")} != \
                 {k: v for k, v in g0.items() if k not in ("coins", "earned")}:
             probs.append(f"game cambia más que las 5 monedas: {g0.get('coins')} → {g1.get('coins')}")
         keys["game"] = snap["keys"]["game"]
-        d = C.diff_exports(base, dict(after, keys=keys), allow_new=["season"])
+        d = C.diff_exports(snap, dict(after, keys=keys), allow_new=["season"])
         if d:
             probs.append("jugar cambia otras claves:\n  " + "\n  ".join(d))
-        if C.new_keys(base, after) != ["season"]:
-            probs.append(f"claves nuevas: {C.new_keys(base, after)}")
+        if C.new_keys(snap, after) != ["season"]:
+            probs.append(f"claves nuevas: {C.new_keys(snap, after)}")
         v = json.loads(after["keys"].get("season", "null"))
-        if not isinstance(v, dict) or set(v) != {"2026"} or set(v["2026"]) != {"halloween", "advent"}:
+        if not isinstance(v, dict) or set(v) != {"2026"} or set(v["2026"]) != {"advent"}:
             probs.append(f"la clave season: {v}")
         t = page.evaluate("""() => [vocabSave.typeOf('season'), vocabSave.inventory.exact.includes('season'),
           (() => { const p = vocabSave.parse(JSON.stringify(vocabSave.snapshot())); return p.ok && 'season' in p.data.keys; })()]""")
@@ -809,7 +836,7 @@ def test_looks_contrast_palette_and_captures():
             try:
                 _open(page, OCT)
                 _audit(page, f"{tag} calle", probs)
-                small = page.evaluate("""() => [...document.querySelectorAll('#app .ss-door, #app .ss-seg a, #app .ss-back')].filter(b => {
+                small = page.evaluate("""() => [...document.querySelectorAll('#app .ss-door, #app .ss-seg a, #dv-back')].filter(b => {
                   const r = b.getBoundingClientRect(); return r.width < 43.5 || r.height < 43.5; }).map(b => b.className + ' ' + b.textContent.trim())""")
                 if small:
                     probs.append(f"{tag}: pequeños: {small}")
@@ -856,11 +883,11 @@ def test_looks_contrast_palette_and_captures():
                 page.wait_for_timeout(250)
                 _audit(page, f"{tag} hoja ventanita", probs)
                 page.locator(f"dialog#ss-q .ss-o[data-id='{sh['target']}']").click()
-                page.wait_for_selector("#ss-q-go:not([hidden])", timeout=4000)
+                page.wait_for_function("() => vocabSeason.state.sheet && vocabSeason.state.sheet.answered", timeout=4000)
                 page.wait_for_timeout(250)
                 _audit(page, f"{tag} hoja ventanita contestada", probs)
                 C.shot(page, f"F4d-adviento-hoja-{tag}", _OUT, full_page=False)
-                page.click("#ss-q-go")
+                page.click("dialog#ss-q [data-close]")
                 _closed(page)
                 probs += [f"{tag}: {e}" for e in C.errors(page)]
             finally:
