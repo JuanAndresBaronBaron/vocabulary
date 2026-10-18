@@ -155,9 +155,9 @@ dialog.m-sheet.glass::before{display:none}
 :root[data-theme=dark] dialog.m-sheet.glass[data-detent=large]{background:#1C1C1E}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) dialog.m-sheet.glass[data-detent=large]{background:#1C1C1E}}
 /* tableta grande y ordenador: hoja de formulario centrada (como en iPadOS), tan alta como su contenido, sin agarre;
-   se cierra con su botón, con Esc o tocando fuera */
+   se cierra con su botón, con Esc o tocando fuera. Deja libre la barra de arriba (y la de abajo) más 12 px */
 @media (min-width:820px){
-  dialog.m-sheet{inset:0;margin:auto;width:calc(100% - 48px);max-width:560px;height:fit-content;max-height:min(760px,calc(100dvh - 96px));padding-top:20px}
+  dialog.m-sheet{inset:0;margin:auto;width:calc(100% - 48px);max-width:560px;height:fit-content;max-height:min(760px,calc(100dvh - 2 * var(--topbar-h,68px) - 24px));padding-top:20px}
   dialog.m-sheet .m-grab{display:none}
   :root dialog.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}
   :root[data-theme=dark] dialog.m-sheet.glass{background:#1C1C1E}

@@ -13,8 +13,9 @@
        fantasma vuelve a su sitio). Mientras se arrastra, el lleva la clase .g-dragging.
    - G.haptic("selection"|"success"): Android con navigator.vibrate; iPhone (iOS 18+) con el truco del interruptor, que
        tiene que ir dentro del toque; si no hay, nada. Con el Sonido apagado (localStorage "mute") no vibra.
-   - G.hint(el, {id, text, gesture:"swipe"|"left"|"right"|"hold"|"drag"|"tap", max:3, delay}) → {close()} | null:
-       globo sólido pegado a el, con una mano que hace el gesto (3 veces) y ≤5 palabras, y ✕. Una pista por pantalla y
+   - G.hint(el, {id, text, gesture:"swipe"|"left"|"right"|"hold"|"drag"|"tap", max:3, delay, side}) → {close()} | null:
+       globo sólido pegado a el (encima; con side:"bottom", debajo si cabe sobre la barra de pestañas), con una mano
+       que hace el gesto (3 veces) y ≤5 palabras, y ✕. Una pista por pantalla y
        sesión; nunca con html[data-gm-play], dentro de [data-no-hint] ni en una hoja abierta. Cuenta las veces en
        localStorage "vocab:ui" → {hints: {id: n}} (sin tocar lo demás). G.learned(id) la retira para siempre; lo hacen
        solos la ✕ y usar el gesto en ese elemento.
@@ -356,12 +357,18 @@ function safeTop(){
   if(!SAFE){ SAFE = DOC.createElement("div"); SAFE.setAttribute("aria-hidden", "true"); SAFE.style.cssText = "position:fixed;top:0;left:0;width:0;height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none"; DOC.body.appendChild(SAFE); }
   return SAFE.offsetHeight || 0;
 }
+/* dónde empieza la barra de pestañas de abajo (o el borde de la pantalla si no hay) */
+function barTop(){
+  const tb = DOC.getElementById("tabbar"), r = tb && tb.getBoundingClientRect();
+  return r && r.height > 0 && r.top > innerHeight / 2 ? Math.min(innerHeight, r.top) : innerHeight;
+}
 function placeHint(H){
   const r = visibleRect(H.el), b = H.node;
   if(!r){ b.style.visibility = "hidden"; return; }
   b.style.visibility = "";
   const bw = b.offsetWidth, bh = b.offsetHeight, m = 12, gap = 12, top = safeTop() + 8;
   let side = r.top - gap - bh >= top ? "top" : "bottom";
+  if(H.side === "bottom" && r.bottom + gap + bh <= barTop() - 8) side = "bottom";
   if(side === "bottom" && r.bottom + gap + bh > innerHeight - 8 && r.top - gap - bh >= 8) side = "top";
   const y = side === "top" ? r.top - gap - bh : Math.min(r.bottom + gap, innerHeight - bh - 8);
   const cx = r.left + r.width / 2, x = clamp(cx - bw / 2, m, Math.max(m, innerWidth - m - bw));
@@ -376,7 +383,7 @@ function hint(el, o = {}){
   if(hintN(id) >= max) return null;
   const key = screenKey(); if(screens().has(key)) return null;
   const gesture = SAY[o.gesture] ? o.gesture : "swipe", text = String(o.text || SAY[gesture]);
-  const H = {id, el, node: null, closed: false, timers: [], offs: []};
+  const H = {id, el, node: null, closed: false, timers: [], offs: [], side: o.side === "bottom" ? "bottom" : ""};
   CUR = H;
   const close = learned => {
     if(H.closed) return; H.closed = true;

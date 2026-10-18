@@ -266,13 +266,14 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
 :root[data-tab=granja]:not([data-fm-past]) .topbar::after{display:none}
 .topbar>*{pointer-events:auto}
 .tb-flag{flex:none;width:var(--tap);height:var(--tap);padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer}
-/* en la ficha de un tema (#/doc/…), «‹ Palabras» va en el sitio de la bandera, como el botón de volver de iOS (dentro de
-   un tema casi no se cambia de idioma); js/learn.js lo maneja */
+/* en las pantallas de segundo nivel, la cápsula «‹ Atrás» con el nombre de la anterior va en el sitio de la bandera, como
+   el botón de volver de iOS: la ficha de un tema (‹ Palabras), una página del álbum (‹ Álbum) y la temporada (‹ Hoy).
+   paintTabs() la pone (html[data-back]); en #/doc/… js/learn.js vuelve con Atrás si se vino de la lista */
 .tb-back{display:none;flex:none;align-items:center;gap:2px;height:var(--tap);padding:0 16px 0 8px;border-radius:var(--r-pill);
   color:var(--brand-ink);font:600 var(--fs-sub)/1 var(--f-text);text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .tb-back .ico{color:var(--brand-tint)}
-:root[data-sec=doc] .topbar>.tb-back{display:inline-flex}
-:root[data-sec=doc] .topbar>.tb-flag{display:none}
+:root[data-back] .topbar>.tb-back{display:inline-flex}
+:root[data-back] .topbar>.tb-flag{display:none}
 .flag{display:block;width:28px;height:28px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 .5px rgba(0,0,0,.18);flex:none}
 .flag svg{display:block;width:100%;height:100%}
 .tb-right{display:flex;align-items:center;gap:8px;min-width:0}
@@ -644,6 +645,8 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .hero.pjh .h-hand{left:-.06em;right:auto;bottom:-.03em;font-size:.32em;transform:rotate(-12deg)}
 .hero.pjh .h-pet{left:auto;right:-.2em;bottom:-.02em;font-size:.48em}
 .hero.pjh .h-pet .pj{display:block}
+.hero :is(.h-hat,.h-face,.h-hand) .pj{display:block;width:1.15em;height:1.15em;object-position:50% 50%;vertical-align:0}
+.hero :is(.h-hat,.h-face,.h-hand) .pj-fb{position:static}
 .farm{position:relative;height:340px;border-radius:var(--r-card);overflow:hidden;background:linear-gradient(#8fd3ff 0%,#c9ecff 44%,#6cc551 44%,#4fa83a 100%);box-shadow:var(--shadow);user-select:none}
 [data-theme=dark] .farm{background:linear-gradient(#1d3b6b 0%,#2b5a8a 44%,#2f7a2a 44%,#215c1e 100%)}
 .farm .sun{position:absolute;right:20px;top:14px;font-size:2.6rem}
@@ -684,6 +687,11 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 <body>
 <svg hidden aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden">
 <!-- Iconos Phosphor (MIT, icons/PHOSPHOR-LICENSE; la tortuga es propia): se usan con ico(nombre, estilo) -->
+<symbol id="i-fire-fill" viewBox="0 0 256 256"><path d="M143.38,17.85a8,8,0,0,0-12.63,3.41l-22,60.41L84.59,58.26a8,8,0,0,0-11.93.89C51,87.53,40,116.08,40,144a88,88,0,0,0,176,0C216,84.55,165.21,36,143.38,17.85Zm40.51,135.49a57.6,57.6,0,0,1-46.56,46.55A7.65,7.65,0,0,1,136,200a8,8,0,0,1-1.32-15.89c16.57-2.79,30.63-16.85,33.44-33.45a8,8,0,0,1,15.78,2.68Z"/></symbol>
+<symbol id="i-balloon-fill" viewBox="0 0 256 256"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,23.43,9.4,49.42,25.13,69.5,12.08,15.41,26.5,26,41.91,31.09L96.65,228.85A8,8,0,0,0,104,240h48a8,8,0,0,0,7.35-11.15L149,204.59c15.4-5.07,29.83-15.68,41.91-31.09C206.6,153.42,216,127.43,216,104A88.1,88.1,0,0,0,128,16Zm49.32,87.89A8.52,8.52,0,0,1,176,104a8,8,0,0,1-7.88-6.68,41.29,41.29,0,0,0-33.43-33.43,8,8,0,1,1,2.64-15.78,57.5,57.5,0,0,1,46.57,46.57A8,8,0,0,1,177.32,103.89Z"/></symbol>
+<symbol id="i-ear-bold" viewBox="0 0 256 256"><path d="M220,104a12,12,0,0,1-24,0,68,68,0,0,0-136,0c0,25,7.58,32.3,16.35,40.76S96,163.71,96,188a32,32,0,0,0,32,32c9,0,16.19-3.7,22.75-11.64a12,12,0,0,1,18.5,15.28C158.09,237.15,144.21,244,128,244a56.06,56.06,0,0,1-56-56c0-14.09-4.63-18.56-12.31-26C49.13,151.86,36,139.19,36,104a92,92,0,0,1,184,0Zm-40.13,53.61a12,12,0,0,0-16.4,4.38,4,4,0,0,1-7.47-2c0-7.61,3.65-12.86,9.6-20.8C172,130.65,180,120,180,104a52,52,0,0,0-104,0,12,12,0,0,0,24,0,28,28,0,0,1,56,0c0,7.61-3.65,12.86-9.6,20.8C140,133.35,132,144,132,160a28,28,0,0,0,52.25,14A12,12,0,0,0,179.87,157.61Z"/></symbol>
+<symbol id="i-heart-bold" viewBox="0 0 256 256"><path d="M178,36c-20.09,0-37.92,7.93-50,21.56C115.92,43.93,98.09,36,78,36a66.08,66.08,0,0,0-66,66c0,72.34,105.81,130.14,110.31,132.57a12,12,0,0,0,11.38,0C138.19,232.14,244,174.34,244,102A66.08,66.08,0,0,0,178,36Zm-5.49,142.36A328.69,328.69,0,0,1,128,210.16a328.69,328.69,0,0,1-44.51-31.8C61.82,159.77,36,131.42,36,102A42,42,0,0,1,78,60c17.8,0,32.7,9.4,38.89,24.54a12,12,0,0,0,22.22,0C145.3,69.4,160.2,60,178,60a42,42,0,0,1,42,42C220,131.42,194.18,159.77,172.51,178.36Z"/></symbol>
+<symbol id="i-paw-print-fill" viewBox="0 0 256 256"><path d="M240,108a28,28,0,1,1-28-28A28,28,0,0,1,240,108ZM72,108a28,28,0,1,0-28,28A28,28,0,0,0,72,108ZM92,88A28,28,0,1,0,64,60,28,28,0,0,0,92,88Zm72,0a28,28,0,1,0-28-28A28,28,0,0,0,164,88Zm23.12,60.86a35.3,35.3,0,0,1-16.87-21.14,44,44,0,0,0-84.5,0A35.25,35.25,0,0,1,69,148.82,40,40,0,0,0,88,224a39.48,39.48,0,0,0,15.52-3.13,64.09,64.09,0,0,1,48.87,0,40,40,0,0,0,34.73-72Z"/></symbol>
 <symbol id="i-house-fill" viewBox="0 0 256 256"><path d="M224,120v96a8,8,0,0,1-8,8H160a8,8,0,0,1-8-8V164a4,4,0,0,0-4-4H108a4,4,0,0,0-4,4v52a8,8,0,0,1-8,8H40a8,8,0,0,1-8-8V120a16,16,0,0,1,4.69-11.31l80-80a16,16,0,0,1,22.62,0l80,80A16,16,0,0,1,224,120Z"/></symbol>
 <symbol id="i-house-bold" viewBox="0 0 256 256"><path d="M222.14,105.85l-80-80a20,20,0,0,0-28.28,0l-80,80A19.86,19.86,0,0,0,28,120v96a12,12,0,0,0,12,12h64a12,12,0,0,0,12-12V164h24v52a12,12,0,0,0,12,12h64a12,12,0,0,0,12-12V120A19.86,19.86,0,0,0,222.14,105.85ZM204,204H164V152a12,12,0,0,0-12-12H104a12,12,0,0,0-12,12v52H52V121.65l76-76,76,76Z"/></symbol>
 <symbol id="i-book-open-text-fill" viewBox="0 0 256 256"><path d="M232,48H168a32,32,0,0,0-32,32v87.73a8.17,8.17,0,0,1-7.47,8.25,8,8,0,0,1-8.53-8V80A32,32,0,0,0,88,48H24a8,8,0,0,0-8,8V200a8,8,0,0,0,8,8H96a24,24,0,0,1,24,23.94,7.9,7.9,0,0,0,5.12,7.55A8,8,0,0,0,136,232a24,24,0,0,1,24-24h72a8,8,0,0,0,8-8V56A8,8,0,0,0,232,48ZM208,168H168.27a8.17,8.17,0,0,1-8.25-7.47,8,8,0,0,1,8-8.53h39.73a8.17,8.17,0,0,1,8.25,7.47A8,8,0,0,1,208,168Zm0-32H168.27a8.17,8.17,0,0,1-8.25-7.47,8,8,0,0,1,8-8.53h39.73a8.17,8.17,0,0,1,8.25,7.47A8,8,0,0,1,208,136Zm0-32H168.27A8.17,8.17,0,0,1,160,96.53,8,8,0,0,1,168,88h39.73A8.17,8.17,0,0,1,216,95.47,8,8,0,0,1,208,104Z"/></symbol>
@@ -857,6 +865,9 @@ function loadClips(l){
 }
 loadClips(lang);
 const clipFor = t => { const m = clipMaps[lang]; return m && m[speakable(t)]; };
+/* ¿se oirá bien? tiene audio grabado, o el navegador tiene una voz de ese idioma (si aún no hay lista de voces, sí):
+   sin voz, el navegador lo leería con otro acento y enseñaría mal la pronunciación */
+const canHear = t => !!clipFor(t) || ("speechSynthesis" in window && (!voices.length || !!voiceFor(LANGS[lang].code)));
 let clipEl = null, clipEnd = null;
 function stopClip(){
   if(clipEl){ try{ clipEl.pause(); }catch(e){} clipEl = null; }
@@ -1322,11 +1333,16 @@ function paintSegBadges(){
     if(n && x.label) a.setAttribute("aria-label", `${a.dataset.t || a.textContent}, ${x.label}`); else a.removeAttribute("aria-label");
   });
 }
+/* la cápsula de volver de la barra de arriba (#dv-back): adónde y con qué nombre */
+const backOf = h => secOf(h) === "doc" ? {h: "#/palabras", t: "Palabras"} : /^album\/./.test(h) ? {h: "#/album", t: "Álbum"}
+  : secOf(h) === "temporada" ? {h: "#/", t: "Hoy"} : null;
 /* lo que se ve de la barra: pestaña marcada, adónde lleva cada una, vidrio ligero en la granja y en las partidas */
 function paintTabs(h){
   const t = tabOf(h); if(t) curTab = t.id;
   const root = document.documentElement;
   root.dataset.tab = curTab || ""; root.dataset.sec = secOf(h);
+  const bk = backOf(h), bb = $("#dv-back");
+  if(bk && bb){ root.dataset.back = ""; bb.setAttribute("href", bk.h); bb.lastElementChild.textContent = bk.t; } else delete root.dataset.back;
   for(const x of TABS){
     const a = document.getElementById("tab-" + x.id); if(!a) continue;
     const on = x.id === curTab, m = TABMEM[x.id];
@@ -1500,6 +1516,9 @@ function wireNav(){
   /* barra superior: idioma, monedas (la tienda de la granja) y Ajustes */
   $("#lang-b").addEventListener("click", e => { e.stopPropagation(); langMenu(); });
   $("[data-coins-pill]").addEventListener("click", () => {
+    /* en Mi zorro las piezas ya están en la pantalla: se baja hasta ellas en vez de saltar a la tienda de la granja */
+    const mz = secOf(hashPath()) === "mizorro" && document.getElementById("mz-seg");
+    if(mz){ mz.scrollIntoView({block: "start", behavior: window.M && M.rm() ? "auto" : "smooth"}); return; }
     if(window.vocabFarm && typeof vocabFarm.openShop === "function") vocabFarm.openShop(); else location.hash = "#/granja";
   });
   $("[data-open=ajustes]").addEventListener("click", e => { if(typeof window.openSettings === "function") window.openSettings(null, e.currentTarget); });
@@ -1674,7 +1693,10 @@ async function homeSlots(){
   const vals = await Promise.all(HOME_SLOTS.map(f => Promise.resolve().then(() => typeof f === "function" ? f() : f).catch(e => { console.error(e); return ""; })));
   const out = [];
   const max = SHORT.matches ? 1 : SLOT_MAX;
-  vals.forEach((v, i) => { if(out.length < max){ const el = slotEl(v, HOME_SLOTS[i]); if(el) out.push(el); } });
+  /* en un móvil bajo solo cabe una fila: la de la temporada (la única entrada a #/temporada) va antes que las demás */
+  const ord = vals.map((v, i) => i);
+  if(SHORT.matches) ord.sort((a, b) => ((HOME_SLOTS[b] || {}).id === "season") - ((HOME_SLOTS[a] || {}).id === "season"));
+  ord.forEach(i => { if(out.length < max){ const el = slotEl(vals[i], HOME_SLOTS[i]); if(el) out.push(el); } });
   return out;
 }
 let waveAt = 0;
@@ -1769,6 +1791,9 @@ const noVoiceMsg = () => iosPWA() ? "Para hablar, abre la web en Safari. Tambié
    resuelve {status, alts} con status "ok" | "timeout" | "no-speech" | "denied" | "unsupported" | "unavailable" | "busy" |
    "error" (con error: el código del reconocedor) */
 let recNow = null;
+/* corta la escucha en curso (al acertar, al cerrar el globo o al salir de la pantalla): listen() acaba en "aborted" y el
+   micrófono se apaga enseguida, así otra pantalla puede escuchar sin recibir "busy" */
+function stopListen(){ try{ if(recNow && recNow._stop) recNow._stop(); }catch(e){} }
 function listen(opts){
   const ms = (opts && opts.ms) || 7000;
   return new Promise(res => {
@@ -1792,6 +1817,7 @@ function listen(opts){
     };
     rec.onend = () => done(alts ? "ok" : "no-speech");
     timer = setTimeout(() => { done("timeout"); try{ rec.abort(); }catch(_){} }, ms);
+    rec._stop = () => { done("aborted"); try{ rec.abort(); }catch(_){} };
     recNow = rec;
     try{ rec.start(); }catch(e){ done("busy", String(e && e.name || e)); }
   });
@@ -1910,6 +1936,8 @@ const TYPES = [["hero","🦸","Personajes"],["hat","🎩","Sombreros"],["face","
 const itemWord = it => it.w[lang] || it.n;
 function heroHtml(size = 110, g = game()){
   const w = g.wear, E = id => (itemById(id) || {}).e || "";
+  /* el sombrero, las gafas y el juguete con el mismo dibujo que su pieza de la tienda (img/shop), si no, el emoji */
+  const A = id => (window.vocabShop && typeof vocabShop.img === "function" && vocabShop.img(id)) || E(id);
   const hid = itemById(w.hero) ? w.hero : "zorro", S = SPR[hid];
   if(S && S.w && S.h){
     /* caja de 1.3em × 1.25em: el dibujo va abajo y centrado; el sombrero y las gafas siguen a su cabeza */
@@ -1919,13 +1947,13 @@ function heroHtml(size = 110, g = game()){
     return `<div class="hero pjh" style="font-size:${size}px" aria-hidden="true">
     <span class="h-base">${pjImg(itemById(hid))}</span>
     ${w.pet ? `<span class="h-pet">${pjImg(itemById(w.pet))}</span>` : ""}
-    ${w.hat ? `<span class="h-hat" style="${at(head, 0, .02)}">${E(w.hat)}</span>` : ""}${w.face ? `<span class="h-face" style="${at(eye, 0, 0)}">${E(w.face)}</span>` : ""}
-    ${w.hand ? `<span class="h-hand">${E(w.hand)}</span>` : ""}</div>`;
+    ${w.hat ? `<span class="h-hat" style="${at(head, 0, .02)}">${A(w.hat)}</span>` : ""}${w.face ? `<span class="h-face" style="${at(eye, 0, 0)}">${A(w.face)}</span>` : ""}
+    ${w.hand ? `<span class="h-hand">${A(w.hand)}</span>` : ""}</div>`;
   }
   return `<div class="hero" style="font-size:${size}px" aria-hidden="true">
     ${w.pet ? `<span class="h-pet">${E(w.pet)}</span>` : ""}<span class="h-base">${E(w.hero) || "🦊"}</span>
-    ${w.hat ? `<span class="h-hat">${E(w.hat)}</span>` : ""}${w.face ? `<span class="h-face">${E(w.face)}</span>` : ""}
-    ${w.hand ? `<span class="h-hand">${E(w.hand)}</span>` : ""}</div>`;
+    ${w.hat ? `<span class="h-hat">${A(w.hat)}</span>` : ""}${w.face ? `<span class="h-face">${A(w.face)}</span>` : ""}
+    ${w.hand ? `<span class="h-hand">${A(w.hand)}</span>` : ""}</div>`;
 }
 /* ganar monedas. why sale en la cápsula de avisos («¡Misión cumplida! +15»). from (opcional, solo cómo se ve): el
    elemento desde el que vuelan las monedas hasta el contador (M.coins, con una nota por moneda); sin él, solo el aviso
@@ -2069,8 +2097,9 @@ async function route(){
   const t = tabOf(hp); if(t){ TABMEM[t.id] = {h: memHash(hp), y: restoreY || 0}; memSave(); }
   try{
     await getShop();
-    if(h.startsWith("leccion/")) await leccion(h.slice(8));
-    else if(ROUTES[secOf(hp)]){ document.onkeydown = null; await ROUTES[secOf(hp)](h.split("/").slice(1)); }
+    /* las partes de la ruta, sin el ?query (#/temporada/cosas?season=halloween → ["cosas"]) */
+    if(hp.startsWith("leccion/")) await leccion(hp.slice(8));
+    else if(ROUTES[secOf(hp)]){ document.onkeydown = null; await ROUTES[secOf(hp)](hp.split("/").slice(1)); }
     else await home();
   }catch(e){ console.error(e); $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
   /* si mientras se pintaba se fue a otra ruta, la nueva se encarga de las barras y del scroll */

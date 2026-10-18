@@ -295,7 +295,7 @@ def test_f4_routes_direct_reload_and_navigation():
         _check_route(page, "#/album", "#app .al-sum", "", "jugar", "Álbum", "navegando", probs)
         _click_nav(page, '#app a[href="#/album/colores"]')
         _check_route(page, "#/album/colores", "#al-page", "", "jugar", None, "navegando", probs)
-        _click_nav(page, "#app a.al-bk")
+        _click_nav(page, "#dv-back")
         _check_route(page, "#/album", "#app .al-sum", "", "jugar", "Álbum", "navegando («‹ Álbum»)", probs)
         _click_nav(page, "#tab-granja")
         _check_route(page, "#/granja", "#app .fm-stage .fm-it", "", "granja", None, "navegando", probs)
@@ -311,7 +311,7 @@ def test_f4_routes_direct_reload_and_navigation():
         _check_route(page, "#/temporada", "#ss-street .ss-door", "", "hoy", None, "navegando (fila de Hoy)", probs)
         _click_nav(page, '#app a[href="#/temporada/cosas"]')
         _check_route(page, "#/temporada/cosas", "#app .ss-stks .ss-stk", "", "hoy", None, "navegando", probs)
-        _click_nav(page, "#app a.ss-back")
+        _click_nav(page, "#dv-back")
         if C.current_hash(page) != "" or not page.locator("#ss-row").count():
             probs.append(f"«‹ Hoy» no vuelve a Hoy con la fila de la temporada: #/{C.current_hash(page)}")
         # la pestaña Hoy marcada en la temporada vuelve a Hoy al tocarla
@@ -340,8 +340,8 @@ def _mz_ids(page):
 
 
 def test_farm_sells_farm_things_and_mizorro_outfits():
-    """La pastilla de monedas abre la hoja de la tienda de la granja desde Hoy, Juegos, Álbum, Medallas, Mi zorro y la
-    temporada (va a #/granja y la abre) y en la granja la abre sin moverse. La hoja tiene las 29 cosas de la granja y la
+    """La pastilla de monedas abre la hoja de la tienda de la granja desde Hoy, Juegos, Álbum, Medallas y la temporada (va
+    a #/granja y la abre) y en la granja la abre sin moverse; en Mi zorro no navega: baja hasta las piezas. La hoja tiene las 29 cosas de la granja y la
     comida, ningún traje; Mi zorro, las 35 piezas de personajes, sombreros, gafas, juguetes y mascotas, ninguna de la
     granja. Comprar un animal en la hoja resta su precio una vez y sale en la escena sin volver a montarla; comprar un
     sombrero en Mi zorro resta una vez, se lo pone (arriba con saltito) y el personaje de la granja lo lleva. Sin errores."""
@@ -351,7 +351,16 @@ def test_farm_sells_farm_things_and_mizorro_outfits():
         C.seed(page, _keys(game=dict(C.seed_data()["game"], coins=600)))
         _no_hints(page)
         page.evaluate(GR._HOOKS)
-        for h in ("#/", "#/juegos", "#/album", "#/progreso", "#/mizorro", "#/temporada?season=halloween", "#/granja"):
+        # en Mi zorro no se sale de la pantalla de los trajes: la pastilla baja hasta las piezas
+        C.goto(page, "#/mizorro")
+        page.evaluate("() => scrollTo(0, 0)")
+        page.locator("[data-coins-pill]").click()
+        page.wait_for_timeout(700)
+        mz = page.evaluate("""() => ({shop: !!document.querySelector('#fm-shop[open]'), y: Math.round(document.getElementById('mz-seg').getBoundingClientRect().top),
+          vh: innerHeight})""")
+        if C.current_hash(page) != "mizorro" or mz["shop"] or not (0 <= mz["y"] < mz["vh"] / 2):
+            probs.append(f"en Mi zorro, la pastilla de monedas no baja a las piezas: #/{C.current_hash(page)} {mz}")
+        for h in ("#/", "#/juegos", "#/album", "#/progreso", "#/temporada?season=halloween", "#/granja"):
             C.goto(page, h)
             n0 = page.evaluate(_ROUTE_N)
             page.locator("[data-coins-pill]").click()
@@ -421,12 +430,12 @@ def test_farm_sells_farm_things_and_mizorro_outfits():
         g = page.evaluate(_GAME)
         if g["coins"] != c1 - hat["p"] or g["wear"].get("hat") != hat["id"]:
             probs.append(f"comprar {hat['id']} en Mi zorro: monedas {c1} → {g['coins']} (precio {hat['p']}), puesto {g['wear'].get('hat')}")
-        top = page.evaluate("() => { const h = document.querySelector('#mz-fox .h-hat'); return h ? h.textContent.trim() : null; }")
+        top = page.evaluate("() => { const h = document.querySelector('#mz-fox .h-hat'), i = h && h.querySelector('img[data-e]'); return h ? (i ? i.dataset.e : h.textContent.trim()) : null; }")
         if top != hat["e"]:
             probs.append(f"el personaje de Mi zorro no lleva {hat['id']}: {top!r}")
         C.goto(page, "#/granja")
         page.wait_for_selector("#app .fm-hero", timeout=6000)
-        fh = page.evaluate("() => { const h = document.querySelector('#app .fm-hero .h-hat'); return h ? h.textContent.trim() : null; }")
+        fh = page.evaluate("() => { const h = document.querySelector('#app .fm-hero .h-hat'), i = h && h.querySelector('img[data-e]'); return h ? (i ? i.dataset.e : h.textContent.trim()) : null; }")
         if fh != hat["e"]:
             probs.append(f"el personaje de la granja no lleva el sombrero comprado en Mi zorro: {fh!r} (se esperaba {hat['e']})")
         if C.errors(page):

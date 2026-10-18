@@ -131,6 +131,8 @@ def test_active_tab_scrolls_to_top():
         C.seed(page)
         for h, tab in (("#/palabras", "aprender"), ("#/juegos", "jugar")):
             C.goto(page, h)
+            # una pantalla que casi cabe entera (Juegos desde F4) se alarga solo para la prueba: lo que se mira es la subida
+            page.evaluate("() => { if (document.documentElement.scrollHeight - innerHeight < 300) document.getElementById('app').style.paddingBottom = '600px'; }")
             page.evaluate("scrollTo(0, Math.min(900, document.documentElement.scrollHeight - innerHeight))")
             page.wait_for_timeout(300)
             y0 = page.evaluate("scrollY")

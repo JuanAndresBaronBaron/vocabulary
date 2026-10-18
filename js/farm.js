@@ -418,8 +418,12 @@ function mount(host){
   const later = (fn, ms) => { const t = setTimeout(() => { T.delete(t); if(isOn()) fn(); else stop(); }, ms); T.add(t); return t; };
   const cancel = t => { if(t){ clearTimeout(t); T.delete(t); } };
   const every = (fn, ms) => { const t = setInterval(() => { if(isOn()) fn(); else stop(); }, ms); I.add(t); return t; };
+  /* el «Dilo» del quiz: si sigue escuchando al cerrar el globo, al acertar o al salir, se apaga el micrófono */
+  let micLive = false;
+  const micStop = () => { if(!micLive) return; micLive = false; try{ if(typeof stopListen === "function") stopListen(); }catch(e){} };
   function stop(){
     if(!alive) return; alive = false;
+    micStop();
     /* solo la hora de la visita, sobre lo guardado (otra pestaña pudo cambiar la granja) */
     try{ const t = load(); t.visit = Math.max(Number(t.visit) || 0, now()); save(t); }catch(e){}
     T.forEach(clearTimeout); I.forEach(clearInterval); T.clear(); I.clear();
@@ -486,12 +490,12 @@ function mount(host){
   const stars = Array.from({length: 24}, () => `<i style="left:${rnd(2, 98).toFixed(1)}%;top:${rnd(10, 44).toFixed(1)}%;animation-delay:${rnd(0, 2.6).toFixed(2)}s;width:${rnd(2, 3.5).toFixed(1)}px;height:${rnd(2, 3.5).toFixed(1)}px"></i>`).join("");
   const flies = Array.from({length: 9}, () => `<i style="left:${rnd(4, 94).toFixed(1)}%;top:${rnd(10, 80).toFixed(1)}%;animation-delay:-${rnd(0, 6).toFixed(2)}s;animation-duration:${rnd(5, 9).toFixed(1)}s"></i>`).join("");
   const clouds = [[14, 12, 95, -20, 1], [24, 48, 120, -75, .8], [18, 78, 80, -50, .65]]
-    .map(([t, cx, d, dl, sc]) => `<button type="button" class="fm-cloud" aria-label="Nube" style="top:${t}%;--cx:${cx}%;animation-duration:${d}s;animation-delay:${dl}s;scale:${sc}"></button>`).join("");
+    .map(([t, cx, d, dl, sc]) => `<button type="button" class="fm-cloud" tabindex="-1" aria-hidden="true" style="top:${t}%;--cx:${cx}%;animation-duration:${d}s;animation-delay:${dl}s;scale:${sc}"></button>`).join("");
   host.innerHTML = `<div class="fm">
     <div class="fm-stage${crowd ? " crowd" : ""}" data-ph="${ph}" style="--hz:${HZ}%" role="group" aria-label="Tu granja">
       <div class="fm-world">
         <div class="fm-sky"></div><div class="fm-stars">${stars}</div>
-        <button type="button" class="fm-sun" aria-label="Sol"></button><button type="button" class="fm-moon" aria-label="Luna"></button>
+        <button type="button" class="fm-sun" tabindex="-1" aria-hidden="true"></button><button type="button" class="fm-moon" tabindex="-1" aria-hidden="true"></button>
         ${clouds}
         <svg class="fm-hills" viewBox="0 0 1000 100" preserveAspectRatio="none" aria-hidden="true">
           <path class="h2" d="M0 58C90 22 190 18 300 44C390 64 470 26 590 30C700 34 760 60 860 40C920 28 970 30 1000 36L1000 100L0 100Z"/>
@@ -499,7 +503,7 @@ function mount(host){
         <div class="fm-ground"></div>
         <svg class="fm-path" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><path d="M38 101C42 70 58 46 64 22C66 12 67 5 68 -1L71 -1C71 6 71 14 70 24C68 50 63 74 63 101Z"/></svg>
         <div class="fm-fence"></div><div class="fm-fence r"></div>
-        <button type="button" class="fm-shel" hidden><span class="fm-she" aria-hidden="true">🏚️</span><span class="fm-shl">Refugio</span><b class="fm-shb" hidden></b></button>
+        <button type="button" class="fm-shel glass lite" hidden>${icon("paw-print", "fill", 22)}<span class="fm-shl">Refugio</span><b class="fm-shb" hidden></b></button>
         <svg class="fm-blades" viewBox="0 0 400 16" preserveAspectRatio="none" aria-hidden="true"><path d="${blades}"/></svg>
         <div class="fm-flies" aria-hidden="true">${flies}</div>
         <div class="fm-layer"></div>
@@ -730,6 +734,7 @@ function mount(host){
   function closePop(quiet){
     if(popEl.hidden) return;
     const c = popCtl; popCtl = null;
+    if(popEl.dataset.kind === "quiz") micStop();
     const had = popEl.contains(document.activeElement);
     popEl.hidden = true; popIn.innerHTML = "";
     if(had && c && c.back && c.back.isConnected && !quiet) try{ c.back.focus({preventScroll: true}); }catch(e){}
@@ -850,7 +855,8 @@ function mount(host){
     if(!ANIM[id] || spoke.has(id) || !needy(id) || !els[id]) return false;
     if(entry && (sounding() || dlgOpen())) return false;   /* al entrar, solo si no suena nada */
     spoke.add(id);
-    speak(PHRASE[lang] || PHRASE.english);
+    const ph = PHRASE[lang] || PHRASE.english;
+    if(typeof canHear !== "function" || canHear(ph)) speak(ph);   /* sin voz de ese idioma, basta el globo con el texto */
     cls(els[id], "talk", 900);
     return true;
   }
@@ -885,9 +891,11 @@ function mount(host){
           if(ANIM[id]) live[id] = {x: d.x, y: d.y};
           const t = topOf(el, 1); puffs(t.x - 2, t.y, 1); puffs(t.x + 2, t.y, 1);
           cls(el, "land", 400); play("pop");
+          try{ g.learned("fm-lift"); }catch(e){}
         }
         if(ANIM[id]){ busy[id] = false; resume(id, 3000); }
         render(id, true);
+        if(!moved) tap(id);   /* mantener el dedo sin moverlo también acaricia (o riega, o da de comer): siempre responde */
       },
       onCancel: () => {
         if(!lift || lift.el !== el) return;
@@ -895,6 +903,14 @@ function mount(host){
         const p = posOf(id); if(p) put(el, p.x, p.y, 0);
         if(ANIM[d.id]){ busy[d.id] = false; resume(d.id, 2000); }
       }}));
+  }
+
+  /* tras la primera caricia o comida de la visita, la pista de que se puede mover (como mucho 3 veces en total) */
+  let liftHinted = false;
+  function liftHint(id){
+    const g = GS(); if(liftHinted || !g || typeof g.hint !== "function") return;
+    liftHinted = true;
+    later(() => { const el = els[id]; if(el && !el._lift && !popOpen() && !dlgOpen() && !trayOpen() && !finding() && !coachEl && !dragging) g.hint(el, {id: "fm-lift", gesture: "hold", text: "Mantén para moverlo", max: 3, delay: 0}); }, 2800);
   }
 
   /* ---------- tocar cosas ---------- */
@@ -920,7 +936,7 @@ function mount(host){
     const woke = asleep(id); awake[id] = now() + 30000;
     hop(el); heart(el); play(A.moo ? "moo" : "pop");
     bubble(wordBub(pj(it), iw(it), it.n, `<span class="fm-hl" aria-hidden="true">${heartsHtml(Math.max(0, hearts(id)))}</span> ${woke ? "¡Me has despertado! 🥱" : fullTxt(id)}`), el); speak(iw(it));
-    render(id); resume(id, 2600);
+    render(id); resume(id, 2600); liftHint(id);
   }
   const fullTxt = id => `¡Está lleno! 😋 Podrá comer en ${fmtLeft(HMS(FULL_H) - sinceFed(s, id))}`;
   /* comida que no es la suya: nunca un fallo (no se gasta): le dice cuál le gusta */
@@ -1026,13 +1042,15 @@ function mount(host){
       <div class="fm-pa"><button type="button" class="btn-fill btn-fill--neu fm-x">Ahora no</button></div>`, el, "¿Cómo me llamo?",
       () => { if(isOn()) gifts(id, res); });
     popEl.dataset.fid = id; popEl.dataset.kind = "quiz";
+    closeTray();   /* un solo panel a la vez: el globo del quiz cierra la bandeja de la comida */
     const m = box.querySelector(".fm-qm"), x = box.querySelector(".fm-x"), micB = box.querySelector("[data-mic]");
+    const micOff = () => { if(!busyMic) return; busyMic = false; micStop(); micB.classList.remove("on"); micB.removeAttribute("aria-pressed"); micB.querySelector("span").textContent = "Dilo"; };
     x.onclick = () => closePop();
     const okB = () => box.querySelector(`.fm-opt[data-fo="${id}"]`);
     function win(b){
       if(done) return; done = true;
       box.querySelectorAll(".fm-opt").forEach(o => { if(o !== b) o.disabled = true; });
-      if(micB) micB.disabled = true;
+      if(micB){ micOff(); micB.disabled = true; }
       if(b){ b.classList.add("ok"); b.insertAdjacentHTML("beforeend", `<span class="fm-mk" aria-hidden="true">${icon("check", "bold", 18)}</span>`); }
       play("ok"); speak(right); srsWord(id);
       const k = addProd(id, ANIM[id].p); if(k) res.keys.push(k);
@@ -1048,7 +1066,7 @@ function mount(host){
       /* fallo: gris con ✗ (nunca rojo ni dorado), sin temblar ni sonido triste; la buena en verde con ✓ */
       done = true;
       box.querySelectorAll(".fm-opt").forEach(o => { if(o !== b) o.disabled = true; });
-      if(micB) micB.disabled = true;
+      if(micB){ micOff(); micB.disabled = true; }
       b.classList.add("bad"); b.insertAdjacentHTML("beforeend", `<span class="fm-mk" aria-hidden="true">${icon("x", "bold", 18)}</span>`);
       speak(right);
       const o = okB(); if(o){ o.disabled = false; o.classList.add("ok"); o.onclick = null; o.insertAdjacentHTML("beforeend", `<span class="fm-mk" aria-hidden="true">${icon("check", "bold", 18)}</span>`); }
@@ -1061,8 +1079,10 @@ function mount(host){
       busyMic = true; micB.classList.add("on"); micB.setAttribute("aria-pressed", "true"); micB.querySelector("span").textContent = "Te escucho…";
       try{ if("speechSynthesis" in window) speechSynthesis.cancel(); }catch(e){}
       m.className = "fm-qm"; m.textContent = "";
-      let r = null;
+      let r = null; micLive = true;
       try{ r = await listen({lang: code(), ms: 6000}); }catch(e){ r = {status: "error", alts: []}; }
+      micLive = false;
+      if(!busyMic || (r && r.status === "aborted")) return;   /* ya se apagó (acierto, toque o globo cerrado) */
       busyMic = false;
       if(!isOn() || done || popEl.dataset.kind !== "quiz" || popEl.dataset.fid !== id || !micB.isConnected) return;
       micB.classList.remove("on"); micB.removeAttribute("aria-pressed"); micB.querySelector("span").textContent = "Dilo";
@@ -1076,6 +1096,7 @@ function mount(host){
   /* animación de comer */
   function eatFx(id, fid){
     const el = els[id]; if(!el || !isOn()) return;
+    liftHint(id);
     freeze(id); busy[id] = true;
     render(id, true);
     const t = topOf(el, .5);
@@ -1548,7 +1569,7 @@ function mount(host){
   }
   function bar(){
     bWater.setAttribute("aria-pressed", String(waterMode));
-    const b = bWater.querySelector(".fm-badge"); b.hidden = !(s.drops > 0); b.textContent = "+" + s.drops;
+    const b = bWater.querySelector(".fm-badge"); b.hidden = !(s.drops > 0); b.innerHTML = `${icon("drop", "bold", 12)}<span class="t-num">${s.drops}</span>`;
     bWater.setAttribute("aria-label", s.drops > 0 ? `Regar. Tienes ${s.drops} de agua extra` : "Regar");
     bWater.title = "Regar · o arrastra la regadera hasta una planta";
   }
@@ -1580,7 +1601,7 @@ function mount(host){
     const Fd = FOOD[k], c = Fd.c * n, miss = c - coinsNow(), room = PAN_MAX - (s.pan[k] || 0);
     if(room <= 0) return `<button type="button" class="btn-fill fm-pb" data-fbuy="${k}" data-n="${n}" disabled>¡Ya tienes mucha!</button>`;
     if(miss > 0) return `<button type="button" class="btn-fill fm-pb no" data-fbuy="${k}" data-n="${n}" aria-disabled="true" aria-label="${n} de ${esc(Fd.n)}: cuesta ${c}, te ${miss === 1 ? "falta 1 moneda" : `faltan ${miss} monedas`}">Te faltan <span class="t-num">${miss}</span>${COIN}</button>`;
-    return `<button type="button" class="btn-fill fm-pb" data-fbuy="${k}" data-n="${n}" aria-label="Comprar ${n} de ${esc(Fd.n)}: ${c} monedas">+${n}<span class="shp-dot" aria-hidden="true">·</span>${COIN}<span class="t-num">${c}</span></button>`;
+    return `<button type="button" class="btn-fill shp-tint fm-pb" data-fbuy="${k}" data-n="${n}" aria-label="Comprar ${n} de ${esc(Fd.n)}: ${c} monedas">+${n}<span class="shp-dot" aria-hidden="true">·</span>${COIN}<span class="t-num">${c}</span></button>`;
   }
   function foodRow(k){
     const Fd = FOOD[k], w = fw(k), who = eatersOf(k);
@@ -1596,6 +1617,8 @@ function mount(host){
     const sec = (t, k, list) => list.length ? `<section class="fm-ss" aria-labelledby="fm-sh-${k}"><h3 class="fm-sh3" id="fm-sh-${k}">${t}</h3><div class="shop">${list.map(card).join("")}</div></section>` : "";
     return `${head("Tienda", "Listo", "fm-shop-t")}
       <p class="fm-scoin">Tienes ${COIN}<b class="t-num" data-fm-coins data-coins-n>${coinsNow()}</b></p>
+      <a class="fm-zrow" href="#/mizorro" data-zorro><span class="fm-zi" aria-hidden="true">${typeof heroHtml === "function" ? heroHtml(38) : "🦊"}</span>
+        <span class="fm-zt"><b>Sombreros, gafas y juguetes</b><small>Para tu zorro, en Premios</small></span><span class="fm-zg">Mi zorro${icon("caret-right", "bold", 16)}</span></a>
       <section class="fm-ss" aria-labelledby="fm-sh-c"><h3 class="fm-sh3" id="fm-sh-c">Comida</h3>
         <div class="fm-pl" data-fm-foods>${ks.length ? ks.map(foodRow).join("") : `<p class="fm-note">Primero, un animal 🐣<br>¡Mira aquí abajo!</p>`}</div></section>
       ${sec("Animales", "a", an)}${sec("Plantas", "p", pl)}${sec("Cosas", "t", th)}`;
@@ -1611,6 +1634,8 @@ function mount(host){
       root.appendChild(d);
       d.addEventListener("click", e => {
         if(e.target.closest("[data-x]")) return shut(d);
+        /* los trajes del zorro están en Premios › Mi zorro: se cierra la hoja y se va allí */
+        if(e.target.closest("[data-zorro]")){ e.preventDefault(); shut(d); location.hash = "#/mizorro"; return; }
         const b = e.target.closest("[data-fbuy]"); if(!b) return;
         const k = b.dataset.fbuy, r = buyFood(k, +b.dataset.n || 1);
         const row = d.querySelector(`.fm-prow[data-pf="${k}"]`), m = row && row.querySelector(".fm-rm");
@@ -1859,7 +1884,7 @@ function mount(host){
     if(!care && !coachEl && findable().length >= 3){ bubble(msg("¿Jugamos?") + playBtn, hero, 6000); return 6100; }
     /* una planta con sed: la pista de arrastrar la regadera (G.hint: 3 veces como mucho) */
     const thirsty = Object.keys(els).some(id => kindOf(id) === "plant" && plant(id).s < 2 && canWater(id));
-    const g = GS(); if(thirsty && !coachEl && !trayOpen() && !popOpen() && !dlgOpen() && g && typeof g.hint === "function") regHint = g.hint(bWater, {id: "fm-regadera", text: "Arrástrala hasta una planta", gesture: "drag", delay: 600});
+    const g = GS(); if(thirsty && !coachEl && !trayOpen() && !popOpen() && !dlgOpen() && g && typeof g.hint === "function") regHint = g.hint(bWater, {id: "fm-regadera", text: "Arrastra el agua a una planta", gesture: "drag", delay: 600});
     return 0;
   });
   later(nextIntro, 450);
@@ -1938,7 +1963,7 @@ function css(){
 .fm-sun,.fm-moon{position:absolute;display:none;border:0;padding:0;border-radius:50%;transform:translate(-50%,-50%);z-index:1;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .fm-stage:not([data-ph=night]) .fm-sun,.fm-stage[data-ph=night] .fm-moon{display:block}
 .fm-sun{width:56px;height:56px;background:radial-gradient(circle at 40% 38%,#fffbe0 0,#ffe066 45%,#f5b800 100%);box-shadow:0 0 0 9px rgba(255,214,80,.22),0 0 46px 16px rgba(255,204,0,.45)}
-.fm-sun::before{content:"";position:absolute;inset:-20px;border-radius:50%;background:repeating-conic-gradient(rgba(255,215,90,.55) 0 7deg,transparent 7deg 22deg);-webkit-mask:radial-gradient(circle,transparent 48%,#000 50%,transparent 71%);mask:radial-gradient(circle,transparent 48%,#000 50%,transparent 71%);animation:fmSpin 40s linear infinite;z-index:-1}
+.fm-sun::before{content:"";position:absolute;inset:-20px;border-radius:50%;background:repeating-conic-gradient(rgba(255,215,90,.55) 0 7deg,transparent 7deg 22deg);-webkit-mask:radial-gradient(circle,transparent 48%,#000 50%,transparent 71%);mask:radial-gradient(circle,transparent 48%,#000 50%,transparent 71%);animation:fmSpin 40s linear 3;z-index:-1}
 .fm-stage[data-ph=dawn] .fm-sun,.fm-stage[data-ph=dusk] .fm-sun{background:radial-gradient(circle at 40% 38%,#fff2c8 0,#FFD84D 45%,#F5B800 100%);box-shadow:0 0 0 9px rgba(255,204,0,.22),0 0 50px 20px rgba(255,196,0,.45)}
 .fm-moon{width:44px;height:44px;background:radial-gradient(circle at 62% 38%,rgba(0,0,0,.07) 0 5px,transparent 6px),radial-gradient(circle at 36% 64%,rgba(0,0,0,.06) 0 4px,transparent 5px),radial-gradient(circle at 35% 35%,#fffdf2,#ece4c2 62%,#d6cca2);box-shadow:0 0 26px 8px rgba(240,232,190,.35)}
 .fm-cloud{position:absolute;left:-30%;width:96px;height:30px;border:0;padding:0;border-radius:30px;background:var(--cloud);opacity:var(--cloudo);animation:fmDrift 90s linear infinite;z-index:2;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -1959,6 +1984,8 @@ function css(){
 .fm-flies{position:absolute;inset:var(--hz) 0 0 0;z-index:4;pointer-events:none;opacity:0;transition:opacity 2s}
 .fm-stage[data-ph=night] .fm-flies{opacity:1}.fm-stage[data-ph=dusk] .fm-flies{opacity:.5}
 .fm-flies i{position:absolute;width:5px;height:5px;border-radius:50%;background:#eaff8a;box-shadow:0 0 10px 4px rgba(214,255,110,.55);animation:fmFly 6s ease-in-out infinite alternate}
+/* lo que no se ve no se mueve (batería): de día no hay estrellas ni luciérnagas, y al amanecer tampoco luciérnagas */
+.fm-stage[data-ph=day] .fm-stars i,.fm-stage[data-ph=day] .fm-flies i,.fm-stage[data-ph=dawn] .fm-flies i{animation-play-state:paused}
 .fm-layer{position:absolute;inset:0;z-index:5;pointer-events:none}
 .fm-layer>*{pointer-events:auto}.fm-layer>.fm-fx{pointer-events:none}
 /* las cosas: su tamaño sale de --u (lo calcula la granja según la pantalla) */
@@ -2036,13 +2063,14 @@ function css(){
 .fm-it.bye{opacity:0;transition:opacity .6s ease,transform .6s ease!important;transform:translate(-50%,-100%) scale(.3)!important;pointer-events:none}
 .fm-stage.feeding .fm-it:not(.k-animal),.fm-stage.feeding .fm-prod{filter:saturate(.55) brightness(.92)}
 /* cartel del refugio */
-.fm-shel{position:absolute;left:max(12px,var(--safe-l));top:calc(var(--hz) - 52px);z-index:6;display:flex;align-items:center;gap:6px;min-height:46px;padding:4px 12px 4px 7px;border:2px solid rgba(255,255,255,.8);border-radius:14px;background:rgba(11,37,69,.84);color:#fff;font:inherit;font-weight:700;font-size:.95rem;line-height:1;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.28);-webkit-tap-highlight-color:transparent}
+/* el Refugio: cápsula de vidrio lite como el dock (sin marino: es algo que se toca) */
+.fm-shel{--g-lite:rgba(255,255,255,.96);--g-lite-d:rgba(28,28,30,.96);position:absolute;left:max(12px,var(--safe-l));top:calc(var(--hz) - 56px);z-index:6;display:flex;align-items:center;gap:8px;min-height:44px;padding:0 16px 0 12px;border:0;border-radius:999px;color:var(--label);font:600 var(--fs-note)/1 var(--f-text);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .fm-shel[hidden]{display:none}
-.fm-she{font-size:1.45rem;line-height:1}
-.fm-shb{position:absolute;top:-9px;right:-9px;min-width:22px;height:22px;padding:0 6px;border-radius:99px;background:#1E6EF4;color:#fff;font-size:.8rem;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px #fff}
+.fm-shel .ico{flex:none;width:22px;height:22px;color:var(--brand-tint)}
+.fm-shb{position:absolute;top:-8px;right:-8px;min-width:24px;height:24px;padding:0 8px;border-radius:99px;background:var(--brand-fill);color:#fff;font:700 13px/24px var(--f-text);display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 2px var(--card)}
 .fm-shb[hidden]{display:none}
 .fm-shel.has{animation:fmNudge 2.6s ease-in-out 3}
-.fm-shel:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.fm-shel:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 .fm-zz{position:absolute;left:60%;bottom:76%;font-size:.38em;pointer-events:none;animation:fmZz 2.4s ease-in-out infinite}
 .fm-spk{position:absolute;inset:-.15em;pointer-events:none}
 .fm-spk i{position:absolute;font-style:normal;font-size:.36em;animation:fmTw 1.4s ease-in-out 3}
@@ -2121,7 +2149,9 @@ function css(){
 .fm-db:focus-visible{outline:3px solid var(--brand-tint);outline-offset:-3px}
 .fm-db.nudge{animation:fmNudge .6s ease 2}
 .fm-dsep{flex:none;width:1px;height:28px;background:var(--sep)}
-.fm-badge{position:absolute;top:2px;right:calc(50% - 52px);min-width:22px;height:20px;padding:0 6px;border-radius:10px;background:var(--brand-fill);color:#fff;font:700 12px/20px var(--f-text);text-align:center}
+/* las gotas extra: una gotita y el número, encima del borde del botón (no tapa «Regar») */
+.fm-badge{position:absolute;top:-8px;right:8px;display:inline-flex;align-items:center;gap:2px;min-width:24px;height:20px;padding:0 6px;border-radius:10px;background:var(--brand-fill);color:#fff;font:700 12px/20px var(--f-text);box-shadow:0 0 0 2px var(--card)}
+.fm-db .fm-badge .ico{width:12px;height:12px;color:#fff}
 .fm-badge[hidden]{display:none}
 .fm-dghost{display:grid;place-items:center;font-size:44px;line-height:1;background:none!important;box-shadow:none!important;filter:drop-shadow(0 6px 6px rgba(0,0,0,.3))}
 /* la bandeja de la comida: sólida, encima del dock, con su colita hacia «Comida» */
@@ -2131,8 +2161,7 @@ function css(){
 .fm-tray[hidden]{display:none}
 .fm-tray.in{animation:fmBubIn .2s ease-out}
 .fm-tray::after{content:"";position:absolute;top:calc(100% - 1px);left:50%;margin-left:-9px;border:9px solid transparent;border-top-color:var(--card);border-bottom:0}
-.fm-tr{display:flex;gap:8px;overflow-x:auto;padding:2px;scrollbar-width:none}
-.fm-tr::-webkit-scrollbar{display:none}
+.fm-tr{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:2px}   /* cabe siempre (sin scroll: las fichas se arrastran) y «Comprar» va al final */
 .fm-fc{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:76px;min-height:76px;padding:8px 4px 6px;border:0;border-radius:18px;background:var(--fill2);color:var(--label);touch-action:none;cursor:grab;-webkit-tap-highlight-color:transparent}
 .fm-fc .fe{font-size:32px;line-height:1}
 .fm-fc .fw{max-width:100%;font:600 var(--fs-min)/1.15 var(--f-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -2194,7 +2223,8 @@ function css(){
 /* las hojas: tienda, refugio y «se fue al refugio». Llevan contenido: fondo opaco y sin desenfoque (vidrio lite, como
    las de Juegos), así no se transparenta la escena detrás */
 dialog.fm-sheet,dialog.fm-dlg{color:var(--label)}
-dialog.fm-sheet.m-sheet.glass,dialog.fm-dlg.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}
+/* :root y .lite suben la especificidad por encima de la regla oscura de motion.js (DARKQ dialog.m-sheet.glass) */
+:root dialog.fm-sheet.m-sheet.glass.lite,:root dialog.fm-dlg.m-sheet.glass.lite{background:var(--card,#fff);-webkit-backdrop-filter:none;backdrop-filter:none}
 @media (max-width:819px){
   dialog#fm-shop.m-sheet{height:calc(100dvh - var(--safe-t,0px) - 24px)}
   dialog#fm-shop.m-sheet[data-detent=medium]{height:min(calc(100dvh - var(--safe-t,0px) - 24px),max(440px,64dvh))}
@@ -2203,6 +2233,13 @@ dialog.fm-sheet.m-sheet.glass,dialog.fm-dlg.m-sheet.glass{background:var(--card,
 .fm-scoin .coin-ico{width:18px;height:18px}
 .fm-scoin b{color:var(--label);font-weight:700}
 .fm-ss{margin:0 0 20px}
+.fm-zrow{display:flex;align-items:center;gap:12px;min-height:60px;margin:0 0 20px;padding:8px 16px 8px 12px;border-radius:20px;background:var(--card-2);color:var(--label);text-decoration:none;-webkit-tap-highlight-color:transparent}
+.fm-zi{flex:none;display:grid;place-items:center;width:48px;height:48px}
+.fm-zt{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fm-zt b{font:600 var(--fs-sub)/1.2 var(--f-text)}
+.fm-zt small{font:400 var(--fs-note)/1.2 var(--f-text);color:var(--label2)}
+.fm-zg{flex:none;display:inline-flex;align-items:center;gap:2px;color:var(--brand-ink);font:600 var(--fs-note)/1 var(--f-text)}
+.fm-zrow:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 .fm-sh3{margin:0 4px 8px;font:600 var(--fs-head)/1.25 var(--f-text);color:var(--label)}
 .fm-sub{color:var(--label2);margin:0 0 12px;font-size:var(--fs-sub);text-align:center}
 .fm-pl{display:grid;gap:10px;margin:0 0 4px;text-align:left}
@@ -2278,7 +2315,7 @@ dialog.fm-sheet.m-sheet.glass,dialog.fm-dlg.m-sheet.glass{background:var(--card,
   .fm-sun{width:46px;height:46px}
   .fm-ft b{font-size:1.2rem}
   .fm-hint{font-size:.92rem;padding-left:12px}
-  .fm-shel{font-size:.85rem;padding:3px 9px 3px 5px;top:calc(var(--hz) - 48px)}.fm-she{font-size:1.25rem}
+  .fm-shel{top:calc(var(--hz) - 52px)}
   .fm-fc{width:68px;min-height:72px}
   .fm-db{gap:6px;font-size:var(--fs-note)}
 }

@@ -658,7 +658,7 @@ function drawEnd(){
       <h2 class="rv-end-t" id="rv-end-t" tabindex="-1">¡Repasaste ${nPals(n)}!</h2>
       <div class="rv-stats">
         <span class="rv-chip coin" id="rv-earn" aria-label="Ganaste ${earned} monedas">${COIN}+${earned}</span>
-        <span class="rv-chip" aria-label="Racha: ${st === 1 ? "1 día seguido" : `${st} días seguidos`}">${ico("flame", "fill", 22)}${st === 1 ? "1 día seguido" : `${st} días seguidos`}</span></div>
+        <span class="rv-chip" aria-label="Racha: ${st === 1 ? "1 día seguido" : `${st} días seguidos`}">${ico("fire", "fill", 22)}${st === 1 ? "1 día seguido" : `${st} días seguidos`}</span></div>
       <div class="pr-row rv-more"></div></section></div>
     <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block rv-end-go" id="rv-end-go">Seguir</button></div>`;
   updFocus(); scrollTo(0, 0);

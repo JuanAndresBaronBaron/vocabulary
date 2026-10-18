@@ -1,6 +1,6 @@
 {
 "v": 1,
-"about": "Oído de lince (js/lince.js): pares de palabras del corpus que suenan casi igual, con audio grabado en audio/<en|fr|da>/. w = la palabra tal como está en data/<d>.json (con su artículo), es = su significado corto, img = su dibujo o null.",
+"about": "Oído de lince (js/lince.js): pares de palabras del corpus que suenan casi igual, con audio grabado en audio/<en|fr|da>/. w = la palabra tal como está en data/<d>.json (con su artículo), es = su significado corto, img = su dibujo o null. En cada par, las dos palabras llevan el mismo artículo (o ninguno): solo las distingue el sonido.",
 "english": [
   [{"w": "ship", "es": "barco", "img": "img/om_1F6A2.png", "d": "w07"}, {"w": "sheep", "es": "oveja", "img": "img/f1dcc1b9cc.png", "d": "animales"}],
   [{"w": "hat", "es": "sombrero", "img": "img/om_1F452.png", "d": "w05"}, {"w": "hot", "es": "caliente", "img": "img/om_1F975.png", "d": "w31"}],
@@ -30,28 +30,23 @@
   [{"w": "la bouche", "es": "boca", "img": "img/om_1F444.png", "d": "w02"}, {"w": "la douche", "es": "ducha", "img": "img/om_1F6BF.png", "d": "w04"}],
   [{"w": "le lait", "es": "leche", "img": "img/om_1F95B.png", "d": "w03"}, {"w": "le lit", "es": "cama", "img": "img/om_1F6CF.png", "d": "w04"}],
   [{"w": "le jus", "es": "zumo", "img": "img/om_1F9C3.png", "d": "w03"}, {"w": "le jeu", "es": "juego", "img": "img/om_1F3AE.png", "d": "w13"}],
-  [{"w": "la poule", "es": "gallina", "img": "img/f501d7335c.png", "d": "animales"}, {"w": "le pull", "es": "suéter", "img": null, "d": "w05"}],
   [{"w": "la lune", "es": "luna", "img": "img/om_1F319.png", "d": "w09"}, {"w": "la laine", "es": "lana", "img": "img/om_1F9F6.png", "d": "w05"}],
-  [{"w": "la bague", "es": "anillo", "img": "img/om_1F48D.png", "d": "w05"}, {"w": "la vague", "es": "ola", "img": "img/om_1F30A.png", "d": "w09"}],
-  [{"w": "la sœur", "es": "hermana", "img": "img/fam_Hermana.png", "d": "familia"}, {"w": "le cœur", "es": "corazón", "img": "img/om_1FAC0.png", "d": "w02"}],
-  [{"w": "le père", "es": "padre", "img": "img/fam_Padre.png", "d": "familia"}, {"w": "la mère", "es": "madre", "img": "img/fam_Madre.png", "d": "familia"}]
+  [{"w": "la bague", "es": "anillo", "img": "img/om_1F48D.png", "d": "w05"}, {"w": "la vague", "es": "ola", "img": "img/om_1F30A.png", "d": "w09"}]
 ],
 "dansk": [
-  [{"w": "hun", "es": "ella", "img": null, "d": "w41"}, {"w": "en hund", "es": "perro", "img": "img/3e394d37a4.png", "d": "animales"}],
-  [{"w": "en is", "es": "helado", "img": "img/om_1F368.png", "d": "w03"}, {"w": "et hus", "es": "casa", "img": "img/om_1F3E0.png", "d": "w04"}],
-  [{"w": "et hus", "es": "casa", "img": "img/om_1F3E0.png", "d": "w04"}, {"w": "en mus", "es": "ratón", "img": "img/om_1F401.png", "d": "w09"}],
   [{"w": "en ske", "es": "cuchara", "img": "img/om_1F944.png", "d": "w04"}, {"w": "en sko", "es": "zapato", "img": "img/om_1F45E.png", "d": "w05"}],
   [{"w": "en sko", "es": "zapato", "img": "img/om_1F45E.png", "d": "w05"}, {"w": "en sky", "es": "nube", "img": "img/om_2601.png", "d": "w09"}],
   [{"w": "en seng", "es": "cama", "img": "img/om_1F6CF.png", "d": "w04"}, {"w": "en sang", "es": "canción", "img": "img/om_1F3B5.png", "d": "w13"}],
   [{"w": "en mand", "es": "hombre", "img": "img/om_1F468.png", "d": "w01"}, {"w": "en mund", "es": "boca", "img": "img/om_1F444.png", "d": "w02"}],
-  [{"w": "en tand", "es": "diente", "img": "img/om_1F9B7.png", "d": "w02"}, {"w": "et vand", "es": "agua", "img": "img/om_1F4A7.png", "d": "w03"}],
   [{"w": "en sæl", "es": "foca", "img": "img/8d0f97639c.png", "d": "animales"}, {"w": "en sol", "es": "sol", "img": "img/om_2600.png", "d": "w09"}],
   [{"w": "en kok", "es": "cocinero", "img": "img/77f9218916.png", "d": "profesiones"}, {"w": "en kop", "es": "taza", "img": "img/om_1F964.png", "d": "w03"}],
   [{"w": "en høne", "es": "gallina", "img": "img/f501d7335c.png", "d": "animales"}, {"w": "en hane", "es": "gallo", "img": "img/4c2e0dd3e8.png", "d": "animales"}],
-  [{"w": "et får", "es": "oveja", "img": "img/f1dcc1b9cc.png", "d": "animales"}, {"w": "en far", "es": "padre", "img": "img/fam_Padre.png", "d": "familia"}],
-  [{"w": "en tyr", "es": "toro", "img": "img/5cc01772f5.png", "d": "animales"}, {"w": "et dyr", "es": "animal", "img": "img/om_1F43E.png", "d": "w09"}],
   [{"w": "en bi", "es": "abeja", "img": "img/7280962d48.png", "d": "animales"}, {"w": "en by", "es": "pueblo", "img": "img/om_E203.png", "d": "w06"}],
-  [{"w": "en løve", "es": "león", "img": "img/713bcab96b.png", "d": "animales"}, {"w": "at løbe", "es": "correr", "img": "img/om_1F3C3.png", "d": "w25"}],
-  [{"w": "rød", "es": "rojo", "img": "img/746cbfda58.png", "d": "colores"}, {"w": "sød", "es": "dulce", "img": "img/om_1F36C.png", "d": "w31"}]
+  [{"w": "rød", "es": "rojo", "img": "img/746cbfda58.png", "d": "colores"}, {"w": "sød", "es": "dulce", "img": "img/om_1F36C.png", "d": "w31"}],
+  [{"w": "en gris", "es": "cerdo", "img": "img/98b47c184e.png", "d": "animales"}, {"w": "en ris", "es": "arroz", "img": "img/om_1F35A.png", "d": "w03"}],
+  [{"w": "en hat", "es": "sombrero", "img": "img/om_1F452.png", "d": "w05"}, {"w": "en nat", "es": "noche", "img": "img/om_1F303.png", "d": "w08"}],
+  [{"w": "en hund", "es": "perro", "img": "img/3e394d37a4.png", "d": "animales"}, {"w": "en hånd", "es": "mano", "img": "img/om_270B.png", "d": "w02"}],
+  [{"w": "en and", "es": "pato", "img": "img/e17d706969.png", "d": "animales"}, {"w": "en tand", "es": "diente", "img": "img/om_1F9B7.png", "d": "w02"}],
+  [{"w": "en ost", "es": "queso", "img": "img/om_1F9C0.png", "d": "w03"}, {"w": "en post", "es": "correo", "img": "img/om_1F4EE.png", "d": "w15"}]
 ]
 }

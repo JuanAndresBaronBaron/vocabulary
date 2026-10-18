@@ -774,7 +774,8 @@ function wireBack(){
   const b = $("#dv-back"); if(!b || b.dataset.wired) return;
   b.dataset.wired = "1";
   b.addEventListener("click", e => {
-    if(secOf(docFrom || "") === "palabras" && history.length > 1 && !e.metaKey && !e.ctrlKey){ e.preventDefault(); history.back(); }
+    /* la misma cápsula sirve al álbum y a la temporada (index.html, backOf): aquí solo la de la ficha de un tema */
+    if(secOf(hashPath()) === "doc" && secOf(docFrom || "") === "palabras" && history.length > 1 && !e.metaKey && !e.ctrlKey){ e.preventDefault(); history.back(); }
   });
 }
 function draw(doc){

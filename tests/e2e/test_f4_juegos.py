@@ -25,6 +25,9 @@ _FINISH = """() => { for (const a of document.getAnimations()) { try {
 OUT = C.CAPTURAS / "F4"
 GAMES = ["memoria", "lluvia", "globos", "letras", "lince"]
 AB = {"english": "en", "français": "fr", "dansk": "da"}
+_ARTS = {"english": re.compile(r"^(?:the|an?|to)\s+", re.I),   # los artículos de js/lince.js (ARTS)
+         "français": re.compile(r"^(?:les|le|la|une|un|des|du|se)\s+|^(?:l|s|d)['’]", re.I),
+         "dansk": re.compile(r"^(?:en|et|at)\s+", re.I)}
 
 # ganchos: audio simulado (cada play() se apunta con su velocidad y acaba a los 40 ms), award, el bus de monedas,
 # sonidos y lo que se dice
@@ -241,8 +244,9 @@ DRIVERS = {"memoria": _play_memoria, "lluvia": _play_lluvia, "globos": _play_glo
 # ---------------------------------------------------------------- pruebas
 def test_menu_cards_and_topic_sheet():
     """El menú: sin zorro, «← Inicio», «¡Pruébalo!» ni #gm-tpanel; 5 tarjetas sólidas con radio 24, el récord en estrellas
-    de oro (las que faltan en gris) y «Sin récord» si no se ha jugado. La pastilla «Tema: Animales ▾» abre la hoja con
-    «Mis palabras» primero y luego los temas (radio, el elegido marcado); tocar «Colores» lo guarda en "games:topic",
+    de oro (las que faltan en gris) y «Sin récord» si no se ha jugado, en una sola línea de 36 px; «Nuevo» en Lince hasta
+    su primera partida; el nombre accesible sin «?.». La pastilla «Tema: Animales ▾» abre la hoja con «Mis palabras»
+    primero y luego «Temas» y «Las 3000» (radio, el elegido marcado); tocar «Colores» lo guarda en "games:topic",
     cambia la pastilla y cierra la hoja; al volver, la pastilla sigue en Colores y los juegos usan sus palabras."""
     probs = []
     page = C.new_page("phone")
@@ -253,7 +257,9 @@ def test_menu_cards_and_topic_sheet():
             return {g: c.dataset.g, r: cs.borderTopLeftRadius, bg: cs.backgroundColor, on: c.querySelectorAll('.gm-st i.on').length,
               onColor: (c.querySelector('.gm-st i.on') ? getComputedStyle(c.querySelector('.gm-st i.on')).color : null),
               offColor: (c.querySelector('.gm-st i:not(.on)') ? getComputedStyle(c.querySelector('.gm-st i:not(.on)')).color : null),
-              rec: c.querySelector('.gm-rt').textContent, href: c.getAttribute('href')}; });
+              rec: c.querySelector('.gm-rt').textContent, href: c.getAttribute('href'), aria: c.getAttribute('aria-label'),
+              nuevo: !!c.querySelector('.gm-new'), recH: Math.round(c.querySelector('.gm-cr').getBoundingClientRect().height),
+              recLines: Math.round(c.querySelector('.gm-rt').getBoundingClientRect().height / parseFloat(getComputedStyle(c.querySelector('.gm-rt')).lineHeight))}; });
           return {cards, fox: /¡A jugar!/.test(t), inicio: /← Inicio/.test(t), prueba: /Pruébalo/.test(t), tpanel: !!document.getElementById('gm-tpanel'),
             pill: document.getElementById('gm-tpill').textContent.replace(/\\s+/g, ' ').trim()}; }""")
         if m["fox"] or m["inicio"] or m["prueba"] or m["tpanel"]:
@@ -274,6 +280,10 @@ def test_menu_cards_and_topic_sheet():
                 probs.append(f"{c['g']}: las estrellas que faltan no son grises: {c['offColor']}")
             if not b and c["rec"] != "Sin récord":
                 probs.append(f"{c['g']}: sin jugar dice {c['rec']!r}")
+            if c["nuevo"] != (c["g"] == "lince" and not b):
+                probs.append(f"{c['g']}: chip «Nuevo» {c['nuevo']} (récord {b})")
+            if re.search(r"[?!.]\.", c["aria"] or "") or c["recH"] != 36 or c["recLines"] != 1:
+                probs.append(f"{c['g']}: nombre {c['aria']!r} o fila del récord de {c['recH']} px y {c['recLines']} líneas")
         if m["pill"] != "Tema: Animales":
             probs.append(f"pastilla: {m['pill']!r}")
         page.locator("#gm-tpill").click()
@@ -283,7 +293,8 @@ def test_menu_cards_and_topic_sheet():
           return {modal: d.matches(':modal'), first: rows[0].dataset.tp, n: rows.length, radio: rows.every(r => r.getAttribute('role') === 'radio'),
             checked: rows.filter(r => r.getAttribute('aria-checked') === 'true').map(r => r.dataset.tp), title: d.querySelector('h2').textContent,
             heads: [...d.querySelectorAll('.st-h')].map(h => h.textContent), blur: getComputedStyle(d).backdropFilter}; }""")
-        if not sh["modal"] or sh["first"] != "mis" or not sh["radio"] or sh["checked"] != ["animales"] or sh["n"] < 20 or sh["blur"] not in ("none", ""):
+        if not sh["modal"] or sh["first"] != "mis" or not sh["radio"] or sh["checked"] != ["animales"] or sh["n"] < 20 or sh["blur"] not in ("none", "") \
+                or sh["heads"] != ["Temas", "Las 3000"]:
             probs.append(f"hoja de temas: {sh}")
         page.locator('#gm-tp-s [data-tp="colores"]').click()
         page.wait_for_function("() => !document.getElementById('gm-tp-s').open", timeout=3000)
@@ -371,16 +382,20 @@ def test_intro_only_first_time_and_help():
 def test_hold_card_peek_and_tap_plays():
     """Mantener pulsada la tarjeta de Memoria abre el vistazo (cómo se juega, el récord con sus estrellas, las palabras y
     las partidas) sin entrar en el juego; «Jugar» abre la partida directa. Tocar una tarjeta juega. La pista «Mantén
-    para ver» sale una vez y no tapa la pastilla del tema."""
+    para ver» sale una vez y no tapa ni la pastilla del tema ni el récord de ninguna tarjeta."""
     probs = []
     page = C.new_page("phone")
     try:
         _open(page, hint=True)
         page.wait_for_selector(".g-hint", timeout=4000)
         hb = page.evaluate("""() => { const h = document.querySelector('.g-hint').getBoundingClientRect(), p = document.getElementById('gm-tpill').getBoundingClientRect();
-          return {over: !(h.bottom <= p.top || h.top >= p.bottom || h.right <= p.left || h.left >= p.right), card: document.querySelector('[data-g-hint]').dataset.g}; }""")
+          const hit = r => !(h.bottom <= r.top || h.top >= r.bottom || h.right <= r.left || h.left >= r.right);
+          return {over: hit(p), recs: [...document.querySelectorAll('.gm-card .gm-cr')].filter(e => hit(e.getBoundingClientRect())).map(e => e.closest('.gm-card').dataset.g),
+            card: document.querySelector('[data-g-hint]').dataset.g}; }""")
         if hb["over"]:
             probs.append(f"la pista tapa la pastilla del tema: {hb}")
+        if hb["recs"]:
+            probs.append(f"la pista tapa el récord de {hb['recs']}")
         card = page.locator('.gm-card[data-g="memoria"]')
         bb = card.bounding_box()
         page.mouse.move(bb["x"] + bb["width"] / 2, bb["y"] + bb["height"] / 2)
@@ -565,15 +580,21 @@ def test_lince_rounds_audio_and_record():
             res.append(not wrong)
             c, o = info["st"][info["pick"]], info["st"][1 - info["pick"]]
             if wrong:
-                page.wait_for_selector("#ln-go", timeout=6000)
+                # «Seguir» sale enseguida (en el dock de abajo), sin esperar a que suenen las dos
+                go = page.evaluate("""() => { const b = document.getElementById('ln-go'), d = b && b.closest('.ln-dock');
+                  return b ? {dock: !!d, pos: d ? getComputedStyle(d).position : null, txt: document.getElementById('ln-txt').textContent} : null; }""")
+                if not go or not go["dock"] or go["pos"] != "fixed" or not go["txt"].startswith("¡Casi! Es «"):
+                    probs.append(f"ronda {r + 1}: tras fallar, «Seguir» no sale enseguida en el dock: {go}")
+                page.wait_for_function("n => __played.length >= n + 2", arg=info["n0"], timeout=6000)
+                page.wait_for_timeout(100)
                 after = page.evaluate("n => __played.slice(n).map(p => p.src)", info["n0"])
                 want = [_clip(page, c["w"]), _clip(page, o["w"])]
                 if after[-2:] != want:
                     probs.append(f"ronda {r + 1}: tras fallar suena {after} (se esperaba {want})")
                 if "is-miss" not in c["cls"] or not _gray(c["bg"]) or c["mk"] != "#i-x-bold" or c["anim"] not in ("none", "gm-in"):
                     probs.append(f"ronda {r + 1}: la elegida no queda gris con ✗: {c}")
-                if "is-right" not in o["cls"] or o["mk"] != "#i-check-bold":
-                    probs.append(f"ronda {r + 1}: la buena no se marca con ✓: {o}")
+                if "is-right" not in o["cls"] or o["mk"] != "#i-check-bold" or not _green(o["bg"]):
+                    probs.append(f"ronda {r + 1}: la buena no se pone verde con ✓: {o}")
                 snd = page.evaluate("n => __sfx.slice(n)", info["s0"])
                 if snd:
                     probs.append(f"ronda {r + 1}: al fallar suena {snd}")
@@ -624,7 +645,8 @@ def test_lince_rounds_audio_and_record():
 def test_lince_data_valid():
     """data/lince.json: {v, about, english, français, dansk}; al menos 12 pares por idioma; cada palabra es de su tema
     del corpus (data/<d>.json, con su artículo), tiene significado, su dibujo existe (o null) y su audio grabado existe
-    (audio/<ab>.json → audio/<ab>/<id>.mp3); las dos palabras de un par son distintas y no hay pares repetidos.
+    (audio/<ab>.json → audio/<ab>/<id>.mp3); las dos palabras de un par son distintas, llevan el mismo artículo (o
+    ninguno: solo las distingue el sonido) y no hay pares repetidos.
     js/lince.js carga detrás de games.js y está en SHELL de sw.js y en OFF_APP de index.html (con data/lince.json)."""
     probs = []
     d = json.loads((C.ROOT / "data" / "lince.json").read_text(encoding="utf-8"))
@@ -657,6 +679,9 @@ def test_lince_data_valid():
             if key in seen or key[0] == key[1]:
                 probs.append(f"{lg}: par repetido o con la misma palabra {key}")
             seen.add(key)
+            arts = {(_ARTS[lg].match(x.get("w", "")) or [""])[0].strip().lower() for x in p}
+            if len(arts) != 1:
+                probs.append(f"{lg}: el par {key} se distingue por el artículo")
             for x in p:
                 w, es, img, di = x.get("w"), x.get("es"), x.get("img", "missing"), x.get("d")
                 if not w or not es or img == "missing" or not di:

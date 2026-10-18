@@ -426,7 +426,7 @@ def test_album_cover_selector():
         page.keyboard.press("ArrowRight")
         page.wait_for_timeout(150)
         if page.evaluate("() => JSON.parse(localStorage.getItem('album:tab'))") != "avanzado":
-            probs.append("la flecha → no pasa a «Expertos»")
+            probs.append("la flecha → no pasa a «Avanzado»")
         C.reload(page)
         if page.evaluate("() => [...document.querySelectorAll('.al-ths')].filter(s => !s.hidden).map(s => s.dataset.g)") != ["avanzado"]:
             probs.append("al recargar no sigue en la parte elegida")
@@ -620,6 +620,58 @@ def test_album_card_and_ipa():
         if not page.evaluate("() => document.querySelectorAll('dialog.al-dlg .al-front .ipa').length"):
             probs.append("con la IPA activada no sale en la tarjeta")
         page.keyboard.press("Escape")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+_PROG = """async () => { const idx = await getIndex(), by = {}, act = store.get('act', {});
+  for (const x of Object.values(srsAll())) { if (!x || !x.d) continue; const o = by[x.d] = by[x.d] || {l: 0, m: 0}; if (x.b >= MASTER) o.m++; else o.l++; }
+  let total = 0; for (let k = 13; k >= 0; k--) { const d = new Date(); d.setDate(d.getDate() - k); total += +act[dayKey(d)] || 0; }
+  const want = idx.filter(d => d.langs.includes(lang) && by[d.id]).map(d => `${d.title}|${Math.min(by[d.id].m, d.count)} de ${d.count} dominadas`);
+  const pg = document.querySelector('#ajustes .aj-pg[data-pg="progreso"]');
+  const got = pg ? [...pg.querySelectorAll('.aj-pr')].map(r => { const l = r.querySelector('.st-l');
+    return `${l.firstChild.textContent.trim()}|${l.querySelector('small').textContent.split(' · ')[0]}`; }) : null;
+  return {want, got, total, shown: pg ? +pg.querySelector('.aj-ds b').textContent : null, bars: pg ? pg.querySelectorAll('.aj-days i').length : 0,
+    heads: pg ? [...pg.querySelectorAll('.st-h')].map(h => h.textContent) : [], title: document.getElementById('aj-tt').textContent,
+    feet: pg ? [...pg.querySelectorAll('.st-foot')].map(f => f.textContent) : []}; }"""
+
+
+def test_parents_progress_in_settings():
+    """Ajustes › Para mayores (tras la Puerta) › «Progreso por tema»: el informe de antes para los padres. Las
+    repeticiones de los últimos 14 días (14 barras y el total de store "act") y, por Temas · Las 3000 · Avanzado, cada
+    tema empezado con «N de M dominadas» (caja ≥ MASTER) y su barra; los que faltan, contados al pie. Solo lee: la
+    partida exportada no cambia. Captura F4c-ajustes-progreso-phone-light."""
+    probs = []
+    base = C.load_baseline()
+    page = C.new_page("phone")
+    try:
+        C.seed(page)
+        C.goto(page, "#/")
+        page.evaluate("() => sessionStorage.setItem('vocab:gate', String(Date.now() + adultGate.MS))")
+        page.evaluate("() => { openSettings('mayores'); }")
+        page.wait_for_function("() => window.vocabSettings && vocabSettings.page === 'mayores'", timeout=4000)
+        page.wait_for_timeout(450)
+        row = page.evaluate("() => { const r = document.getElementById('aj-prog'); return r ? r.textContent.replace(/\\s+/g, ' ').trim() : null; }")
+        if not row or not row.startswith("Progreso por tema"):
+            probs.append(f"Para mayores no tiene la fila «Progreso por tema»: {row!r}")
+        page.locator("#aj-prog").click()
+        page.wait_for_function("() => vocabSettings.page === 'progreso' && !!document.querySelector('#ajustes .aj-pg[data-pg=\"progreso\"] .aj-days')", timeout=4000)
+        page.wait_for_timeout(500)
+        r = page.evaluate(_PROG)
+        if r["title"] != "Progreso" or r["bars"] != 14 or r["shown"] != r["total"]:
+            probs.append(f"progreso: título {r['title']!r}, {r['bars']} barras, total {r['shown']} (se esperaba {r['total']})")
+        if not r["want"] or r["got"] != r["want"]:
+            probs.append(f"temas: {r['got']} (se esperaba {r['want']})")
+        if r["heads"][:1] != ["Últimos 14 días"] or not set(r["heads"][1:]) <= {"Temas", "Las 3000", "Avanzado"} or not r["feet"]:
+            probs.append(f"partes: {r['heads']}, pie {r['feet']}")
+        C.shot(page, "F4c-ajustes-progreso-phone-light", OUT, full_page=False)
+        page.locator("#aj-back").click()
+        page.wait_for_function("() => vocabSettings.page === 'mayores'", timeout=3000)
+        d = C.diff_exports(base, C.export(page), allow_new=False)
+        if d:
+            probs.append("mirar el progreso cambia la partida:\n  " + "\n  ".join(d))
         probs += C.errors(page)
     finally:
         page.context.close()
