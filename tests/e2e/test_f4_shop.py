@@ -57,9 +57,9 @@ def _keys(coins=None, farm=None, game=None):
 
 
 # F4b: la granja ya no tiene la tienda entera con pestañas. Las cosas de la granja se compran en su hoja (dialog#fm-shop,
-# dentro de #app: vocabFarm.openShop()); personajes, sombreros, gafas, juguetes y mascotas irán a Premios › Mi zorro
-# (F4c), así que aquí se prueban en una tienda de prueba con las mismas piezas (vocabShop.card en modo 'zorro' y
-# vocabShop.bind), como la montará Mi zorro.
+# dentro de #app: vocabFarm.openShop()); personajes, sombreros, gafas, juguetes y mascotas están en Premios › Mi zorro
+# (F4c, #/mizorro: #mz-seg con un segmento por tipo y #mz-shop con las piezas). _ZORRO (una tienda de prueba con las
+# mismas piezas) se queda para las pruebas de bind() en otra pantalla.
 _ZORRO = """t => { const old = document.getElementById('tst-z'); if (old) old.remove();
   const h = document.createElement('div'); h.id = 'tst-z'; h.className = 'shop'; h.dataset.tab = t;
   h.innerHTML = vocabShop.items(t).map(x => vocabShop.card(x, {mode: 'zorro'})).join('');
@@ -67,7 +67,7 @@ _ZORRO = """t => { const old = document.getElementById('tst-z'); if (old) old.re
 
 
 def _tab(page, tab):
-    """Enseña las piezas de un tipo: "farm" en la hoja de la granja; otro tipo, en la tienda de prueba de #/progreso."""
+    """Enseña las piezas de un tipo: "farm" en la hoja de la granja; otro tipo, en Premios › Mi zorro (su segmento)."""
     if tab == "farm":
         if C.current_hash(page) != "granja":
             C.goto(page, "#/granja")
@@ -78,10 +78,12 @@ def _tab(page, tab):
         page.evaluate("() => { document.getElementById('fm-shop').dataset.detent = 'large'; }")
         page.wait_for_timeout(400)
     else:
-        if C.current_hash(page) != "progreso":
-            C.goto(page, "#/progreso")
+        if C.current_hash(page) != "mizorro":
+            C.goto(page, "#/mizorro")
             page.evaluate(_HOOKS)
-        page.evaluate(_ZORRO, tab)
+        page.locator(f'#mz-seg .seg-i[data-t="{tab}"]').click()
+        page.wait_for_function("t => { const c = [...document.querySelectorAll('#mz-shop .sc')]; return c.length && c.every(x => x.dataset.t === t); }",
+                               arg=tab, timeout=4000)
     page.locator("#app .shop").first.scroll_into_view_if_needed()
 
 
@@ -98,7 +100,9 @@ def _open(page, keys=None, tab="farm"):
 def _tap(page, sel, times=1, gap=120):
     """Toca el centro del elemento (dedo de verdad, también dos veces seguidas: doble toque)."""
     el = page.locator(sel).first
-    el.scroll_into_view_if_needed()
+    # en el centro: así no queda debajo de la barra de pestañas flotante (Mi zorro es una página larga)
+    el.evaluate("e => e.scrollIntoView({block: 'center', behavior: 'instant'})")
+    page.wait_for_timeout(60)
     b = el.bounding_box()
     x, y = b["x"] + b["width"] / 2, b["y"] + b["height"] / 2
     for i in range(times):
@@ -618,6 +622,7 @@ def test_export_unchanged_and_sw():
     finally:
         page.context.close()
     html = (C.REPO / "index.html").read_text(encoding="utf-8")
+    html = re.sub(r'(<script src="[^"?]+)\?v=\d+"', r'\1"', html)   # desde F4: los scripts llevan ?v=<VERSION> de sw.js
     sw = (C.REPO / "sw.js").read_text(encoding="utf-8")
     tags = re.findall(r'<script src="([^"]+)"></script>', html)
     if "js/shop.js" not in tags:

@@ -671,6 +671,7 @@ def test_lince_data_valid():
                 if not any(((r.get("l") or {}).get(lg) or {}).get("word") == w for r in rows):
                     probs.append(f"{lg}: «{w}» no está en data/{di}.json")
     html = (C.ROOT / "index.html").read_text(encoding="utf-8")
+    html = re.sub(r'(<script src="[^"?]+)\?v=\d+"', r'\1"', html)   # desde F4: los scripts llevan ?v=<VERSION> de sw.js
     sw = (C.ROOT / "sw.js").read_text(encoding="utf-8")
     if not re.search(r'<script src="js/games\.js"></script>\s*<script src="js/lince\.js"></script>', html):
         probs.append("index.html no carga js/lince.js justo detrás de games.js")

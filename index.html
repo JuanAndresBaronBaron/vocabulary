@@ -1040,7 +1040,7 @@ let rv = null;
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v18", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v19", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
@@ -1193,6 +1193,7 @@ async function downloadAll(){
     Object.keys(sprites || {}).forEach(k => /^[\w-]+$/.test(k) && imgs.add(`img/pj/${k}.png`));
     if(window.vocabShop) vocabShop.images().forEach(u => imgs.add(u));   /* los dibujos de la tienda (img/shop) */
     if(window.vocabGames && vocabGames.images) vocabGames.images().forEach(u => imgs.add(u));   /* los de Juegos (img/games y temas) */
+    if(window.vocabSeason && vocabSeason.images) (await vocabSeason.images()).forEach(u => imgs.add(u));   /* los de las temporadas (img/season) */
     const second = [...[...imgs].map(u => [u, media]), ...ids.map(id => [`audio/${ab}/${id}.mp3`, media])];
     job.total = first.length + second.length;
     await pool(second, ([u, c]) => one(u, c, true, false));
@@ -2085,23 +2086,24 @@ window.addEventListener("hashchange", route);
 renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
 document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmCss(); bus.emit("boot"); route(); });
 </script>
-<script src="js/motion.js"></script>
-<script src="js/gestures.js"></script>
-<script src="js/lesson.js"></script>
-<script src="js/learn.js"></script>
-<script src="js/sfx.js"></script>
-<script src="js/shop.js"></script>
-<script src="js/farm.js"></script>
-<script src="js/games.js"></script>
-<script src="js/lince.js"></script>
-<script src="js/buddy.js"></script>
-<script src="js/album.js"></script>
-<script src="js/rewards.js"></script>
-<script src="js/save.js"></script>
-<script src="js/sync.js"></script>
-<script src="js/gate.js"></script>
-<script src="js/settings.js"></script>
-<script src="js/review.js"></script>
-<script src="js/season.js"></script>
+<!-- ?v= es la VERSION de sw.js (se sube con ella): así una versión nueva no sale con módulos viejos de la caché HTTP -->
+<script src="js/motion.js?v=19"></script>
+<script src="js/gestures.js?v=19"></script>
+<script src="js/lesson.js?v=19"></script>
+<script src="js/learn.js?v=19"></script>
+<script src="js/sfx.js?v=19"></script>
+<script src="js/shop.js?v=19"></script>
+<script src="js/farm.js?v=19"></script>
+<script src="js/games.js?v=19"></script>
+<script src="js/lince.js?v=19"></script>
+<script src="js/buddy.js?v=19"></script>
+<script src="js/album.js?v=19"></script>
+<script src="js/rewards.js?v=19"></script>
+<script src="js/save.js?v=19"></script>
+<script src="js/sync.js?v=19"></script>
+<script src="js/gate.js?v=19"></script>
+<script src="js/settings.js?v=19"></script>
+<script src="js/review.js?v=19"></script>
+<script src="js/season.js?v=19"></script>
 </body>
 </html>

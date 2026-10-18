@@ -225,7 +225,7 @@ def test_sw_shell_entries_200():
     assert not bad, "entradas de SHELL que no responden 200:\n  " + "\n  ".join(bad)
     assert len(shell) == len(set(shell)), f"SHELL tiene repetidas: {[u for u in shell if shell.count(u) > 1]}"
     html = (C.ROOT / "index.html").read_text(encoding="utf-8")
-    scripts = re.findall(r'<script[^>]+src="([^"]+)"', html)
+    scripts = [u.split("?")[0] for u in re.findall(r'<script[^>]+src="([^"]+)"', html)]   # desde F4 llevan ?v=<VERSION>
     links = re.findall(r'<link[^>]+rel="(?:manifest|apple-touch-icon|icon)"[^>]*href="([^"]+)"', html)
     man = json.loads((C.ROOT / "manifest.webmanifest").read_text(encoding="utf-8"))
     fonts = re.findall(r'url\((fonts/[^)"\']+)\)', html)

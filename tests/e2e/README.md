@@ -130,6 +130,18 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   la hoja «Tema», despegar (uno y todos) y completar un tema que da 50 una sola vez, la tarjeta con botones de icono y la
   IPA solo con la opción; sin bucles infinitos; contraste/paleta (capturas `F4c-*` en `capturas/F4`) y la partida
   exportada como la base.
+- `test_f4_int.py` (F4 entero): orden de carga de `js/shop.js`, `js/lince.js`, `js/rewards.js` y `js/season.js` y lo
+  que registran antes del primer `route()`; `sw.js` en la versión 19 o más con `OFF_SHELL` igual, `SHELL` = `OFF_APP` con
+  los ficheros nuevos y cada `<script>` de la app con `?v=<VERSION>`; `"season"` en `js/save.js` y toda clave que la app
+  escribe registrada; «Descargar todo» con los dibujos de `img/shop`, `img/games` e `img/season`; cada ruta de F4 por
+  enlace directo, al recargar y navegando (en pleno Halloween por la fecha); la granja vende solo cosas de la granja
+  (hoja opaca y sin desenfoque) y Mi zorro solo trajes, la pastilla de monedas abre la hoja desde cualquier pestaña y lo comprado
+  en uno se ve en el otro; los 5 juegos seguidos; la granja (comer y regar arrastrando, mover, comprar, recargar);
+  Medallas y Mi zorro; Halloween (Hoy › Truco o trato › calabazas en la granja, `?season=off`) y el adviento; francés y
+  danés en juegos, lince, granja, tienda y Mi zorro; una vuelta sin jugar que deja la partida como la base; y la
+  actualización desde la versión publicada (el commit 1721796 sacado con `git archive`, o la copia de `VOCAB_BASE`;
+  sw `vocab-v13`) en el mismo origen: partida y granja intactas, la app nueva entera (también con las cabeceras de caché
+  de GitHub Pages y recargando al momento) y sin conexión.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

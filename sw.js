@@ -8,8 +8,11 @@
    luego de vocab-media y por último de cualquier otra caché. Las imágenes y los mp3 salen de vocab-media y, si no
    están, de la red (y se guardan). Las cachés viejas (vocab-v1 de «Descargar todo», vocab-vNN del sw anterior) pasan
    sus imágenes, audios y datos a vocab-media entrada a entrada y después se borran; si no cabe, se borran igual (todo
-   se puede volver a bajar). */
-const VERSION = 18;
+   se puede volver a bajar).
+   Al subir VERSION se sube también OFF_SHELL y el «?v=» de los <script> de index.html y privacy.html: GitHub Pages manda
+   max-age=600 y, sin eso, el sw anterior (que pide a la red con la caché HTTP) daría el index.html nuevo con módulos
+   viejos de esa caché. El shell se guarda y se busca sin el «?v=». */
+const VERSION = 19;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
 const SHELL = [

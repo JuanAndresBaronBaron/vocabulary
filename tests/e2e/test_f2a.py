@@ -39,7 +39,7 @@ def _click_route(page, sel):
 
 def _expect_tab(route_name):
     n = route_name
-    if n == "hoy":
+    if n == "hoy" or n.startswith("temporada"):    # F4d: la temporada es una pantalla de Hoy
         return "hoy"
     if n.startswith(("mapa", "repaso", "leccion", "doc-", "gramatica", "palabras")):
         return "aprender"

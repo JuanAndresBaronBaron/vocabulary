@@ -72,6 +72,7 @@ def test_modules_load_order_and_sw():
     los tres módulos en SHELL y en OFF_APP. En el navegador, sus rutas y APIs están listas al primer route()."""
     probs = []
     html = (C.REPO / "index.html").read_text(encoding="utf-8")
+    html = re.sub(r'(<script src="[^"?]+)\?v=\d+"', r'\1"', html)   # desde F4: los scripts llevan ?v=<VERSION> de sw.js
     sw = (C.REPO / "sw.js").read_text(encoding="utf-8")
     tags = re.findall(r'<script src="([^"]+)"></script>', html)
     main_end = html.find("</script>", html.find("async function route("))
