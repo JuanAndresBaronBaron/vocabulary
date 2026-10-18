@@ -699,6 +699,7 @@ try{
 }catch(e){ console.error(e); }
 bus.on("lang", () => { HOY = null; if(ST && ST.lang !== lang){ ST = null; DN = null; } });
 bus.on("route", () => { if(secOf(hashPathNow()) !== "frases"){ stopMic(); playTok++; } if(hashPathNow() === "") fitHoy(); });
+bus.on("acc", () => { if(hashPathNow() === "") fitHoy(); });   /* el accesorio «Seguir» sale o se va tras "route" */
 
 W.vocabPhrases = {
   ready, data: () => DATA, templates: L => tpls(L || lang), fill, cands, dinner: (L, o) => dinner(L || lang, o || {}),

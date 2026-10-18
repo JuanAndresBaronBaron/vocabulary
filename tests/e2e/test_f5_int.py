@@ -11,7 +11,8 @@ Cada ruta nueva por enlace directo, al recargar y navegando (#/buzon, #/buzon/re
 #/frases/cena, los enlaces de los atajos y las URL de los atajos del manifest). Hoy con todo a la vez (atajos, carta sin
 abrir, refugio, temporada, aviso de Google y frase de la cena): el orden de prioridad de HOME_SLOTS (carta > refugio >
 temporada > Google > frase de la cena > el resto) y sin scroll a 390×844 claro y oscuro, en un móvil bajo, en tableta y
-en el escritorio. El teclado en las pantallas nuevas (Buzón, Frases, la carta y las teclas 1-4 de los atajos) sin que
+en el escritorio; también con el accesorio «Seguir» (una lección a medias), que sale o se va después de pintar Hoy. El
+teclado en las pantallas nuevas (Buzón, Frases, la carta y las teclas 1-4 de los atajos) sin que
 nada se dispare dos veces. Un recorrido con la partida sembrada en inglés, francés y danés: Hoy, una lección con el
 teclado, 3 partidas que hacen un atajo, Frases mágicas con su sello, grabar y mandar al Buzón (simulado), contestar
 como mayor y abrir la carta en otra pestaña. Una vuelta sin hacer nada deja la partida como la base. Y la actualización
@@ -458,6 +459,75 @@ def test_hoy_everything_at_once_priority_and_no_scroll():
             if got not in ([], ["mail"]):
                 probs.append(f"{tag}: los HOME_SLOTS son {got} (la carta o nada)")
             _fits(page, tag, probs)
+            probs += [f"{tag}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+_HOYM = """() => ({sh: document.documentElement.scrollHeight, ih: innerHeight, sc: +(document.documentElement.dataset.sc || 0),
+  acc: document.documentElement.hasAttribute('data-acc'),
+  slots: [...document.querySelectorAll('#hm-slots > .hm-slot')].filter(e => !e.hidden).map(e => e.dataset.slot || '?')})"""
+
+
+def test_hoy_with_the_follow_accessory_keeps_rows_and_fits():
+    """Con una lección a medias (el accesorio «Seguir»), en pleno Halloween y con una carta sin abrir, a 390×844 (con y
+    sin «Reducir movimiento»): llegando a Hoy desde Juegos (donde sí sale el accesorio) o desde la lección, con la fila de
+    atajos (su pieza a medias hace de accesorio) la carta sigue en Hoy; sin atajos sale el accesorio y Hoy cabe con la
+    carta (el último HOME_SLOT se va). Cuando el accesorio se va estando en Hoy, la fila que se fue vuelve. Sin scroll y
+    sin errores en ningún caso."""
+    probs = []
+    for motion in ("no-preference", "reduce"):
+        for sc in (True, False):
+            for via in ("#/juegos", "#/leccion/A1-010"):
+                tag = f"{'con' if sc else 'sin'} atajos, desde #/{via[2:]}, movimiento {motion}"
+                page = C.new_page("phone", now=HALLOWEEN, reduced_motion=motion)
+                try:
+                    C.seed(page, _keys(HALLOWEEN, sc=sc), now=HALLOWEEN)
+                    page.evaluate("o => vocabMailbox.receive(o)", LET)
+                    page.evaluate("sessionStorage.setItem('vocab:ls', JSON.stringify({id: 'A1-010', i: 3, first: [], miss: []}))")
+                    C.goto(page, via)
+                    page.wait_for_timeout(400)
+                    C.goto(page, "")
+                    page.wait_for_timeout(900)
+                    page.evaluate(_FINISH)
+                    m = page.evaluate(_HOYM)
+                    if m["sh"] > m["ih"] + 1:
+                        probs.append(f"{tag}: Hoy necesita scroll ({m['sh']} > {m['ih']})")
+                    if not m["slots"] or m["slots"][0] != "mail":
+                        probs.append(f"{tag}: falta la carta en Hoy: {m}")
+                    if sc and (m["sc"] < 3 or m["acc"] or not page.locator("#hm-sc .sc-p[data-half]").count()):
+                        probs.append(f"{tag}: la fila de atajos con la lección a medias y sin accesorio: {m}")
+                    if not sc and not m["acc"]:
+                        probs.append(f"{tag}: sin atajos no sale el accesorio «Seguir»: {m}")
+                    if not sc:
+                        # el accesorio se va estando en Hoy: vuelve la fila que no cabía
+                        page.evaluate("() => { sessionStorage.removeItem('vocab:ls'); return vocabAccessory.refresh(); }")
+                        page.wait_for_timeout(400)
+                        m2 = page.evaluate(_HOYM)
+                        if m2["acc"] or m2["slots"][:1] != ["mail"] or len(m2["slots"]) != 2 or m2["sh"] > m2["ih"] + 1:
+                            probs.append(f"{tag}: sin el accesorio, Hoy queda {m2} (la carta y otra fila, sin scroll)")
+                    probs += [f"{tag}: {e}" for e in C.errors(page)]
+                finally:
+                    page.context.close()
+    # en un móvil bajo (375×667) tampoco hay scroll: con atajos, su pieza a medias; sin atajos, el accesorio
+    for sc in (True, False):
+        tag = f"móvil bajo, {'con' if sc else 'sin'} atajos"
+        page = C.new_page("phone", now=HALLOWEEN, viewport={"width": 375, "height": 667})
+        try:
+            C.seed(page, _keys(HALLOWEEN, sc=sc, shelter=True), now=HALLOWEEN)
+            page.evaluate("o => vocabMailbox.receive(o)", LET)
+            page.evaluate("sessionStorage.setItem('vocab:ls', JSON.stringify({id: 'A1-010', i: 3, first: [], miss: []}))")
+            C.goto(page, "#/juegos")
+            page.wait_for_timeout(400)
+            C.goto(page, "")
+            page.wait_for_timeout(900)
+            page.evaluate(_FINISH)
+            m = page.evaluate(_HOYM)
+            if m["sh"] > m["ih"] + 1:
+                probs.append(f"{tag}: Hoy necesita scroll ({m['sh']} > {m['ih']}): {m}")
+            if m["acc"] == (m["sc"] > 0):
+                probs.append(f"{tag}: la lección a medias tiene que salir una vez, en la fila o en el accesorio: {m}")
             probs += [f"{tag}: {e}" for e in C.errors(page)]
         finally:
             page.context.close()
