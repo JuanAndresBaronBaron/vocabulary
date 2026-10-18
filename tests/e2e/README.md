@@ -180,7 +180,9 @@ compartida no responde).
   ruta de F5 (y las URL de los atajos del manifest) por enlace directo, al recargar, el primer día y navegando; una
   vuelta sin hacer nada que deja la partida como la base; Hoy con todo a la vez (atajos, carta, refugio, temporada, aviso
   de Google y frase de la cena) en el orden de prioridad de `HOME_SLOTS` y sin scroll (móvil claro y oscuro, móvil bajo,
-  tableta, escritorio); el teclado en el Buzón, Frases, la carta y las teclas 1-4 de los atajos sin nada repetido; un
+  tableta, escritorio); Hoy con el accesorio «Seguir» (lección a medias) llegando desde Juegos o desde la lección, con y
+  sin atajos y con y sin «Reducir movimiento» (la carta sigue, sin scroll, y la fila vuelve cuando el accesorio se va);
+  el teclado en el Buzón, Frases, la carta y las teclas 1-4 de los atajos sin nada repetido; un
   recorrido en inglés, francés y danés (lección con teclado, 3 partidas que hacen un atajo, Frases con sello, grabar y
   mandar, contestar como mayor y abrir la carta en otra pestaña); la actualización desde main 2e7dc3f (sw
   `vocab-shell-v19`, con `VOCAB_BASE19=<copia de ese commit>` o sacada con `git archive`), también con la caché HTTP de

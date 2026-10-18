@@ -283,28 +283,39 @@ function render(res, slots){
   slots.before(sec);
   ROOT.dataset.sc = String(list.length);
   wire(sec);
-  fit(true);   /* la medida buena llega con "route" (con la cabecera de Hoy ya puesta) y al cargar la letra */
+  fit(true);   /* la medida buena llega con "acc", tras "route" (con la cabecera de Hoy y el accesorio ya puestos), y al cargar la letra */
   try{ if(D.fonts && D.fonts.status !== "loaded") D.fonts.ready.then(() => { if(sec.isConnected) fit(); }); }catch(e){}
 }
 /* Hoy sin scroll. Si con la fila no cabe: 1) se van los HOME_SLOTS, del último al primero; 2) el título «Tus atajos» se
    queda solo para el lector de pantalla; 3) si aun así no cabe (un móvil muy bajo con mucho en Hoy), la fila se va.
    Se puede volver a llamar (con "route", al cargar la letra o al girar): antes de medir, vuelve a poner lo que quitó.
-   soft: sin el paso 3 (al pintar, antes de que route() ponga la cabecera de Hoy). */
+   soft: sin el paso 3 (al pintar, antes de que route() ponga la cabecera de Hoy).
+   El paso 1 vale también sin la fila (atajos apagados o aún sin atajos): con el accesorio «Seguir» en Hoy y dos
+   HOME_SLOTS, el último se va. Un HOME_SLOT que se va llama a su .skip() (el aviso de Google no gasta su vez). */
 let CUT = [];
 function fit(soft){
   const sec = D.getElementById("hm-sc"), box = D.getElementById("hm-slots");
-  if(!sec || !box || !onHoy()){ CUT = []; return; }
+  if(!box || !onHoy()){ CUT = []; return; }
   const over = () => ROOT.scrollHeight > innerHeight;
-  sec.classList.remove("sc-tight");
+  if(sec) sec.classList.remove("sc-tight");
   if(CUT.box === box) CUT.forEach(el => box.append(el));
   CUT = []; CUT.box = box;
   if(!over()) return;
-  const ss = [...box.querySelectorAll(":scope > .hm-slot")];
-  while(ss.length && over()){ const el = ss.pop(); el.remove(); CUT.unshift(el); }
+  const trim = () => {
+    const ss = [...box.querySelectorAll(":scope > .hm-slot")];
+    while(ss.length && over()){
+      const el = ss.pop(); el.remove(); CUT.unshift(el);
+      try{ const f = typeof HOME_SLOTS !== "undefined" && HOME_SLOTS.find(s => s && s.id && s.id === el.dataset.slot); if(f && typeof f.skip === "function") f.skip(); }catch(e){}
+    }
+  };
+  trim();
+  if(!sec) return;
   if(over()) sec.classList.add("sc-tight");
   if(over() && !soft){
     sec.remove(); clearGest(); ROOT.removeAttribute("data-sc"); SHOWN = [];
-    CUT.forEach(el => box.append(el)); CUT = [];   /* sin la fila, Hoy queda como siempre */
+    CUT.forEach(el => box.append(el)); CUT = []; CUT.box = box;   /* sin la fila vuelven las filas… */
+    trim();                                                          /* …las que quepan */
+    /* la pieza a medias se fue: sale el accesorio «Seguir» y, con "acc", se vuelve a medir */
     if(COVER){ COVER = null; try{ W.vocabAccessory && vocabAccessory.refresh(); }catch(e){} }
   }
 }
@@ -458,7 +469,10 @@ on("answer", d => {
   if(o.o[k] !== t){ o.o[k] = t; scSet(o); }
 });
 on("review-done", () => { PENDING = null; });
-on("route", () => { FLIP = null; if(!onHoy()){ clearGest(); COVER = null; } else fit(); });
+/* con "route" el hueco del accesorio «Seguir» aún puede ser el de la pantalla anterior: ahí solo la medida suave (lo que
+   quita vuelve en la siguiente); la buena, con "acc" (index.html, cuando el accesorio ya está puesto o quitado) */
+on("route", () => { FLIP = null; if(!onHoy()){ clearGest(); COVER = null; } else fit(true); });
+on("acc", () => { if(onHoy()) fit(); });
 on("lang", () => { PENDING = null; });
 
 /* ---------- «¿Lo pongo siempre despacio?» ---------- */

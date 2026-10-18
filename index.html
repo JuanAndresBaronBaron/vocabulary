@@ -521,6 +521,7 @@ button.st-r:disabled .st-ic{background:#8E8E93}
   .hm-go{margin-top:12px;min-height:48px}
   .hm-priv{margin-top:-4px}
   :root[data-tab=hoy]:not([data-acc]) main{padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 8px)}   /* «Privacidad», justo encima de la barra */
+  :root[data-tab=hoy][data-acc]:not([data-focus]) main{padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 20px + var(--tap-bar))}   /* y del accesorio */
 }
 /* texto más grande: 4 px menos de aire para que siga cabiendo */
 :root[data-text=large] .hm-t{margin-top:8px}
@@ -548,6 +549,8 @@ button.st-r:disabled .st-ic{background:#8E8E93}
 .acc-t{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .acc-t b{font-weight:700}
 :root[data-acc]:not([data-focus]) main{padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 38px + var(--tap-bar))}
+/* ese hueco cambia de golpe, también con «Reducir movimiento» (que da 150 ms a toda transición): Hoy lo mide al momento */
+main{transition-property:none}
 @media (min-width:820px){
   :root:not([data-bar=bottom]) .acc{bottom:calc(16px + var(--safe-b))}
   :root[data-acc]:not([data-focus]):not([data-bar=bottom]) main{padding-bottom:calc(64px + var(--tap-bar))}
@@ -1801,7 +1804,11 @@ async function accRefresh(){
     a.querySelector(".acc-fg").setAttribute("stroke-dasharray", `${(st.p * 100).toFixed(1)} 100`);
   }
   a.classList.toggle("lite", curTab === "granja" || /^juegos\//.test(h) || root.hasAttribute("data-gm-play"));
+  const was = root.hasAttribute("data-acc");
   a.hidden = !show; root.toggleAttribute("data-acc", show);
+  /* con "route" el hueco de abajo aún es el de la pantalla anterior (esto es asíncrono): "acc" avisa cuando ya es el
+     bueno, y Hoy mide entonces (fit() de «Tus atajos» y la frase de la cena), sin quitar filas que sí caben ni hacer scroll */
+  bus.emit("acc", {show, changed: was !== show});
   return st;
 }
 bus.on("route", () => { accRefresh(); });
