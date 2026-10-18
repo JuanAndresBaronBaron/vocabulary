@@ -537,6 +537,43 @@ def test_hoy_with_the_follow_accessory_keeps_rows_and_fits():
     assert not probs, "\n".join(probs)
 
 
+def test_hoy_short_phone_keeps_the_letter():
+    """Un móvil bajo y estrecho (360×740, claro y oscuro; también en pleno Halloween) con «Tus atajos» y una carta sin
+    abrir: la carta sigue en Hoy (va antes que la fila; antes, la fila la echaba) y Hoy cabe sin scroll; la fila se
+    compacta si hace falta. En 375×667 (más bajo aún) la carta se queda y, si no cabe con ella, se va la fila. Sin carta,
+    la fila sigue entera. «Palabra del día» va en una línea, a la izquierda como «Misiones» (la pareja no crece)."""
+    probs = []
+    cases = (("360×740", {"viewport": {"width": 360, "height": 740}}, C.FIXED_NOW, True),
+             ("360×740 oscuro", {"viewport": {"width": 360, "height": 740}, "color_scheme": "dark"}, C.FIXED_NOW, True),
+             ("360×740 Halloween", {"viewport": {"width": 360, "height": 740}}, HALLOWEEN, True),
+             ("375×667", {"viewport": {"width": 375, "height": 667}}, C.FIXED_NOW, False))
+    for tag, kw, now, row in cases:
+        page = C.new_page("phone", now=now, **kw)
+        try:
+            C.seed(page, _keys(now), now=now)
+            _hoy(page)
+            m0 = page.evaluate(_HOYM)
+            if m0["sc"] < 3:
+                probs.append(f"{tag}, sin carta: falta la fila de atajos: {m0}")
+            _fits(page, f"{tag}, sin carta", probs)
+            page.evaluate("o => vocabMailbox.receive(o)", LET)
+            _hoy(page)
+            m = page.evaluate(_HOYM)
+            if m["slots"][:1] != ["mail"]:
+                probs.append(f"{tag}: la carta no sale en Hoy: {m}")
+            if row and m["sc"] < 3:
+                probs.append(f"{tag}: con la carta se fue la fila de atajos (cabían las dos, compacta): {m}")
+            _fits(page, tag, probs)
+            pl = page.evaluate("""() => { const l = document.querySelector('#bd-wotd .bd-face .bd-pl'), m = document.querySelector('#bd-mis .bd-pl');
+              return l && m ? {h: Math.round(l.getBoundingClientRect().height), mh: Math.round(m.getBoundingClientRect().height), al: getComputedStyle(l).textAlign} : null; }""")
+            if pl and (pl["h"] > pl["mh"] + 1 or pl["al"] not in ("left", "start")):
+                probs.append(f"{tag}: «Palabra del día» en dos líneas o centrada: {pl}")
+            probs += [f"{tag}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
+    assert not probs, "\n".join(probs)
+
+
 # ---------------------------------------------------------------- teclado en las pantallas nuevas
 def test_keyboard_on_new_screens_fires_once():
     """Hoy: 1-3 abren el atajo N (una sola navegación; 4 con 3 piezas no hace nada) y Enter en una pieza enfocada es la
@@ -1433,6 +1470,32 @@ def test_f5_voices_use_the_voice_of_each_language():
         if not sp or sp[0]["voice"] != _SONIA or not loc or any("Online" in (x["voice"] or "") for x in loc):
             probs.append(f"la voz de internet que falla no se repite con una del aparato: {sp}")
         probs += [f"reintento: {e}" for e in C.errors(page)]
+    finally:
+        page.context.close()
+    # la carta: la voz de internet falla tarde (4,5 s) y la del aparato la lee entera (3 s): el reloj de seguridad se
+    # vuelve a armar, así que el regalo sale al acabar y nada corta esa segunda lectura
+    page = V._page(V.EDGE, lang="english", reduced_motion="reduce", keys={"vocab:voice": {"english": _SONIA}, "vocab:ui": _HINTS})
+    try:
+        page.evaluate("o => vocabMailbox.receive(o)", dict(LET, id="cartaReint01"))
+        C.goto(page, "#/carta/cartaReint01")
+        page.wait_for_selector("#mb-open", timeout=8000)
+        page.evaluate("""() => { const ss = window.speechSynthesis, t0 = performance.now(), L = window.__lg = [], log = (k, x) => L.push([Math.round(performance.now() - t0), k, x || '']);
+          let cur = null;
+          ss.speak = u => { if (!u.text.trim()) { setTimeout(() => u.onend && u.onend({}), 5); return; }
+            if (u.voice && u.voice.localService === false) { log('net', u.voice.name); setTimeout(() => { log('neterr'); u.onerror && u.onerror({type: 'error', error: 'network'}); }, 4500); return; }
+            log('local', u.voice ? u.voice.name : '-'); cur = u; u.__t = setTimeout(() => { if (cur === u) cur = null; log('end'); u.onend && u.onend({}); }, 3000); };
+          ss.cancel = () => { if (cur) { const u = cur; cur = null; clearTimeout(u.__t); log('cancel-local'); u.onerror && u.onerror({type: 'error', error: 'interrupted'}); } };
+          new MutationObserver(() => { const g = document.getElementById('mb-gift'); if (g && !g.hidden && !window.__g) { window.__g = 1; log('gift'); } })
+            .observe(document.body, {subtree: true, childList: true, attributes: true}); }""")
+        page.locator("#mb-open").click()
+        page.wait_for_function("() => window.__lg.some(x => x[1] === 'gift')", timeout=15000)
+        page.wait_for_timeout(900)
+        lg = page.evaluate("() => window.__lg")
+        t = {k: next((x[0] for x in lg if x[1] == k), None) for k in ("neterr", "local", "end", "gift", "cancel-local")}
+        if t["local"] is None or t["neterr"] is None or t["end"] is None or t["gift"] is None or t["gift"] < t["end"] \
+                or (t["cancel-local"] is not None and t["cancel-local"] < t["end"]):
+            probs.append(f"la carta: el reintento con la voz del aparato se corta o el regalo sale antes de acabar: {lg}")
+        probs += [f"carta reintento: {e}" for e in C.errors(page)]
     finally:
         page.context.close()
     assert not probs, "\n".join(probs)

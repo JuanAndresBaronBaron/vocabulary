@@ -304,6 +304,9 @@ dialog#ss-q.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:no
 /* el adorno de la temporada en la tarjeta de Hoy (sin vidrio ni toques) */
 .ss-hd{position:absolute;z-index:0;width:30px;height:30px;object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none}
 .ss-hd.l{left:12px;top:12px;rotate:-10deg}.ss-hd.r{right:12px;top:12px;rotate:8deg}
+/* en el móvil el zorro va en la esquina de la izquierda y el bocadillo llega casi al borde de la derecha: solo el adorno de
+   la derecha (el de la izquierda pisaba la cabeza del zorro) */
+@media (max-width:743px){.ss-hd.l{display:none}}
 .hm-hero:has(.ss-hd){position:relative}
 :root[data-theme=dark] .ss-ric{background:#F2F2F7}
 /* la granja */

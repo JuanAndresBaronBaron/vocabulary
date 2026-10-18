@@ -35,7 +35,9 @@ _HOOKS = """() => {
   if (window.__gm) return; window.__gm = true;
   window.__played = []; window.__aw = []; window.__coins = []; window.__sfx = []; window.__said = [];
   HTMLMediaElement.prototype.play = function () {
-    __played.push({src: this.getAttribute('src') || '', rate: this.playbackRate});
+    /* r: la ronda de Oído de lince que sonaba (un número por cada juego de tarjetas pintado; 0 fuera de Lince) */
+    const lc = document.querySelector('#ln-cards .ln-c'); if (lc && lc.__r == null) lc.__r = (window.__lnR = (window.__lnR || 0) + 1);
+    __played.push({src: this.getAttribute('src') || '', rate: this.playbackRate, r: lc ? lc.__r : 0});
     const a = this; setTimeout(() => a.dispatchEvent(new Event('ended')), 40); return Promise.resolve(); };
   const a0 = window.award;
   window.award = (...x) => { __aw.push({n: x[0], why: x[1], quiet: !!x[2], from: (x[3] && x[3].id) || null, live: !!(x[3] && x[3].isConnected)}); return a0(...x); };
@@ -191,8 +193,11 @@ def _play_letras(page):
     return miss
 
 
-# la tarjeta buena de la ronda de Lince: la del último audio que sonó
-_LN_TARGET = """() => { const last = (__played[__played.length - 1] || {}).src || '';
+# la tarjeta buena de la ronda de Lince: la del último audio que sonó en ESTA ronda (-1 hasta que suene). Lo último de la
+# ronda anterior es su palabra buena otra vez: si esa palabra vuelve en el par nuevo, se tocaba antes de oír la nueva
+_LN_TARGET = """() => { const p = __played[__played.length - 1] || {}, c0 = document.querySelector('#ln-cards .ln-c');
+  if (!c0 || c0.__r == null || p.r !== c0.__r) return -1;
+  const last = p.src || '';
   return [...document.querySelectorAll('#ln-cards .ln-c')].findIndex(c => { const id = clipFor(c.dataset.w); return id && last.endsWith('/' + id + '.mp3'); }); }"""
 _LN_READY = "() => document.querySelectorAll('#ln-cards .ln-c').length === 2 && !document.getElementById('ln').classList.contains('ln-done') && __played.length > 0"
 _LN_STATE = """() => [...document.querySelectorAll('#ln-cards .ln-c')].map(c => { const mk = c.querySelector('.ln-mk'), cs = getComputedStyle(c);

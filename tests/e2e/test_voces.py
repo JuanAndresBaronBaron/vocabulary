@@ -163,7 +163,9 @@ def _rows(page, root="#ajustes .aj-pg[data-pg=voz]"):
     return page.evaluate("""r => [...document.querySelectorAll(r + ' .cfg-l')].map(b => ({id: b.id, vl: b.dataset.vl,
       name: b.querySelector('.st-l').firstChild.textContent, small: (b.querySelector('.st-l small') || {}).textContent || '',
       val: (b.querySelector('.aj-val') || {}).innerText || '', head: (b.closest('.st-sec').querySelector('.st-h') || {}).textContent || '',
-      cut: [...b.querySelectorAll('.aj-val')].some(s => s.scrollWidth > s.clientWidth + 1), h: Math.round(b.getBoundingClientRect().height),
+      cut: [...b.querySelectorAll('.aj-val')].some(s => { if (s.scrollWidth > s.clientWidth) return true; const r = document.createRange(); r.selectNodeContents(s);
+        const cs = getComputedStyle(s); return r.getBoundingClientRect().width > s.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) + .05; }),
+      h: Math.round(b.getBoundingClientRect().height),
       lines: (v => v ? Math.round(v.getBoundingClientRect().height / (parseFloat(getComputedStyle(v).lineHeight) || 20)) : 0)(b.querySelector('.aj-val'))}))""", root)
 
 
@@ -689,8 +691,8 @@ def test_offline_android_and_keyboard():
 
 
 def test_bar_rows_and_lists_fit():
-    """Que todo quepa como en Ajustes del iPhone: la voz de cada fila en una sola línea (a 320 px y con letra grande, la
-    automática se queda en «Automática»); en la página de un idioma, el título en el centro y entero y «Listo» sin
+    """Que todo quepa como en Ajustes del iPhone: la voz de cada fila en una sola línea y sin «…» (medido con un Range: a
+    320 y 360 px y con letra grande, la automática que no cabe entera se queda en «Automática»); en la página de un idioma, el título en el centro y entero y «Listo» sin
     recortar (la etiqueta de volver se acorta a «Atrás» o solo ‹), y en escritorio «‹ Voz y velocidad» entera, la hoja
     por debajo de la barra de arriba y sin saltar al entrar en una página corta. En el móvil, entrar en un idioma sube la
     hoja y volver la deja a media altura. «Más voces» se despliega en su sitio y deja ver sus primeras filas. ChromeOS: la
@@ -704,7 +706,8 @@ def test_bar_rows_and_lists_fit():
             tw: q('aj-tt').scrollWidth <= q('aj-tt').clientWidth + 1, dw: q('aj-done').scrollWidth <= q('aj-done').clientWidth + 1,
             top: Math.round(R(d).top), det: d.dataset.detent}; }""")
 
-    for name, kw, keys in (("320", {"viewport": {"width": 320, "height": 700}}, None), ("letra grande", {}, {"vocab:ui": {"text": "large"}})):
+    for name, kw, keys in (("320", {"viewport": {"width": 320, "height": 700}}, None), ("360", {"viewport": {"width": 360, "height": 740}}, None),
+                           ("letra grande", {}, {"vocab:ui": {"text": "large"}})):
         page = _page(EDGE, keys=keys, **kw)
         try:
             _open_voz(page)

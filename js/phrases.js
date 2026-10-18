@@ -388,14 +388,14 @@ const CSS = `
 .ph-pc{display:inline-block;padding:0 .22em;border-radius:12px;background:var(--brand-soft);color:var(--brand-ink);transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
 .ph-pc.is-say{background:var(--brand-fill);color:#fff}
 .ph[data-mode=play] .ph-pc{cursor:pointer}
-.ph-tile img{transition:opacity var(--d-fast,160ms)}
+.ph-pic{transition:opacity var(--d-fast,160ms)}
 .ph-es{margin:0 0 16px;color:var(--label2);font:400 var(--fs-sub)/1.35 var(--f-text)}
 .ph-es b{color:var(--label);font-weight:700}
 .ph-acts{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px 20px}   /* 20: sitio para las etiquetas de las teclas */
 /* el altavoz: el mismo que el de la lección (círculo azul claro que se rellena al sonar) y la tortuga gris al lado */
 .ph-spk{flex:none;display:grid;place-items:center;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:50%;background:var(--brand-soft);color:var(--brand-tint);cursor:pointer;
   -webkit-tap-highlight-color:transparent;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
-.ph-slow{flex:none;display:grid;place-items:center;width:44px;height:44px;margin:0;padding:0;border:0;border-radius:50%;background:var(--fill2);color:var(--label);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ph-slow{flex:none;display:grid;place-items:center;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:50%;background:var(--fill2);color:var(--label);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .ph-spk.playing,.ph-slow.playing{background:var(--brand-fill);color:#fff}
 .ph-spk:focus-visible,.ph-slow:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 .ph-acts[data-off]{visibility:hidden}
@@ -407,11 +407,14 @@ const CSS = `
 .ph-tiles.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .ph-tile{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;min-height:var(--tap);margin:0;padding:8px 4px;border:0;border-radius:var(--r-md);
   color:var(--label);font:700 var(--fs-note)/1.2 var(--f-round);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.ph-tile img{box-sizing:border-box;width:56px;height:56px;object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none}
+/* el dibujo va en su placa (.ph-pic): en oscuro, la placa clara; multiply funde el fondo blanco de los dibujos opacos (los
+   árboles de familia) con la placa o con la ficha, sin un rectángulo blanco encima (como en los juegos) */
+.ph-pic{position:relative;box-sizing:border-box;display:block;flex:none;width:56px;height:56px;border-radius:var(--r-sm)}
+.ph-pic img{position:absolute;top:0;left:0;display:block;width:100%;height:100%;object-fit:contain;mix-blend-mode:multiply;pointer-events:none;-webkit-user-drag:none;user-select:none}
 .ph-tile .ph-tw{display:block;max-width:100%;white-space:nowrap;overflow:hidden}
 /* la pieza puesta deja su sitio en la bandeja: un hueco atenuado con borde de puntos (como mientras se arrastra) */
 .ph-tile[aria-pressed=true]{background:transparent;box-shadow:none;outline:2px dashed var(--sep);outline-offset:-2px}
-.ph-tile[aria-pressed=true] img{opacity:.35}
+.ph-tile[aria-pressed=true] .ph-pic{opacity:.35}
 .ph-tile[aria-pressed=true] .ph-tw{visibility:hidden}   /* la palabra está en el hueco (el botón la sigue diciendo) */
 .ph-tile:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 .ph-hint{margin:-8px 0 0;text-align:center;color:var(--label2);font:400 var(--fs-note)/1.35 var(--f-text)}
@@ -441,14 +444,16 @@ const CSS = `
 .ph-hgo{flex:1;min-width:0;display:flex;align-items:center;gap:12px;align-self:stretch;padding:8px 0 8px 12px;border-radius:inherit;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .ph-hgo small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ph-hsay{margin:-4px 0}
-/* en el móvil, el dibujo de cada ficha llena su ancho (antes 56 px; 73 en 390×844, 106 con 3 fichas): la bandeja sigue en una
-   fila y la página no baja más que antes (huecos de 12 y 8 px en lugar de 16 y 12, y 6 px arriba y abajo en la ficha) */
-@media (max-width:743px){.ph{gap:12px}.ph-tiles{gap:8px}.ph-tile{padding:6px 4px}.ph-tile img{width:min(100%,112px);height:auto;aspect-ratio:1}}
-@media (min-width:744px){.ph-tile img{width:72px;height:72px}.ph-line{font-size:var(--fs-t1)}}
+/* en el móvil, el dibujo de cada ficha llena su ancho (antes 56 px; 76 en 390×844, 106 con 3 fichas): la bandeja sigue en una
+   fila y la página no baja más que antes (huecos de 12 y 8 px en lugar de 16 y 12, y 4 px alrededor en la ficha) */
+@media (max-width:743px){.ph{gap:12px}.ph-tiles{gap:8px}.ph-tile{padding:4px}.ph-pic{width:min(100%,112px);height:auto;aspect-ratio:1}}
+/* tableta y ordenador: huecos de 12 entre bloques (con 16, 1280×800 bajaba 11 px) */
+@media (min-width:744px){.ph{gap:12px}.ph-pic{width:72px;height:72px}.ph-line{font-size:var(--fs-t1)}}
 ${DARK(".ph-seals li .ico", "color:var(--gold)")}
-${DARK(".ph-tile img", "background:#F2F2F7;border-radius:var(--r-sm);padding:2px")}   /* la placa clara de los dibujos, como .img img */
+${DARK(".ph-pic", "background:#F2F2F7")}   /* la placa clara de los dibujos, como .img img, con 4 px de margen */
+${DARK(".ph-pic img", "top:4px;left:4px;width:calc(100% - 8px);height:calc(100% - 8px)")}
 ${DARK(".ph-k .ico,.ph-ct .ico", "color:var(--gold)")}
-@media (prefers-reduced-motion:reduce){.ph-line,.ph-gap,.ph-pc,.ph-spk,.ph-tile img{transition:none}}
+@media (prefers-reduced-motion:reduce){.ph-line,.ph-gap,.ph-pc,.ph-spk,.ph-pic{transition:none}}
 `;
 function css(){
   if(DOC.getElementById("css-phrases")) return;
@@ -475,7 +480,7 @@ function picTag(src){
 }
 function tilesHtml(){
   return ST.choices.map((f, i) => `<button type="button" class="card ph-tile" data-i="${i}" data-key="${i + 1}" data-key-pos="in" aria-pressed="${ST.placed === i}" aria-label="${esc(f.core)}"${lng()}>
-    ${picTag(f.img)}<span class="ph-tw">${esc(f.core)}</span></button>`).join("");
+    <span class="ph-pic">${picTag(f.img)}</span><span class="ph-tw">${esc(f.core)}</span></button>`).join("");
 }
 function dateShort(d){
   try{ const [y, m, dd] = d.split("-").map(Number); return new Date(y, m - 1, dd).toLocaleDateString("es-ES", {day: "numeric", month: "short"}).replace(".", ""); }catch(e){ return d; }
@@ -521,7 +526,7 @@ function paint(){
       <p class="ph-es" id="ph-es">${esHtml()}</p>
       <div class="ph-acts" id="ph-acts"${ST.f ? "" : " data-off"}>
         <button type="button" class="ph-spk" id="ph-say" data-key="space" aria-label="Oír la frase" title="Oír la frase">${ico("speaker-high", "fill", 24)}</button>
-        <button type="button" class="ph-slow" id="ph-slow" data-key="shift+space" aria-label="Oír despacio" title="Oír despacio">${ico("turtle", "fill", 22)}</button>
+        <button type="button" class="ph-slow" id="ph-slow" data-key="shift+space" aria-label="Oír despacio" title="Oír despacio">${ico("turtle", "fill", 26)}</button>
         ${mic}
       </div>
       <p class="ph-msg" id="ph-msg" role="status" aria-live="polite"></p>
