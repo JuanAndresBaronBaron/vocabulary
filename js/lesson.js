@@ -77,7 +77,7 @@ const CSS = `
 .ls-card:focus:not(:focus-visible){outline:none}
 .ls-pic{display:flex;align-items:center;justify-content:center;width:100%;height:clamp(120px,24vh,220px)}
 .ls-pic img{display:block;box-sizing:border-box;min-width:0;min-height:0;max-width:min(220px,80%);max-height:100%;object-fit:contain;-webkit-user-drag:none}
-:root[data-theme=dark] .ls-pic img{background:#F2F2F7;border-radius:var(--r-md);padding:8px}
+:root[data-theme=dark] .ls-pic img{background:#F2F2F7;border-radius:var(--r-md);padding:4px}
 .ls-ph{display:grid;place-items:center;height:100%;aspect-ratio:1;max-height:140px;border-radius:28px;background:var(--fill2);
   color:var(--label2);font:800 3rem/1 var(--f-round)}
 .ls-learn{touch-action:pan-y;will-change:translate}
@@ -117,12 +117,17 @@ const CSS = `
   border:0;border-radius:20px;background:var(--card);color:var(--label);font:700 var(--fs-t2)/1.15 var(--f-round);text-align:center;
   overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
 .ls-opts.is-long .ls-opt{font-size:var(--fs-head)}
-.ls .ls-opt.has-pic{justify-content:flex-start;padding-left:10px;text-align:left;font-size:var(--fs-t3)}
+/* «Escucha y elige» con dibujos: el dibujo arriba, grande, y la palabra debajo. El dibujo (--lpw) crece con el alto de la
+   pantalla, descontado lo que ocupa el resto (la respuesta «¡Casi! Es …» y el botón «Seguir» tras un fallo, también con
+   «Texto más grande»: 34,5rem × --k), así que la lección sigue sin bajar */
+.ls .ls-opt.has-pic{--lpw:clamp(48px,calc((100vh - 34.5rem * var(--k,1)) / 2),104px);flex-direction:column;justify-content:flex-start;gap:4px;padding:12px 8px;text-align:center;font-size:var(--fs-t3)}
+@supports (height:100svh){.ls .ls-opt.has-pic{--lpw:clamp(48px,calc((100svh - 34.5rem * var(--k,1)) / 2),104px)}}
 .ls .ls-opts.is-long .ls-opt.has-pic{font-size:var(--fs-head)}
 .ls .ls-opts.is-xlong .ls-opt,.ls .ls-opts.is-xlong .ls-opt.has-pic{font-size:var(--fs-sub)}
 .ls-ot{display:block;min-width:0;max-width:100%;overflow-wrap:normal;word-break:normal}
 .ls-opts.is-break .ls-ot{overflow-wrap:anywhere}
-.ls-opt img{flex:none;box-sizing:border-box;width:48px;height:48px;padding:3px;border-radius:10px;background:#fff;object-fit:contain;-webkit-user-drag:none}
+.ls-opt img{flex:none;box-sizing:border-box;width:var(--lpw,48px);aspect-ratio:1;height:auto;
+  padding:3px;border-radius:12px;background:#fff;object-fit:contain;-webkit-user-drag:none}
 :root[data-theme=dark] .ls-opt img{background:#F2F2F7}
 .ls-opt .ls-k{display:none;position:absolute;left:8px;top:8px}
 :root[data-kbd] .ls-opt .ls-k{display:inline-flex}
@@ -138,6 +143,12 @@ const CSS = `
 .ls-opt.is-stack .chk,.ls-opt.is-stack .xm{width:20px;height:20px}
 .ls-opt.has-pic .chk,.ls-opt.has-pic .xm{position:absolute;left:38px;top:calc(50% + 4px);z-index:1;box-sizing:border-box;width:26px;height:26px;padding:5px;
   border-radius:50%;box-shadow:0 0 0 2px #fff}
+/* en la columna (dibujo arriba), la ✓ o la ✗ va sobre la esquina de abajo a la izquierda del dibujo */
+.ls .ls-opt.has-pic .chk,.ls .ls-opt.has-pic .xm{left:calc(50% - var(--lpw,48px) / 2 - 6px);top:calc(12px + var(--lpw,48px) - 24px)}
+/* si el dibujo de arriba saldría tan pequeño como el de la fila (fitOpts: pantalla baja, «Texto más grande»), en fila:
+   el dibujo pequeño a la izquierda, que es lo que cabe */
+.ls .ls-opts.is-row .ls-opt.has-pic{--lpw:48px;flex-direction:row;justify-content:flex-start;padding:8px 12px 8px 8px;text-align:left}
+.ls .ls-opts.is-row .ls-opt.has-pic .chk,.ls .ls-opts.is-row .ls-opt.has-pic .xm{left:38px;top:calc(50% + 4px)}
 .ls-opt.has-pic .chk{background:var(--ok-fill);color:#fff}
 .ls-opt.has-pic .xm{background:var(--miss-fill)}
 .ls-fb{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 8px;margin:4px 0 0;text-align:center;
@@ -211,12 +222,18 @@ const CSS = `
 .ls-how-b{margin-top:16px}
 /* móvil bajo (iPhone SE/8): todo cabe sin bajar, y la respuesta queda por encima del botón */
 @media (max-height:700px){
-  .ls-pic{height:clamp(96px,18vh,140px)}
+  .ls-pic{height:clamp(110px,22vh,160px)}
   .ls .ls-card{gap:4px;padding:16px 16px 20px}
   .ls .ls-top{margin-bottom:12px}
   .ls-opts{gap:8px}
   .ls-end .ls-card{padding:16px}
   .ls-fox{height:96px}}
+/* aún más bajo (móvil pequeño, tumbado): el dibujo como antes y las opciones con dibujo en una fila (dibujo pequeño a la
+   izquierda), que es lo que cabe */
+@media (max-height:600px){
+  .ls-pic{height:clamp(96px,18vh,140px)}
+  .ls .ls-opt.has-pic{--lpw:48px;flex-direction:row;justify-content:flex-start;padding:8px 12px 8px 8px;text-align:left}
+  .ls .ls-opt.has-pic .chk,.ls .ls-opt.has-pic .xm{left:38px;top:calc(50% + 4px)}}
 @media (prefers-reduced-motion:reduce){
   .ls .ls-spk.say.playing::after{animation:none;opacity:0}
   .ls-fox .hero{animation:none}
@@ -437,6 +454,9 @@ const optsHtml = (list, o = {}) => `<div class="ls-opts${list.length === 3 ? " i
    juntas (titular y luego 17 px); solo si ni así cabe, se parte */
 function fitOpts(pg){
   const box = pg && pg.querySelector(".ls-opts"); if(!box) return;
+  /* con dibujos: si el dibujo de arriba saldría tan pequeño como el de la fila (pantalla baja, texto grande), en fila */
+  const im = box.querySelector(".ls-opt.has-pic img");
+  if(im && !box.classList.contains("is-row") && im.offsetWidth <= 52) box.classList.add("is-row");
   const ots = [...box.querySelectorAll(".ls-ot")];
   const over = t => t.scrollWidth > t.clientWidth + 1;
   /* con la ✓ o la ✗ al lado no cabe: se pone encima (en las de foto va sobre la esquina de la foto) */

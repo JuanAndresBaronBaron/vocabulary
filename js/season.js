@@ -276,9 +276,10 @@ dialog#ss-q.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:no
 .ss-o{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-width:0;min-height:60px;padding:8px 46px;margin:0;border:0;
   border-radius:20px;background:var(--card-2);color:var(--label);font:700 var(--fs-t3)/1.15 var(--f-round);text-align:center;overflow-wrap:anywhere;cursor:pointer;
   transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-.ss-op{min-height:108px;padding:10px 6px}
-.ss-op img{width:76px;height:76px;object-fit:contain;-webkit-user-drag:none}
-:root[data-theme=dark] .ss-op img{background:#F2F2F7;border-radius:16px;padding:4px}
+/* «Elige el dibujo»: el dibujo a lo ancho de su botón (hasta 104 px) */
+.ss-o.ss-op{min-height:108px;padding:8px 4px}
+.ss-op img{flex:none;width:min(100%,104px);aspect-ratio:1;height:auto;object-fit:contain;-webkit-user-drag:none}
+:root[data-theme=dark] .ss-op img{background:#F2F2F7;border-radius:16px;padding:2px}
 .ss-o.is-ok{background:var(--ok-fill);color:#fff;box-shadow:0 8px 20px -8px rgba(0,137,50,.7)}
 .ss-o.is-miss{background:var(--miss-fill);color:var(--miss-on);box-shadow:none}
 .ss-o.is-miss img{filter:grayscale(1);opacity:.55}

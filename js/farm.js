@@ -2163,7 +2163,7 @@ function css(){
 .fm-tray::after{content:"";position:absolute;top:calc(100% - 1px);left:50%;margin-left:-9px;border:9px solid transparent;border-top-color:var(--card);border-bottom:0}
 .fm-tr{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;padding:2px}   /* cabe siempre (sin scroll: las fichas se arrastran) y «Comprar» va al final */
 .fm-fc{position:relative;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:76px;min-height:76px;padding:8px 4px 6px;border:0;border-radius:18px;background:var(--fill2);color:var(--label);touch-action:none;cursor:grab;-webkit-tap-highlight-color:transparent}
-.fm-fc .fe{font-size:32px;line-height:1}
+.fm-fc .fe{font-size:40px;line-height:1}
 .fm-fc .fw{max-width:100%;font:600 var(--fs-min)/1.15 var(--f-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fm-fc .fn{position:absolute;top:4px;right:4px;min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:var(--brand-fill);color:#fff;font:700 13px/22px var(--f-text);text-align:center}
 .fm-fc.zero{cursor:pointer;touch-action:manipulation}

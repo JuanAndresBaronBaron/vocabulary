@@ -52,7 +52,8 @@ const W3000 = t => /^w\d+$/.test(t[0]);
 const START = (a, b) => b[3] - a[3];   /* los de empezar, primero (sort estable: el resto, en su orden) */
 const MIS_INFO = [MIS, "2B50", "Mis palabras", 1];
 const MIS_MIN = 8;   /* «Mis palabras» necesita al menos 8 palabras con dibujo en el repaso de este idioma */
-const BALLOONS = ["#1E6EF4", "#008198", "#34C759", "#FFCC00", "#30B0C7", "#d64545", "#22409a", "#4b5563"];
+/* sin gris: un globo gris parecería uno fallado (el fallo va en gris con ✗) */
+const BALLOONS = ["#1E6EF4", "#008198", "#34C759", "#FFCC00", "#30B0C7", "#d64545", "#22409a"];
 const RM = () => { try{ return window.M && typeof window.M.rm === "function" ? window.M.rm() : matchMedia("(prefers-reduced-motion: reduce)").matches; }catch(e){ return false; } };   /* M.rm() de js/motion.js */
 const IC = (n, s = "bold", z = 22, c = "") => typeof ico === "function" ? ico(n, s, z, c) : "";
 /* la moneda de siempre (la misma que la del contador de arriba) */
@@ -320,8 +321,16 @@ const topicImg = id => `img/om_${topicInfo(id)[1]}.png`;
 /* con qué palabras se juega: el tema, o lo que diga el juego (Oído de lince usa sus propias parejas) */
 const wordsLabel = g => (GAMES[g] && GAMES[g].words) || topicName(CUR_TP || topicId());
 const usable = (g, P) => g === "letras" ? P.filter(letrasOf).length : P.length;
-const preload = items => items.forEach(x => { if(x.img){ const im = new Image(); im.src = x.img; } });
-const imgTag = (it, cls = "") => `<img class="${cls}" src="${esc(it.img)}" alt="" draggable="false">`;
+/* los árboles de familia, en los juegos, recortados a su contenido (img/fam2/, mismos nombres): el dibujo llena su
+   recuadro, y novio/esposo y novia/esposa (el mismo árbol con otra etiqueta) llevan un corazón o unos anillos entre
+   los dos. Si el recortado no carga (sin conexión antes de haberlo visto), vuelve al de siempre */
+const picSrc = src => typeof src === "string" ? src.replace(/^img\/fam_/, "img/fam2/fam_") : src;
+const FLAG_DOCS = new Set(["paises", "nacionalidades"]);
+const preload = items => items.forEach(x => { if(x.img){ const im = new Image(); im.src = picSrc(x.img); } });
+const imgTag = (it, cls = "") => {
+  const src = picSrc(it.img), c = (cls + (FLAG_DOCS.has(it.doc) ? " gm-flag" : "")).trim();
+  return `<img${c ? ` class="${c}"` : ""} src="${esc(src)}"${src !== it.img ? ` data-f="${esc(it.img)}" onerror="if(this.dataset.f){this.src=this.dataset.f;delete this.dataset.f}"` : ""} alt="" draggable="false">`;
+};
 /* «Mis palabras»: cuántas del repaso de este idioma tienen dibujo (se cuenta al abrir el menú) */
 let MIS_N = null, MIS_LANG = null;
 async function countMis(){
@@ -432,7 +441,9 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-mc-back{background-image:radial-gradient(rgba(255,255,255,.2) 2px,transparent 2.6px),linear-gradient(var(--brand-fill),var(--brand-fill));background-size:14px 14px,100% 100%;box-shadow:0 2px 6px rgba(0,0,0,.16)}
 .gm-mc-back span{width:58%;aspect-ratio:1;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:2.2rem;font-weight:900;color:#fff}
 .gm-mc-face{transform:rotateY(180deg);background:var(--gm-tile);border:3px solid var(--sep)}
-.gm-mc-face img{width:80%;height:80%;object-fit:contain}
+.gm-mc-face img{width:92%;height:92%;object-fit:contain}
+/* en oscuro, la cara del dibujo en blanco: los dibujos opacos (familia) no quedan como un rectángulo blanco sobre gris */
+[data-theme=dark] .gm-mc-face.k-img{background:#fff}
 .gm-mc-face.k-word{background:var(--card);padding:6px}
 .gm-mw{font-weight:900;line-height:1.15;text-align:center;overflow-wrap:anywhere;color:var(--label)}
 .gm-mc.ok .gm-mc-face{border-color:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 30%,transparent)}
@@ -458,8 +469,9 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-bub{position:absolute;left:0;top:0;border:0;padding:0;margin:0;background:none;display:flex;flex-direction:column;align-items:center;gap:4px;will-change:transform;cursor:pointer;touch-action:none;color:#fff;-webkit-touch-callout:none}
 .gm-bub-i{width:var(--bs);height:var(--bs);border-radius:50%;background:radial-gradient(circle at 32% 28%,#fff 0 58%,#e4eefa 100%);border:3px solid rgba(255,255,255,.9);box-shadow:0 0 0 5px rgba(255,255,255,.16),0 8px 18px rgba(0,0,0,.28);display:flex;align-items:center;justify-content:center;position:relative}
 .gm-bub-i::after{content:"";position:absolute;left:18%;top:12%;width:22%;height:14%;border-radius:50%;background:rgba(255,255,255,.9);transform:rotate(-30deg)}
-.gm-bub-i img{width:66%;height:66%;object-fit:contain;pointer-events:none}
-.gm-bub-w{background:rgba(6,22,42,.8);color:#fff;font-weight:800;border-radius:999px;padding:3px 10px;font-size:.95rem;max-width:calc(var(--bs) + 28px);text-align:center;line-height:1.15;pointer-events:none}
+/* multiply: el fondo blanco de los dibujos opacos (familia) se funde con la burbuja (sin un cuadrado blanco encima) */
+.gm-bub-i img{width:70%;height:70%;object-fit:contain;pointer-events:none;mix-blend-mode:multiply}
+.gm-bub-w{background:rgba(6,22,42,.8);color:#fff;font-weight:800;border-radius:999px;padding:3px 10px;font-size:.95rem;max-width:max(var(--bs) + 8px,108px);text-align:center;line-height:1.15;pointer-events:none;overflow-wrap:break-word}
 .gm-bub.pop .gm-bub-i{animation:gm-burst .32s forwards}
 .gm-bub.pop .gm-bub-w{opacity:0;transition:opacity .2s}
 .gm-bub.bad .gm-bub-i{border-color:var(--miss);background:#d5dbe3}
@@ -479,6 +491,9 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-lives i.lost{color:var(--label2);filter:none}
 .gm-lives i.hurt{animation:gm-hurt .6s}
 @keyframes gm-hurt{30%{transform:scale(1.6)}100%{transform:scale(1)}}
+/* banderas (4:3): la caja del dibujo mide lo mismo que la bandera y lleva un filete fino, para que el blanco de Japón,
+   Polonia o Inglaterra no se funda con el recuadro blanco (nunca recortada: los escudos se ven enteros) */
+:is(.gm-bal-i,.gm-mc-face,.gm-lt-pic,.gm-bub-i)>img.gm-flag{height:auto;max-height:94%;aspect-ratio:293/220;object-fit:fill;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
 /* globos */
 .gm-listen{position:relative;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;background:var(--card);border-radius:var(--r-card);padding:12px;margin-bottom:12px;min-height:96px}
 /* el altavoz grande, tintado como el de la lección (el único botón relleno de la pantalla es el de seguir) */
@@ -489,42 +504,57 @@ dialog.gm-sh .st-g{background:var(--card)}
 @keyframes gm-wave{0%{opacity:.55;scale:.9}100%{opacity:0;scale:1.28}}
 .gm-bigsay.ring{animation:gm-ring 1.1s ease-out 2}
 @keyframes gm-ring{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--brand-fill) 55%,transparent)}100%{box-shadow:0 0 0 22px transparent}}
+/* la frase de la tarjeta de escuchar tiene sitio para 2 líneas: un fallo, la palabra escrita o el acierto no cambian el
+   alto de la tarjeta (los globos no se mueven ni cambian de tamaño a mitad de ronda) */
 .gm-ltxt{flex-basis:100%;text-align:center;color:var(--label2);font:600 var(--fs-sub)/1.3 var(--f-text);min-height:1.5em}
 .gm-ltxt b{color:var(--brand-ink);font-size:1.45rem}
-.gm-air{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:30px 10px 0;min-height:300px;border-radius:22px;overflow:hidden;
+.gm-bal-g .gm-ltxt{min-height:2.8em}
+.gm-bal-g .gm-ltxt b{line-height:1}
+/* el acierto, en la misma frase (un solo mensaje): verde y en negrita */
+.gm-ltxt .gm-reveal{color:var(--ok-ink);font-weight:800}
+.gm-air{position:relative;display:grid;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));column-gap:16px;row-gap:8px;align-content:space-evenly;padding:12px 8px 0;
+  min-height:var(--airh,300px);height:var(--airh,auto);border-radius:22px;overflow:hidden;
   background:radial-gradient(ellipse 120px 34px at 12% 100%,rgba(255,255,255,.95) 98%,transparent),radial-gradient(ellipse 160px 40px at 62% 102%,rgba(255,255,255,.9) 98%,transparent),radial-gradient(ellipse 110px 30px at 95% 100%,rgba(255,255,255,.95) 98%,transparent),linear-gradient(180deg,#bfe0ff 0%,#e6f3ff 100%)}
 [data-theme=dark] .gm-air{background:radial-gradient(ellipse 120px 34px at 12% 100%,rgba(120,150,190,.35) 98%,transparent),radial-gradient(ellipse 160px 40px at 62% 102%,rgba(120,150,190,.3) 98%,transparent),radial-gradient(ellipse 110px 30px at 95% 100%,rgba(120,150,190,.35) 98%,transparent),linear-gradient(180deg,#0b1f3a 0%,#163a5f 100%)}
 .gm-bal{position:relative;border:0;background:none;padding:0;display:flex;flex-direction:column;align-items:center;touch-action:manipulation;cursor:pointer;animation:gm-rise .9s cubic-bezier(.2,.9,.25,1) var(--d) both}
 .gm-bal:disabled{cursor:default}
-.gm-bal-b{position:relative;width:min(148px,100%);aspect-ratio:9/11;border-radius:50% 50% 50% 50%/56% 56% 44% 44%;display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(circle at 30% 26%,rgba(255,255,255,.6) 0 9%,transparent 10%),radial-gradient(circle at 50% 40%,color-mix(in srgb,var(--bc) 82%,#fff),var(--bc) 70%);
+/* el ancho del globo (--bw) lo calcula fitBal() con el hueco que queda en la pantalla */
+.gm-bal-b{position:relative;width:var(--bw,min(148px,100%));max-width:100%;aspect-ratio:9/11;border-radius:50% 50% 50% 50%/56% 56% 44% 44%;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse 13% 6% at 33% 10%,rgba(255,255,255,.62) 0 60%,transparent 100%),radial-gradient(circle at 50% 40%,rgba(255,255,255,.18),transparent 70%),var(--bc);
   box-shadow:inset -10px -14px 0 rgba(0,0,0,.13),0 10px 16px rgba(0,0,0,.18);animation:gm-sway 3.2s ease-in-out 3;animation-delay:calc(var(--d) * -3)}
 .gm-bal-b::after{content:"";position:absolute;left:50%;bottom:-9px;transform:translateX(-50%);border:8px solid transparent;border-bottom:11px solid var(--bc);border-top:0}
-.gm-bal-i{width:66%;aspect-ratio:1;border-radius:50%;background:var(--gm-tile);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.18)}
-.gm-bal-i img{width:78%;height:78%;object-fit:contain;pointer-events:none}
-.gm-bal-s{display:block;width:2px;height:54px;background:color-mix(in srgb,var(--label) 40%,transparent);margin-top:8px;border-radius:2px;transform-origin:top;animation:gm-string 3.2s ease-in-out 3;animation-delay:calc(var(--d) * -3)}
+/* el dibujo, en un cuadrado blanco de esquinas redondeadas (igual para todos los temas): cabe entero dentro del globo,
+   no corta las esquinas de los dibujos opacos (familia) ni las banderas y deja el dibujo al ~77 % del ancho del globo,
+   con globo de color alrededor. Un poco por debajo del centro, donde el globo es más ancho */
+.gm-bal-i{width:80%;aspect-ratio:1;margin-top:4%;border-radius:26%;overflow:hidden;background:var(--gm-tile);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 3px rgba(0,0,0,.14)}
+.gm-bal-i img{width:96%;height:96%;object-fit:contain;pointer-events:none;mix-blend-mode:multiply}
+.gm-bal-s{display:block;width:2px;height:var(--sh,54px);background:rgba(60,60,67,.4);margin-top:8px;border-radius:2px;transform-origin:top;animation:gm-string 3.2s ease-in-out 3;animation-delay:calc(var(--d) * -3)}
+[data-theme=dark] .gm-bal-s{background:rgba(235,235,245,.4)}
 .gm-bal.pop .gm-bal-b{animation:gm-burst .3s forwards}
 .gm-bal.pop .gm-bal-s{animation:gm-drop .6s forwards}
 .gm-bal.no .gm-bal-b{filter:grayscale(1);opacity:.45;animation:none}
 .gm-bal.no .gm-bal-s{opacity:.35;animation:none}
 .gm-bal .gm-bx{display:none}
-.gm-bal.no .gm-bx{display:flex;position:absolute;left:50%;top:20%;transform:translateX(-50%);z-index:2;width:36px;height:36px;border-radius:50%;align-items:center;justify-content:center;
-  background:var(--miss-fill);color:var(--miss-on);font-weight:900;font-size:1.2rem;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+/* la ✗ del fallo, arriba del globo (fuera del dibujo: se ve lo que se tocó), gris sólido con la ✗ blanca */
+.gm-bal.no .gm-bx{--xs:clamp(24px,calc(var(--bw,148px) * .17),36px);display:flex;position:absolute;left:50%;top:calc(var(--bw,148px) * .04);transform:translateX(-50%);z-index:2;
+  width:var(--xs);height:var(--xs);border-radius:50%;align-items:center;justify-content:center;
+  background:var(--miss);color:#fff;font-weight:900;font-size:calc(var(--xs) * .52);line-height:1;box-shadow:0 0 0 2px rgba(255,255,255,.85),0 2px 6px rgba(0,0,0,.2)}
 .gm-bal.dim{opacity:.4;transition:opacity .3s}
-.gm-bang{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);font-size:3rem;pointer-events:none;animation:gm-bang .55s forwards}
+.gm-bang{position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);font-size:max(3rem,calc(var(--bw,116px) * .42));pointer-events:none;animation:gm-bang .55s forwards}
 @keyframes gm-bang{0%{transform:translate(-50%,-50%) scale(.3)}50%{transform:translate(-50%,-50%) scale(1.3)}100%{transform:translate(-50%,-50%) scale(1.5);opacity:0}}
 @keyframes gm-rise{from{transform:translateY(340px);opacity:.2}to{transform:none;opacity:1}}
-@keyframes gm-sway{0%,100%{transform:translateY(0) rotate(-3deg)}50%{transform:translateY(-10px) rotate(3deg)}}
-@keyframes gm-string{0%,100%{transform:rotate(3deg)}50%{transform:rotate(-3deg)}}
+/* balanceo corto (±2°) para que dos globos grandes juntos no se toquen; el vaivén de arriba abajo, como siempre */
+@keyframes gm-sway{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
+@keyframes gm-string{0%,100%{transform:rotate(2deg)}50%{transform:rotate(-2deg)}}
 @keyframes gm-drop{to{transform:translateY(80px) rotate(30deg);opacity:0}}
-.gm-reveal{position:absolute;left:10px;right:10px;top:10px;margin:0 auto;width:fit-content;max-width:calc(100% - 20px);text-align:center;z-index:4;background:var(--ok-fill);color:#fff;font-weight:800;font-size:1.15rem;line-height:1.2;border-radius:999px;padding:8px 18px;box-shadow:0 6px 16px rgba(0,0,0,.25);animation:gm-in .3s both;pointer-events:none}
 .gm-dots{display:flex;gap:6px;justify-content:center;margin:12px 0 0;flex-wrap:wrap}
 .gm-dots i{width:14px;height:14px;border-radius:50%;background:var(--fill)}
 .gm-dots i.ok{background:var(--ok)}.gm-dots i.meh{background:var(--miss)}.gm-dots i.now{outline:3px solid var(--brand-tint);outline-offset:2px}
 /* letras */
 .gm-lt{background:var(--card);border-radius:var(--r-card);padding:18px 14px 20px;text-align:center;max-width:620px;margin:0 auto;position:relative}
-.gm-lt-pic{width:132px;height:132px;margin:0 auto;border-radius:26px;background:var(--gm-tile);display:flex;align-items:center;justify-content:center;border:2px solid var(--sep);animation:gm-in .4s both}
-.gm-lt-pic img{width:80%;height:80%;object-fit:contain}
+/* el dibujo crece con el alto de la pantalla (cabe sin bajar: si no, .gm-short lo deja en 100 px) */
+.gm-lt-pic{width:clamp(112px,24vh,200px);width:clamp(112px,24svh,200px);aspect-ratio:1;height:auto;margin:0 auto;border-radius:26px;background:var(--gm-tile);display:flex;align-items:center;justify-content:center;border:2px solid var(--sep);animation:gm-in .4s both}
+.gm-lt-pic img{width:92%;height:92%;object-fit:contain;mix-blend-mode:multiply}
 .gm-lt-es{font:800 1.5rem/1.2 var(--f-round);margin:10px 0 4px;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
 .gm-lt-n{margin:0;color:var(--label2);font:400 var(--fs-note)/1.3 var(--f-text)}
 .gm-art{display:inline-flex;align-items:center;gap:6px;background:var(--fill);border:2px dashed var(--brand-tint);color:var(--brand-ink);border-radius:999px;padding:3px 12px;font-weight:800;font-size:1rem}
@@ -595,12 +625,38 @@ dialog.gm-sh .st-g{background:var(--card)}
   .gm-mc{aspect-ratio:1/1.08}
   .gm-catch{gap:8px;padding-left:12px}
   .gm-catch b{font-size:1.35rem}
-  .gm-air{grid-template-columns:repeat(2,minmax(0,1fr));row-gap:2px;padding-top:22px}
-  .gm-bal-b{width:min(116px,100%)}
-  .gm-bal-s{height:30px}
-  .gm-lt-pic{width:112px;height:112px}
   .gm-tile{width:50px;height:50px;font-size:1.5rem}
 }
+/* Memoria en el móvil (.gm-mfit): las 4 filas de 3 cartas llenan el alto que queda (--mrow, lo calcula fitMem());
+   tumbado y bajito (.gm-mland): 2 filas de 6 a todo el ancho, sin bajar */
+:root:is([data-gm-play=memoria],[data-gm-play=letras],[data-gm-play=lluvia]) main{padding-bottom:calc(var(--safe-b) + 12px)}
+.gm-mfit .gm-board,.gm-mland .gm-board{grid-auto-rows:var(--mrow)}
+.gm-mfit .gm-mc,.gm-mland .gm-mc{aspect-ratio:auto}
+.gm-mfit .gm-tip,.gm-mland .gm-tip{display:none}
+.gm-mland .gm-board{grid-template-columns:repeat(6,minmax(0,1fr));max-width:var(--mbw,none)}
+/* Globos en pantallas bajas (.gm-cmp): la tarjeta de escuchar más compacta para que los globos crezcan.
+   Móvil tumbado (.gm-land): la tarjeta de escuchar a la izquierda y los globos a la derecha, bajo la fila de arriba */
+:root[data-gm-play=globos] main{padding-bottom:calc(var(--safe-b) + 12px)}
+.gm-cmp .gm-listen{min-height:0;padding:8px;gap:8px;margin-bottom:8px}
+.gm-cmp .gm-bigsay{width:56px;height:56px}
+.gm-cmp .gm-ltxt{min-height:2.8em;font-size:.95rem}
+.gm-cmp .gm-ltxt b{font-size:1.25rem}
+/* tumbado: una columna estrecha para escuchar (altavoz arriba, tortuga y ojo debajo, la frase) y los globos, grandes */
+.gm-land.gm-bal-g{display:grid;grid-template-columns:clamp(120px,17vw,200px) minmax(0,1fr);column-gap:12px;align-items:start}
+.gm-land>.gm-top{grid-column:1/-1}
+.gm-land>.gm-listen{grid-column:1;grid-row:2/span 2;align-self:stretch;display:grid;grid-template-columns:auto auto;justify-content:center;align-content:center;justify-items:center;
+  margin:0;min-height:0;padding:12px 8px;gap:8px}
+.gm-land .gm-bigsay,.gm-land .gm-ltxt{grid-column:1/-1}
+.gm-land .gm-ltxt{min-height:0;font-size:.95rem;overflow-wrap:anywhere}
+.gm-land .gm-ltxt b{font-size:1.2rem}
+.gm-land>.gm-air{grid-column:2;grid-row:2}
+.gm-land>.gm-dots{grid-column:2;grid-row:3}
+/* móvil estrecho (320): la fila de arriba cabe entre la ✕ y las monedas (sin «?»: la explicación sale al empezar) */
+@media (max-width:340px){
+  :root[data-focus] .gm .gm-top{padding-right:80px}
+  :root[data-focus] .gm-help{display:none}
+  :root[data-focus] .gm-stats{margin-left:auto;gap:4px}
+  :root[data-focus] .gm-pill{padding:0 8px;gap:3px}}
 /* versión compacta cuando el juego no cabe en la pantalla (móviles bajitos) */
 .gm-short .gm-top{margin-bottom:8px}
 .gm-short .gm-tip{display:none}
@@ -610,12 +666,9 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-short .gm-listen{min-height:0;padding:8px 10px;gap:8px;margin-bottom:8px}
 .gm-short .gm-bigsay{width:60px;height:60px}
 .gm-short .gm-ltxt{min-height:0;font-size:.95rem}
-.gm-short .gm-air{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;row-gap:0;padding:16px 4px 0;min-height:0}
-.gm-short .gm-bal-b{width:min(92px,100%)}
-.gm-short .gm-bal-s{height:20px;margin-top:6px}
 .gm-short .gm-dots{margin-top:8px}
 .gm-short .gm-lt{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center;text-align:left;padding:12px 12px 14px}
-.gm-short .gm-lt-pic{width:84px;height:84px;grid-row:span 2;border-radius:20px}
+.gm-short .gm-lt-pic{width:100px;height:100px;grid-row:span 2;border-radius:20px}
 .gm-short .gm-lt-es{justify-content:flex-start;margin:0;font-size:1.3rem;align-self:end}
 .gm-short .gm-lt-n{align-self:start}
 .gm-short .gm-slots,.gm-short .gm-tiles,.gm-short .gm-lt-acts,.gm-short #gm-fb{grid-column:1/-1}
@@ -657,11 +710,13 @@ let KBD = false;
 addEventListener("keydown", e => { if(e.key !== "Shift") KBD = true; }, {capture: true, passive: true});
 addEventListener("pointerdown", () => { KBD = false; }, {capture: true, passive: true});
 /* pantallas bajitas (móvil pequeño): si el juego no cabe, versión compacta .gm-short */
-function autoFit(run, el, after){
+function autoFit(run, el, after, pad){
   const chk = keep => {
     if(!live(run)) return;
     if(!keep) run.root.classList.remove("gm-short");
-    if(el.isConnected && el.getBoundingClientRect().bottom + scrollY > innerHeight - 8) run.root.classList.add("gm-short");
+    /* pad: cuenta el margen de abajo de la página (si no, cabe con 8 px de holgura) */
+    const m = pad && el.closest("main"), pb = m ? parseFloat(getComputedStyle(m).paddingBottom) || 0 : 8;
+    if(el.isConnected && el.getBoundingClientRect().bottom + scrollY + pb > innerHeight + .5) run.root.classList.add("gm-short");
     if(after) after();
   };
   const onR = () => chk(false);
@@ -678,6 +733,8 @@ function fitWords(root){
     if(maxW <= 0) return;
     if(!el.dataset.fs) el.dataset.fs = parseFloat(getComputedStyle(el).fontSize);
     let f = +el.dataset.fs, k = 0;
+    /* sin transición (con «Reducir movimiento» todo lleva una corta): se mide el tamaño de letra de verdad */
+    el.style.transition = "none";
     el.style.overflowWrap = "normal"; el.style.hyphens = "manual"; el.style.fontSize = f + "px";
     while(k++ < 24 && f > 12 && (el.scrollWidth > maxW || el.offsetWidth > maxW || el.offsetHeight > maxH)){ f -= 1; el.style.fontSize = f + "px"; }
     if(el.scrollWidth > maxW || el.offsetWidth > maxW){ el.style.hyphens = "auto"; el.style.overflowWrap = "anywhere"; }
@@ -985,7 +1042,37 @@ function memoria(app, P, mode){
     }
   }
   board.onclick = e => { const b = e.target.closest(".gm-mc"); if(b) flip(b); };
-  autoFit(run, board, () => fitWords(board));
+  /* en el móvil las cartas crecen hasta llenar el alto (sin scroll): de pie, 4 filas de 3; tumbado, 2 filas de 6.
+     En la tableta y el ordenador, como siempre (4 columnas; .gm-short si no cabe) */
+  const fitMem = () => {
+    if(!live(run) || !board.isConnected) return;
+    const root = run.root, land = innerWidth > innerHeight && innerHeight < 540 && innerWidth >= 560;
+    const phone = !land && innerWidth <= 560 && innerHeight > innerWidth;
+    root.classList.toggle("gm-mland", land); root.classList.toggle("gm-mfit", phone);
+    board.style.removeProperty("--mbw");
+    if(!land && !phone){ board.style.removeProperty("--mrow"); return false; }
+    root.classList.remove("gm-short");
+    const cs = getComputedStyle(board), gap = parseFloat(cs.rowGap) || 8, cols = land ? 6 : 3, rows = Math.ceil(cards.length / cols);
+    const br = board.getBoundingClientRect(), main = board.closest("main");
+    const below = main ? Math.max(0, main.getBoundingClientRect().bottom - br.bottom) : 24;
+    const H = innerHeight - (br.top + scrollY) - below;
+    const colW = (board.clientWidth - gap * (cols - 1)) / cols;
+    let rowH = Math.floor((H - gap * (rows - 1)) / rows);
+    rowH = Math.max(Math.round(colW * (land ? .7 : .8)), Math.min(rowH, Math.round(colW * 1.6)));
+    /* tumbado: si las filas salen más bajas que anchas las cartas, el tablero se estrecha (cartas cuadradas) */
+    if(land && rowH < colW) board.style.setProperty("--mbw", Math.round(rowH * cols + gap * (cols - 1)) + "px");
+    board.style.setProperty("--mrow", rowH + "px");
+    return true;
+  };
+  autoFit(run, board, () => { fitMem(); fitWords(board); });
+  let memT = 0;
+  const refitMem = () => { clearTimeout(memT); memT = setTimeout(() => { if(fitMem()) fitWords(board); board.style.visibility = ""; }, 260); };
+  addEventListener("resize", refitMem); run.clean.push(() => { removeEventListener("resize", refitMem); clearTimeout(memT); });
+  /* con «Reducir movimiento» el modo foco entra con una transición corta: el tablero sale ya con su tamaño final */
+  if(RM()) board.style.visibility = "hidden";
+  refitMem();
+  /* y cuando llega la letra redonda (las palabras se miden con ella) */
+  try{ document.fonts.ready.then(() => { if(live(run)){ fitMem(); fitWords(board); } }); }catch(e){}
   intro(run, "memoria", () => { started = true; });
 }
 
@@ -1004,15 +1091,25 @@ function lluvia(app, P, mode){
   const sky = run.root.querySelector("#gm-sky"), tb = run.root.querySelector("#gm-tb");
   let W = sky.clientWidth, H = sky.clientHeight;
   /* el cielo cabe entero en la pantalla (en móviles bajitos no se sale por abajo) */
+  const tip = run.root.querySelector(".gm-tip");
   const fit = () => {
     const top = sky.getBoundingClientRect().top + scrollY;
-    const avail = Math.round(innerHeight - top - 14);
+    const ts = tip ? getComputedStyle(tip) : null;
+    const main = sky.closest("main"), pb = main ? parseFloat(getComputedStyle(main).paddingBottom) || 0 : 14;
+    const below = (tip && ts.display !== "none" ? tip.offsetHeight + (parseFloat(ts.marginTop) || 0) : 0) + pb;
+    const avail = Math.floor(innerHeight - top - below);
     sky.style.height = Math.max(280, Math.min(540, avail)) + "px";
   };
   const onResize = () => { fit(); W = sky.clientWidth; H = sky.clientHeight; };
   addEventListener("resize", onResize); run.clean.push(() => removeEventListener("resize", onResize));
   onResize();
-  const BS = () => W < 480 ? 80 : 100;
+  /* otra vez cuando el modo foco (sin barras de arriba) ya está puesto: el cielo llega hasta abajo */
+  requestAnimationFrame(onResize); later(run, onResize, 280);
+  /* la burbuja llena su carril (al menos 3 carriles); la palabra va debajo, al ancho de la burbuja (nunca menos de
+     108 px, como antes) */
+  const LANES = () => Math.max(3, Math.floor(W / 130));
+  const BS = () => Math.round(Math.max(80, Math.min(116, W / LANES() - 18)));
+  const BW = () => Math.max(BS() + 8, 108);
   const sway = RM() ? 0 : 7;
   let score = 0, lives = LIVES, t = 0, target = null, bubbles = [], spawnIn = .3, lastT = -9, ended = false, running = false, last = 0, recent = [], streak = 0;
   const got = [], missed = new Set();
@@ -1026,7 +1123,7 @@ function lluvia(app, P, mode){
     lastT = t - 1.2;
   }
   function spawn(){
-    const bs = BS(), bw = bs + 28, lanes = Math.max(3, Math.floor(W / (bw + 6))), laneW = W / lanes;
+    const bs = BS(), bw = BW(), lanes = LANES(), laneW = W / lanes;
     let lane, k = 0; do{ lane = Math.floor(Math.random() * lanes); k++; }while(recent.includes(lane) && k < 12);
     recent.push(lane); if(recent.length > Math.min(2, lanes - 1)) recent.shift();
     const hasT = bubbles.some(b => !b.dead && b.it === target);
@@ -1051,7 +1148,7 @@ function lluvia(app, P, mode){
   }
   function floatTxt(b, txt, bad){
     const f = document.createElement("div"); f.className = "gm-float" + (bad ? " bad" : "");
-    f.textContent = txt; f.style.left = (b.x + (BS() + 28) / 2) + "px"; f.style.top = Math.max(10, b.y) + "px";
+    f.textContent = txt; f.style.left = (b.x + BW() / 2) + "px"; f.style.top = Math.max(10, b.y) + "px";
     sky.appendChild(f); later(run, () => f.remove(), 1000);
   }
   function hit(b){
@@ -1141,7 +1238,7 @@ function globos(app, P, mode){
     <div class="gm-air" id="gm-air"></div>
     ${dotsHtml(R)}</div>`, mode);
   const air = run.root.querySelector("#gm-air");
-  let r = 0, score = 0, first = true, busy = true, cur = null, opts = [], fitG = null;
+  let r = 0, score = 0, first = true, busy = true, cur = null, opts = [];
   const res = [];
   const dots = () => { const ds = run.root.querySelectorAll("#gm-dots i"); ds.forEach((d, i) => { d.className = i < res.length ? (res[i] ? "ok" : "meh") : i === r ? "now" : ""; }); };
   function round(){
@@ -1153,7 +1250,7 @@ function globos(app, P, mode){
       <span class="gm-bal-b"><span class="gm-bal-i">${imgTag(o)}</span></span><span class="gm-bal-s"></span><span class="gm-bx" aria-hidden="true">✗</span></button>`).join("");
     const rd = $("#gm-rd"); if(rd) rd.textContent = r + 1;
     const lt = $("#gm-ltxt"); if(lt) lt.innerHTML = "Escucha y toca el globo correcto";
-    if(fitG) fitG(true);
+    fitBal();
     dots();
     const pl = $("#gm-play"); if(pl){ pl.classList.remove("ring"); void pl.offsetWidth; pl.classList.add("ring"); }
     later(run, () => speak(cur.word), 700);
@@ -1167,7 +1264,7 @@ function globos(app, P, mode){
       snd("pop"); later(run, () => snd("ok"), 120);
       sparks(b.querySelector(".gm-bal-b"), 14);
       air.querySelectorAll(".gm-bal").forEach(x => { if(x !== b){ x.disabled = true; x.classList.add("dim"); } });
-      air.insertAdjacentHTML("beforeend", `<div class="gm-reveal">✓ ${first ? "¡Sí! " : ""}${esc(cur.word)} = ${esc(cur.es)}</div>`);
+      const lt = $("#gm-ltxt"); if(lt) lt.innerHTML = `<span class="gm-reveal">✓ ${first ? "¡Sí! " : ""}<span lang="${LANGS[lang].code}">${esc(cur.word)}</span> = ${esc(cur.es)}</span>`;
       const sc = $("#gm-sc"); if(sc){ sc.textContent = score; bump(sc.parentNode); }
       dots();
       later(run, () => speak(cur.word), 250);
@@ -1192,8 +1289,60 @@ function globos(app, P, mode){
   $("#gm-play").onclick = () => { if(cur) speak(cur.word); };
   $("#gm-slow").onclick = () => { if(cur) speak(cur.word, true); };
   $("#gm-peek").onclick = () => { if(!cur) return; const lt = $("#gm-ltxt"); if(lt) lt.innerHTML = `La palabra es: <b lang="${LANGS[lang].code}">${esc(cur.word)}</b>`; speak(cur.word); };
-  fitG = autoFit(run, run.root.querySelector("#gm-dots"));
-  intro(run, "globos", round);
+  /* el tamaño de los globos sale del hueco que queda en la pantalla (sin scroll en ningún aparato), no de topes fijos:
+     prueba 2×2 y 1×4 y se queda con la que da el globo más grande; si sobra alto, cuerdas más largas */
+  const BAL = 11 / 9, GX = 16, GY = 8, STR = 8, SH0 = 16, SHMAX = 40, BWMAX = 220;
+  function fitBal(){
+    if(!live(run) || !air.isConnected) return;
+    const root = run.root, land = innerWidth > innerHeight && innerHeight < 540 && innerWidth >= 560;
+    root.classList.toggle("gm-land", land);
+    root.classList.toggle("gm-cmp", !land && innerHeight < 720);
+    const cs = getComputedStyle(air), px = v => parseFloat(v) || 0;
+    const padT = px(cs.paddingTop), padB = px(cs.paddingBottom);
+    const wz = air.clientWidth - px(cs.paddingLeft) - px(cs.paddingRight);
+    const ar = air.getBoundingClientRect(), main = air.closest("main");
+    const below = main ? Math.max(0, main.getBoundingClientRect().bottom - ar.bottom) : 40;
+    const H = Math.max(160, Math.floor(innerHeight - (ar.top + scrollY) - below) - 1);
+    let best = null;
+    for(const [c, rows] of [[2, 2], [4, 1]]){
+      const rowH = (H - padT - padB - GY * (rows - 1)) / rows;
+      const bw = Math.floor(Math.min((wz - GX * (c - 1)) / c, (rowH - STR - SH0) / BAL, BWMAX));
+      if(!best || bw > best.bw) best = {c, rows, bw, rowH};
+    }
+    const bw = Math.max(48, best.bw), colH = Math.ceil(bw * BAL) + STR;
+    const sh = Math.round(SH0 + Math.max(0, Math.min(SHMAX - SH0, (best.rowH - colH - SH0) / 2)));
+    const need = padT + padB + best.rows * (colH + sh) + GY * (best.rows - 1);
+    air.style.setProperty("--cols", best.c);
+    air.style.setProperty("--bw", bw + "px");
+    air.style.setProperty("--sh", sh + "px");
+    air.style.setProperty("--airh", Math.round(Math.max(need, Math.min(H, need + 120))) + "px");
+  }
+  /* y otra vez cuando acaba de colocarse todo: con «Reducir movimiento» los cambios de tamaño (entrar en el modo foco,
+     girar el aparato) llevan una transición corta y lo medido al momento todavía no es lo final */
+  let fitT = 0;
+  const refit = () => { fitBal(); clearTimeout(fitT); fitT = setTimeout(fitBal, 260); };
+  run.clean.push(() => clearTimeout(fitT));
+  addEventListener("resize", refit); run.clean.push(() => removeEventListener("resize", refit));
+  /* la tarjeta de escuchar solo cambia de alto con «Texto más grande» o el ancho (la frase tiene sitio para 2 líneas);
+     los saltitos de un par de píxeles no recolocan los globos */
+  if(typeof ResizeObserver === "function"){
+    const lis = run.root.querySelector("#gm-listen");
+    let lw = 0, lh = 0;
+    const ro = new ResizeObserver(() => {
+      const w = lis.offsetWidth, h = lis.offsetHeight;
+      if(Math.abs(w - lw) < 2 && Math.abs(h - lh) < 6) return;
+      lw = w; lh = h; requestAnimationFrame(fitBal);
+    });
+    ro.observe(lis); run.clean.push(() => ro.disconnect());
+  }
+  refit();
+  /* otra vez antes de pintar: el modo foco (sin barras de arriba) entra justo después de montar la partida */
+  requestAnimationFrame(refit);
+  try{ document.fonts.ready.then(fitBal); }catch(e){}
+  /* con «Reducir movimiento» el modo foco entra con una transición corta: la primera ronda espera a que acabe (si no,
+     los globos salen con el tamaño de antes y crecen de golpe a los 260 ms) */
+  const t0 = performance.now();
+  intro(run, "globos", () => { const wait = RM() ? 300 - (performance.now() - t0) : 0; if(wait > 0) later(run, () => { fitBal(); round(); }, wait); else round(); });
 }
 
 /* =====================================================================
@@ -1378,7 +1527,7 @@ function letras(app, P, mode){
     if(hit){ e.preventDefault(); place(hit.i); }
   };
   word();
-  fitL = autoFit(run, box);
+  fitL = autoFit(run, run.root.querySelector("#gm-dots") || box, null, true);
   intro(run, "letras", () => { started = true; keys(run, kb); });
 }
 

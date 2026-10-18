@@ -269,7 +269,7 @@ dialog.cm-pk{max-width:480px}
 .dl-ex .ln-spk{display:inline-grid;vertical-align:middle;margin:-10px 0 -10px 0}
 .dl-ex .dl-ex-tr{margin-top:2px;font-size:var(--fs-note);color:var(--label2)}
 .dl-add .ico{flex:none}
-@media (max-width:420px){.dl-dd{flex-direction:column;gap:8px}.dl-pic{width:100%;height:120px}.dl-pic.wide{width:100%}.dl-hear{align-self:center}}
+@media (max-width:420px){.dl-dd{flex-direction:column;gap:8px}.dl-pic{width:100%;height:160px}.dl-pic.wide{width:100%}.dl-hear{align-self:center}}
 
 /* Tarjetas */
 .fcx{display:flex;flex-direction:column;align-items:center;gap:12px}
