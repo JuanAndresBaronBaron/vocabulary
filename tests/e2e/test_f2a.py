@@ -120,7 +120,7 @@ def test_tabbar_layout_phone_and_desk():
                 if abs(mid - vw / 2) > 1.5 and abs(gap_r - 12) > 1.5:
                     probs.append(f"{kind}/{vw}: la barra no está centrada ni pegada a 12 px del grupo de la derecha ({mid} frente a {vw / 2})")
                 ov = page.evaluate("""() => { const t = document.getElementById('tabbar').getBoundingClientRect();
-                  return ['#lang-b', '.tb-group', '[data-sync-slot]'].map(s => document.querySelector(s)).filter(Boolean)
+                  return ['#lang-b', '.tb-group'].map(s => document.querySelector(s)).filter(Boolean)
                     .filter(e => e.getClientRects().length).map(e => { const r = e.getBoundingClientRect();
                       return r.right > t.left && r.left < t.right && r.bottom > t.top && r.top < t.bottom ? (e.id || e.className) : null; })
                     .filter(Boolean); }""")
@@ -361,7 +361,8 @@ def test_topbar_language_menu():
 def test_topbar_coins_and_settings():
     """Las monedas (data-coins-pill con id=coins dentro) abren la tienda de la granja; el engranaje («Ajustes») abre
     la hoja de Ajustes de js/settings.js (sonido, voz y velocidad, apariencia, accesibilidad y Para mayores, con el
-    estado de Google). Hay hueco [data-sync-slot] junto a las monedas y no queda nada de la cabecera vieja."""
+    estado de Google). Junto a las monedas no hay nada de Google (ni la pastilla «Guardar» ni su hueco: la partida se
+    guarda sola) y no queda nada de la cabecera vieja."""
     page = C.new_page("phone")
     probs = []
     try:
@@ -369,9 +370,9 @@ def test_topbar_coins_and_settings():
         C.goto(page, "#/mapa")
         old = page.evaluate("""() => ({hnav: !!document.querySelector('.hnav'), footer: !!document.querySelector('footer'),
           cfgb: !!document.getElementById('cfg-b'), fab: [...document.scripts].some(s => /fab\\.js/.test(s.src)),
-          svchip: !!document.querySelector('#sv-chip:not([data-sync-slot] #sv-chip)'), slot: !!document.querySelector('.topbar [data-sync-slot]'),
+          svchip: !!document.querySelector('#sv-chip'), slot: !!document.querySelector('[data-sync-slot], .tb-slot'),
           coins: !!document.querySelector('[data-coins-pill] #coins'), gear: (document.querySelector('.topbar [aria-label=Ajustes]') || {}).tagName})""")
-        if old != {"hnav": False, "footer": False, "cfgb": False, "fab": False, "svchip": False, "slot": True, "coins": True, "gear": "BUTTON"}:
+        if old != {"hnav": False, "footer": False, "cfgb": False, "fab": False, "svchip": False, "slot": False, "coins": True, "gear": "BUTTON"}:
             probs.append(f"barra de arriba: {old}")
         n0 = page.evaluate(_ROUTE_N)
         page.locator("[data-coins-pill]").click()

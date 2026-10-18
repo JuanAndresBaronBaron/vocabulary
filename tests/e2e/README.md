@@ -36,7 +36,10 @@ compartida no responde).
   grande, barra de arriba (idioma, monedas, Ajustes), modo foco, monedas que vuelan y suenan una vez, movimiento
   tranquilo y lo que se quita (cabecera, pie, estrella y zorro flotantes).
 - `test_f2_ajustes.py` (F2b): la Puerta de mayores (suma de dos cifras y teclado), los enlaces externos, la hoja de Ajustes y sus páginas,
-  Accesibilidad en `vocab:ui` (fuera de la partida), el bloque de Google en Para mayores y la pastilla «Guardar».
+  Accesibilidad en `vocab:ui` (fuera de la partida), el bloque de Google en Para mayores y Google sin botón de guardar
+  (con un GIS de mentira: el permiso caducado se renueva en el siguiente toque normal, nunca en mitad de una partida,
+  una lección, la Puerta o un campo de texto; tras un fallo, otra vez pasados 3 min; Para mayores dice cómo va la copia;
+  capturas en `capturas/guardado-puerta`).
 - `test_f2_hoy.py` (F2c): Hoy sin scroll, la tarjeta de `nextAction()`, «Repasar N», Misiones y Palabra del día,
   Privacidad y el accesorio «Seguir».
 - `test_f2_nav.py` (F2 entero): `aria-selected` en cada ruta, tocar la pestaña activa, la memoria de cada pestaña,
@@ -44,12 +47,12 @@ compartida no responde).
   la barra arriba a 1280 px y abajo a 390 px, el modo foco, el menú de idioma, la tienda desde las monedas, Ajustes,
   lo que se quitó (fab.js, zorro flotante, `<footer>`), la pausa de las partidas (Esc y la ✕: «¿Paramos aquí?» con
   Seguir · Salir, y el juego parado), `sw.js` y una vuelta por todo que deja la partida igual que la de la base.
-- `test_f2_fix.py` (arreglos de las revisiones de F2): la barra de arriba desde 820 px (cabe con la pastilla, 5 cifras
-  de monedas y texto grande, se aprieta por pasos o baja), el borde de la pastilla «Guardar», 3 superficies con
+- `test_f2_fix.py` (arreglos de las revisiones de F2): la barra de arriba desde 820 px (cabe con 5 cifras de monedas y
+  texto grande, se aprieta o baja), la barra de arriba sin pastilla «Guardar» ni su hueco, 3 superficies con
   desenfoque como mucho, la Puerta (200 aperturas tocando al azar, teclado físico, un minuto de espera; desde F4c
   Premios ya no tiene «Para mayores»), rutas y lecciones que no existen, la ✕ del modo foco, el scroll al volver atrás, los avisos en los
   segmentos y del refugio, hojas opacas a toda altura y centradas en el ordenador, «Reducir movimiento» en el fondo de
-  las hojas, la hoja corta del aviso de Google, Voz y velocidad sin tecnicismos, el título de cada pantalla, créditos
+  las hojas, Hoy sin aviso de Google, Voz y velocidad sin tecnicismos, el título de cada pantalla, créditos
   y privacidad en español, Hoy en móviles bajos, el borde de la granja y el accesorio a lo ancho.
 - `test_f3_leccion.py` (F3a, `js/lesson.js`): acertar pasa solo ≤ 1,2 s tras el audio y nunca antes de 0,9 s (audio
   simulado), fallar en gris con ✗ y la buena en verde sin temblor, vibración ni sonido triste, deslizar con
@@ -178,8 +181,8 @@ compartida no responde).
   `OFF_SHELL` igual, cada `<script>` con `?v=<VERSION>` y `SHELL` = `OFF_APP` con los ficheros nuevos (módulos,
   `data/phrases.json`, iconos de los atajos y dibujos de Juegos); las claves nuevas en `js/save.js`; el manifest; cada
   ruta de F5 (y las URL de los atajos del manifest) por enlace directo, al recargar, el primer día y navegando; una
-  vuelta sin hacer nada que deja la partida como la base; Hoy con todo a la vez (atajos, carta, refugio, temporada, aviso
-  de Google y frase de la cena) en el orden de prioridad de `HOME_SLOTS` y sin scroll (móvil claro y oscuro, móvil bajo,
+  vuelta sin hacer nada que deja la partida como la base; Hoy con todo a la vez (atajos, carta, refugio, temporada y
+  frase de la cena; Google no tiene fila) en el orden de prioridad de `HOME_SLOTS` y sin scroll (móvil claro y oscuro, móvil bajo,
   tableta, escritorio); Hoy con el accesorio «Seguir» (lección a medias) llegando desde Juegos o desde la lección, con y
   sin atajos y con y sin «Reducir movimiento» (la carta sigue, sin scroll, y la fila vuelve cuando el accesorio se va);
   Hoy en un móvil bajo (360×740 claro, oscuro y en Halloween; 375×667) con atajos y una carta sin abrir (la carta se

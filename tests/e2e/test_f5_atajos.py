@@ -699,7 +699,7 @@ def test_piece_rule_short_names_prune_and_listens():
 
 # ---------------------------------------------------------------- Hoy sin scroll · tableta · a medias
 def test_hoy_fits_at_390x844_with_the_row():
-    """Con la partida sembrada (y su aviso de Google), 3 atajos y un HOME_SLOT de prueba más, Hoy cabe sin scroll a
+    """Con la partida sembrada (y su frase de la cena), 3 atajos y un HOME_SLOT de prueba más, Hoy cabe sin scroll a
     390×844: la fila manda y queda un solo HOME_SLOT. También con la tarjeta en la lección y la fila «Repasar 6», en
     oscuro y en un móvil bajo (375×667). Piezas de 44 px o más, con nombre, dibujo y su tecla 1-3."""
     probs = []

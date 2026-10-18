@@ -15,7 +15,7 @@ _CARD = """() => { const q = s => document.querySelector(s), go = q('#hm-go'), r
   return {t: q('#hm-t') && q('#hm-t').textContent, sub: q('.hm-sub') && q('.hm-sub').textContent, say: q('.hm-say') && q('.hm-say').textContent,
     btn: go && go.textContent.trim(), href: go && go.getAttribute('href'), kind: go && go.dataset.kind, h: go && go.getBoundingClientRect().height,
     row: rv ? {t: rv.textContent.replace(/\\s+/g, ' ').trim(), href: rv.getAttribute('href')} : null,
-    pieces: [...document.querySelectorAll('.hm-pair > *')].map(e => e.id), slots: [...document.querySelectorAll('#hm-slots .hm-slot')].map(e => e.dataset.slot || (e.querySelector('#sv-rem') ? 'sync' : '?')),
+    pieces: [...document.querySelectorAll('.hm-pair > *')].map(e => e.id), slots: [...document.querySelectorAll('#hm-slots .hm-slot')].map(e => e.dataset.slot || '?'),
     title: (q('#tabhead') || {}).textContent || ''}; }"""
 # deja 6 palabras pendientes de las 12 de la partida sembrada (menos de 10: la tarjeta pasa a la lección)
 _FEW = """() => { const k = 'srs:english', m = JSON.parse(localStorage.getItem(k)), t = today(); let n = 0;
@@ -45,7 +45,7 @@ def _push_slot(page, sid, val):
 # ---------------------------------------------------------------- una pantalla sin scroll
 def test_hoy_fits_without_scroll():
     """A 390×844 con la barra de pestañas Hoy cabe sin scroll el primer día (solo la tarjeta y las dos piezas), con la
-    partida sembrada (su aviso de Google incluido) y con un HOME_SLOT de prueba más. Los HOME_SLOTS salen como filas
+    partida sembrada (sin aviso de Google: la partida se guarda sola) y con un HOME_SLOT de prueba más. Los HOME_SLOTS salen como filas
     compactas, 2 como mucho, y los vacíos no ocupan sitio. Lo de antes ya no está (las 6 tarjetas, HOME_ACTS, el
     camino, el enlace a gramática)."""
     probs = []
@@ -79,21 +79,16 @@ def test_hoy_fits_without_scroll():
           const f = async () => ({t: 'Sobres nuevos', e: '✉️', badge: 2, href: '#/mapa'}); f.id = 'prueba'; HOME_SLOTS.push(f); })""")
         C.seed(page)
         c = page.evaluate(_CARD)
-        if c["slots"] != ["sync", "prueba"]:
-            probs.append(f"partida sembrada: los HOME_SLOTS pintados son {c['slots']} (el aviso de Google y el de prueba)")
-        # el aviso de Google es una fila compacta (homeRow) que abre una hoja corta para el niño
-        h = page.evaluate("""() => { const a = document.querySelector('#hm-slots .hm-slot #sv-rem');
-          return a ? {tag: a.tagName, cls: a.className, h: Math.round(a.getBoundingClientRect().height), pop: a.getAttribute('aria-haspopup'),
-            t: a.textContent.replace(/\\s+/g, ' ').trim(), chev: !!a.querySelector('.hm-chev')} : null; }""")
-        if not h or h["tag"] != "BUTTON" or "hm-row" not in h["cls"] or h["h"] > 64 or h["pop"] != "dialog" or not h["chev"] \
-                or "Guarda tu partida" not in h["t"] or "mayor" not in h["t"]:
-            probs.append(f"el aviso de Google no es una fila compacta: {h}")
+        if c["slots"] != ["prueba"]:
+            probs.append(f"partida sembrada: los HOME_SLOTS pintados son {c['slots']} (solo el de prueba: Google no tiene fila)")
+        if page.evaluate("() => !!document.getElementById('sv-rem') || HOME_SLOTS.some(f => f && f.id === 'sync')"):
+            probs.append("en Hoy sigue el aviso de Google «Guarda tu partida»")
         row = page.evaluate("""() => { const a = document.querySelector('[data-slot=prueba] .hm-row');
           return a ? {tag: a.tagName, href: a.getAttribute('href'), h: a.getBoundingClientRect().height, t: a.textContent} : null; }""")
         if not row or row["tag"] != "A" or row["href"] != "#/mapa" or row["h"] > 60 or "Sobres nuevos" not in row["t"]:
             probs.append(f"la fila del slot de prueba no es una fila compacta: {row}")
         _fits(page, "partida sembrada + slot de prueba", probs)
-        # uno vacío no ocupa sitio y salen 2 como mucho (el aviso de Google sale una vez por visita)
+        # uno vacío no ocupa sitio y salen 2 como mucho
         _push_slot(page, "vacio", "")
         _push_slot(page, "otro", {"t": "Halloween", "e": "🎃"})
         _push_slot(page, "tercero", "<p>no cabe</p>")
