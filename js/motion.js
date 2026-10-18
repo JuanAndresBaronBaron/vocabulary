@@ -15,7 +15,8 @@
      ninguno, un punto invisible arriba a la derecha (#m-coin-corner).
    - M.burst(x, y, {colors, n}) o M.burst(el, {…}) chispas oro, azul y verde azulado · M.confetti({x, y, n}) ≤60 piezas.
    - M.toast(text, {icon, ms}) cápsula de avisos arriba (role=status), en cola y de una en una. icon: "coin", un emoji
-     o un "<svg…>". Usa .glass si la página la tiene; si no, un vidrio propio.
+     o un "<svg…>". Usa .glass si la página la tiene; si no, un vidrio propio. Con action: {t, fn} lleva un botón
+     (.m-ta, «Deshacer») que la cierra y llama a fn; esa pasa delante de la cola.
    - M.openSheet(dialog, {from}) · M.closeSheet(dialog, {velocity}) → Promise: hoja que sube desde abajo (@starting-style,
      o animate() si el navegador no lo tiene; desde su botón con from), con agarre (.m-grab o [data-sheet-grab]) que se
      arrastra 1:1, y que se cierra al bajarla, al tocar fuera y con Esc, siempre con dialog.close() de verdad (los
@@ -111,6 +112,8 @@ const STYLE = () => tokens() + `
 #m-toasts .m-toast{pointer-events:auto;display:flex;align-items:center;gap:8px;box-sizing:border-box;min-height:44px;max-width:min(520px,100%);padding:10px 18px;border-radius:999px;font:600 var(--fs-sub,1.0625rem)/1.3 var(--f-text,system-ui,-apple-system,"Inter",Roboto,sans-serif);color:var(--label,#000);text-align:left;cursor:default;-webkit-user-select:none;user-select:none}
 #m-toasts .m-ti{flex:none;display:grid;place-items:center;width:24px;height:24px;font-size:1.25rem;line-height:1}
 #m-toasts .m-ti svg{display:block;width:24px;height:24px}
+#m-toasts .m-ta{flex:none;position:relative;margin:-10px -12px -10px 4px;min-height:44px;padding:0 14px;border:0;border-radius:999px;background:none;color:var(--brand-ink,#0A5FC2);font:700 var(--fs-sub,1.0625rem)/1 var(--f-text,system-ui,-apple-system,"Inter",Roboto,sans-serif);cursor:pointer;-webkit-tap-highlight-color:transparent}
+#m-toasts .m-ta:focus-visible{outline:3px solid var(--brand-tint,#0A84FF);outline-offset:-3px}
 #m-toasts .m-own{background:rgb(255 255 255/.74);border:1px solid rgb(255 255 255/.6);background-clip:padding-box;box-shadow:inset 0 1px 0 rgb(255 255 255/.65),0 0 0 .5px rgb(0 0 0/.08),0 6px 20px rgb(11 37 69/.14);-webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%)}
 ${DARKQ("#m-toasts .m-toast", "color:var(--label,#fff)")}
 ${DARKQ("#m-toasts .m-own", "background:rgb(28 28 30/.68);border-color:rgb(255 255 255/.22);box-shadow:inset 0 1px 0 rgb(255 255 255/.22),0 6px 20px rgb(0 0 0/.4)")}
@@ -475,7 +478,10 @@ function iconNode(ic){
 function toast(text, o = {}){
   text = String(text == null ? "" : text).trim(); if(!text) return;
   if((TCUR && TCUR.text === text && !TCUR.gone) || TQ.some(t => t.text === text)) return;
-  TQ.push({text, icon: o.icon, ms: o.ms});
+  const act = o.action && typeof o.action.fn === "function" ? {t: String(o.action.t || "Deshacer"), fn: o.action.fn} : null;
+  /* con acción («Deshacer») no espera en la cola: pasa delante y la de ahora se va */
+  if(act){ TQ.unshift({text, icon: o.icon, ms: o.ms, act}); if(TCUR && TCUR.hide) TCUR.hide(); }
+  else TQ.push({text, icon: o.icon, ms: o.ms});
   if(!TCUR) nextToast();
 }
 function nextToast(){
@@ -496,6 +502,12 @@ function nextToast(){
     const fin = () => { if(el.parentNode) el.remove(); if(TCUR === t){ TCUR = null; setTimeout(nextToast, 60); } };
     if(a){ a.onfinish = fin; a.oncancel = fin; } else fin();
   };
+  t.hide = hide;
+  if(t.act){
+    const b = DOC.createElement("button"); b.type = "button"; b.className = "m-ta"; b.textContent = t.act.t;
+    b.addEventListener("click", e => { e.stopPropagation(); if(t.gone) return; hide(); try{ t.act.fn(); }catch(err){ console.error(err); } });
+    el.appendChild(b);
+  }
   t.timer = setTimeout(hide, ms);
   el.addEventListener("click", hide);
 }

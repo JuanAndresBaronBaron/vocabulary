@@ -14,6 +14,8 @@
    - #/doc/<id> → docView(id): el título y el control segmentado Lista · Tarjetas · Preguntas · Escribir; «‹ Palabras» es
      la cápsula de la barra de arriba (#dv-back de index.html, en el sitio de la bandera)
      (Tarjetas por defecto; el último elegido de cada tema se recuerda en la sesión, sessionStorage "vocab:docmode").
+     #/doc/<id>?m=<lista|tarjetas|test|practica> abre en ese modo (los atajos de Hoy). Para js/shortcuts.js emite bus
+     "doc-flip" {id, i, n} al girar una tarjeta y "doc-done" {id, mode: "test"|"practica"} al terminar Preguntas o Escribir.
      · Lista: filas con el español, la palabra y el altavoz (44 px; con la fila abierta, solo el grande del detalle) y
        el punto «En el repaso»; tocar la fila abre el detalle (dibujo, «Se dice», plural o formas, IPA solo si
        vocabUI.get().ipa, ejemplo y «Al repaso»). Deslizar una fila a la izquierda (como en
@@ -440,7 +442,7 @@ dialog.pw-sheet.m-sheet,dialog.pw-sheet.m-sheet.glass{background:var(--bg);-webk
 .pw-end-b>*{flex:1}
 
 /* Gramática */
-.gr{width:min(100%,640px);margin:0 auto}
+.gr:not(.st-ic){width:min(100%,640px);margin:0 auto}   /* (.st-ic.gr es el icono gris de una fila de Ajustes) */
 .gr-list{margin:4px 0 0}
 .gr .st-g{background:var(--card)}
 :root[data-theme=dark] .gr .st-g{background:var(--card)}
@@ -734,6 +736,9 @@ async function openDoc(id){
   if(!idx.some(d => d.id === id)){ location.replace("#/palabras"); return; }
   if(state.doc !== id){ state.doc = id; state.q = ""; state.fc = {i: 0, flip: false, order: null, rev: false}; state.test = null; state.mode = modeFor(id); }
   else { state.test = null; state.fc.order = null; }
+  /* #/doc/<id>?m=<modo> (los atajos de Hoy, js/shortcuts.js): se abre en ese modo */
+  const qm = new URLSearchParams(location.hash.split("?")[1] || "").get("m");
+  if(isMode(qm)){ state.mode = qm; rememberMode(id, qm); }
   state.fc.auto = false;
   docFrom = ROUTE_FROM;
   return docView(id);
@@ -915,7 +920,9 @@ function tarjetas(doc, anim){
   else if(anim) try{ card.animate([{opacity: 0}, {opacity: 1}], {duration: 150, easing: "ease-out"}); }catch(_){}
   const stop = () => { if(s.auto){ s.auto = false; autoTok++; try{ speechSynthesis.cancel(); }catch(_){} } };
   const go = k => { stop(); s.i = (s.i + k + list.length) % list.length; s.flip = false; tarjetas(doc, k > 0 ? "next" : "prev"); };
-  const flip = () => { stop(); s.flip = !s.flip; tarjetas(doc, "flip"); if(s.flip && !s.rev) say(d.word); const c = $("#card"); if(c) c.focus({preventScroll: true}); };
+  const flip = () => { stop(); s.flip = !s.flip; tarjetas(doc, "flip"); if(s.flip && !s.rev) say(d.word);
+    if(s.flip) bus.emit("doc-flip", {id: doc.id, i: s.order[s.i], n: list.length});   /* tarjeta girada: js/shortcuts.js */
+    const c = $("#card"); if(c) c.focus({preventScroll: true}); };
   card.addEventListener("click", e => { if(e.target.closest("[data-say]")) return; flip(); });
   /* con el foco en la tarjeta: Enter la gira; Espacio también mientras no hay altavoz (si lo hay, Espacio es oír: js/keys.js) */
   card.addEventListener("keydown", e => { if(e.target === card && (e.key === "Enter" || (e.key === " " && !s.flip && !s.rev))){ e.preventDefault(); flip(); } });
@@ -985,7 +992,7 @@ function test(doc){
       <p class="qz-score" id="qz-score"><b>${t.ok}</b> / ${N}</p>
       <p class="qz-msg">${t.ok === N ? "¡Perfecto!" : t.ok >= N * 0.7 ? "¡Muy bien!" : "¡Sigue así! Las tarjetas te ayudan."}</p></div>
       <div class="qz-go"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="again" data-key="enter">${ico("arrow-counter-clockwise", "bold", 20)}Otra ronda</button></div></div>`;
-    if(!t.paid){ t.paid = true; if(t.ok) award(t.ok, "¡Preguntas terminadas!", false, $("#qz-score")); }
+    if(!t.paid){ t.paid = true; if(t.ok) award(t.ok, "¡Preguntas terminadas!", false, $("#qz-score")); bus.emit("doc-done", {id: doc.id, mode: "test", ok: t.ok, n: N}); }
     $("#again").onclick = () => { state.test = null; test(doc); };
     D.onkeydown = e => { if(state.mode !== "test" || !$("#again")){ D.onkeydown = null; return; } if(e.key === "Enter" && !(e.target.closest && e.target.closest("button,a,input"))){ e.preventDefault(); $("#again").click(); } };
     return;
@@ -1430,6 +1437,7 @@ function prEnd(doc, s, total){
     <div class="pw-end-b"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="pr-new">Otras palabras</button><button type="button" class="glass-btn glass-btn--lg" id="pr-again">${ico("arrow-counter-clockwise", "bold", 20)}Repetir estas</button></div></div>`;
   award(15, "¡Práctica completada!", false, $("#pw-fox"));
   store.set(prKey(doc.id), null);
+  bus.emit("doc-done", {id: doc.id, mode: "practica"});   /* un tema terminado en un modo (js/shortcuts.js) */
   D.onkeydown = null; prUI.hist = [];
   $("#pr-new").onclick = () => prSetup(doc, null);
   $("#pr-again").onclick = () => { s.words.forEach(w => w.n = 0); s.cur = 0; s.running = true; store.set(prKey(doc.id), s); prRun(doc, s); };

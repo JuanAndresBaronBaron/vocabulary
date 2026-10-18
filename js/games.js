@@ -9,14 +9,16 @@
      «?» de arriba vuelve a explicarlo con la partida en pausa. Modo foco, pausa con Esc y con la ✕ («¿Paramos aquí?»)
      y, al terminar, las monedas vuelan desde «+N» hasta el contador: finish() llama a award(n, "", false, desde),
      el único camino de monedas de los juegos.
-   Emite: bus "game-done" {game, score, stars, tries?} · "answer" {ok, es, word, where: "game"}
+   Enlace directo con tema: #/juegos/<juego>?t=<tema> juega con ese tema sin cambiar "games:topic" (atajos de Hoy).
+   Emite: bus "game-done" {game, score, stars, tries?, tp? (el tema, en los juegos con tema)} · "answer" {ok, es, word, where: "game"}
    Guarda: store "games:best" {juego: {score, stars, tries?, plays}} · "games:topic" (tema elegido) · "games:day"
            (partidas de hoy) · "vocab:ui".gmIntro (juegos cuya explicación ya se vio; solo de este aparato)
    API: window.vocabGames = {pause(desde), paused, how(desde), openTopics(desde), peek(id, desde), list(), images(),
-        register(id, def)}. register: def = {t, sub, how, img, words (texto en lugar del tema), rec(best) → texto del
-        récord, fresh (chip «Nuevo» en su tarjeta hasta la primera partida), start(app, api, intro)}; start monta el
-        juego con api = {mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml,
-        starsHtml, dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla)}. */
+        register(id, def), meta(id) → {id, t, img, topic} | null, topic(id) → {id, name, img} | null}.
+        register: def = {t, sub, how, img, words (texto en lugar del tema), rec(best) → texto del récord, fresh (chip
+        «Nuevo» en su tarjeta hasta la primera partida), start(app, api, intro)}; start monta el juego con
+        api = {mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml,
+        dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla)}. */
 (() => {
 "use strict";
 
@@ -307,6 +309,9 @@ async function pool(src){
   return out;
 }
 const topicId = () => { const t = store.get("games:topic", "animales"); return typeof t === "string" && (t === MIS || TOPICS.some(x => x[0] === t)) ? t : "animales"; };
+const isTopic = t => typeof t === "string" && (t === MIS || TOPICS.some(x => x[0] === t));
+/* #/juegos/<juego>?t=<tema> (los atajos de Hoy, js/shortcuts.js): juega con ese tema sin cambiar el elegido (games:topic) */
+const hashTopic = () => { try{ const t = new URLSearchParams(location.hash.split("?")[1] || "").get("t"); return isTopic(t) ? t : null; }catch(e){ return null; } };
 const topicInfo = id => id === MIS ? MIS_INFO : (TOPICS.find(x => x[0] === id) || TOPICS[0]);
 const topicName = id => topicInfo(id)[2];
 const topicImg = id => `img/om_${topicInfo(id)[1]}.png`;
@@ -837,7 +842,7 @@ async function play(g, withIntro){
     catch(e){ console.error(e); if(here(my, g)) app.innerHTML = emptyHtml(); }
     return;
   }
-  let tp = topicId(), P = [];
+  let tp = hashTopic() || topicId(), P = [];
   if(tp === MIS && (await countMis()) < MIS_MIN) tp = "animales";
   if(!here(my, g)) return;
   try{ P = await pool(tp); }catch(e){ P = []; }
@@ -903,7 +908,8 @@ function finish(run, g, o){
   playMark(null);
   try{ if(typeof updFocus === "function") updFocus(); }catch(e){}
   award(coins, "", false, run.root.querySelector("#gm-plus"));
-  bus.emit("game-done", Object.assign({game: g, score: o.score, stars: o.stars}, g === "memoria" ? {tries: o.tries} : {}));
+  bus.emit("game-done", Object.assign({game: g, score: o.score, stars: o.stars}, g === "memoria" ? {tries: o.tries} : {},
+    GAMES[g] && !GAMES[g].start && !GAMES[g].words && CUR_TP ? {tp: CUR_TP} : {}));   /* tp: el tema de la partida */
   snd("fanfare");
   /* las estrellas salen de una en una, cada una con una nota más aguda */
   for(let i = 0; i < o.stars; i++) later(run, () => note(i + 2), RM() ? 120 : 200 + (i + 1) * 280);
@@ -1377,6 +1383,9 @@ Object.assign(window.vocabGames = window.vocabGames || {}, {
   list: () => Object.keys(GAMES),
   /* los dibujos que usa el menú (para «Descargar todo»): los de cada juego y los de los temas */
   images: () => [...new Set([...Object.values(GAMES).map(x => x.img), ...[MIS_INFO, ...TOPICS].map(t => `img/om_${t[1]}.png`)])],
+  /* para los atajos de Hoy (js/shortcuts.js): un juego (topic: si se juega con un tema) y un tema */
+  meta: id => GAMES[id] ? {id, t: GAMES[id].t, img: GAMES[id].img, topic: !GAMES[id].start && !GAMES[id].words} : null,
+  topic: id => isTopic(id) ? {id, name: topicName(id), img: topicImg(id)} : null,
 });
 Object.defineProperty(window.vocabGames, "paused", {configurable: true, enumerable: true, get: () => !!(RUN && RUN.paused)});
 ROUTES["juegos"] = async parts => {

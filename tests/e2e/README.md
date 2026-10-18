@@ -149,6 +149,14 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   nada; en un juego las teclas son del juego y Esc pausa una vez; las etiquetas grises salen con la primera tecla y se
   van con un toque; el manifest sin errores en Chrome con 4 atajos e iconos PNG 96×96, y cada URL de atajo abre su
   pantalla en frío y con el service worker; la partida exportada como la base.
+- `test_f5_atajos.py` (F5a, `js/shortcuts.js`, `window.vocabShortcuts`): una partida de Globos de verdad y dos por el bus
+  hacen el atajo «Globos · Animales» en Hoy (y sigue al recargar); tocarlo abre el juego con ese tema
+  (`#/juegos/<juego>?t=<tema>`) sin cambiar `games:topic`; Tarjetas (8 giradas), Preguntas y la gramática cuentan;
+  21 días después los puntos bajan (la mitad cada 7) y el atajo se va; la regla del 20 % y los sitios fijos; Fijar
+  (también manteniendo pulsado) persiste y va en `sc:prefs`; «No sugerir» con «Deshacer»; `vocab:sc` solo del aparato;
+  el interruptor y «Olvidar lo aprendido» de Para mayores; la pregunta de la tortuga una sola vez; Hoy sin scroll a
+  390×844 con la fila; 4 piezas en tableta; lo que quedó a medias primero con anillo; las teclas 1-3; capturas en
+  `capturas/F5/F5a-*`; la partida exportada como la base salvo `sc:prefs`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

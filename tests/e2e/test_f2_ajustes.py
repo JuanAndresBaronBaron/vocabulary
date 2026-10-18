@@ -455,7 +455,7 @@ def test_ui_prefs_not_in_export():
 
 def test_google_block_in_adults_page():
     """El bloque de Google (js/sync.js) se monta dentro de Ajustes › Para mayores, con instalar, descargar todo,
-    IPA, créditos y privacidad (y sin el interruptor de atajos); la fila dice el estado de Google. Desde fuera
+    IPA, créditos y privacidad (y, desde F5a, la sección Atajos de js/shortcuts.js); la fila dice el estado de Google. Desde fuera
     (vocabSync.go) pasa antes por la Puerta, entrar con Google también, y tras cargar una partida (adult:true) se abre
     sola solo si la Puerta se pasó hace poco."""
     probs = []
@@ -474,8 +474,8 @@ def test_google_block_in_adults_page():
           return {box: !!d.querySelector('[data-sync-block] #sv-box'), n: document.querySelectorAll('#sv-box').length,
             g: (d.querySelector('#sv-g') || {}).textContent || '', inst: /Instalar|instalada/.test((d.querySelector('#aj-inst') || {}).textContent || ''),
             off: !!d.querySelector('#aj-off #off-dl'), ipa: !!d.querySelector('#aj-ipa[role=switch]'),
-            cred: /Phosphor/.test(t) && /Nunito/.test(t), priv: !!d.querySelector('a#aj-priv[href="privacy.html#es"]'), atajos: /atajo/i.test(t)}; }""")
-        want = {"box": True, "n": 1, "g": r["g"], "inst": True, "off": True, "ipa": True, "cred": True, "priv": True, "atajos": False}
+            cred: /Phosphor/.test(t) && /Nunito/.test(t), priv: !!d.querySelector('a#aj-priv[href="privacy.html#es"]'), atajos: !!d.querySelector('#aj-sc-on[role=switch]') && !!d.querySelector('#aj-sc-forget')}; }""")
+        want = {"box": True, "n": 1, "g": r["g"], "inst": True, "off": True, "ipa": True, "cred": True, "priv": True, "atajos": True}
         if r != want or "Entrar con Google" not in r["g"]:
             probs.append(f"Para mayores: {r}")
         # entrar con Google pasa por la Puerta
