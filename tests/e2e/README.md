@@ -187,6 +187,16 @@ compartida no responde).
   mandar, contestar como mayor y abrir la carta en otra pestaña); la actualización desde main 2e7dc3f (sw
   `vocab-shell-v19`, con `VOCAB_BASE19=<copia de ese commit>` o sacada con `git archive`), también con la caché HTTP de
   GitHub Pages y sin conexión; y las capturas `capturas/F5/F5-*.png` con su auditoría.
+- `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en
+  Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso, «Escucha y elige» de la lección y
+  «Elige el dibujo» de Truco o trato, en 360×740 y 390×844 (Globos también en 320, 375, 430 y 844×390) contra un mínimo;
+  la zona de juego sin scroll en los celulares de la lista con 4 globos (que no se tocan ni se salen; un fallo, gris con
+  ✗, sigue cabiendo); y en el iPad 820×1180 y el ordenador 1280×800 ningún dibujo más pequeño que antes (`BEFORE`).
+  También: un fallo con un nombre largo (Países) no mueve ni encoge los globos, el acierto sale en la tarjeta de escuchar,
+  la ✗ va arriba del globo, las banderas llevan su caja 4:3 con filete, ningún globo es gris, tumbado (844×390 con
+  márgenes seguros de 47 px, 667×375 y 568×320) los globos son grandes y no se baja, con «Reducir movimiento» no saltan
+  de tamaño; tras un fallo en «Escucha y elige» la lección no baja (también en 1280×720 y con «Texto más grande») y la
+  ✓/✗ va en la esquina del dibujo; el repaso con dos pistas, Letras con texto grande y la cara blanca de Memoria oscuro.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

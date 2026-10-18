@@ -238,7 +238,7 @@ const CSS = `
 @media (hover:hover){.al-st:hover{transform:rotate(0deg) translateY(-3px) scale(1.05);z-index:2;box-shadow:0 2px 0 rgba(15,30,50,.1),0 12px 22px rgba(15,30,50,.22)}}
 .al-st.got::after{content:"";position:absolute;inset:0;border-radius:16px;background:linear-gradient(135deg,rgba(255,255,255,.5),transparent 38%);pointer-events:none}
 .al-face{position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:1;border-radius:11px;background:#f1f5fa;overflow:hidden}
-.al-face img{width:80%;height:80%;object-fit:contain;background:transparent!important}
+.al-face img{width:92%;height:92%;object-fit:contain;background:transparent!important}
 .al-ini{width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:var(--pc);color:#fff;font-weight:900;font-size:2.6rem;text-shadow:0 2px 0 rgba(0,0,0,.2);border-radius:inherit}
 .al-ini.l3{font-size:2rem}.al-ini.l4{font-size:1.6rem}
 .al-num{position:absolute;left:4px;top:4px;z-index:1;font:700 var(--fs-min)/1.3 var(--f-text);color:rgba(22,32,44,.8);background:rgba(255,255,255,.85);border-radius:8px;padding:0 4px}
