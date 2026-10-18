@@ -467,15 +467,17 @@ button.st-r:disabled .st-ic{background:#8E8E93}
 .aj-chev{flex:none;display:grid;place-items:center;color:var(--label3)}
 .st-ic.fl{background:none}
 .st-ic.fl .flag{width:28px;height:28px}
-/* la fila de idioma: el nombre es corto y no se encoge; la voz que sonará ocupa el resto */
-.cfg-l .st-l{flex:1 0 auto;max-width:100%}
-.cfg-l .aj-val{flex:0 1 auto;min-width:0;max-width:none;white-space:normal;text-align:right;line-height:1.25}
-.cfg-l .aj-val>span{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top}   /* si no cabe, la voz baja a otra línea */
+/* la fila de idioma: el nombre es corto y no se encoge; la voz que sonará ocupa el resto, en una línea (… si no cabe; «Automática ·
+   Sonia» que no cabe se queda en «Automática»: fitVoz). Con una nota debajo del idioma, la nota manda. */
+.cfg-l .st-l{flex:none}
+.cfg-l .aj-val{flex:1 1 auto;min-width:0;max-width:none;text-align:right}
+.cfg-l.cfg-n .st-l{flex:1 1 auto;min-width:0}
+.cfg-l.cfg-n .aj-val{flex:none;max-width:45%}
 #cfg .st-g.ics>.st-r+.st-r::before{left:58px}
 .vl-r{padding:0 0 0 9px;gap:0;align-items:stretch}
 .vl-try{flex:none;align-self:center;width:44px;height:44px;display:grid;place-items:center;margin:0;padding:0;border:0;border-radius:50%;
   background:none;color:var(--brand-tint);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.vl-pl{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);transition:background var(--d-fast,160ms) ease,color var(--d-fast,160ms) ease}
+.vl-pl{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:transparent;transition:background var(--d-fast,160ms) ease,color var(--d-fast,160ms) ease}   /* solo ▶; el disco, mientras suena */
 .vl-try.playing .vl-pl{background:var(--brand-fill);color:#fff}
 .vl-pick{flex:1;min-width:0;display:flex;align-items:center;gap:12px;min-height:var(--row);margin:0;padding:10px 16px 10px 5px;border:0;background:none;
   color:var(--label);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -483,20 +485,28 @@ button.st-r:disabled .st-ic{background:#8E8E93}
 .vl-pick[aria-checked=true] .vl-chk{visibility:visible}
 .vl-pick:focus-visible,.vl-try:focus-visible{outline:3px solid var(--brand-tint);outline-offset:-3px;border-radius:12px}
 .vl-low>.st-r::before{content:"";position:absolute;top:0;left:58px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
-.vl-more .aj-chev{transition:transform var(--d-fast,160ms) ease}
-.vl-more[aria-expanded=true] .aj-chev{transform:rotate(90deg)}
-.vl-none{margin:0 4px 16px;font:400 var(--fs-sub)/1.38 var(--f-text);color:var(--label2)}
+/* «Más voces»: se despliega en su sitio (⌄), con el texto en la columna de los nombres */
+.st-r.vl-more{padding-left:58px}
+.vl-mchev{flex:none;display:grid;place-items:center;color:var(--label3);transition:transform var(--d-fast,160ms) ease}
+.vl-more[aria-expanded=true] .vl-mchev{transform:rotate(180deg)}
+/* nube: «necesita internet» (la leyenda va al pie del primer grupo que tiene una) */
+.vl-net{display:inline-flex;vertical-align:-2px;margin-left:6px;color:var(--label2)}
+.st-foot{margin:8px 16px 0;font:400 var(--fs-note)/1.38 var(--f-text);color:var(--label2)}   /* (también en js/settings.js; aquí para dialog#cfg) */
+.st-foot .vl-net{margin:0 2px 0 0}
+.vl-none{margin:0 16px 16px;font:400 var(--fs-sub)/1.38 var(--f-text);color:var(--label2)}
 .vl-foot{margin:8px 16px 0;font:400 var(--fs-note)/1.38 var(--f-text);color:var(--label2)}
+/* el pie de «Voces» se ve a media altura, sobre el vidrio de la hoja: un poco más oscuro, como los encabezados */
+:root:not([data-theme=dark]) .cfg-ls .st-foot{color:rgba(60,60,67,.9)}
 @media (forced-colors:active){.vl-chk{color:Highlight}.vl-pl{border:1px solid ButtonText}}
 /* la hoja propia de voz (dialog#cfg): barra como la de Ajustes */
 .cfg-bar{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px;min-height:52px;margin:0 0 8px}
-.cfg-tt{grid-column:2;margin:0;font:600 var(--fs-head)/1.2 var(--f-text);color:var(--label);text-align:center;white-space:nowrap}
+.cfg-tt{grid-column:2;min-width:0;margin:0;font:600 var(--fs-head)/1.2 var(--f-text);color:var(--label);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .cfg-tt:focus{outline:none}
 .cfg-back{grid-column:1;justify-self:start;display:inline-flex;align-items:center;gap:2px;min-height:var(--tap);max-width:100%;padding:0 8px 0 2px;border:0;
   border-radius:var(--r-pill);background:none;color:var(--brand-ink);font:400 var(--fs-sub)/1.2 var(--f-text);white-space:nowrap;cursor:pointer}
 .cfg-back[hidden]{display:none}
 .cfg-back span{overflow:hidden;text-overflow:ellipsis}
-.cfg-x{grid-column:3;justify-self:end}
+.cfg-x{grid-column:3;justify-self:end;white-space:nowrap;min-width:max-content}
 .off-prog .off-bar{flex:1;margin:0}
 .off-x{flex:none;min-height:var(--tap);padding:0 4px;border:0;background:none;font:600 var(--fs-sub)/1.2 var(--f-text);cursor:pointer}
 .st-g .sv-cfg{margin:0}
@@ -814,6 +824,7 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 <symbol id="i-arrows-clockwise-bold" viewBox="0 0 256 256"><path d="M228,48V96a12,12,0,0,1-12,12H168a12,12,0,0,1,0-24h19l-7.8-7.8a75.55,75.55,0,0,0-53.32-22.26h-.43A75.49,75.49,0,0,0,72.39,75.57,12,12,0,1,1,55.61,58.41a99.38,99.38,0,0,1,69.87-28.47H126A99.42,99.42,0,0,1,196.2,59.23L204,67V48a12,12,0,0,1,24,0ZM183.61,180.43a75.49,75.49,0,0,1-53.09,21.63h-.43A75.55,75.55,0,0,1,76.77,179.8L69,172H88a12,12,0,0,0,0-24H40a12,12,0,0,0-12,12v48a12,12,0,0,0,24,0V189l7.8,7.8A99.42,99.42,0,0,0,130,226.06h.56a99.38,99.38,0,0,0,69.87-28.47,12,12,0,0,0-16.78-17.16Z"/></symbol>
 <symbol id="i-sign-in-bold" viewBox="0 0 256 256"><path d="M144.49,136.49l-40,40a12,12,0,0,1-17-17L107,140H24a12,12,0,0,1,0-24h83L87.51,96.49a12,12,0,0,1,17-17l40,40A12,12,0,0,1,144.49,136.49ZM200,28H136a12,12,0,0,0,0,24h52V204H136a12,12,0,0,0,0,24h64a12,12,0,0,0,12-12V40A12,12,0,0,0,200,28Z"/></symbol>
 <symbol id="i-sign-out-bold" viewBox="0 0 256 256"><path d="M124,216a12,12,0,0,1-12,12H48a12,12,0,0,1-12-12V40A12,12,0,0,1,48,28h64a12,12,0,0,1,0,24H60V204h52A12,12,0,0,1,124,216Zm108.49-96.49-40-40a12,12,0,0,0-17,17L195,116H112a12,12,0,0,0,0,24h83l-19.52,19.51a12,12,0,0,0,17,17l40-40A12,12,0,0,0,232.49,119.51Z"/></symbol>
+<symbol id="i-cloud-bold" viewBox="0 0 256 256"><path d="M160,36A92.09,92.09,0,0,0,79,84.36,68,68,0,1,0,72,220h88a92,92,0,0,0,0-184Zm0,160H72a44,44,0,0,1-1.82-88A91.86,91.86,0,0,0,68,128a12,12,0,0,0,24,0,68,68,0,1,1,68,68Z"/></symbol>
 <symbol id="i-cloud-check-bold" viewBox="0 0 256 256"><path d="M160,36A92.09,92.09,0,0,0,79,84.36,68,68,0,1,0,72,220h88a92,92,0,0,0,0-184Zm0,160H72a44,44,0,0,1-1.82-88A91.86,91.86,0,0,0,68,128a12,12,0,0,0,24,0,68,68,0,1,1,68,68Zm40.49-92.49a12,12,0,0,1,0,17l-48,48a12,12,0,0,1-17,0l-24-24a12,12,0,1,1,17-17L144,143l39.51-39.52A12,12,0,0,1,200.49,103.51Z"/></symbol>
 <symbol id="i-cloud-slash-bold" viewBox="0 0 256 256"><path d="M56.88,31.93A12,12,0,1,0,39.12,48.07L71.79,84A68,68,0,0,0,72,220h88a91.26,91.26,0,0,0,30.66-5.24l8.46,9.31a12,12,0,0,0,17.76-16.14ZM160,196H72a44,44,0,0,1-1.8-87.95A91.91,91.91,0,0,0,68,128a12,12,0,0,0,24,0,68.22,68.22,0,0,1,2.66-18.84l77.88,85.67A68.67,68.67,0,0,1,160,196Zm92-68a91.32,91.32,0,0,1-17.53,54,12,12,0,1,1-19.41-14.11,68,68,0,0,0-89.57-98.53,12,12,0,0,1-12.2-20.66A92,92,0,0,1,252,128Z"/></symbol>
 <symbol id="i-wifi-slash-bold" viewBox="0 0 256 256"><path d="M216.88,207.93a12,12,0,1,1-17.76,16.14L147.78,167.6a56.06,56.06,0,0,0-52.71,7.1,12,12,0,0,1-14.14-19.4,79.35,79.35,0,0,1,41.92-15.12L103.51,118.9a104.18,104.18,0,0,0-40.06,19.55,12,12,0,0,1-14.9-18.81A128.46,128.46,0,0,1,85.61,99.21l-17.31-19a151.14,151.14,0,0,0-36.68,22.28A12,12,0,1,1,16.39,83.91a175.52,175.52,0,0,1,35-22.38L39.12,48.07A12,12,0,1,1,56.88,31.93ZM128,188a16,16,0,1,0,16,16A16,16,0,0,0,128,188Zm64.55-49.55a12,12,0,0,0,14.9-18.81A127.27,127.27,0,0,0,170,99.05a12,12,0,0,0-7.87,22.67A103.62,103.62,0,0,1,192.55,138.45Zm47.06-54.54A176.33,176.33,0,0,0,128,44c-3.94,0-7.93.13-11.86.39a12,12,0,1,0,1.59,24c3.4-.23,6.86-.34,10.27-.34a152.24,152.24,0,0,1,96.38,34.46,12,12,0,1,0,15.23-18.55Z"/></symbol>
@@ -881,15 +892,18 @@ function ico(name, style = "bold", size = 24, cls = ""){
 /* ---------- audio ---------- */
 /* Voces del navegador (speechSynthesis): leen solo lo que no tiene audio grabado. Cada idioma tiene la suya.
    - pickVoice(l) / voiceFor(code, l): la voz del idioma l en ESTE aparato: la elegida (localStorage "vocab:voice" =
-     {english, "français", dansk: nombre de la voz}, solo de este aparato) si la tiene y se puede usar ahora; si no,
-     «Automática». La elección de antes ("voice:<l>", va en la partida) se lee solo de respaldo y nunca se toca.
+     {english, "français", dansk: nombre de la voz, o "nombre|en-US" si en ese idioma dos se llaman igual; "" =
+     Automática}, solo de este aparato) si la tiene y se puede usar ahora; si no, «Automática». La elección de antes
+     ("voice:<l>", va en la partida) se lee solo de respaldo y nunca se toca. Un código que no es de los tres (es-ES):
+     la mejor voz de ese idioma (otherVoice).
    - autoVoice(l): la mejor del aparato para l: primero el acento (inglés británico, francés de Francia, danés), luego
      la calidad (Natural de Edge y ChromeOS > Premium > Google > Mejorada y Windows > compactas de Apple), a igual
      calidad las del aparato antes que las de internet y, sin internet, solo las del aparato. Nunca las de broma de
      Apple ni las muy robóticas (Eloquence, Fred…, eSpeak: van en «Más voces»). null = la que ponga el sistema.
    - langVoices(l): las voces de l sin repetir, en ese orden y sin las de broma.
-   - useVoice(u, l): pone en el enunciado u esa voz y su lang (Chrome en Android solo mira u.lang).
-   Las voces llegan tarde (Chrome, Edge, Safari 26): al llegar, bus "voices". */
+   - useVoice(u, l): pone en el enunciado u esa voz y su lang (Chrome en Android solo mira u.lang); l es un idioma de la
+     app o un código («fr-FR», «es-ES»). retryLocal(u, e, done): si una voz de internet falla, otra vez con una del aparato.
+   Las voces llegan tarde (Chrome, Edge, Safari 26) o cambian al volver de los ajustes del sistema: bus "voices". */
 const VC = {k: "", m: {}};
 let voices = [], voicesSig = "", voicesVer = 0;
 function loadVoices(){
@@ -907,6 +921,9 @@ if("speechSynthesis" in window){
   try{ if(typeof speechSynthesis.addEventListener === "function") speechSynthesis.addEventListener("voiceschanged", voicesChanged);
     else speechSynthesis.onvoiceschanged = voicesChanged; }catch(e){}
   [400, 1500, 3500].forEach(ms => setTimeout(voicesChanged, ms));   /* Safari a veces no avisa */
+  /* al volver de los ajustes del sistema (donde se instala una voz): la lista otra vez */
+  document.addEventListener("visibilitychange", () => { if(document.visibilityState === "visible") voicesChanged(); });
+  addEventListener("pageshow", voicesChanged);
 }
 /* idioma de una voz: "en_GB" (Android), "eng-GBR-f000" (motor de Samsung), "da" (sin región)… → {b:"en", r:"GB", tag:"en-GB"} */
 const VL3 = {eng: "en", fra: "fr", fre: "fr", dan: "da"};
@@ -929,6 +946,9 @@ const V_KID = new Set(["Maisie", "Eloise", "Ana"]);
 const vbrand = n => /^(Microsoft|Google|Android|Chrome OS)\s/i.test(n);
 const vjoke = v => V_JOKE_URI.test(v.voiceURI || "") || (!vbrand(v.name || "") && V_JOKE.has(vcore(v.name)));
 const vnet = v => v.localService === false;
+/* Chrome y Samsung en Android («inglés Reino Unido», lang en_GB) y Firefox en Android (moz-tts:android:en_GB) dan una
+   entrada por país, no por voz: la voz la elige Android; aquí solo se elige el acento */
+const vsys = v => /_/.test(v.lang || "") || /^moz-tts:android:/i.test(v.voiceURI || "");
 /* calidad: 6 Natural · 5 Premium, Google, Multilingual o voz de niño · 4 Mejorada o Windows · 3 compacta (Apple, ChromeOS,
    Android) · 2 super-compacta · 1 otra · 0 muy robótica («Más voces», nunca automática) */
 function vtier(v){
@@ -942,7 +962,7 @@ function vtier(v){
   if(/\.enhanced\.|\((Enhanced|mejorada|forbedret|améliorée|premium)\)/i.test(s)) return 4;
   if(ms && !/Desktop/i.test(n)) return 4;
   if(/super-compact/i.test(s)) return 2;
-  if(ms || /com\.apple\.(voice\.compact|ttsbundle)\.|^Chrome OS\s|^moz-tts:android:/i.test(s) || /_/.test(v.lang || "")) return 3;
+  if(ms || /com\.apple\.(voice\.compact|ttsbundle)\.|^Chrome OS\s/i.test(s) || vsys(v)) return 3;
   return 1;
 }
 /* acento: cuanto menor, antes */
@@ -965,8 +985,9 @@ function langVoices(l = lang){
   const b = LANGS[l].code.slice(0, 2).toLowerCase(), R = VREG[l] || {}, O = VORDER[l] || [], seen = new Map();
   voices.forEach((v, i) => {
     if(!v || vlang(v).b !== b || vjoke(v)) return;
-    const k = `${v.name}|${vlang(v).tag}`, t = vtier(v), o = seen.get(k);
-    if(!o || t > o.t) seen.set(k, {v, i: o ? o.i : i, t});   /* la misma voz dos veces (compacta y super-compacta): la mejor */
+    const k = `${String(v.name).replace(/-(local|network)$/i, "")}|${vlang(v).tag}`, t = vtier(v), o = seen.get(k);
+    /* la misma voz dos veces (compacta y super-compacta, o la -local y la -network de ChromeOS): la mejor, y a igual, la del aparato */
+    if(!o || t > o.t || (t === o.t && vnet(o.v) && !vnet(v))) seen.set(k, {v, i: o ? o.i : i, t});
   });
   const key = ({v, t}) => { const c = vcore(v.name).replace(/Multilingual$/i, ""), j = O.indexOf(c) < 0 ? O.indexOf(v.name) : O.indexOf(c);
     return [R[vlang(v).r] ?? 5, off && vnet(v) ? 1 : 0, -t, vnet(v) ? 1 : 0, V_KID.has(c) || /Multilingual/i.test(v.name) ? 1 : 0, j < 0 ? 999 : j]; };
@@ -981,45 +1002,65 @@ function autoVoice(l = lang){
   if(navigator.onLine === false){ const loc = c.find(v => !vnet(v)); if(loc) return loc; }
   return c[0] || null;
 }
-/* la elección de este aparato ("" = Automática) */
+/* la elección de este aparato ("" = Automática). Se guarda el nombre; si en ese idioma hay dos voces con el mismo nombre
+   (Eddy británico y Eddy de Estados Unidos en Safari), el nombre y su idioma: "Eddy|en-US" */
 const VKEY = "vocab:voice";
 function voiceChoices(){ const o = store.get(VKEY, null); return o && typeof o === "object" && !Array.isArray(o) ? o : {}; }
-function voiceChoice(l){
+/* {n: nombre o "", own: true si la eligió este aparato (false: la de antes, "voice:<l>", que viene con la partida)} */
+function voiceChoiceOf(l){
   const o = voiceChoices();
-  if(Object.prototype.hasOwnProperty.call(o, l)) return typeof o[l] === "string" ? o[l] : "";
-  const old = store.get("voice:" + l, null);    /* la de antes, de respaldo */
-  return typeof old === "string" ? old : "";
+  if(Object.prototype.hasOwnProperty.call(o, l)) return {n: typeof o[l] === "string" ? o[l] : "", own: true};
+  const old = store.get("voice:" + l, null);    /* la de antes, de respaldo; nunca se toca */
+  return {n: typeof old === "string" ? old : "", own: false};
 }
-function setVoiceChoice(l, name){
-  const o = voiceChoices();
-  if(name) o[l] = String(name);
-  else if(typeof store.get("voice:" + l, null) === "string") o[l] = "";   /* «Automática» manda sobre la elección de antes */
-  else delete o[l];
-  if(Object.keys(o).length) store.set(VKEY, o); else try{ localStorage.removeItem(VKEY); }catch(e){}
+const voiceChoice = l => voiceChoiceOf(l).n;
+/* "" = «Automática»: también se guarda, para que mande sobre una "voice:<l>" de antes que llegue luego */
+function setVoiceChoice(l, id){ const o = voiceChoices(); o[l] = id ? String(id) : ""; store.set(VKEY, o); }
+/* el id de una voz en la lista de L: su nombre, o "nombre|idioma" si el nombre se repite */
+function vid(v, L){ const n = String(v.name || ""); return langVoices(L).filter(x => x.name === n).length > 1 ? `${n}|${vlang(v).tag}` : n; }
+function findVoice(L, id){
+  if(!id) return null;
+  const m = /^(.*)\|([a-z]{2,3}(?:-[A-Z]{2})?)$/.exec(id), n = m ? m[1] : id, all = langVoices(L);
+  return (m && all.find(v => v.name === n && vlang(v).tag === m[2])) || all.find(v => v.name === n) || null;
 }
+const vname = id => String(id || "").replace(/\|[a-z]{2,3}(?:-[A-Z]{2})?$/, "");
 /* la elegida, si este aparato la tiene (aunque ahora no se pueda usar) · la elegida que se puede usar ahora */
-const savedVoice = (l = lang) => { const n = voiceChoice(l); return n ? langVoices(l).find(v => v.name === n) || null : null; };
+const savedVoice = (l = lang) => findVoice(l, voiceChoice(l));
 const chosenVoice = (l = lang) => { const v = savedVoice(l); return v && !(navigator.onLine === false && vnet(v)) ? v : null; };
 const pickVoice = (l = lang) => { if(!LANGS[l]) l = lang; return chosenVoice(l) || autoVoice(l); };
-/* la voz para el código (en-GB, fr-FR, da-DK) o, mejor, para el idioma l */
-function voiceFor(code, l){
-  if(!LANGS[l]){
-    const c = String(code || "").toLowerCase(), ks = Object.keys(LANGS);
-    l = ks.find(k => LANGS[k].code.toLowerCase() === c) || ks.find(k => c && LANGS[k].code.slice(0, 2).toLowerCase() === c.slice(0, 2)) || lang;
-  }
-  return pickVoice(l);
+/* el idioma de la app para un código (en-GB, fr-FR, da-DK; o solo "fr"); null si no es de los tres */
+function langOf(code){
+  const c = String(code || "").replace(/_/g, "-").toLowerCase(), ks = Object.keys(LANGS);
+  return ks.find(k => LANGS[k].code.toLowerCase() === c) || ks.find(k => c && LANGS[k].code.slice(0, 2).toLowerCase() === c.slice(0, 2)) || null;
 }
+/* la mejor voz para un idioma que no es de los tres (una carta en español): la región exacta, la mejor calidad, la del aparato */
+function otherVoice(code){
+  const g = vlang({lang: code}); if(!g.b) return null;
+  const off = navigator.onLine === false;
+  const c = voices.filter(v => v && vlang(v).b === g.b && !vjoke(v) && vtier(v) > 0 && !(off && vnet(v)));
+  const k = v => [g.r && vlang(v).r === g.r ? 0 : 1, -vtier(v), vnet(v) ? 1 : 0];
+  return c.map((v, i) => ({v, i, k: k(v)})).sort((a, z) => a.k[0] - z.k[0] || a.k[1] - z.k[1] || a.k[2] - z.k[2] || a.i - z.i).map(x => x.v)[0] || null;
+}
+/* la voz para el idioma l o, sin l, para el código (en-GB, fr-FR, da-DK; otro código: la mejor de ese idioma) */
+function voiceFor(code, l){
+  if(LANGS[l]) return pickVoice(l);
+  const L = langOf(code);
+  return L ? pickVoice(L) : code ? otherVoice(code) : pickVoice(lang);
+}
+/* pone en el enunciado u la voz y su lang (Chrome en Android solo mira u.lang); l es un idioma de la app o un código */
 function useVoice(u, l = lang){
-  if(!LANGS[l]) l = lang;
-  u.lang = LANGS[l].code; u._vl = l;
-  const v = pickVoice(l);
+  const L = LANGS[l] ? l : langOf(l);
+  if(!L && l){ u.lang = String(l).replace(/_/g, "-"); const v = otherVoice(l); if(v) try{ u.voice = v; u.lang = vlang(v).tag; }catch(e){} return v; }
+  const k = L || lang;
+  u.lang = LANGS[k].code; u._vl = k;
+  const v = pickVoice(k);
   if(v) try{ u.voice = v; u.lang = vlang(v).tag; }catch(e){}
   return v;
 }
 /* una voz de internet que falla (wifi sin internet): una vez más con la mejor del aparato; true si lo intenta */
 function retryLocal(u, e, done){
   const v = u.voice, er = e && e.error;
-  if(u._again || !v || !vnet(v) || er === "interrupted" || er === "canceled") return false;
+  if(u._again || !v || !vnet(v) || !LANGS[u._vl] || er === "interrupted" || er === "canceled") return false;
   u._again = true;
   const w = langVoices(u._vl).find(x => !vnet(x) && vtier(x) > 0), n = new SpeechSynthesisUtterance(u.text);
   n._again = true; n.rate = u.rate; n.lang = LANGS[u._vl] ? LANGS[u._vl].code : u.lang;
@@ -1110,11 +1151,13 @@ function sayP(text, btn){
     else tts();
   });
 }
+/* «Inglés», «Francés», «Danés» (LANG_ES se declara más abajo) */
+const langEs = l => { try{ return LANG_ES[l][0]; }catch(e){ return LANGS[l] ? LANGS[l].name : String(l); } };
 function voiceNote(){
   const el = $("#voicenote"); if(!el) return;
   if(!("speechSynthesis" in window)){ el.innerHTML = "Tu navegador no permite audio."; el.hidden=false; return; }
   if(voices.length && !langVoices(lang).length){
-    el.innerHTML = `Las palabras tienen su propio audio. Algunas frases pueden sonar con otro acento: un mayor puede añadir la voz del ${LANGS[lang].name} (Ajustes › Para mayores).`;
+    el.innerHTML = `Las palabras tienen su propio audio. Algunas frases pueden sonar con otro acento: un mayor puede añadir la voz del ${LANGS[lang].name} (Ajustes › Voz y velocidad › ${langEs(lang)}).`;
     el.hidden = false;
   } else el.hidden = true;
 }
@@ -1134,9 +1177,11 @@ const SLOW = () => Math.max(0.35, rate * 0.55);
      dos) con la voz que sonará, la velocidad y «Probar la voz». Con host la pinta dentro de ese elemento (Ajustes ›
      Voz y velocidad) y al tocar un idioma llama a nav(l) (settings.js entra en su página "voz-en|fr|da"). Sin host abre
      su propia hoja dialog#cfg (si js/settings.js no carga), con la página de cada idioma dentro y after() al cerrarla.
-   - voiceListPage(host, l, {keep, scroller}): la página de un idioma: «Automática» y las voces de este aparato (✓ en
-     la elegida; tocar una fila la elige y la deja oír; ▶ solo la deja oír), guardada en "vocab:voice".
-     paintVoz(root) repinta las filas de idioma (al volver de una página o al llegar las voces).
+   - voiceListPage(host, l, {keep, scroller}): la página de un idioma: «Automática» y las voces de este aparato por
+     países (✓ en la elegida; tocar una fila la elige y la deja oír; ▶ solo la deja oír; una nube en las que necesitan
+     internet; las muy robóticas plegadas en «Más voces»), guardada en "vocab:voice". En Android, un acento por fila.
+     paintVoz(root) repinta las filas de idioma (al volver de una página o al llegar las voces); fitVoz deja la voz de
+     cada fila en una línea. fitBackLabel acorta la etiqueta de volver de una barra para que el título quede centrado.
    - voiceHelpRow(l?): cómo añadir la voz que falta; los créditos (creditsHtml()) y la fila de instalar la app (installRow()). */
 const SAMPLE = {english:"Hello! This is how I sound.", "français":"Bonjour ! Voici ma voix.", dansk:"Hej! Sådan lyder min stemme."};
 /* créditos y privacidad (antes en el pie de página) */
@@ -1156,75 +1201,110 @@ const rateWord = r => (r = +r || .9) < .75 ? "Lenta" : r <= 1 ? "Normal" : "Ráp
 const VREGN = {GB: "Reino Unido", US: "Estados Unidos", AU: "Australia", IE: "Irlanda", IN: "India", ZA: "Sudáfrica", NZ: "Nueva Zelanda",
   CA: "Canadá", FR: "Francia", BE: "Bélgica", CH: "Suiza", DK: "Dinamarca"};
 function regionName(r){ if(!r) return ""; if(VREGN[r]) return VREGN[r]; try{ return new Intl.DisplayNames(["es"], {type: "region"}).of(r) || r; }catch(e){ return r; } }
-const VMAIN = {english: "Británicas", "français": "Francia", dansk: "Dinamarca"};
-/* «Microsoft Hortense - French (France)» → «Hortense» · «Google français» → «Google» · «Microsoft Sonia Online (Natural) -
-   English (United Kingdom)» → «Sonia · Natural» · las de Chrome en Android (una por país) → «Voz del sistema» */
-function voiceLabel(v, short){
+/* las voces de Android que trae ChromeOS («…from Google en-gb-x-gba-local»): se numeran por su código (gba = 1, gbb = 2…) */
+const VANDROID = /^Android Speech Recognition and Synthesis from Google/i;
+function androidNum(v){
+  const code = /-x-([a-z]{3})-/i.exec(v.name || ""); if(!code) return 0;
+  const g = vlang(v).tag, cs = new Set();
+  voices.forEach(x => { const m = x && VANDROID.test(x.name || "") && vlang(x).tag === g && /-x-([a-z]{3})-/i.exec(x.name); if(m) cs.add(m[1].toLowerCase()); });
+  return [...cs].sort().indexOf(code[1].toLowerCase()) + 1;
+}
+/* el nombre de una voz, sin más: «Microsoft Hortense - French (France)» → «Hortense» · «Microsoft Sonia Online (Natural) -
+   English (United Kingdom)» → «Sonia» · «Google UK English Female» → «Google» · «Google UK English 2 (Natural)» → «Google 2» ·
+   las de Android en ChromeOS → «Android 1» · las de Chrome en Android (una por país) → el país («Reino Unido») */
+function voiceLabel(v){
   const n = String(v.name || ""), s = n + " " + (v.voiceURI || ""), num = /(\d+)\s*(\(|$)/.exec(n);
   let t = vcore(n).replace(/Multilingual$/i, "");
-  if(/^Android Speech Recognition and Synthesis from Google/i.test(n)){ const m = /-x-([a-z]{3})-/i.exec(n); t = m ? `Google ${m[1]}` : "Google"; }
-  else if(/^Google\s/i.test(n)) t = /Female/i.test(n) ? "Google (mujer)" : /Male/i.test(n) ? "Google (hombre)" : num ? `Google ${num[1]}` : "Google";
+  if(VANDROID.test(n)){ const k = androidNum(v); t = k ? `Android ${k}` : "Android"; }
+  else if(/^Google\s/i.test(n)) t = num ? `Google ${num[1]}` : "Google";
   else if(/^Chrome OS\s/i.test(n)) t = num ? `Chrome OS ${num[1]}` : "Chrome OS";
-  else if(/_/.test(v.lang || "") || /^moz-tts:android:/i.test(v.voiceURI || "")) t = "Voz del sistema";
+  else if(vsys(v)) t = regionName(vlang(v).r) || "Voz del sistema";
   else if(/espeak/i.test(s)) t = "eSpeak";
-  else if(/^Microsoft\s.*\sDesktop\b/i.test(n)) t += " (clásica)";
-  const q = /\(Natural\)|\bNeural\b/i.test(n) ? "Natural" : vtier(v) === 5 && /\.premium\.|\((Premium|premium|de qualité|høj kvalitet)\)/.test(s) ? "Premium"
-    : /\.enhanced\.|\((Enhanced|mejorada|forbedret|améliorée|premium)\)/i.test(s) ? "Mejorada" : "";
-  t = t || n;
-  return q && !short ? `${t} · ${q}` : t;
+  return t || n;
 }
-function voiceSub(v, L){
-  const g = vlang(v), c = vcore(v.name);
-  return [g.r !== LANGS[L].code.slice(3) ? regionName(g.r) : "", V_KID.has(c) ? "Voz infantil" : "", /Multilingual/i.test(v.name) ? "Varios idiomas" : "",
-    vnet(v) ? "Necesita internet" : ""].filter(Boolean).join(" · ");
+/* lo que la distingue de otra del mismo nombre: mujer u hombre (Google), clásica (la Windows antigua) · su calidad */
+const voiceKind = v => { const n = String(v.name || "");
+  return /^Google\s.*\bFemale\b/i.test(n) ? "Mujer" : /^Google\s.*\bMale\b/i.test(n) ? "Hombre" : /^Microsoft\s.*\sDesktop\b/i.test(n) ? "Clásica" : ""; };
+const voiceQ = v => { const n = String(v.name || ""), s = n + " " + (v.voiceURI || "");
+  return /\(Natural\)|\bNeural\b/i.test(n) ? "Natural" : vtier(v) === 5 && /\.premium\.|\((Premium|premium|de qualité|høj kvalitet)\)/.test(s) ? "Premium"
+    : /\.enhanced\.|\((Enhanced|mejorada|forbedret|améliorée|premium)\)/i.test(s) ? "Mejorada" : ""; };
+/* en una línea (la fila del idioma, «La mejor de este aparato: …»): «Sonia», «Google · Mujer», «Hazel · Clásica» */
+const voiceShort = v => [voiceLabel(v), voiceKind(v)].filter(Boolean).join(" · ");
+/* debajo del nombre en la lista: mujer u hombre, la calidad (solo si dos se llaman igual), el país (solo en «Más voces»,
+   que no va por países), voz infantil, varios idiomas */
+function voiceSub(v, o = {}){
+  const c = vcore(v.name);
+  return [voiceKind(v), o.q ? voiceQ(v) : "", o.region ? regionName(vlang(v).r) : "", V_KID.has(c) ? "Voz infantil" : "",
+    /Multilingual/i.test(v.name) ? "Varios idiomas" : ""].filter(Boolean).join(" · ");
 }
-/* «Probar» con la voz name del idioma L ("" = Automática), sin elegirla */
-function tryVoice(L, name, btn){
+/* «Probar» con la voz id del idioma L ("" = Automática), sin elegirla; si es de internet y falla, con una del aparato */
+function tryVoice(L, id, btn){
   if(!("speechSynthesis" in window) || !LANGS[L]) return;
   speechSynthesis.cancel();
   document.querySelectorAll(".vl-try.playing,.say.playing").forEach(b => b.classList.remove("playing"));
   const u = new SpeechSynthesisUtterance(SAMPLE[L]);
-  const v = name ? langVoices(L).find(x => x.name === name) || null : autoVoice(L);
-  u.rate = rate; u.lang = LANGS[L].code;
+  const v = id ? findVoice(L, id) : autoVoice(L);
+  u.rate = rate; u.lang = LANGS[L].code; u._vl = L;
   if(v) try{ u.voice = v; u.lang = vlang(v).tag; }catch(e){}
   let t = 0;
   const off = () => { clearTimeout(t); if(btn) btn.classList.remove("playing"); };
   if(btn) btn.classList.add("playing");
-  u.onend = u.onerror = off; t = setTimeout(off, 8000);
+  u.onend = off; u.onerror = e => { if(!retryLocal(u, e, off)) off(); }; t = setTimeout(off, 8000);
   try{ speechSynthesis.speak(u); }catch(e){ off(); }
 }
 /* Ajustes › Para mayores y la página del idioma: cómo añadir la voz que falta (la del idioma l; sin l, la de cada idioma
-   que este aparato no tiene, o la del actual si el navegador no da lista de voces). Si la tiene, nada. */
-function voiceSteps(){
-  const ua = navigator.userAgent || "";
-  if(/iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)) return "En el iPhone o iPad: Ajustes › Accesibilidad › Contenido leído › Voces.";
-  if(/Android/i.test(ua)) return "En Android: Ajustes › Accesibilidad › Texto a voz › Instalar datos de voz.";
-  if(/CrOS/.test(ua)) return "En el Chromebook: Ajustes › Accesibilidad › Texto a voz.";
-  if(/Macintosh|Mac OS X/.test(ua)) return "En el Mac: Ajustes del Sistema › Accesibilidad › Contenido leído › Voz del sistema.";
-  if(/Windows/.test(ua)) return "En Windows: Configuración › Hora e idioma › Voz › Agregar voces. Luego vuelve a abrir el navegador.";
-  return "En Windows: Configuración › Hora e idioma › Voz › Agregar voces. En el móvil: ajustes de texto a voz.";
+   que este aparato no tiene, o la del actual si el navegador no da lista de voces). Si la tiene, nada (force: aunque solo
+   tenga voces robóticas). En iPhone, iPad y Safari del Mac solo valen las voces que trae el sistema (las descargadas o
+   «mejoradas» no salen en Safari): se dice cuál activar. */
+const V_APPLE = {english: "Daniel", "français": "Thomas", dansk: "Sara"};
+function voiceSteps(l){
+  const ua = navigator.userAgent || "", L = LANGS[l] ? l : lang, nm = langEs(L);
+  if(/iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1))
+    return `En el iPhone o iPad: Ajustes › Accesibilidad › Contenido leído › Voces › ${nm} › ${V_APPLE[L]} (la normal, no la mejorada). Luego cierra la app del todo y vuelve a abrirla.`;
+  if(/Android/i.test(ua)) return `En Android: Ajustes › Accesibilidad › Salida de texto a voz › Instalar datos de voz › ${nm}. Luego vuelve a abrir la app.`;
+  if(/CrOS/.test(ua)) return `En el Chromebook: Ajustes › Accesibilidad › Texto a voz › Voces › ${nm}. Luego vuelve a abrir la app.`;
+  if(/Macintosh|Mac OS X/.test(ua)) return /Safari\//.test(ua) && !/Chrome|Chromium|Edg\/|Firefox/.test(ua)
+    ? `En el Mac: Ajustes del Sistema › Accesibilidad › Contenido leído › Voz del sistema › Gestionar voces › ${nm} › ${V_APPLE[L]}. Safari solo usa las voces normales, no las mejoradas. Luego vuelve a abrir Safari.`
+    : `En el Mac: Ajustes del Sistema › Accesibilidad › Contenido leído › Voz del sistema › Gestionar voces › ${nm}. Luego vuelve a abrir el navegador.`;
+  if(/Windows/.test(ua)) return `En Windows: Configuración › Hora e idioma › Voz › Agregar voces › ${nm}. Luego vuelve a abrir el navegador.`;
+  return `En Windows: Configuración › Hora e idioma › Voz › Agregar voces › ${nm}. En el móvil: ajustes de texto a voz.`;
 }
-function voiceHelpRow(l, bare){
+function voiceHelpRow(l, bare, force){
   if(!("speechSynthesis" in window)) return "";
   const ls = l ? [l] : voices.length ? Object.keys(LANGS) : [lang];
-  return ls.filter(k => LANGS[k] && !langVoices(k).length).map(k => `<div class="st-r"><span class="st-ic gr" aria-hidden="true">${ico("speaker-high", "bold", 18)}</span><span class="st-l">${bare ? "Cómo añadirla" : `Voz del ${esc(LANGS[k].name)}`}<small>${bare ? "" : "Las palabras traen su audio; las frases usan la voz del aparato. "}${esc(voiceSteps())}</small></span></div>`).join("");
+  return ls.filter(k => LANGS[k] && (force || !langVoices(k).length)).map(k => `<div class="st-r"><span class="st-ic gr" aria-hidden="true">${ico("speaker-high", "bold", 18)}</span><span class="st-l">${bare ? force ? "Cómo añadir una mejor" : "Cómo añadirla" : `Voz del ${esc(LANGS[k].name)}`}<small>${bare ? "" : "Las palabras traen su audio; las frases usan la voz del aparato. "}${esc(voiceSteps(k))}</small></span></div>`).join("");
 }
 /* ---- Voz y velocidad ---- */
-/* a la derecha, la voz que sonará: «Automática · Sonia», la elegida («Hortense») o nada si no hay voz de ese idioma */
-function vozVal(L){
-  if(voices.length > 0 && !langVoices(L).length) return "";
-  const sv = savedVoice(L), au = autoVoice(L), sp = t => `<span>${esc(t)}</span>`;
-  return sv ? sp(voiceLabel(sv, true)) : au ? `${sp("Automática ·")} ${sp(voiceLabel(au, true))}` : sp("Automática");
+/* la fila de un idioma: a la derecha, en una línea, la voz que sonará: «Automática · Sonia» (solo «Automática» si no cabe:
+   fitVoz) o la elegida («Hortense», con … si no cabe); debajo del idioma, lo que haya que saber */
+function vozState(L){
+  const all = langVoices(L), sv = savedVoice(L), au = autoVoice(L), off = navigator.onLine === false;
+  if(voices.length > 0 && !all.length) return {val: "", sub: off ? "Sin internet no hay voz" : "Aún no tiene voz en este aparato"};
+  const {n, own} = voiceChoiceOf(L), netGone = n && own && !sv && vnetName(n);   /* sin internet, Chrome quita de la lista las de internet */
+  if((sv && !chosenVoice(L)) || netGone) return {val: esc(sv ? voiceShort(sv) : voiceLabel({name: vname(n)})), sub: au ? `Sin internet: suena ${voiceShort(au)}` : "Necesita internet"};
+  if(sv) return {val: esc(voiceShort(sv)), sub: vtier(sv) ? "" : "Voz robótica"};
+  if(voices.length && !all.some(v => vtier(v) > 0)) return {val: "", sub: "Solo voces robóticas"};
+  const sub = off && au && vnet(au) ? "Necesita internet" : "";
+  return {val: au && !vsys(au) ? `<span class="vv-a">Automática</span><span class="vv-n"> · ${esc(voiceShort(au))}</span>` : "Automática", sub};
 }
 function vozRow(L){
-  const val = vozVal(L), sub = val ? "" : "No hay voz en este aparato";
-  return `<button type="button" class="st-r aj-go cfg-l" id="cfg-l-${CLIP_AB[L]}" data-vl="${esc(L)}"><span class="st-ic fl" aria-hidden="true"><span class="flag">${FLAGS[L] || ""}</span></span>`
+  const {val, sub} = vozState(L);
+  return `<button type="button" class="st-r aj-go cfg-l${sub ? " cfg-n" : ""}" id="cfg-l-${CLIP_AB[L]}" data-vl="${esc(L)}"><span class="st-ic fl" aria-hidden="true"><span class="flag">${FLAGS[L] || ""}</span></span>`
     + `<span class="st-l">${esc(LANG_ES[L][0])}${sub ? `<small>${esc(sub)}</small>` : ""}</span>${val ? `<span class="aj-val">${val}</span>` : ""}`
     + `<span class="aj-chev" aria-hidden="true">${ico("caret-right", "bold", 16)}</span></button>`;
 }
+/* «Automática · Sonia» que no cabe en su línea se queda en «Automática» (la voz sale en la página del idioma) */
+function fitVoz(root){
+  (root || document).querySelectorAll(".cfg-l .aj-val").forEach(el => {
+    const n = el.querySelector(".vv-n"); if(!n) return;
+    n.hidden = false;
+    if(el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 1) n.hidden = true;
+  });
+}
 /* «Voces»: primero el idioma que aprende; luego los otros dos, en su orden de siempre */
-const vozRows = () => `<section class="st-sec" aria-labelledby="cfg-lh"><h3 class="st-h" id="cfg-lh">Voces</h3><div class="st-g ics">${[lang, ...Object.keys(LANGS).filter(k => k !== lang)].map(vozRow).join("")}</div></section>`;
-const cfgTry = ok => `<span class="st-ic" aria-hidden="true">${ico("play", "bold", 18)}</span><span class="st-l">Probar la voz${ok ? "" : "<small>Este aparato aún no tiene esa voz</small>"}</span>`;
+const vozRows = () => `<section class="st-sec" aria-labelledby="cfg-lh"><h3 class="st-h" id="cfg-lh">Voces</h3><div class="st-g ics">${[lang, ...Object.keys(LANGS).filter(k => k !== lang)].map(vozRow).join("")}</div>`
+  + `<p class="st-foot">Las palabras suenan con su audio grabado. Cada aparato guarda sus voces.</p></section>`;
+const cfgTry = ok => `<span class="st-ic" aria-hidden="true">${ico("play", "bold", 18)}</span><span class="st-l">Probar la velocidad${ok ? "" : `<small>Aún no hay voz del ${esc(LANGS[lang].name)} en este aparato</small>`}</span>`;
 function vozHtml(){
   const ok = langVoices(lang).length > 0;
   return `<div class="cfg-ls" id="cfg-ls">${vozRows()}</div>
@@ -1239,33 +1319,70 @@ function paintVoz(root){
   const g = root && root.querySelector("#cfg-ls"); if(!g) return;
   const a = document.activeElement, fid = a && g.contains(a) ? a.id : "";
   g.innerHTML = vozRows();
+  fitVoz(g);
   const ok = langVoices(lang).length > 0, t = root.querySelector("#cfg-t");
-  if(t && t.disabled === ok){ t.disabled = !ok; t.innerHTML = cfgTry(ok); }
+  if(t && (t.disabled === ok || !ok)){ t.disabled = !ok; t.innerHTML = cfgTry(ok); }
   if(fid){ const n = g.querySelector("#" + fid); if(n) try{ n.focus({preventScroll: true}); }catch(e){} }
 }
 /* ---- la página de un idioma ---- */
-function voiceListHtml(L, open){
-  const nm = LANGS[L].name, ab = CLIP_AB[L], all = langVoices(L);
-  if(voices.length && !all.length) return `<p class="vl-none">Este aparato aún no tiene voz del ${esc(nm)}. Las palabras suenan igual: traen su audio grabado.</p>
-    <section class="st-sec" aria-label="Cómo añadirla"><div class="st-g ics">${voiceHelpRow(L, true)}</div></section>`;
-  const main = LANGS[L].code.slice(3), sv = savedVoice(L), good = all.filter(v => vtier(v) > 0), low = all.filter(v => !vtier(v));
-  const row = (name, on, t, sub) => `<div class="st-r vl-r"><button type="button" class="vl-try" data-v="${esc(name)}" aria-label="Escuchar ${esc(t)}"><span class="vl-pl" aria-hidden="true">${ico("play", "fill", 14)}</span></button>`
-    + `<button type="button" class="vl-pick" role="radio" aria-checked="${on}" tabindex="${on ? 0 : -1}" data-v="${esc(name)}"><span class="st-l">${esc(t)}${sub ? `<small>${esc(sub)}</small>` : ""}</span>`
-    + `<span class="vl-chk" aria-hidden="true">${ico("check", "bold", 20)}</span></button></div>`;
-  const vrow = v => row(v.name, sv === v, voiceLabel(v), voiceSub(v, L));
-  const grp = (h, id, rows) => rows.length ? `<section class="st-sec"${h ? ` aria-labelledby="${id}"` : ""}>${h ? `<h3 class="st-h" id="${id}">${h}</h3>` : ""}<div class="st-g ics">${rows.join("")}</div></section>` : "";
-  const lowOpen = !!(open || (sv && !vtier(sv)));
-  return `<div class="vl" role="radiogroup" aria-label="Voz del ${esc(nm)}">
-    ${grp("", "", [row("", !sv, "Automática", autoSub(L))])}
-    ${grp(VMAIN[L], `vl-h1-${ab}`, good.filter(v => vlang(v).r === main).map(vrow))}
-    ${grp("Otros acentos", `vl-h2-${ab}`, good.filter(v => vlang(v).r !== main).map(vrow))}
-    ${low.length ? `<section class="st-sec"><div class="st-g ics"><button type="button" class="st-r aj-go vl-more" aria-expanded="${lowOpen}" aria-controls="vl-low-${ab}"><span class="st-ic gr" aria-hidden="true">${ico("speaker-high", "bold", 18)}</span><span class="st-l">Más voces<small>Suenan más robóticas</small></span><span class="aj-val">${low.length}</span><span class="aj-chev" aria-hidden="true">${ico("caret-right", "bold", 16)}</span></button>`
-      + `<div class="vl-low" id="vl-low-${ab}"${lowOpen ? "" : " hidden"}>${low.map(vrow).join("")}</div></div></section>` : ""}</div>
-    <p class="st-foot vl-foot">Las palabras suenan con su audio grabado; esta voz lee lo demás. Se guarda solo en este aparato.</p>`;
+/* «Google 2, Google 1, Google 3» (el orden de calidad) se enseña 1, 2, 3 sin mover a las demás */
+function numOrder(vs){
+  const lab = vs.map(voiceLabel), by = {}, out = vs.slice(), num = t => +/(\d+)$/.exec(t)[1];
+  lab.forEach((t, i) => { const m = /^(.*\D)\s(\d+)$/.exec(t); if(m) (by[m[1]] = by[m[1]] || []).push(i); });
+  Object.values(by).forEach(ix => { const s = ix.slice().sort((a, z) => num(lab[a]) - num(lab[z])); ix.forEach((i, j) => { out[i] = vs[s[j]]; }); });
+  return out;
 }
+const vlCloud = () => `<span class="vl-net" aria-hidden="true">${ico("cloud", "bold", 15)}</span>`;
+function voiceListHtml(L, open){
+  const nm = LANGS[L].name, ab = CLIP_AB[L], all = langVoices(L), es = langEs(L);
+  if(voices.length && !all.length){
+    const off = navigator.onLine === false;
+    return `<p class="vl-none">${off ? `Sin internet, el ${esc(nm)} no tiene voz en este aparato.` : `El ${esc(nm)} aún no tiene voz en este aparato.`} Las palabras suenan igual: traen su audio grabado.</p>`
+      + (off ? "" : `<section class="st-sec" aria-label="Cómo añadirla"><div class="st-g ics">${voiceHelpRow(L, true)}</div></section>`);
+  }
+  const main = LANGS[L].code.slice(3), sv = savedVoice(L), good = all.filter(v => vtier(v) > 0), low = all.filter(v => !vtier(v));
+  const sys = good.length > 0 && good.every(vsys);
+  let legend = false;
+  const row = (id, on, t, sub, net) => `<div class="st-r vl-r"><button type="button" class="vl-try" data-v="${esc(id)}" aria-label="Escuchar ${esc(t)}"><span class="vl-pl" aria-hidden="true">${ico("play", "fill", 16)}</span></button>`
+    + `<button type="button" class="vl-pick" role="radio" aria-checked="${on}" tabindex="${on ? 0 : -1}" data-v="${esc(id)}"><span class="st-l">${esc(t)}${net ? `${vlCloud()}<span class="vh"> · necesita internet</span>` : ""}${sub ? `<small>${esc(sub)}</small>` : ""}</span>`
+    + `<span class="vl-chk" aria-hidden="true">${ico("check", "bold", 20)}</span></button></div>`;
+  const vrows = (vs, o = {}) => { const lab = vs.map(voiceLabel);
+    return vs.map((v, i) => row(vid(v, L), sv === v, lab[i], voiceSub(v, {q: lab.indexOf(lab[i]) !== lab.lastIndexOf(lab[i]), region: o.region}), vnet(v))); };
+  const grp = (h, id, vs, foot) => { if(!vs.length) return "";
+    const net = !legend && vs.some(vnet); if(net) legend = true;
+    const f = [net ? `${vlCloud()} Necesita internet.` : "", foot ? esc(foot) : ""].filter(Boolean).join(" ");
+    return `<section class="st-sec"${h ? ` aria-labelledby="${id}"` : ""}>${h ? `<h3 class="st-h" id="${id}">${esc(h)}</h3>` : ""}<div class="st-g ics">${vrows(vs).join("")}</div>${f ? `<p class="st-foot">${f}</p>` : ""}</section>`; };
+  /* por países: primero el del idioma (Reino Unido, Francia, Dinamarca) y luego los demás en el orden de la lista */
+  let groups = "";
+  if(sys) groups = grp("", "", good, `En Android cada fila es un acento; la voz la elige Android. ¿Suena con otro acento? Instala la voz: Ajustes › Accesibilidad › Salida de texto a voz › Instalar datos de voz › ${es}. Luego vuelve a abrir la app.`);
+  else {
+    const by = new Map([[main, []]]);
+    good.forEach(v => { const r = vlang(v).r; if(!by.has(r)) by.set(r, []); by.get(r).push(v); });
+    by.forEach((vs, r) => { groups += grp(regionName(r) || "Otras", `vl-h-${ab}-${r || "x"}`, numOrder(vs)); });
+  }
+  const lowOpen = !!(open || (sv && !vtier(sv)));
+  const n = low.length;
+  return `<div class="vl" role="radiogroup" aria-label="Voz del ${esc(nm)}">
+    <section class="st-sec"><div class="st-g ics">${row("", !sv, "Automática", autoSub(L))}</div></section>
+    ${good.length ? "" : `<section class="st-sec" aria-label="Cómo añadir una mejor"><div class="st-g ics">${voiceHelpRow(L, true, true)}</div></section>`}
+    ${groups}
+    ${n ? `<section class="st-sec"><div class="st-g ics"><button type="button" class="st-r vl-more" aria-expanded="${lowOpen}" aria-controls="vl-low-${ab}"><span class="st-l">Más voces<small>${n} ${n === 1 ? "voz" : "voces"} · suenan más robóticas</small></span><span class="vl-mchev" aria-hidden="true">${ico("caret-down", "bold", 16)}</span></button>`
+      + `<div class="vl-low" id="vl-low-${ab}"${lowOpen ? "" : " hidden"}>${vrows(low, {region: true}).join("")}</div></div></section>` : ""}</div>
+    <p class="st-foot vl-foot">Las palabras suenan con su audio grabado; esta voz lee el resto. «Automática» busca sola la mejor, también sin internet. La elección se guarda solo en este aparato.</p>`;
+}
+/* una elegida que no está en la lista, ¿por falta de internet? (sin internet, o por su nombre: «… Online (Natural)», «Google …», «…-network») */
+const vnetName = n => navigator.onLine === false || /\bOnline\b|^Google\s|-network$/i.test(vname(n));
+/* el subtítulo de «Automática»: la voz que sonará o, si la elegida no se puede usar, por qué */
 function autoSub(L){
-  const au = autoVoice(L), n = voiceChoice(L), now = au ? voiceLabel(au, true) : "";
-  if(n && !savedVoice(L)) return `«${voiceLabel({name: n})}» no está en este aparato. Suena ${now || "la del sistema"}.`;
+  const au = autoVoice(L), {n, own} = voiceChoiceOf(L), sv = savedVoice(L), nb = s => s.replace(/ /g, " ");
+  const now = au ? nb(voiceShort(au)) : "";
+  const ahora = now ? `Ahora suena ${now}.` : "Ahora suena la del sistema.";
+  if(sv && !chosenVoice(L)) return `«${voiceShort(sv)}» necesita internet. ${ahora}`;
+  if(n && own && !sv){
+    const nl = voiceLabel({name: vname(n)});
+    return vnetName(n) ? `«${nl}» necesita internet. ${ahora}` : `«${nl}» no está en este aparato. ${ahora}`;
+  }
+  if(au && vsys(au)) return `Acento de ${now}`;
   return now ? `La mejor de este aparato: ${now}` : "La voz del sistema";
 }
 function voiceListPage(host, L, o = {}){
@@ -1292,9 +1409,28 @@ function voiceListPage(host, L, o = {}){
     e.preventDefault(); const r = rs[(i + k + rs.length) % rs.length]; r.focus(); r.click();
   };
   const more = host.querySelector(".vl-more");
-  if(more) more.onclick = () => { const op = more.getAttribute("aria-expanded") !== "true"; more.setAttribute("aria-expanded", op); host.querySelector(".vl-low").hidden = !op; };
+  /* «Más voces» se abre en su sitio y deja ver sus primeras filas */
+  if(more) more.onclick = () => {
+    const op = more.getAttribute("aria-expanded") !== "true", lw = host.querySelector(".vl-low");
+    more.setAttribute("aria-expanded", op); lw.hidden = !op;
+    if(op) try{ (lw.children[1] || lw.firstElementChild || more).scrollIntoView({block: "nearest", behavior: window.M && typeof M.rm === "function" && M.rm() ? "auto" : "smooth"}); }catch(e){}
+  };
   if(o.keep) sc.scrollTop = top;
   if(keep){ const n = host.querySelector(keep); if(n) try{ n.focus({preventScroll: true}); }catch(e){} }
+}
+/* barra de una hoja con «‹ Volver»: el título queda en el centro; si la etiqueta de volver no cabe a su lado, «Atrás» y, si
+   tampoco, solo ‹ (como en iOS; aria-label sigue diciendo adónde vuelve). Hasta 10 px de más se dejan pasar. */
+function fitBackLabel(btn, span, tt, full){
+  if(!btn || !span || !tt || btn.hidden) return;
+  span.hidden = false; span.textContent = full;
+  const bar = btn.parentNode, cs = getComputedStyle(bar);
+  const inner = bar.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2 * (parseFloat(cs.columnGap) || 0);
+  if(!(inner > 0)) return;   /* aún sin medidas (hoja cerrada) */
+  const side = (inner - tt.scrollWidth) / 2, extra = btn.offsetWidth - span.offsetWidth;
+  if(extra + span.scrollWidth - side <= 10) return;
+  span.textContent = "Atrás";
+  if(extra + span.scrollWidth - side <= 10) return;
+  span.textContent = ""; span.hidden = true;
 }
 let cfgBack = null;   /* dialog#cfg: vuelve de la página de un idioma (true si lo hizo) */
 function openCfg(after, from, host, nav){
@@ -1310,6 +1446,8 @@ function openCfg(after, from, host, nav){
   q("#cfg-r").oninput = e => { rate = +e.target.value; store.set("rate", rate); rv(); };
   q("#cfg-t").onclick = () => say(SAMPLE[lang]);
   q("#cfg-ls").onclick = e => { const b = e.target.closest("[data-vl]"); if(b && typeof vz._vnav === "function") vz._vnav(b.dataset.vl); };
+  fitVoz(vz);
+  if(typeof ResizeObserver === "function"){ const g = q("#cfg-ls"); new ResizeObserver(() => fitVoz(g)).observe(g); }
   if(host){ vz._vnav = nav || null; return; }
   /* la hoja propia: la página de cada idioma entra desde la derecha, con «‹ Voz y velocidad» */
   const bk = d.querySelector("#cfg-back"), tt = d.querySelector("#cfg-tt");
@@ -1320,6 +1458,7 @@ function openCfg(after, from, host, nav){
     const pg = document.createElement("div"); pg.className = "cfg-pg"; pg.dataset.vl = L;
     vz.after(pg); voiceListPage(pg, L, {scroller: d});
     vz.hidden = true; bk.hidden = false; tt.textContent = LANG_ES[L][0]; d.scrollTop = 0;
+    bk.setAttribute("aria-label", "Volver a Voz y velocidad"); fitBackLabel(bk, bk.querySelector("span"), tt, "Voz y velocidad");
     slideIn(pg, 48); try{ tt.focus({preventScroll: true}); }catch(e){}
   };
   cfgBack = () => {
@@ -1331,6 +1470,7 @@ function openCfg(after, from, host, nav){
     return true;
   };
   bk.onclick = () => cfgBack();
+  if(typeof ResizeObserver === "function") new ResizeObserver(() => { if(!bk.hidden) fitBackLabel(bk, bk.querySelector("span"), tt, "Voz y velocidad"); }).observe(d.querySelector(".cfg-bar"));
   d.querySelector("#cfg-x").onclick = () => { if(window.M) M.closeSheet(d); else d.close(); };
   d.onclose = () => { cfgBack = null; voiceNote(); if(after) after(); };
   if(window.M) M.openSheet(d, {from}); else d.showModal();
