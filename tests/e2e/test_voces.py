@@ -20,6 +20,7 @@ import os
 import common as C
 
 OUT = C.CAPTURAS / "voces"
+_PASS = "() => sessionStorage.setItem('vocab:gate', String(Date.now() + adultGate.MS))"   # la Puerta de mayores ya pasada
 
 
 # ---------------------------------------------------------------- listas de voces de aparatos reales
@@ -159,7 +160,8 @@ def _open_lang(page, lang):
 def _rows(page, root="#ajustes .aj-pg[data-pg=voz]"):
     return page.evaluate("""r => [...document.querySelectorAll(r + ' .cfg-l')].map(b => ({id: b.id, vl: b.dataset.vl,
       name: b.querySelector('.st-l').firstChild.textContent, small: (b.querySelector('.st-l small') || {}).textContent || '',
-      val: (b.querySelector('.aj-val') || {}).textContent || '', head: (b.closest('.st-sec').querySelector('.st-h') || {}).textContent || ''}))""", root)
+      val: (b.querySelector('.aj-val') || {}).textContent || '', head: (b.closest('.st-sec').querySelector('.st-h') || {}).textContent || '',
+      cut: [...b.querySelectorAll('.aj-val>span')].some(s => s.scrollWidth > s.clientWidth + 1), h: Math.round(b.getBoundingClientRect().height)}))""", root)
 
 
 def _list(page, root):
@@ -187,9 +189,9 @@ def _shot(page, name, full_page=False):
 
 # ---------------------------------------------------------------- pruebas
 def test_rows_order_current_language_first():
-    """Voz y velocidad: una fila por idioma; primero el que aprende («El idioma que aprendes») y luego los otros dos en
-    orden fijo («Otros idiomas»); cada fila con su bandera, el idioma, «Automática» debajo, la voz que sonará a la
-    derecha y ›. Velocidad y «Probar la voz» siguen ahí (mismos ids) y sin tecnicismos. Con en, fr y da como idioma actual."""
+    """Voz y velocidad: un grupo «Voces» con una fila por idioma; primero el que aprende y luego los otros dos en orden
+    fijo; cada fila con su bandera, el idioma, a la derecha la voz que sonará («Automática · Sonia») y ›. Velocidad y
+    «Probar la voz» (del idioma actual) siguen ahí (mismos ids) y sin tecnicismos. Con en, fr y da como idioma actual."""
     probs = []
     for cur in LANG_ORDER:
         page = _page(EDGE, lang=cur)
@@ -199,17 +201,17 @@ def test_rows_order_current_language_first():
             want = [cur] + [k for k in LANG_ORDER if k != cur]
             if [r["vl"] for r in rows] != want:
                 probs.append(f"{cur}: orden {[r['vl'] for r in rows]}")
-            if [r["head"] for r in rows] != ["El idioma que aprendes", "Otros idiomas", "Otros idiomas"]:
+            if [r["head"] for r in rows] != ["Voces"] * 3:
                 probs.append(f"{cur}: cabeceras {[r['head'] for r in rows]}")
             short = {"english": "Sonia", "français": "Denise", "dansk": "Christel"}
-            if [(r["small"], r["val"]) for r in rows] != [("Automática", short[k]) for k in want]:
+            if [(r["small"], r["val"]) for r in rows] != [("", f"Automática · {short[k]}") for k in want] or any(r["cut"] for r in rows):
                 probs.append(f"{cur}: valores {[(r['small'], r['val']) for r in rows]}")
             r = page.evaluate("""() => { const p = document.querySelector('#ajustes .aj-pg[data-pg=voz]');
               return {h: [...p.querySelectorAll('.cfg-ls .st-h')].map(x => x.textContent).join('|'), flags: p.querySelectorAll('.cfg-l .st-ic .flag svg').length,
                 chev: p.querySelectorAll('.cfg-l .aj-chev').length, r: !!p.querySelector('#cfg-r'), rv: (p.querySelector('#cfg-rv') || {}).textContent,
                 t: !!p.querySelector('#cfg-t:not([disabled])'), sel: !!p.querySelector('select'), win: /Windows|Configuración/.test(p.textContent),
                 hs: [...p.querySelectorAll('.cfg-l')].map(b => b.getBoundingClientRect().height)}; }""")
-            if r["h"] != "El idioma que aprendes|Otros idiomas" or r["flags"] != 3 or r["chev"] != 3 or not r["r"] or r["rv"] != "Normal" or not r["t"] or r["sel"] or r["win"]:
+            if r["h"] != "Voces" or r["flags"] != 3 or r["chev"] != 3 or not r["r"] or r["rv"] != "Normal" or not r["t"] or r["sel"] or r["win"]:
                 probs.append(f"{cur}: página {r}")
             if min(r["hs"]) < 44:
                 probs.append(f"{cur}: filas de menos de 44 px {r['hs']}")
@@ -293,7 +295,7 @@ def test_pick_voice_saves_per_device_and_speaks():
             probs.append(f"cabeceras {L['heads']} / {L['group']}")
         if not L["radios"] or L["radios"][0]["t"] != "Automática" or not L["radios"][0]["on"] or L["radios"][0]["tab"] != 0:
             probs.append(f"Automática no está marcada: {L['radios'][:1]}")
-        if L["radios"][0]["sub"] != "La mejor de este aparato: Denise · Natural":
+        if L["radios"][0]["sub"] != "La mejor de este aparato: Denise":
             probs.append(f"subtítulo de Automática: {L['radios'][0]['sub']!r}")
         names = [x["t"] for x in L["radios"]]
         for want in ("Denise · Natural", "Hortense", "Julie", "Paul", "Sylvie · Natural", "Vivienne · Natural"):
@@ -309,7 +311,6 @@ def test_pick_voice_saves_per_device_and_speaks():
             probs.append("zonas táctiles de menos de 44 px")
         if any(not x["label"].startswith("Escuchar ") for x in L["tries"]):
             probs.append(f"botones ▶ sin nombre: {L['tries'][:2]}")
-        _shot(page, "lista-frances-edge-phone")
         # el ▶ de Paul solo lo deja oír
         page.evaluate("() => { __spoken.length = 0; }")
         page.locator('#ajustes .vl-try[data-v="Microsoft Paul - French (France)"]').click()
@@ -336,6 +337,8 @@ def test_pick_voice_saves_per_device_and_speaks():
             probs.append("se escribió voice:français")
         if page.evaluate("() => vocabSettings.page") != "voz-fr":
             probs.append("elegir cerró la página")
+        if L["radios"][0]["sub"] != "La mejor de este aparato: Denise":
+            probs.append(f"subtítulo de Automática tras elegir: {L['radios'][0]['sub']!r}")
         # volver
         page.locator("#aj-back").click()
         page.wait_for_function("() => vocabSettings.page === 'voz'", timeout=3000)
@@ -404,7 +407,7 @@ def test_legacy_voice_key_is_a_fallback():
             probs.append(f"respaldo: {r}")
         _open_voz(page)
         rows = {x["vl"]: x for x in _rows(page)}
-        if (rows["français"]["val"], rows["français"]["small"]) != ("Julie", "") or rows["english"]["small"] != "Automática":
+        if (rows["français"]["val"], rows["français"]["small"]) != ("Julie", "") or rows["english"]["val"] != "Automática · Sonia":
             probs.append(f"filas con la elección de antes: {rows}")
         _open_lang(page, "français")
         L = _list(page, "#ajustes .aj-pg[data-pg=voz-fr]")
@@ -438,24 +441,39 @@ def test_legacy_voice_key_is_a_fallback():
 
 def test_no_danish_voice():
     """Windows con Chrome (la captura del dueño, sin voz danesa): la fila de danés dice «No hay voz en este aparato» y su
-    página lo explica con la ayuda para añadirla, sin lista; inglés y francés tienen la suya."""
+    página lo explica con la ayuda para añadirla, sin lista; inglés y francés tienen la suya (la voz larga baja a otra
+    línea, sin cortarse). Ajustes › Para mayores da la ayuda solo del danés."""
     probs = []
     page = _page(CHROME_WIN, lang="dansk")
     try:
         _open_voz(page)
         rows = {x["vl"]: x for x in _rows(page)}
-        if (rows["dansk"]["small"], rows["dansk"]["val"], rows["dansk"]["head"]) != ("No hay voz en este aparato", "", "El idioma que aprendes"):
+        if (rows["dansk"]["small"], rows["dansk"]["val"]) != ("No hay voz en este aparato", "") or _rows(page)[0]["vl"] != "dansk":
             probs.append(f"fila de danés: {rows['dansk']}")
-        if (rows["english"]["val"], rows["english"]["small"], rows["français"]["val"]) != ("Google · mujer", "Automática", "Google"):
+        if (rows["english"]["val"], rows["english"]["small"], rows["français"]["val"]) != ("Automática · Google (mujer)", "", "Automática · Google"):
             probs.append(f"filas: {rows}")
+        if any(r["cut"] for r in rows.values()) or min(r["h"] for r in rows.values()) < 44:
+            probs.append(f"voces cortadas o filas bajas: {rows}")
         if not page.evaluate("document.querySelector('#ajustes #cfg-t').disabled"):
             probs.append("«Probar la voz» activo sin voz danesa")
-        _shot(page, "voz-y-velocidad-chrome-sin-danes-phone")
         _open_lang(page, "dansk")
         L = _list(page, "#ajustes .aj-pg[data-pg=voz-da]")
         if L["radios"] or "aún no tiene voz del danés" not in L["text"] or "Ajustes › Accesibilidad" not in L["text"]:
             probs.append(f"página de danés sin voz: {L['text'][:200]}")
-        _shot(page, "lista-danes-sin-voz-phone")
+        # Ajustes › Para mayores: la ayuda solo del idioma que falta
+        page.locator("#aj-back").click()
+        page.wait_for_function("() => vocabSettings.page === 'voz'", timeout=3000)
+        page.wait_for_timeout(450)
+        page.locator("#aj-back").click()
+        page.wait_for_function("() => vocabSettings.page === 'root'", timeout=3000)
+        page.wait_for_timeout(450)
+        page.evaluate(_PASS)
+        page.locator("#aj-may").click()
+        page.wait_for_function("() => vocabSettings.page === 'mayores'", timeout=4000)
+        page.wait_for_timeout(450)
+        vh = page.evaluate("() => [...document.querySelectorAll('#aj-vh .st-l')].map(x => x.firstChild.textContent)")
+        if vh != ["Voz del danés"]:
+            probs.append(f"Para mayores, ayuda de voz: {vh}")
         probs += C.errors(page)
     finally:
         page.context.close()
@@ -471,12 +489,13 @@ def test_late_voices_repaint_in_place():
     try:
         _open_voz(page)
         rows = _rows(page)
-        if any((r["val"], r["small"]) != ("", "Automática") for r in rows) or not page.evaluate("document.querySelector('#ajustes #cfg-t').disabled"):
+        if any((r["val"], r["small"]) != ("Automática", "") for r in rows) or not page.evaluate("document.querySelector('#ajustes #cfg-t').disabled"):
             probs.append(f"antes de llegar las voces: {rows}")
         page.wait_for_function("() => voices.length > 0", timeout=9000)
         page.wait_for_timeout(150)
         rows = _rows(page)
-        if [r["val"] for r in rows] != ["Sonia", "Denise", "Christel"] or page.evaluate("document.querySelector('#ajustes #cfg-t').disabled"):
+        if [r["val"] for r in rows] != ["Automática · Sonia", "Automática · Denise", "Automática · Christel"] \
+                or page.evaluate("document.querySelector('#ajustes #cfg-t').disabled"):
             probs.append(f"al llegar las voces: {[r['val'] for r in rows]}")
     finally:
         page.context.close()
@@ -500,6 +519,25 @@ def test_late_voices_repaint_in_place():
         probs += C.errors(page)
     finally:
         page.context.close()
+    # Para mayores abierto mientras llegan: la ayuda (sin lista, la del idioma actual) desaparece al llegar las voces
+    page = _page(EDGE, delay=5000)
+    try:
+        page.locator(".topbar [data-open=ajustes]").click()
+        page.wait_for_selector("dialog#ajustes[open]", timeout=4000)
+        page.wait_for_timeout(300)
+        page.evaluate(_PASS)
+        page.locator("#aj-may").click()
+        page.wait_for_function("() => vocabSettings.page === 'mayores'", timeout=4000)
+        page.wait_for_timeout(450)
+        before = page.evaluate("() => [...document.querySelectorAll('#aj-vh .st-l')].map(x => x.firstChild.textContent)")
+        page.wait_for_function("() => voices.length > 0", timeout=9000)
+        page.wait_for_timeout(150)
+        after = page.evaluate("() => [...document.querySelectorAll('#aj-vh .st-l')].map(x => x.firstChild.textContent)")
+        if before != ["Voz del inglés"] or after != [] or page.evaluate("() => vocabSettings.page") != "mayores":
+            probs.append(f"Para mayores: antes {before}, después {after}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
     assert not probs, "\n".join(probs)
 
 
@@ -514,7 +552,7 @@ def test_cfg_sheet_fallback():
         page.wait_for_selector("dialog#cfg[open]", timeout=3000)
         page.wait_for_timeout(400)
         rows = _rows(page, "#cfg")
-        if [r["vl"] for r in rows] != ["français", "english", "dansk"] or (rows[0]["val"], rows[0]["small"]) != ("Marie", "Automática"):
+        if [r["vl"] for r in rows] != ["français", "english", "dansk"] or (rows[0]["val"], rows[0]["small"]) != ("Automática · Marie", ""):
             probs.append(f"filas en dialog#cfg: {rows}")
         page.locator("#cfg #cfg-l-en").click()
         page.wait_for_timeout(400)
@@ -531,7 +569,6 @@ def test_cfg_sheet_fallback():
         others = {x["t"]: x["sub"] for x in L["radios"]}
         if others.get("Moira") != "Irlanda" or others.get("Samantha") != "Estados Unidos":
             probs.append(f"acentos: {others}")
-        _shot(page, "lista-ingles-ios-cfg-phone")
         page.locator("#cfg .vl-more").click()
         L = _list(page, "#cfg .cfg-pg[data-vl]")
         shown = [x["t"] for x in L["radios"] if x["shown"]]
@@ -616,44 +653,106 @@ def test_offline_android_and_keyboard():
     assert not probs, "\n".join(probs)
 
 
+def test_contrast_and_palette():
+    """Voz y velocidad, las páginas de inglés (iPhone, con «Más voces» abierto), francés (Edge, con una elegida) y danés
+    sin voz, y la hoja propia dialog#cfg, en móvil claro y oscuro: todo texto con contraste ≥ 4,5:1 y sin colores
+    prohibidos (índigo, morado, rosa, naranja), con la auditoría de audit.js."""
+    audit = (C.HERE / "audit.js").read_text(encoding="utf-8")
+    probs = []
+
+    def check(page, where):
+        page.wait_for_timeout(80)
+        a = page.evaluate(audit, {"what": ["contrast", "palette"]})
+        # «‹ Ajustes» de la barra de js/settings.js sobre la hoja de vidrio a media altura: la auditoría no sabe mezclar ese
+        # fondo (94 % opaco, con su degradado) y lo da por más oscuro de lo que se ve; es de F2 y no cambia aquí
+        probs.extend(f"{where}: {x}" for x in a["contrast"] + a["palette"] if "#aj-back-t" not in x)
+
+    for scheme in ("light", "dark"):
+        page = _page(IOS, color_scheme=scheme)
+        try:
+            _open_voz(page)
+            check(page, f"{scheme} voz")
+            _open_lang(page, "english")
+            page.locator("#ajustes .vl-more").click()
+            check(page, f"{scheme} inglés")
+            probs.extend(C.errors(page))
+        finally:
+            page.context.close()
+        page = _page(EDGE, color_scheme=scheme, keys={"vocab:voice": {"français": "Microsoft Julie - French (France)"}})
+        try:
+            _open_voz(page)
+            _open_lang(page, "français")
+            check(page, f"{scheme} francés")
+            probs.extend(C.errors(page))
+        finally:
+            page.context.close()
+        page = _page(CHROME_WIN, color_scheme=scheme, lang="dansk")
+        try:
+            _open_voz(page)
+            check(page, f"{scheme} voz sin danés")
+            _open_lang(page, "dansk")
+            check(page, f"{scheme} danés")
+            page.keyboard.press("Escape")
+            page.keyboard.press("Escape")
+            page.wait_for_function("() => !document.getElementById('ajustes').open", timeout=3000)
+            page.evaluate("() => openCfg(null, null)")
+            page.wait_for_selector("dialog#cfg[open]", timeout=3000)
+            page.wait_for_timeout(400)
+            check(page, f"{scheme} dialog#cfg")
+            page.locator("#cfg #cfg-l-en").click()
+            page.wait_for_timeout(400)
+            check(page, f"{scheme} dialog#cfg inglés")
+            probs.extend(C.errors(page))
+        finally:
+            page.context.close()
+    assert not probs, "\n".join(probs[:40])
+
+
 def test_voice_screens():
-    """Capturas (con VOCES_SHOTS=1): Voz y velocidad con la lista de iOS y la de Edge en Windows, las listas de inglés y
-    francés, danés sin voz, en móvil claro y oscuro, y escritorio; sin errores."""
+    """Capturas (con VOCES_SHOTS=1) en móvil 390×844, claro y oscuro: Voz y velocidad con las voces de un iPhone y con las
+    de Edge en Windows, la lista de inglés (iPhone: británicas, otros acentos y «Más voces» plegado), la de francés (Chrome
+    en Windows, las voces de la captura del dueño, con Hortense elegida) y la de danés sin voz; y en escritorio, Voz y
+    velocidad y la lista de francés. Sin errores."""
     if not os.environ.get("VOCES_SHOTS"):
         return
     probs = []
+
+    def back_to_voz(page):
+        page.locator("#aj-back").click()
+        page.wait_for_function("() => vocabSettings.page === 'voz'", timeout=3000)
+        page.wait_for_timeout(450)
+
     for scheme in ("light", "dark"):
-        for plat, vs in (("ios", IOS), ("edge", EDGE)):
-            page = _page(vs, color_scheme=scheme)
+        page = _page(IOS, color_scheme=scheme)
+        try:
+            _open_voz(page)
+            _shot(page, f"voz-y-velocidad-ios-{scheme}")
+            _open_lang(page, "english")
+            _shot(page, f"lista-ingles-{scheme}")
+            probs += C.errors(page)
+        finally:
+            page.context.close()
+        page = _page(EDGE, color_scheme=scheme)
+        try:
+            _open_voz(page)
+            _shot(page, f"voz-y-velocidad-edge-{scheme}")
+            probs += C.errors(page)
+        finally:
+            page.context.close()
+        for kind, pre in (("phone", ""), ("desk", "escritorio-")):
+            page = _page(CHROME_WIN, kind=kind, color_scheme=scheme, keys={"vocab:voice": {"français": "Microsoft Hortense - French (France)"}})
             try:
                 _open_voz(page)
-                _shot(page, f"voz-y-velocidad-{plat}-phone-{scheme}")
-                _open_lang(page, "english")
-                _shot(page, f"lista-ingles-{plat}-phone-{scheme}")
-                page.locator("#aj-back").click()
-                page.wait_for_function("() => vocabSettings.page === 'voz'", timeout=3000)
+                if kind == "desk":
+                    _shot(page, f"{pre}voz-y-velocidad-{scheme}")
                 _open_lang(page, "français")
-                page.locator('#ajustes .vl-pick:not([data-v=""])').nth(1).click()
-                page.wait_for_timeout(200)
-                _shot(page, f"lista-frances-{plat}-phone-{scheme}")
+                page.evaluate("() => document.activeElement && document.activeElement.blur()")
+                _shot(page, f"{pre}lista-frances-{scheme}")
+                if kind == "phone":
+                    back_to_voz(page)
+                    _open_lang(page, "dansk")
+                    _shot(page, f"lista-danes-sin-voz-{scheme}")
                 probs += C.errors(page)
             finally:
                 page.context.close()
-        page = _page(CHROME_WIN, color_scheme=scheme)
-        try:
-            _open_voz(page)
-            _open_lang(page, "dansk")
-            _shot(page, f"lista-danes-sin-voz-phone-{scheme}")
-            probs += C.errors(page)
-        finally:
-            page.context.close()
-        page = _page(EDGE, kind="desk", color_scheme=scheme)
-        try:
-            _open_voz(page)
-            _shot(page, f"voz-y-velocidad-edge-desk-{scheme}")
-            _open_lang(page, "english")
-            _shot(page, f"lista-ingles-edge-desk-{scheme}")
-            probs += C.errors(page)
-        finally:
-            page.context.close()
     assert not probs, "\n".join(probs)

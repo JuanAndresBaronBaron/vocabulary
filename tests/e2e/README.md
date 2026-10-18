@@ -144,11 +144,13 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   de GitHub Pages y recargando al momento) y sin conexión.
 - `test_voces.py` (voz de cada idioma): `speechSynthesis` simulado con listas de voces de aparatos reales (iPhone con
   Safari, Windows con Edge y con Chrome, Android con Chrome, Firefox de Android con el motor de Samsung, Chromebook) y
-  lista vacía que llega tarde. Ajustes › Voz y velocidad con una fila por idioma (el que aprende primero, con en, fr y
-  da), la «Automática» de cada aparato (británica para inglés, nunca de broma ni muy robótica), cada idioma con solo sus
+  lista vacía que llega tarde. Ajustes › Voz y velocidad con el grupo «Voces» de una fila por idioma (el que aprende
+  primero, con en, fr y da; a la derecha «Automática · Sonia» o la elegida, sin cortarse), la «Automática» de cada
+  aparato (británica para inglés, nunca de broma ni muy robótica), cada idioma con solo sus
   voces y sin repetir, elegir en la página del idioma (✓, suena con esa voz y su `lang`, `"vocab:voice"` por idioma y solo
   de este aparato, sigue tras recargar, «Automática» la quita), fuera de la partida (exportación igual a la base),
-  `voice:<idioma>` de respaldo, sin voz danesa, repintar al llegar las voces sin perder la página ni el foco, la hoja
+  `voice:<idioma>` de respaldo, sin voz danesa (y Para mayores con la ayuda solo de lo que falta), repintar al llegar
+  las voces sin perder la página ni el foco, la hoja
   propia `dialog#cfg`, sin internet las del aparato y el reintento, Chrome en Android (`u.lang`) y el teclado. Con
   `VOCES_SHOTS=1` guarda capturas en `/mnt/project-files/rediseno/capturas/voces/`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
