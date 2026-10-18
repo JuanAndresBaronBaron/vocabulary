@@ -467,7 +467,10 @@ button.st-r:disabled .st-ic{background:#8E8E93}
 .aj-chev{flex:none;display:grid;place-items:center;color:var(--label3)}
 .st-ic.fl{background:none}
 .st-ic.fl .flag{width:28px;height:28px}
-.cfg-l .aj-val{max-width:55%}
+/* la fila de idioma: el nombre es corto y no se encoge; la voz que sonará ocupa el resto */
+.cfg-l .st-l{flex:1 0 auto;max-width:100%}
+.cfg-l .aj-val{flex:0 1 auto;min-width:0;max-width:none;white-space:normal;text-align:right;line-height:1.25}
+.cfg-l .aj-val>span{display:inline-block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;vertical-align:top}   /* si no cabe, la voz baja a otra línea */
 #cfg .st-g.ics>.st-r+.st-r::before{left:58px}
 .vl-r{padding:0 0 0 9px;gap:0;align-items:stretch}
 .vl-try{flex:none;align-self:center;width:44px;height:44px;display:grid;place-items:center;margin:0;padding:0;border:0;border-radius:50%;
@@ -1160,7 +1163,7 @@ function voiceLabel(v, short){
   const n = String(v.name || ""), s = n + " " + (v.voiceURI || ""), num = /(\d+)\s*(\(|$)/.exec(n);
   let t = vcore(n).replace(/Multilingual$/i, "");
   if(/^Android Speech Recognition and Synthesis from Google/i.test(n)){ const m = /-x-([a-z]{3})-/i.exec(n); t = m ? `Google ${m[1]}` : "Google"; }
-  else if(/^Google\s/i.test(n)) t = /Female/i.test(n) ? "Google · mujer" : /Male/i.test(n) ? "Google · hombre" : num ? `Google ${num[1]}` : "Google";
+  else if(/^Google\s/i.test(n)) t = /Female/i.test(n) ? "Google (mujer)" : /Male/i.test(n) ? "Google (hombre)" : num ? `Google ${num[1]}` : "Google";
   else if(/^Chrome OS\s/i.test(n)) t = num ? `Chrome OS ${num[1]}` : "Chrome OS";
   else if(/_/.test(v.lang || "") || /^moz-tts:android:/i.test(v.voiceURI || "")) t = "Voz del sistema";
   else if(/espeak/i.test(s)) t = "eSpeak";
@@ -1207,17 +1210,20 @@ function voiceHelpRow(l, bare){
   return ls.filter(k => LANGS[k] && !langVoices(k).length).map(k => `<div class="st-r"><span class="st-ic gr" aria-hidden="true">${ico("speaker-high", "bold", 18)}</span><span class="st-l">${bare ? "Cómo añadirla" : `Voz del ${esc(LANGS[k].name)}`}<small>${bare ? "" : "Las palabras traen su audio; las frases usan la voz del aparato. "}${esc(voiceSteps())}</small></span></div>`).join("");
 }
 /* ---- Voz y velocidad ---- */
+/* a la derecha, la voz que sonará: «Automática · Sonia», la elegida («Hortense») o nada si no hay voz de ese idioma */
+function vozVal(L){
+  if(voices.length > 0 && !langVoices(L).length) return "";
+  const sv = savedVoice(L), au = autoVoice(L), sp = t => `<span>${esc(t)}</span>`;
+  return sv ? sp(voiceLabel(sv, true)) : au ? `${sp("Automática ·")} ${sp(voiceLabel(au, true))}` : sp("Automática");
+}
 function vozRow(L){
-  const none = voices.length > 0 && !langVoices(L).length, sv = savedVoice(L), au = autoVoice(L);
-  const val = none ? "" : sv ? voiceLabel(sv, true) : au ? voiceLabel(au, true) : "";
-  const sub = none ? "No hay voz en este aparato" : sv ? "" : "Automática";
+  const val = vozVal(L), sub = val ? "" : "No hay voz en este aparato";
   return `<button type="button" class="st-r aj-go cfg-l" id="cfg-l-${CLIP_AB[L]}" data-vl="${esc(L)}"><span class="st-ic fl" aria-hidden="true"><span class="flag">${FLAGS[L] || ""}</span></span>`
-    + `<span class="st-l">${esc(LANG_ES[L][0])}${sub ? `<small>${esc(sub)}</small>` : ""}</span>${val ? `<span class="aj-val">${esc(val)}</span>` : ""}`
+    + `<span class="st-l">${esc(LANG_ES[L][0])}${sub ? `<small>${esc(sub)}</small>` : ""}</span>${val ? `<span class="aj-val">${val}</span>` : ""}`
     + `<span class="aj-chev" aria-hidden="true">${ico("caret-right", "bold", 16)}</span></button>`;
 }
-/* primero el idioma que aprende; luego los otros dos, en su orden de siempre */
-const vozRows = () => `<section class="st-sec" aria-labelledby="cfg-lh"><h3 class="st-h" id="cfg-lh">El idioma que aprendes</h3><div class="st-g ics">${vozRow(lang)}</div></section>
-  <section class="st-sec" aria-labelledby="cfg-oh"><h3 class="st-h" id="cfg-oh">Otros idiomas</h3><div class="st-g ics">${Object.keys(LANGS).filter(k => k !== lang).map(vozRow).join("")}</div></section>`;
+/* «Voces»: primero el idioma que aprende; luego los otros dos, en su orden de siempre */
+const vozRows = () => `<section class="st-sec" aria-labelledby="cfg-lh"><h3 class="st-h" id="cfg-lh">Voces</h3><div class="st-g ics">${[lang, ...Object.keys(LANGS).filter(k => k !== lang)].map(vozRow).join("")}</div></section>`;
 const cfgTry = ok => `<span class="st-ic" aria-hidden="true">${ico("play", "bold", 18)}</span><span class="st-l">Probar la voz${ok ? "" : "<small>Este aparato aún no tiene esa voz</small>"}</span>`;
 function vozHtml(){
   const ok = langVoices(lang).length > 0;
@@ -1258,7 +1264,7 @@ function voiceListHtml(L, open){
     <p class="st-foot vl-foot">Las palabras suenan con su audio grabado; esta voz lee lo demás. Se guarda solo en este aparato.</p>`;
 }
 function autoSub(L){
-  const au = autoVoice(L), n = voiceChoice(L), now = au ? voiceLabel(au) : "";
+  const au = autoVoice(L), n = voiceChoice(L), now = au ? voiceLabel(au, true) : "";
   if(n && !savedVoice(L)) return `«${voiceLabel({name: n})}» no está en este aparato. Suena ${now || "la del sistema"}.`;
   return now ? `La mejor de este aparato: ${now}` : "La voz del sistema";
 }
