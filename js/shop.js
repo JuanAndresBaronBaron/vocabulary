@@ -29,6 +29,9 @@
         sale el aviso amable). fromEl (opcional): de dónde salen las chispas.
      wear(id) → {ok, reason?, item?, worn?}  alterna (el personaje "hero" no se quita: tocar el puesto lo deja puesto).
         reason: "unknown" | "farm" | "not-owned". Emite bus "wear" {item, worn}.
+     gift(id) → {ok, reason?, item?}       la cosa pasa a ser suya sin pagar (los regalos de las cartas, js/mailbox.js):
+        owned, gameSet y checkAch a los 800 ms; no toca las monedas ni se la pone, y no emite "buy" (quien regala avisa).
+        reason: "unknown" | "owned".
      card(itemOrId, {mode?: "farm" | "zorro"}) → HTML de la pieza (mode por defecto: el del tipo de la cosa; solo cambia
         data-mode, para el estilo de cada pantalla).
      bind(host, {onChange?}) → off()         delegación de clics en host: [data-buy] compra, [data-wear] se lo pone o se
@@ -200,6 +203,15 @@ function wear(id){
   sync();
   return {ok: true, item: it, worn: on};
 }
+/* regalo: suya sin pagar (sin tocar las monedas) */
+function gift(id){
+  const it = itemById(id), g = game();
+  if(!it) return {ok: false, reason: "unknown"};
+  if(g.owned[it.id]) return {ok: false, reason: "owned", item: it};
+  g.owned[it.id] = true; gameSet(g); setTimeout(checkAch, 800);
+  sync();
+  return {ok: true, item: it};
+}
 
 /* ---------- refugio ---------- */
 let shelPend = false;
@@ -310,6 +322,6 @@ function css(){
 }
 css();
 
-W.vocabShop = {ready, items, byId, word, img, owned, worn, coins, state, buy, wear, card, bind, paint, sync, refreshPrices,
+W.vocabShop = {ready, items, byId, word, img, owned, worn, coins, state, buy, wear, gift, card, bind, paint, sync, refreshPrices,
   goShelter, images, types: TYPES};
 })();

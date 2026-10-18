@@ -157,6 +157,14 @@ Una prueba falla lanzando una excepción (normalmente `assert`).
   el interruptor y «Olvidar lo aprendido» de Para mayores; la pregunta de la tortuga una sola vez; Hoy sin scroll a
   390×844 con la fila; 4 piezas en tableta; lo que quedó a medias primero con anillo; las teclas 1-3; capturas en
   `capturas/F5/F5a-*`; la partida exportada como la base salvo `sc:prefs`.
+- `test_f5_buzon.py` (F5c, `js/mailbox.js`, `window.vocabMailbox` y `window.vocabMedia`; MediaRecorder, getUserMedia,
+  `navigator.share` y la voz del navegador simulados): la frase del micrófono antes de pedirlo, grabar para solo a los
+  20 s, «Escucharme», «Otra vez», «Muy cortito» y las 5 últimas en IndexedDB; sin micrófono o sin permiso, una frase
+  amable; «Mandar» comparte el archivo con el enlace de respuesta (o lo descarga); la Puerta antes de contestar y el
+  enlace `#/carta?d=`; el enlace en una pestaña limpia da las monedas o el adorno una sola vez (recargar, reabrir y otro
+  aparato con la partida copiada, nada); enlaces rotos o con `<script>` no dan nada; los 3 candados se abren; el sobre
+  en Hoy (tiembla 3 veces, quieto con movimiento reducido, sin scroll); la tarjeta de Juegos; IndexedDB fuera de la
+  partida y «Borrar grabaciones y fotos»; capturas en `capturas/F5/F5c-*`; la partida exportada como la base.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.
