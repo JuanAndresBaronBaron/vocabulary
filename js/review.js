@@ -223,9 +223,11 @@ ${DARK(".rv-face", "box-shadow:none")}
 .rv-q{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .rv-q:focus-visible{outline:3px solid var(--brand-tint);outline-offset:3px}
 .rv-a{transform:rotateY(180deg)}
-.rv-picw{display:flex;align-items:center;justify-content:center;flex:0 1 auto;min-height:0}
-.rv-pic{display:block;width:auto;height:auto;max-width:min(168px,62%);max-height:min(168px,22svh);object-fit:contain;-webkit-user-drag:none}
-${DARK(".rv-pic", "background:#F2F2F7;border-radius:var(--r-md);padding:6px")}
+.rv-picw{display:flex;align-items:center;justify-content:center;flex:0 1 auto;min-height:0;align-self:stretch}
+/* el dibujo, un cuadrado que crece con la tarjeta y con el alto de la pantalla (el 70 % se cuenta sobre la tarjeta:
+   .rv-picw va a lo ancho); en oscuro, el fondo claro con un margen corto */
+.rv-pic{display:block;width:min(200px,70%,24vh);width:min(200px,70%,24svh);aspect-ratio:1;height:auto;object-fit:contain;-webkit-user-drag:none}
+${DARK(".rv-pic", "background:#F2F2F7;border-radius:var(--r-md);padding:4px")}
 .rv-es{margin:12px 0 0;font:700 var(--fs-t1)/1.2 var(--f-round);overflow-wrap:anywhere;text-wrap:balance}
 .rv-es.big{margin:0;font-size:var(--fs-word);line-height:1.15}
 .rv-qq{margin:8px 0 0;color:var(--label2);font:600 var(--fs-body)/1.25 var(--f-text);text-wrap:balance}
@@ -318,8 +320,9 @@ dialog#rv-pause.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filte
 @media (prefers-contrast:more){.rv-face{border:2px solid var(--sep)}}
 :root[data-contrast=more] .rv-face{border:2px solid var(--sep)}
 @media (forced-colors:active){.rv-face{border:2px solid CanvasText}.rv-prog i{background:Highlight}.rv-tint{display:none}}
-@media (max-height:700px){.rv-stage{padding-bottom:24px}.rv-face{padding:16px}.rv-pic{max-height:min(120px,18svh)}.rv-es{margin-top:8px}.rv-qq{margin-top:4px}
+@media (max-height:700px){.rv-stage{padding-bottom:24px}.rv-face{padding:16px}.rv-pic{width:min(140px,70%,20vh);width:min(140px,70%,20svh)}.rv-es{margin-top:8px}.rv-qq{margin-top:4px}
   .rv-tap{margin-top:12px}.rv-audio{margin-top:12px}.rv-hints{margin-top:8px}.rv-end-card{padding:16px}}
+@media (max-height:600px){.rv-pic{width:min(96px,70%,17vh);width:min(96px,70%,17svh)}}
 `;
 function css(){
   if(DOC.getElementById("css-review")) return;

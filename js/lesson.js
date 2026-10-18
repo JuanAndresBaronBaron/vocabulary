@@ -77,7 +77,7 @@ const CSS = `
 .ls-card:focus:not(:focus-visible){outline:none}
 .ls-pic{display:flex;align-items:center;justify-content:center;width:100%;height:clamp(120px,24vh,220px)}
 .ls-pic img{display:block;box-sizing:border-box;min-width:0;min-height:0;max-width:min(220px,80%);max-height:100%;object-fit:contain;-webkit-user-drag:none}
-:root[data-theme=dark] .ls-pic img{background:#F2F2F7;border-radius:var(--r-md);padding:8px}
+:root[data-theme=dark] .ls-pic img{background:#F2F2F7;border-radius:var(--r-md);padding:4px}
 .ls-ph{display:grid;place-items:center;height:100%;aspect-ratio:1;max-height:140px;border-radius:28px;background:var(--fill2);
   color:var(--label2);font:800 3rem/1 var(--f-round)}
 .ls-learn{touch-action:pan-y;will-change:translate}
@@ -117,12 +117,14 @@ const CSS = `
   border:0;border-radius:20px;background:var(--card);color:var(--label);font:700 var(--fs-t2)/1.15 var(--f-round);text-align:center;
   overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
 .ls-opts.is-long .ls-opt{font-size:var(--fs-head)}
-.ls .ls-opt.has-pic{justify-content:flex-start;padding-left:10px;text-align:left;font-size:var(--fs-t3)}
+/* «Escucha y elige» con dibujos: el dibujo arriba, grande (crece con el alto de la pantalla), y la palabra debajo */
+.ls .ls-opt.has-pic{flex-direction:column;justify-content:center;gap:4px;padding:10px 8px;text-align:center;font-size:var(--fs-t3)}
 .ls .ls-opts.is-long .ls-opt.has-pic{font-size:var(--fs-head)}
 .ls .ls-opts.is-xlong .ls-opt,.ls .ls-opts.is-xlong .ls-opt.has-pic{font-size:var(--fs-sub)}
 .ls-ot{display:block;min-width:0;max-width:100%;overflow-wrap:normal;word-break:normal}
 .ls-opts.is-break .ls-ot{overflow-wrap:anywhere}
-.ls-opt img{flex:none;box-sizing:border-box;width:48px;height:48px;padding:3px;border-radius:10px;background:#fff;object-fit:contain;-webkit-user-drag:none}
+.ls-opt img{flex:none;box-sizing:border-box;width:clamp(48px,calc((100vh - 480px) / 2),104px);width:clamp(48px,calc((100svh - 480px) / 2),104px);aspect-ratio:1;height:auto;
+  padding:3px;border-radius:12px;background:#fff;object-fit:contain;-webkit-user-drag:none}
 :root[data-theme=dark] .ls-opt img{background:#F2F2F7}
 .ls-opt .ls-k{display:none;position:absolute;left:8px;top:8px}
 :root[data-kbd] .ls-opt .ls-k{display:inline-flex}
@@ -211,12 +213,18 @@ const CSS = `
 .ls-how-b{margin-top:16px}
 /* móvil bajo (iPhone SE/8): todo cabe sin bajar, y la respuesta queda por encima del botón */
 @media (max-height:700px){
-  .ls-pic{height:clamp(96px,18vh,140px)}
+  .ls-pic{height:clamp(110px,22vh,160px)}
   .ls .ls-card{gap:4px;padding:16px 16px 20px}
   .ls .ls-top{margin-bottom:12px}
   .ls-opts{gap:8px}
   .ls-end .ls-card{padding:16px}
   .ls-fox{height:96px}}
+/* aún más bajo (móvil pequeño, tumbado): el dibujo como antes y las opciones con dibujo en una fila (dibujo pequeño a la
+   izquierda), que es lo que cabe */
+@media (max-height:600px){
+  .ls-pic{height:clamp(96px,18vh,140px)}
+  .ls .ls-opt.has-pic{flex-direction:row;justify-content:flex-start;padding:8px 12px 8px 10px;text-align:left}
+  .ls-opt img{width:48px}}
 @media (prefers-reduced-motion:reduce){
   .ls .ls-spk.say.playing::after{animation:none;opacity:0}
   .ls-fox .hero{animation:none}
