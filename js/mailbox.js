@@ -82,7 +82,7 @@ function rid(n){
   let a; try{ a = crypto.getRandomValues(new Uint8Array(n)); }catch(e){ a = Array.from({length: n}, () => Math.floor(Math.random() * 256)); }
   return Array.from(a, x => A[x & 63]).join("");
 }
-function unlockVoice(){ try{ if("speechSynthesis" in W) speechSynthesis.speak(new SpeechSynthesisUtterance(" ")); }catch(e){} }
+function unlockVoice(){ try{ if(!("speechSynthesis" in W)) return; const u = new SpeechSynthesisUtterance(" "); if(typeof useVoice === "function") useVoice(u, lang); speechSynthesis.speak(u); }catch(e){} }
 /* iPhone o iPad fuera de la app instalada (Safari, o el navegador de dentro de otra app): no comparte lo guardado con
    la app de la pantalla de inicio */
 const iosBrowser = () => { try{ return typeof IOS !== "undefined" && !!IOS && !(typeof iosPWA === "function" && iosPWA()); }catch(e){ return false; } };
@@ -390,7 +390,8 @@ function msgLang(msg, l){
   return sc[l] === best ? l : Object.keys(sc).find(k => sc[k] === best);
 }
 const codeOf = ab => ab === "es" ? "es-ES" : ((typeof LANGS !== "undefined" && LANGS[LK[ab]]) || {}).code || "en-GB";
-/* la voz para un idioma: la elegida en Ajustes si es el idioma que aprende; si no, la mejor de ese idioma */
+/* la voz: la de index.html (useVoice: para en-GB, fr-FR y da-DK la elegida en este aparato en Ajustes › Voz y velocidad
+   para ESE idioma, o «Automática»; para es-ES, la mejor voz española). pickVoice queda solo por si index.html no la tiene */
 function pickVoice(code){
   try{ if(typeof voiceFor === "function" && LANGS[lang] && LANGS[lang].code === code) return voiceFor(code); }catch(e){}
   let vs = []; try{ vs = speechSynthesis.getVoices() || []; }catch(e){}
@@ -409,9 +410,12 @@ function speak(text, code, btn, slow){
     const fin = v => { if(done) return; done = true; clearTimeout(t); if(btn) btn.classList.remove("playing"); if(SPK === btn) SPK = null; res(v); };
     let u; try{ u = new SpeechSynthesisUtterance(text); }catch(e){ res(false); return; }
     const r0 = typeof rate === "number" && rate > 0 ? rate : .9;
-    u.lang = code; u.rate = slow ? (typeof SLOW === "function" ? SLOW() : r0 * .6) : r0;
-    const v = pickVoice(code); if(v) u.voice = v;
-    u.onend = () => fin(true); u.onerror = () => fin(false);
+    u.rate = slow ? (typeof SLOW === "function" ? SLOW() : r0 * .6) : r0;
+    if(typeof useVoice === "function") useVoice(u, code);
+    else { u.lang = code; const v = pickVoice(code); if(v) u.voice = v; }
+    /* una voz de internet que falla: otra vez con una del aparato (retryLocal de index.html) */
+    u.onend = () => fin(true);
+    u.onerror = e => { if(!(typeof retryLocal === "function" && retryLocal(u, e, ev => fin(!(ev && ev.type === "error"))))) fin(false); };
     t = setTimeout(() => fin(true), Math.min(40000, 2500 + text.length * (slow ? 180 : 110)));
     if(btn) btn.classList.add("playing");
     try{ speechSynthesis.speak(u); }catch(e){ fin(false); }
@@ -432,7 +436,10 @@ const CSS = `
 .mb-tpl{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:4px;min-width:0;min-height:84px;margin:0;padding:8px 4px;border:0;
   border-radius:var(--r-md);background:var(--fill2);color:var(--label);font:600 var(--fs-min)/1.2 var(--f-text);cursor:pointer;-webkit-tap-highlight-color:transparent;
   transition:opacity var(--d-fast,160ms)}
-.mb-tpl img{width:40px;height:40px;pointer-events:none}
+/* el dibujo de cada frase llena el ancho de su botón, hasta 64 px (antes 40); en el móvil, huecos algo más cortos entre
+   bloques para que la pantalla no baje más que antes */
+.mb-tpl img{box-sizing:border-box;width:min(100%,64px);height:auto;aspect-ratio:1;pointer-events:none}
+@media (max-width:743px){.mb-hd{margin-bottom:12px}.mb-card{margin-bottom:16px}.mb-tpl{gap:2px;padding:6px 4px}.mb-phr{margin-top:12px}.mb-ctl{margin-top:12px}}
 .mb-tpl span{max-width:100%;overflow-wrap:anywhere;text-align:center}
 .mb-tpl[aria-checked=true]{background:var(--brand-soft);box-shadow:inset 0 0 0 2px var(--brand-tint);color:var(--brand-ink)}
 :root[data-theme=dark] .mb-tpl[aria-checked=true]{color:#7DBBFF}

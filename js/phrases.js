@@ -38,9 +38,9 @@
      boolean, back() → {h, t}, state() → lo que se ve en #/frases}. Una frase = {ref, tpl, lang, text, pre, art, core,
      post, es, esPre, esWord, esPost, img, say, clip, known?, day?}.
    Usa de index.html: lang, LANGS, store, bus, ROUTES, HOME_SLOTS, TABS, esc, ico, getDoc, srsK, getMap, mapP, lvLessons,
-   LVS, dayKey, award, canListen, listen, stopListen, noVoiceMsg, fitWord, playClip, clipFor, stopClip, speakable, voiceFor,
-   rate, SLOW, autoTok, ROUTE_FROM, ROUTE_RESTORE, secOf, navTo, shuffle; window.M, window.G, window.adultGate,
-   window.vocabReview, window.vocabGames. Iconos: Phosphor. Dibujo de la tarjeta: OpenMoji (bocadillo y destellos). */
+   LVS, dayKey, award, canListen, listen, stopListen, noVoiceMsg, fitWord, playClip, clipFor, stopClip, speakable,
+   useVoice, retryLocal, voiceFor, rate, SLOW, autoTok, ROUTE_FROM, ROUTE_RESTORE, secOf, navTo, shuffle; window.M,
+   window.G, window.adultGate, window.vocabReview, window.vocabGames. Iconos: Phosphor. Dibujo de la tarjeta: OpenMoji (bocadillo y destellos). */
 (() => {
 "use strict";
 const W = window, DOC = document;
@@ -319,18 +319,23 @@ function addStamp(){
 
 /* ---------- audio: voz del navegador + audio grabado de la palabra, en orden ---------- */
 let playTok = 0;
-function ttsP(text, slow){
+/* L: el idioma de la frase (el de la app si no se dice). La voz es la de ese idioma en este aparato (useVoice de index.html:
+   la elegida en Ajustes › Voz y velocidad o «Automática»); si es de internet y falla, otra vez con una del aparato */
+function ttsP(text, slow, L){
   return new Promise(res => {
     const t0 = speakable(text);
     if(!("speechSynthesis" in W) || !/\p{L}/u.test(t0)) return res();
-    const u = new SpeechSynthesisUtterance(t0);
-    u.lang = code(); u.rate = slow ? SLOW() : rate;
-    const v = voiceFor(code()); if(v) u.voice = v;
-    let done = false;
+    const u = new SpeechSynthesisUtterance(t0), vl = LANGS[L] ? L : lang;
+    u.rate = slow ? SLOW() : rate;
+    if(typeof useVoice === "function") useVoice(u, vl);
+    else { u.lang = LANGS[vl].code; const v = voiceFor(LANGS[vl].code); if(v) u.voice = v; }
+    let done = false, tm = 0;
     const fin = () => { if(done) return; done = true; clearTimeout(tm); res(); };
-    /* por si el navegador no avisa al acabar: se corta (así lo siguiente nunca pisa a esto) */
-    const tm = setTimeout(() => { try{ if(speechSynthesis.speaking) speechSynthesis.cancel(); }catch(e){} fin(); }, 2500 + t0.length * 150 / u.rate);
-    u.onend = u.onerror = fin;
+    /* por si el navegador no avisa al acabar: se corta (así lo siguiente nunca pisa a esto); otra vez al reintentar */
+    const arm = () => { clearTimeout(tm); tm = setTimeout(() => { try{ if(speechSynthesis.speaking) speechSynthesis.cancel(); }catch(e){} fin(); }, 2500 + t0.length * 150 / u.rate); };
+    arm();
+    u.onend = fin;
+    u.onerror = e => { if(!done && typeof retryLocal === "function" && retryLocal(u, e, fin)) arm(); else fin(); };
     try{ speechSynthesis.speak(u); }catch(e){ fin(); }
   });
 }
@@ -356,11 +361,11 @@ async function play(f, slow, ui){
     if(s.c){
       if(ui && ui.word) ui.word(true);
       const ok = await clipP(s.c, slow);
-      if(!ok && alive()) await ttsP(s.c, slow);
+      if(!ok && alive()) await ttsP(s.c, slow, f.lang);
       if(ui && ui.word) ui.word(false);
     } else {
       if(s.all && ui && ui.word) ui.word(true);
-      await ttsP(s.t.trim(), slow);
+      await ttsP(s.t.trim(), slow, f.lang);
       if(s.all && ui && ui.word) ui.word(false);
     }
   }
@@ -402,7 +407,7 @@ const CSS = `
 .ph-tiles.n3{grid-template-columns:repeat(3,minmax(0,1fr))}
 .ph-tile{display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;min-height:var(--tap);margin:0;padding:8px 4px;border:0;border-radius:var(--r-md);
   color:var(--label);font:700 var(--fs-note)/1.2 var(--f-round);cursor:pointer;-webkit-tap-highlight-color:transparent}
-.ph-tile img{width:56px;height:56px;object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.ph-tile img{box-sizing:border-box;width:56px;height:56px;object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none}
 .ph-tile .ph-tw{display:block;max-width:100%;white-space:nowrap;overflow:hidden}
 /* la pieza puesta deja su sitio en la bandeja: un hueco atenuado con borde de puntos (como mientras se arrastra) */
 .ph-tile[aria-pressed=true]{background:transparent;box-shadow:none;outline:2px dashed var(--sep);outline-offset:-2px}
@@ -436,10 +441,12 @@ const CSS = `
 .ph-hgo{flex:1;min-width:0;display:flex;align-items:center;gap:12px;align-self:stretch;padding:8px 0 8px 12px;border-radius:inherit;color:inherit;text-decoration:none;-webkit-tap-highlight-color:transparent}
 .ph-hgo small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .ph-hsay{margin:-4px 0}
-@media (max-width:380px){.ph-tile img{width:48px;height:48px}.ph-tiles{gap:8px}}
+/* en el móvil, el dibujo de cada ficha llena su ancho (antes 56 px; 73 en 390×844, 106 con 3 fichas): la bandeja sigue en una
+   fila y la página no baja más que antes (huecos de 12 y 8 px en lugar de 16 y 12, y 6 px arriba y abajo en la ficha) */
+@media (max-width:743px){.ph{gap:12px}.ph-tiles{gap:8px}.ph-tile{padding:6px 4px}.ph-tile img{width:min(100%,112px);height:auto;aspect-ratio:1}}
 @media (min-width:744px){.ph-tile img{width:72px;height:72px}.ph-line{font-size:var(--fs-t1)}}
 ${DARK(".ph-seals li .ico", "color:var(--gold)")}
-${DARK(".ph-tile img", "background:#F2F2F7;border-radius:var(--r-sm);padding:4px")}   /* la placa clara de los dibujos, como .img img */
+${DARK(".ph-tile img", "background:#F2F2F7;border-radius:var(--r-sm);padding:2px")}   /* la placa clara de los dibujos, como .img img */
 ${DARK(".ph-k .ico,.ph-ct .ico", "color:var(--gold)")}
 @media (prefers-reduced-motion:reduce){.ph-line,.ph-gap,.ph-pc,.ph-spk,.ph-tile img{transition:none}}
 `;
@@ -460,9 +467,15 @@ function lineHtml(){
   return `${esc(fr.pre)}${gapHtml(f)}${esc(fr.post)}`;
 }
 const esHtml = () => ST.f ? `${esc(ST.f.esPre)}<b>${esc(ST.f.esWord)}</b>${esc(ST.f.esPost)}` : esc(esFrame(tplOf(ST.lang, ST.tpl).es));
+/* el dibujo como en los juegos (vocabGames.pic: los árboles de familia recortados de img/fam2/); si no carga (sin conexión
+   antes de haberlo visto), el de siempre */
+function picTag(src){
+  let p = src; try{ if(W.vocabGames && typeof vocabGames.pic === "function") p = vocabGames.pic(src) || src; }catch(e){ p = src; }
+  return `<img src="${esc(p)}"${p !== src ? ` data-f="${esc(src)}" onerror="if(this.dataset.f){this.src=this.dataset.f;delete this.dataset.f}"` : ""} alt="" width="56" height="56" draggable="false">`;
+}
 function tilesHtml(){
   return ST.choices.map((f, i) => `<button type="button" class="card ph-tile" data-i="${i}" data-key="${i + 1}" data-key-pos="in" aria-pressed="${ST.placed === i}" aria-label="${esc(f.core)}"${lng()}>
-    <img src="${esc(f.img)}" alt="" width="56" height="56" draggable="false"><span class="ph-tw">${esc(f.core)}</span></button>`).join("");
+    ${picTag(f.img)}<span class="ph-tw">${esc(f.core)}</span></button>`).join("");
 }
 function dateShort(d){
   try{ const [y, m, dd] = d.split("-").map(Number); return new Date(y, m - 1, dd).toLocaleDateString("es-ES", {day: "numeric", month: "short"}).replace(".", ""); }catch(e){ return d; }

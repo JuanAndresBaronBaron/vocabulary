@@ -14,7 +14,9 @@
    Guarda: store "games:best" {juego: {score, stars, tries?, plays}} · "games:topic" (tema elegido) · "games:day"
            (partidas de hoy) · "vocab:ui".gmIntro (juegos cuya explicación ya se vio; solo de este aparato)
    API: window.vocabGames = {pause(desde), paused, how(desde), openTopics(desde), peek(id, desde), list(), images(),
-        register(id, def), meta(id) → {id, t, img, topic} | null, topic(id) → {id, name, img} | null}.
+        register(id, def), meta(id) → {id, t, img, topic} | null, topic(id) → {id, name, img} | null,
+        pic(src) → el dibujo que usan los juegos para src (img/fam_X.png → img/fam2/fam_X.png; «Descargar todo» los
+        guarda también)}.
         register: def = {t, sub, how, img, words (texto en lugar del tema), rec(best) → texto del récord, fresh (chip
         «Nuevo» en su tarjeta hasta la primera partida), start(app, api, intro)}; start monta el juego con
         api = {mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml,
@@ -1548,6 +1550,8 @@ Object.assign(window.vocabGames = window.vocabGames || {}, {
   list: () => Object.keys(GAMES),
   /* los dibujos que usa el menú (para «Descargar todo»): los de cada juego y los de los temas */
   images: () => [...new Set([...Object.values(GAMES).map(x => x.img), ...[MIS_INFO, ...TOPICS].map(t => `img/om_${t[1]}.png`)])],
+  /* el dibujo de una palabra tal como sale en los juegos (los árboles de familia recortados de img/fam2/) */
+  pic: src => picSrc(src),
   /* para los atajos de Hoy (js/shortcuts.js): un juego (topic: si se juega con un tema) y un tema */
   meta: id => GAMES[id] ? {id, t: GAMES[id].t, img: GAMES[id].img, topic: !GAMES[id].start && !GAMES[id].words} : null,
   topic: id => isTopic(id) ? {id, name: topicName(id), img: topicImg(id)} : null,

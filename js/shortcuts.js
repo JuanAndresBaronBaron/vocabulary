@@ -359,7 +359,7 @@ function wire(sec){
   if(ed) ed.onclick = e => openEdit(e.currentTarget);
   sec.querySelectorAll(".sc-p").forEach(a => {
     /* un juego habla: la primera voz tiene que nacer de un toque (iOS), como en el menú de juegos */
-    if(a.hasAttribute("data-game")) a.addEventListener("click", () => { try{ if("speechSynthesis" in W) speechSynthesis.speak(new SpeechSynthesisUtterance(" ")); }catch(e){} });
+    if(a.hasAttribute("data-game")) a.addEventListener("click", () => { try{ if(!("speechSynthesis" in W)) return; const u = new SpeechSynthesisUtterance(" "); if(typeof useVoice === "function") useVoice(u, lang); speechSynthesis.speak(u); }catch(e){} });
     const k = a.dataset.sc;
     /* al mantener: la pieza se hunde un poco (CSS :active) y, al cumplirse, crece un instante antes de abrir su hoja */
     if(k && W.G && typeof G.hold === "function") GEST.push(G.hold(a, {onHold: () => {
@@ -675,6 +675,14 @@ const CSS = `
 .sc-p .sc-bdg img{width:12px;height:12px}
 .sc-ringed>img,.sc-ringed>.sc-tile{width:24px;height:24px;border-radius:50%}
 .sc-p .sc-ringed>img,.sc-p .sc-ringed>.sc-tile{width:16px;height:16px;border-radius:50%}
+/* (en un móvil alto, desde 900 px, también de 32: ahí Hoy tiene sitio de sobra; en 390×844 no cabe sin quitar una fila) */
+@media (max-width:743px) and (min-height:900px){
+  .sc-p .sc-pic,.sc-p .sc-pic>img,.sc-p .sc-tile{width:32px;height:32px}
+  .sc-p .sc-tile{border-radius:var(--r-sm)}
+  .sc-p .sc-bdg{right:-4px;bottom:-4px;width:20px;height:20px}
+  .sc-p .sc-bdg img{width:16px;height:16px}
+  .sc-p .sc-ringed>img,.sc-p .sc-ringed>.sc-tile{width:24px;height:24px}
+}
 @media (min-width:744px){
   .sc-p{padding:8px}
   .sc-p .sc-pic,.sc-p .sc-pic>img,.sc-p .sc-tile{width:32px;height:32px}

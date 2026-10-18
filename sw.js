@@ -3,7 +3,9 @@
      de F5 en Juegos y Hoy, que así salen sin conexión desde el primer día). Cada versión nueva borra las anteriores.
    · vocab-media: imágenes, audios y los demás datos (temas, gramática, mapas de audio: data/… y audio/….json), con lo que
      guarda «Descargar todo». Se conserva de una versión a otra: lo que el niño ya abrió con red sigue ahí sin conexión
-     aunque la app se actualice.
+     aunque la app se actualice. Aquí van también los árboles de familia recortados de los juegos (img/fam2/, unos
+     470 KB): no están en SHELL porque solo los usa el tema Familia; se guardan la primera vez que se ven y con «Descargar
+     todo», y sin ellos los juegos vuelven al dibujo de siempre (img/fam_…).
    La página y los datos van primero a la red (siempre la última versión) y, sin conexión, salen del shell actual,
    luego de vocab-media y por último de cualquier otra caché. Las imágenes y los mp3 salen de vocab-media y, si no
    están, de la red (y se guardan). Las cachés viejas (vocab-v1 de «Descargar todo», vocab-vNN del sw anterior) pasan
@@ -12,7 +14,7 @@
    Al subir VERSION se sube también OFF_SHELL y el «?v=» de los <script> de index.html y privacy.html: GitHub Pages manda
    max-age=600 y, sin eso, el sw anterior (que pide a la red con la caché HTTP) daría el index.html nuevo con módulos
    viejos de esa caché. El shell se guarda y se busca sin el «?v=». */
-const VERSION = 20;
+const VERSION = 21;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
 const SHELL = [
