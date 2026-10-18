@@ -1,4 +1,6 @@
 /* Módulo sync: la partida se guarda sola en Google Drive (sin servidor).
+   - La partida se guarda SIEMPRE al instante en este aparato (js/save.js). Si un mayor entró con Google, aquí se sube
+     además una copia. El niño no ve nada de Google: ni botón de guardar ni avisos.
    - Google Identity Services, modelo de «token» (el script se carga solo cuando hace falta), permiso
      drive.appdata y nada más: la app solo ve su carpeta privada de Drive, no los archivos de la persona.
    - Un archivo «vocabulary-progress.json» en appDataFolder con la copia de js/save.js (snapshot) y en appProperties
@@ -7,14 +9,19 @@
    - Bajar: al arrancar y al volver a la página. Si solo cambió la de Google, se carga (apply, con copia para deshacer,
      y recarga). Si cambiaron las dos, gana la que tiene más progreso y la otra queda como copia para deshacer.
    - La primera vez en un aparato con progreso y una partida en Google, el mayor elige cuál seguir.
-   - El permiso dura ~1 hora: se pide otra vez sin ventanas (prompt:""); si el navegador no deja, se avisa con un botón
-     «Volver a conectar» y no se abre nada solo.
+   - El permiso dura ~1 hora y, sin servidor, renovarlo abre (y cierra sola) una ventanita de Google que el navegador
+     solo deja abrir dentro de un toque. Se renueva solo, de paso, en un toque normal del niño (pestañas, botones, filas
+     de Hoy, el final de una lección, un repaso o una partida, la granja, las monedas, Ajustes): si caduca en 5 min,
+     como mucho una vez cada 50 min; si ya caducó y hay algo sin subir, o es el primer toque al abrir la app, enseguida
+     y, si falla, otra vez pasados 3 min (si sigue fallando, cada vez más espaciado). Fuera de un toque no se pide nunca.
+     Nunca en mitad de una lección, un repaso o una partida, en la Puerta de mayores ni encima de un campo de texto.
+     Si la ventanita falla o se bloquea, no se avisa al niño: el estado queda en Ajustes › Para mayores (con «Guardar
+     ahora» y «Volver a conectar») y se prueba otra vez en otro toque.
    - Interfaz: el bloque va en Ajustes › Para mayores (js/settings.js avisa por el bus «settings»; se llega tras la
-     Puerta de mayores), el estado en la fila «Para mayores» de Ajustes ([data-sync-cfg]), la pastilla «Guardar» junto a
-     las monedas ([data-sync-slot]) cuando el permiso caducó y hay algo sin subir, y el aviso de la portada
-     (HOME_SLOTS) si no está conectado. Entrar, salir o cambiar la partida pasan por la Puerta (window.adultGate).
+     Puerta de mayores) y el estado en la fila «Para mayores» de Ajustes ([data-sync-cfg]). Entrar, salir o cambiar la
+     partida pasan por la Puerta (window.adultGate).
    Estado propio (no se sube ni se restaura): "save:sync" {fileId, remoteModified, baseHash, lastPushedHash,
-   localDirty, connectedAt, lastSync, hint, reconnect, choice} y "save:tok" {t, exp}. */
+   localDirty, connectedAt, lastSync, lastPull, hint, reconnect, choice, tapAt} y "save:tok" {t, exp}. */
 (() => {
 "use strict";
 const S = window.vocabSave; if(!S) return;
@@ -26,7 +33,7 @@ const ABOUT = "https://www.googleapis.com/drive/v3/about?fields=user(emailAddres
 const REVOKE = "https://oauth2.googleapis.com/revoke";
 const NAME = "vocabulary-progress.json", FIELDS = "id,modifiedTime,appProperties";
 const M = S.META, MIN = 6e4, DAY = 864e5;
-const T = {debounce: 20e3, poll: 30e3, retry: 30e3, retryMax: 10 * MIN, silentGap: 10 * MIN};
+const T = {debounce: 20e3, poll: 30e3, retry: 30e3, retryMax: 10 * MIN, tapGap: 50 * MIN, tapRetry: 3 * MIN};
 const now = () => Date.now();
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 const online = () => navigator.onLine !== false;
@@ -102,7 +109,8 @@ function tokenClient(){
     error_callback: e => { const p = pend; pend = null; if(p) p.rej(new SErr(e && e.type === "popup_closed" ? "closed" : "blocked")); }});
   return client;
 }
-/* interactive: un mayor ha pulsado un botón. Si no, es el intento sin ventanas (prompt:"" y la cuenta de antes) */
+/* interactive: un mayor ha pulsado «Entrar con Google» o «Volver a conectar». Si no, es la renovación de paso (prompt:""
+   y la cuenta de antes: la ventanita se abre y se cierra sola). Siempre dentro de un toque. */
 function askToken(interactive){
   const go = () => new Promise((res, rej) => {
     if(pend){ const p = pend; pend = null; p.rej(new SErr("superseded")); }
@@ -116,20 +124,14 @@ function askToken(interactive){
   });
   return gisReady() ? go() : loadGis().then(go);
 }
-let lastSilent = 0;
 function markReconnect(){ dropTok(); if(connected() && !meta().reconnect) setMeta({reconnect: now()}); }
 function clearReconnect(){ if(meta().reconnect) setMeta({reconnect: null}); }
-/* ¿hay un toque del usuario en curso? Entonces el navegador SÍ dejaría abrir la ventana de Google: el intento
-   automático no se hace para no abrir nada solo mientras el niño juega (solo se abre desde tapInTap/chip/botones) */
-const activeTap = () => { try{ return !!(navigator.userActivation && navigator.userActivation.isActive); }catch(e){ return false; } };
+/* sin permiso, aquí no se pide: fuera de un toque el navegador bloquearía la ventanita (y algunos avisan de que la
+   bloquearon) y, si la dejara abrir, saldría sola mientras el niño juega. Se pide solo desde renewInTap (un toque que
+   vale, más abajo) y desde los botones de Para mayores; mientras tanto la partida sigue guardada en el aparato. */
 async function ensureTok(){
   if(tokOk()) return;
-  if(meta().reconnect && now() - lastSilent < T.silentGap) throw new SErr("reconnect");
-  if(activeTap()){ markReconnect(); throw new SErr("reconnect"); }
-  lastSilent = now();
-  try{ await askToken(false); }
-  catch(e){ if(e && e.code === "offline") throw e; markReconnect(); throw new SErr("reconnect"); }
-  clearReconnect();
+  markReconnect(); throw new SErr("reconnect");
 }
 
 /* ---------- Drive REST v3 ---------- */
@@ -322,89 +324,91 @@ function schedule(){
 }
 const dirtyNow = () => { const m = meta(); return !!m.connectedAt && !m.choice && localHash() !== m.baseHash; };
 ["coins", "lesson-done", "review-done", "farm-feed", "farm-harvest", "farm-collect", "buy", "game-done", "medal", "gift-open", "album-complete", "route"]
-  .forEach(ev => bus.on(ev, () => { if(connected()){ schedule(); paintChip(); } }));
+  .forEach(ev => bus.on(ev, () => { if(connected()){ schedule(); preGis(); } }));
 let pollI = 0;
 function startPoll(){
   if(pollI) return;
   pollI = setInterval(() => {
     if(!connected() || !visible()) return;
     if(dirtyNow()) schedule();
-    paintStatus(); paintChip(); preGis();
+    paintStatus(); preGis();
   }, T.poll);
 }
-let lastVis = 0;
+let lastVis = 0, hidAt = 0;
 document.addEventListener("visibilitychange", () => {
+  if(!visible()){ hidAt = now(); if(connected() && dirtyNow()) sync("hide"); return; }
+  if(hidAt && now() - hidAt > MIN) opened = true;   /* vuelve a la app: su primer toque vale como al abrirla */
   if(!connected()) return;
-  if(!visible()){ if(dirtyNow()) sync("hide"); }
-  else if(now() - lastVis > 5e3){ lastVis = now(); sync("visible"); }
+  preGis();
+  if(now() - lastVis > 5e3){ lastVis = now(); sync("visible"); }
 });
 window.addEventListener("pagehide", () => { if(dirtyNow()) sync("hide"); });
 window.addEventListener("online", () => { if(connected()) sync("online"); });
 window.addEventListener("offline", () => { if(connected()) setPhase("offline"); });
 
 /* ---------- renovar el permiso dentro de un toque del niño ----------
-   El permiso de Google dura ~1 hora y renovarlo abre (y cierra sola) una ventanita de Google, que el navegador
-   solo deja abrir dentro de un toque. Así que se renueva:
-   - con la pastilla «Guardar» junto a las monedas (cuando hace falta y hay algo sin subir o hace más de 1 h que no se mira)
-   - de paso, en toques que el niño ya hace fuera de una pregunta (las pestañas, el botón principal de una pantalla, el
-     fin de lección, la granja, las monedas), como mucho una vez cada 50 min y solo si el permiso caduca en 5 min o ya
-     caducó. Nunca en mitad de una lección, un repaso o una partida, ni en la Puerta de mayores ([data-no-renew]). */
-const TAP_GAP = 50 * MIN, SOON = 5 * MIN;
+   El permiso de Google dura ~1 hora y renovarlo abre (y cierra sola) una ventanita de Google, que el navegador solo deja
+   abrir dentro de un toque. No hay botón para el niño: se renueva de paso en un toque que ya hace (tapOk) cuando toca
+   (tapDue):
+   - el permiso caduca en 5 min o ya caducó: como mucho una vez cada 50 min (T.tapGap);
+   - ya caducó y hay algo sin subir, o es el primer toque al abrir la app (o al volver a ella tras un rato): con un hueco
+     corto (T.tapRetry, 3 min), así, si la ventanita falla o el navegador la bloquea, se prueba otra vez en un toque de
+     dentro de poco; si vuelve a fallar, el hueco se dobla (6, 12, 24 min… hasta 50), para no sacar una y otra vez una
+     ventana de Google que no sale bien. Al niño no se le avisa de nada: el estado queda en Ajustes › Para mayores. */
+const SOON = 5 * MIN;
 const tokLeft = () => isObj(tok) && typeof tok.exp === "number" ? tok.exp - now() : -1;
-/* llamar SIEMPRE desde dentro de un manejador de click: requestAccessToken se llama en el mismo toque */
+let opened = true;   /* aún no se ha probado en esta visita (al abrir la app o al volver a ella) */
+let fails = 0;       /* intentos seguidos que no salieron bien (en esta visita) */
+function tapDue(){
+  const m = meta();
+  if(!m.connectedAt || m.choice || !online() || tokLeft() > SOON) return false;
+  const short = opened || (!tokOk() && dirtyNow());
+  const gap = short ? Math.min(T.tapRetry * 2 ** Math.max(0, fails - 1), T.tapGap) : T.tapGap;
+  const ago = now() - (m.tapAt || 0);
+  return ago < 0 || ago >= gap;
+}
+/* llamar SIEMPRE desde dentro de un manejador de click: requestAccessToken se llama en el mismo toque.
+   force: lo ha pedido un mayor («Guardar ahora»): sin mirar los huecos */
 function renewInTap(force){
   const m = meta();
-  if(!m.connectedAt || m.choice || !online() || !gisReady()) return null;
-  if(!force && (tokLeft() > SOON || now() - (m.tapAt || 0) < TAP_GAP)) return null;
-  setMeta({tapAt: now()}); lastSilent = now();
+  if(!m.connectedAt || m.choice || !online()) return null;
+  if(!force && !tapDue()) return null;
+  if(!gisReady()){ loadGis().catch(() => {}); return null; }   /* el script de Google aún no está: valdrá el siguiente toque */
+  setMeta({tapAt: now()}); opened = false;
   const p = askToken(false);   /* con GIS ya cargado, la ventana se pide aquí mismo, dentro del toque */
-  return p.then(() => { clearReconnect(); if(phase === "reconnect") setPhase("busy"); paintChip(); return sync("tap"); })
-    .catch(e => { if(e && e.code !== "superseded" && !tokOk()) markReconnect(); paintChip(); throw e; });
+  return p.then(() => { fails = 0; clearReconnect(); if(phase === "reconnect") setPhase("busy"); return sync("tap"); })
+    .catch(e => {
+      /* sin avisar al niño: Para mayores dice que hay cambios sin subir, y se prueba otra vez en otro toque */
+      if(e && e.code !== "superseded" && !tokOk()){ fails++; markReconnect(); if(connected() && phase !== "offline" && phase !== "choice") setPhase("reconnect"); }
+      throw e;
+    });
 }
 /* el script de Google se tiene preparado cuando el permiso va a hacer falta pronto */
 function preGis(){
   const m = meta();
   if(m.connectedAt && !m.choice && online() && !gisReady() && (m.reconnect || tokLeft() < 10 * MIN)) loadGis().catch(() => {});
 }
-const OPP = '.tabbar [data-nav], .glass-btn--pri, .btn-fill, .btn-pri, .btn.lc, .ls-end a, .ls-end button, a[href="#/granja"], a[href="#/mapa"], a.ba, [data-coins-pill], [data-open=ajustes]';
-document.addEventListener("click", e => {
-  const a = e.target.closest && e.target.closest(OPP); if(!a || a.closest("[data-no-renew], .opt")) return;
+/* qué toques valen: casi cualquier control de la app (enlace interno, botón, pestaña, interruptor, fila)… */
+const TAP = 'a[href^="#"], button, summary, [role=button], [role=link], [role=tab], [role=switch], [role=menuitem], [data-nav]';
+const FIELD = 'input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select, [contenteditable]:not([contenteditable=false])';
+/* …menos: lo marcado con [data-no-renew] (la Puerta de mayores y las hojas de la lección, del repaso y de las partidas),
+   las respuestas (.opt), lo que suena o graba (altavoces, «Dilo», la grabadora del Buzón), las piezas de Frases
+   mágicas, los campos de texto y el bloque de Google de Para mayores (sus botones piden el permiso ellos mismos) */
+const NO_TAP = `[data-no-renew], .opt, [data-say], .bd-wotd, .ph-say1, .ph-tiles, .ph-line, .ph-acts, .mb-rb, .mb-spk, #mb-play, #sv-box, ${FIELD}`;
+const ENDS = ".ls-end, #rv-end";   /* el final de una lección o de un repaso (todavía en modo foco) */
+function tapOk(e){
+  const t = e.target, a = t && t.closest ? t.closest(TAP) : null;
+  if(!e.isTrusted || !a || a.disabled || a.getAttribute("aria-disabled") === "true" || a.closest(NO_TAP) || t.closest(NO_TAP)) return false;
   const r = document.documentElement;
-  if(r.hasAttribute("data-gm-play") || (r.dataset.focus && !a.closest(".ls-end"))) return;
-  const p = renewInTap(false); if(p) p.catch(() => {});
-}, true);
-
-/* pastilla «Guardar» (icono de nube) junto a las monedas, en el hueco [data-sync-slot] de la barra de arriba. Es lo único
-   de Google que ve el niño: sale solo si el permiso caducó y hay algo sin subir, y la renovación va dentro de su toque. */
-function chipWanted(){
-  const m = meta();
-  if(!m.connectedAt || m.choice || tokOk() || !(m.reconnect || phase === "reconnect")) return false;
-  return dirtyNow() || !m.lastPull || now() - m.lastPull > 60 * MIN;
+  if(r.hasAttribute("data-gm-play")) return false;                        /* una partida (también la que empieza este toque) */
+  if(r.dataset.focus && !a.closest(ENDS)) return false;                    /* una lección o un repaso en marcha */
+  if(document.querySelector("dialog[open][data-no-renew]")) return false;  /* la Puerta (también la que abre este toque)… */
+  const f = document.activeElement; if(f && f !== a && f.matches && f.matches(FIELD)) return false;   /* escribiendo */
+  try{ const u = navigator.userActivation; return !u || u.isActive; }catch(err){ return true; }
 }
-function paintChip(){
-  const want = chipWanted();
-  let c = $s("sv-chip");
-  if(!want){ if(c) c.remove(); return; }
-  preGis();
-  if(c) return;
-  const slot = document.querySelector("[data-sync-slot]"); if(!slot) return;
-  css();
-  c = document.createElement("button");
-  c.type = "button"; c.id = "sv-chip"; c.className = "glass sv-chip";   /* vidrio de la barra, sin relleno azul (el azul destacado es de «Empezar») */ c.dataset.noRenew = "";
-  c.title = "Guardar tu partida en Google"; c.setAttribute("aria-label", "Guardar tu partida en Google");
-  c.innerHTML = `${ico("cloud-arrow-up", "bold", 20)}<span class="sv-chip-t" aria-hidden="true">Guardar</span>`;
-  c.onclick = () => {
-    if(c.disabled) return;
-    c.disabled = true;
-    const p = renewInTap(true);
-    if(!p){ c.disabled = false; try{ toast(online() ? "☁️ Un momento y vuelve a tocar" : "📴 Sin internet: se guardará luego"); }catch(e){} if(online()) loadGis().catch(() => {}); return; }
-    p.then(() => { if(!chipWanted()) try{ toast("☁️ ¡Partida guardada!"); }catch(e){} })
-     .catch(() => { try{ toast("☁️ Ahora no se pudo guardar. Prueba luego."); }catch(e){} })
-     .finally(() => { const x = $s("sv-chip"); if(x) x.disabled = false; paintChip(); });
-  };
-  slot.appendChild(c);
-  try{ if(window.M && typeof window.M.bump === "function") window.M.bump(c); }catch(e){}   /* (M aquí es S.META) */
-}
+/* en window y al final del toque (fase de burbuja): se mira después de lo que hace el propio toque (si abre la Puerta
+   o empieza una partida, no vale) y sigue siendo dentro del toque, así que la ventanita se puede abrir */
+window.addEventListener("click", e => { if(!connected() || !tapOk(e)) return; const p = renewInTap(false); if(p) p.catch(() => {}); });
 
 /* lo que no debe hacer un niño solo (entrar o salir de Google, cambiar o borrar una partida) pasa por la Puerta de
    mayores. Si se pasó hace poco, sigue dentro del mismo toque (así la ventana de Google se puede abrir). */
@@ -429,14 +433,14 @@ async function connect(){
   msg("Abriendo Google…");
   try{ await askToken(true); }
   catch(e){ const c = (e && e.code) || "gis"; if(c !== "superseded") msg(AUTH_MSG[c] || AUTH_MSG.gis, "bad"); if(b && b.isConnected) b.disabled = false; return; }
-  clearReconnect(); lastSilent = 0; msg("");
+  clearReconnect(); msg("");
   if(connected() && !meta().choice){ if(!meta().hint) fetchHint(); sync("reconnect"); return; }
   setPhase("busy");
   job(firstSync).then(() => { if(phase === "ok") msg("✓ Conectado. La partida se guarda sola en Google.", "ok"); startPoll(); if(connected() && !meta().hint) fetchHint(); })
     .catch(e => { if(!connected()) msg("No se pudo hablar con Google Drive. Inténtalo otra vez en un rato.", "bad"); onErr(e); if(!connected()) setPhase("off"); });
 }
 function disconnect(){
-  const t = tok && tok.t; const c = $s("sv-chip"); if(c) c.remove();
+  const t = tok && tok.t;
   dropTok(); S.metaDel(M.sync); choice = null;
   clearTimeout(pushT); pushT = 0; clearTimeout(retryT);
   if(t && online()){
@@ -482,14 +486,6 @@ const CSS = `
 .sv-cmp td:nth-child(n+2){font-weight:600}
 .sv-cmp td:first-child{width:40%}
 .sv-undo{margin-top:12px}
-/* hoja corta para el niño desde la fila de Hoy: «Enséñale esto a un mayor» · «Soy mayor» (la Puerta) · «Ahora no» */
-dialog#sv-kid{max-width:440px}
-.sv-kid{display:flex;flex-direction:column;align-items:center;gap:12px;padding:0 4px 4px;text-align:center}
-.sv-kid-ic{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;background:var(--brand-fill);color:#fff}
-.sv-kid p{margin:0;max-width:32ch;font:400 var(--fs-sub,1.0625rem)/1.4 var(--f-text,system-ui);color:var(--label2)}
-.sv-kid-b{display:flex;flex-direction:column;gap:8px;width:100%;max-width:340px;margin-top:4px}
-.sv-chip{flex:none}
-.sv-chip:disabled{opacity:.7}
 `;
 function css(){ if(document.getElementById("css-sync")) return; const s = document.createElement("style"); s.id = "css-sync"; s.textContent = CSS; document.head.appendChild(s); }
 const G = `<svg viewBox="0 0 48 48" aria-hidden="true" data-brand="google"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
@@ -524,8 +520,13 @@ function statusHtml(){
   const last = agoMin(m.lastSync);
   let st, foot = "";
   if(phase === "reconnect" || m.reconnect){
-    st = row(ico("cloud-slash", "bold", 18), "gr", "Hace falta volver a entrar en Google", acc) + btn("sv-re", ico("sign-in", "bold", 18), "", "Volver a conectar", "");
-    if(m.lastSync) foot = `<p class="st-foot">Última vez guardada en Google: ${esc(last)}. Lo que se juegue mientras tanto se guarda aquí y se subirá al conectar.</p>`;
+    /* el permiso caducó: se renueva solo en un toque del niño; si no puede, aquí lo hace un mayor */
+    const dirty = dirtyNow();
+    st = row(ico("cloud-slash", "bold", 18), "gr", dirty ? "Hay cambios sin subir a Google" : "El permiso de Google caducó", acc)
+      + btn("sv-re", ico("sign-in", "bold", 18), "", "Volver a conectar", "");
+    foot = `<p class="st-foot">${m.lastSync ? `Última copia en Google: ${esc(last)}. ` : ""}${dirty
+      ? "Lo nuevo está guardado en este aparato y se subirá solo en el próximo toque; si no, toca «Guardar ahora»."
+      : "La copia está al día. El permiso se renueva solo en el próximo toque."}</p>`;
   }
   else if(phase === "offline") st = row(ico("wifi-slash", "bold", 18), "gr", "Sin internet", `Se guardará en Google cuando vuelva la conexión.${m.lastSync ? " Última vez: " + esc(last) + "." : ""}`);
   else if(phase === "busy") st = row(ico("arrows-clockwise", "bold", 18), "", "Sincronizando con Google…", acc);
@@ -548,7 +549,7 @@ function paintStatus(){
   cfgPaint();
 }
 function paint(){
-  cfgPaint(); paintChip();
+  cfgPaint();
   const d = $s("sv-dyn"); if(!d) return;
   const focus = document.activeElement && d.contains(document.activeElement) ? document.activeElement.id : "";
   d.innerHTML = statusHtml();
@@ -556,8 +557,11 @@ function paint(){
   on("sv-g", e => gated("Para entrar con Google.", connect, e.currentTarget));
   on("sv-re", e => gated("Para volver a entrar en Google.", connect, e.currentTarget));
   on("sv-out", e => gated("Para salir de Google.", disconnect, e.currentTarget));
-  on("sv-now", () => { msg(""); lastSilent = 0;
-    if(!tokOk()){ const p = renewInTap(true); if(p){ p.catch(e => { if(e && e.code !== "superseded") msg(AUTH_MSG[e.code] || AUTH_MSG.gis, "bad"); }); return; } }
+  on("sv-now", () => { msg("");
+    if(!tokOk()){
+      const p = renewInTap(true); if(p){ p.catch(e => { if(e && e.code !== "superseded") msg(AUTH_MSG[e.code] || AUTH_MSG.gis, "bad"); }); return; }
+      if(online() && !gisReady()){ msg("Preparando Google… Vuelve a tocar «Guardar ahora»."); return; }   /* renewInTap ya lo está cargando */
+    }
     sync("manual"); });
   if(focus && $s(focus)) $s(focus).focus({preventScroll: true});
   paintSafe();
@@ -646,7 +650,7 @@ function mountBlock(host){
   host.innerHTML = blockHtml();
   paint(); paintUndo(); paintSafe();
   /* el script de Google se prepara al abrir «Para mayores», así la ventana sale enseguida al tocar */
-  if(online() && (!connected() || meta().reconnect)) loadGis().catch(() => {});
+  if(online() && (!connected() || meta().reconnect || !tokOk())) loadGis().catch(() => {});
 }
 /* con el bloque a la vista: el foco en lo que toca hacer (entrar, volver a conectar, elegir o guardar) */
 function openAdult(){
@@ -663,6 +667,7 @@ function go(o = {}){
   if(o.auto && typeof window.adultGate === "function" && !window.adultGate.passed()) return;
   window.openSettings("google", {from: o.from});
 }
+/* un [data-sv-go] en cualquier sitio lleva ahí (por la Puerta) */
 document.addEventListener("click", e => {
   const a = e.target.closest && e.target.closest("[data-sv-go]"); if(!a) return;
   e.preventDefault();
@@ -681,56 +686,10 @@ function cfgText(){
   const m = meta();
   if(!m.connectedAt) return "Google: sin conectar";
   if(m.choice) return "Google: elige qué partida seguir";
-  if(m.reconnect || phase === "reconnect") return "Google: hay que volver a entrar";
+  if((m.reconnect || phase === "reconnect") && dirtyNow()) return "Google: cambios sin subir";
   return m.lastSync ? `Google: guardado ${agoMin(m.lastSync)}` : "Google: conectado";
 }
 function cfgPaint(){ document.querySelectorAll("[data-sync-cfg]").forEach(el => { el.textContent = cfgText(); }); }
-
-/* ---------- aviso en la portada (solo si no está conectado, o si hace días que hay que volver a conectar) ---------- */
-let shownVisit = false;   /* como mucho una vez por visita (carga de la página) */
-function due(){
-  const t = now(), sn = S.metaGet(M.snooze, 0);
-  if(typeof sn === "number" && t < sn) return "";
-  if(!S.progress()) return "";
-  if(t - S.firstSeen() < 3 * DAY) return "";
-  const m = meta();
-  if(!m.connectedAt) return "connect";
-  if(m.reconnect && t - m.reconnect > 3 * DAY) return "reconnect";
-  return "";
-}
-/* el primero de la portada: una fila compacta («Guarda tu partida · Enséñaselo a un mayor») que abre una hoja corta
-   para el niño; desde ahí, «Soy mayor» lleva a la Puerta y a Google, y «Ahora no» lo deja para dentro de 2 días */
-let remKind = "";
-const remSlot = async () => {
-  const d = shownVisit ? "" : due(); if(!d) return "";
-  shownVisit = true; remKind = d; css();
-  return {t: d === "connect" ? "Guarda tu partida" : "Vuelve a conectar Google", sub: "Enséñaselo a un mayor", icon: "cloud-arrow-up", tone: "gray",
-    id: "sv-rem", chev: true, popup: true};
-};
-remSlot.id = "sync";
-remSlot.skip = () => { shownVisit = false; };   /* Hoy no tenía sitio para la fila (otras van antes): no gasta la visita */
-HOME_SLOTS.unshift(remSlot);
-function kidSheet(from){
-  css();
-  let d = $s("sv-kid");
-  if(!d){ d = document.createElement("dialog"); d.id = "sv-kid"; d.setAttribute("aria-labelledby", "sv-kid-t"); document.body.appendChild(d); }
-  const re = remKind === "reconnect";
-  d.innerHTML = `<div class="m-head"><h2 id="sv-kid-t">${re ? "Vuelve a conectar Google" : "Guarda tu partida"}</h2></div>
-    <div class="sv-kid"><span class="sv-kid-ic" aria-hidden="true">${ico("cloud-arrow-up", "bold", 28)}</span>
-      <p>Enséñale esto a un mayor. Con Google, tus monedas, tu granja y tus lecciones se guardan siempre.</p>
-      <div class="sv-kid-b"><button type="button" class="glass-btn glass-btn--pri glass-btn--block" data-sv-go>Soy mayor</button>
-        <button type="button" class="glass-btn glass-btn--block" id="sv-later">Ahora no</button></div></div>`;
-  if(window.M && typeof window.M.openSheet === "function") window.M.openSheet(d, {from});
-  else { try{ d.showModal(); }catch(e){ d.setAttribute("open", ""); } }
-}
-document.addEventListener("click", e => {
-  if(!e.target.closest) return;
-  const row = e.target.closest("#sv-rem"); if(row){ e.preventDefault(); kidSheet(row); return; }
-  if(!e.target.closest("#sv-later")) return;
-  S.metaSet(M.snooze, now() + 2 * DAY);
-  const d = $s("sv-kid"); if(d && d.open){ if(window.M && d.classList.contains("m-sheet")) window.M.closeSheet(d); else d.close(); }
-  const r = $s("sv-rem"), box = r && r.closest(".hm-slot"); if(box) box.remove(); else if(r) r.remove();
-});
 
 /* ---------- arranque ---------- */
 bus.on("boot", () => {
@@ -740,12 +699,12 @@ bus.on("boot", () => {
   startPoll();
   lastVis = now();
   preGis();
-  sync("boot").then(paintChip);
+  sync("boot");
 });
 
 /* para pruebas y para los mayores curiosos */
 window.vocabSync = Object.freeze({
-  sync: why => sync(why || "manual"), connect, disconnect, due, hash: localHash, hashKeys, score, renewInTap, chipWanted, go,
+  sync: why => sync(why || "manual"), connect, disconnect, hash: localHash, hashKeys, score, renewInTap, tapDue, go,
   get state(){ return {phase, errCode, meta: meta(), tokOk: tokOk(), choice: !!choice}; },
   _delays(o){ Object.assign(T, o || {}); if(pollI){ clearInterval(pollI); pollI = 0; startPoll(); } if(pushT){ clearTimeout(pushT); pushT = 0; schedule(); } },
   _idle: () => chain,

@@ -1,9 +1,9 @@
 """Arreglos de las revisiones de F2: la barra de arriba desde 820 px (cabe siempre con sus nombres enteros, se aprieta por
-pasos y, si no, vuelve abajo), la pastilla «Guardar» (su borde es el suyo, sin relleno azul), el presupuesto de
+pasos y, si no, vuelve abajo), la barra de arriba sin nada de Google (ni pastilla «Guardar» ni su hueco), el presupuesto de
 desenfoque (3 superficies como mucho), la Puerta de mayores (dos cifras con llevada y teclado: adivinar no sirve; un
 minuto de espera tras 3 fallos), rutas que no existen, la ✕ del modo foco, el scroll al volver atrás, los avisos en
 los segmentos y del refugio, «Reducir movimiento» en el fondo de las hojas, hojas opacas a toda altura y centradas en
-el ordenador, la hoja corta del aviso de Google, Voz y velocidad sin tecnicismos, el título de cada pantalla, los
+el ordenador, Hoy sin aviso de Google, Voz y velocidad sin tecnicismos, el título de cada pantalla, los
 créditos y la privacidad en español."""
 from __future__ import annotations
 
@@ -25,11 +25,8 @@ _TOP = """() => {
     cut: [...nav.querySelectorAll('.tab .tl')].filter(t => t.scrollWidth > t.clientWidth + .5).map(t => t.textContent),
     tabs: [...nav.querySelectorAll('.tab')].map(t => Math.round(t.getBoundingClientRect().height))};
 }"""
-# la pastilla «Guardar» tal como la pinta js/sync.js (paintChip), y monedas de 5 cifras
-_PILL = """(coins) => { const g = game(); g.coins = coins; gameSet(g); bus.emit('coins', {n: 0, quiet: true});
-  if (!document.getElementById('sv-chip')) { const c = document.createElement('button'); c.type = 'button'; c.id = 'sv-chip'; c.className = 'glass sv-chip';
-    c.innerHTML = ico('cloud-arrow-up', 'bold', 20) + '<span class="sv-chip-t" aria-hidden="true">Guardar</span>';
-    document.querySelector('[data-sync-slot]').appendChild(c); } }"""
+# monedas: pone n en la partida y repinta la pastilla de las monedas
+_COINS = """(coins) => { const g = game(); g.coins = coins; gameSet(g); bus.emit('coins', {n: 0, quiet: true}); }"""
 # cuántas superficies visibles tienen desenfoque ahora mismo
 _BLUR = """() => [...document.querySelectorAll('body *')].filter(e => {
   const s = getComputedStyle(e), b = s.backdropFilter || s.webkitBackdropFilter;
@@ -47,8 +44,8 @@ def _wait_route(page, n0, timeout=8000):
 def test_desk_bar_always_fits():
     """Desde 820 px la barra va en header.topbar entre la bandera y el grupo de la derecha (también en el DOM: el
     orden del teclado es el de la pantalla), con pestañas de 44 px y los 5 nombres enteros, a 12 px como poco de los
-    botones de los lados; con la pastilla «Guardar», 12345 monedas y Texto más grande se aprieta por pasos (slim,
-    compact) y, si aun así no cabe, vuelve abajo como en el móvil. Por debajo de 820 px, abajo y sin data-bar."""
+    botones de los lados; con 12345 monedas y Texto más grande se aprieta (compact) y, si aun así no cabe, vuelve
+    abajo como en el móvil. Por debajo de 820 px, abajo y sin data-bar."""
     probs = []
     for text in ("", "large"):
         for w in (820, 834, 860, 900, 1024, 1100, 1280):
@@ -59,18 +56,18 @@ def test_desk_bar_always_fits():
                 C.goto(page, "#/")
                 if text:
                     page.evaluate("vocabUI.set('text', 'large')")
-                for pill in (False, True):
-                    if pill:
-                        page.evaluate(_PILL, 12345)
+                for big in (False, True):
+                    if big:
+                        page.evaluate(_COINS, 12345)
                     page.wait_for_timeout(250)
                     t = page.evaluate(_TOP)
-                    tag = f"{w}{' texto grande' if text else ''}{' con pastilla' if pill else ''}"
+                    tag = f"{w}{' texto grande' if text else ''}{' con 12345 monedas' if big else ''}"
                     if t["cut"]:
                         probs.append(f"{tag}: nombres cortados {t['cut']}")
                     if t["bar"] == "bottom":
                         if t["inTop"] or t["n"][3] < t["vh"] - 80:
                             probs.append(f"{tag}: con data-bar=bottom la barra no está abajo: {t}")
-                        if not (pill or text):
+                        if not (big or text):
                             probs.append(f"{tag}: la barra baja sin motivo")
                         continue
                     if not t["inTop"] or t["order"][:3] != ["lang-b", "tabbar", "tb-right"]:
@@ -102,26 +99,27 @@ def test_desk_bar_always_fits():
     assert not probs, "\n".join(probs)
 
 
-def test_pill_rim_is_its_own():
-    """El borde de vidrio (::before) de la pastilla «Guardar» mide lo que la pastilla (no la barra entera) y la pastilla
-    no lleva relleno azul: es vidrio de la barra con letra azul."""
+def test_topbar_has_no_save_pill():
+    """La barra de arriba ya no tiene la pastilla «Guardar» ni su hueco (la partida se guarda sola; lo de Google está en
+    Ajustes › Para mayores): a la derecha va solo el grupo de vidrio con las monedas y Ajustes, en claro y oscuro, con
+    245 y con 12345 monedas, de 44 px de alto y dentro de la pantalla. No queda CSS de la pastilla."""
     probs = []
     for scheme in ("light", "dark"):
         page = C.new_page("phone", color_scheme=scheme)
         try:
             C.seed(page)
             C.goto(page, "#/")
-            page.evaluate(_PILL, 245)
-            r = page.evaluate("""() => { const c = document.getElementById('sv-chip'), b = getComputedStyle(c, '::before'), s = getComputedStyle(c);
-              const px = v => parseFloat(v) || 0, box = (z, a, e) => px(z) + (b.boxSizing === 'border-box' ? 0 : px(b['padding' + a]) + px(b['padding' + e]));
-              return {w: c.getBoundingClientRect().width, h: c.getBoundingClientRect().height, bw: box(b.width, 'Left', 'Right'), bh: box(b.height, 'Top', 'Bottom'),
-                pos: s.position, bg: s.backgroundColor, img: s.backgroundImage, color: s.color, blur: s.backdropFilter}; }""")
-            if abs(r["w"] - r["bw"]) > 1 or abs(r["h"] - r["bh"]) > 1 or r["pos"] != "relative":
-                probs.append(f"{scheme}: el borde de la pastilla no es suyo: {r}")
-            if "30, 110, 244" in r["bg"] + r["img"]:
-                probs.append(f"{scheme}: la pastilla lleva relleno azul: {r}")
-            if r["blur"] not in ("none", ""):
-                probs.append(f"{scheme}: la pastilla tiene desenfoque propio: {r['blur']}")
+            for coins in (245, 12345):
+                page.evaluate(_COINS, coins)
+                page.wait_for_timeout(250)
+                r = page.evaluate("""() => { const vis = e => !!e.getClientRects().length, g = document.querySelector('.topbar .tb-group').getBoundingClientRect();
+                  return {right: [...document.querySelectorAll('.topbar .tb-right > *')].filter(vis).map(e => e.className.split(' ')[0]),
+                    slot: !!document.querySelector('[data-sync-slot], .tb-slot'), chip: !!document.getElementById('sv-chip'),
+                    h: Math.round(g.height), inView: g.left >= 0 && g.right <= innerWidth - 15.5,
+                    css: [...document.styleSheets].flatMap(s => { try { return [...s.cssRules]; } catch (e) { return []; } })
+                      .map(x => x.cssText).filter(t => /sv-chip|tb-slot/.test(t)).length}; }""")
+                if r != {"right": ["tb-group"], "slot": False, "chip": False, "h": 44, "inView": True, "css": 0}:
+                    probs.append(f"{scheme}, {coins} monedas: la barra de arriba: {r}")
             probs += C.errors(page)
         finally:
             page.context.close()
@@ -480,42 +478,39 @@ def test_sheets_opaque_and_centered_on_desk():
     assert not probs, "\n".join(probs)
 
 
-def test_sync_reminder_kid_sheet():
-    """La fila «Guarda tu partida» de Hoy abre una hoja corta para el niño: «Enséñale esto a un mayor», «Soy mayor»
-    (la Puerta y, al pasarla, Ajustes › Para mayores) y «Ahora no» (cierra y quita la fila)."""
-    page = C.new_page("phone")
+def test_hoy_has_no_google_reminder():
+    """En Hoy no sale ninguna fila de Google ni nada que pida guardar (la partida se guarda sola en el aparato): ni con
+    la partida sembrada sin Google (antes, «Guarda tu partida · Enséñaselo a un mayor»), ni con Google conectado y el
+    permiso caducado hace días. Lo de Google queda en Ajustes, en la fila «Para mayores»."""
     probs = []
-    try:
-        C.seed(page)
-        C.goto(page, "#/")
-        page.locator("#sv-rem").click()
-        page.wait_for_selector("dialog#sv-kid[open]", timeout=3000)
-        C.settle(page, 300)
-        k = page.evaluate("""() => { const d = document.getElementById('sv-kid');
-          return {t: (document.getElementById(d.getAttribute('aria-labelledby')) || {}).textContent, txt: d.textContent.replace(/\\s+/g, ' '),
-            go: !!d.querySelector('[data-sv-go].glass-btn--pri'), later: !!d.querySelector('#sv-later')}; }""")
-        if k["t"] != "Guarda tu partida" or "mayor" not in k["txt"] or not k["go"] or not k["later"]:
-            probs.append(f"la hoja del niño: {k}")
-        page.locator("#sv-kid [data-sv-go]").click()
-        page.wait_for_selector("#gate[open]", timeout=3000)
+    for how in ("sin Google", "permiso caducado hace días"):
+        page = C.new_page("phone")
         try:
-            page.wait_for_function("() => !document.getElementById('sv-kid').open", timeout=2000)
-        except Exception:  # noqa: BLE001
-            probs.append("«Soy mayor» deja abierta la hoja del niño debajo de la Puerta")
-        C.settle(page, 250)
-        page.locator("#gt-x").click()
-        page.wait_for_function("() => !document.getElementById('gate').open", timeout=3000)
-        page.wait_for_timeout(300)
-        page.locator("#sv-rem").click()
-        page.wait_for_selector("dialog#sv-kid[open]", timeout=3000)
-        C.settle(page, 250)
-        page.locator("#sv-later").click()
-        page.wait_for_function("() => !document.getElementById('sv-kid').open", timeout=3000)
-        if page.locator("#sv-rem").count():
-            probs.append("«Ahora no» no quita la fila de Hoy")
-        probs += C.errors(page)
-    finally:
-        page.context.close()
+            keys = C.seed_keys()
+            if how != "sin Google":
+                now = int(C.FIXED_NOW.timestamp() * 1000)
+                keys["save:sync"] = json.dumps({"connectedAt": now - 9 * 864e5, "fileId": "f1", "baseHash": "x", "lastPushedHash": "x",
+                                                "lastSync": now - 5 * 864e5, "lastPull": now - 5 * 864e5, "localDirty": True,
+                                                "reconnect": now - 4 * 864e5, "hint": None, "choice": False, "tapAt": 0})
+                keys["save:tok"] = json.dumps({"t": "viejo", "exp": now - 4 * 864e5})
+            C.seed(page, keys=keys)
+            page.wait_for_timeout(600)
+            h = page.evaluate("""() => ({slots: HOME_SLOTS.map(f => f && f.id || '?'),
+              rows: [...document.querySelectorAll('#hm-slots .hm-slot')].map(e => e.textContent.replace(/\\s+/g, ' ').trim()),
+              rem: !!document.getElementById('sv-rem'), kid: !!document.getElementById('sv-kid'),
+              save: [...document.querySelectorAll('#app button, #app a, .topbar button')].filter(e => e.getClientRects().length)
+                .map(e => [e.textContent, e.getAttribute('aria-label')].join(' ')).filter(t => /guarda|google/i.test(t))})""")
+            if "sync" in h["slots"] or h["rem"] or h["kid"] or h["save"] or any(re.search(r"guarda|google", t, re.I) for t in h["rows"]):
+                probs.append(f"{how}: en Hoy sale algo de guardar o de Google: {h}")
+            page.locator(".topbar [data-open=ajustes]").click()
+            page.wait_for_selector("dialog#ajustes[open]", timeout=4000)
+            C.settle(page, 250)
+            cfg = page.evaluate("document.querySelector('#aj-may [data-sync-cfg]').textContent")
+            if cfg != ("Google: sin conectar" if how == "sin Google" else "Google: cambios sin subir"):
+                probs.append(f"{how}: la fila «Para mayores» dice {cfg!r}")
+            probs += C.errors(page)
+        finally:
+            page.context.close()
     assert not probs, "\n".join(probs)
 
 

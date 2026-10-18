@@ -166,15 +166,15 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* versión ligera (sin desenfoque, más opaca): granja, juegos, o html[data-glass=lite]. Con :where() pesa lo mismo que
    .glass, así los modos de abajo (sin transparencia, más contraste, data-glass=off) la pisan siempre por orden */
 /* Como mucho 3 superficies con desenfoque a la vez (plan §Rendimiento): la barra de pestañas, el grupo de las monedas y
-   el accesorio «Seguir» (o el menú, o una hoja). Van siempre sin desenfoque la bandera, la pastilla «Guardar» y la
-   cápsula de avisos; con una hoja abierta, las barras y el accesorio (quedan bajo su fondo oscurecido); con el menú de
-   idioma abierto, el accesorio. */
+   el accesorio «Seguir» (o el menú, o una hoja). Van siempre sin desenfoque la bandera y la cápsula de avisos; con
+   una hoja abierta, las barras y el accesorio (quedan bajo su fondo oscurecido); con el menú de idioma abierto, el
+   accesorio. */
 .glass:where(.lite),:where(:root[data-glass=lite]) .glass,
-.glass:where(.tb-flag,.sv-chip,#m-toasts .m-toast),:where(:root[data-sheet]) .glass:where(.tabbar,.tb-group,.acc),:where(:root[data-menu]) .glass:where(.acc){
+.glass:where(.tb-flag,#m-toasts .m-toast),:where(:root[data-sheet]) .glass:where(.tabbar,.tb-group,.acc),:where(:root[data-menu]) .glass:where(.acc){
   -webkit-backdrop-filter:none;backdrop-filter:none;
   background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),var(--g-lite,rgba(255,255,255,.9))}
 :where(:root[data-theme=dark]) .glass:where(.lite),:where(:root[data-theme=dark][data-glass=lite]) .glass,
-:where(:root[data-theme=dark]) .glass:where(.tb-flag,.sv-chip,#m-toasts .m-toast),:where(:root[data-theme=dark][data-sheet]) .glass:where(.tabbar,.tb-group,.acc),
+:where(:root[data-theme=dark]) .glass:where(.tb-flag,#m-toasts .m-toast),:where(:root[data-theme=dark][data-sheet]) .glass:where(.tabbar,.tb-group,.acc),
 :where(:root[data-theme=dark][data-menu]) .glass:where(.acc){
   background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),var(--g-lite-d,rgba(28,28,30,.9))}
 #m-toasts{--g-lite:rgba(255,255,255,.94);--g-lite-d:rgba(28,28,30,.94)}
@@ -244,8 +244,8 @@ kbd{display:inline-flex;align-items:center;justify-content:center;min-width:1.7e
   .ico{fill:currentColor;forced-color-adjust:auto}}
 /* ===================== Armazón de navegación (F2) =====================
    · Barra superior header.topbar: a la izquierda la bandera del idioma (#lang-b, abre el menú #lang-m); a la derecha
-     [data-sync-slot] (sync.js monta ahí su pastilla) y el grupo de vidrio .tb-group con las monedas ([data-coins-pill],
-     el número en #coins) y Ajustes ([data-open=ajustes] → window.openSettings()).
+     el grupo de vidrio .tb-group con las monedas ([data-coins-pill], el número en #coins) y Ajustes
+     ([data-open=ajustes] → window.openSettings()). Nada de Google: la partida se guarda sola (js/sync.js).
    · Barra de pestañas nav.tabbar (role=tablist): 5 a.tab[data-nav] con icono relleno de 26 px y nombre de 12/600; la
      activa con aria-selected=true, en azul y con la «gota» de vidrio. Abajo en el móvil; desde 820 px, arriba y centrada.
      No se encoge. Insignias .tb-badge (número azul o punto).
@@ -278,15 +278,6 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
 .flag{display:block;width:28px;height:28px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 .5px rgba(0,0,0,.18);flex:none}
 .flag svg{display:block;width:100%;height:100%}
 .tb-right{display:flex;align-items:center;gap:8px;min-width:0}
-.tb-slot{display:flex;align-items:center;gap:8px}
-.tb-slot:empty{display:none}
-/* la pastilla «Guardar» de sync.js: vidrio de la barra (sin desenfoque: cuenta como el grupo de al lado), texto azul */
-.tb-slot .sv-chip{position:relative;flex:none;margin:0;display:flex;align-items:center;gap:6px;height:var(--tap);min-width:var(--tap);padding:0 16px 0 12px;
-  border:0;border-radius:var(--r-pill);color:var(--brand-ink);font:600 var(--fs-sub)/1 var(--f-text);white-space:nowrap;cursor:pointer}
-.tb-slot .sv-chip .ico{color:var(--brand-tint)}
-/* sin sitio en la barra de arriba (placeBar(), más abajo): solo la nube */
-:root:is([data-bar=slim],[data-bar=compact]) .tb-slot .sv-chip{width:var(--tap);padding:0;justify-content:center}
-:root:is([data-bar=slim],[data-bar=compact]) .tb-slot .sv-chip-t{display:none}
 .tb-group{display:flex;align-items:center;height:var(--tap);border-radius:var(--r-pill);flex:none}
 .tb-coins{display:flex;align-items:center;gap:4px;height:var(--tap);min-width:var(--tap);padding:0 12px;border:0;background:none;border-radius:var(--r-pill);
   font:800 calc(1.1875rem*var(--k))/1 var(--f-round);font-variant-numeric:tabular-nums;color:var(--gold-ink);white-space:nowrap;cursor:pointer}
@@ -344,8 +335,8 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
    (placeBar() la mueve ahí: así el orden del teclado es el de la pantalla), que pasa a rejilla de 3 columnas: las de
    los lados se reparten el sitio que sobra, y la barra queda centrada en la pantalla si cabe o se corre lo justo si el
    grupo de la derecha es ancho, siempre a 12 px como poco de los otros botones. Pestañas de 44 px de alto (la barra,
-   52) con los nombres enteros: si no caben, placeBar() deja solo la nube en la pastilla «Guardar» (data-bar=slim),
-   luego aprieta las pestañas (compact) y, si aun así no caben (texto muy grande), la barra vuelve abajo (bottom). */
+   52) con los nombres enteros: si no caben, placeBar() aprieta las pestañas (compact) y, si aun así no caben (texto
+   muy grande), la barra vuelve abajo (bottom). */
 @media (min-width:820px){
   :root:not([data-bar=bottom]){--tb-row:52px;--topbar-h:calc(var(--safe-t) + 68px);scroll-padding-bottom:16px}
   :root:not([data-bar=bottom]) main{padding-bottom:48px}
@@ -859,7 +850,6 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
   <a class="tb-back glass lite" id="dv-back" href="#/palabras" data-key="esc" data-key-pos="right"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-caret-left-bold"></use></svg><span>Palabras</span></a>
   <button type="button" class="tb-flag glass" id="lang-b" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-m" aria-label="Idioma"></button>
   <div class="tb-right">
-    <div class="tb-slot" data-sync-slot></div>
     <div class="tb-group glass">
       <button type="button" class="tb-coins" data-coins-pill data-coin-target aria-label="Monedas. Abrir la tienda"><svg class="coin-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFCC00"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7A000" stroke-opacity=".8"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B39000" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7.8 13.06 10.54 15.99 10.7 13.71 12.56 14.47 15.4 12 13.8 9.53 15.4 10.29 12.56 8.01 10.7 10.94 10.54Z" fill="#A88700" fill-opacity=".8"/><path d="M6.4 8.2a7 7 0 0 1 4.4-3.4" stroke="#fff" stroke-opacity=".85" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg><span id="coins">0</span></button>
       <span class="tb-sep" aria-hidden="true"></span>
@@ -1966,9 +1956,9 @@ function goTab(id){
 }
 /* Desde 820 px la barra de pestañas va arriba, dentro de header.topbar, entre la bandera y el grupo de la derecha (así
    el orden del teclado y del lector de pantalla es el de la pantalla); en el móvil, justo después. Si no cabe con todos
-   sus nombres y 12 px de aire a cada lado (monedas de 5 cifras, la pastilla «Guardar», texto más grande…), se aprieta
-   por pasos (html[data-bar]): slim (la pastilla, solo la nube) → compact (pestañas más juntas) → bottom (la barra
-   vuelve abajo, como en el móvil). Se mira otra vez cuando cambia el tamaño de algo (ResizeObserver). */
+   sus nombres y 12 px de aire a cada lado (monedas de 5 cifras, texto más grande…), se aprieta por pasos
+   (html[data-bar]): compact (pestañas más juntas) → bottom (la barra vuelve abajo, como en el móvil). Se mira otra
+   vez cuando cambia el tamaño de algo (ResizeObserver). */
 const BAR_MQ = matchMedia("(min-width:820px)");
 function barFits(){
   /* a la izquierda, la bandera o, en la ficha de un tema, «‹ Palabras» en su sitio */
@@ -1992,7 +1982,7 @@ function placeBar(){
     return;
   }
   move(true);
-  for(const m of ["", "slim", "compact"]){
+  for(const m of ["", "compact"]){
     if(m) root.dataset.bar = m; else delete root.dataset.bar;
     if(barFits()) return;
   }
@@ -2220,13 +2210,13 @@ async function homeSlots(){
   /* el orden de las filas (en cualquier pantalla; las de igual prioridad, en el orden en que se apuntaron):
      1) «¡Tienes carta!» (mail, js/mailbox.js): una carta sin abrir o un candado recién abierto; llega pocas veces y es
         de alguien de casa; 2) un animal que se fue al refugio por hambre (granja, js/farm.js): espera a que lo traigan;
-     3) la temporada (season, js/season.js): pocas semanas al año y la única entrada a #/temporada; 4) «Guarda tu
-     partida» (sync, js/sync.js): solo si no está guardada, una vez por visita, y un mayor lo aplaza 2 días; 5) una carta
-     con candado aún cerrada y cómo va (mail-lock, js/mailbox.js): dura pocos días; 6) «La frase de la cena» (phrase,
-     js/phrases.js): sale cada día y también está en Juegos › Frases mágicas; 7) el resto.
+     3) la temporada (season, js/season.js): pocas semanas al año y la única entrada a #/temporada; 4) una carta con
+     candado aún cerrada y cómo va (mail-lock, js/mailbox.js): dura pocos días; 5) «La frase de la cena» (phrase,
+     js/phrases.js): sale cada día y también está en Juegos › Frases mágicas; 6) el resto. (Google no tiene fila: la
+     partida se guarda sola y su estado está en Ajustes › Para mayores.)
      fit() de js/shortcuts.js quita del final, así que lo último en irse es lo primero de esta lista. Una fila que no
-     cabe no gasta su vez: se llama a su .skip() (el aviso de Google vuelve a poder salir en esta visita). */
-  const PRI = {mail: 6, granja: 5, season: 4, sync: 3, "mail-lock": 2, phrase: 1}, pri = i => PRI[(HOME_SLOTS[i] || {}).id] || 0;
+     cabe no gasta su vez: se llama a su .skip(), si la tiene (así puede volver a salir en esta visita). */
+  const PRI = {mail: 6, granja: 5, season: 4, "mail-lock": 2, phrase: 1}, pri = i => PRI[(HOME_SLOTS[i] || {}).id] || 0;
   const ord = vals.map((v, i) => i).sort((a, b) => pri(b) - pri(a) || a - b);
   ord.forEach(i => {
     const f = HOME_SLOTS[i], el = out.length < max ? slotEl(vals[i], f) : null;

@@ -329,7 +329,7 @@ function render(res, slots){
    soft: sin el paso 3 (al pintar, antes de que route() ponga la cabecera de Hoy); ahí la carta también se va, y vuelve
    con la medida buena ("acc").
    El paso 1 vale también sin la fila (atajos apagados o aún sin atajos): con el accesorio «Seguir» en Hoy y dos
-   HOME_SLOTS, el último se va. Un HOME_SLOT que se va llama a su .skip() (el aviso de Google no gasta su vez). */
+   HOME_SLOTS, el último se va. Un HOME_SLOT que se va llama a su .skip(), si la tiene (así no gasta su vez). */
 const FIRST = new Set(["mail"]);   /* los HOME_SLOTS que van antes que la fila de atajos */
 let CUT = [];
 function fit(soft){

@@ -2,13 +2,17 @@
 llevada en letras, que se contesta con un teclado numérico, nueva en cada intento, 3 fallos y un minuto de espera, se
 recuerda 5 minutos y se olvida al cerrar Ajustes), la hoja de Ajustes al estilo de iPhone
 (window.openSettings: Sonido, Voz y velocidad, Apariencia, Accesibilidad y Para mayores con Google, instalar, descargar
-todo, IPA, créditos y privacidad), las preferencias de este aparato en "vocab:ui" (fuera de la partida) y la pastilla
-«Guardar» de js/sync.js cuando el permiso de Google caducó."""
+todo, IPA, créditos y privacidad), las preferencias de este aparato en "vocab:ui" (fuera de la partida) y Google sin
+botón de guardar (js/sync.js): el permiso se renueva solo en un toque normal, nunca en mitad de una lección, una partida,
+la Puerta o un campo de texto, y Para mayores dice cómo va la copia."""
 from __future__ import annotations
 
 import json
 
 import common as C
+import routes as R
+import test_f3_leccion as LS
+import test_f4_juegos as GJ
 
 UNI = {"uno": 1, "dos": 2, "tres": 3, "cuatro": 4, "cinco": 5, "seis": 6, "siete": 7, "ocho": 8, "nueve": 9}
 TENS = {"treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60, "setenta": 70, "ochenta": 80, "noventa": 90}
@@ -528,21 +532,40 @@ def test_google_block_in_adults_page():
     assert not probs, "\n".join(probs)
 
 
-# ---------------------------------------------------------------- pastilla «Guardar»
+# ---------------------------------------------------------------- Google sin botón de guardar
+# GIS de mentira: requestAccessToken apunta cada llamada (¿dentro de un toque?, ¿con el toque activo?) y contesta a los
+# 30 ms: con un permiso nuevo si se llamó dentro de un toque y, si no, como el navegador (ventana bloqueada).
+# window.__gisFail = N hace que las N siguientes llamadas dentro de un toque fallen (la ventanita se cerró).
 _GIS = """(() => {
-  window.__gis = [];
+  window.__gis = []; window.__gisFail = 0;
   window.google = {accounts: {oauth2: {
     initTokenClient(cfg) { return {requestAccessToken(o) {
       const ev = window.event, tap = !!(ev && ev.type === 'click');
       const act = !!(navigator.userActivation && navigator.userActivation.isActive);
-      window.__gis.push({tap, act, prompt: o && o.prompt});
-      setTimeout(() => { if (tap) cfg.callback({access_token: 'nuevo-' + window.__gis.length, expires_in: 3600});
-        else cfg.error_callback({type: 'popup_failed_to_open'}); }, 30);
+      const fail = tap && window.__gisFail > 0; if (fail) window.__gisFail--;
+      window.__gis.push({tap, act, fail, prompt: o && o.prompt, at: location.hash,
+        focus: document.documentElement.dataset.focus || '', play: document.documentElement.dataset.gmPlay || ''});
+      setTimeout(() => { if (tap && !fail) cfg.callback({access_token: 'nuevo-' + window.__gis.length, expires_in: 3600});
+        else cfg.error_callback({type: fail ? 'popup_closed' : 'popup_failed_to_open'}); }, 30);
     }}; },
     hasGrantedAllScopes() { return true; },
     revoke(t, cb) { if (cb) cb(); }}}};
 })();"""
 _CORS = {"access-control-allow-origin": "*", "access-control-allow-headers": "*", "access-control-allow-methods": "GET,POST,PATCH,OPTIONS"}
+# lo que el niño ve de Google: botones o avisos que pidan guardar (fuera de Ajustes), la pastilla vieja, su hueco, la
+# fila vieja de Hoy y su hoja, lo que hay a la derecha de la barra de arriba y los avisos de Google
+_NO_SAVE = """() => {
+  const vis = e => !!e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden';
+  const say = e => [e.textContent, e.getAttribute('aria-label'), e.getAttribute('title')].join(' ');
+  return {buttons: [...document.querySelectorAll('button, a, [role=button]')]
+      .filter(e => vis(e) && !e.closest('dialog#ajustes') && /guardar|guarda tu|google/i.test(say(e))).map(e => e.id || e.className || e.tagName),
+    chip: !!document.getElementById('sv-chip'), slot: !!document.querySelector('[data-sync-slot]'),
+    rem: !!document.getElementById('sv-rem'), kid: !!document.getElementById('sv-kid'),
+    right: [...document.querySelectorAll('.topbar .tb-right > *')].filter(vis).map(e => e.className.split(' ')[0]),
+    toasts: [...document.querySelectorAll('#m-toasts .m-toast')].map(t => t.textContent).filter(t => /google|guardar|☁/i.test(t))};
+}"""
+_NO_SAVE_OK = {"buttons": [], "chip": False, "slot": False, "rem": False, "kid": False, "right": ["tb-group"], "toasts": []}
+_TAPS = "() => window.__gis.filter(c => c.tap).length"
 
 
 def _drive(page, log):
@@ -568,58 +591,258 @@ def _sync_keys(tok_exp, reconnect=True):
     return keys
 
 
-def test_save_pill_when_token_expired():
-    """Con Google conectado, el permiso caducado y cambios sin subir, junto a las monedas ([data-sync-slot]) sale la
-    pastilla «Guardar» (nube); al tocarla, requestAccessToken se llama dentro del mismo toque, se sube la partida y la
-    pastilla se va. Un toque en una pestaña también lo renueva. Con el permiso vigente no sale."""
+def _sync_page(scheme="light", exp=NOW_MS - 30 * MIN, reconnect=True, hash="#/"):
+    """Móvil con Google conectado (Drive y GIS de mentira), cambios sin subir y el permiso que caduca en exp."""
+    page = C.new_page("phone", color_scheme=scheme)
+    log = []
+    page.context.add_init_script(_GIS)
+    _drive(page, log)
+    C.seed(page, keys=_sync_keys(exp, reconnect=reconnect), hash=hash)
+    page.evaluate("vocabSync._delays({debounce: 300, poll: 500, retry: 60e3})")
+    return page, log
+
+
+def _uploaded(log):
+    return any(x.startswith("PATCH ") and "/upload/" in x for x in log)
+
+
+def _adults(page):
+    """Ajustes (abierta sin tocar nada) › la fila «Para mayores» y, con la Puerta ya pasada, la página con el bloque de
+    Google: lo que dicen. Cierra Ajustes con Escape (tampoco es un toque)."""
+    page.evaluate("openSettings()")
+    page.wait_for_selector("dialog#ajustes[open]", timeout=4000)
+    C.settle(page, 250)
+    cfg = page.evaluate("document.querySelector('#aj-may [data-sync-cfg]').textContent")
+    page.evaluate(_PASS)
+    page.evaluate("openSettings('google')")
+    _wait_page(page, "mayores")
+    box = page.evaluate("""() => { const d = document.getElementById('sv-dyn'), f = document.querySelector('#sv-box .st-foot');
+      return {t: d.textContent.replace(/\\s+/g, ' ').trim(), now: !!d.querySelector('#sv-now'), re: !!d.querySelector('#sv-re'),
+        foot: f ? f.textContent : ''}; }""")
+    for _ in range(3):   # Escape vuelve de Para mayores a Ajustes y luego la cierra
+        if not page.evaluate("document.getElementById('ajustes').open"):
+            break
+        page.keyboard.press("Escape")
+        page.wait_for_timeout(500)
+    page.wait_for_function("() => !document.getElementById('ajustes').open", timeout=3000)
+    page.wait_for_timeout(300)
+    return cfg, box
+
+
+def test_no_save_button_and_next_tap_renews():
+    """Con Google conectado, el permiso caducado y cambios sin subir, el niño no ve ningún botón ni aviso de guardar
+    (ni la pastilla vieja junto a las monedas, ni su hueco, ni una fila en Hoy) y no se pide nada fuera de un toque. El
+    siguiente toque en una pestaña o en «Empezar» pide el permiso dentro del mismo toque y sube la partida. Con el
+    permiso vigente, un toque no pide nada."""
     probs = []
-    for how in ("pastilla", "pestaña", "vigente"):
-        page = C.new_page("phone")
-        log = []
+    for how in ("pestaña", "empezar", "vigente"):
+        page, log = _sync_page(exp=NOW_MS + 50 * MIN if how == "vigente" else NOW_MS - 30 * MIN, reconnect=how != "vigente")
         try:
-            page.context.add_init_script(_GIS)
-            _drive(page, log)
-            exp = NOW_MS + 50 * MIN if how == "vigente" else NOW_MS - 30 * MIN
-            C.seed(page, keys=_sync_keys(exp, reconnect=how != "vigente"))
-            C.goto(page, "#/")
-            page.evaluate("vocabSync._delays({debounce: 300, poll: 500, retry: 60e3})")
-            page.wait_for_timeout(900)
+            want = "ok" if how == "vigente" else "reconnect"
+            try:
+                page.wait_for_function("p => vocabSync.state.phase === p", arg=want, timeout=5000)
+            except Exception:  # noqa: BLE001
+                probs.append(f"{how}: al arrancar el estado es {page.evaluate('vocabSync.state.phase')} (se esperaba {want})")
+            page.wait_for_timeout(600)
+            seen = page.evaluate(_NO_SAVE)
+            if seen != _NO_SAVE_OK:
+                probs.append(f"{how}: el niño ve algo de guardar: {seen}")
+            if page.evaluate("window.__gis.length"):
+                probs.append(f"{how}: se pidió el permiso sin un toque: {page.evaluate('window.__gis')}")
+            if how == "empezar":
+                page.locator("#hm-go").click()
+            else:
+                page.locator(".tabbar [data-nav=aprender]").click()
             if how == "vigente":
-                page.wait_for_function("() => vocabSync.state.phase === 'ok'", timeout=5000)
                 page.wait_for_timeout(600)
-                if page.locator("#sv-chip").count():
-                    probs.append("con el permiso vigente sale la pastilla «Guardar»")
+                if page.evaluate("window.__gis.length"):
+                    probs.append(f"con el permiso vigente, un toque lo pide otra vez: {page.evaluate('window.__gis')}")
                 probs += C.errors(page)
                 continue
             try:
-                page.wait_for_selector("[data-sync-slot] #sv-chip", timeout=5000)
-            except Exception:
-                probs.append(f"{how}: no sale la pastilla «Guardar» (estado {page.evaluate('vocabSync.state.phase')}, quiere {page.evaluate('vocabSync.chipWanted()')})")
+                page.wait_for_function("() => window.__gis.length > 0", timeout=3000)
+            except Exception:  # noqa: BLE001
+                probs.append(f"{how}: el toque no pide el permiso (estado {page.evaluate('vocabSync.state')})")
                 continue
-            chip = page.evaluate("""() => { const c = document.getElementById('sv-chip'), r = c.getBoundingClientRect(),
-                p = document.querySelector('[data-coins-pill]').getBoundingClientRect();
-              return {label: c.getAttribute('aria-label'), text: c.textContent.trim(), ico: !!c.querySelector('use[href="#i-cloud-arrow-up-bold"]'),
-                inView: r.left >= 0 && r.right <= innerWidth && r.top >= 0, apart: r.right <= p.left + 1 || r.left >= p.right - 1, h: r.height}; }""")
-            if chip != {"label": "Guardar tu partida en Google", "text": "Guardar", "ico": True, "inView": True, "apart": True, "h": chip["h"]} or chip["h"] < 36:
-                probs.append(f"la pastilla: {chip}")
-            silent = page.evaluate("window.__gis.length")
-            if how == "pastilla":
-                page.locator("#sv-chip").click()
-            else:
-                page.locator(".tabbar [data-nav=aprender]").click()
-            page.wait_for_function("n => window.__gis.length > n", arg=silent, timeout=3000)
-            call = page.evaluate("window.__gis[window.__gis.length - 1]")
-            if not (call["tap"] and call["act"]):
-                probs.append(f"{how}: requestAccessToken no se llamó dentro del toque: {call}")
+            call = page.evaluate("window.__gis[0]")
+            if not (call["tap"] and call["act"]) or call["prompt"] != "" or page.evaluate("window.__gis.length") != 1:
+                probs.append(f"{how}: requestAccessToken no se llamó una vez dentro del toque: {page.evaluate('window.__gis')}")
             try:
-                page.wait_for_function("() => !document.getElementById('sv-chip') && vocabSync.state.phase === 'ok'", timeout=6000)
-            except Exception:
-                probs.append(f"{how}: tras renovar, pastilla {page.locator('#sv-chip').count()}, estado {page.evaluate('vocabSync.state')}")
-            if not any(x.startswith("PATCH ") and "/upload/" in x for x in log):
+                page.wait_for_function("() => vocabSync.state.phase === 'ok' && vocabSync.state.tokOk", timeout=6000)
+            except Exception:  # noqa: BLE001
+                probs.append(f"{how}: tras renovar, estado {page.evaluate('vocabSync.state')}")
+            if not _uploaded(log):
                 probs.append(f"{how}: no se subió la partida: {log}")
             st = page.evaluate("vocabSync.state")
-            if not st["tokOk"] or st["meta"]["reconnect"]:
-                probs.append(f"{how}: el permiso no quedó renovado: {st}")
+            if st["meta"]["reconnect"] or st["meta"]["localDirty"]:
+                probs.append(f"{how}: el permiso o la copia no quedaron al día: {st['meta']}")
+            seen = page.evaluate(_NO_SAVE)
+            if seen["chip"] or seen["slot"] or seen["toasts"]:
+                probs.append(f"{how}: tras subir sale algo de guardar: {seen}")
+            probs += C.errors(page)
+        finally:
+            page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+def test_no_renew_mid_game_gate_field_or_lesson():
+    """Con el permiso caducado y cambios sin subir, ningún toque lo pide en mitad de una partida (la explicación, las
+    cartas), en la Puerta de mayores (el toque que la abre y sus teclas), en el campo del nombre ni en mitad de una
+    lección (respuestas y botones). El primer toque del final de la lección sí lo pide, dentro del toque."""
+    probs = []
+    page, log = _sync_page(hash="#/juegos")
+    try:
+        page.evaluate(GJ._NO_HINT)
+        # una partida (se entra sin tocar: el toque en la tarjeta del juego sería como «Empezar»)
+        C.goto(page, "#/juegos/memoria")
+        page.wait_for_function("() => document.documentElement.dataset.gmPlay === 'memoria'", timeout=8000)
+        page.wait_for_timeout(300)
+        if page.locator(".gm-intro .gm-go").count():
+            page.locator(".gm-intro .gm-go").click()
+            page.wait_for_timeout(300)
+        for i in (0, 1):
+            page.locator("#gm-board .gm-mc").nth(i).click()
+            page.wait_for_timeout(150)
+        page.wait_for_timeout(400)
+        if page.evaluate(_TAPS):
+            probs.append(f"en mitad de una partida se pide el permiso: {page.evaluate('window.__gis')}")
+        # la Puerta y el campo del nombre (Ajustes abierta sin tocar)
+        C.goto(page, "#/mapa")
+        page.evaluate("openSettings()")
+        page.wait_for_selector("dialog#ajustes[open]", timeout=4000)
+        C.settle(page, 250)
+        page.locator("#aj-name").click()
+        page.keyboard.type("Leo")
+        page.locator("#aj-may").click()
+        page.wait_for_selector("#gate[open]", timeout=3000)
+        C.settle(page, 250)
+        for k in ("1", "2", "del"):
+            page.locator(f'#gt-ks .gt-k[data-k="{k}"]').click()
+        page.locator("#gt-x").click()
+        _gate_closed(page)
+        page.wait_for_timeout(300)
+        if page.evaluate(_TAPS):
+            probs.append(f"en la Puerta o en el campo de texto se pide el permiso: {page.evaluate('window.__gis')}")
+        page.keyboard.press("Escape")
+        page.wait_for_function("() => !document.getElementById('ajustes').open", timeout=3000)
+        page.wait_for_timeout(300)
+        # una lección entera, con sus toques (respuestas, «Continuar», «Seguir»)
+        C.goto(page, "#/leccion/" + R.LESSON)
+        page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-page')", timeout=8000)
+        n = LS._play(page, miss=(1,))
+        if not n:
+            probs.append("la lección no tenía preguntas")
+        page.wait_for_selector(".ls-end #ls-next", timeout=8000)
+        page.wait_for_timeout(2000)   # las estrellas (los botones no responden hasta entonces) y el regalo, si sale
+        if page.evaluate(_TAPS):
+            probs.append(f"en mitad de una lección se pide el permiso: {page.evaluate('window.__gis')}")
+        if page.evaluate("!!document.querySelector('dialog[open]')"):
+            page.keyboard.press("Escape")
+            page.wait_for_timeout(500)
+        # el final de la lección: el primer toque sí
+        page.locator(".ls-end #ls-next").click()
+        try:
+            page.wait_for_function("() => window.__gis.length > 0", timeout=3000)
+            call = page.evaluate("window.__gis[0]")
+            if not (call["tap"] and call["act"]) or page.evaluate("window.__gis.length") != 1:
+                probs.append(f"al final de la lección, el permiso no se pidió una vez dentro del toque: {page.evaluate('window.__gis')}")
+            page.wait_for_function("() => vocabSync.state.phase === 'ok' && vocabSync.state.tokOk", timeout=6000)
+        except Exception:  # noqa: BLE001
+            probs.append(f"el toque del final de la lección no renueva el permiso: {page.evaluate('window.__gis')}, {page.evaluate('vocabSync.state')}")
+        if not _uploaded(log):
+            probs.append(f"tras el final de la lección no se subió la partida: {log}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+def test_failed_renew_retries_after_short_gap_and_adults_page_tells():
+    """Si la ventanita de Google falla, el niño no ve nada (ni botón ni aviso) y Ajustes › Para mayores dice la verdad:
+    «Google: cambios sin subir» y «Hay cambios sin subir a Google» con «Guardar ahora» y «Volver a conectar». Un toque
+    enseguida no la vuelve a pedir; el primero pasados 3 min sí, sube la partida y Para mayores dice «Sincronizado»."""
+    probs = []
+    page, log = _sync_page()
+    try:
+        page.evaluate("window.__gisFail = 1")
+        page.wait_for_function("() => vocabSync.state.phase === 'reconnect'", timeout=5000)
+        page.wait_for_timeout(600)
+        page.locator(".tabbar [data-nav=aprender]").click()
+        try:
+            page.wait_for_function("() => window.__gis.length > 0", timeout=3000)
+        except Exception:  # noqa: BLE001
+            probs.append(f"el primer toque no pide el permiso: {page.evaluate('vocabSync.state')}")
+        page.wait_for_timeout(500)
+        if page.evaluate("window.__gis.length") != 1 or not page.evaluate("window.__gis[0].fail"):
+            probs.append(f"el primer intento: {page.evaluate('window.__gis')}")
+        st = page.evaluate("vocabSync.state")
+        if st["phase"] != "reconnect" or st["tokOk"] or _uploaded(log):
+            probs.append(f"tras fallar la ventanita: estado {st['phase']}, permiso {st['tokOk']}, subidas {log}")
+        seen = page.evaluate(_NO_SAVE)
+        if seen != _NO_SAVE_OK:
+            probs.append(f"tras fallar, el niño ve algo de guardar: {seen}")
+        cfg, box = _adults(page)
+        if cfg != "Google: cambios sin subir":
+            probs.append(f"la fila Para mayores dice {cfg!r} tras fallar")
+        if "Hay cambios sin subir a Google" not in box["t"] or not box["now"] or not box["re"] or "próximo toque" not in box["foot"]:
+            probs.append(f"Para mayores tras fallar: {box}")
+        # enseguida, otro toque: no se pide (el hueco corto aún no ha pasado)
+        page.locator(".tabbar [data-nav=jugar]").click()
+        page.wait_for_timeout(500)
+        if page.evaluate("window.__gis.length") != 1:
+            probs.append(f"un toque justo después de fallar la vuelve a pedir: {page.evaluate('window.__gis')}")
+        # pasados 3 min, el siguiente toque sí
+        page.clock.fast_forward(3 * MIN + 5000)
+        page.wait_for_timeout(300)
+        if page.evaluate("window.__gis.length") != 1:
+            probs.append(f"sin un toque se pidió el permiso: {page.evaluate('window.__gis')}")
+        page.locator(".tabbar [data-nav=hoy]").click()
+        try:
+            page.wait_for_function("() => window.__gis.length === 2", timeout=3000)
+            call = page.evaluate("window.__gis[1]")
+            if not (call["tap"] and call["act"]) or call["fail"]:
+                probs.append(f"el segundo intento no fue dentro del toque: {call}")
+            page.wait_for_function("() => vocabSync.state.phase === 'ok' && vocabSync.state.tokOk", timeout=6000)
+        except Exception:  # noqa: BLE001
+            probs.append(f"pasados 3 min, el toque no reintenta: {page.evaluate('window.__gis')}, {page.evaluate('vocabSync.state')}")
+        if not _uploaded(log):
+            probs.append(f"tras el reintento no se subió la partida: {log}")
+        cfg, box = _adults(page)
+        if not cfg.startswith("Google: guardado hace"):
+            probs.append(f"la fila Para mayores dice {cfg!r} tras subir")
+        if "Sincronizado" not in box["t"] or "sin subir" in box["t"] or not box["now"]:
+            probs.append(f"Para mayores tras subir: {box}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+def test_captures_topbar_and_adults_status():
+    """Capturas (móvil 390×844, claro y oscuro) en capturas/guardado-puerta: la barra de arriba sin pastilla con Google
+    conectado y el permiso caducado, y Ajustes › Para mayores con el estado de la copia (cambios sin subir)."""
+    probs = []
+    out = C.CAPTURAS / "guardado-puerta"
+    for scheme in ("light", "dark"):
+        page, log = _sync_page(scheme=scheme)
+        try:
+            page.wait_for_function("() => vocabSync.state.phase === 'reconnect'", timeout=5000)
+            C.settle(page, 400)
+            seen = page.evaluate(_NO_SAVE)
+            if seen != _NO_SAVE_OK:
+                probs.append(f"{scheme}: el niño ve algo de guardar: {seen}")
+            C.shot(page, f"guardado-barra-sin-pastilla-phone-{scheme}", out, full_page=False)
+            page.evaluate("openSettings()")
+            page.wait_for_selector("dialog#ajustes[open]", timeout=4000)
+            page.evaluate(_PASS)
+            page.evaluate("openSettings('google')")
+            _wait_page(page, "mayores")
+            page.evaluate("document.getElementById('sv-box').scrollIntoView({block: 'start'})")
+            C.settle(page, 400)
+            page.evaluate("document.activeElement && document.activeElement.blur()")   # sin el anillo del foco en la captura
+            C.shot(page, f"guardado-mayores-estado-phone-{scheme}", out, full_page=False)
+            if page.evaluate("window.__gis.length"):
+                probs.append(f"{scheme}: se pidió el permiso sin un toque: {page.evaluate('window.__gis')}")
             probs += C.errors(page)
         finally:
             page.context.close()

@@ -9,8 +9,8 @@ data/phrases.json, los iconos de los atajos y los dibujos nuevos de Juegos) en S
 mail:box y phrase:stamps en la partida y vocab:sc y phrase:day solo del aparato, e IndexedDB nunca en la partida.
 Cada ruta nueva por enlace directo, al recargar y navegando (#/buzon, #/buzon/responder, #/carta?d=…, #/frases,
 #/frases/cena, los enlaces de los atajos y las URL de los atajos del manifest). Hoy con todo a la vez (atajos, carta sin
-abrir, refugio, temporada, aviso de Google y frase de la cena): el orden de prioridad de HOME_SLOTS (carta > refugio >
-temporada > Google > frase de la cena > el resto) y sin scroll a 390×844 claro y oscuro, en un móvil bajo, en tableta y
+abrir, refugio, temporada y frase de la cena; Google ya no tiene fila): el orden de prioridad de HOME_SLOTS (carta >
+refugio > temporada > frase de la cena > el resto) y sin scroll a 390×844 claro y oscuro, en un móvil bajo, en tableta y
 en el escritorio; también con el accesorio «Seguir» (una lección a medias), que sale o se va después de pintar Hoy. El
 teclado en las pantallas nuevas (Buzón, Frases, la carta y las teclas 1-4 de los atajos) sin que
 nada se dispare dos veces. Un recorrido con la partida sembrada en inglés, francés y danés: Hoy, una lección con el
@@ -210,9 +210,11 @@ def test_modules_load_order_sw_save_and_manifest():
             for g in ("buzon", "frases"):
                 if g not in (b["games"] or []):
                     probs.append(f"vocabGames no tiene la tarjeta «{g}» al arrancar: {b['games']}")
-            for s in ("mail", "phrase", "sync", "granja", "season"):
+            for s in ("mail", "phrase", "granja", "season"):
                 if s not in b["slots"]:
                     probs.append(f"falta el HOME_SLOT {s}: {b['slots']}")
+            if "sync" in b["slots"]:
+                probs.append(f"sigue el HOME_SLOT de Google (sync): {b['slots']}")
             for s in ("buzon", "carta", "frases"):
                 if s not in b["secs"]:
                     probs.append(f"la sección {s} no es de la pestaña Jugar: {b['secs']}")
@@ -314,7 +316,7 @@ def test_f5_routes_direct_reload_and_navigation():
         _click_nav(page, "#tab-hoy")
         _hoy(page)
         if not page.locator("#ph-hrow .ph-hgo").count():
-            probs.append(f"en Hoy no sale «La frase de la cena» tras el aviso de Google: {page.evaluate(_SLOTS)}")
+            probs.append(f"en Hoy no sale «La frase de la cena»: {page.evaluate(_SLOTS)}")
         else:
             _click_nav(page, "#ph-hrow .ph-hgo")
             bk = page.evaluate("() => { const b = document.getElementById('dv-back'); return {h: b.getAttribute('href'), t: b.textContent.trim()}; }")
@@ -393,11 +395,11 @@ def _all_at_once(page, now=HALLOWEEN, letter=True, hash=""):
 
 
 def test_hoy_everything_at_once_priority_and_no_scroll():
-    """En pleno Halloween, con atajos, una carta sin abrir, la gallina en el refugio, el aviso de Google y la frase de la
-    cena a la vez: en el móvil (390×844, claro y oscuro) la fila de atajos y un solo HOME_SLOT, la carta; en tableta
-    (820×1180) y en el escritorio, dos: la carta y el refugio. Al irse cada uno sale el siguiente por orden: carta >
-    refugio > temporada > aviso de Google > frase de la cena (el aviso de Google sale una vez por visita, pero si no cabe
-    no gasta su vez). Con «Repasar 6» y en un móvil bajo (375×667) tampoco hay scroll. Sin errores."""
+    """En pleno Halloween, con atajos, una carta sin abrir, la gallina en el refugio y la frase de la cena a la vez (y
+    sin fila de Google: la partida se guarda sola): en el móvil (390×844, claro y oscuro) la fila de atajos y un solo
+    HOME_SLOT, la carta; en tableta (820×1180) y en el escritorio, dos: la carta y el refugio. Al irse cada uno sale el
+    siguiente por orden: carta > refugio > temporada > frase de la cena, también en otra visita. Con «Repasar 6» y en
+    un móvil bajo (375×667) tampoco hay scroll. Sin errores."""
     probs = []
     for tag, kind, kw, want in (("móvil claro", "phone", {}, ["mail"]), ("móvil oscuro", "phone", {"color_scheme": "dark"}, ["mail"]),
                                 ("tableta 820", "phone", {"viewport": {"width": 820, "height": 1180}}, ["mail", "granja"]),
@@ -414,8 +416,8 @@ def test_hoy_everything_at_once_priority_and_no_scroll():
             if page.locator("#mb-hrow, [data-slot=mail] .hm-row").count() and "carta" not in page.locator("[data-slot=mail]").text_content():
                 probs.append(f"{tag}: la fila del sobre no dice «carta»")
             # y al irse cada uno, el siguiente (en el móvil, uno; en los grandes, dos)
-            steps = [["granja"], ["season"], ["sync"], ["phrase"]] if len(want) == 1 else \
-                [["granja", "season"], ["season", "sync"], ["phrase"]]
+            steps = [["granja"], ["season"], ["phrase"]] if len(want) == 1 else \
+                [["granja", "season"], ["season", "phrase"], ["phrase"]]
             # 1) se abre la carta
             C.goto(page, "#/carta/" + LET["id"])
             page.locator("#mb-open").click()
@@ -428,22 +430,19 @@ def test_hoy_everything_at_once_priority_and_no_scroll():
             _hoy(page)
             seq.append(page.evaluate(_SLOTS))
             _fits(page, f"{tag} sin el refugio", probs)
-            # 3) sin temporada (el aviso de Google ya salió en esta visita si cabía)
+            # 3) sin temporada
             C.goto(page, "#/?season=off")          # (es Hoy otra vez)
             page.wait_for_timeout(500)
-            if len(want) == 1:
-                seq.append(page.evaluate(_SLOTS))   # el aviso de Google (no cabía antes: no gastó su vez)
-                _fits(page, f"{tag} con el aviso de Google", probs)
             _hoy(page)
             seq.append(page.evaluate(_SLOTS))
             if seq != steps:
                 probs.append(f"{tag}: al irse uno tras otro salen {seq} (se esperaba {steps})")
-            # otra visita: el aviso de Google vuelve (y va antes que la frase de la cena)
+            # otra visita: lo mismo (no sale ningún aviso de Google)
             C.reload(page)
             page.wait_for_timeout(500)
             again = page.evaluate(_SLOTS)
-            if again != (["sync"] if len(want) == 1 else ["sync", "phrase"]):
-                probs.append(f"{tag}: en otra visita salen {again} (el aviso de Google y luego la frase de la cena)")
+            if again != ["phrase"]:
+                probs.append(f"{tag}: en otra visita salen {again} (la frase de la cena)")
             _fits(page, f"{tag} otra visita", probs)
             probs += [f"{tag}: {e}" for e in C.errors(page)]
         finally:
@@ -1524,7 +1523,7 @@ def test_captures_f5():
     try:
         C.seed(page, _keys())
         page.evaluate("() => sessionStorage.setItem('__mic', 'ok')")
-        _hoy(page)                                  # la segunda visita: sin el aviso de Google, la frase de la cena
+        _hoy(page)                                  # Hoy otra vez, con la frase de la cena
         page.wait_for_selector("#hm-sc .sc-p", timeout=6000)
         snap(page, "F5-hoy-atajos-phone-light")
         if page.locator("#ph-hrow").count():
