@@ -197,6 +197,20 @@ compartida no responde).
   márgenes seguros de 47 px, 667×375 y 568×320) los globos son grandes y no se baja, con «Reducir movimiento» no saltan
   de tamaño; tras un fallo en «Escucha y elige» la lección no baja (también en 1280×720 y con «Texto más grande») y la
   ✓/✗ va en la esquina del dibujo; el repaso con dos pistas, Letras con texto grande y la cara blanca de Memoria oscuro.
+- `test_voces.py` (voz de cada idioma): `speechSynthesis` simulado con listas de voces de aparatos reales (iPhone con
+  Safari, Windows con Edge y con Chrome, Android con Chrome, Firefox de Android con el motor de Samsung, Chromebook) y
+  lista vacía que llega tarde. Ajustes › Voz y velocidad con el grupo «Voces» de una fila por idioma (el que aprende
+  primero, con en, fr y da; a la derecha y en una línea «Automática · Sonia», o solo «Automática» si no cabe, o la
+  elegida), la «Automática» de cada aparato (británica para inglés, nunca de broma ni muy robótica), cada idioma con solo
+  sus voces y sin repetir, la página del idioma por países (nombre solo, nube en las de internet, «Más voces»
+  desplegable), elegir (✓, suena con esa voz y su `lang`, `"vocab:voice"` por idioma y solo de este aparato, sigue tras
+  recargar, «Automática» guarda `""`; dos voces con el mismo nombre se guardan como `"nombre|en-US"`), fuera de la
+  partida (exportación igual a la base), `voice:<idioma>` de respaldo, sin voz danesa (y Para mayores con la ayuda solo de
+  lo que falta), repintar al llegar las voces (y al volver a la app) sin perder la página ni el foco, la barra con el
+  título en el centro (a 320 px, con letra grande y en escritorio), la altura de la hoja al entrar y volver, la hoja
+  propia `dialog#cfg`, sin internet las del aparato y el reintento (también del ▶), códigos de otros idiomas (`es-ES`),
+  Chrome en Android (`u.lang`, un acento por fila) y el teclado. Con `VOCES_SHOTS=1` guarda capturas en
+  `/mnt/project-files/rediseno/capturas/voces/`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.
