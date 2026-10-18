@@ -702,7 +702,7 @@ def test_juegos_card_goes_to_the_mailbox():
         _seed(page, "#/juegos")
         c = page.evaluate("""() => { const a = document.querySelector('.gm-card[data-g="buzon"]'); return a && {href: a.getAttribute('href'), t: a.querySelector('.gm-ct').textContent,
           rt: a.querySelector('.gm-rt').textContent, stars: a.querySelectorAll('.gm-st').length, img: a.querySelector('img').getAttribute('src'),
-          others: [...document.querySelectorAll('.gm-card')].filter(x => x !== a).every(x => x.getAttribute('href') === '#/juegos/' + x.dataset.g)}; }""")
+          others: [...document.querySelectorAll('.gm-card')].filter(x => x !== a && !x.classList.contains('gm-link')).every(x => x.getAttribute('href') === '#/juegos/' + x.dataset.g)}; }""")
         if not c or c["href"] != "#/buzon" or c["t"] != "Buzón del tío" or c["rt"] != "Graba tu voz" or c["stars"] or c["img"] != "img/games/buzon.png" or not c["others"]:
             probs.append(f"tarjeta: {c}")
         page.locator('.gm-card[data-g="buzon"]').click()

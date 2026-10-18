@@ -26,6 +26,7 @@ const SHELL = [
   "js/season.js", "data/season.json",
   "js/shortcuts.js",
   "js/mailbox.js",
+  "js/phrases.js", "data/phrases.json",
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */

@@ -1,0 +1,681 @@
+{
+ "v": 1,
+ "about": "Frases mágicas (js/phrases.js): plantillas con un hueco (_) por idioma. t: la frase; {a} (inglés) pasa a a/an según la palabra. es: la traducción con su hueco; {un} {el} {al} {los} {este} concuerdan con la palabra en español. use: qué se pone en el hueco (word: la palabra del corpus, con su artículo en francés y danés; forms: el plural; a: inglés con a/an; le: francés con le/l'; un: francés con un/une; poss: con mon/ma o min/mit en lugar del artículo; bare: sin artículo). pools: de qué grupos salen las palabras (claves «tema|es», como las del repaso); except: las que no encajan en esa plantilla. es_g/es_pl/fr_g/en_an: arreglos de género, plural y a/an cuando la regla engaña.",
+ "pools": {
+  "animals": {
+   "animate": true,
+   "refs": [
+    "animales|Perro",
+    "animales|Gato",
+    "animales|Conejo",
+    "animales|Hámster",
+    "animales|Pez",
+    "animales|Pájaro",
+    "animales|Tortuga",
+    "animales|Caballo",
+    "animales|Vaca",
+    "animales|Toro",
+    "animales|Cerdo",
+    "animales|Oveja",
+    "animales|Cabra",
+    "animales|Gallina",
+    "animales|Gallo",
+    "animales|Pato",
+    "animales|Pavo",
+    "animales|Burro",
+    "animales|Ganso",
+    "animales|León",
+    "animales|Tigre",
+    "animales|Elefante",
+    "animales|Jirafa",
+    "animales|Mono",
+    "animales|Oso",
+    "animales|Lobo",
+    "animales|Zorro",
+    "animales|Ciervo",
+    "animales|Cebra",
+    "animales|Rinoceronte",
+    "animales|Hipopótamo",
+    "animales|Gorila",
+    "animales|Camello",
+    "animales|Canguro",
+    "animales|Koala",
+    "animales|Panda",
+    "animales|Águila",
+    "animales|Búho",
+    "animales|Loro",
+    "animales|Cisne",
+    "animales|Paloma",
+    "animales|Pingüino",
+    "animales|Avestruz",
+    "animales|Ballena",
+    "animales|Delfín",
+    "animales|Tiburón",
+    "animales|Pulpo",
+    "animales|Cangrejo",
+    "animales|Rana",
+    "animales|Foca",
+    "animales|Serpiente",
+    "animales|Araña",
+    "animales|Abeja",
+    "animales|Mariposa",
+    "animales|Hormiga",
+    "animales|Mosca",
+    "animales|Cocodrilo",
+    "animales|Lagarto",
+    "w09|ratón"
+   ]
+  },
+  "family": {
+   "animate": true,
+   "refs": [
+    "familia|Padre",
+    "familia|Madre",
+    "familia|Hijo",
+    "familia|Hija",
+    "familia|Hermano",
+    "familia|Hermana",
+    "familia|Esposo/Marido",
+    "familia|Esposa/Mujer",
+    "familia|Abuelo",
+    "familia|Abuela",
+    "familia|Nieto",
+    "familia|Nieta",
+    "familia|Tío",
+    "familia|Tía",
+    "familia|Primo",
+    "familia|Prima",
+    "familia|Sobrino",
+    "familia|Sobrina",
+    "familia|Suegro",
+    "familia|Suegra",
+    "familia|Cuñado",
+    "familia|Cuñada",
+    "familia|Novio",
+    "familia|Novia",
+    "familia|Bebé",
+    "w01|papá",
+    "w01|mamá"
+   ]
+  },
+  "jobs": {
+   "animate": true,
+   "refs": [
+    "profesiones|Médico/a",
+    "profesiones|Enfermero/a",
+    "profesiones|Dentista",
+    "profesiones|Farmacéutico/a",
+    "profesiones|Veterinario/a",
+    "profesiones|Profesor/a",
+    "profesiones|Maestro/a",
+    "profesiones|Ingeniero/a",
+    "profesiones|Arquitecto/a",
+    "profesiones|Científico/a",
+    "profesiones|Programador/a",
+    "profesiones|Astronauta",
+    "profesiones|Abogado/a",
+    "profesiones|Juez/a",
+    "profesiones|Policía",
+    "profesiones|Bombero/a",
+    "profesiones|Soldado",
+    "profesiones|Cocinero/a",
+    "profesiones|Camarero/a",
+    "profesiones|Panadero/a",
+    "profesiones|Peluquero/a",
+    "profesiones|Recepcionista",
+    "profesiones|Guía turístico/a",
+    "profesiones|Electricista",
+    "profesiones|Plomero/a",
+    "profesiones|Carpintero/a",
+    "profesiones|Mecánico/a",
+    "profesiones|Piloto",
+    "profesiones|Auxiliar de vuelo",
+    "profesiones|Conductor/a",
+    "profesiones|Marinero/a",
+    "profesiones|Agricultor/a",
+    "profesiones|Pescador/a",
+    "profesiones|Contador/a",
+    "profesiones|Vendedor/a",
+    "profesiones|Secretario/a",
+    "profesiones|Actor/Actriz",
+    "profesiones|Cantante",
+    "profesiones|Músico/a",
+    "profesiones|Pintor/a",
+    "profesiones|Escritor/a",
+    "profesiones|Periodista",
+    "profesiones|Fotógrafo/a",
+    "profesiones|Deportista",
+    "profesiones|Futbolista"
+   ]
+  },
+  "colours": {
+   "refs": [
+    "colores|Rojo",
+    "colores|Naranja",
+    "colores|Amarillo",
+    "colores|Verde",
+    "colores|Azul",
+    "colores|Morado/Púrpura",
+    "colores|Rosa",
+    "colores|Marrón/Café",
+    "colores|Negro",
+    "colores|Blanco",
+    "colores|Gris",
+    "colores|Beige",
+    "colores|Dorado",
+    "colores|Plateado",
+    "colores|Turquesa",
+    "colores|Celeste",
+    "colores|Verde oscuro",
+    "colores|Verde claro",
+    "colores|Azul marino",
+    "colores|Coral",
+    "colores|Cian",
+    "colores|Magenta"
+   ]
+  },
+  "food": {
+   "refs": [
+    "w03|manzana",
+    "w03|plátano",
+    "w03|pastel, tarta",
+    "w03|zanahoria",
+    "w03|huevo",
+    "w03|helado",
+    "w03|cebolla",
+    "w03|patata",
+    "w03|sándwich, bocadillo",
+    "w03|tomate",
+    "w03|galleta",
+    "w03|limón"
+   ]
+  },
+  "objects": {
+   "refs": [
+    "w04|bañera, baño",
+    "w04|cama",
+    "w04|caja",
+    "w04|silla",
+    "w04|reloj (de pared)",
+    "w04|puerta",
+    "w04|llave, clave",
+    "w04|ventana",
+    "w04|cepillo",
+    "w04|cuchillo",
+    "w04|lámpara",
+    "w04|espejo",
+    "w04|plato",
+    "w04|cuchara",
+    "w04|campana, timbre",
+    "w03|botella",
+    "w03|taza",
+    "w03|vaso; vidrio",
+    "w03|cuenco, bol",
+    "w03|tenedor",
+    "w05|camiseta",
+    "w05|bolsa, bolso",
+    "w05|bota",
+    "w05|abrigo",
+    "w05|vestido",
+    "w05|sombrero",
+    "w05|camisa",
+    "w05|zapato",
+    "w05|paraguas",
+    "w05|anillo",
+    "w05|calcetín",
+    "w05|corbata",
+    "w05|gorra",
+    "w05|guante",
+    "w07|bicicleta",
+    "w07|barco",
+    "w07|autobús",
+    "w07|coche",
+    "w07|mapa",
+    "w07|pasaporte",
+    "w07|avión",
+    "w07|taxi",
+    "w07|billete, entrada",
+    "w07|tren",
+    "w07|camión",
+    "w07|moto",
+    "w07|furgoneta",
+    "w07|rueda",
+    "w07|helicóptero",
+    "w07|tienda de campaña",
+    "w10|libro",
+    "w10|bolígrafo",
+    "w10|lápiz",
+    "w13|pelota, balón",
+    "w13|guitarra",
+    "w13|foto",
+    "w13|piano",
+    "w13|regalo",
+    "w14|juguete",
+    "w14|tambor, batería",
+    "w14|fantasma",
+    "w15|cámara",
+    "w15|ordenador",
+    "w15|carta, letra",
+    "w12|moneda"
+   ]
+  },
+  "places": {
+   "refs": [
+    "w04|casa",
+    "w09|flor",
+    "w09|isla",
+    "w09|montaña",
+    "w09|planta",
+    "w09|estrella",
+    "w09|árbol",
+    "w09|nube",
+    "w09|planeta",
+    "w09|roca; rock",
+    "w09|ola",
+    "w09|hoja (de planta)",
+    "w09|concha, caparazón",
+    "w06|parque",
+    "w06|puente",
+    "w06|castillo",
+    "w06|torre"
+   ]
+  },
+  "snacks": {
+   "refs": [
+    "w03|judía, frijol",
+    "w03|patata frita",
+    "w03|fruto seco, nuez"
+   ]
+  },
+  "small": {
+   "refs": [
+    "w04|llave, clave",
+    "w04|cepillo",
+    "w04|cuchillo",
+    "w04|cuchara",
+    "w03|botella",
+    "w03|taza",
+    "w03|vaso; vidrio",
+    "w03|cuenco, bol",
+    "w03|tenedor",
+    "w05|bolsa, bolso",
+    "w05|sombrero",
+    "w05|paraguas",
+    "w05|calcetín",
+    "w05|gorra",
+    "w05|guante",
+    "w07|mapa",
+    "w07|billete, entrada",
+    "w10|libro",
+    "w10|bolígrafo",
+    "w10|lápiz",
+    "w13|pelota, balón",
+    "w13|foto",
+    "w13|regalo",
+    "w14|juguete",
+    "w14|tambor, batería",
+    "w15|cámara",
+    "w15|carta, letra",
+    "w12|moneda"
+   ]
+  }
+ },
+ "es_g": {
+  "gorila": "m",
+  "koala": "m",
+  "panda": "m",
+  "planeta": "m",
+  "mapa": "m",
+  "fantasma": "m",
+  "pijama": "m",
+  "día": "m",
+  "serpiente": "f",
+  "madre": "f",
+  "llave": "f",
+  "flor": "f",
+  "nube": "f",
+  "torre": "f",
+  "foto": "f",
+  "moto": "f",
+  "mamá": "f",
+  "águila": "fa"
+ },
+ "es_pl": {},
+ "fr_g": {
+  "l'oiseau": "m",
+  "l'âne": "m",
+  "l'oie": "f",
+  "l'éléphant": "m",
+  "l'ours": "m",
+  "l'hippopotame": "m",
+  "l'aigle": "m",
+  "l'autruche": "f",
+  "l'araignée": "f",
+  "l'abeille": "f",
+  "l'oncle": "m"
+ },
+ "en_an": {},
+ "english": [
+  {
+   "id": "see",
+   "t": "I can see {a} _.",
+   "es": "Veo {un} _.",
+   "use": "a",
+   "pools": [
+    "animals",
+    "objects",
+    "places",
+    "food"
+   ]
+  },
+  {
+   "id": "got",
+   "t": "I've got {a} _.",
+   "es": "Tengo {un} _.",
+   "use": "a",
+   "pools": [
+    "animals",
+    "objects",
+    "food"
+   ]
+  },
+  {
+   "id": "look",
+   "t": "Look at the _!",
+   "es": "¡Mira {al} _!",
+   "use": "word",
+   "pools": [
+    "animals",
+    "objects",
+    "places"
+   ]
+  },
+  {
+   "id": "like",
+   "t": "I like _.",
+   "es": "Me gustan {los} _.",
+   "use": "forms",
+   "pools": [
+    "animals",
+    "food",
+    "snacks"
+   ],
+   "except": [
+    "w03|helado"
+   ]
+  },
+  {
+   "id": "colour",
+   "t": "My favourite colour is _.",
+   "es": "Mi color favorito es el _.",
+   "use": "word",
+   "pools": [
+    "colours"
+   ]
+  },
+  {
+   "id": "its",
+   "t": "It's _.",
+   "es": "Es _.",
+   "use": "word",
+   "pools": [
+    "colours"
+   ]
+  },
+  {
+   "id": "this",
+   "t": "This is my _.",
+   "es": "{este} es mi _.",
+   "use": "word",
+   "pools": [
+    "family"
+   ]
+  },
+  {
+   "id": "love",
+   "t": "I love my _.",
+   "es": "Quiero mucho a mi _.",
+   "use": "word",
+   "pools": [
+    "family"
+   ]
+  },
+  {
+   "id": "job",
+   "t": "I want to be {a} _.",
+   "es": "Quiero ser _.",
+   "use": "a",
+   "pools": [
+    "jobs"
+   ]
+  },
+  {
+   "id": "have",
+   "t": "Can I have {a} _, please?",
+   "es": "¿Me das {un} _, por favor?",
+   "use": "a",
+   "pools": [
+    "food",
+    "small"
+   ]
+  },
+  {
+   "id": "where",
+   "t": "Where is the _?",
+   "es": "¿Dónde está {el} _?",
+   "use": "word",
+   "pools": [
+    "animals",
+    "objects"
+   ]
+  }
+ ],
+ "français": [
+  {
+   "id": "cest",
+   "t": "C'est _.",
+   "es": "Es {el} _.",
+   "use": "word",
+   "pools": [
+    "animals",
+    "objects",
+    "places",
+    "food"
+   ]
+  },
+  {
+   "id": "look",
+   "t": "Regarde _ !",
+   "es": "¡Mira {al} _!",
+   "use": "word",
+   "pools": [
+    "animals",
+    "objects",
+    "places"
+   ]
+  },
+  {
+   "id": "like",
+   "t": "J'aime _.",
+   "es": "Me gustan {los} _.",
+   "use": "forms",
+   "pools": [
+    "animals",
+    "food",
+    "snacks"
+   ]
+  },
+  {
+   "id": "colour",
+   "t": "Ma couleur préférée, c'est _.",
+   "es": "Mi color favorito es el _.",
+   "use": "le",
+   "pools": [
+    "colours"
+   ],
+   "except": [
+    "colores|Plateado"
+   ]
+  },
+  {
+   "id": "voici",
+   "t": "Voici _.",
+   "es": "Te presento a mi _.",
+   "use": "poss",
+   "pools": [
+    "family"
+   ]
+  },
+  {
+   "id": "love",
+   "t": "J'aime beaucoup _.",
+   "es": "Quiero mucho a mi _.",
+   "use": "poss",
+   "pools": [
+    "family"
+   ]
+  },
+  {
+   "id": "got",
+   "t": "J'ai _.",
+   "es": "Tengo {un} _.",
+   "use": "un",
+   "pools": [
+    "animals",
+    "objects",
+    "food"
+   ]
+  },
+  {
+   "id": "job",
+   "t": "Je veux être _.",
+   "es": "Quiero ser _.",
+   "use": "bare",
+   "pools": [
+    "jobs"
+   ]
+  },
+  {
+   "id": "where",
+   "t": "Où est _ ?",
+   "es": "¿Dónde está {el} _?",
+   "use": "word",
+   "pools": [
+    "animals",
+    "objects"
+   ]
+  },
+  {
+   "id": "have",
+   "t": "Je voudrais _, s'il te plaît.",
+   "es": "¿Me das {un} _, por favor?",
+   "use": "un",
+   "pools": [
+    "food",
+    "small"
+   ]
+  }
+ ],
+ "dansk": [
+  {
+   "id": "det",
+   "t": "Det er _.",
+   "es": "Es {un} _.",
+   "use": "word",
+   "pools": [
+    "animals",
+    "objects",
+    "places",
+    "food"
+   ]
+  },
+  {
+   "id": "see",
+   "t": "Jeg kan se _.",
+   "es": "Veo {un} _.",
+   "use": "word",
+   "pools": [
+    "animals",
+    "objects",
+    "places"
+   ]
+  },
+  {
+   "id": "got",
+   "t": "Jeg har _.",
+   "es": "Tengo {un} _.",
+   "use": "word",
+   "pools": [
+    "animals",
+    "objects",
+    "food"
+   ]
+  },
+  {
+   "id": "like",
+   "t": "Jeg kan godt lide _.",
+   "es": "Me gustan {los} _.",
+   "use": "forms",
+   "pools": [
+    "animals",
+    "food",
+    "snacks"
+   ]
+  },
+  {
+   "id": "colour",
+   "t": "Min yndlingsfarve er _.",
+   "es": "Mi color favorito es el _.",
+   "use": "word",
+   "pools": [
+    "colours"
+   ]
+  },
+  {
+   "id": "den",
+   "t": "Den er _.",
+   "es": "Es _.",
+   "use": "word",
+   "pools": [
+    "colours"
+   ]
+  },
+  {
+   "id": "mine",
+   "t": "Det er _.",
+   "es": "Es mi _.",
+   "use": "poss",
+   "pools": [
+    "family"
+   ]
+  },
+  {
+   "id": "love",
+   "t": "Jeg elsker _.",
+   "es": "Quiero mucho a mi _.",
+   "use": "poss",
+   "pools": [
+    "family"
+   ]
+  },
+  {
+   "id": "job",
+   "t": "Jeg vil være _.",
+   "es": "Quiero ser _.",
+   "use": "bare",
+   "pools": [
+    "jobs"
+   ]
+  },
+  {
+   "id": "have",
+   "t": "Må jeg få _?",
+   "es": "¿Me das {un} _?",
+   "use": "word",
+   "pools": [
+    "food",
+    "small"
+   ]
+  }
+ ]
+}
