@@ -4,7 +4,8 @@
    de la lección los celebra ella misma (el chip de la llama de js/lesson.js).
    - Hoy: home() de index.html pinta las dos piezas que da este módulo. «Misiones» (misPiece(): la siguiente misión y 3
      puntos; al tocarla, la hoja #bd-mis-s con las 3 misiones de hoy, su progreso, «Recoger · 15» y el cofre de +25).
-     «Palabra del día» (wotdPiece(): dibujo y palabra; al tocarla gira en 3D, enseña la traducción y suena; detrás,
+     «Palabra del día» (wotdPiece(): dibujo y palabra; al tocarla gira en 3D, enseña la traducción, la palabra y su IPA
+     (ipaHtml() de index.html, salvo que un mayor la apague; va en el sitio de la etiqueta) y suena; detrás,
      «¡Me la sé!» la manda al repaso y da +3 la primera vez del día). Las monedas salen volando desde el botón
      (award(…, desde)). La pieza de Misiones salta una vez cuando hay una misión recién cumplida (attention()).
    - Mapa: el personaje junto a la lección actual (camina desde la anterior al terminar una) y «🎁 Regalo en N lecciones».
@@ -90,6 +91,7 @@ const STYLE = `
 .bd-wtap{display:flex;flex-direction:column;align-items:center;gap:0;width:100%;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
 .bd-wes{max-width:100%;font:700 calc(1.5rem*var(--k,1))/1.15 var(--f-round);overflow-wrap:anywhere}
 .bd-wsm{max-width:100%;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
+.bd-wipa{display:block;max-width:100%;font-size:var(--fs-note);line-height:1.25;overflow-wrap:anywhere}
 .bd-know{margin-top:auto;font-size:var(--fs-note)}
 .bd-c{display:inline-flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
 .bd-c svg{display:block;width:16px;height:16px}
@@ -441,13 +443,15 @@ function wotdOf(el){
 function wotdInner(x, back){
   if(!x) return "";
   const r = x.r, d = r.l[lang], w = wState(), known = !!w.known[lang], code = (LANGS[lang] || {}).code || "";
+  /* detrás, la IPA va en el sitio de la etiqueta (delante ya se lee «Palabra del día»): la pieza no crece y Hoy cabe */
+  const ipa = ipaHtml(d.ipa, code, "bd-wipa");
   const len = [...d.word].length, sz = len > 13 ? " xs" : len > 8 ? " s" : "";
   const lbl = `<span class="bd-pl">${icon("sparkle", "fill", 18)}<span>Palabra del día</span></span>`;
   return `<div class="bd-flip${back ? " back" : ""}">
     <button type="button" class="card bd-face bd-wfront" aria-label="Palabra del día: ${esc(d.word)}. Toca para darle la vuelta y oírla"${back ? " inert" : ""}>
       ${lbl}<span class="bd-wimg img"><img src="${esc(r.img)}" alt="" loading="lazy" draggable="false"></span><b class="bd-ww${sz}" lang="${esc(code)}">${esc(d.word)}</b></button>
     <div class="card bd-face bd-wback" data-press="sink"${back ? "" : " inert"}>
-      <button type="button" class="bd-wtap" aria-label="${esc(d.word)} es ${esc(r.es)}. Toca para volver y oírla">${lbl}<b class="bd-wes">${esc(r.es)}</b><span class="bd-wsm" lang="${esc(code)}">${esc(d.word)}</span></button>
+      <button type="button" class="bd-wtap" aria-label="${esc(d.word)} es ${esc(r.es)}. Toca para volver y oírla">${ipa ? "" : lbl}<b class="bd-wes">${esc(r.es)}</b><span class="bd-wsm" lang="${esc(code)}">${esc(d.word)}</span>${ipa}</button>
       ${known ? `<span class="bd-wok">${icon("check", "bold", 16)}En tu repaso</span>`
         : `<button type="button" class="glass-btn glass-btn--sm bd-know" data-know="1"${w.paid ? "" : ' aria-label="¡Me la sé! Gana 3 monedas"'}>¡Me la sé!${w.paid ? "" : `<span class="bd-c">${COIN}3</span>`}</button>`}
     </div></div>`;

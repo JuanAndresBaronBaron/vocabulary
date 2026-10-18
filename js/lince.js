@@ -4,6 +4,9 @@
      Acierto: la tarjeta se pone verde con ✓ y la palabra vuelve a sonar. Fallo: la elegida se pone gris con ✗ (sin
      temblor ni sonido triste), la buena se pone verde con ✓, «¡Casi! Es «…»» y suenan las dos, una detrás de otra,
      para comparar (la que suena se agranda un poco); «Seguir» sale enseguida en el dock de abajo, como en la lección.
+     Al contestar, cada tarjeta enseña su traducción y su IPA (de data/<d>.json, ipaHtml() de index.html; se ve salvo
+     que un mayor la apague): ship /ʃɪp/ y sheep /ʃiːp/ se ven distintas. Su hueco está reservado desde el principio
+     (nada se mueve al contestar).
      El altavoz grande (tintado, como el de la lección) repite la palabra y la tortuga la dice despacio. Estrellas por
      aciertos (7-8 ★★★, 5-6 ★★, 0-4 ★).
    Usa de games.js lo mismo que los otros juegos: tarjeta del menú, récord, explicación la primera vez, «?», pausa
@@ -34,7 +37,19 @@ const okWord = x => x && typeof x === "object" && typeof x.w === "string" && x.w
   && (x.img === null || x.img === undefined || (typeof x.img === "string" && /^img\/[\w.\-]+\.png$/.test(x.img)));
 const pairsOf = (all, L) => (all && Array.isArray(all[L]) ? all[L] : [])
   .filter(p => Array.isArray(p) && p.length === 2 && okWord(p[0]) && okWord(p[1]) && p[0].w !== p[1].w)
-  .map(p => p.map(x => ({w: x.w.trim(), es: x.es.trim(), img: x.img || null})));
+  .map(p => p.map(x => ({w: x.w.trim(), es: x.es.trim(), img: x.img || null, d: typeof x.d === "string" ? x.d : ""})));
+/* la IPA de cada palabra de las rondas, del tema de donde sale (x.d) en el corpus: {palabra: ipa}. Sin red o si no se
+   encuentra, esa tarjeta va sin IPA */
+async function ipaOf(words, L){
+  const out = {}, docs = [...new Set(words.map(x => x.d).filter(Boolean))];
+  await Promise.all(docs.map(id => Promise.resolve().then(() => getDoc(id)).then(doc => {
+    for(const x of words) if(x.d === id && !out[x.w]){
+      const r = ((doc && doc.rows) || []).find(r => r && r.l && r.l[L] && r.l[L].word === x.w);
+      if(r && r.l[L].ipa) out[x.w] = r.l[L].ipa;
+    }
+  }).catch(() => {})));
+  return out;
+}
 /* el audio de cada palabra lo dice audio/<ab>.json; recién abierta la app puede no haber llegado todavía */
 async function clipsReady(word){
   for(let i = 0; i < 20; i++){
@@ -63,6 +78,10 @@ const CSS = `
 .ln-w .ln-a{font-weight:600;opacity:.72;margin-right:.25em}
 .ln-es{display:block;min-height:1.3em;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2);visibility:hidden}
 .ln.ln-done .ln-es{visibility:visible}
+.ln-ipa{display:block;max-width:100%;min-height:1.3em;margin-top:-6px;font-size:var(--fs-note);line-height:1.3;overflow-wrap:anywhere;visibility:hidden}
+.ln.ln-done .ln-ipa{visibility:visible}
+.ln-c.is-ok .ln-ipa .ipa,.ln-c.is-right .ln-ipa .ipa{color:#fff}
+.ln-c.is-miss .ln-ipa .ipa{color:var(--miss-on)}
 .ln-mk{position:absolute;right:-6px;top:-6px;width:34px;height:34px;border-radius:50%;display:none;place-items:center;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:2}
 .ln-c.is-ok,.ln-c.is-right{background:var(--ok-fill);color:#fff;box-shadow:none}
 .ln-c.is-ok .ln-es,.ln-c.is-right .ln-es{color:#fff}
@@ -116,7 +135,9 @@ async function start(app, api, mode){
   while(order.length < ROUNDS){ const s = shuffle(P); if(order.length && s[0] === order[order.length - 1]) s.push(s.shift()); order.push(...s); }
   const rounds = order.slice(0, ROUNDS).map(p => { const k = Math.random() < .5 ? 0 : 1; return {pair: shuffle(p), target: p[k]}; });
   rounds.forEach(r => r.pair.forEach(x => { if(x.img){ const im = new Image(); im.src = x.img; } }));
-  await clipsReady(rounds[0].target.w);
+  /* la IPA no frena el juego: se espera como mucho 1,5 s (con una red lenta, las rondas siguientes la llevan al llegar) */
+  const IPA = {}, ipaP = ipaOf(rounds.flatMap(r => r.pair), L).then(o => Object.assign(IPA, o));
+  await Promise.all([Promise.race([ipaP, new Promise(r => setTimeout(r, 1500))]), clipsReady(rounds[0].target.w)]);
   if(!api.here(my, ID) || lang !== L) return;
   const code = LANGS[lang].code;
   const run = api.mount(app, `<div class="gm ln" id="ln">
@@ -154,7 +175,7 @@ async function start(app, api, mode){
     return `<button type="button" class="ln-c${pics ? "" : " ln-txt"}" data-i="${i}" data-w="${esc(x.w)}" style="--i:${i}">
       ${pics ? `<span class="ln-pic" aria-hidden="true"><img src="${esc(x.img)}" alt="" draggable="false"></span>` : ""}
       <span class="ln-w" lang="${esc(code)}" style="font-size:${wordFs(x.w)}">${art ? `<span class="ln-a">${esc(art)}</span>` : ""}${esc(base)}</span>
-      <span class="ln-es" aria-hidden="true">${esc(x.es)}</span>
+      <span class="ln-es" aria-hidden="true">${esc(x.es)}</span>${ipaOn() ? `<span class="ln-ipa">${ipaHtml(IPA[x.w], code)}</span>` : ""}
       <span class="ln-mk" aria-hidden="true"></span><span class="vh ln-st"></span></button>`;
   }
   function round(){

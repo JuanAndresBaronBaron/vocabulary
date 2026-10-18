@@ -17,8 +17,9 @@
      #/doc/<id>?m=<lista|tarjetas|test|practica> abre en ese modo (los atajos de Hoy). Para js/shortcuts.js emite bus
      "doc-flip" {id, i, n} al girar una tarjeta y "doc-done" {id, mode: "test"|"practica"} al terminar Preguntas o Escribir.
      · Lista: filas con el español, la palabra y el altavoz (44 px; con la fila abierta, solo el grande del detalle) y
-       el punto «En el repaso»; tocar la fila abre el detalle (dibujo, «Se dice», plural o formas, IPA solo si
-       vocabUI.get().ipa, ejemplo y «Al repaso»). Deslizar una fila a la izquierda (como en
+       el punto «En el repaso»; tocar la fila abre el detalle (dibujo, «Se dice», la IPA, plural o formas, ejemplo y «Al
+       repaso»). La IPA (ipaHtml() de index.html) sale también en Tarjetas (girada, junto a «Se dice»), en Preguntas al
+       contestar y en Escribir (Escuchar, Leer y Hablar), salvo que un mayor la apague en Ajustes. Deslizar una fila a la izquierda (como en
        Mail) también la manda al repaso: srsAdd(id, [fila], 0), igual que el «➕ Al repaso» de antes.
      · Tarjetas: tarjeta sólida que gira al tocarla; «Siguiente» y ‹ (también deslizando y con ← →), «Automático»
        (secuencia que solo dice el idioma que se estudia), «Barajar» y «Ver primero en inglés / en español».
@@ -43,12 +44,11 @@
    Usa de index.html (globales): lang, LANGS, store, $, esc, ico, bus, ROUTES, getIndex, getDoc, CACHE, srsAll, srsK,
    srsAdd, srsGrade, award, toast, say, sayP, sleep, autoTok, logAct, voiceNote, shuffle, canListen, noVoiceMsg,
    listen, LVS, getMap, MAP, mapP, lvLessons, lvCur, lvUnits, GRAM, gId, allMapP, heroHtml, nPal, hashPath, secOf,
-   rovingKeys, ROUTE_RESTORE, ROUTE_FROM, mapScrolled; y window.M (motion.js), window.G (gestures.js), vocabUI. */
+   rovingKeys, ROUTE_RESTORE, ROUTE_FROM, mapScrolled, ipaOn, ipaHtml; y window.M (motion.js), window.G (gestures.js). */
 (() => {
 "use strict";
 const W = window, D = document, ROOT = D.documentElement;
 const rm = () => !!(W.M && typeof M.rm === "function" && M.rm());
-const ui = () => { try{ return (W.vocabUI && vocabUI.get()) || {}; }catch(e){ return {}; } };
 const code = () => (LANGS[lang] && LANGS[lang].code) || "en-GB";
 const lname = () => (LANGS[lang] && LANGS[lang].name) || "";
 const Lname = () => { const n = lname(); return n.charAt(0).toUpperCase() + n.slice(1); };
@@ -859,14 +859,14 @@ function lista(doc){
   if(first) setTimeout(() => { if(state.mode === "lista" && first.isConnected) hint(first, {id: "doc-swipe", gesture: "left", text: "Desliza para el repaso"}); }, 900);
 }
 function detailHtml(doc, r){
-  const d = r.l[lang], lc = code(), ipa = !!ui().ipa, inSrs = !!srsAll()[srsK(doc.id, r)];
+  const d = r.l[lang], lc = code(), ipa = ipaHtml(d.ipa, lc, "", false), inSrs = !!srsAll()[srsK(doc.id, r)];
   const pron = d.pron && norm(d.pron) !== norm(d.word) ? d.pron : "";
   const formsK = !r.pos || r.pos === "noun" ? "Plural" : "Formas";
   return `<div class="dl-dd">${r.img ? picHtml(r, "dl-pic") : ""}<div class="dl-info">
     <div class="dl-hear">${spk(d.word, "lg", "space")}${slowB(d.word, "shift+space")}</div>
     ${pron ? `<p class="dl-ln"><span class="dl-k">Se dice</span>«${esc(pron)}»</p>` : ""}
+    ${ipa ? `<p class="dl-ln"><span class="dl-k">IPA</span>${ipa}</p>` : ""}
     ${d.forms ? `<p class="dl-ln"><span class="dl-k">${formsK}</span><span lang="${esc(lc)}">${esc(d.forms)}</span></p>` : ""}
-    ${ipa && d.ipa ? `<p class="dl-ln"><span class="dl-k">IPA</span>${esc(d.ipa)}</p>` : ""}
     ${d.ex ? `<div class="dl-ex"><p lang="${esc(lc)}">${esc(d.ex)} ${spk(d.ex, "sm")}</p>${d.ex_es ? `<p class="dl-ex-tr">${esc(d.ex_es)}</p>` : ""}</div>` : ""}
     <button type="button" class="glass-btn glass-btn--sm dl-add" data-add>${inSrs ? `${ico("check", "bold", 18)}En el repaso` : `${ico("plus", "bold", 18)}Al repaso`}</button>
   </div></div>`;
@@ -891,14 +891,14 @@ function tarjetas(doc, anim){
   if(!s.order || s.order.length !== list.length) s.order = list.map((_, i) => i);
   if(s.i >= list.length) s.i = 0;
   const r = list[s.order[s.i]]; if(!r){ v.innerHTML = `<p class="ln-empty">Aquí aún no hay palabras.</p>`; return; }
-  const d = r.l[lang], ipa = !!ui().ipa;
+  const d = r.l[lang], ipa = ipaHtml(d.ipa, lc);
   const pron = d.pron && norm(d.pron) !== norm(d.word) ? d.pron : "";
   const front = s.rev
     ? `<p class="fcx-w" lang="${esc(lc)}">${esc(d.word)}</p><div class="fcx-hear">${spk(d.word, "lg", "space")}</div>`
     : `${picHtml(r)}<p class="fcx-w">${esc(r.es)}</p>`;
   const back = `${picHtml(r)}<p class="fcx-es">${esc(r.es)}</p><p class="fcx-w" lang="${esc(lc)}">${esc(d.word)}</p>
     <div class="fcx-hear">${spk(d.word, "lg", "space")}${slowB(d.word, "shift+space")}</div>
-    ${pron || (ipa && d.ipa) ? `<p class="fcx-meta">${pron ? `Se dice «${esc(pron)}»` : ""}${pron && ipa && d.ipa ? " · " : ""}${ipa && d.ipa ? esc(d.ipa) : ""}</p>` : ""}
+    ${pron || ipa ? `<p class="fcx-meta">${pron ? `Se dice «${esc(pron)}»` : ""}${pron && ipa ? " · " : ""}${ipa}</p>` : ""}
     ${d.forms ? `<p class="fcx-meta" lang="${esc(lc)}">${esc(d.forms)}</p>` : ""}
     ${d.ex ? `<div class="fcx-ex"><p lang="${esc(lc)}">${esc(d.ex)} ${spk(d.ex, "sm")}</p>${d.ex_es ? `<p class="fcx-tr">${esc(d.ex_es)}</p>` : ""}</div>` : ""}`;
   v.innerHTML = `<div class="fcx">
@@ -1025,7 +1025,7 @@ function test(doc){
     });
     fitQz(v);   /* la ✓ y la ✗ quitan sitio: que la palabra siga entera */
     if(good && W.M) try{ M.ok(right, {haptic: true}); }catch(_){}
-    const ipa = ui().ipa && d.ipa ? `<small>${esc(d.ipa)}</small>` : "";
+    const ipa = ipaOn() && d.ipa ? `<small>${ipaHtml(d.ipa, lc)}</small>` : "";
     fb.className = "qz-fb" + (good ? "" : " miss");
     fb.innerHTML = good ? `${PRAISE[Math.floor(Math.random() * PRAISE.length)]}${spk(d.word, "sm")}${ipa}`
       : `¡Casi! Es <b lang="${esc(lc)}">«${esc(d.word)}»</b>${spk(d.word, "sm")}${ipa}`;
@@ -1342,11 +1342,11 @@ function prRun(doc, s){
   });
 }
 function prCard(r, act, isCur, n, reps, off){
-  const d = r.l[lang], a = ACTS[act], lc = esc(code()), ipa = !!ui().ipa;
+  const d = r.l[lang], a = ACTS[act], lc = esc(code()), ipa = ipaHtml(d.ipa, code());
   const hero = `<div class="pr-hero">${picHtml(r)}<span class="pr-tag">${ico(a.ic, "bold", 14)}${a.name}</span><span class="pr-num">${n + 1}/${reps}</span></div>`;
   if(!isCur) return `<div class="pr-card side" data-off="${off}" aria-hidden="true">${hero}<div class="pr-body"><p class="es2">${esc(r.es)}</p></div></div>`;
   const pron = d.pron && norm(d.pron) !== norm(d.word) ? d.pron : "";
-  const meta = pron || (ipa && d.ipa) ? `<p class="pw-line">${pron ? `Se dice «${esc(pron)}»` : ""}${pron && ipa && d.ipa ? " · " : ""}${ipa && d.ipa ? esc(d.ipa) : ""}</p>` : "";
+  const meta = pron || ipa ? `<p class="pw-line">${pron ? `Se dice «${esc(pron)}»` : ""}${pron && ipa ? " · " : ""}${ipa}</p>` : "";
   const ex = (hidden) => d.ex ? `<div class="pw-ex"${hidden ? " hidden" : ""}><p lang="${lc}">${esc(d.ex)} ${spk(d.ex, "sm")}</p>${d.ex_es ? `<p class="tr">${esc(d.ex_es)}</p>` : ""}</div>` : "";
   const OK = ico("check", "bold", 20);
   let body;

@@ -3,15 +3,16 @@
    principal de vidrio fijo abajo, que cambia según el paso: «Continuar» (palabra nueva), «Practicar» (la regla de
    gramática) o «Seguir» (después de contestar). Antes de contestar no hay botón: se toca una respuesta.
    - Palabra nueva: dibujo, la palabra (44 px; si no cabe entera, más pequeña, nunca partida: fitWord), la traducción en gris, el altavoz grande y la tortuga (despacio), «Cómo
-     suena» (hoja con las sílabas y el audio lento; también manteniendo la palabra) y «Ejemplo» (se abre al tocarlo). El
-     IPA solo si un mayor lo activó (vocabUI.get().ipa). Deslizar a la izquierda = Continuar; a la derecha = la anterior
+     suena» (hoja con las sílabas, «Se dice «…»», la IPA y el audio lento; también manteniendo la palabra) y «Ejemplo» (se
+     abre al tocarlo). La IPA, debajo de la traducción (ipaHtml() de index.html: se ve salvo que un mayor la apague en
+     Ajustes › Para mayores; en un móvil bajo el dibujo cede lo que ocupa). Deslizar a la izquierda = Continuar; a la derecha = la anterior
      (también con ← →, y con el botón ‹ de abajo). La pista «Desliza para seguir» nunca sale en la primera tarjeta.
    - Preguntas: 2×2 opciones sólidas de 64 px (dibujo o texto; con 3, en fila), sin gestos. En francés y danés las otras
      opciones llevan, si puede ser, el mismo artículo (no se adivina por «la» o «et»). El altavoz de la pregunta sale al
      contestar (el dibujo se encoge lo mismo, así las opciones no se mueven). Acertar: rebote, verde con ✓, suena la
      palabra, vibración suave y pasa sola al acabar el audio (nunca antes de 0,9 s; con tope por si no acaba). Fallar: la
      elegida en gris con ✗, la correcta en verde con ✓ y suena; el botón pasa a «Seguir». Sin temblor, sin vibración, sin
-     sonido triste. Racha: a los 3, 5 y 8 aciertos seguidos salta un chip con la llama y el número.
+     sonido triste. En «¿Cuál es…?» (se contesta con la palabra) la respuesta lleva la IPA de la palabra debajo. Racha: a los 3, 5 y 8 aciertos seguidos salta un chip con la llama y el número.
    - La ✕ y Esc abren «¿Paramos aquí?» (Seguir destacado · Salir, que vuelve a donde estaba el niño, como la ✕). En la
      primera tarjeta, sin nada hecho, no preguntan: salen.
    - Fin: el zorro con su traje, las estrellas de una en una con notas que suben, «+N» con las monedas volando al
@@ -46,7 +47,6 @@ const lang2 = () => langCode().slice(0, 2);
 const pathOf = s => "leccion/" + s.id;
 const alive = s => !!s && LS === s && !s.ended && hashPath() === pathOf(s);
 const sheetOpen = () => !!document.querySelector("dialog[open]");
-const ui = () => { try{ return (window.vocabUI && vocabUI.get()) || {}; }catch(e){ return {}; } };
 const refreshAcc = () => { try{ if(window.vocabAccessory && typeof vocabAccessory.refresh === "function") vocabAccessory.refresh(); }catch(e){} };
 const mix = a => { a = [...a]; for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const bold = t => esc(t).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
@@ -83,7 +83,10 @@ const CSS = `
 .ls-learn{touch-action:pan-y;will-change:translate}
 .ls-word{max-width:100%;margin:4px 0 0;padding:0 4px;border-radius:12px;cursor:default;-webkit-user-select:none;user-select:none}
 .ls-tr{font:400 var(--fs-body)/1.3 var(--f-text);color:var(--label2)}
-.ls-ipa{font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
+.ls-ipa{display:block;max-width:100%;margin-top:-4px;font-size:var(--fs-sub);line-height:1.2;overflow-wrap:anywhere}
+/* con la IPA (una línea más), en un móvil algo bajo (360×740) el dibujo cede lo que ella ocupa: cabe sin bajar también
+   con «Texto más grande» */
+@media (min-height:701px) and (max-height:760px){.ls-learn.has-ipa .ls-pic{height:clamp(120px,calc(24vh - 1.25rem),220px)}}
 .ls-ask{margin:4px 0 0;font:700 var(--fs-t2)/1.2 var(--f-round);color:var(--label);text-wrap:balance}
 .ls-ask q{quotes:"«" "»"}
 .ls-tag{margin:0;font:600 var(--fs-note)/1.2 var(--f-text);color:var(--label2);display:inline-flex;align-items:center;gap:6px}
@@ -207,7 +210,7 @@ const CSS = `
 .ls-syl .dot{color:var(--label3)}
 .ls-how-p{margin:0 0 6px;font:400 var(--fs-body)/1.35 var(--f-text);color:var(--label2)}
 .ls-how-p b{color:var(--label)}
-.ls-how-ipa{margin:0 0 6px;font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
+.ls-how-ipa{margin:-2px 0 6px;font-size:var(--fs-sub);line-height:1.3;overflow-wrap:anywhere}
 .ls-how-b{margin-top:16px}
 /* móvil bajo (iPhone SE/8): todo cabe sin bajar, y la respuesta queda por encima del botón */
 @media (max-height:700px){
@@ -484,13 +487,13 @@ function lsStep(dir = 1){
   const st = s.steps[s.i], r = st.w.r, d = r.l[lang], idx = s.i, tok = s.tok;
   st.done = false;
   if(st.t === "learn"){
-    const ipa = !!(ui().ipa && d.ipa), lc = langCode();
+    const lc = langCode(), ipa = ipaHtml(d.ipa, lc, "ls-ipa");
     const pg = swap(`<div class="ls-page">
-      <section class="card ls-card ls-learn"${idx === 0 ? " data-no-hint" : ""} aria-label="Palabra nueva">
+      <section class="card ls-card ls-learn${ipa ? " has-ipa" : ""}"${idx === 0 ? " data-no-hint" : ""} aria-label="Palabra nueva">
         <div class="ls-pic">${pic(r)}</div>
         <div class="ls-word t-word" lang="${lc}" title="Mantén pulsado: cómo suena">${esc(d.word)}</div>
         <div class="ls-tr">${esc(r.es)}</div>
-        ${ipa ? `<div class="ls-ipa" lang="${lc}">${esc(d.ipa)}</div>` : ""}
+        ${ipa}
         <div class="ls-audio">${spkBtn(d.word)}${slowBtn(d.word)}</div>
         <div class="ls-more"><button type="button" class="ls-chip" data-how aria-haspopup="dialog">Cómo suena</button>${d.ex ? `<button type="button" class="ls-chip" data-ex aria-expanded="false" aria-controls="ls-ex">Ejemplo ${ico("caret-down", "bold", 16)}</button>` : ""}</div>
         ${d.ex ? `<div class="ls-ex" id="ls-ex" hidden><p lang="${lc}">${esc(d.ex)} <button type="button" class="say ls-exs" data-say="${esc(d.ex)}" aria-label="Escuchar la frase">${ico("speaker-high", "fill", 20)}</button></p>${d.ex_es ? `<p class="ls-ex-tr">${esc(d.ex_es)}</p>` : ""}</div>` : ""}
@@ -581,7 +584,9 @@ function answer(b){
   const spk = pg.querySelector(".ls-spk");
   /* «Escucha y elige» se contesta en español; «¿Cuál es…?», en el idioma */
   const rl = st.t === "listen" ? "" : ` lang="${langCode()}"`;
-  feedback(pg, ok, ok ? "" : `¡Casi! Es <b${rl}>«${esc(st.right)}»</b>`);
+  /* contestada con la palabra: debajo, su IPA (en «Escucha y elige» la respuesta es la traducción) */
+  const ipa = st.t === "listen" ? "" : ipaHtml(d.ipa, langCode());
+  feedback(pg, ok, ok ? "" : `¡Casi! Es <b${rl}>«${esc(st.right)}»</b>`, ipa ? `<small class="ls-fb-ipa">${ipa}</small>` : "");
   showFb(pg);
   streakUp(s, pg, ok);
   setGo("Seguir", () => next(idx));
@@ -970,7 +975,7 @@ function openHow(from){
     <h2 class="ls-how-t" id="ls-how-t">Cómo suena</h2>
     <div class="ls-syl" lang="${lc}" aria-label="${esc(word)}">${sylHtml(word)}</div>
     ${pron ? `<p class="ls-how-p">Se dice «<b>${esc(pron)}</b>»</p>` : ""}
-    ${ui().ipa && d0.ipa ? `<p class="ls-how-ipa" lang="${lc}">${esc(d0.ipa)}</p>` : ""}
+    ${ipaOn() && d0.ipa ? `<p class="ls-how-ipa">${ipaHtml(d0.ipa, lc)}</p>` : ""}
     <div class="ls-how-b">
       <button type="button" class="glass-btn glass-btn--lg" data-close>Listo</button>
       <button type="button" class="glass-btn glass-btn--pri glass-btn--lg ls-how-go" data-say="${esc(word)}" data-slow autofocus>${ico("turtle", "fill", 22)}Otra vez</button>

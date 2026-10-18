@@ -726,7 +726,8 @@ def test_french_and_danish_games_lince_farm_and_shop():
             J._to_menu(page)
             J._start(page, "lince")
             page.wait_for_function(J._LN_READY, timeout=8000)
-            langs = page.evaluate("() => [...document.querySelectorAll('#ln [lang]')].map(e => e.getAttribute('lang'))")
+            # (el «IPA:» oculto para el lector de pantalla que va dentro de la IPA de cada tarjeta es español)
+            langs = page.evaluate("() => [...document.querySelectorAll('#ln [lang]')].filter(e => !e.matches('.ipa > .vh')).map(e => e.getAttribute('lang'))")
             if not langs or any(not l.startswith(code) for l in langs):
                 probs.append(f"{lang}: Lince escribe palabras con lang {sorted(set(langs))}")
             res = J._play_lince(page)

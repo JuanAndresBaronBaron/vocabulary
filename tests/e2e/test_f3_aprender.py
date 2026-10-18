@@ -410,7 +410,7 @@ def test_doc_modes_list_and_swipe():
     """#/doc/<tema>: «‹ Palabras», el título y el control segmentado Lista · Tarjetas · Preguntas · Escribir, con
     Tarjetas por defecto; cambiar de segmento cambia de modo y se recuerda en la sesión para ese tema (otro tema abre
     en Tarjetas). Sin chips de nivel, sin el control de velocidad, sin «➕ Al repaso» suelto ni textos de ayuda. En la
-    Lista, tocar una fila despliega el detalle (IPA solo con la opción de Ajustes); deslizar a la izquierda manda la
+    Lista, tocar una fila despliega el detalle (con la IPA, salvo que un mayor la apague en Ajustes); deslizar a la izquierda manda la
     palabra al repaso con lo mismo que escribe srsAdd(id, [fila], 0), sin scroll horizontal."""
     probs = []
     page = C.new_page("phone")
@@ -454,17 +454,17 @@ def test_doc_modes_list_and_swipe():
             ipa: /\\bIPA\\b/.test(d.textContent), big: !!d.querySelector('.ln-spk.lg')}; }""")
         if d["exp"] != "true" or not d["vis"] or not d["add"] or not d["big"]:
             probs.append(f"tocar la fila no despliega el detalle: {d}")
-        if d["ipa"]:
-            probs.append("el detalle enseña el IPA sin la opción de Ajustes")
-        page.evaluate("vocabUI.set('ipa', true)")
+        has_ipa = page.evaluate("id => !!CACHE[id].rows.filter(r => r.es && r.l && r.l[lang])[1].l[lang].ipa", R.TOPIC)
+        if has_ipa and not d["ipa"]:
+            probs.append("el detalle no enseña la IPA (sale de serie)")
+        page.evaluate("vocabUI.set('ipa', false)")
         page.locator("#dv-tab-tarjetas").click()
         page.locator("#dv-tab-lista").click()
         page.wait_for_timeout(200)
         page.locator("#app .dl-r >> nth=1 >> .dl-open").click()
         page.wait_for_timeout(200)
-        has_ipa = page.evaluate("id => !!CACHE[id].rows.filter(r => r.es && r.l && r.l[lang])[1].l[lang].ipa", R.TOPIC)
-        if has_ipa and not page.evaluate("() => /\\bIPA\\b/.test(document.querySelectorAll('#app .dl-r')[1].querySelector('.dl-d').textContent)"):
-            probs.append("con la opción de Ajustes, el detalle no enseña el IPA")
+        if page.evaluate("() => /\\bIPA\\b/.test(document.querySelectorAll('#app .dl-r')[1].querySelector('.dl-d').textContent)"):
+            probs.append("con la IPA apagada en Ajustes, el detalle la sigue enseñando")
         page.evaluate("vocabUI.set('ipa', null)")
         # se recuerda el modo de este tema; otro tema abre en Tarjetas
         C.goto(page, "#/palabras")
