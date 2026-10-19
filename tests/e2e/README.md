@@ -38,8 +38,11 @@ compartida no responde).
 - `test_f2_ajustes.py` (F2b): la Puerta de mayores (suma de dos cifras y teclado), los enlaces externos, la hoja de Ajustes y sus páginas,
   Accesibilidad en `vocab:ui` (fuera de la partida), el bloque de Google en Para mayores y Google sin botón de guardar
   (con un GIS de mentira: el permiso caducado se renueva en el siguiente toque normal, nunca en mitad de una partida,
-  una lección, la Puerta o un campo de texto; tras un fallo, otra vez pasados 3 min; Para mayores dice cómo va la copia;
-  capturas en `capturas/guardado-puerta`).
+  una lección, la Puerta o un campo de texto, ni en el toque que empieza algo, en una pregunta de la granja, la
+  temporada o Palabras, o en lo que suena; tras un fallo, otra vez pasados 3 min; tras dos, a los 50 min y cada vez más
+  espaciado (hasta una vez al día), también tras recargar; un permiso que llega tarde vale; dos pestañas no se lo
+  quitan; Para mayores dice de un vistazo si la copia está al día y «Volver a conectar» sale solo si «Guardar ahora» no
+  pudo; capturas en `capturas/guardado-puerta`).
 - `test_f2_hoy.py` (F2c): Hoy sin scroll, la tarjeta de `nextAction()`, «Repasar N», Misiones y Palabra del día,
   Privacidad y el accesorio «Seguir».
 - `test_f2_nav.py` (F2 entero): `aria-selected` en cada ruta, tocar la pestaña activa, la memoria de cada pestaña,

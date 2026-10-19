@@ -38,8 +38,9 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
      Fuera de localStorage, y nunca en la partida: la base IndexedDB "vocab-media-user" (grabaciones del Buzón y, más
      adelante, fotos; js/mailbox.js, window.vocabMedia).
    Propias de este módulo (no se exportan ni se restauran desde un archivo):
-     save:last (fecha de la última vez que se cargó una partida) · save:first (primer día de uso, para el aviso) ·
-     save:snooze («Ahora no» hasta…) · save:undo (copia para deshacer) · save:sync (estado de Google Drive) ·
+     save:last (fecha de la última vez que se cargó una partida) · save:first (primer día de uso) ·
+     save:snooze («Ahora no» del aviso de Google de la portada, que ya no existe: sin uso) · save:undo (copia para
+     deshacer) · save:sync (estado de Google Drive) ·
      save:tok (permiso de Google de ~1 hora). */
 const EXACT = {
   game: "o", act: "o", prPrefs: "o", "farm:state": "o",
@@ -193,7 +194,7 @@ const fmtDate = t => { const d = new Date(t); return d.toLocaleDateString("es", 
 const ago = t => { const d = Math.floor((new Date(now()).setHours(0, 0, 0, 0) - new Date(t).setHours(0, 0, 0, 0)) / DAY);
   return d <= 0 ? "hoy" : d === 1 ? "ayer" : `hace ${d} días`; };
 
-/* ---------- para el aviso de la portada ---------- */
+/* ---------- primer día de uso y si ya hay progreso (los usaba el aviso de Google de la portada, ya quitado) ---------- */
 function firstSeen(){
   let f = metaGet(META.first, null);
   if(typeof f !== "number" || !isFinite(f)){
