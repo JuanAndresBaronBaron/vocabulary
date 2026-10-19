@@ -4,15 +4,17 @@
    gramática) o «Seguir» (después de contestar). Antes de contestar no hay botón: se toca una respuesta.
    - Palabra nueva: dibujo, la palabra (44 px; si no cabe entera, más pequeña, nunca partida: fitWord), la traducción en gris, el altavoz grande y la tortuga (despacio), «Cómo
      suena» (hoja con las sílabas, «Se dice «…»», la IPA y el audio lento; también manteniendo la palabra) y «Ejemplo» (se
-     abre al tocarlo). La IPA, debajo de la traducción (ipaHtml() de index.html: se ve salvo que un mayor la apague en
-     Ajustes › Para mayores; en un móvil bajo el dibujo cede lo que ocupa). Deslizar a la izquierda = Continuar; a la derecha = la anterior
+     abre al tocarlo). La IPA, justo debajo de la palabra y antes de la traducción, como en un diccionario (ipaHtml() de
+     index.html: se ve salvo que un mayor la apague en Ajustes › Para mayores; si con ella la página bajaría, el dibujo
+     cede lo que ocupa: fitIpa). Deslizar a la izquierda = Continuar; a la derecha = la anterior
      (también con ← →, y con el botón ‹ de abajo). La pista «Desliza para seguir» nunca sale en la primera tarjeta.
    - Preguntas: 2×2 opciones sólidas de 64 px (dibujo o texto; con 3, en fila), sin gestos. En francés y danés las otras
      opciones llevan, si puede ser, el mismo artículo (no se adivina por «la» o «et»). El altavoz de la pregunta sale al
      contestar (el dibujo se encoge lo mismo, así las opciones no se mueven). Acertar: rebote, verde con ✓, suena la
      palabra, vibración suave y pasa sola al acabar el audio (nunca antes de 0,9 s; con tope por si no acaba). Fallar: la
      elegida en gris con ✗, la correcta en verde con ✓ y suena; el botón pasa a «Seguir». Sin temblor, sin vibración, sin
-     sonido triste. En «¿Cuál es…?» (se contesta con la palabra) la respuesta lleva la IPA de la palabra debajo. Racha: a los 3, 5 y 8 aciertos seguidos salta un chip con la llama y el número.
+     sonido triste. En «¿Cuál es…?» (se contesta con la palabra) la respuesta lleva la IPA de la palabra al lado si cabe,
+     si no debajo (y entonces, si la página bajaría, el dibujo cede esa línea). Racha: a los 3, 5 y 8 aciertos seguidos salta un chip con la llama y el número.
    - La ✕ y Esc abren «¿Paramos aquí?» (Seguir destacado · Salir, que vuelve a donde estaba el niño, como la ✕). En la
      primera tarjeta, sin nada hecho, no preguntan: salen.
    - Fin: el zorro con su traje, las estrellas de una en una con notas que suben, «+N» con las monedas volando al
@@ -83,7 +85,7 @@ const CSS = `
 .ls-learn{touch-action:pan-y;will-change:translate}
 .ls-word{max-width:100%;margin:4px 0 0;padding:0 4px;border-radius:12px;cursor:default;-webkit-user-select:none;user-select:none}
 .ls-tr{font:400 var(--fs-body)/1.3 var(--f-text);color:var(--label2)}
-.ls-ipa{display:block;max-width:100%;margin-top:-4px;font-size:var(--fs-sub);line-height:1.2;overflow-wrap:anywhere}
+.ls-ipa{display:block;max-width:100%;margin-top:-4px;font-size:var(--fs-sub);line-height:1.2;overflow-wrap:anywhere}   /* bajo la palabra */
 /* con la IPA (una línea más), en un móvil algo bajo (360×740) el dibujo cede lo que ella ocupa: cabe sin bajar también
    con «Texto más grande» */
 @media (min-height:701px) and (max-height:760px){.ls-learn.has-ipa .ls-pic{height:clamp(120px,calc(24vh - 1.25rem),220px)}}
@@ -149,6 +151,7 @@ const CSS = `
 .ls-fb.miss{color:var(--label)}
 .ls-fb.miss b{font-weight:800;color:var(--ok-ink)}
 .ls-fb small{flex-basis:100%;font:400 var(--fs-sub)/1.35 var(--f-text);color:var(--label2)}
+.ls-fb small.ls-fb-ipa{flex-basis:auto;min-width:0}   /* la IPA de la respuesta, al lado de «¡Casi! Es «…»» si cabe */
 .ls-fb .ls-why{display:flex;gap:8px;align-items:flex-start;margin-top:8px;padding:8px 12px;border-radius:var(--r-md);background:var(--fill2);color:var(--label);text-align:left}
 .ls-fb .ls-why .ico{flex:none;margin-top:1px;color:var(--gold-ink)}
 .ls-sent{margin:8px 0 0;font:600 var(--fs-t3)/1.5 var(--f-text);color:var(--label)}
@@ -457,7 +460,8 @@ function reveal(pg){
   el.classList.remove("is-later"); el.removeAttribute("aria-hidden");
   const cs = getComputedStyle(el), h = el.getBoundingClientRect().height, mt = parseFloat(cs.marginTop) || 0;
   const gap = parseFloat(getComputedStyle(el.parentElement).rowGap) || 0, grow = h + mt + gap;
-  const h1 = pic && h0 ? Math.max(72, Math.round(h0 - grow)) : 0;
+  const more = pic && h0 ? fbIpaCost(pg, grow) : 0;
+  const h1 = pic && h0 ? Math.max(72, more ? Math.floor(h0 - grow - more) : Math.round(h0 - grow)) : 0;
   if(h1) pic.style.height = h1 + "px";
   if(rm()){ try{ el.animate([{opacity: 0}, {opacity: 1}], {duration: 150, easing: "ease-out"}); }catch(e){} return; }
   const ease = "cubic-bezier(.25,.8,.25,1)";
@@ -467,6 +471,48 @@ function reveal(pg){
       .finished.then(() => { el.style.overflow = ""; }, () => { el.style.overflow = ""; });
     if(h1) pic.animate([{height: h0 + "px"}, {height: h1 + "px"}], {duration: 220, easing: ease});
   }catch(e){ el.style.overflow = ""; }
+}
+/* lo que la página se pasa del alto de la pantalla (sin la tarjeta vieja que se va de lado) */
+function pageOver(){
+  const gs = [...document.querySelectorAll(".ls-stage > .ls-ghost")];
+  gs.forEach(g => { g.style.display = "none"; });
+  const o = document.documentElement.scrollHeight - innerHeight;
+  gs.forEach(g => { g.style.display = ""; });
+  return o;
+}
+/* la IPA de la palabra nueva es una línea más: si con ella la página bajaría (una palabra de dos líneas, un móvil bajo),
+   el dibujo cede lo que haga falta, como mucho lo que ocupa la IPA y nunca por debajo de 72 px */
+function fitIpa(pg){
+  const card = pg && pg.isConnected && pg.querySelector(".ls-learn.has-ipa"), pic = card && card.querySelector(".ls-pic"), x = card && card.querySelector(".ls-ipa");
+  if(!pic || !x || card.querySelector(".ls-ex:not([hidden])")) return;   /* con el ejemplo abierto se baja: no se toca */
+  pic.style.height = "";
+  const over = pageOver(); if(over <= 0) return;
+  const h0 = pic.getBoundingClientRect().height, cs = getComputedStyle(x);
+  const cost = x.getBoundingClientRect().height + (parseFloat(cs.marginTop) || 0) + (parseFloat(getComputedStyle(card).rowGap) || 0);
+  if(h0 > 72) pic.style.height = Math.max(72, Math.floor(h0 - Math.ceil(Math.min(over, cost)))) + "px";
+}
+/* se vuelve a medir cuando la palabra o la IPA cambian de tamaño (llega la letra redonda, gira el móvil) y al acabar de
+   entrar en la ruta (la primera palabra se pinta antes del modo foco) */
+let ipaRO = null;
+function watchIpa(pg){
+  try{
+    if(ipaRO) ipaRO.disconnect(); ipaRO = null;
+    const card = pg && pg.querySelector(".ls-learn.has-ipa"); if(!card || typeof ResizeObserver !== "function") return;
+    const ro = ipaRO = new ResizeObserver(() => { if(pg.isConnected) fitIpa(pg); else ro.disconnect(); });
+    card.querySelectorAll(".ls-word,.ls-ipa").forEach(e => ro.observe(e));
+  }catch(e){}
+}
+/* al girar el móvil (cambia el ancho); no cuando solo cambia el alto (la barra de Safari que se esconde al bajar) */
+let ipaW = innerWidth;
+addEventListener("resize", () => { if(innerWidth === ipaW) return; ipaW = innerWidth; requestAnimationFrame(() => { if(LS && !LS.ended) fitIpa(page()); }); });
+/* la IPA de la respuesta de «¿Cuál es…?»: al lado de «¡Casi! Es «…»» no ocupa nada; en su propia línea, si con ella la
+   página bajaría (ya descontado lo que cede el dibujo por el altavoz), el dibujo cede también esa línea (nunca más) */
+function fbIpaCost(pg, already){
+  const x = pg.querySelector(".ls-fb-ipa"); if(!x) return 0;
+  const prev = x.previousElementSibling, r = x.getBoundingClientRect();
+  if(prev && r.top < prev.getBoundingClientRect().bottom - 1) return 0;
+  const over = pageOver() - already; if(over <= 0) return 0;
+  return Math.ceil(Math.min(over, r.height + (parseFloat(getComputedStyle(x.parentElement).rowGap) || 0)));
 }
 /* la respuesta («¡Casi! Es «uncle»») siempre a la vista, por encima del botón de abajo */
 function showFb(pg){
@@ -492,13 +538,14 @@ function lsStep(dir = 1){
       <section class="card ls-card ls-learn${ipa ? " has-ipa" : ""}"${idx === 0 ? " data-no-hint" : ""} aria-label="Palabra nueva">
         <div class="ls-pic">${pic(r)}</div>
         <div class="ls-word t-word" lang="${lc}" title="Mantén pulsado: cómo suena">${esc(d.word)}</div>
-        <div class="ls-tr">${esc(r.es)}</div>
         ${ipa}
+        <div class="ls-tr">${esc(r.es)}</div>
         <div class="ls-audio">${spkBtn(d.word)}${slowBtn(d.word)}</div>
         <div class="ls-more"><button type="button" class="ls-chip" data-how aria-haspopup="dialog">Cómo suena</button>${d.ex ? `<button type="button" class="ls-chip" data-ex aria-expanded="false" aria-controls="ls-ex">Ejemplo ${ico("caret-down", "bold", 16)}</button>` : ""}</div>
         ${d.ex ? `<div class="ls-ex" id="ls-ex" hidden><p lang="${lc}">${esc(d.ex)} <button type="button" class="say ls-exs" data-say="${esc(d.ex)}" aria-label="Escuchar la frase">${ico("speaker-high", "fill", 20)}</button></p>${d.ex_es ? `<p class="ls-ex-tr">${esc(d.ex_es)}</p>` : ""}</div>` : ""}
       </section></div>`, dir);
     if(typeof fitWord === "function") fitWord(pg.querySelector(".ls-word"));
+    watchIpa(pg);
     announce(`Palabra nueva: ${inLang(d.word)}, ${esc(r.es)}`);
     paintTop(idx);
     const canPrev = idx > 0 && s.steps[idx - 1].t === "learn";
@@ -580,13 +627,14 @@ function answer(b){
   marks(opts, right, b, ok);
   bus.emit("answer", {ok, es: r.es, word: d.word, where: "lesson"});
   lsSave(idx + 1); paintTop(idx + 1);
-  reveal(pg);
   const spk = pg.querySelector(".ls-spk");
   /* «Escucha y elige» se contesta en español; «¿Cuál es…?», en el idioma */
   const rl = st.t === "listen" ? "" : ` lang="${langCode()}"`;
-  /* contestada con la palabra: debajo, su IPA (en «Escucha y elige» la respuesta es la traducción) */
+  /* contestada con la palabra: su IPA (en «Escucha y elige» la respuesta es la traducción). Antes que reveal(), que mira
+     si la línea de la IPA hace bajar la página */
   const ipa = st.t === "listen" ? "" : ipaHtml(d.ipa, langCode());
   feedback(pg, ok, ok ? "" : `¡Casi! Es <b${rl}>«${esc(st.right)}»</b>`, ipa ? `<small class="ls-fb-ipa">${ipa}</small>` : "");
+  reveal(pg);
   showFb(pg);
   streakUp(s, pg, ok);
   setGo("Seguir", () => next(idx));
@@ -996,6 +1044,8 @@ bus.on("route", d => {
   if(PZ.d && PZ.d.open && !LS){ PZ.exit = true; try{ PZ.d.close(); }catch(e){} }
   const how = document.getElementById("ls-how");
   if(how && how.open && !LS){ try{ how.close(); }catch(e){} quiet(); }
+  /* la primera palabra se pinta antes del modo foco (sin la barra de pestañas ni la de arriba): se vuelve a medir */
+  if(LS && !LS.ended) requestAnimationFrame(() => fitIpa(page()));
 });
 
 css();

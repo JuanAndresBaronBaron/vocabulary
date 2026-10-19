@@ -88,10 +88,12 @@ const STYLE = `
   .bd-wotd .bd-wimg img{width:48px;height:48px}}
 .bd-ww{display:block;max-width:100%;margin:auto 0 0;font:700 calc(1.625rem*var(--k,1))/1.15 var(--f-round);overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}
 .bd-ww.s{font-size:calc(1.3125rem*var(--k,1))}.bd-ww.xs{font-size:calc(1.0625rem*var(--k,1))}
-.bd-wtap{display:flex;flex-direction:column;align-items:center;gap:0;width:100%;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
+.bd-wtap{display:flex;flex-direction:column;align-items:center;gap:0;width:100%;margin:0 0 6px;padding:0;border:0;background:none;color:inherit;font:inherit;cursor:pointer}
 .bd-wes{max-width:100%;font:700 calc(1.5rem*var(--k,1))/1.15 var(--f-round);overflow-wrap:anywhere}
-.bd-wsm{max-width:100%;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
-.bd-wipa{display:block;max-width:100%;font-size:var(--fs-note);line-height:1.25;overflow-wrap:anywhere}
+/* detrás: la traducción en grande, la palabra (en el color del texto: es lo que se aprende) y su IPA en gris, en una sola
+   línea (la pieza no crece: Hoy cabe); entre todo eso y «¡Me la sé!», 8 px como mínimo */
+.bd-wsm{max-width:100%;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label);overflow-wrap:anywhere}
+.bd-wipa{display:block;max-width:100%;font-size:var(--fs-note);line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .bd-know{margin-top:auto;font-size:var(--fs-note)}
 .bd-c{display:inline-flex;align-items:center;gap:3px;font-variant-numeric:tabular-nums}
 .bd-c svg{display:block;width:16px;height:16px}
@@ -443,8 +445,10 @@ function wotdOf(el){
 function wotdInner(x, back){
   if(!x) return "";
   const r = x.r, d = r.l[lang], w = wState(), known = !!w.known[lang], code = (LANGS[lang] || {}).code || "";
-  /* detrás, la IPA va en el sitio de la etiqueta (delante ya se lee «Palabra del día»): la pieza no crece y Hoy cabe */
-  const ipa = ipaHtml(d.ipa, code, "bd-wipa");
+  /* detrás, la IPA va en el sitio de la etiqueta (delante ya se lee «Palabra del día»): la pieza no crece y Hoy cabe. Con
+     dos formas («/fʁɛʁ/ · /sœʁ/», «/ˈweɪtə/, /ˈweɪtrəs/») solo la primera (las dos están en Palabras); y si aun así no
+     cabe, termina en «…» */
+  const ipa = ipaHtml(String(d.ipa || "").split(/ · |, /)[0], code, "bd-wipa");
   const len = [...d.word].length, sz = len > 13 ? " xs" : len > 8 ? " s" : "";
   const lbl = `<span class="bd-pl">${icon("sparkle", "fill", 18)}<span>Palabra del día</span></span>`;
   return `<div class="bd-flip${back ? " back" : ""}">

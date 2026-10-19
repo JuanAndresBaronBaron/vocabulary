@@ -372,6 +372,9 @@ dialog.al-tp-d{max-width:560px}
   .al-cf-w{font-size:1.7rem}
 }
 @media (max-height:720px){.al-cf-img{width:min(100%,170px)}}
+/* en un móvil muy bajo (320×568) la IPA es una línea más bajo «Suena» (unos 25 px): el dibujo, de proporción 1,3, cede
+   ese alto (1,3 veces eso de ancho), así la ficha no baja más que sin ella */
+@media (max-height:600px){.al-front.has-ipa .al-cf-img{width:min(100%,calc(170px - 2.05rem))}}
 @media (prefers-reduced-motion: reduce){
   .al-st,.al-st *,.al-card,.al-flip,.al-stamp,.al-page,.al-rib,.al-bigstamp,.al-bigstamp>div,.al-cf .say::after{animation:none!important;transition:none!important}
   .al-st.gold .al-face::after{display:none}
@@ -872,7 +875,7 @@ const spkS = t => `<button type="button" class="say al-spk sm" data-say="${esc(t
 function frontHtml(s){
   const r = s.r, d = r.l[lang], alts = s.alts.map(a => a.l[lang]).filter(a => a && a.word && a.word !== d.word);
   const ipa = ipaHtml(d.ipa, (LANGS[lang] || {}).code);
-  return `<div class="al-cf al-front">
+  return `<div class="al-cf al-front${ipa ? " has-ipa" : ""}">
     <div class="al-cf-top"><span class="al-n2">Nº ${s.n}</span>${s.gold ? `<span class="al-gtag">⭐ Dorada</span>` : `<span class="al-ntag">Toca para ver la ficha</span>`}</div>
     <div class="al-cf-img">${face(r)}</div>
     <div class="al-cf-w">${esc(d.word)}</div>
