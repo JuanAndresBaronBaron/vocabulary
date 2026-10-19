@@ -630,12 +630,19 @@ try{ if(typeof bus !== "undefined") bus.on("voices", () => {
 /* el sonido cambió desde otro sitio */
 try{ if(typeof bus !== "undefined") bus.on("mute", () => { const s = $("aj-snd"); if(s && typeof sfx !== "undefined") s.checked = !sfx.muted; }); }catch(e){}
 /* la IPA se encendió o se apagó con la hoja abierta: al cerrarla se repinta la pantalla de debajo, como al cambiar de
-   idioma (lo ya pintado, como la Palabra del día girada o un detalle abierto de Palabras, seguía como antes). En el modo
-   foco no hay engranaje; por si acaso, ahí no se toca nada */
+   idioma (lo ya pintado, como la Palabra del día girada o un detalle abierto de Palabras, seguía como antes). Sin perder
+   lo que había a medias: la ficha de un tema se repinta en su sitio (vocabLearn.repaint(): la ronda de Preguntas y el
+   orden de «Barajar» siguen), y en un juego (también en su pantalla final, fuera del modo foco) no se toca nada: volver
+   a su ruta empezaría otra partida, y cada ronda ya mira ipaOn(). En el modo foco no hay engranaje; por si acaso, ahí
+   tampoco se toca nada */
 let ipaWas = null;
 try{ if(typeof bus !== "undefined") bus.on("settings", e => {
   if(!e || e.page !== null || ipaWas === null) return;
   const was = ipaWas; ipaWas = null;
-  if(typeof ipaOn === "function" && ipaOn() !== was && typeof route === "function" && !ROOT.hasAttribute("data-focus")) route();
+  if(typeof ipaOn !== "function" || ipaOn() === was || typeof route !== "function" || ROOT.hasAttribute("data-focus")) return;
+  if(/^juegos\/./.test(typeof hashPath === "function" ? hashPath() : "")) return;
+  const L = window.vocabLearn;
+  if(L && typeof L.repaint === "function" && L.repaint()) return;
+  route();
 }); }catch(e){}
 })();

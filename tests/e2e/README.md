@@ -39,7 +39,7 @@ compartida no responde).
   Accesibilidad en `vocab:ui` (fuera de la partida), el bloque de Google en Para mayores y Google sin botón de guardar
   (con un GIS de mentira: el permiso caducado se renueva en el siguiente toque normal, nunca en mitad de una partida,
   una lección, la Puerta o un campo de texto, ni en el toque que empieza algo, en una pregunta de la granja, la
-  temporada o Palabras, o en lo que suena; tras un fallo, otra vez pasados 3 min; tras dos, a los 50 min y cada vez más
+  temporada o Palabras, o en lo que suena, como girar una tarjeta de Palabras › Tarjetas o su «Automático»; tras un fallo, otra vez pasados 3 min; tras dos, a los 50 min y cada vez más
   espaciado (hasta una vez al día), también tras recargar; un permiso que llega tarde vale; dos pestañas no se lo
   quitan; Para mayores dice de un vistazo si la copia está al día y «Volver a conectar» sale solo si «Guardar ahora» no
   pudo; capturas en `capturas/guardado-puerta`).
@@ -184,7 +184,8 @@ compartida no responde).
   nueva, «Cómo suena», la respuesta de «¿Cuál es…?», el reverso del repaso (en la pregunta no), Palabras (detalle,
   Tarjetas, Preguntas y Escribir), la ficha del álbum, Oído de lince al contestar y la Palabra del día girada; con
   `vocab:ui.ipa = false` en ninguno y con un `ipa: true` de antes en todos; el interruptor de Para mayores (encendido de
-  serie, apagado = `ipa: false`, encendido quita la clave) y que al cerrar Ajustes se repinta lo de debajo; gris
+  serie, apagado = `ipa: false`, encendido quita la clave) y que al cerrar Ajustes se repinta lo de debajo sin empezar
+  de nuevo lo que había a medias (la ronda de Preguntas, el orden de «Barajar» de Tarjetas, el final de un juego); gris
   secundario, una sola letra con todos los símbolos (CDP, nunca Nunito), justo debajo de la palabra en la lección y el
   repaso; solo se parte por los espacios y en Tarjetas y Escribir va en su línea bajo «Se dice» (plural nombrado); Hoy,
   la lección (también palabras largas: A1-022, B1-024) y el repaso sin scroll en 390×844 y 360×740 (también con «Texto
