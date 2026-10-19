@@ -1024,10 +1024,10 @@ def test_tour_danish():
 
 # ---------------------------------------------------------------- actualización desde la versión publicada (v19)
 # main 2e7dc3f (sw vocab-shell-v19): la carpeta de VOCAB_BASE19 si se da (p. ej. un git worktree de ese commit) o, si
-# no, una copia sacada del repo con git archive a una carpeta temporal
+# no, una copia sacada del repo con git archive a una carpeta temporal. _published_dir() y _switching_server() valen
+# para cualquier versión publicada (test_update_v21.py las usa con main 1f0b356, sw vocab-shell-v21)
 _BASE19_COMMIT = "2e7dc3f"
-_BASE19_DIRS = [Path(p) for p in [os.environ.get("VOCAB_BASE19", "")] if p]
-_BASE19_TMP = {}
+_PUB_TMP = {}
 _NEW5 = """() => ({tabbar: !!document.getElementById('tabbar'), granja: typeof ROUTES !== 'undefined' && !!ROUTES.granja,
   shop: typeof window.vocabShop === 'object', rewards: typeof window.vocabRewards === 'object', season: typeof window.vocabSeason === 'object',
   save: !!(window.vocabSave && vocabSave.inventory), keys: !!(window.vocabKeys && vocabKeys.target), sc: !!(window.vocabShortcuts && vocabShortcuts.paint),
@@ -1037,38 +1037,44 @@ _NEW5 = """() => ({tabbar: !!document.getElementById('tabbar'), granja: typeof R
   toast: !!(window.M && M.toast)})"""
 
 
+def _is_published(d, version, extra=None):
+    """¿La carpeta d es una copia de la web con sw.js en esa VERSION (y extra(d), si se da)?"""
+    d = Path(d)
+    return (d / "index.html").exists() and (d / "sw.js").exists() \
+        and f"const VERSION = {version};" in (d / "sw.js").read_text(encoding="utf-8") and (extra is None or extra(d))
+
+
+def _published_dir(commit, version, env="", extra=None):
+    """La versión publicada de ese commit: la carpeta de la variable de entorno env si se da y es esa versión (sw.js con
+    «const VERSION = <version>;» y extra(d)) o, si no, una copia del repo sacada con git archive a una carpeta temporal
+    (una por commit en cada ejecución; se borra al acabar). None si no se pudo."""
+    p = os.environ.get(env, "") if env else ""
+    if p and _is_published(p, version, extra):
+        return Path(p)
+    if commit not in _PUB_TMP:
+        d = Path(tempfile.mkdtemp(prefix=f"vocab-base{version}-"))
+        atexit.register(shutil.rmtree, d, True)
+        arch = subprocess.run(["git", "-C", str(C.REPO), "archive", "--format=tar", commit], capture_output=True)
+        if arch.returncode == 0:
+            subprocess.run(["tar", "-x", "-C", str(d)], input=arch.stdout, check=True)
+        _PUB_TMP[commit] = d
+    d = _PUB_TMP[commit]
+    return d if _is_published(d, version, extra) else None
+
+
 def _is_base19(d):
-    return (d / "index.html").exists() and (d / "sw.js").exists() and "const VERSION = 19;" in (d / "sw.js").read_text(encoding="utf-8") \
-        and not (d / "js" / "keys.js").exists()
+    return _is_published(d, 19, lambda x: not (x / "js" / "keys.js").exists())
 
 
 def _base19_dir():
-    for d in _BASE19_DIRS:
-        if _is_base19(d):
-            return d
-    if "dir" not in _BASE19_TMP:
-        d = Path(tempfile.mkdtemp(prefix="vocab-base19-"))
-        arch = subprocess.run(["git", "-C", str(C.REPO), "archive", "--format=tar", _BASE19_COMMIT], capture_output=True)
-        if arch.returncode == 0:
-            subprocess.run(["tar", "-x", "-C", str(d)], input=arch.stdout, check=True)
-            atexit.register(shutil.rmtree, d, True)
-        _BASE19_TMP["dir"] = d
-    d = _BASE19_TMP["dir"]
-    return d if _is_base19(d) else None
+    return _published_dir(_BASE19_COMMIT, 19, "VOCAB_BASE19", lambda x: not (x / "js" / "keys.js").exists())
 
 
-def _v19_then_new(gh_cache):
-    """Sirve la versión publicada (main 2e7dc3f con su service worker vocab-shell-v19) en plena temporada de Halloween
-    con la partida sembrada; el niño la usa (Hoy, abre una puerta de Truco o trato, la granja, juegos, Premios, un tema).
-    Luego se publica esta versión en el mismo origen y el niño vuelve (otro día de la misma temporada sin caché HTTP, o
-    recargando en menos de 10 minutos con la de GitHub Pages). Con las voces de Edge simuladas, en la versión publicada
-    eligió una voz para inglés (voice:english, que va con la partida): tras actualizar se sigue usando. Devuelve una
-    lista de problemas."""
-    import test_voces as V
-    probs = []
-    base_dir = _base19_dir()
-    assert base_dir, f"no se pudo sacar la versión publicada (commit {_BASE19_COMMIT}); VOCAB_BASE19=<copia de ese commit>"
-    roots = {"cur": base_dir}
+def _switching_server(first, gh_cache):
+    """Servidor en localhost que sirve la carpeta roots["cur"] (al principio, first: la versión publicada; para publicar
+    esta versión en el mismo origen, roots["cur"] = C.ROOT). Sin cabeceras condicionales y, con gh_cache, con las de
+    GitHub Pages (Cache-Control: max-age=600) en lugar de no-store. Devuelve (srv, roots)."""
+    roots = {"cur": Path(first)}
 
     class Handler(C._Quiet):
         def __init__(self, *a, directory=None, **kw):
@@ -1082,6 +1088,10 @@ def _v19_then_new(gh_cache):
                 super().end_headers()
 
         def send_head(self):
+            # la carpeta se mira en cada petición y no al abrir la conexión: Chromium abre conexiones de antemano y
+            # manda la petición después por ellas (con la carpeta de la conexión, tras «publicar» saldría a veces la
+            # versión vieja)
+            self.directory = str(roots["cur"])
             # GitHub Pages revalida por el contenido (ETag). Aquí la copia de la versión publicada puede ser más nueva en
             # disco que el repo (un worktree recién sacado), y con If-Modified-Since el servidor diría 304 a ficheros que
             # sí cambiaron: sin cabeceras condicionales, revalidar siempre trae lo que hay ahora
@@ -1090,9 +1100,24 @@ def _v19_then_new(gh_cache):
                     del self.headers[h]
             return super().send_head()
 
+    srv = C.Server(first, "localhost", handler=Handler)
+    return srv, roots
+
+
+def _v19_then_new(gh_cache):
+    """Sirve la versión publicada (main 2e7dc3f con su service worker vocab-shell-v19) en plena temporada de Halloween
+    con la partida sembrada; el niño la usa (Hoy, abre una puerta de Truco o trato, la granja, juegos, Premios, un tema).
+    Luego se publica esta versión en el mismo origen y el niño vuelve (otro día de la misma temporada sin caché HTTP, o
+    recargando en menos de 10 minutos con la de GitHub Pages). Con las voces de Edge simuladas, en la versión publicada
+    eligió una voz para inglés (voice:english, que va con la partida): tras actualizar se sigue usando. Devuelve una
+    lista de problemas."""
+    import test_voces as V
+    probs = []
+    base_dir = _base19_dir()
+    assert base_dir, f"no se pudo sacar la versión publicada (commit {_BASE19_COMMIT}); VOCAB_BASE19=<copia de ese commit>"
     tag = "caché de GitHub Pages" if gh_cache else "sin caché HTTP"
     v, _ = I4._sw_version()
-    srv = C.Server(base_dir, "localhost", handler=Handler)
+    srv, roots = _switching_server(base_dir, gh_cache)
     ctx = C.new_context("phone", sw=True, server=srv, block_external=not gh_cache, now=HALLOWEEN, reduced_motion="reduce")
     ctx.add_init_script(T._RANDOM)
     ctx.add_init_script(f"{V._FAKE}({json.dumps({'voices': V.EDGE, 'delay': 0}, ensure_ascii=False)})")
