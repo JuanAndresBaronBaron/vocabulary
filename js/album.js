@@ -12,8 +12,9 @@
      de 60 px y más del doble que en vertical; nunca con un diálogo abierto): la página sigue al dedo y la nueva entra por
      el otro lado. Navega con location.hash (lo controla NAV). La pastilla del tema es la alternativa sin gesto.
    - Las pegatinas nuevas desde la última visita llegan en un sobre «¡Nueva!»: se despegan al tocarlas (o todas a la vez
-     con «Pegar las N nuevas»). Tocar una conseguida abre una tarjeta grande que gira (palabra, 🔊🐢, pronunciación, la
-     IPA solo si un mayor la activó, ejemplo y ficha con su brillo). Tocar una bloqueada dice en qué lección está.
+     con «Pegar las N nuevas»). Tocar una conseguida abre una tarjeta grande que gira (palabra, 🔊🐢, pronunciación y su
+     IPA (ipaHtml() de index.html: se ve salvo que un mayor la apague), ejemplo y ficha con su brillo). Tocar una
+     bloqueada dice en qué lección está.
    - Página completa (todas conseguidas y pegadas): premio una vez por idioma → award(50) + sello (checkComplete).
    - Punto azul en la pestaña «Jugar» y en su segmento «Álbum» mientras haya pegatinas nuevas sin ver; al terminar una
      lección o un repaso, un enlace a las pegatinas nuevas o doradas.
@@ -38,7 +39,6 @@ const fmt = n => Number(n || 0).toLocaleString("es");
 const plural = (n, one, many) => n === 1 ? one : many;
 const IC = (n, s = "bold", z = 20, c = "") => { try{ return typeof ico === "function" ? ico(n, s, z, c) : ""; }catch(e){ return ""; } };
 const haptic = k => { try{ if(window.G && typeof window.G.haptic === "function") window.G.haptic(k || "selection"); }catch(e){} };
-const ipaOn = () => { try{ return !!(window.vocabUI && typeof vocabUI.get === "function" && (vocabUI.get() || {}).ipa); }catch(e){ return false; } };
 function hash(s){ let h = 2166136261 >>> 0; for(const c of String(s)){ h ^= c.codePointAt(0); h = Math.imul(h, 16777619); } return h >>> 0; }
 /* color de las iniciales de las pegatinas sin dibujo: azul marino, azul, verde azulado, verde y gris (texto blanco legible) */
 const PAL = ["#1f6fd1", "#117c74", "#23803f", "#22409a", "#0f3d75", "#4b5563", "#1a7f9e"];   /* todos con texto blanco a 4,5:1 */
@@ -372,6 +372,9 @@ dialog.al-tp-d{max-width:560px}
   .al-cf-w{font-size:1.7rem}
 }
 @media (max-height:720px){.al-cf-img{width:min(100%,170px)}}
+/* en un móvil muy bajo (320×568) la IPA es una línea más bajo «Suena» (unos 25 px): el dibujo, de proporción 1,3, cede
+   ese alto (1,3 veces eso de ancho), así la ficha no baja más que sin ella */
+@media (max-height:600px){.al-front.has-ipa .al-cf-img{width:min(100%,calc(170px - 2.05rem))}}
 @media (prefers-reduced-motion: reduce){
   .al-st,.al-st *,.al-card,.al-flip,.al-stamp,.al-page,.al-rib,.al-bigstamp,.al-bigstamp>div,.al-cf .say::after{animation:none!important;transition:none!important}
   .al-st.gold .al-face::after{display:none}
@@ -871,15 +874,15 @@ const slowB = t => `<button type="button" class="say al-slow" data-say="${esc(t)
 const spkS = t => `<button type="button" class="say al-spk sm" data-say="${esc(t)}" aria-label="Escuchar «${esc(t)}»">${IC("speaker-high", "fill", 20)}</button>`;
 function frontHtml(s){
   const r = s.r, d = r.l[lang], alts = s.alts.map(a => a.l[lang]).filter(a => a && a.word && a.word !== d.word);
-  const ipa = ipaOn() && d.ipa ? d.ipa : "";
-  return `<div class="al-cf al-front">
+  const ipa = ipaHtml(d.ipa, (LANGS[lang] || {}).code);
+  return `<div class="al-cf al-front${ipa ? " has-ipa" : ""}">
     <div class="al-cf-top"><span class="al-n2">Nº ${s.n}</span>${s.gold ? `<span class="al-gtag">⭐ Dorada</span>` : `<span class="al-ntag">Toca para ver la ficha</span>`}</div>
     <div class="al-cf-img">${face(r)}</div>
     <div class="al-cf-w">${esc(d.word)}</div>
     <div class="al-sayg">${spkB(d.word)}${slowB(d.word)}</div>
     ${alts.length ? `<div class="al-cf-alt">También: ${alts.map(a => `<b>${esc(a.word)}</b> ${spkS(a.word)}`).join(" · ")}</div>` : ""}
     <div class="al-cf-es"><small>En español</small>${esc(r.es)}</div>
-    ${d.pron || ipa ? `<div class="al-cf-pr"><small>Suena</small>${d.pron ? `<b>${esc(d.pron)}</b>` : ""} ${ipa ? `<span class="ipa">${esc(ipa)}</span>` : ""}</div>` : ""}
+    ${d.pron || ipa ? `<div class="al-cf-pr"><small>Suena</small>${d.pron ? `<b>${esc(d.pron)}</b>` : ""}${ipa}</div>` : ""}
     ${d.ex ? `<div class="al-cf-ex"><div>${esc(d.ex)} ${spkS(d.ex)}</div>${d.ex_es ? `<small>${esc(d.ex_es)}</small>` : ""}</div>` : ""}
   </div>`;
 }

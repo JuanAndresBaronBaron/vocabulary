@@ -639,7 +639,7 @@ def test_grammar_lesson_same_style():
 # ---------------------------------------------------------------- aspecto: móvil y escritorio, claro y oscuro
 def test_layout_phone_desk_light_dark():
     """Palabra nueva: la palabra a 44 px en la letra redonda, la traducción en gris, altavoz de 64 px y una sola
-    tortuga, sin «PALABRA NUEVA» ni IPA a la vista (sí con vocabUI ipa). Preguntas: 2×2 opciones de 64 px; los números
+    tortuga, sin «PALABRA NUEVA», con la IPA a la vista (y sin ella si un mayor la apagó: vocabUI ipa false). Preguntas: 2×2 opciones de 64 px; los números
     solo con teclado o ratón (escritorio sí, móvil no). Botón de abajo de 56 px. Nada se sale de lado. Cambio de
     tarjeta lateral de 220 ms (con «Reducir movimiento», solo un fundido). Sin errores en ninguna combinación."""
     probs = []
@@ -647,7 +647,7 @@ def test_layout_phone_desk_light_dark():
       const spk = p.querySelector('.ls-spk'), go = document.getElementById('ls-go'), cs = getComputedStyle(w);
       return {fs: parseFloat(cs.fontSize), round: /nunito|rounded/i.test(cs.fontFamily), trc: getComputedStyle(tr).color, wc: cs.color,
         spk: Math.round(spk.getBoundingClientRect().width), turtles: p.querySelectorAll('.ls-slow').length,
-        tag: /PALABRA NUEVA/i.test(p.textContent), ipa: !!p.querySelector('.ls-ipa'), go: Math.round(go.getBoundingClientRect().height),
+        tag: /PALABRA NUEVA/i.test(p.textContent), ipa: !!p.querySelector('.ls-ipa') === !!vocabLesson.state.steps[vocabLesson.state.i].w.r.l[lang].ipa, go: Math.round(go.getBoundingClientRect().height),
         pic: (() => { const i = p.querySelector('.ls-pic img'); return i ? [Math.round(i.getBoundingClientRect().height), Math.round(i.getBoundingClientRect().bottom - w.getBoundingClientRect().top)] : null; })(),
         sw: document.documentElement.scrollWidth, iw: innerWidth}; }"""
     quest = """() => { const p = document.querySelector('.ls-stage > .ls-page:not(.ls-ghost)'), os = [...p.querySelectorAll('.ls-opt')];
@@ -666,7 +666,7 @@ def test_layout_phone_desk_light_dark():
                     probs.append(f"{label}: la palabra a {L['fs']} px ({L['round']})")
                 if L["trc"] == L["wc"]:
                     probs.append(f"{label}: la traducción no va en gris")
-                if L["spk"] != 64 or L["turtles"] != 1 or L["tag"] or L["ipa"]:
+                if L["spk"] != 64 or L["turtles"] != 1 or L["tag"] or not L["ipa"]:
                     probs.append(f"{label}: palabra nueva {L}")
                 if L["pic"] and (L["pic"][0] < 100 or L["pic"][1] > 0):
                     probs.append(f"{label}: el dibujo (alto {L['pic'][0]} px) se monta sobre la palabra ({L['pic'][1]} px)")
@@ -687,14 +687,13 @@ def test_layout_phone_desk_light_dark():
                     probs.append(f"{label}: transición {an}")
                 page.wait_for_timeout(300)
                 if kind == "phone" and scheme == "light":
-                    page.evaluate("() => vocabUI.set('ipa', true)")
+                    page.evaluate("() => vocabUI.set('ipa', false)")
                     page.evaluate("() => { vocabLesson.state.i = 0; lsStep(-1); }")
                     page.wait_for_timeout(300)
-                    has = page.evaluate("() => { const p = document.querySelector('.ls-stage > .ls-page:not(.ls-ghost)'); return !!p.querySelector('.ls-ipa') || !document.querySelector('.ls-word'); }")
-                    want = page.evaluate("() => !!vocabLesson.state.steps[0].w.r.l[lang].ipa")
-                    if want and not has:
-                        probs.append(f"{label}: con IPA activado no sale")
-                    page.evaluate("() => vocabUI.set('ipa', false)")
+                    has = page.evaluate("() => { const p = document.querySelector('.ls-stage > .ls-page:not(.ls-ghost)'); return !!p.querySelector('.ls-ipa'); }")
+                    if has:
+                        probs.append(f"{label}: con la IPA apagada sigue saliendo")
+                    page.evaluate("() => vocabUI.set('ipa', null)")
                 while page.evaluate(_ST)["t"] == "learn":
                     _go(page)
                 Q = page.evaluate(quest)
