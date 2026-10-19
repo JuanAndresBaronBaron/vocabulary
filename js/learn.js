@@ -378,7 +378,7 @@ dialog.pw-sheet.m-sheet,dialog.pw-sheet.m-sheet.glass{background:var(--bg);-webk
 .pw-pct{flex:none;font:700 var(--fs-note)/1 var(--f-round);color:var(--label2);font-variant-numeric:tabular-nums}
 .pw-meta{margin:0;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
 .pw-meta b{font-weight:600;color:var(--label)}
-.pw-flow{position:relative;height:540px;overflow:hidden;border-radius:var(--r-card)}   /* crece con la tarjeta de ahora (fitFlow) */
+.pw-flow{position:relative;isolation:isolate;height:540px;overflow:hidden;border-radius:var(--r-card)}   /* crece con la tarjeta de ahora (fitFlow); isolation: el z-index de las tarjetas no pasa por encima de la barra de pestañas */
 .pw .pr-card{position:absolute;left:50%;top:calc(50% - 12px);width:var(--cw,300px);min-height:440px;margin-left:calc(var(--cw,300px) / -2);display:flex;flex-direction:column;
   border-radius:var(--r-card);background:var(--card);color:var(--label);overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.08);
   transition:transform .5s cubic-bezier(.3,.8,.3,1),opacity .4s ease}
