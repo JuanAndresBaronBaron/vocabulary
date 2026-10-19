@@ -41,7 +41,8 @@
      o.what: lo que cuenta, para el lector de pantalla ("lecciones" por defecto). El menú se maneja solo (delegado en el
      documento): flechas, Inicio y Fin, Esc o Tab lo cierran, tocar fuera también. Elegir un nivel navega a su ruta.
    API: window.levelPicker · window.vocabLearn = {levelPicker, mapa, palabras, docView, gramatica, state, topicPic,
-     modes, peek(id) (abre el vistazo de una lección hecha), jump() (lleva a la lección actual)}.
+     modes, peek(id) (abre el vistazo de una lección hecha), jump() (lleva a la lección actual), repaint() (la IPA
+     cambió en Ajustes: repinta la ficha de un tema en su sitio; false si no es cosa suya)}.
    Usa de index.html (globales): lang, LANGS, store, $, esc, ico, bus, ROUTES, getIndex, getDoc, CACHE, srsAll, srsK,
    srsAdd, srsGrade, award, toast, say, sayP, sleep, autoTok, logAct, voiceNote, shuffle, canListen, noVoiceMsg,
    listen, LVS, getMap, MAP, mapP, lvLessons, lvCur, lvUnits, GRAM, gId, allMapP, heroHtml, nPal, hashPath, secOf,
@@ -796,6 +797,16 @@ function draw(doc){
   v.setAttribute("aria-labelledby", "dv-tab-" + state.mode);
   if(state.mode === "lista") lista(doc); else if(state.mode === "tarjetas") tarjetas(doc); else if(state.mode === "practica") practica(doc); else test(doc);
 }
+/* la IPA se encendió o se apagó en Ajustes (js/settings.js, al cerrarla): Lista y Tarjetas se repintan en su sitio, sin
+   empezar de nuevo como al volver a entrar en el tema (openDoc borra la ronda de Preguntas y el orden de «Barajar»).
+   Preguntas no se toca: su IPA sale al contestar y se mira entonces. false: no es cosa suya (Escribir, que guarda su
+   práctica, y las demás pantallas vuelven a su ruta) */
+function repaint(){
+  const id = state.doc, m = state.mode;
+  if(!id || hashPath() !== "doc/" + id || !$("#view") || !["lista", "tarjetas", "test"].includes(m)) return false;
+  if(m !== "test") getDoc(id).then(doc => { if(hashPath() === "doc/" + id && state.doc === id && state.mode === m && $("#view")) draw(doc); }).catch(() => {});
+  return true;
+}
 
 /* ---------- Lista ---------- */
 function lista(doc){
@@ -1514,5 +1525,5 @@ addEventListener("hashchange", () => {
 });
 
 W.levelPicker = levelPicker;
-W.vocabLearn = {levelPicker, mapa, palabras, docView: openDoc, gramatica, state, topicPic, modes: MODES.map(m => m[0]), peek: id => openPeek(id), jump};
+W.vocabLearn = {levelPicker, mapa, palabras, docView: openDoc, gramatica, state, topicPic, modes: MODES.map(m => m[0]), peek: id => openPeek(id), jump, repaint};
 })();

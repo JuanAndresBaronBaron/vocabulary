@@ -19,7 +19,8 @@ Tarjetas y Escribir va en su propia línea bajo «Se dice» (con el plural nombr
 lección y el repaso; en el detalle de Palabras, en el color de los otros valores; la Palabra del día la lleva en una
 línea (la primera forma) y a 8 px de «¡Me la sé!»; la tarjeta de Escribir cabe en su hueco; las palabras largas
 (A1-022, B1-024) no hacen bajar la lección; en 320×568 la lección y la ficha del álbum no bajan más que sin la IPA; y el
-interruptor repinta lo de debajo al cerrar Ajustes."""
+interruptor repinta lo de debajo al cerrar Ajustes, sin empezar de nuevo lo que había a medias (la ronda de Preguntas,
+el orden de «Barajar», el final de un juego)."""
 from __future__ import annotations
 
 import json
@@ -792,23 +793,25 @@ def test_wotd_long_ipa_one_line():
     assert not probs, "\n".join(probs)
 
 
+def _toggle(page):
+    """Engranaje › Para mayores (con la Puerta ya pasada) › el interruptor de la IPA, y se cierra Ajustes."""
+    page.evaluate(_PASS)
+    page.evaluate("() => openSettings('mayores')")
+    page.wait_for_selector("#aj-ipa", state="attached", timeout=5000)
+    page.wait_for_timeout(400)
+    page.locator("label[for=aj-ipa]").click()
+    page.wait_for_timeout(150)
+    page.evaluate("() => vocabSettings.close()")
+    page.wait_for_function("() => !document.querySelector('dialog#ajustes[open]')", timeout=4000)
+    page.wait_for_timeout(600)
+
+
 def test_switch_repaints_without_navigating():
     """Apagar o encender la IPA desde el engranaje, sin cambiar de pantalla: al cerrar Ajustes, lo que había debajo se
     repinta (antes seguía con lo de antes hasta navegar): en Palabras › Lista, el detalle abierto; en Hoy, la Palabra del
     día al girarla (sin IPA vuelve la etiqueta «Palabra del día»). Y al revés, al encenderla vuelve a salir."""
     probs = []
-
-    def toggle(page):
-        page.evaluate(_PASS)
-        page.evaluate("() => openSettings('mayores')")
-        page.wait_for_selector("#aj-ipa", state="attached", timeout=5000)
-        page.wait_for_timeout(400)
-        page.locator("label[for=aj-ipa]").click()
-        page.wait_for_timeout(150)
-        page.evaluate("() => vocabSettings.close()")
-        page.wait_for_function("() => !document.querySelector('dialog#ajustes[open]')", timeout=4000)
-        page.wait_for_timeout(600)
-
+    toggle = _toggle
     vis = "sel => [...document.querySelectorAll(sel)].filter(e => e.getClientRects().length && getComputedStyle(e).visibility !== 'hidden').length"
     page = C.new_page("phone")
     try:
@@ -843,6 +846,110 @@ def test_switch_repaints_without_navigating():
             page.wait_for_timeout(600)
         if page.evaluate(_UI).get("ipa", "sin clave") != "sin clave":
             probs.append(f"al final vocab:ui {page.evaluate(_UI)!r}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+def test_switch_keeps_what_was_half_done():
+    """Apagar o encender la IPA con algo a medias fuera del modo foco no lo empieza de nuevo: en Palabras › Preguntas
+    la ronda sigue (la pregunta, la cuenta y lo ya contestado, también con la respuesta a la vista y «Seguir») y la
+    respuesta siguiente ya va con la IPA nueva; en Tarjetas siguen el orden de «Barajar», la tarjeta y su giro, y el
+    reverso se repinta con o sin IPA; en la pantalla final de Oído de lince no empieza otra partida."""
+    probs = []
+    st = "() => { const t = vocabLearn.state.test; return t && {i: t.i, ok: t.ok, n: t.qs.length, answered: t.answered}; }"
+    fb_ipa = "() => document.querySelectorAll('#qz-fb .ipa').length"
+    page = C.new_page("phone")
+    try:
+        # Palabras › Preguntas: 3 contestadas, la 4.ª contestada sin «Seguir»
+        C.seed(page, keys=_keys(), hash=f"#/doc/{R.TOPIC}?m=test")
+        page.wait_for_selector("#view .qz-opt", timeout=8000)
+        for k in range(4):
+            page.locator("#view .qz-opt").nth(0).click()
+            page.wait_for_selector("#nextq:not([hidden])", timeout=3000)
+            if k < 3:
+                page.locator("#nextq").click()
+                page.wait_for_function("k => vocabLearn.state.test.i === k + 1 && !!document.querySelector('#view .qz-opt:not([disabled])')",
+                                       arg=k, timeout=3000)
+        before = page.evaluate(st)
+        n_before = page.locator("#view .qz-n").text_content()
+        ask = page.locator("#view .qz-ask").text_content()
+        _toggle(page)
+        if page.evaluate("() => ipaOn()") is not False:
+            probs.append("Preguntas: el interruptor no apaga la IPA")
+        after = page.evaluate(st)
+        if after != before or page.locator("#view .qz-n").text_content() != n_before or page.locator("#view .qz-ask").text_content() != ask:
+            probs.append(f"Preguntas: la ronda empieza de nuevo al apagar la IPA: {before} {n_before!r} → {after} "
+                         f"{page.locator('#view .qz-n').text_content()!r}")
+        if not page.locator("#nextq:not([hidden])").count():
+            probs.append("Preguntas: tras apagar la IPA ya no está «Seguir» de la respuesta a la vista")
+        else:
+            page.locator("#nextq").click()
+            page.wait_for_function("() => vocabLearn.state.test.i === 4 && !!document.querySelector('#view .qz-opt:not([disabled])')", timeout=3000)
+            if page.locator("#view .qz-n").text_content() != "5/10":
+                probs.append(f"Preguntas: tras «Seguir» la cuenta es {page.locator('#view .qz-n').text_content()!r} (no 5/10)")
+            page.locator("#view .qz-opt").nth(0).click()
+            page.wait_for_selector("#nextq:not([hidden])", timeout=3000)
+            if page.evaluate(fb_ipa):
+                probs.append("Preguntas: con la IPA apagada, la respuesta siguiente la enseña")
+        mid = page.evaluate(st)
+        _toggle(page)   # otra vez encendida
+        if page.evaluate("() => ipaOn()") is not True:
+            probs.append("Preguntas: el interruptor no enciende la IPA")
+        if page.evaluate(st) != mid or mid["i"] != 4 or page.locator("#view .qz-n").text_content() != "5/10":
+            probs.append(f"Preguntas: la ronda empieza de nuevo al encender la IPA: {mid} → {page.evaluate(st)}")
+
+        # Tarjetas: «Barajar», dos «Siguiente» y girada
+        page.locator("#dv-tab-tarjetas").click()
+        page.wait_for_selector("#view #card", timeout=4000)
+        page.locator("#view #shuf").click()
+        page.wait_for_timeout(300)
+        for _ in range(2):
+            page.locator("#view #next").click()
+            page.wait_for_timeout(300)
+        page.locator("#view #card").click(position={"x": 24, "y": 24})
+        page.wait_for_selector("#view #card.is-back", timeout=3000)
+        page.wait_for_timeout(300)
+        fc = "() => { const s = vocabLearn.state.fc; return {order: s.order, i: s.i, flip: s.flip, rev: s.rev}; }"
+        word = "() => [...document.querySelectorAll('#card .fcx-w')].map(e => e.textContent).join('|')"
+        n_ipa = "() => document.querySelectorAll('#card.is-back .ipa').length"
+        f0, w0, ipa0 = page.evaluate(fc), page.evaluate(word), page.evaluate(n_ipa)
+        if f0["i"] != 2 or not f0["flip"] or not f0["order"]:
+            probs.append(f"Tarjetas: la preparación no vale: {f0}")
+        for want in (False, True):
+            _toggle(page)
+            f1, w1 = page.evaluate(fc), page.evaluate(word)
+            if f1 != f0 or w1 != w0 or not page.locator("#view #card.is-back").count():
+                probs.append(f"Tarjetas: al {'encender' if want else 'apagar'} la IPA cambia la tarjeta o el orden: {f0} {w0!r} → {f1} {w1!r}")
+            n = page.evaluate(n_ipa)
+            if n != (ipa0 if want else 0):
+                probs.append(f"Tarjetas: al {'encender' if want else 'apagar'} la IPA, el reverso enseña {n} IPA (antes {ipa0})")
+        if not ipa0:
+            probs.append("Tarjetas: la tarjeta girada no tiene IPA (la prueba no vale)")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+
+    # la pantalla final de Oído de lince (fuera del modo foco, con el engranaje a la vista)
+    page = C.new_page("phone")
+    try:
+        J._open(page, keys=_keys())
+        J._start(page, "lince")
+        J._play_lince(page)
+        page.wait_for_timeout(1500)
+        end = "() => ({end: !!document.getElementById('gm-end'), play: document.documentElement.dataset.gmPlay || '', focus: document.documentElement.dataset.focus || '', intro: !!document.querySelector('.gm-intro'), hash: location.hash})"
+        e0 = page.evaluate(end)
+        if not e0["end"] or e0["play"] or e0["focus"]:
+            probs.append(f"Oído de lince: la preparación no vale: {e0}")
+        for want in (False, True):
+            _toggle(page)
+            page.wait_for_timeout(600)
+            e1 = page.evaluate(end)
+            if e1 != e0:
+                probs.append(f"Oído de lince: al {'encender' if want else 'apagar'} la IPA en la pantalla final: {e0} → {e1}")
+            if page.evaluate("() => ipaOn()") is not want:
+                probs.append(f"Oído de lince: el interruptor no {'enciende' if want else 'apaga'} la IPA")
         probs += C.errors(page)
     finally:
         page.context.close()

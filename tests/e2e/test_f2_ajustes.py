@@ -795,8 +795,9 @@ def test_no_renew_when_starting_or_mid_question():
     camino, una tarjeta de Juegos, «Empezar» de Palabras › Practicar. Tampoco los de mitad de una pregunta fuera del
     modo foco ni lo que suena o escucha: en la granja, «Dilo» y una respuesta de «¿Cómo me llamo?», un animal y una
     respuesta de «¿Dónde está…?»; el altavoz de la hoja de una puerta de la temporada antes de contestar; el micrófono
-    de Palabras › Practicar › Hablar y «Seguir» entre preguntas de Palabras › Preguntas. Luego, un toque en una pestaña
-    sí lo pide (dentro del toque)."""
+    de Palabras › Practicar › Hablar y «Seguir» entre preguntas de Palabras › Preguntas; en Palabras › Tarjetas, tocar
+    la tarjeta (al girarla dice la palabra) y «Automático» (empieza a decirlas una tras otra). Luego, un toque en una
+    pestaña sí lo pide (dentro del toque)."""
     probs = []
 
     def check(page, what, n0):
@@ -919,8 +920,9 @@ def test_no_renew_when_starting_or_mid_question():
     finally:
         page.context.close()
 
-    # Palabras › Practicar › Hablar (el micrófono) y Palabras › Preguntas («Seguir»)
-    for what in ("hablar", "preguntas"):
+    # Palabras › Practicar › Hablar (el micrófono), Palabras › Preguntas («Seguir») y Palabras › Tarjetas (girar la
+    # tarjeta, que dice la palabra, y «Automático»)
+    for what in ("hablar", "preguntas", "tarjeta", "automatico"):
         page = C.new_page("phone")
         log = []
         page.context.add_init_script(_GIS)
@@ -946,7 +948,7 @@ def test_no_renew_when_starting_or_mid_question():
                 due(page, "Practicar › Hablar")
                 page.locator("#view .pr-card.cur .mic").click()
                 check(page, "Palabras › Practicar › Hablar: el micrófono", n0)
-            else:
+            elif what == "preguntas":
                 page.locator("#dv-tab-test").click()
                 page.wait_for_timeout(300)
                 n0, ok = _arm(page)
@@ -955,6 +957,26 @@ def test_no_renew_when_starting_or_mid_question():
                 page.wait_for_selector("#nextq:not([hidden])", timeout=3000)
                 page.locator("#nextq").click()
                 check(page, "Palabras › Preguntas: «Seguir»", n0)
+            else:
+                page.locator("#dv-tab-tarjetas").click()
+                page.wait_for_selector("#view #card", timeout=4000)
+                page.wait_for_timeout(300)
+                page.evaluate("""() => { window.__said = []; for (const f of ['say', 'sayP']) { const o = window[f];
+                  window[f] = function(...a) { window.__said.push(a[0]); return o.apply(this, a); }; } }""")
+                n0, ok = _arm(page)
+                due(page, "Tarjetas")
+                if what == "tarjeta":
+                    page.locator("#view #card").click(position={"x": 24, "y": 24})   # (una esquina: no el altavoz)
+                    page.wait_for_selector("#view #card.is-back", timeout=3000)
+                    check(page, "Palabras › Tarjetas: girar la tarjeta", n0)
+                else:
+                    page.locator("#view #auto").click()
+                    page.wait_for_function("() => window.__said.length > 0", timeout=6000)
+                    check(page, "Palabras › Tarjetas: «Automático»", n0)
+                    page.locator("#view #auto").click()   # «Parar»
+                    page.wait_for_timeout(300)
+                if not page.evaluate("window.__said.length"):
+                    probs.append(f"Palabras › Tarjetas ({what}): no ha dicho la palabra (la prueba no vale)")
             control(page, what)
             probs += C.errors(page)
         finally:
