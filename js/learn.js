@@ -17,8 +17,10 @@
      #/doc/<id>?m=<lista|tarjetas|test|practica> abre en ese modo (los atajos de Hoy). Para js/shortcuts.js emite bus
      "doc-flip" {id, i, n} al girar una tarjeta y "doc-done" {id, mode: "test"|"practica"} al terminar Preguntas o Escribir.
      · Lista: filas con el español, la palabra y el altavoz (44 px; con la fila abierta, solo el grande del detalle) y
-       el punto «En el repaso»; tocar la fila abre el detalle (dibujo, «Se dice», plural o formas, IPA solo si
-       vocabUI.get().ipa, ejemplo y «Al repaso»). Deslizar una fila a la izquierda (como en
+       el punto «En el repaso»; tocar la fila abre el detalle (dibujo, «Se dice», la IPA, plural o formas, ejemplo y «Al
+       repaso»). La IPA (ipaHtml() de index.html) sale también en Tarjetas (girada, en su línea bajo «Se dice»), en
+       Preguntas al contestar y en Escribir (Escuchar, Leer y Hablar), salvo que un mayor la apague en Ajustes; el plural o
+       las formas van con su nombre delante («Plural: dogs»), así no se confunden con la IPA. Deslizar una fila a la izquierda (como en
        Mail) también la manda al repaso: srsAdd(id, [fila], 0), igual que el «➕ Al repaso» de antes.
      · Tarjetas: tarjeta sólida que gira al tocarla; «Siguiente» y ‹ (también deslizando y con ← →), «Automático»
        (secuencia que solo dice el idioma que se estudia), «Barajar» y «Ver primero en inglés / en español».
@@ -43,12 +45,11 @@
    Usa de index.html (globales): lang, LANGS, store, $, esc, ico, bus, ROUTES, getIndex, getDoc, CACHE, srsAll, srsK,
    srsAdd, srsGrade, award, toast, say, sayP, sleep, autoTok, logAct, voiceNote, shuffle, canListen, noVoiceMsg,
    listen, LVS, getMap, MAP, mapP, lvLessons, lvCur, lvUnits, GRAM, gId, allMapP, heroHtml, nPal, hashPath, secOf,
-   rovingKeys, ROUTE_RESTORE, ROUTE_FROM, mapScrolled; y window.M (motion.js), window.G (gestures.js), vocabUI. */
+   rovingKeys, ROUTE_RESTORE, ROUTE_FROM, mapScrolled, ipaOn, ipaHtml; y window.M (motion.js), window.G (gestures.js). */
 (() => {
 "use strict";
 const W = window, D = document, ROOT = D.documentElement;
 const rm = () => !!(W.M && typeof M.rm === "function" && M.rm());
-const ui = () => { try{ return (W.vocabUI && vocabUI.get()) || {}; }catch(e){ return {}; } };
 const code = () => (LANGS[lang] && LANGS[lang].code) || "en-GB";
 const lname = () => (LANGS[lang] && LANGS[lang].name) || "";
 const Lname = () => { const n = lname(); return n.charAt(0).toUpperCase() + n.slice(1); };
@@ -264,6 +265,7 @@ dialog.cm-pk{max-width:480px}
 .dl-hear{display:flex;align-items:center;gap:12px}
 .dl-ln{margin:0;font:400 var(--fs-sub)/1.35 var(--f-text);color:var(--label)}
 .dl-k{margin-right:6px;font:600 var(--fs-note)/1 var(--f-text);color:var(--label2)}
+.dl-ln .ipa{color:inherit}   /* el valor de la fila «IPA», como «Se dice» y «Plural» (el gris es para la IPA de subtítulo) */
 .dl-ex{width:100%;padding:10px 12px;border-radius:var(--r-md);background:var(--fill2)}
 .dl-ex p{margin:0;font:400 var(--fs-sub)/1.35 var(--f-text)}
 .dl-ex .ln-spk{display:inline-grid;vertical-align:middle;margin:-10px 0 -10px 0}
@@ -279,12 +281,16 @@ dialog.cm-pk{max-width:480px}
   -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:pan-y;outline-offset:-3px}
 .fcx-card .ln-pic{width:100%;height:clamp(110px,22vh,190px)}
 .fcx-card.is-back .ln-pic{height:clamp(72px,12vh,120px)}   /* de vuelta, el dibujo más pequeño: así cabe todo con «Siguiente» */
+.fcx-card.is-back.say2 .ln-pic{height:clamp(56px,calc(12vh - 1.4rem),120px)}   /* con «Se dice» y la IPA debajo, cede esa línea */
 .fcx-w{margin:4px 0 0;font:700 var(--fs-word)/1.15 var(--f-round);overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto;text-wrap:balance}
 .fcx-es{margin:0;font:400 var(--fs-body)/1.3 var(--f-text);color:var(--label2)}
 .fcx-hear{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:4px}
 .fcx-tap{display:flex;align-items:center;gap:8px;margin:8px 0 0;font:600 var(--fs-note)/1.2 var(--f-text);color:var(--label2)}
 .fcx-tap .ico{color:var(--brand-tint)}
 .fcx-meta{margin:0;font:400 var(--fs-sub)/1.35 var(--f-text);color:var(--label2)}
+/* la IPA en su propia línea, bajo «Se dice «…»» (como en «Cómo suena»); el plural o las formas, con su nombre delante */
+.fcx-meta .ipa,.pw .pw-line .ipa{display:block;overflow-wrap:anywhere}
+.fcx-k,.pw .pw-k{font-weight:600}
 .fcx-ex{width:100%;margin-top:4px;padding:10px 12px;border-radius:var(--r-md);background:var(--fill2);text-align:left}
 .fcx-ex p{margin:0;font:400 var(--fs-sub)/1.35 var(--f-text)}
 .fcx-ex .ln-spk{display:inline-grid;vertical-align:middle;margin:-10px 0}
@@ -372,7 +378,7 @@ dialog.pw-sheet.m-sheet,dialog.pw-sheet.m-sheet.glass{background:var(--bg);-webk
 .pw-pct{flex:none;font:700 var(--fs-note)/1 var(--f-round);color:var(--label2);font-variant-numeric:tabular-nums}
 .pw-meta{margin:0;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
 .pw-meta b{font-weight:600;color:var(--label)}
-.pw-flow{position:relative;height:540px;overflow:hidden;border-radius:var(--r-card)}
+.pw-flow{position:relative;height:540px;overflow:hidden;border-radius:var(--r-card)}   /* crece con la tarjeta de ahora (fitFlow) */
 .pw .pr-card{position:absolute;left:50%;top:calc(50% - 12px);width:var(--cw,300px);min-height:440px;margin-left:calc(var(--cw,300px) / -2);display:flex;flex-direction:column;
   border-radius:var(--r-card);background:var(--card);color:var(--label);overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,.08);
   transition:transform .5s cubic-bezier(.3,.8,.3,1),opacity .4s ease}
@@ -858,15 +864,16 @@ function lista(doc){
   const first = list.querySelector(".dl-r .dl-fg");
   if(first) setTimeout(() => { if(state.mode === "lista" && first.isConnected) hint(first, {id: "doc-swipe", gesture: "left", text: "Desliza para el repaso"}); }, 900);
 }
+/* el nombre de la línea de las formas: «Plural» en los nombres, «Formas» en lo demás (verbos, adjetivos…) */
+const formsK = r => !r.pos || r.pos === "noun" ? "Plural" : "Formas";
 function detailHtml(doc, r){
-  const d = r.l[lang], lc = code(), ipa = !!ui().ipa, inSrs = !!srsAll()[srsK(doc.id, r)];
+  const d = r.l[lang], lc = code(), ipa = ipaHtml(d.ipa, lc, "", false), inSrs = !!srsAll()[srsK(doc.id, r)];
   const pron = d.pron && norm(d.pron) !== norm(d.word) ? d.pron : "";
-  const formsK = !r.pos || r.pos === "noun" ? "Plural" : "Formas";
   return `<div class="dl-dd">${r.img ? picHtml(r, "dl-pic") : ""}<div class="dl-info">
     <div class="dl-hear">${spk(d.word, "lg", "space")}${slowB(d.word, "shift+space")}</div>
     ${pron ? `<p class="dl-ln"><span class="dl-k">Se dice</span>«${esc(pron)}»</p>` : ""}
-    ${d.forms ? `<p class="dl-ln"><span class="dl-k">${formsK}</span><span lang="${esc(lc)}">${esc(d.forms)}</span></p>` : ""}
-    ${ipa && d.ipa ? `<p class="dl-ln"><span class="dl-k">IPA</span>${esc(d.ipa)}</p>` : ""}
+    ${ipa ? `<p class="dl-ln"><span class="dl-k">IPA</span>${ipa}</p>` : ""}
+    ${d.forms ? `<p class="dl-ln"><span class="dl-k">${formsK(r)}</span><span lang="${esc(lc)}">${esc(d.forms)}</span></p>` : ""}
     ${d.ex ? `<div class="dl-ex"><p lang="${esc(lc)}">${esc(d.ex)} ${spk(d.ex, "sm")}</p>${d.ex_es ? `<p class="dl-ex-tr">${esc(d.ex_es)}</p>` : ""}</div>` : ""}
     <button type="button" class="glass-btn glass-btn--sm dl-add" data-add>${inSrs ? `${ico("check", "bold", 18)}En el repaso` : `${ico("plus", "bold", 18)}Al repaso`}</button>
   </div></div>`;
@@ -891,19 +898,19 @@ function tarjetas(doc, anim){
   if(!s.order || s.order.length !== list.length) s.order = list.map((_, i) => i);
   if(s.i >= list.length) s.i = 0;
   const r = list[s.order[s.i]]; if(!r){ v.innerHTML = `<p class="ln-empty">Aquí aún no hay palabras.</p>`; return; }
-  const d = r.l[lang], ipa = !!ui().ipa;
+  const d = r.l[lang], ipa = ipaHtml(d.ipa, lc);
   const pron = d.pron && norm(d.pron) !== norm(d.word) ? d.pron : "";
   const front = s.rev
     ? `<p class="fcx-w" lang="${esc(lc)}">${esc(d.word)}</p><div class="fcx-hear">${spk(d.word, "lg", "space")}</div>`
     : `${picHtml(r)}<p class="fcx-w">${esc(r.es)}</p>`;
   const back = `${picHtml(r)}<p class="fcx-es">${esc(r.es)}</p><p class="fcx-w" lang="${esc(lc)}">${esc(d.word)}</p>
     <div class="fcx-hear">${spk(d.word, "lg", "space")}${slowB(d.word, "shift+space")}</div>
-    ${pron || (ipa && d.ipa) ? `<p class="fcx-meta">${pron ? `Se dice «${esc(pron)}»` : ""}${pron && ipa && d.ipa ? " · " : ""}${ipa && d.ipa ? esc(d.ipa) : ""}</p>` : ""}
-    ${d.forms ? `<p class="fcx-meta" lang="${esc(lc)}">${esc(d.forms)}</p>` : ""}
+    ${pron || ipa ? `<p class="fcx-meta">${pron ? `Se dice «${esc(pron)}»` : ""}${ipa}</p>` : ""}
+    ${d.forms ? `<p class="fcx-meta"><b class="fcx-k">${formsK(r)}:</b> <span lang="${esc(lc)}">${esc(d.forms)}</span></p>` : ""}
     ${d.ex ? `<div class="fcx-ex"><p lang="${esc(lc)}">${esc(d.ex)} ${spk(d.ex, "sm")}</p>${d.ex_es ? `<p class="fcx-tr">${esc(d.ex_es)}</p>` : ""}</div>` : ""}`;
   v.innerHTML = `<div class="fcx">
     <p class="fcx-n" aria-live="polite">${s.i + 1} / ${list.length}</p>
-    <div class="fcx-card${s.flip ? " is-back" : ""}" id="card" role="button" tabindex="0"${!s.flip && !s.rev ? ' data-key="space" data-key-pos="in"' : ""} aria-label="${s.flip ? `${esc(r.es)}: ${esc(d.word)}. Toca para volver` : "Toca para ver la respuesta"}">${s.flip ? back : front}${s.flip ? "" : `<p class="fcx-tap">${ico("hand-pointing", "bold", 20)}Toca para ver</p>`}</div>
+    <div class="fcx-card${s.flip ? " is-back" : ""}${s.flip && pron && ipa ? " say2" : ""}" id="card" role="button" tabindex="0"${!s.flip && !s.rev ? ' data-key="space" data-key-pos="in"' : ""} aria-label="${s.flip ? `${esc(r.es)}: ${esc(d.word)}. Toca para volver` : "Toca para ver la respuesta"}">${s.flip ? back : front}${s.flip ? "" : `<p class="fcx-tap">${ico("hand-pointing", "bold", 20)}Toca para ver</p>`}</div>
     <div class="fcx-nav"><button type="button" class="glass-btn glass-btn--icon fcx-prev" id="prev" aria-label="Anterior" data-key="left">${ico("caret-left", "bold", 26)}</button>
       <button type="button" class="glass-btn glass-btn--pri glass-btn--lg fcx-next" id="next" data-key="right enter">Siguiente</button></div>
     <div class="fcx-more">
@@ -1025,7 +1032,7 @@ function test(doc){
     });
     fitQz(v);   /* la ✓ y la ✗ quitan sitio: que la palabra siga entera */
     if(good && W.M) try{ M.ok(right, {haptic: true}); }catch(_){}
-    const ipa = ui().ipa && d.ipa ? `<small>${esc(d.ipa)}</small>` : "";
+    const ipa = ipaOn() && d.ipa ? `<small>${ipaHtml(d.ipa, lc)}</small>` : "";
     fb.className = "qz-fb" + (good ? "" : " miss");
     fb.innerHTML = good ? `${PRAISE[Math.floor(Math.random() * PRAISE.length)]}${spk(d.word, "sm")}${ipa}`
       : `¡Casi! Es <b lang="${esc(lc)}">«${esc(d.word)}»</b>${spk(d.word, "sm")}${ipa}`;
@@ -1201,6 +1208,9 @@ function prRun(doc, s){
     </aside></div></div>`;
   const flow = $("#pr-flow");
   const els = [...flow.querySelectorAll(".pr-card")];
+  /* la tarjeta de ahora puede ser más alta que el hueco de 540 px (la IPA, «Texto más grande», Hablar con su micrófono):
+     el hueco crece con ella (8 px arriba; abajo, los puntos), si no se cortaba arriba y abajo sin poder bajar */
+  const fitFlow = () => { const c = els.find(el => +el.dataset.off === 0); flow.style.minHeight = c ? c.offsetHeight + 40 + "px" : ""; };
   const layout = () => {
     const W0 = flow.getBoundingClientRect().width, cw = Math.round(Math.min(340, W0 * (W0 < 560 ? 0.86 : 0.64)));
     els.forEach(el => {
@@ -1211,7 +1221,12 @@ function prRun(doc, s){
       el.style.zIndex = 10 - a;
       el.style.opacity = a > 3 ? 0 : 1 - 0.1 * Math.max(0, a - 1);
     });
+    fitFlow();
   };
+  try{
+    const c0 = flow.querySelector(".pr-card.cur");
+    if(c0 && typeof ResizeObserver === "function"){ const ro = new ResizeObserver(() => { if(D.body.contains(flow) && c0.isConnected) fitFlow(); else ro.disconnect(); }); ro.observe(c0); }
+  }catch(e){}
   els.forEach(el => el.style.transition = "none"); layout();
   requestAnimationFrame(() => els.forEach(el => el.style.transition = ""));
   const onResize = () => { if(D.body.contains(flow)) layout(); else removeEventListener("resize", onResize); };
@@ -1342,11 +1357,12 @@ function prRun(doc, s){
   });
 }
 function prCard(r, act, isCur, n, reps, off){
-  const d = r.l[lang], a = ACTS[act], lc = esc(code()), ipa = !!ui().ipa;
+  const d = r.l[lang], a = ACTS[act], lc = esc(code()), ipa = ipaHtml(d.ipa, code());
   const hero = `<div class="pr-hero">${picHtml(r)}<span class="pr-tag">${ico(a.ic, "bold", 14)}${a.name}</span><span class="pr-num">${n + 1}/${reps}</span></div>`;
   if(!isCur) return `<div class="pr-card side" data-off="${off}" aria-hidden="true">${hero}<div class="pr-body"><p class="es2">${esc(r.es)}</p></div></div>`;
   const pron = d.pron && norm(d.pron) !== norm(d.word) ? d.pron : "";
-  const meta = pron || (ipa && d.ipa) ? `<p class="pw-line">${pron ? `Se dice «${esc(pron)}»` : ""}${pron && ipa && d.ipa ? " · " : ""}${ipa && d.ipa ? esc(d.ipa) : ""}</p>` : "";
+  /* «Se dice «…»» y debajo, en su propia línea, la IPA */
+  const meta = pron || ipa ? `<p class="pw-line">${pron ? `Se dice «${esc(pron)}»` : ""}${ipa}</p>` : "";
   const ex = (hidden) => d.ex ? `<div class="pw-ex"${hidden ? " hidden" : ""}><p lang="${lc}">${esc(d.ex)} ${spk(d.ex, "sm")}</p>${d.ex_es ? `<p class="tr">${esc(d.ex_es)}</p>` : ""}</div>` : "";
   const OK = ico("check", "bold", 20);
   let body;
@@ -1359,7 +1375,7 @@ function prCard(r, act, isCur, n, reps, off){
   else if(act === "leer") body = `
       <p class="es2">${esc(r.es)}</p>
       <p class="big" lang="${lc}">${esc(d.word)} ${spk(d.word)}</p>
-      ${d.forms ? `<p class="pw-line" lang="${lc}">${esc(d.forms)}</p>` : ""}${meta}${ex(false)}
+      ${meta}${d.forms ? `<p class="pw-line"><b class="pw-k">${formsK(r)}:</b> <span lang="${lc}">${esc(d.forms)}</span></p>` : ""}${ex(false)}
       <button type="button" class="glass-btn glass-btn--pri pr-next">${OK}Leído</button>`;
   else if(act === "hablar") body = `
       <p class="es2">${esc(r.es)}</p>

@@ -358,7 +358,8 @@ _FX = """() => { const cs = getComputedStyle(document.documentElement);
 def test_accessibility_switches_persist():
     """Cada interruptor de Accesibilidad pone su atributo en <html> (data-glass=off, data-motion=calm,
     data-contrast=more, data-text=large) con su efecto, se guarda en "vocab:ui" sin tocar lo demás (las pistas de
-    gestos), se pone antes de pintar al recargar y se quita al apagarlo. «Mostrar pronunciación» guarda ipa."""
+    gestos), se pone antes de pintar al recargar y se quita al apagarlo. «Mostrar pronunciación (IPA)» sale encendido
+    de serie: apagarlo guarda ipa:false y encenderlo quita la marca (sin tocar las pistas)."""
     page = C.new_page("phone")
     probs = []
     try:
@@ -418,14 +419,18 @@ def test_accessibility_switches_persist():
         _wait_page(page, "root")
         page.locator("#aj-may").click()
         _wait_page(page, "mayores")
+        if not page.evaluate("document.getElementById('aj-ipa').checked"):
+            probs.append("«Mostrar pronunciación (IPA)» no sale encendido de serie")
         page.locator("label[for=aj-ipa]").click()
         page.wait_for_timeout(120)
-        if page.evaluate(_UI).get("ipa") is not True:
-            probs.append(f"IPA encendida: vocab:ui {page.evaluate(_UI)!r}")
+        ui = page.evaluate(_UI)
+        if ui.get("ipa") is not False or ui.get("hints") != {"swipe": 2, "hold": 1000}:
+            probs.append(f"IPA apagada: vocab:ui {ui!r}")
         page.locator("label[for=aj-ipa]").click()
         page.wait_for_timeout(120)
-        if "ipa" in page.evaluate(_UI):
-            probs.append(f"IPA apagada: vocab:ui {page.evaluate(_UI)!r}")
+        ui = page.evaluate(_UI)
+        if "ipa" in ui or ui.get("hints") != {"swipe": 2, "hold": 1000}:
+            probs.append(f"IPA encendida: vocab:ui {ui!r}")
         probs += C.errors(page)
     finally:
         page.context.close()

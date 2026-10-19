@@ -591,7 +591,7 @@ def test_album_peel_and_complete_once():
 
 def test_album_card_and_ipa():
     """La tarjeta grande sigue abriéndose al tocar una pegatina conseguida, con botones de icono (‹ ›, «Dar la vuelta»);
-    la IPA solo sale si un mayor la activó (vocab:ui.ipa)."""
+    la IPA sale de serie y no sale si un mayor la apagó (vocab:ui.ipa = false)."""
     probs = []
     page = C.new_page("phone")
     try:
@@ -603,8 +603,8 @@ def test_album_card_and_ipa():
         r = page.evaluate("""() => { const d = document.querySelector('dialog.al-dlg');
           return {ipa: d.querySelectorAll('.al-front .ipa').length, nb: [...d.querySelectorAll('.al-nb')].map(b => !!b.querySelector('svg')),
             turn: (d.querySelector('.al-turn') || {}).textContent || '', glass: d.querySelectorAll('.glass-btn').length}; }""")
-        if r["ipa"]:
-            probs.append("la IPA sale sin activarla")
+        if not r["ipa"]:
+            probs.append("la IPA no sale en la tarjeta (sale de serie)")
         if r["nb"] != [True, True] or "Dar la vuelta" not in r["turn"] or r["glass"] < 3:
             probs.append(f"botones de la tarjeta: {r}")
         page.locator("dialog.al-dlg .al-turn").click()
@@ -612,14 +612,15 @@ def test_album_card_and_ipa():
         if "Ver la pegatina" not in page.locator("dialog.al-dlg .al-turn").text_content():
             probs.append("girar la tarjeta no cambia el botón a «Ver la pegatina»")
         page.keyboard.press("Escape")
-        page.evaluate("() => vocabUI.set('ipa', true)")
+        page.evaluate("() => vocabUI.set('ipa', false)")
         page.wait_for_timeout(200)
         page.locator(".al-st.got").first.click()
         page.wait_for_selector("dialog.al-dlg[open]", timeout=3000)
         page.wait_for_timeout(700)
-        if not page.evaluate("() => document.querySelectorAll('dialog.al-dlg .al-front .ipa').length"):
-            probs.append("con la IPA activada no sale en la tarjeta")
+        if page.evaluate("() => document.querySelectorAll('dialog.al-dlg .al-front .ipa').length"):
+            probs.append("con la IPA apagada sigue saliendo en la tarjeta")
         page.keyboard.press("Escape")
+        page.evaluate("() => vocabUI.set('ipa', null)")
         probs += C.errors(page)
     finally:
         page.context.close()
