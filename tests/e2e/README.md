@@ -212,7 +212,25 @@ compartida no responde).
   el Buzón, las cartas (en inglés, francés y español) y el toque que desbloquea la voz usan `useVoice` (la voz de su
   idioma) y una voz de internet que falla se repite con una del aparato (`retryLocal`; en una carta que falla tarde, la
   del aparato la lee entera y el regalo sale al acabar); y las capturas
-  `capturas/F5/F5-*.png` con su auditoría.
+  `capturas/F5/F5-*.png` con su auditoría. Para cualquier versión publicada sirven `_published_dir(commit, version,
+  env)` (la copia de esa variable de entorno o una sacada con `git archive` a una carpeta temporal) y
+  `_switching_server(carpeta, gh_cache)` (el servidor cuya carpeta cambia de la versión publicada a `C.ROOT` al
+  «publicar», sin cabeceras condicionales y, con `gh_cache`, con `Cache-Control: max-age=600` de GitHub Pages).
+- `test_update_v21.py` (la actualización desde lo publicado ahora, main 1f0b356 con sw `vocab-shell-v21`, a esta versión
+  en el mismo origen; `VOCAB_BASE21=<copia de ese commit>` o sacada con `git archive`): sin caché HTTP y con la de GitHub
+  Pages. Dos niños con la partida sembrada usan la v21: Lucía, con Google conectado (GIS y Drive de mentira; Drive
+  cambiando `fetch`, porque el enrutado de Playwright apaga la caché HTTP), el permiso caducado y cambios sin subir (en
+  la v21 se ve la pastilla «Guardar»), hace Hoy, un repaso de 3 tarjetas y la granja y nunca toca el interruptor de la
+  IPA; Leo, sin Google y con 5 días de uso («Guarda tu partida» en su Hoy de la v21), tiene la IPA encendida por un
+  mayor en la v21 (`vocab:ui {ipa: true}`). Tras publicar: la primera carga ya es la app nueva entera (cada módulo de
+  `js/` que se ejecuta tiene el texto de esta versión, leído con CDP `Debugger.getScriptSource`; cada `<script>` con
+  `?v=<VERSION>`; `ipaOn()`, `vocabSync.tapDue` y nada de `[data-sync-slot]`, pastilla ni «Guarda tu partida»), el sw
+  nuevo se instala y controla (`vocab-shell-v22` con todo `SHELL`, sin `vocab-shell-v21`, `vocab-media` sin perder
+  nada), cada clave de `localStorage` y la exportación quedan como en la v21 (sin claves nuevas), la IPA se ve en «Cómo
+  suena» y en el reverso del repaso para los dos y el interruptor sale encendido, Para mayores dice «Hay cambios sin
+  subir a Google», nada pide el permiso fuera de un toque y el siguiente toque seguro (la pestaña Hoy) lo pide dentro del
+  toque y sube a Drive la partida de la v21 tal cual (Para mayores pasa a «Copia al día»); sin conexión, la app nueva
+  (con sus módulos) y el repaso con la IPA. Sin errores. Capturas en `capturas/v22`.
 - `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en
   Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso, «Escucha y elige» de la lección y
   «Elige el dibujo» de Truco o trato, en 360×740 y 390×844 (Globos también en 320, 375, 430 y 844×390) contra un mínimo;
@@ -255,7 +273,12 @@ compartida no responde).
 `context.set_offline(True)` no corta las peticiones que hace el service worker después de recargar: para probar sin red
 de verdad, crea un servidor propio y páralo (`srv = C.Server(C.ROOT, "localhost", handler=...)`,
 `C.new_context("phone", sw=True, server=srv)`, luego `srv.stop()`). `handler` puede ser una subclase de `C._Quiet` (por
-ejemplo, para servir `sw.js` con otra `VERSION`).
+ejemplo, para servir `sw.js` con otra `VERSION`). Para una actualización desde una versión publicada,
+`test_f5_int._switching_server()` ya trae ese servidor (y su variante con la caché HTTP de GitHub Pages); mira la
+carpeta en cada petición y no al abrir la conexión, porque Chromium abre conexiones de antemano. Antes de «publicar»,
+deja pasar unos segundos desde la última carga de cada página (`test_update_v21._quiet()`): Chromium mira si hay un sw
+nuevo un segundo o dos después de cada carga y, si eso cae ya publicado y a la vez que la carga siguiente, el sw nuevo
+se queda esperando («installed») y la recarga siguiente no acaba.
 
 ## Reloj y partida sembrada
 
