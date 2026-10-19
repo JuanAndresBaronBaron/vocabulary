@@ -78,10 +78,11 @@ compartida no responde).
   ligero), mantener pulsado un nodo hecho (vistazo con estrellas, palabras y «Repetir», sin abrir la lección al
   soltar), tocar nodos (bloqueado con aviso, hecho y actual abren su lección), `#/palabras` con sus tres grupos,
   anillos contados en `srs:<idioma>` y Avanzado plegado (recordado en la sesión), la ficha en Tarjetas con sus
-  segmentos (modo recordado por tema), la fila que se despliega (IPA solo con la opción) y que al deslizarla con
-  PointerEvents sintéticos escribe lo mismo que `srsAdd(id, [fila], 0)`, Preguntas igual que `srsGrade` (fallo gris,
-  sin temblor, paga una vez), Escribir con `prPrefs`, `prAuto`, `prEx` y `pr:<tema>:<idioma>` de siempre, Gramática que
-  despliega y «Practicar», URL directas (y `#/doc` sin tema → `#/palabras`) y la partida igual tras recorrerlo todo.
+  segmentos (modo recordado por tema), la fila que se despliega (con la IPA, salvo que un mayor la apague:
+  `vocab:ui.ipa = false`) y que al deslizarla con PointerEvents sintéticos escribe lo mismo que `srsAdd(id, [fila], 0)`,
+  Preguntas igual que `srsGrade` (fallo gris, sin temblor, paga una vez), Escribir con `prPrefs`, `prAuto`, `prEx` y
+  `pr:<tema>:<idioma>` de siempre, Gramática que despliega y «Practicar», URL directas (y `#/doc` sin tema →
+  `#/palabras`) y la partida igual tras recorrerlo todo.
 - `test_f3_int.py` (F3 entero): orden de carga de `js/lesson.js`, `js/review.js` y `js/learn.js` (detrás del script
   principal, de `motion.js` y de `gestures.js`, listos al primer `route()`), `sw.js` en la versión 17 o más con los tres
   en `SHELL` y `OFF_APP`; cada ruta de F3 por enlace directo, al recargar y navegando (pestaña, segmentos, nodo del
@@ -130,8 +131,8 @@ compartida no responde).
   álbum: portada con anillo y una línea y las partes en un control segmentado (`album:tab`, flechas, recargar),
   deslizar `#al-page` con el dedo (CDP: < 60 px, en diagonal, con un diálogo abierto o sin tema a ese lado no pasa) y
   la hoja «Tema», despegar (uno y todos) y completar un tema que da 50 una sola vez, la tarjeta con botones de icono y la
-  IPA solo con la opción; sin bucles infinitos; contraste/paleta (capturas `F4c-*` en `capturas/F4`) y la partida
-  exportada como la base.
+  IPA, salvo que un mayor la apague (`vocab:ui.ipa = false`); sin bucles infinitos; contraste/paleta (capturas `F4c-*`
+  en `capturas/F4`) y la partida exportada como la base.
 - `test_f4_int.py` (F4 entero): orden de carga de `js/shop.js`, `js/lince.js`, `js/rewards.js` y `js/season.js` y lo
   que registran antes del primer `route()`; `sw.js` en la versión 19 o más con `OFF_SHELL` igual, `SHELL` = `OFF_APP` con
   los ficheros nuevos y cada `<script>` de la app con `?v=<VERSION>`; `"season"` en `js/save.js` y toda clave que la app
@@ -173,6 +174,17 @@ compartida no responde).
   frase» y «Dilo» (no entender no es fallo); la frase de la cena igual todo el día y en otro aparato; el sello con la
   Puerta (+5 una vez al día, en la partida como `phrase:stamps`); la fila de Hoy con su altavoz y sin scroll; la tarjeta
   de Juegos; inglés, francés y danés; capturas `F5d-*`; la partida exportada como la base.
+- `test_ipa.py` (la IPA a la vista, «recuerda no quitar la IPA»): sale de serie en inglés, francés y danés en la palabra
+  nueva, «Cómo suena», la respuesta de «¿Cuál es…?», el reverso del repaso (en la pregunta no), Palabras (detalle,
+  Tarjetas, Preguntas y Escribir), la ficha del álbum, Oído de lince al contestar y la Palabra del día girada; con
+  `vocab:ui.ipa = false` en ninguno y con un `ipa: true` de antes en todos; el interruptor de Para mayores (encendido de
+  serie, apagado = `ipa: false`, encendido quita la clave) y que al cerrar Ajustes se repinta lo de debajo; gris
+  secundario, una sola letra con todos los símbolos (CDP, nunca Nunito), justo debajo de la palabra en la lección y el
+  repaso; solo se parte por los espacios y en Tarjetas y Escribir va en su línea bajo «Se dice» (plural nombrado); Hoy,
+  la lección (también palabras largas: A1-022, B1-024) y el repaso sin scroll en 390×844 y 360×740 (también con «Texto
+  más grande»), la Palabra del día con la IPA en una línea, la tarjeta de Escribir dentro de su hueco, Oído de lince en
+  320×568 y, ahí, la lección y la ficha del álbum que no bajan más que sin la IPA; la exportación igual a la base;
+  capturas en `capturas/ipa`.
 - `test_f5_int.py` (F5 entero): orden de carga de `js/keys.js` (justo detrás de `gestures.js`), `js/shortcuts.js`,
   `js/mailbox.js` y `js/phrases.js` y lo que registran antes del primer `route()`; `sw.js` en la versión 20 o más con
   `OFF_SHELL` igual, cada `<script>` con `?v=<VERSION>` y `SHELL` = `OFF_APP` con los ficheros nuevos (módulos,

@@ -396,7 +396,7 @@ function adultHtml(){
       <div id="aj-inst">${installHtml()}</div>
       <div class="aj-off" id="aj-off"></div></div></section>
     ${window.vocabShortcuts && typeof vocabShortcuts.adultHtml === "function" ? vocabShortcuts.adultHtml() : ""}
-    <section class="st-sec" aria-labelledby="aj-l-h"><h3 class="st-h" id="aj-l-h">Lecciones</h3><div class="st-g ics">
+    <section class="st-sec" aria-labelledby="aj-l-h"><h3 class="st-h" id="aj-l-h">Pronunciación</h3><div class="st-g ics">
       <label class="st-r" for="aj-ipa"><span class="st-ic tl" aria-hidden="true">${ico("text-aa", "bold", 18)}</span>
         <span class="st-l">Mostrar pronunciación (IPA)<small>Símbolos de cómo suena cada palabra.</small></span>
         <input type="checkbox" role="switch" class="st-sw" id="aj-ipa" ${ipa ? "checked" : ""}></label>${voiceHelp()}</div></section>
@@ -523,8 +523,9 @@ function wire(p, el){
     wireInstall();
     mountOff();
     const ipa = el.querySelector("#aj-ipa");
-    /* encendida es lo normal (sin marca); apagada se guarda como ipa:false */
-    if(ipa) ipa.onchange = () => { uiSet("ipa", ipa.checked ? null : false); haptic(); };
+    /* encendida es lo normal (sin marca); apagada se guarda como ipa:false. ipaWas: cómo estaba al abrir (al cerrar la
+       hoja, si cambió, se repinta la pantalla de debajo) */
+    if(ipa) ipa.onchange = () => { if(ipaWas === null) ipaWas = !ipa.checked; uiSet("ipa", ipa.checked ? null : false); haptic(); };
   }
 }
 /* la Puerta se cierra con su animación y, al cerrarse, el navegador devuelve el foco a la fila que la abrió (que ya está
@@ -583,4 +584,13 @@ window.vocabSettings = Object.freeze({open: openSettings, close, back, get page(
 
 /* el sonido cambió desde otro sitio */
 try{ if(typeof bus !== "undefined") bus.on("mute", () => { const s = $("aj-snd"); if(s && typeof sfx !== "undefined") s.checked = !sfx.muted; }); }catch(e){}
+/* la IPA se encendió o se apagó con la hoja abierta: al cerrarla se repinta la pantalla de debajo, como al cambiar de
+   idioma (lo ya pintado, como la Palabra del día girada o un detalle abierto de Palabras, seguía como antes). En el modo
+   foco no hay engranaje; por si acaso, ahí no se toca nada */
+let ipaWas = null;
+try{ if(typeof bus !== "undefined") bus.on("settings", e => {
+  if(!e || e.page !== null || ipaWas === null) return;
+  const was = ipaWas; ipaWas = null;
+  if(typeof ipaOn === "function" && ipaOn() !== was && typeof route === "function" && !ROOT.hasAttribute("data-focus")) route();
+}); }catch(e){}
 })();

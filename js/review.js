@@ -6,8 +6,8 @@
      español en grande), la palabra en español, «¿Cómo se dice en inglés?» y «Toca para ver» (sin micrófono, «Piénsala… y
      toca para ver»). Abajo, siempre, el botón principal «Ver» (como tocar la tarjeta, Espacio o Intro: la gira en 3D,
      350 ms, sin quitar puntos) y una fila con «Dilo en inglés» (solo con micrófono) y «Pista». Cara de la respuesta: la
-     palabra en el idioma, su traducción, su IPA (ipaHtml() de index.html: se ve salvo que un mayor la apague; en la cara
-     de la pregunta y en las pistas no, que diría la respuesta) y el altavoz con la tortuga; debajo «¿La
+     palabra en el idioma, su IPA justo debajo (ipaHtml() de index.html: se ve salvo que un mayor la apague; en la cara
+     de la pregunta y en las pistas no, que diría la respuesta), su traducción y el altavoz con la tortuga; debajo «¿La
      sabías?» con «No» (gris) y «¡Sí!» (verde). Deslizar la tarjeta girada a la derecha = Sí, a la izquierda = No: sigue
      al dedo, se inclina hasta ±8°, se tiñe de verde o de gris con el sello en una esquina y sale volando; la siguiente
      sube de la pila. Teclas: Espacio (girar / oír; Mayús+Espacio despacio), ← No, → Sí, Esc «¿Paramos aquí?». La pista
@@ -361,8 +361,8 @@ function aFace(it){
     <span class="rv-said" hidden>${CHK}</span>
     ${r.img ? `<div class="rv-picw"><img class="rv-pic" src="${esc(r.img)}" alt="" draggable="false"></div>` : ""}
     <p class="rv-word" lang="${esc(code())}" tabindex="-1">${esc(d.word)}</p>
-    <p class="rv-tr">${esc(r.es)}</p>
     ${ipa ? `<p class="rv-ipa">${ipa}</p>` : ""}
+    <p class="rv-tr">${esc(r.es)}</p>
     <div class="rv-audio">
       <button type="button" class="rv-spk" data-rv="spk" data-key="space" aria-label="Escuchar">${ico("speaker-high", "fill", 32)}</button>
       <button type="button" class="rv-slow" data-rv="slow" data-key="shift+space" aria-label="Escuchar despacio">${ico("turtle", "fill", 30)}</button></div></div>`;

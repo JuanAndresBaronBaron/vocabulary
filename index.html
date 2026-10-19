@@ -856,11 +856,13 @@ const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">"
    Para mayores (vocab:ui {ipa: false}; un {ipa: true} de antes sigue siendo «encendida»). Todos los módulos usan estas dos:
    ipaOn() dice si se ve; ipaHtml(ipa, code, cls, label) la pinta igual en todas partes (<span class="ipa"> con el idioma
    de la palabra y «IPA» oculto para el lector de pantalla; label=false si ya hay una etiqueta «IPA» a la vista) o ""
-   si está apagada o no hay. */
+   si está apagada o no hay. Solo se parte por los espacios: tras la barra de apertura y antes de ˈ ˌ (el acento) va un
+   «word joiner» (U+2060, invisible), si no el navegador cortaba «/» al final de una línea o «ˈhæmstə» por la mitad. */
 function ipaOn(){ let o = null; try{ o = window.vocabUI ? vocabUI.get() : JSON.parse(localStorage.getItem("vocab:ui")); }catch(e){} return !(o && typeof o === "object" && o.ipa === false); }
 function ipaHtml(ipa, code, cls = "", label = true){
   if(!ipa || !ipaOn()) return "";
-  return `<span class="ipa${cls ? " " + cls : ""}"${code ? ` lang="${esc(code)}"` : ""}>${label ? `<span class="vh" lang="es">IPA: </span>` : ""}${esc(ipa)}</span>`;
+  const t = esc(ipa).replace(/(\S)(?=[\u02C8\u02CC])/g, "$1\u2060").replace(/\/(?=[^\s\u2060])/g, "/\u2060");
+  return `<span class="ipa${cls ? " " + cls : ""}"${code ? ` lang="${esc(code)}"` : ""}>${label ? `<span class="vh" lang="es">IPA: </span>` : ""}${t}</span>`;
 }
 /* icono del sprite Phosphor: ico("house", "fill", 28, "x") → <svg class="ico x">…; estilo "bold" (contorno) o "fill" (relleno) */
 function ico(name, style = "bold", size = 24, cls = ""){
