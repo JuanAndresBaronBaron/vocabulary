@@ -10,18 +10,22 @@
      y recarga). Si cambiaron las dos, gana la que tiene más progreso y la otra queda como copia para deshacer.
    - La primera vez en un aparato con progreso y una partida en Google, el mayor elige cuál seguir.
    - El permiso dura ~1 hora y, sin servidor, renovarlo abre (y cierra sola) una ventanita de Google que el navegador
-     solo deja abrir dentro de un toque. Se renueva solo, de paso, en un toque normal del niño (pestañas, botones, filas
-     de Hoy, el final de una lección, un repaso o una partida, la granja, las monedas, Ajustes): si caduca en 5 min,
-     como mucho una vez cada 50 min; si ya caducó y hay algo sin subir, o es el primer toque al abrir la app, enseguida
-     y, si falla, otra vez pasados 3 min (si sigue fallando, cada vez más espaciado). Fuera de un toque no se pide nunca.
-     Nunca en mitad de una lección, un repaso o una partida, en la Puerta de mayores ni encima de un campo de texto.
+     solo deja abrir dentro de un toque. Se renueva solo, de paso, en un toque normal del niño (pestañas, monedas,
+     Ajustes, filas de Hoy, la barra de la granja, el final de una lección, un repaso o una partida): si caduca en 5 min,
+     como mucho una vez cada 50 min; si ya caducó y hay algo sin subir, o es el primer toque al abrir la app, enseguida.
+     Si falla, se prueba otra vez a los 3 min; si vuelve a fallar (Google pide entrar a mano, el navegador la bloquea…),
+     a los 50 min y luego cada vez más espaciado, hasta una vez al día, también tras recargar: la racha se mide con
+     save:sync.reconnect y tapAt. Fuera de un toque no se pide nunca, ni en el toque que empieza una lección, un repaso,
+     una partida o una práctica, ni en mitad de una pregunta (también las de la granja, la temporada y Palabras), ni en
+     lo que suena o graba, la Puerta de mayores o un campo de texto.
      Si la ventanita falla o se bloquea, no se avisa al niño: el estado queda en Ajustes › Para mayores (con «Guardar
-     ahora» y «Volver a conectar») y se prueba otra vez en otro toque.
+     ahora», que un mayor puede tocar cuando quiera). Si Google contesta tarde, el permiso vale igual.
    - Interfaz: el bloque va en Ajustes › Para mayores (js/settings.js avisa por el bus «settings»; se llega tras la
      Puerta de mayores) y el estado en la fila «Para mayores» de Ajustes ([data-sync-cfg]). Entrar, salir o cambiar la
      partida pasan por la Puerta (window.adultGate).
    Estado propio (no se sube ni se restaura): "save:sync" {fileId, remoteModified, baseHash, lastPushedHash,
-   localDirty, connectedAt, lastSync, lastPull, hint, reconnect, choice, tapAt} y "save:tok" {t, exp}. */
+   localDirty, connectedAt, lastSync, lastPull, hint, reconnect (sin permiso desde…; con intentos de renovarlo, desde el
+   primero), choice, tapAt (el último intento)} y "save:tok" {t, exp} (compartido por las pestañas). */
 (() => {
 "use strict";
 const S = window.vocabSave; if(!S) return;
@@ -67,7 +71,7 @@ function score(keys){
   const s = S.summary(keys);
   return s.earned + 10 * S.total(s, "lessons") + S.total(s, "words") + 5 * s.animals;
 }
-/* progreso de verdad (no solo el regalo del día): lo mismo que usa el aviso de la portada */
+/* progreso de verdad (no solo el regalo del día): si no lo hay, la partida de Google se carga sin preguntar */
 function hasProgress(keys){ const s = S.summary(keys); return s.earned >= 30 || S.total(s, "lessons") > 0 || S.total(s, "words") > 0; }
 
 /* ---------- estado guardado ---------- */
@@ -79,9 +83,13 @@ const connected = () => !!meta().connectedAt;
 
 /* ---------- permiso de Google (token de ~1 hora) ---------- */
 let tok = S.metaGet(M.tok, null);
-const tokOk = () => isObj(tok) && typeof tok.t === "string" && typeof tok.exp === "number" && tok.exp - MIN > now();
+const isTok = t => isObj(t) && typeof t.t === "string" && typeof t.exp === "number";
+/* el de memoria o, si otra pestaña lo renovó, el guardado (vale el que dura más) */
+function curTok(){ const s = S.metaGet(M.tok, null); if(isTok(s) && (!isTok(tok) || s.exp > tok.exp)) tok = s; return tok; }
+const tokOk = () => { const t = curTok(); return isTok(t) && t.exp - MIN > now(); };
 function setTok(t, sec){ tok = {t, exp: now() + (sec > 0 ? sec : 3600) * 1000}; S.metaSet(M.tok, tok); }
-function dropTok(){ tok = null; S.metaDel(M.tok); }
+/* solo se borra el guardado si es este: el de otra pestaña puede ser nuevo */
+function dropTok(){ const s = S.metaGet(M.tok, null); if(!isTok(s) || !isTok(tok) || s.t === tok.t) S.metaDel(M.tok); tok = null; }
 
 let gisP = null, client = null, pend = null;
 const gisReady = () => { try{ return !!(window.google && google.accounts && google.accounts.oauth2 && google.accounts.oauth2.initTokenClient); }catch(e){ return false; } };
@@ -100,23 +108,28 @@ function tokenClient(){
   if(client) return client;
   client = google.accounts.oauth2.initTokenClient({client_id: CLIENT_ID, scope: SCOPE,
     callback: r => {
-      const p = pend; pend = null; if(!p) return;
-      if(!r || r.error || !r.access_token) return p.rej(new SErr(r && r.error === "access_denied" ? "denied" : "auth"));
-      let all = true; try{ all = google.accounts.oauth2.hasGrantedAllScopes(r, SCOPE); }catch(e){}
+      const p = pend; pend = null;
+      const got = !!(r && !r.error && r.access_token);
+      let all = true; if(got) try{ all = google.accounts.oauth2.hasGrantedAllScopes(r, SCOPE); }catch(e){}
+      /* llega tarde (la espera ya se dio por perdida: red lenta, o un mayor que entraba a mano): vale igual */
+      if(!p){ if(got && all && connected()){ setTok(r.access_token, +r.expires_in); gotTok(); sync("tap"); } return; }
+      if(!got) return p.rej(new SErr(r && r.error === "access_denied" ? "denied" : "auth"));
       if(!all) return p.rej(new SErr("scope"));
       setTok(r.access_token, +r.expires_in); p.res();
     },
     error_callback: e => { const p = pend; pend = null; if(p) p.rej(new SErr(e && e.type === "popup_closed" ? "closed" : "blocked")); }});
   return client;
 }
-/* interactive: un mayor ha pulsado «Entrar con Google» o «Volver a conectar». Si no, es la renovación de paso (prompt:""
-   y la cuenta de antes: la ventanita se abre y se cierra sola). Siempre dentro de un toque. */
-function askToken(interactive){
+/* interactive: un mayor ha pulsado «Entrar con Google» o «Volver a conectar». Si no, es la renovación (prompt:"" y la
+   cuenta de antes: la ventanita se abre y se cierra sola). Siempre dentro de un toque. La de paso, en un toque del niño,
+   se da por perdida a los 15 s («timeout»); la de «Guardar ahora» (adult: hay un mayor, que quizá escribe su
+   contraseña) espera lo que haga falta. */
+function askToken(interactive, adult){
   const go = () => new Promise((res, rej) => {
     if(pend){ const p = pend; pend = null; p.rej(new SErr("superseded")); }
     let timer = 0;
     pend = {res: () => { clearTimeout(timer); res(); }, rej: e => { clearTimeout(timer); rej(e); }};
-    if(!interactive) timer = setTimeout(() => { if(pend){ const p = pend; pend = null; p.rej(new SErr("blocked")); } }, 15e3);
+    if(!interactive && !adult) timer = setTimeout(() => { if(pend){ const p = pend; pend = null; p.rej(new SErr("timeout")); } }, 15e3);
     const m = meta(), o = {prompt: interactive && !m.hint ? "select_account" : ""};
     if(m.hint){ o.login_hint = m.hint; o.hint = m.hint; }
     try{ tokenClient().requestAccessToken(o); }
@@ -352,34 +365,50 @@ window.addEventListener("offline", () => { if(connected()) setPhase("offline"); 
    (tapDue):
    - el permiso caduca en 5 min o ya caducó: como mucho una vez cada 50 min (T.tapGap);
    - ya caducó y hay algo sin subir, o es el primer toque al abrir la app (o al volver a ella tras un rato): con un hueco
-     corto (T.tapRetry, 3 min), así, si la ventanita falla o el navegador la bloquea, se prueba otra vez en un toque de
-     dentro de poco; si vuelve a fallar, el hueco se dobla (6, 12, 24 min… hasta 50), para no sacar una y otra vez una
-     ventana de Google que no sale bien. Al niño no se le avisa de nada: el estado queda en Ajustes › Para mayores. */
+     corto (T.tapRetry, 3 min);
+   - si ya se probó después de perder el permiso y sigue sin él, ese intento falló (la ventanita se cerró, el navegador
+     la bloqueó, Google pidió entrar a mano…): tras el primer fallo, 3 min; tras el segundo, lo que no sale bien solo
+     seguramente no saldrá, así que 50 min y luego el doble de lo que va de racha, hasta una vez al día (DAY). Así el
+     niño no ve una y otra vez una ventana de Google que no se cierra sola. La racha empieza en el primer intento
+     (save:sync.reconnect pasa a esa hora) y se mide con tapAt, así que vale también tras recargar; al abrir la app ya no
+     acorta el hueco. Sin nada que subir, como mínimo 50 min. «Guardar ahora» (un mayor) no mira los huecos.
+   Al niño no se le avisa de nada: el estado queda en Ajustes › Para mayores. */
 const SOON = 5 * MIN;
-const tokLeft = () => isObj(tok) && typeof tok.exp === "number" ? tok.exp - now() : -1;
+const tokLeft = () => { const t = curTok(); return isTok(t) ? t.exp - now() : -1; };
 let opened = true;   /* aún no se ha probado en esta visita (al abrir la app o al volver a ella) */
-let fails = 0;       /* intentos seguidos que no salieron bien (en esta visita) */
+let nowFail = false; /* «Guardar ahora» no pudo renovar el permiso: Para mayores ofrece «Volver a conectar» */
 function tapDue(){
   const m = meta();
   if(!m.connectedAt || m.choice || !online() || tokLeft() > SOON) return false;
-  const short = opened || (!tokOk() && dirtyNow());
-  const gap = short ? Math.min(T.tapRetry * 2 ** Math.max(0, fails - 1), T.tapGap) : T.tapGap;
-  const ago = now() - (m.tapAt || 0);
-  return ago < 0 || ago >= gap;
+  const at = m.tapAt || 0, ago = now() - at;
+  if(ago < 0) return true;   /* el reloj del aparato fue hacia atrás */
+  const gone = !tokOk(), dirty = gone && dirtyNow();
+  let gap = T.tapGap;
+  if(gone && m.reconnect && at >= m.reconnect){
+    const run = at - m.reconnect;   /* lo que va de racha: 0 tras el primer fallo */
+    gap = run < T.tapRetry && dirty ? T.tapRetry : Math.min(Math.max(2 * run, T.tapGap), DAY);
+  }
+  else if(opened || dirty) gap = T.tapRetry;
+  return ago >= gap;
 }
+/* van dos o más intentos seguidos sin permiso: ya no se renueva solo enseguida (Para mayores lo dice) */
+const stuck = () => { const m = meta(); return !!m.reconnect && (m.tapAt || 0) > m.reconnect && !tokOk(); };
+/* ya hay permiso: fuera el aviso de Para mayores */
+function gotTok(){ nowFail = false; clearReconnect(); if(phase === "reconnect") setPhase("busy"); }
 /* llamar SIEMPRE desde dentro de un manejador de click: requestAccessToken se llama en el mismo toque.
-   force: lo ha pedido un mayor («Guardar ahora»): sin mirar los huecos */
+   force: lo ha pedido un mayor («Guardar ahora»): sin mirar los huecos y sin límite de espera */
 function renewInTap(force){
   const m = meta();
   if(!m.connectedAt || m.choice || !online()) return null;
   if(!force && !tapDue()) return null;
   if(!gisReady()){ loadGis().catch(() => {}); return null; }   /* el script de Google aún no está: valdrá el siguiente toque */
-  setMeta({tapAt: now()}); opened = false;
-  const p = askToken(false);   /* con GIS ya cargado, la ventana se pide aquí mismo, dentro del toque */
-  return p.then(() => { fails = 0; clearReconnect(); if(phase === "reconnect") setPhase("busy"); return sync("tap"); })
+  const t = now(), first = !!m.reconnect && (m.tapAt || 0) < m.reconnect;
+  setMeta(first ? {tapAt: t, reconnect: t} : {tapAt: t}); opened = false;   /* first: empieza la racha */
+  const p = askToken(false, !!force);   /* con GIS ya cargado, la ventana se pide aquí mismo, dentro del toque */
+  return p.then(() => { gotTok(); return sync("tap"); })
     .catch(e => {
-      /* sin avisar al niño: Para mayores dice que hay cambios sin subir, y se prueba otra vez en otro toque */
-      if(e && e.code !== "superseded" && !tokOk()){ fails++; markReconnect(); if(connected() && phase !== "offline" && phase !== "choice") setPhase("reconnect"); }
+      /* sin avisar al niño: Para mayores dice cómo va la copia, y se prueba otra vez en otro toque */
+      if(e && e.code !== "superseded" && !tokOk()){ markReconnect(); if(connected() && phase !== "offline" && phase !== "choice") setPhase("reconnect"); }
       throw e;
     });
 }
@@ -391,17 +420,28 @@ function preGis(){
 /* qué toques valen: casi cualquier control de la app (enlace interno, botón, pestaña, interruptor, fila)… */
 const TAP = 'a[href^="#"], button, summary, [role=button], [role=link], [role=tab], [role=switch], [role=menuitem], [data-nav]';
 const FIELD = 'input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select, [contenteditable]:not([contenteditable=false])';
-/* …menos: lo marcado con [data-no-renew] (la Puerta de mayores y las hojas de la lección, del repaso y de las partidas),
-   las respuestas (.opt), lo que suena o graba (altavoces, «Dilo», la grabadora del Buzón), las piezas de Frases
-   mágicas, los campos de texto y el bloque de Google de Para mayores (sus botones piden el permiso ellos mismos) */
-const NO_TAP = `[data-no-renew], .opt, [data-say], .bd-wotd, .ph-say1, .ph-tiles, .ph-line, .ph-acts, .mb-rb, .mb-spk, #mb-play, #sv-box, ${FIELD}`;
+/* …menos (la ventanita taparía el sonido, la escucha o la pregunta):
+   - lo que suena o graba: altavoces, «Dilo» y micrófonos, la palabra del día, la grabadora y las cartas del Buzón, la
+     prueba de voz de Ajustes;
+   - una pregunta fuera del modo foco: Palabras › Preguntas y Practicar, la hoja de una puerta o ventanita de la
+     temporada, y la granja (sus animales y cosas, que suenan, el personaje, el quiz «¿Cómo me llamo?» y el juego
+     «¿Dónde está…?»; la barra de abajo y el refugio sí valen); las piezas de Frases mágicas y las respuestas (.opt);
+   - lo marcado con [data-no-renew] (la Puerta de mayores y las hojas de la lección, del repaso y de las partidas), los
+     campos de texto y el bloque de Google de Para mayores (sus botones piden el permiso ellos mismos) */
+const SOUND = ".say, [data-say], [data-play], [data-mic], .mic, .bd-wotd, .ph-say1, .hm-say, .rv-spk, .ph-spk, .fm-spk, .mb-rb, .mb-spk, .mb-slow, #mb-play, .vl-try";
+const ASK = ".qz:not(.qz-end), .pr-card, .ss-door, .ss-w, .ss-o, .fm-it, .fm-prod, .fm-sun, .fm-moon, .fm-cloud, .fm-hero, .fm-opt, .fm-stage.finding, .opt, .ph-tiles, .ph-line, .ph-acts";
+const NO_TAP = `[data-no-renew], ${SOUND}, ${ASK}, #sv-box, ${FIELD}`;
+/* …ni lo que empieza una lección, un repaso, una partida o una práctica de Palabras (su primer sonido sale enseguida;
+   aún no está en modo foco: la ruta cambia después del toque) */
+const START = 'a[href^="#/leccion/"], a[href^="#/repaso"], a[href^="#/juegos/"], .node[data-ls], #ls-rep, .fm-fa, [data-play-find], #pr-go, #pr-cont, #pr-again';
 const ENDS = ".ls-end, #rv-end";   /* el final de una lección o de un repaso (todavía en modo foco) */
 function tapOk(e){
   const t = e.target, a = t && t.closest ? t.closest(TAP) : null;
-  if(!e.isTrusted || !a || a.disabled || a.getAttribute("aria-disabled") === "true" || a.closest(NO_TAP) || t.closest(NO_TAP)) return false;
+  if(!e.isTrusted || !a || a.disabled || a.getAttribute("aria-disabled") === "true" || a.closest(NO_TAP) || t.closest(NO_TAP) || a.closest(START)) return false;
   const r = document.documentElement;
   if(r.hasAttribute("data-gm-play")) return false;                        /* una partida (también la que empieza este toque) */
-  if(r.dataset.focus && !a.closest(ENDS)) return false;                    /* una lección o un repaso en marcha */
+  /* una lección o un repaso en marcha; en su final valen sus botones (menos los que empiezan otra) y la ✕ del repaso */
+  if(r.dataset.focus && !a.closest(ENDS) && !(a.id === "fx-x" && document.querySelector(ENDS))) return false;
   if(document.querySelector("dialog[open][data-no-renew]")) return false;  /* la Puerta (también la que abre este toque)… */
   const f = document.activeElement; if(f && f !== a && f.matches && f.matches(FIELD)) return false;   /* escribiendo */
   try{ const u = navigator.userActivation; return !u || u.isActive; }catch(err){ return true; }
@@ -433,7 +473,7 @@ async function connect(){
   msg("Abriendo Google…");
   try{ await askToken(true); }
   catch(e){ const c = (e && e.code) || "gis"; if(c !== "superseded") msg(AUTH_MSG[c] || AUTH_MSG.gis, "bad"); if(b && b.isConnected) b.disabled = false; return; }
-  clearReconnect(); msg("");
+  clearReconnect(); nowFail = false; msg("");
   if(connected() && !meta().choice){ if(!meta().hint) fetchHint(); sync("reconnect"); return; }
   setPhase("busy");
   job(firstSync).then(() => { if(phase === "ok") msg("✓ Conectado. La partida se guarda sola en Google.", "ok"); startPoll(); if(connected() && !meta().hint) fetchHint(); })
@@ -441,7 +481,7 @@ async function connect(){
 }
 function disconnect(){
   const t = tok && tok.t;
-  dropTok(); S.metaDel(M.sync); choice = null;
+  dropTok(); S.metaDel(M.tok); S.metaDel(M.sync); choice = null; nowFail = false;
   clearTimeout(pushT); pushT = 0; clearTimeout(retryT);
   if(t && online()){
     try{
@@ -466,7 +506,7 @@ function agoMin(t){
 /* ---------- estilos (el bloque va en las filas agrupadas de Ajustes: .st-g, .st-r, .st-ic de index.html) ---------- */
 const CSS = `
 .sv{margin:0}
-.sv [hidden],.sv-rem [hidden]{display:none!important}
+.sv [hidden]{display:none!important}
 .sv .st-ic svg[data-brand]{width:18px;height:18px}
 .sv .st-r.st-btn:disabled{opacity:.55;cursor:default}
 .sv .sv-quiet{color:var(--label);font-weight:400}
@@ -507,7 +547,7 @@ const ERR = {
 /* una fila (o un botón) de las de Ajustes: icono en su cuadradito, texto y una línea pequeña */
 const row = (ic, cls, t, sub, id) => `<div class="st-r"${id ? ` id="${id}"` : ""}><span class="st-ic${cls ? " " + cls : ""}" aria-hidden="true">${ic}</span><span class="st-l">${t}${sub ? `<small class="sv-acc">${sub}</small>` : ""}</span></div>`;
 const btn = (id, ic, cls, t, sub, extra) => `<button type="button" class="st-r st-btn${extra ? " " + extra : ""}" id="${id}"><span class="st-ic${cls ? " " + cls : ""}" aria-hidden="true">${ic}</span><span class="st-l">${t}${sub ? `<small>${sub}</small>` : ""}</span></button>`;
-const okText = () => `Sincronizado · ${agoMin(meta().lastSync)}`;
+const okText = () => `Copia al día · ${agoMin(meta().lastSync)}`;
 function statusHtml(){
   const m = meta();
   if(!m.connectedAt) return `<div class="st-g ics">${btn("sv-g", G, "gg", "Entrar con Google", "La partida se guarda sola y se puede seguir en otro aparato.")}</div>
@@ -520,13 +560,17 @@ function statusHtml(){
   const last = agoMin(m.lastSync);
   let st, foot = "";
   if(phase === "reconnect" || m.reconnect){
-    /* el permiso caducó: se renueva solo en un toque del niño; si no puede, aquí lo hace un mayor */
+    /* el permiso caducó: se renueva solo mientras se juega. Lo que hay que saber de un vistazo es si la copia está al
+       día; la única acción es «Guardar ahora» y, solo si no ha podido (p. ej. hay que elegir la cuenta), «Volver a
+       conectar» */
     const dirty = dirtyNow();
-    st = row(ico("cloud-slash", "bold", 18), "gr", dirty ? "Hay cambios sin subir a Google" : "El permiso de Google caducó", acc)
-      + btn("sv-re", ico("sign-in", "bold", 18), "", "Volver a conectar", "");
-    foot = `<p class="st-foot">${m.lastSync ? `Última copia en Google: ${esc(last)}. ` : ""}${dirty
-      ? "Lo nuevo está guardado en este aparato y se subirá solo en el próximo toque; si no, toca «Guardar ahora»."
-      : "La copia está al día. El permiso se renueva solo en el próximo toque."}</p>`;
+    st = (dirty ? row(ico("cloud-arrow-up", "bold", 18), "gr", "Hay cambios sin subir a Google", acc)
+      : row(ico("cloud-check", "bold", 18), "ok", m.lastSync ? `Copia al día · ${esc(last)}` : "Copia al día", acc))
+      + now_ + (nowFail ? btn("sv-re", ico("sign-in", "bold", 18), "", "Volver a conectar", "") : "");
+    const how = stuck() ? "No se ha podido renovar solo el permiso de Google: toca «Guardar ahora» para seguir guardando allí."
+      : dirty ? "Se subirá solo mientras se juega, o toca «Guardar ahora»." : "El permiso de Google se renueva solo mientras se juega.";
+    foot = `<p class="st-foot">${dirty ? `Lo nuevo ya está guardado en este aparato.${m.lastSync ? ` Última copia en Google: ${esc(last)}.` : ""} ` : ""}${how}</p>`;
+    return `<div class="st-g ics">${st}${out}</div>${foot}`;
   }
   else if(phase === "offline") st = row(ico("wifi-slash", "bold", 18), "gr", "Sin internet", `Se guardará en Google cuando vuelva la conexión.${m.lastSync ? " Última vez: " + esc(last) + "." : ""}`);
   else if(phase === "busy") st = row(ico("arrows-clockwise", "bold", 18), "", "Sincronizando con Google…", acc);
@@ -559,7 +603,9 @@ function paint(){
   on("sv-out", e => gated("Para salir de Google.", disconnect, e.currentTarget));
   on("sv-now", () => { msg("");
     if(!tokOk()){
-      const p = renewInTap(true); if(p){ p.catch(e => { if(e && e.code !== "superseded") msg(AUTH_MSG[e.code] || AUTH_MSG.gis, "bad"); }); return; }
+      const p = renewInTap(true);
+      if(p){ msg("Abriendo Google…");
+        p.then(() => msg(""), e => { if(e && e.code !== "superseded"){ nowFail = true; paint(); msg(AUTH_MSG[e.code] || AUTH_MSG.gis, "bad"); } }); return; }
       if(online() && !gisReady()){ msg("Preparando Google… Vuelve a tocar «Guardar ahora»."); return; }   /* renewInTap ya lo está cargando */
     }
     sync("manual"); });
@@ -635,6 +681,7 @@ function paintSafe(){
   const el = $s("sv-safe"); if(!el) return;
   const p = S.persisted, c = connected();
   el.textContent = p === true ? "Datos protegidos: este navegador no los borrará para hacer sitio."
+    : c && phase !== "ok" && phase !== "busy" && dirtyNow() ? "Si el navegador borrara los datos, se perdería lo que aún no se ha subido."
     : c ? "Aunque el navegador borre los datos, la partida está en Google."
     : p === false ? "Este navegador podría borrar los datos si se queda sin espacio. Conecta Google para tener una copia."
     : "No sabemos si este navegador protege los datos. Conecta Google para tener una copia.";
@@ -667,14 +714,6 @@ function go(o = {}){
   if(o.auto && typeof window.adultGate === "function" && !window.adultGate.passed()) return;
   window.openSettings("google", {from: o.from});
 }
-/* un [data-sv-go] en cualquier sitio lleva ahí (por la Puerta) */
-document.addEventListener("click", e => {
-  const a = e.target.closest && e.target.closest("[data-sv-go]"); if(!a) return;
-  e.preventDefault();
-  const d = a.closest("dialog");
-  if(d && d.open && d.id !== "ajustes"){ if(window.M && d.classList.contains("m-sheet")) window.M.closeSheet(d); else d.close(); }
-  go({from: d ? null : a});
-});
 bus.on("settings", d => {
   if(!d || !d.el) return;
   if(d.page === "root") cfgPaint();
@@ -686,7 +725,8 @@ function cfgText(){
   const m = meta();
   if(!m.connectedAt) return "Google: sin conectar";
   if(m.choice) return "Google: elige qué partida seguir";
-  if((m.reconnect || phase === "reconnect") && dirtyNow()) return "Google: cambios sin subir";
+  /* sin alarmas aquí (lo ve también el niño): el detalle está en Para mayores */
+  if((m.reconnect || phase === "reconnect") && m.lastSync && dirtyNow()) return `Google: última copia ${agoMin(m.lastSync)}`;
   return m.lastSync ? `Google: guardado ${agoMin(m.lastSync)}` : "Google: conectado";
 }
 function cfgPaint(){ document.querySelectorAll("[data-sync-cfg]").forEach(el => { el.textContent = cfgText(); }); }

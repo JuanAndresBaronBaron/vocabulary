@@ -506,7 +506,7 @@ def test_hoy_has_no_google_reminder():
             page.wait_for_selector("dialog#ajustes[open]", timeout=4000)
             C.settle(page, 250)
             cfg = page.evaluate("document.querySelector('#aj-may [data-sync-cfg]').textContent")
-            if cfg != ("Google: sin conectar" if how == "sin Google" else "Google: cambios sin subir"):
+            if cfg != ("Google: sin conectar" if how == "sin Google" else "Google: última copia hace 5 días"):
                 probs.append(f"{how}: la fila «Para mayores» dice {cfg!r}")
             probs += C.errors(page)
         finally:
