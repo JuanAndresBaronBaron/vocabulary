@@ -172,13 +172,13 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* Como mucho 3 superficies con desenfoque a la vez (plan §Rendimiento): la barra de pestañas, el grupo de las monedas y
    el accesorio «Seguir» (o el menú, o una hoja). Van siempre sin desenfoque la bandera y la cápsula de avisos; con
    una hoja abierta, las barras y el accesorio (quedan bajo su fondo oscurecido); con el menú de idioma abierto, el
-   accesorio. */
+   accesorio. El botón de Google de arriba (#tb-google), como la bandera, siempre sin desenfoque. */
 .glass:where(.lite),:where(:root[data-glass=lite]) .glass,
-.glass:where(.tb-flag,#m-toasts .m-toast),:where(:root[data-sheet]) .glass:where(.tabbar,.tb-group,.acc),:where(:root[data-menu]) .glass:where(.acc){
+.glass:where(.tb-flag,.tb-google,#m-toasts .m-toast),:where(:root[data-sheet]) .glass:where(.tabbar,.tb-group,.acc),:where(:root[data-menu]) .glass:where(.acc){
   -webkit-backdrop-filter:none;backdrop-filter:none;
   background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),var(--g-lite,rgba(255,255,255,.9))}
 :where(:root[data-theme=dark]) .glass:where(.lite),:where(:root[data-theme=dark][data-glass=lite]) .glass,
-:where(:root[data-theme=dark]) .glass:where(.tb-flag,#m-toasts .m-toast),:where(:root[data-theme=dark][data-sheet]) .glass:where(.tabbar,.tb-group,.acc),
+:where(:root[data-theme=dark]) .glass:where(.tb-flag,.tb-google,#m-toasts .m-toast),:where(:root[data-theme=dark][data-sheet]) .glass:where(.tabbar,.tb-group,.acc),
 :where(:root[data-theme=dark][data-menu]) .glass:where(.acc){
   background:linear-gradient(180deg,var(--g-top) 0%,rgba(255,255,255,0) 52%),var(--g-lite-d,rgba(28,28,30,.9))}
 #m-toasts{--g-lite:rgba(255,255,255,.94);--g-lite-d:rgba(28,28,30,.94)}
@@ -249,7 +249,8 @@ kbd{display:inline-flex;align-items:center;justify-content:center;min-width:1.7e
 /* ===================== Armazón de navegación (F2) =====================
    · Barra superior header.topbar: a la izquierda la bandera del idioma (#lang-b, abre el menú #lang-m); a la derecha
      el grupo de vidrio .tb-group con las monedas ([data-coins-pill], el número en #coins) y Ajustes
-     ([data-open=ajustes] → window.openSettings()). Nada de Google: la partida se guarda sola (js/sync.js).
+     ([data-open=ajustes] → window.openSettings()). La partida se guarda sola; mientras este aparato no tiene Google,
+     js/sync.js pone antes del grupo el botón redondo de Google (#tb-google, Puerta de mayores y «Entrar con Google»).
    · Barra de pestañas nav.tabbar (role=tablist): 5 a.tab[data-nav] con icono relleno de 26 px y nombre de 12/600; la
      activa con aria-selected=true, en azul y con la «gota» de vidrio. Abajo en el móvil; desde 820 px, arriba y centrada.
      No se encoge. Insignias .tb-badge (número azul o punto).
@@ -271,6 +272,10 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
 :root[data-tab=granja]:not([data-fm-past]) .topbar::after{display:none}
 .topbar>*{pointer-events:auto}
 .tb-flag{flex:none;width:var(--tap);height:var(--tap);padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer}
+/* el botón de Google (js/sync.js lo enseña mientras no hay Google; nunca en Tech Prep) */
+.tb-google{flex:none;width:var(--tap);height:var(--tap);padding:0;border:0;border-radius:50%;display:grid;place-items:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.tb-google[hidden],:root[data-tech] .tb-google{display:none}
+.tb-google svg{display:block;width:22px;height:22px}
 /* en las pantallas de segundo nivel, la cápsula «‹ Atrás» con el nombre de la anterior va en el sitio de la bandera, como
    el botón de volver de iOS: la ficha de un tema (‹ Palabras), una página del álbum (‹ Álbum) y la temporada (‹ Hoy).
    paintTabs() la pone (html[data-back]); en #/doc/… js/learn.js vuelve con Atrás si se vino de la lista */
@@ -475,6 +480,11 @@ button.st-r:disabled .st-ic{background:#8E8E93}
   background:none;color:var(--brand-tint);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .vl-pl{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:transparent;transition:background var(--d-fast,160ms) ease,color var(--d-fast,160ms) ease}   /* solo ▶; el disco, mientras suena */
 .vl-try.playing .vl-pl{background:var(--brand-fill);color:#fff}
+/* «Probar voz»: lo que ve el aparato, una cosa por línea */
+#cfg-pr b,#cfg-pr .pv-l,#cfg-fix .pv-l{display:block}
+#cfg-pr b{font-weight:700}
+#cfg-pr .pv-ok{color:var(--ok-ink)}#cfg-pr .pv-no{color:var(--miss-ink)}
+#cfg-pv.playing .st-ic{background:var(--brand-fill);color:#fff}
 .vl-pick{flex:1;min-width:0;display:flex;align-items:center;gap:12px;min-height:var(--row);margin:0;padding:10px 16px 10px 5px;border:0;background:none;
   color:var(--label);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .vl-chk{flex:none;display:grid;place-items:center;color:var(--brand-tint);visibility:hidden}
@@ -832,6 +842,7 @@ dialog label{display:block;font-weight:600;margin:14px 0 6px}
   <a class="tb-back glass lite" id="dv-back" href="#/palabras" data-key="esc" data-key-pos="right"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-caret-left-bold"></use></svg><span>Palabras</span></a>
   <button type="button" class="tb-flag glass" id="lang-b" aria-haspopup="menu" aria-expanded="false" aria-controls="lang-m" aria-label="Idioma"></button>
   <div class="tb-right">
+    <button type="button" class="tb-google glass" id="tb-google" aria-label="Entrar con Google (para mayores)" title="Entrar con Google" hidden><svg viewBox="0 0 48 48" aria-hidden="true" focusable="false" data-brand="google"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg></button>
     <div class="tb-group glass">
       <button type="button" class="tb-coins" data-coins-pill data-coin-target aria-label="Monedas. Abrir la tienda"><svg class="coin-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFCC00"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7A000" stroke-opacity=".8"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B39000" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7.8 13.06 10.54 15.99 10.7 13.71 12.56 14.47 15.4 12 13.8 9.53 15.4 10.29 12.56 8.01 10.7 10.94 10.54Z" fill="#A88700" fill-opacity=".8"/><path d="M6.4 8.2a7 7 0 0 1 4.4-3.4" stroke="#fff" stroke-opacity=".85" stroke-width="1.6" stroke-linecap="round" fill="none"/></svg><span id="coins">0</span></button>
       <span class="tb-sep" aria-hidden="true"></span>
@@ -1092,9 +1103,149 @@ function stopClip(){
   if(clipEl){ try{ clipEl.pause(); }catch(e){} clipEl = null; }
   if(clipEnd){ const f = clipEnd; clipEnd = null; f(); }
 }
+/* ---- la voz del navegador, a prueba de aparatos difíciles (Chrome en Android, tabletas con otro motor de voz) ----
+   Todo lo que habla acaba en speechSynthesis.speak (say, sayP, tryVoice, retryLocal y los módulos), así que aquí se
+   envuelve una sola vez, sin pasos para el niño (la voz del navegador no pide permisos):
+   - cancel() solo llega al navegador si algo suena o espera; entonces el speak() siguiente espera TTS.gap ms (Chrome en
+     Android tira el speak() que llega justo después de cancel()). Si la voz se quedó en pausa, resume() antes.
+   - Cada enunciado se guarda hasta que acaba (Chrome pierde onend si el enunciado se recoge como basura).
+   - Vigilante: si en TTS.wait ms no ha empezado (ni start, ni boundary, ni end) o da un error de verdad (no
+     «interrupted», «canceled» ni «not-allowed»), una vez más solo con su lang, sin voz (Android pone la suya). Si tampoco
+     suena, en este aparato la voz de ese idioma no funciona: ttsMark(lang, false) lo apunta en "vocab:tts" (solo este
+     aparato), sale una vez un aviso suave para los mayores (fuera de una lección o una partida) y Ajustes › Voz y
+     velocidad explica cómo arreglarlo (ttsHelp). En cuanto vuelve a sonar, se olvida.
+   - ttsProbe(l, cb): «Probar voz» de Voz y velocidad: cuántas voces ve el aparato, cuál se usa y si sonó. */
+/* Chrome de Android: tras un cancel() descarta el speak() que llega enseguida (más margen allí) y a veces se queda en pausa */
+const TTS_AND = /Android/i.test(navigator.userAgent || "");
+const TTS = {gap: TTS_AND ? 250 : 150, wait: 2000, cut: 0, q: [], qt: 0, live: new Set(), probe: {}};
+const TTS_KEY = "vocab:tts";
+function ttsRec(){ const o = store.get(TTS_KEY, null); return o && typeof o === "object" && !Array.isArray(o) ? o : {}; }
+const ttsBase = l => String((LANGS[l] && LANGS[l].code) || l || "").replace(/_/g, "-").slice(0, 2).toLowerCase();
+const ttsMute = l => { const m = ttsRec().m; return !!(m && m[ttsBase(l || lang)] === "mute"); };
+function ttsMark(code, ok){
+  const b = ttsBase(code); if(!/^[a-z]{2}$/.test(b)) return;
+  const o = ttsRec(), m = o.m && typeof o.m === "object" && !Array.isArray(o.m) ? o.m : {};
+  if(ok ? m[b] !== "mute" : m[b] === "mute") return;
+  if(ok) delete m[b]; else m[b] = "mute";
+  o.m = m; o.at = Date.now();
+  store.set(TTS_KEY, o);
+  try{ bus.emit("tts", {lang: b, ok}); }catch(e){}
+  if(!ok) ttsTell();
+}
+/* el aviso, una vez en este aparato y con calma: nunca en mitad de una lección, una partida o una hoja abierta */
+let ttsTellWait = false;
+function ttsTell(){
+  if(ttsRec().told) return;
+  const r = document.documentElement;
+  if(r.dataset.focus || r.hasAttribute("data-gm-play") || document.querySelector("dialog[open]") || !window.M || typeof M.toast !== "function"){ ttsTellWait = true; return; }
+  ttsTellWait = false;
+  const o = ttsRec(); o.told = Date.now(); store.set(TTS_KEY, o);
+  M.toast("La voz del aparato no suena. Un mayor puede arreglarlo en Ajustes › Voz y velocidad.", {icon: "🔇", ms: 6000});
+}
+bus.on("route", () => { if(ttsTellWait) setTimeout(ttsTell, 600); });
 if("speechSynthesis" in window){
-  const cancel0 = speechSynthesis.cancel.bind(speechSynthesis);
-  try{ speechSynthesis.cancel = () => { stopClip(); cancel0(); }; }catch(e){}
+  const SS = speechSynthesis, cancel0 = SS.cancel.bind(SS), speak0 = SS.speak.bind(SS);
+  const resume0 = () => { try{ if(TTS_AND || SS.paused) SS.resume(); }catch(e){} };   /* en Android, paused no siempre lo dice */
+  const flush = () => { TTS.qt = 0; const q = TTS.q; TTS.q = []; q.forEach(w => w.go()); };
+  /* f ahora, o tras la espera desde el último cancel() (en orden) */
+  const later = w => {
+    const ms = TTS.cut + TTS.gap - Date.now();
+    if(ms <= 0 && !TTS.q.length) return w.go();
+    TTS.q.push(w);
+    if(!TTS.qt) TTS.qt = setTimeout(flush, Math.max(0, ms));
+  };
+  const busyNow = () => { try{ return SS.speaking || SS.pending; }catch(e){ return false; } };
+  try{ SS.cancel = () => {
+    stopClip();
+    const q = TTS.q, live = [...TTS.live];
+    if(!q.length && !live.length && !busyNow()) return;    /* no suena nada: nada que parar (y el speak siguiente va enseguida) */
+    TTS.q = []; clearTimeout(TTS.qt); TTS.qt = 0; TTS.live.clear();
+    live.forEach(w => w.stop());
+    TTS.cut = Date.now();
+    try{ cancel0(); }catch(e){}
+    /* los que esperaban su turno no llegaron a sonar: «canceled», como haría el navegador */
+    q.forEach(w => w.drop());
+  }; }catch(e){}
+  try{ SS.speak = u => {
+    if(!u) return speak0(u);
+    const text = String(u.text == null ? "" : u.text);
+    if(!text.trim()){   /* el de desbloquear (" "): solo hace falta en iPhone y iPad; en Android un texto vacío puede atascar la voz */
+      if(TTS_AND){ setTimeout(() => { if(typeof u.onend === "function") try{ u.onend({type: "end", utterance: u}); }catch(e){} }, 0); return; }
+      return later({go: () => { resume0(); try{ speak0(u); }catch(e){} }, drop(){}});
+    }
+    const h = {start: u.onstart, end: u.onend, error: u.onerror, boundary: u.onboundary};
+    const call = (k, e) => { const f = h[k]; if(typeof f === "function") f.call(u, e); };
+    const w = {cur: u, on: false, done: false, again: false, cut: false, n: 0, t: 0};
+    const lg = () => String(u.lang || (LANGS[lang] && LANGS[lang].code) || "");
+    const close = () => { w.done = true; clearTimeout(w.t); TTS.live.delete(w); };
+    const ok = () => { if(w.on || w.cut) return; w.on = true; clearTimeout(w.t); ttsMark(lg(), true); };
+    /* tras un cancel() (w.cut) ya no se vigila, pero lo que diga el navegador («interrupted», end…) sigue llegando */
+    const bind = x => {
+      x.onstart = e => { if(w.cur !== x || w.done) return; ok(); call("start", e); };
+      x.onboundary = e => { if(w.cur !== x || w.done) return; ok(); call("boundary", e); };
+      x.onend = e => { if(w.cur !== x || w.done) return; ok(); close(); call("end", e); };
+      x.onerror = e => {
+        if(w.cur !== x || w.done) return;
+        const er = (e && e.error) || "";
+        if(w.on || w.cut || er === "interrupted" || er === "canceled" || er === "not-allowed"){ close(); call("error", e); return; }
+        /* una voz de internet que falla: la vuelve a decir retryLocal (say, sayP) con la mejor del aparato */
+        let net = false; try{ net = x === u && !u._again && !!u.voice && vnet(u.voice) && !!LANGS[u._vl]; }catch(err){}
+        if(net){ close(); call("error", e); return; }
+        retry(er || "synthesis-failed", e);
+      };
+    };
+    const check = () => {
+      if(w.done || w.on || w.cut) return;
+      let speaking = false, paused = false; try{ speaking = SS.speaking && !SS.paused; paused = SS.paused; }catch(e){}
+      if(paused && !w.rs){ w.rs = true; resume0(); w.t = setTimeout(check, TTS.wait / 2); return; }   /* en pausa: se suelta una vez */
+      if(speaking && w.n < 3){ w.n++; w.t = setTimeout(check, TTS.wait); return; }   /* suena otro antes que este */
+      retry("timeout");
+    };
+    const issue = x => {
+      if(w.done || w.cur !== x) return;
+      resume0();
+      try{ speak0(x); }catch(e){ return retry("synthesis-failed"); }
+      clearTimeout(w.t); w.t = setTimeout(check, TTS.wait);
+    };
+    function retry(er, e){
+      clearTimeout(w.t);
+      if(w.again){   /* tampoco sin voz: en este aparato no suena */
+        close(); ttsMark(lg(), false);
+        u._again = true; u._tts = {again: true, ok: false, err: er};   /* retryLocal no lo vuelve a intentar */
+        call("error", e && e.error ? e : {type: "error", error: er === "timeout" ? "synthesis-failed" : er, utterance: u});
+        return;
+      }
+      w.again = true; u._tts = {again: true};
+      const n = new SpeechSynthesisUtterance(text);
+      n.lang = lg().replace(/_/g, "-"); n.rate = u.rate; n.pitch = u.pitch; n.volume = u.volume;
+      w.cur = n; bind(n);
+      if(TTS_AND || busyNow()){ TTS.cut = Date.now(); try{ cancel0(); }catch(err){} }   /* atascado (en Android, speaking no siempre lo dice): se suelta antes */
+      later({go: () => issue(n), drop: w.drop});
+    }
+    w.stop = () => { w.cut = true; clearTimeout(w.t); TTS.live.delete(w); };
+    w.drop = () => { if(w.done) return; close(); setTimeout(() => call("error", {type: "error", error: "canceled", utterance: u}), 0); };
+    w.go = () => issue(u);
+    bind(u);
+    TTS.live.add(w);
+    later(w);
+  }; }catch(e){}
+}
+/* «Probar voz»: dice la frase de muestra del idioma L y cuenta lo que ve el aparato */
+function ttsProbe(L, done){
+  if(!LANGS[L]) L = lang;
+  const info = {l: L, n: langVoices(L).length, all: voices.length, voice: "", lang: "", ok: null, err: "", again: false};
+  if(!("speechSynthesis" in window)){ info.ok = false; info.err = "sin voz"; TTS.probe[L] = info; return done(info); }
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(SAMPLE[L]);
+  u.rate = rate;
+  const v = useVoice(u, L); info.voice = v ? voiceShort(v) : ""; info.lang = u.lang;
+  let fin = false, t = 0;
+  const end = (ok, err) => { if(fin) return; fin = true; clearTimeout(t); info.ok = ok; info.err = err || ""; info.again = !!(u._tts && u._tts.again); TTS.probe[L] = info; done(info); };
+  u.onstart = () => end(true);
+  u.onend = () => end(true);
+  u.onerror = e => end(false, (e && e.error) || "error");
+  t = setTimeout(() => end(false, "no empezó"), TTS.wait * 2 + TTS.gap + 1500);
+  try{ speechSynthesis.speak(u); }catch(e){ end(false, "error"); }
 }
 /* toca el audio grabado; done(true) al acabar, done(false) si no se pudo (y entonces habla el navegador) */
 function playClip(text, slow, done){
@@ -1324,7 +1475,58 @@ function vozHtml(){
         <input type="range" id="cfg-r" min="0.5" max="1.3" step="0.05" value="${rate}">
         <div class="dlbl"><span>${ico("turtle", "bold", 18)} Más lenta</span><span>Más rápida ${ico("rabbit", "bold", 18)}</span></div></div>
       <button type="button" class="st-r st-btn" id="cfg-t"${ok ? "" : " disabled"}>${cfgTry(ok)}</button>
-    </div></section>`;
+    </div></section>
+    <div id="cfg-diag">${diagHtml()}</div>`;
+}
+/* «¿No se oye la voz?»: «Probar voz» dice la frase de muestra y cuenta lo que ve este aparato (cuántas voces tiene del
+   idioma, con cuál suena y si sonó: así un mayor puede contarlo); si en este aparato la voz no suena, cómo arreglarlo */
+const TTS_PLAY = "https://play.google.com/store/apps/details?id=com.google.android.tts";
+function devName(){
+  const ua = navigator.userAgent || "", m = (re, t) => { const x = re.exec(ua); return x ? t.replace("$1", x[1]) : ""; };
+  const os = m(/Android\s([\d.]+)/, "Android $1") || (/iPad|iPhone|iPod/.test(ua) ? "iPhone o iPad" : /CrOS/.test(ua) ? "Chromebook"
+    : /Windows/.test(ua) ? "Windows" : /Macintosh/.test(ua) ? "Mac" : /Linux/.test(ua) ? "Linux" : "");
+  const br = m(/SamsungBrowser\/(\d+)/, "Samsung Internet $1") || m(/EdgA?\/(\d+)/, "Edge $1") || m(/(?:Firefox|FxiOS)\/(\d+)/, "Firefox $1")
+    || m(/CriOS\/(\d+)/, "Chrome $1") || m(/Chrome\/(\d+)/, "Chrome $1") || (/Safari\//.test(ua) ? "Safari" : "");
+  return [os, br].filter(Boolean).join(" · ");
+}
+function probeText(p){
+  const nm = langEs(p.l).toLowerCase(), nv = p.n === 1 ? "1 voz" : `${p.n} voces`;
+  return `<b class="${p.ok ? "pv-ok" : "pv-no"}">${p.ok ? "✓ Ha sonado" : "✗ No ha sonado"}</b>`
+    + `<span class="pv-l">Voces del ${esc(nm)} en este aparato: ${nv}${p.all > p.n ? ` (de ${p.all})` : ""}</span>`
+    + `<span class="pv-l">${p.ok ? `Suena con: ${p.again || !p.voice ? "la que pone el aparato" : esc(p.voice)}`
+      : `Ha probado con: ${p.voice ? `${esc(p.voice)} y ` : ""}la que pone el aparato`}</span>`
+    + `<span class="pv-l">${esc(devName())}</span>`;
+}
+function ttsHelp(L){
+  /* Android: lo normal es que el motor de Google suene (su ejemplo, en español) y le falten los datos de voz de los
+     idiomas de la app; primero ese paso, y solo si el motor no está o no suena, instalarlo o elegirlo */
+  if(/Android/i.test(navigator.userAgent || "")){
+    const ks = Object.keys(LANGS).sort((a, b) => (b === L) - (a === L)),
+      nms = ks.map(k => LANGS[k].code === "en-GB" ? "inglés (Reino Unido)" : LANGS[k].name),
+      list = nms.length > 1 ? nms.slice(0, -1).join(", ") + " y " + nms[nms.length - 1] : nms.join("");
+    return [`1. En los Ajustes de Android › Salida de texto a voz (búscala con la lupa), toca la ⚙ de «Servicios de voz de Google» (puede llamarse «Reconocimiento y síntesis de voz de Google») › Instalar datos de voz y descarga ${esc(list)}.`,
+      `2. Si ahí el ejemplo no suena o no está ese motor, instala o actualiza <a href="${TTS_PLAY}">Servicios de voz de Google</a> y elígelo como motor preferido.`,
+      "3. Vuelve a la app (o a la pestaña de Chrome) y toca «Probar voz»."].map(t => `<span class="pv-l">${t}</span>`).join("");
+  }
+  return esc(voiceSteps(L));
+}
+function diagHtml(){
+  const L = lang, p = TTS.probe[L], bad = ("speechSynthesis" in window) && (ttsMute(L) || (p && p.ok === false));
+  return `<section class="st-sec" aria-labelledby="cfg-dh"><h3 class="st-h" id="cfg-dh">¿No se oye la voz?</h3><div class="st-g ics">
+    <button type="button" class="st-r st-btn" id="cfg-pv"><span class="st-ic" aria-hidden="true">${ico("speaker-high", "bold", 18)}</span><span class="st-l">Probar voz<small id="cfg-pr" aria-live="polite">${p ? probeText(p) : `Dice una frase en ${esc(langEs(L).toLowerCase())} y cuenta lo que ve este aparato.`}</small></span></button>
+    ${bad ? `<div class="st-r" id="cfg-fix"><span class="st-ic gr" aria-hidden="true">${ico("info", "bold", 18)}</span><span class="st-l">${ttsMute(L) ? "En este aparato la voz no suena" : "Cómo arreglarlo"}<small>${ttsHelp(L)}</small></span></div>` : ""}
+  </div></section>`;
+}
+function paintDiag(root){
+  const d = root && root.querySelector("#cfg-diag"); if(!d) return;
+  const f = document.activeElement && d.contains(document.activeElement) ? document.activeElement.id : "";
+  d.innerHTML = diagHtml();
+  if(f && d.querySelector("#" + f)) try{ d.querySelector("#" + f).focus({preventScroll: true}); }catch(e){}
+}
+function runProbe(root){
+  const b = root.querySelector("#cfg-pv"), r = root.querySelector("#cfg-pr"); if(!b || b.classList.contains("playing")) return;
+  b.classList.add("playing"); if(r) r.textContent = "Probando…";
+  ttsProbe(lang, () => { b.classList.remove("playing"); if(root.isConnected) paintDiag(root); });
 }
 function paintVoz(root){
   const g = root && root.querySelector("#cfg-ls"); if(!g) return;
@@ -1456,6 +1658,7 @@ function openCfg(after, from, host, nav){
   rv();
   q("#cfg-r").oninput = e => { rate = +e.target.value; store.set("rate", rate); rv(); };
   q("#cfg-t").onclick = () => say(SAMPLE[lang]);
+  q("#cfg-diag").onclick = e => { if(e.target.closest("#cfg-pv")) runProbe(vz); };
   q("#cfg-ls").onclick = e => { const b = e.target.closest("[data-vl]"); if(b && typeof vz._vnav === "function") vz._vnav(b.dataset.vl); };
   fitVoz(vz);
   if(typeof ResizeObserver === "function"){ const g = q("#cfg-ls"); new ResizeObserver(() => fitVoz(g)).observe(g); }
@@ -1488,6 +1691,8 @@ function openCfg(after, from, host, nav){
 }
 /* Esc en la página de un idioma vuelve a Voz y velocidad (antes que la hoja se cierre) */
 $("#cfg").addEventListener("cancel", e => { if(cfgBack && cfgBack()){ e.preventDefault(); e.stopImmediatePropagation(); } });
+/* la voz deja de sonar o vuelve: «¿No se oye la voz?» se repinta donde esté a la vista */
+bus.on("tts", () => { if(!document.querySelector("#cfg-pv.playing")) document.querySelectorAll("#cfg-diag").forEach(d => paintDiag(d.parentNode)); });
 /* las voces llegan tarde: la hoja propia se repinta sin perder la página ni el foco */
 bus.on("voices", () => {
   const d = $("#cfg"); if(!d || !d.open) return;
@@ -1542,7 +1747,7 @@ let rv = null;
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v23", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v25", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/party.js", "data/party.json", "img/games/impostor.png", "img/games/ordenar.png", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
@@ -2686,35 +2891,35 @@ renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
 document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmCss(); bus.emit("boot"); route(); });
 </script>
 <!-- ?v= es la VERSION de sw.js (se sube con ella): así una versión nueva no sale con módulos viejos de la caché HTTP -->
-<script src="js/motion.js?v=23"></script>
-<script src="js/gestures.js?v=23"></script>
-<script src="js/keys.js?v=23"></script>
-<script src="js/ctxmenu.js?v=23"></script>
-<script src="js/lesson.js?v=23"></script>
-<script src="js/learn.js?v=23"></script>
-<script src="js/sfx.js?v=23"></script>
-<script src="js/shop.js?v=23"></script>
-<script src="js/farm.js?v=23"></script>
-<script src="js/games.js?v=23"></script>
-<script src="js/lince.js?v=23"></script>
-<script src="js/party.js?v=23"></script>
-<script src="js/buddy.js?v=23"></script>
-<script src="js/album.js?v=23"></script>
-<script src="js/rewards.js?v=23"></script>
-<script src="js/army.js?v=23"></script>
-<script src="js/save.js?v=23"></script>
-<script src="js/sync.js?v=23"></script>
-<script src="js/gate.js?v=23"></script>
-<script src="js/settings.js?v=23"></script>
-<script src="js/review.js?v=23"></script>
-<script src="js/season.js?v=23"></script>
-<script src="js/shortcuts.js?v=23"></script>
-<script src="js/mailbox.js?v=23"></script>
-<script src="js/phrases.js?v=23"></script>
-<script src="js/parrot.js?v=23"></script>
-<script src="js/calls.js?v=23"></script>
-<script src="js/stories.js?v=23"></script>
-<script src="js/hunter-boot.js?v=23"></script>
-<script src="js/navmotion.js?v=23"></script>
+<script src="js/motion.js?v=25"></script>
+<script src="js/gestures.js?v=25"></script>
+<script src="js/keys.js?v=25"></script>
+<script src="js/ctxmenu.js?v=25"></script>
+<script src="js/lesson.js?v=25"></script>
+<script src="js/learn.js?v=25"></script>
+<script src="js/sfx.js?v=25"></script>
+<script src="js/shop.js?v=25"></script>
+<script src="js/farm.js?v=25"></script>
+<script src="js/games.js?v=25"></script>
+<script src="js/lince.js?v=25"></script>
+<script src="js/party.js?v=25"></script>
+<script src="js/buddy.js?v=25"></script>
+<script src="js/album.js?v=25"></script>
+<script src="js/rewards.js?v=25"></script>
+<script src="js/army.js?v=25"></script>
+<script src="js/save.js?v=25"></script>
+<script src="js/sync.js?v=25"></script>
+<script src="js/gate.js?v=25"></script>
+<script src="js/settings.js?v=25"></script>
+<script src="js/review.js?v=25"></script>
+<script src="js/season.js?v=25"></script>
+<script src="js/shortcuts.js?v=25"></script>
+<script src="js/mailbox.js?v=25"></script>
+<script src="js/phrases.js?v=25"></script>
+<script src="js/parrot.js?v=25"></script>
+<script src="js/calls.js?v=25"></script>
+<script src="js/stories.js?v=25"></script>
+<script src="js/hunter-boot.js?v=25"></script>
+<script src="js/navmotion.js?v=25"></script>
 </body>
 </html>

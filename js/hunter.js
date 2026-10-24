@@ -21,6 +21,10 @@
        «apple», «la pomme», «et æble»…), su IPA y el español pequeño; así nunca se queda atascado. Fallar: el dibujo en
        gris con ✗ y el bueno con ✓, sin sonido triste y sin vibrar. El resultado sale en la tarjeta de la pregunta y en
        el móvil todo cabe sin scroll (fitTap() encoge los dibujos lo justo, nunca por debajo de 118 px de alto).
+     - Muchas cosas seguidas: al encontrar un color el vídeo sigue en marcha (en el iPhone, pause() y play() con la
+       cámara la dejaban congelada desde la segunda cosa); attach() pone playsinline y muted y hace play() tras cada
+       srcObject, y stall() vigila los fotogramas: si en 1,5 s no llega ninguno, vuelve a poner el vídeo; si sigue igual,
+       pide la cámara otra vez (como mucho 2 veces por color) y, si tampoco, «La cámara está en pausa» con «Seguir».
      - La cámara se apaga (track.stop() de todas sus pistas) al salir de #/cazador (hashchange y bus "route"), al ocultar
        la pestaña (visibilitychange y pagehide; al volver, «La cámara está en pausa» y «Seguir»), al pasar a tocar y al
        acabar la ronda. Si el permiso llega cuando ya se salió, se apaga al momento.
@@ -232,7 +236,8 @@ function crop(v){
 let V = "intro";      /* la pantalla: intro | play | end */
 let S = null;         /* la ronda */
 let SPK = 0, LOOP = 0, CAMTOK = 0, RO = null, LAST = null;
-const CAM = {stream: null, user: false, denied: false, perm: "", busy: false, paused: false};
+const CAM = {stream: null, user: false, denied: false, perm: "", busy: false, paused: false, frameAt: 0, ct: -1, fix: 0, restarts: 0};
+const STALL = 1500;   /* ms sin fotogramas nuevos: la cámara se ha quedado parada (se arregla sola, ver stall()) */
 let CASA = [];        /* las url de las fotos que enseña «Mi casa» */
 function newRound(mode){
   revokeShots();
@@ -294,11 +299,15 @@ async function camOn(){
   CAM.busy = false; CAM.stream = s; CAM.denied = false;
   let fm = ""; try{ const t = s.getVideoTracks()[0]; fm = (t && t.getSettings && t.getSettings().facingMode) || ""; }catch(e){}
   CAM.user = fm === "user";
-  s.getVideoTracks().forEach(t => t.addEventListener("ended", () => {   /* se desenchufó o se quitó el permiso */
-    if(CAM.stream !== s) return;
-    stopCam();
-    if(onRoute() && V === "play" && S && S.mode === "cam" && S.step === "ask"){ CAM.paused = true; showPause(); }
-  }));
+  s.getVideoTracks().forEach(t => {
+    t.addEventListener("ended", () => {   /* se desenchufó o se quitó el permiso */
+      if(CAM.stream !== s) return;
+      stopCam();
+      if(onRoute() && V === "play" && S && S.mode === "cam" && S.step === "ask"){ CAM.paused = true; showPause(); }
+    });
+    /* iPhone: la pista se calla un momento (otra app, una llamada, un sonido) y vuelve: el vídeo, otra vez en marcha */
+    t.addEventListener("unmute", () => { if(CAM.stream === s) attach(); });
+  });
   attach();
 }
 function camFail(e){
@@ -309,18 +318,52 @@ function camFail(e){
     : n === "NotReadableError" || n === "TrackStartError" || n === "AbortError" ? "La cámara está ocupada con otra app. ¡Juega tocando!"
     : n === "NoApi" ? "Aquí no se puede usar la cámara. ¡Juega tocando!" : "No se ha podido abrir la cámara. ¡Juega tocando!");
 }
+/* el vídeo de la cámara en marcha. En el iPhone: playsinline y muted siempre (si no, no arranca o sale a pantalla
+   completa), play() después de cada srcObject, y un play() que no contesta no deja la ronda parada (a los 1,5 s se sigue
+   igual; stall() vigila que lleguen fotogramas) */
 function attach(){
   const v = $id("hn-v"), vf = $id("hn-vf"); if(!v || !CAM.stream) return;
+  v.muted = true; v.playsInline = true; v.setAttribute("playsinline", ""); v.setAttribute("muted", "");
+  /* parado con su pista (el iPhone lo para al sonar algo y luego play() no contesta): con la pista otra vez, arranca */
+  if(v.paused && v.srcObject && v.srcObject === CAM.stream) try{ v.srcObject = null; }catch(e){}
   if(v.srcObject !== CAM.stream) v.srcObject = CAM.stream;
   if(vf) vf.classList.toggle("is-user", CAM.user);
-  if(S && S.step !== "ask") return;
+  frames(v);
+  CAM.frameAt = performance.now();
+  let went = false;
   const go = () => {
+    if(went) return; went = true;
     if(v !== $id("hn-v") || !CAM.stream) return;
     const w = $id("hn-wait"); if(w) w.hidden = true;
-    if(S && S.step === "ask" && S.mode === "cam") loopStart();
+    if(S && S.step === "ask" && S.mode === "cam" && !CAM.paused) loopStart();
   };
   let p = null; try{ p = v.play(); }catch(e){}
-  if(p && typeof p.then === "function") p.then(go, go); else go();
+  if(S && S.step !== "ask") return;
+  if(p && typeof p.then === "function"){ p.then(go, go); setTimeout(go, STALL); } else go();
+}
+/* cuándo llegó el último fotograma (requestVideoFrameCallback; si no hay, currentTime que avanza) y, si el navegador
+   para el vídeo por su cuenta (el iPhone lo hace al sonar algo), otra vez en marcha */
+function frames(v){
+  if(v._hnf) return; v._hnf = true;
+  if(typeof v.requestVideoFrameCallback === "function"){
+    const f = () => { if(!v.isConnected) return; CAM.frameAt = performance.now(); CAM.fix = 0; v.requestVideoFrameCallback(f); };
+    v.requestVideoFrameCallback(f);
+  }
+  v.addEventListener("pause", () => setTimeout(() => {
+    if(v === $id("hn-v") && v.paused && CAM.stream && v.srcObject === CAM.stream && V === "play" && S && S.mode === "cam" && !CAM.paused && !D.hidden) attach();
+  }, 0));
+}
+/* la cámara se ha quedado parada (ningún fotograma en STALL ms, o la pista se acabó): 1.º otra vez el vídeo con su
+   pista; 2.º la cámara de nuevo (un solo getUserMedia); 3.º «La cámara está en pausa» con «Seguir» (un toque) */
+function stall(t){
+  const v = $id("hn-v"); if(!v || !CAM.stream || !S || S.step !== "ask" || S.mode !== "cam" || CAM.paused || CAM.busy) return;
+  if(typeof v.requestVideoFrameCallback !== "function" && v.currentTime !== CAM.ct){ CAM.ct = v.currentTime; CAM.frameAt = t; CAM.fix = 0; }
+  const tr = CAM.stream.getVideoTracks()[0], gone = !tr || tr.readyState === "ended";
+  if(!gone && t - CAM.frameAt < STALL) return;
+  CAM.frameAt = t;
+  if(!gone && CAM.fix === 0){ CAM.fix = 1; try{ v.srcObject = null; }catch(e){} attach(); return; }
+  if(CAM.restarts < 2){ CAM.fix = 2; CAM.restarts++; stopCam(); camOn(); return; }
+  stopCam(); CAM.paused = true; S.hold = 0; ring(0); showPause();
 }
 function stopCam(){
   CAMTOK++; loopStop(); CAM.busy = false;
@@ -337,6 +380,7 @@ function loopStart(){
     if(last && t - last < STEP) return;
     const dt = last ? Math.min(200, t - last) : STEP; last = t;
     sample(dt);
+    stall(performance.now());
   };
   LOOP = requestAnimationFrame(tick);
 }
@@ -391,7 +435,7 @@ function found(v){
   const c = cur(); if(!c || !S || S.step !== "ask") return;
   S.step = "found"; S.res[c.id] = "cam"; loopStop();
   const ok = keep(v, c.id), shot = ok ? crop(v) : null;   /* sin foto (piel, otros colores, selfi o apagado): el color vale igual */
-  try{ v.pause(); }catch(e){}
+  /* el vídeo NO se pausa: en el iPhone, pause() y luego play() con la cámara deja la imagen congelada para siempre */
   const paid = pay(CAM_PAY); S.coins += paid;
   S.last = {paid, capped: paid < CAM_PAY, saved: ok ? null : "skip"};
   ring(1);
@@ -407,6 +451,9 @@ function found(v){
   save(shot, c).then(id => {
     if(S && S.last && S.order[S.i] === c.id) S.last.saved = !!id;
     paintSaved(!!id);
+    /* el recorte guardado queda dentro del cuadro hasta el color siguiente */
+    const fr2 = $id("hn-frame"), sh = id && S && S.step === "found" && S.order[S.i] === c.id && S.shots.find(x => x.id === id);
+    if(fr2 && sh && !fr2.querySelector(".hn-still")) fr2.insertAdjacentHTML("afterbegin", `<img class="hn-still" src="${sh.url}" alt="">`);
     bus.emit("hunt-found", {color: c.id, mode: "cam", saved: !!id, coins: paid});
   });
 }
@@ -649,7 +696,7 @@ function wire(){
       case "hn-skip": next(true); break;
       case "hn-next": next(false); break;
       case "hn-again": again(); break;
-      case "hn-resume": { const p = $id("hn-pause"); if(p) p.remove(); CAM.paused = false; camOn(); break; }
+      case "hn-resume": { const p = $id("hn-pause"); if(p) p.remove(); CAM.paused = false; CAM.fix = 0; CAM.restarts = 0; if(!CAM.busy) camOn(); break; }
     }
   });
 }
@@ -659,7 +706,7 @@ function toCam(){
   if(!camApi()) return toTap("Aquí no se puede usar la cámara. ¡Juega tocando!");
   if(!S) newRound("cam");
   else Object.assign(S, {mode: "cam", step: "ask", hold: 0, note: "", tap: null, pick: -1, tipK: "", tipP: null});
-  V = "play"; CAM.paused = false;
+  V = "play"; CAM.paused = false; CAM.fix = 0; CAM.restarts = 0;
   render();
   if(Date.now() - S.spoke > 4000) speakAsk();
 }
@@ -677,6 +724,7 @@ function next(skip){
   if(!S || V !== "play") return;
   const c = cur(); if(skip && c && !S.res[c.id]) S.res[c.id] = "skip";
   Object.assign(S, {i: S.i + 1, step: "ask", hold: 0, tap: null, pick: -1, tipK: "", tipP: null, last: null, note: ""});
+  CAM.fix = 0; CAM.restarts = 0;
   if(S.i >= S.order.length) return finish();
   const n = cur(), v = $id("hn-v");
   if(S.mode === "cam" && CAM.stream && v && $id("hn-ask")){
@@ -704,7 +752,7 @@ function finish(){
 function again(){
   const mode = S ? S.mode : "cam";
   newRound(mode === "cam" && camApi() && !CAM.denied ? "cam" : "tap");
-  V = "play";
+  V = "play"; CAM.fix = 0; CAM.restarts = 0;
   if(S.mode === "tap") preloadTap();
   render(); speakAsk();
 }
@@ -970,7 +1018,7 @@ Object.assign(H, {
     return {view: V, mode: S ? S.mode : null, step: S ? S.step : null, color: c ? c.id : null, i: S ? S.i : 0, total: S ? S.order.length : 0,
       order: S ? S.order.slice() : [], res: S ? Object.assign({}, S.res) : {}, hold: S ? Math.round(S.hold) : 0, coins: S ? S.coins : 0,
       shots: S ? S.shots.map(x => ({id: x.id, color: x.color})) : [], tip: S ? S.tipK : "", left: left(),
-      cam: {on: !!CAM.stream, user: CAM.user, denied: CAM.denied, paused: CAM.paused, busy: CAM.busy, perm: CAM.perm}, reading: LAST};
+      cam: {on: !!CAM.stream, user: CAM.user, denied: CAM.denied, paused: CAM.paused, busy: CAM.busy, perm: CAM.perm, fix: CAM.fix, restarts: CAM.restarts}, reading: LAST};
   },
 });
 })();

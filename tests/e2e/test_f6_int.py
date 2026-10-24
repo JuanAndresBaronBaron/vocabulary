@@ -1,6 +1,6 @@
 """F6 (integración): lo de las seis piezas de F6 junto, con la partida sembrada.
 
-- Versión 23 en sw.js, OFF_SHELL y el ?v= de todos los <script>; los ficheros nuevos en SHELL (y en OFF_APP) o en
+- Versión 25 en sw.js, OFF_SHELL y el ?v= de todos los <script>; los ficheros nuevos en SHELL (y en OFF_APP) o en
   «Descargar todo»; el orden de carga de los módulos (window.vocabMedia de js/mailbox.js antes que el loro y el
   cazador, js/navmotion.js el último, js/hunter.js solo al entrar y con el mismo ?v=) y el inventario de js/save.js
   (cuentos y calls en la partida; parrot:st y hunt:st solo del aparato; IndexedDB fuera).
@@ -107,11 +107,11 @@ def _wait_route(page, n0, timeout=8000):
 
 # =============================================================== 1. versión, SHELL, orden de carga y save.js
 def test_version_shell_load_order_and_inventory():
-    """sw.js VERSION 23 = OFF_SHELL = el ?v= de cada <script> de index.html y privacy.html. Cada js/*.js, cada guion de
+    """sw.js VERSION 25 = OFF_SHELL = el ?v= de cada <script> de index.html y privacy.html. Cada js/*.js, cada guion de
     llamada y cada cuento está en SHELL y en OFF_APP (las mismas listas). En el navegador: los módulos de F6 existen
     (vocabMenu, vocabNavMotion, vocabParrot, vocabCalls, vocabStories, vocabHunter) y window.vocabMedia (de
     js/mailbox.js) está antes que js/parrot.js y js/hunter-boot.js; js/navmotion.js es el último; js/hunter.js no se pide
-    hasta entrar en el cazador y entonces llega con ?v=23. Los dibujos de los cuentos, las llamadas y el cazador van en
+    hasta entrar en el cazador y entonces llega con ?v=25. Los dibujos de los cuentos, las llamadas y el cazador van en
     «Descargar todo» y existen. vocabSave.inventory: cuentos y calls en la partida, parrot:st y hunt:st solo del
     aparato."""
     probs = []
@@ -119,8 +119,8 @@ def test_version_shell_load_order_and_inventory():
     html = (C.ROOT / "index.html").read_text(encoding="utf-8")
     priv = (C.ROOT / "privacy.html").read_text(encoding="utf-8")
     v = int(re.search(r"const VERSION = (\d+);", sw).group(1))
-    if v != 23:
-        probs.append(f"sw.js VERSION = {v} (se esperaba 23)")
+    if v != 25:
+        probs.append(f"sw.js VERSION = {v} (se esperaba 25)")
     if f'const OFF_SHELL = "vocab-shell-v{v}"' not in html:
         probs.append("OFF_SHELL de index.html no es vocab-shell-v%d" % v)
     for name, txt in (("index.html", html), ("privacy.html", priv)):
