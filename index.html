@@ -1578,6 +1578,7 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "js/shortcuts.js",
   "js/mailbox.js", "img/games/buzon.png",
   "js/phrases.js", "data/phrases.json", "img/games/frases.png",
+  "js/navmotion.js",
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
@@ -2045,11 +2046,11 @@ function wireNav(){
   head.addEventListener("keydown", e => { const s = e.target.closest(".seg"); if(s) rovingKeys(e, [...s.querySelectorAll(".seg-i")]); });
   /* barra superior: idioma, monedas (la tienda de la granja) y Ajustes */
   $("#lang-b").addEventListener("click", e => { e.stopPropagation(); langMenu(); });
-  $("[data-coins-pill]").addEventListener("click", () => {
+  $("[data-coins-pill]").addEventListener("click", e => {
     /* en Mi zorro las piezas ya están en la pantalla: se baja hasta ellas en vez de saltar a la tienda de la granja */
     const mz = secOf(hashPath()) === "mizorro" && document.getElementById("mz-seg");
     if(mz){ mz.scrollIntoView({block: "start", behavior: window.M && M.rm() ? "auto" : "smooth"}); return; }
-    if(window.vocabFarm && typeof vocabFarm.openShop === "function") vocabFarm.openShop(); else location.hash = "#/granja";
+    if(window.vocabFarm && typeof vocabFarm.openShop === "function") vocabFarm.openShop({from: e.currentTarget}); else location.hash = "#/granja";
   });
   $("[data-open=ajustes]").addEventListener("click", e => { if(typeof window.openSettings === "function") window.openSettings(null, e.currentTarget); });
   /* ✕ del modo foco: en una partida, la pausa de games.js («¿Paramos aquí?»); en el repaso, la hoja de js/review.js;
@@ -2099,18 +2100,17 @@ function renderLangs(){
   m.innerHTML = Object.keys(LANGS).map(k => `<button type="button" class="lm-i" role="menuitemradio" data-lang="${esc(k)}" aria-checked="${k === lang}" tabindex="-1">
     <span class="flag">${FLAGS[k] || ""}</span><span class="lm-t">${esc((LANG_ES[k] || [k])[0])}<small lang="${esc(LANGS[k].code)}">${esc((LANG_ES[k] || [, ""])[1])}</small></span>${ico("check", "bold", 22, "lm-chk")}</button>`).join("");
 }
-function langMenu(open){
+/* el menú nace de la bandera y vuelve a ella al cerrarse (M.popIn/M.popOut); [hidden] cambia al momento. now: sin
+   animación (al cambiar de pantalla), y corta la salida que esté a medias */
+function langMenu(open, now){
   const m = $("#lang-m"), b = $("#lang-b"); if(!m || !b) return;
   if(open === undefined) open = m.hidden;
+  if(!open && now && window.M && typeof M.popOut === "function") M.popOut(m, {instant: true});
   if(open === !m.hidden) return;
   m.hidden = !open; b.setAttribute("aria-expanded", open);
   document.documentElement.toggleAttribute("data-menu", open);   /* (con el menú abierto, el accesorio va sin desenfoque) */
+  if(window.M && typeof M.popIn === "function"){ if(open) M.popIn(m, {from: b}); else if(!now) M.popOut(m, {from: b}); }
   if(!open) return;
-  if(window.M){
-    m.style.transformOrigin = "22px 0";
-    try{ m.animate(M.rm() ? [{opacity: 0}, {opacity: 1}] : [{opacity: 0, transform: "scale(.86)"}, {opacity: 1, transform: "none"}],
-      {duration: M.rm() ? 150 : 260, easing: M.rm() ? "ease-out" : (M.snappy ? M.snappy.easing : "ease-out")}); }catch(e){}
-  }
   const cur = m.querySelector('[aria-checked="true"]') || m.querySelector(".lm-i"); if(cur) cur.focus({preventScroll: true});
 }
 function setLang(k){
@@ -2644,23 +2644,44 @@ async function route(){
   let restoreY = tabRestore; tabRestore = null;
   if(restoreY == null && ek.seen && POSY[ek.vk] > 0) restoreY = POSY[ek.vk];
   ROUTE_RESTORE = restoreY != null; ROUTE_FROM = from; mapScrolled = false;
-  langMenu(false); paintTabs(hp);
+  /* el movimiento (js/navmotion.js), decidido antes de cambiar nada: entrar y volver dentro de una pestaña se desliza
+     y el modo foco sube como una hoja; cambiar de pestaña no anima (la pestaña se marca al momento, como siempre) */
+  const nm = window.vocabNavMotion, kind = nm ? nm.kind(from, hp) : null;
+  langMenu(false, true); if(!kind) paintTabs(hp);
   const t = tabOf(hp); if(t){ TABMEM[t.id] = {h: memHash(hp), y: restoreY || 0}; memSave(); }
-  try{
-    await getShop();
-    /* las partes de la ruta, sin el ?query (#/temporada/cosas?season=halloween → ["cosas"]) */
-    if(hp.startsWith("leccion/")) await leccion(hp.slice(8));
-    else if(ROUTES[secOf(hp)]){ document.onkeydown = null; await ROUTES[secOf(hp)](hp.split("/").slice(1)); }
-    else await home();
-  }catch(e){ console.error(e); $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
-  /* si mientras se pintaba se fue a otra ruta, la nueva se encarga de las barras y del scroll */
-  if(hashPath() === hp){
-    paintTabs(hp); updFocus(); paintHead(hp); sayScreen(hp); fmPast();
-    if(restoreY != null) restoreScroll(restoreY); else if(!mapScrolled) window.scrollTo(0,0);
-    if(!focusOn) plainHash = "#/" + hp;
-  }
+  /* con movimiento, los datos primero (con la pantalla de antes a la vista) y luego se pinta de una vez */
+  if(kind){ await prefetch(hp); if(hashPath() !== hp) return; }
+  let gone = false;
+  const render = async () => {
+    if(hashPath() !== hp){ gone = true; return false; }   /* mientras se cerraba una hoja se fue a otra pantalla */
+    if(kind) paintTabs(hp);
+    try{
+      await getShop();
+      /* las partes de la ruta, sin el ?query (#/temporada/cosas?season=halloween → ["cosas"]) */
+      if(hp.startsWith("leccion/")) await leccion(hp.slice(8));
+      else if(ROUTES[secOf(hp)]){ document.onkeydown = null; await ROUTES[secOf(hp)](hp.split("/").slice(1)); }
+      else await home();
+    }catch(e){ console.error(e); $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
+    /* si mientras se pintaba se fue a otra ruta, la nueva se encarga de las barras y del scroll */
+    if(hashPath() === hp){
+      paintTabs(hp); updFocus(); paintHead(hp); sayScreen(hp); fmPast();
+      if(restoreY != null) restoreScroll(restoreY); else if(!mapScrolled) window.scrollTo(0,0);
+      if(!focusOn) plainHash = "#/" + hp;
+    }
+  };
+  if(kind) await nm.run(kind, render); else await render();
+  if(gone) return;
   ROUTE_RESTORE = false;
   bus.emit("route", {h});
+}
+/* los datos de una pantalla antes de pintarla: ROUTES[x].load(partes) si la ruta lo tiene (una función que devuelve
+   una promesa: lo que su ruta va a pedir con getDoc(), getIndex()…) o, si no, el cargador de js/navmotion.js. Un
+   fallo aquí no para nada (la ruta lo vuelve a pedir y enseña su aviso); como mucho 4 s. */
+async function prefetch(hp){
+  const parts = hp.split("/").slice(1), R = ROUTES[secOf(hp)], nm = window.vocabNavMotion;
+  const load = R && typeof R.load === "function" ? R.load : nm && typeof nm.loader === "function" ? nm.loader(hp) : null;
+  const job = Promise.all([getShop(), load ? Promise.resolve().then(() => load(parts)) : null]).catch(() => {});
+  await Promise.race([job, new Promise(r => setTimeout(r, 4000))]);
 }
 window.addEventListener("hashchange", route);
 renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
@@ -2689,5 +2710,6 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/shortcuts.js?v=22"></script>
 <script src="js/mailbox.js?v=22"></script>
 <script src="js/phrases.js?v=22"></script>
+<script src="js/navmotion.js?v=22"></script>
 </body>
 </html>

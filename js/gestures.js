@@ -306,8 +306,11 @@ const SWITCH = (() => { try{ const i = DOC.createElement("input"); i.type = "che
 const VIB = typeof navigator.vibrate === "function";
 const mute = () => { try{ return JSON.parse(localStorage.getItem("mute")) === true; }catch(e){ return false; } };
 const halt = e => e.stopPropagation();
+/* dos «bien» seguidos (el acierto que termina la lección y su final, la pegatina que completa la página…) dan uno */
+let OK_AT = -1e9;
 function haptic(type = "selection"){
   if(mute()) return false;
+  if(type === "success"){ const t = Date.now(); if(t - OK_AT < 400) return false; OK_AT = t; }
   try{
     if(VIB && !SWITCH){
       if(navigator.userActivation && !navigator.userActivation.hasBeenActive) return false;

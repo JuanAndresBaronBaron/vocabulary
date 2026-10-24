@@ -653,7 +653,7 @@ function peel(s, el, bulk){
   if(!s.isNew) return;
   s.isNew = false;
   if(!bulk){
-    markSeen([s]); snd("pop"); speak(s.r.l[lang].word);
+    markSeen([s]); snd("pop"); haptic("success"); speak(s.r.l[lang].word);
     /* como mucho un confeti cada 300 ms: si el niño toca muy deprisa no se amontonan lienzos */
     const t = now(); if(t - LAST_BOOM > 300){ LAST_BOOM = t; later(() => boomAt(el, {emoji: s.gold ? "⭐" : "✨", n: 16}), RM() ? 0 : 380); }
   }
@@ -664,7 +664,7 @@ function peelAll(){
   if(!P) return;
   const list = P.st.filter(s => s.isNew); if(!list.length) return;
   if(P.f !== "all" && P.f !== "got") setFilter("all");
-  markSeen(list); snd("whoosh");
+  markSeen(list); snd("whoosh"); haptic("success");
   const nav = P.nav, step = RM() ? 0 : 85, pg = $("#al-page");
   const els = new Map(pg ? [...pg.querySelectorAll(".al-st")].map(b => [b.dataset.k, b]) : []);
   list.forEach((s, i) => {
