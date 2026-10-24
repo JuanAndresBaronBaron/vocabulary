@@ -76,9 +76,10 @@ function speak(t, slow){
 function unlockVoice(){ try{ if(!("speechSynthesis" in window)) return; const u = new SpeechSynthesisUtterance(" "); if(typeof useVoice === "function") useVoice(u, lang); speechSynthesis.speak(u); }catch(e){} }
 /* cada respuesta cuenta para las misiones («Acierta 15 respuestas»); el sonido ya lo pone el propio juego */
 const answer = (ok, it) => { try{ bus.emit("answer", {ok: !!ok, es: it && it.es, word: it && it.word, where: "game"}); }catch(e){} tell(ok, it); };
-/* y lo dice la región viva de la partida (.gm-say, la pone mount()): «¡Bien! dog» o «Casi, prueba otra vez» */
+/* y lo dice la región viva de la partida (.gm-live, la pone mount(); no .gm-say, que es el altavoz redondo de 52 px de
+   algunos juegos): «¡Bien! dog» o «Casi, prueba otra vez» */
 function tell(ok, it){
-  const el = RUN && RUN.root && RUN.root.querySelector(".gm-say"); if(!el) return;
+  const el = RUN && RUN.root && RUN.root.querySelector(".gm-live"); if(!el) return;
   el.textContent = "";
   setTimeout(() => {
     if(!el.isConnected) return;
@@ -954,7 +955,7 @@ function mount(app, html, mode){
   const run = begin(app.querySelector(".gm"));
   run.intro = typeof mode === "string" ? mode : mode ? "full" : "";
   /* lo que pasa al contestar, para el lector de pantalla (si el juego no trae ya su propia región viva) */
-  if(run.root && !run.root.querySelector("[aria-live]")) run.root.insertAdjacentHTML("beforeend", `<p class="vh gm-say" role="status" aria-live="polite" aria-atomic="true"></p>`);
+  if(run.root && !run.root.querySelector("[aria-live]")) run.root.insertAdjacentHTML("beforeend", `<p class="vh gm-live" role="status" aria-live="polite" aria-atomic="true"></p>`);
   return run;
 }
 
@@ -1583,5 +1584,4 @@ ROUTES["juegos"] = async parts => {
   if(GAMES[g]) await play(g, true);
   else await menu();
 };
-HOME_ACTS.push({href: "#/juegos", e: "🎮", t: "Juegos", sub: "Aprende jugando", color: "#22409a"});
 })();

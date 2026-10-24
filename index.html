@@ -505,7 +505,6 @@ button.st-r:disabled .st-ic{background:#8E8E93}
 .cfg-x{grid-column:3;justify-self:end;white-space:nowrap;min-width:max-content}
 .off-prog .off-bar{flex:1;margin:0}
 .off-x{flex:none;min-height:var(--tap);padding:0 4px;border:0;background:none;font:600 var(--fs-sub)/1.2 var(--f-text);cursor:pointer}
-.st-g .sv-cfg{margin:0}
 /* Aprender › Camino, Palabras, la ficha de un tema y Gramática: sus estilos van con js/learn.js (<style id="css-learn">) */
 /* ===================== Hoy (F2) =====================
    Una sola pantalla sin scroll (390×844 con la barra de pestañas): .hm-hero, la tarjeta principal sólida (el zorro con
@@ -614,8 +613,6 @@ h1{font:700 1.75rem/1.2 var(--f-round);margin:4px 0 6px}
 h2{font:700 1.25rem/1.25 var(--f-round);margin:28px 0 10px;color:var(--label)}
 .sub{color:var(--muted);margin:0 0 14px}
 input[type=search]{flex:1;min-width:180px;padding:10px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);font:inherit}
-.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:5px 12px;font-size:.88rem;min-height:36px}
-.chip.on{background:var(--brand-fill);border-color:transparent;color:#fff;font-weight:600}
 .back{display:inline-block;margin-bottom:6px;color:var(--muted);text-decoration:none}
 .cat{background:var(--cat);color:var(--brand-2);font-weight:700;font-size:.9rem;letter-spacing:.03em;padding:7px 12px;border-radius:8px;margin:18px 0 8px}
 .list{display:grid;gap:8px}
@@ -666,18 +663,13 @@ input[type=search]{flex:1;min-width:180px;padding:10px 14px;border:1px solid var
 .off-bar{height:8px;border-radius:999px;background:var(--fill);overflow:hidden;margin:12px 0 6px}
 .off-bar i{display:block;height:100%;width:0;background:var(--teal);border-radius:inherit;transition:width .2s}
 @media (prefers-reduced-motion:reduce){.off-bar i{transition:none}}
-.legend{font-size:.8rem;color:var(--muted);display:flex;gap:14px;margin:6px 0}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
-.panel{background:var(--card);border:1px solid transparent;border-radius:var(--r-card);box-shadow:var(--shadow);padding:18px;margin-bottom:14px}
-.panel h2{margin-top:0}
 select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);max-width:100%}
 input[type=range]{accent-color:var(--brand)}
 /* diálogo de voz */
 dialog{border:0;border-radius:var(--r-card);background:var(--card);color:var(--label);padding:20px;width:min(92vw,440px);box-shadow:0 20px 60px rgba(0,0,0,.3)}
 dialog::backdrop{background:rgba(0,0,0,.35)}
 dialog h2{margin:0 0 6px}
-dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
-#cfg-th button{flex:1}
+dialog label{display:block;font-weight:600;margin:14px 0 6px}
 /* lección: sus estilos van con js/lesson.js (<style id="css-lesson">) */
 /* el botón principal es siempre azul (un solo color para lo que se toca); --lc queda para cabeceras y adornos del nivel o juego */
 .btn.lc{background:var(--brand-fill);border-color:transparent;color:#fff;font-weight:700;padding:11px 22px;box-shadow:0 4px 0 color-mix(in srgb,var(--brand-fill) 60%,#000)}
@@ -700,22 +692,7 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .hero.pjh .h-pet .pj{display:block}
 .hero :is(.h-hat,.h-face,.h-hand) .pj{display:block;width:1.15em;height:1.15em;object-position:50% 50%;vertical-align:0}
 .hero :is(.h-hat,.h-face,.h-hand) .pj-fb{position:static}
-.farm{position:relative;height:340px;border-radius:var(--r-card);overflow:hidden;background:linear-gradient(#8fd3ff 0%,#c9ecff 44%,#6cc551 44%,#4fa83a 100%);box-shadow:var(--shadow);user-select:none}
-[data-theme=dark] .farm{background:linear-gradient(#1d3b6b 0%,#2b5a8a 44%,#2f7a2a 44%,#215c1e 100%)}
-.farm .sun{position:absolute;right:20px;top:14px;font-size:2.6rem}
-.farm .cloud{position:absolute;font-size:2.4rem;opacity:.95;animation:drift 30s linear infinite}
-.farm .c1{top:20px;left:-10%}.farm .c2{top:58px;left:-10%;animation-delay:-14s;font-size:1.8rem}
-@keyframes drift{to{left:105%}}
-.fi{position:absolute;border:0;background:none;font-size:2.4rem;padding:0;line-height:1;transform:translate(-50%,-50%);cursor:pointer;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25))}
-.fi.bg{font-size:3.4rem}
-.fi.hop{animation:hop .5s}
-@keyframes hop{0%,100%{transform:translate(-50%,-50%)}40%{transform:translate(-50%,-85%) scale(1.15)}}
-.farm-hero{position:absolute;left:46%;top:46%;z-index:60}
-.farm-empty{position:absolute;left:50%;top:70%;transform:translate(-50%,-50%);background:rgba(255,255,255,.88);color:#16202c;padding:10px 16px;border-radius:14px;font-weight:700;text-align:center;width:min(90%,360px)}
-.farm-tip{position:absolute;transform:translateX(-50%);background:#fff;color:#16202c;border-radius:12px;padding:6px 12px;font-size:1rem;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2);z-index:99;pointer-events:none}
-.shop-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
-.shop-tabs button{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;font-weight:700}
-.shop-tabs button.on{border-color:var(--brand);background:var(--soft);color:var(--brand)}
+/* la granja (escena, animales, tienda y su hoja) la pinta y la estiliza js/farm.js (<style id="css-farm">) */
 /* las piezas de la tienda (.shop, .sc.shp-c) las pinta y las estiliza js/shop.js (window.vocabShop) */
 .btn.sm{padding:5px 12px;font-size:.88rem}.btn.sm.on{border-color:var(--brand);color:var(--brand)}
 .miss{color:var(--muted);font-size:.78rem}
@@ -728,13 +705,7 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 .gword{font-size:1.6rem;font-weight:800;margin:4px 0}
 @keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-10deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(6deg)}}
 @keyframes boom{to{transform:scale(1.8);opacity:0}}
-/* inicio para niños */
-.hello{display:flex;align-items:center;gap:18px;margin:4px 0 14px}
-.speech{position:relative;background:var(--card);border:2px solid var(--line);border-radius:var(--r-card);padding:12px 16px;font-size:1.15rem;box-shadow:var(--shadow)}
-.speech::before{content:"";position:absolute;left:-12px;top:50%;border:10px solid transparent;border-right-color:var(--line);transform:translateY(-50%)}
-.speech b{display:block;font-size:1.4rem}
 /* Premios (Medallas y Mi zorro): sus estilos van con js/rewards.js (<style id="css-rewards">) */
-@media (max-width:560px){.hello{gap:12px}.speech{font-size:1rem}.speech b{font-size:1.15rem}.farm{height:300px}.fi{font-size:2rem}.fi.bg{font-size:2.8rem}}
 </style>
 </head>
 <body>
@@ -894,8 +865,7 @@ const $ = s => document.querySelector(s);
 /* conexión con los módulos js/*.js: eventos, rutas y huecos de la portada */
 const bus = {h:{}, on(e, f){ (this.h[e] = this.h[e] || []).push(f); }, emit(e, d){ (this.h[e] || []).forEach(f => { try{ f(d); }catch(err){ console.error(err); } }); }};
 const ROUTES = {};      /* ROUTES["juegos"] = async partes => {...}   (#/juegos/…) */
-const HOME_ACTS = [];   /* {href, e, t, sub, color} botones grandes extra de la portada */
-const HOME_SLOTS = [];  /* async () => html, se pinta bajo los botones grandes */
+const HOME_SLOTS = [];  /* funciones (con .id opcional) → filas compactas de Hoy (homeSlots()) */
 const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 /* IPA (la pronunciación con símbolos, "ipa" de data/*.json): se ve siempre, salvo que un mayor la apague en Ajustes ›
    Para mayores (vocab:ui {ipa: false}; un {ipa: true} de antes sigue siendo «encendida»). Todos los módulos usan estas dos:
@@ -1561,7 +1531,6 @@ function streak(){
   return s;
 }
 function updBadge(){ const n = dueList().length; tabBadge("aprender", n, n === 1 ? "1 palabra para repasar" : `${n} palabras para repasar`, "#/repaso"); }
-const inDays = n => n<=0 ? "hoy otra vez" : n===1 ? "mañana" : n<30 ? `en ${n} días` : n<60 ? "en 1 mes" : `en ${Math.round(n/30)} meses`;
 
 /* el repaso (Aprender › Repasar, #/repaso) está en js/review.js: repaso(), rvStart(), rvDraw() y «Dilo primero», con
    su ruta en ROUTES. Aquí queda su estado, porque lo miran el modo foco, Hoy y el accesorio «Seguir»: rv = null o
@@ -1573,7 +1542,7 @@ let rv = null;
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v22", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v23", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
@@ -2163,8 +2132,8 @@ function wireLangs(){
 /* ---------- Hoy ----------
    Una sola pantalla sin scroll: la tarjeta principal (el zorro con una frase, lo que toca según nextAction() y
    «▶ Empezar»), la fila «Repasar N» si hay pendientes y la tarjeta no es ya el repaso, las dos piezas de buddy.js
-   (Misiones y Palabra del día), los HOME_SLOTS como filas compactas (2 como mucho) y «Privacidad». HOME_ACTS se
-   conserva para los módulos que aún lo llenan, pero ya no se pinta: lo de cada sección está en su pestaña. */
+   (Misiones y Palabra del día), los HOME_SLOTS como filas compactas (2 como mucho) y «Privacidad». Lo de cada sección
+   está en su pestaña (los antiguos botones grandes de la portada, HOME_ACTS, ya no existen). */
 let homeOffer = null;   /* lo que ofrece la tarjeta de Hoy ({kind: "repaso"} o {kind: "leccion", id}): el accesorio no lo repite */
 const lcFirst = t => String(t || "").charAt(0).toLowerCase() + String(t || "").slice(1);
 const nPal = n => n === 1 ? "1 palabra" : `${n} palabras`;
@@ -2712,33 +2681,33 @@ renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
 document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmCss(); bus.emit("boot"); route(); });
 </script>
 <!-- ?v= es la VERSION de sw.js (se sube con ella): así una versión nueva no sale con módulos viejos de la caché HTTP -->
-<script src="js/motion.js?v=22"></script>
-<script src="js/gestures.js?v=22"></script>
-<script src="js/keys.js?v=22"></script>
-<script src="js/ctxmenu.js?v=22"></script>
-<script src="js/lesson.js?v=22"></script>
-<script src="js/learn.js?v=22"></script>
-<script src="js/sfx.js?v=22"></script>
-<script src="js/shop.js?v=22"></script>
-<script src="js/farm.js?v=22"></script>
-<script src="js/games.js?v=22"></script>
-<script src="js/lince.js?v=22"></script>
-<script src="js/buddy.js?v=22"></script>
-<script src="js/album.js?v=22"></script>
-<script src="js/rewards.js?v=22"></script>
-<script src="js/save.js?v=22"></script>
-<script src="js/sync.js?v=22"></script>
-<script src="js/gate.js?v=22"></script>
-<script src="js/settings.js?v=22"></script>
-<script src="js/review.js?v=22"></script>
-<script src="js/season.js?v=22"></script>
-<script src="js/shortcuts.js?v=22"></script>
-<script src="js/mailbox.js?v=22"></script>
-<script src="js/phrases.js?v=22"></script>
-<script src="js/parrot.js?v=22"></script>
-<script src="js/calls.js?v=22"></script>
-<script src="js/stories.js?v=22"></script>
-<script src="js/hunter-boot.js?v=22"></script>
-<script src="js/navmotion.js?v=22"></script>
+<script src="js/motion.js?v=23"></script>
+<script src="js/gestures.js?v=23"></script>
+<script src="js/keys.js?v=23"></script>
+<script src="js/ctxmenu.js?v=23"></script>
+<script src="js/lesson.js?v=23"></script>
+<script src="js/learn.js?v=23"></script>
+<script src="js/sfx.js?v=23"></script>
+<script src="js/shop.js?v=23"></script>
+<script src="js/farm.js?v=23"></script>
+<script src="js/games.js?v=23"></script>
+<script src="js/lince.js?v=23"></script>
+<script src="js/buddy.js?v=23"></script>
+<script src="js/album.js?v=23"></script>
+<script src="js/rewards.js?v=23"></script>
+<script src="js/save.js?v=23"></script>
+<script src="js/sync.js?v=23"></script>
+<script src="js/gate.js?v=23"></script>
+<script src="js/settings.js?v=23"></script>
+<script src="js/review.js?v=23"></script>
+<script src="js/season.js?v=23"></script>
+<script src="js/shortcuts.js?v=23"></script>
+<script src="js/mailbox.js?v=23"></script>
+<script src="js/phrases.js?v=23"></script>
+<script src="js/parrot.js?v=23"></script>
+<script src="js/calls.js?v=23"></script>
+<script src="js/stories.js?v=23"></script>
+<script src="js/hunter-boot.js?v=23"></script>
+<script src="js/navmotion.js?v=23"></script>
 </body>
 </html>

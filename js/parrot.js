@@ -914,7 +914,7 @@ async function paintCapsule(el){
   if(!ms.length){ stopCap(); el.hidden = true; el.innerHTML = ""; return; }
   const A = ms[0], B = ms.length > 1 ? ms[ms.length - 1] : "";
   const words = [0, 1, 2, 3, 4].map(i => { const r = (B && by[B][i]) || by[A][i]; return r ? String(r.w || "") : ""; });
-  el.innerHTML = `<section class="card lr-tc" aria-labelledby="lr-tc-h">
+  el.innerHTML = `<section class="card lr-tc" aria-labelledby="lr-tc-h" data-no-renew>
     <div class="lr-tc-hd"><span class="lr-tc-i" aria-hidden="true">${HG(24)}</span>
       <div class="lr-tc-tt"><h2 class="rw-h2" id="lr-tc-h">Tu voz en el tiempo</h2><p class="lr-tc-s">${B ? "Oye cómo ha cambiado tu voz." : "El mes que viene graba otra vez con el loro y compárate."}</p></div></div>
     <div class="lr-tc-ab">

@@ -422,13 +422,14 @@ const TAP = 'a[href^="#"], button, summary, [role=button], [role=link], [role=ta
 const FIELD = 'input:not([type=button]):not([type=submit]):not([type=reset]):not([type=checkbox]):not([type=radio]):not([type=range]), textarea, select, [contenteditable]:not([contenteditable=false])';
 /* …menos (la ventanita taparía el sonido, la escucha o la pregunta):
    - lo que suena o graba: altavoces, «Dilo» y micrófonos, la palabra del día, la tarjeta de Palabras › Tarjetas (al
-     girarla dice la palabra), la grabadora y las cartas del Buzón, la prueba de voz de Ajustes;
+     girarla dice la palabra), la grabadora y las cartas del Buzón, la prueba de voz de Ajustes, una pegatina del álbum
+     y las flechas de su ficha (abrirla o pasar a otra dice la palabra; la ficha lleva además data-no-renew);
    - una pregunta fuera del modo foco: Palabras › Preguntas y Practicar, la hoja de una puerta o ventanita de la
      temporada, y la granja (sus animales y cosas, que suenan, el personaje, el quiz «¿Cómo me llamo?» y el juego
      «¿Dónde está…?»; la barra de abajo y el refugio sí valen); las piezas de Frases mágicas y las respuestas (.opt);
    - lo marcado con [data-no-renew] (la Puerta de mayores y las hojas de la lección, del repaso y de las partidas), los
      campos de texto y el bloque de Google de Para mayores (sus botones piden el permiso ellos mismos) */
-const SOUND = ".say, [data-say], [data-play], [data-mic], .mic, .bd-wotd, .fcx-card, .ph-say1, .hm-say, .rv-spk, .ph-spk, .fm-spk, .mb-rb, .mb-spk, .mb-slow, #mb-play, .vl-try";
+const SOUND = ".say, [data-say], [data-play], [data-mic], .mic, .bd-wotd, .fcx-card, .ph-say1, .hm-say, .rv-spk, .ph-spk, .fm-spk, .mb-rb, .mb-spk, .mb-slow, #mb-play, .vl-try, .al-st, [data-al=prev], [data-al=next]";
 const ASK = ".qz:not(.qz-end), .pr-card, .ss-door, .ss-w, .ss-o, .fm-it, .fm-prod, .fm-sun, .fm-moon, .fm-cloud, .fm-hero, .fm-opt, .fm-stage.finding, .opt, .ph-tiles, .ph-line, .ph-acts";
 const NO_TAP = `[data-no-renew], ${SOUND}, ${ASK}, #sv-box, ${FIELD}`;
 /* …ni lo que empieza una lección, un repaso, una partida, un cuento o una práctica de Palabras (su primer sonido sale enseguida;

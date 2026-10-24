@@ -552,7 +552,8 @@ def test_focus_visible_and_in_order():
                 seen.append(f["d"])
                 if not f["ring"] or not f["vis"]:
                     probs.append(f"{r['name']}: {f}")
-            if len(set(seen)) < 3:
+            # (con una hoja modal abierta, p. ej. la cápsula del mes al entrar en el loro, el foco se queda en sus botones)
+            if len(set(seen)) < 3 and not page.evaluate("() => !!document.querySelector('dialog[open]:modal')"):
                 probs.append(f"{r['name']}: el foco solo pasa por {sorted(set(seen))}")
             ti = page.evaluate(A11Y, {"what": ["roles"]})["roles"]
             probs += [f"{r['name']} {x}" for x in ti if "tabindex" in x]
@@ -564,7 +565,7 @@ def test_focus_visible_and_in_order():
 
 # ---------------------------------------------------------------- 8. regiones vivas al contestar
 def test_answers_are_announced():
-    """Al contestar, el resultado se anuncia en una región viva: la lección (#ls-say), los juegos (.gm-say: «¡Bien!
+    """Al contestar, el resultado se anuncia en una región viva: la lección (#ls-say), los juegos (.gm-live: «¡Bien!
     <palabra>» o «Casi, prueba otra vez»; Oído de lince ya tiene la suya, #ln-txt) y las Preguntas de un tema (#qz-fb)."""
     import test_f3_leccion as L
     import test_f4_juegos as J
@@ -586,12 +587,12 @@ def test_answers_are_announced():
         J._open(page)
         J._start(page, "globos")
         page.wait_for_function("() => document.querySelectorAll('#gm-air .gm-bal:not(:disabled)').length === 4", timeout=6000)
-        reg = page.evaluate("() => { const e = document.querySelector('.gm-say'); return e ? [e.getAttribute('role'), e.getAttribute('aria-live')] : null; }")
+        reg = page.evaluate("() => { const e = document.querySelector('.gm-live'); return e ? [e.getAttribute('role'), e.getAttribute('aria-live')] : null; }")
         if reg != ["status", "polite"]:
             probs.append(f"los juegos no tienen región viva: {reg}")
         page.evaluate("() => document.querySelector('#gm-air .gm-bal').click()")
         page.wait_for_timeout(300)
-        t = page.evaluate("() => document.querySelector('.gm-say') && document.querySelector('.gm-say').textContent")
+        t = page.evaluate("() => document.querySelector('.gm-live') && document.querySelector('.gm-live').textContent")
         if t != "Casi, prueba otra vez" and not (t or "").startswith("¡Bien! "):
             probs.append(f"el juego no anuncia la respuesta: {t!r}")
         C.goto(page, f"#/doc/{R.TOPIC}?m=test")

@@ -45,7 +45,7 @@ def _expect_tab(route_name):
         return "aprender"
     if n.startswith(("juego", "album")):
         return "jugar"
-    if n == "granja":
+    if n == "granja" or n.startswith("granja-"):   # F6h: el loro eco (#/loro) es una pantalla de la granja
         return "granja"
     if n in ("progreso", "mizorro"):
         return "premios"

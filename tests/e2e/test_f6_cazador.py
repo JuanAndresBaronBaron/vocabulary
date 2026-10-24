@@ -815,6 +815,8 @@ def test_drawings_big_on_phones():
             page.wait_for_timeout(200)
             page.locator("#hn-tap").click()
             page.wait_for_selector(".hn-opt img", timeout=4000)
+            # medir con los dibujos ya cargados (con la máquina ocupada, alguno llega tarde y mediría 0)
+            page.wait_for_function("() => [...document.querySelectorAll('.hn-opt img')].every(i => i.complete && i.naturalWidth > 0)", timeout=8000)
             imgs = page.evaluate("""() => [...document.querySelectorAll('.hn-opt img')].map(i => { const r = i.getBoundingClientRect(),
               k = Math.min(r.width / (i.naturalWidth || 1), r.height / (i.naturalHeight || 1)); return Math.round(Math.min(i.naturalWidth * k, i.naturalHeight * k)); })""")
             if not imgs or min(imgs) < 110:
