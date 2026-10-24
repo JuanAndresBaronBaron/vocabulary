@@ -27,6 +27,7 @@ const SHELL = [
   "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2",
   "js/season.js", "data/season.json",
   "js/shortcuts.js",
+  "js/ctxmenu.js",
   "js/mailbox.js", "img/games/buzon.png",
   "js/phrases.js", "data/phrases.json", "img/games/frases.png",
   "js/navmotion.js",

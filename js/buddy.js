@@ -304,7 +304,7 @@ function misPieceInner(){
 }
 function misLabel(){ const M = missions(), done = M.list.filter(m => m.n >= m.goal).length; return `Misiones de hoy: ${misNext(M)} ${done} de 3 hechas.`; }
 function misPiece(){
-  return `<button type="button" class="card bd-piece bd-mis" id="bd-mis" aria-haspopup="dialog" aria-controls="bd-mis-s" aria-label="${esc(misLabel())}">${misPieceInner()}</button>`;
+  return `<button type="button" class="card bd-piece bd-mis" id="bd-mis" aria-haspopup="dialog" aria-label="${esc(misLabel())}">${misPieceInner()}</button>`;
 }
 
 /* contenido de la hoja: las 3 misiones con su barra y el cofre */

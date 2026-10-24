@@ -75,7 +75,17 @@ function speak(t, slow){
 /* la primera voz tiene que nacer de un toque (iOS): se llama dentro del toque que lleva a la partida */
 function unlockVoice(){ try{ if(!("speechSynthesis" in window)) return; const u = new SpeechSynthesisUtterance(" "); if(typeof useVoice === "function") useVoice(u, lang); speechSynthesis.speak(u); }catch(e){} }
 /* cada respuesta cuenta para las misiones («Acierta 15 respuestas»); el sonido ya lo pone el propio juego */
-const answer = (ok, it) => { try{ bus.emit("answer", {ok: !!ok, es: it && it.es, word: it && it.word, where: "game"}); }catch(e){} };
+const answer = (ok, it) => { try{ bus.emit("answer", {ok: !!ok, es: it && it.es, word: it && it.word, where: "game"}); }catch(e){} tell(ok, it); };
+/* y lo dice la región viva de la partida (.gm-say, la pone mount()): «¡Bien! dog» o «Casi, prueba otra vez» */
+function tell(ok, it){
+  const el = RUN && RUN.root && RUN.root.querySelector(".gm-say"); if(!el) return;
+  el.textContent = "";
+  setTimeout(() => {
+    if(!el.isConnected) return;
+    el.textContent = ok ? "¡Bien! " : "Casi, prueba otra vez";
+    if(ok && it && it.word){ const s = document.createElement("span"); s.lang = (LANGS[lang] || {}).code || ""; s.textContent = it.word; el.appendChild(s); }
+  }, 40);
+}
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const nm = () => LANGS[lang].name;
 const Nm = () => { const s = nm(); return s.charAt(0).toUpperCase() + s.slice(1); };
@@ -814,7 +824,7 @@ async function menu(){
   const my = NAV, app = $("#app"), best = obj("games:best");
   clearGest();
   app.innerHTML = `<div class="gm gm-menu" id="gm-menu">
-    <div class="gm-bar"><button type="button" class="glass-btn gm-tpill" id="gm-tpill" aria-haspopup="dialog" aria-controls="gm-tp-s">${pillHtml(topicId())}</button></div>
+    <div class="gm-bar"><button type="button" class="glass-btn gm-tpill" id="gm-tpill" aria-haspopup="dialog">${pillHtml(topicId())}</button></div>
     <div class="gm-cards" id="gm-cards">${Object.keys(GAMES).map(id => cardHtml(id, best[id])).join("")}</div>
   </div>`;
   $("#gm-tpill").onclick = e => openTopics(e.currentTarget);
@@ -943,6 +953,8 @@ function mount(app, html, mode){
   app.innerHTML = html;
   const run = begin(app.querySelector(".gm"));
   run.intro = typeof mode === "string" ? mode : mode ? "full" : "";
+  /* lo que pasa al contestar, para el lector de pantalla (si el juego no trae ya su propia región viva) */
+  if(run.root && !run.root.querySelector("[aria-live]")) run.root.insertAdjacentHTML("beforeend", `<p class="vh gm-say" role="status" aria-live="polite" aria-atomic="true"></p>`);
   return run;
 }
 

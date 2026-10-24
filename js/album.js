@@ -511,7 +511,7 @@ async function page(id, nav){
   const slide = SLIDE; SLIDE = null;
   P = {id, meta, doc, st, secs, f: "all", nav, prev, next, byK: new Map(st.map(s => [s.k, s]))};
   $("#app").innerHTML = `<div class="al al-pg">
-    <div class="al-bar"><button type="button" class="glass-btn glass-btn--sm al-tpill" id="al-tpill" aria-haspopup="dialog" aria-controls="al-tp-s"
+    <div class="al-bar"><button type="button" class="glass-btn glass-btn--sm al-tpill" id="al-tpill" aria-haspopup="dialog"
       aria-label="Tema: ${esc(meta.title)}. Elegir otro tema">${pillHtml(meta.title)}</button></div>
     <section class="card al-ph" aria-labelledby="al-ph-h">
       <span class="al-ring" id="al-ph-ring">${ringSvg(0, 0, "al-ph-rf")}<span class="al-ring-e" aria-hidden="true">${emo(meta)}</span></span>
@@ -543,6 +543,8 @@ async function page(id, nav){
   $("#al-pall").onclick = peelAll;
   $("#al-tpill").onclick = e => openTopics(e.currentTarget);
   wireSwipe(pg, nav);
+  /* mantener una pegatina pegada: el menú de js/ctxmenu.js (Ver grande, Oír, Oír despacio); las demás, lo mismo que tocar */
+  if(window.vocabMenu) pg.querySelectorAll(".al-st").forEach(b => GEST.push(window.vocabMenu.hold(b, () => stMenu(b))));
   /* pegatinas que se han vuelto doradas desde la última visita */
   const ng = st.filter(s => s.newGold);
   if(ng.length){
@@ -872,6 +874,17 @@ function show(d){ try{ if(!d.open) d.showModal(); }catch(e){ d.setAttribute("ope
 const spkB = t => `<button type="button" class="say al-spk" data-say="${esc(t)}" aria-label="Escuchar">${IC("speaker-high", "fill", 30)}</button>`;
 const slowB = t => `<button type="button" class="say al-slow" data-say="${esc(t)}" data-slow aria-label="Escuchar despacio">${IC("turtle", "fill", 26)}</button>`;
 const spkS = t => `<button type="button" class="say al-spk sm" data-say="${esc(t)}" aria-label="Escuchar «${esc(t)}»">${IC("speaker-high", "fill", 20)}</button>`;
+/* el menú de una pegatina: «Ver grande» es tocarla (la tarjeta grande); Oír y Oír despacio, sus botones de la tarjeta */
+function stMenu(b){
+  const s = P && P.byK.get(b.dataset.k);
+  if(!s || !s.got || s.isNew || b.classList.contains("new") || b.classList.contains("peeling")) return null;
+  const d = s.r.l[lang], lc = (LANGS[lang] || {}).code;
+  return {title: d.word, sub: s.r.es, lang: lc, ipa: ipaHtml(d.ipa, lc), items: [
+    {id: "big", t: "Ver grande", ic: "arrows-out-simple", fn: () => { if(P && P.byK.get(s.k) === s) openCard(s); }},
+    {id: "say", t: "Oír", ic: "speaker-high", st: "fill", say: d.word},
+    {id: "slow", t: "Oír despacio", ic: "turtle", st: "fill", say: d.word, slow: true},
+  ], tap: () => { if(P && P.byK.get(s.k) === s) openCard(s); }};
+}
 function frontHtml(s){
   const r = s.r, d = r.l[lang], alts = s.alts.map(a => a.l[lang]).filter(a => a && a.word && a.word !== d.word);
   const ipa = ipaHtml(d.ipa, (LANGS[lang] || {}).code);
