@@ -3,6 +3,7 @@
        un juego con su tema («Globos · Animales» → #/juegos/globos?t=animales; Oído de lince no tiene tema),
        un tema en un modo («Comida · Tarjetas» → #/doc/w03?m=tarjetas; Tarjetas, Preguntas o Escribir),
        una unidad de gramática («Gramática · El verbo to be» → #/leccion/G-A1-01),
+       un cuento del zorro abierto («Cuento · A jugar» → #/cuento/en-play; js/stories.js),
        y lo que dejó a medias (una lección guardada o un repaso abierto, lo mismo que el accesorio «Seguir», y una
        práctica de Escribir tocada en los últimos 3 días), que sale primero con un anillo de progreso. Si la tarjeta
        principal de Hoy ya ofrece eso mismo, no se repite; si lo enseña la fila, el accesorio no sale en Hoy (covers()).
@@ -10,7 +11,8 @@
    - Puntos: cada vez que termina algo suma 1 punto a esa clave, y los puntos valen la mitad cada 7 días (se guardan el
      punto y el día, sin horas). Entra con 2 puntos o más. Lo que termina: bus "game-done" {game, tp} · "doc-done"
      {id, mode: test|practica} (fin de Preguntas o de Escribir) · "doc-flip" {id, i, n} (Tarjetas: 8 tarjetas distintas
-     giradas en una visita, o todas si hay menos) · "lesson-done" con grammar (una unidad de gramática). "answer" con
+     giradas en una visita, o todas si hay menos) · "lesson-done" con grammar (una unidad de gramática) · "story-done"
+     {id} (un cuento leído hasta el final). "answer" con
      where "practice" apunta qué práctica está a medias (y "doc-done" de Escribir la quita); la lección y el repaso a
      medias se miran al pintar Hoy (accState() de index.html), así que lo terminado ya no sale.
    - Cuántos: hasta 3 en el móvil y 4 en tableta (ancho ≥ 744 px). Cada atajo conserva su sitio (vocab:sc.row): uno
@@ -38,7 +40,8 @@
        escuchas: 1 = tortuga)}. Día = today() de index.html (días desde 1970, hora local), nunca la hora.
      localStorage "sc:prefs" (EXACT en js/save.js: se exporta y se sincroniza; solo se escribe cuando el niño o un mayor
        cambian algo) = {pinned: [clave…], hidden: {clave: hasta el día}, off: bool, slowAsked: bool}.
-     Clave = "<en|fr|da>/juego:<juego>[:<tema>]" · "<en|fr|da>/tema:<doc>:<modo>" · "<en|fr|da>/gram:<G-A1-02>".
+     Clave = "<en|fr|da>/juego:<juego>[:<tema>]" · "<en|fr|da>/tema:<doc>:<modo>" · "<en|fr|da>/gram:<G-A1-02>" ·
+       "<en|fr|da>/cuento:<id del cuento>".
    API: window.vocabShortcuts = {wantsRow(), paint(), covers(st), suggest(), log(clave), points(clave), keys, prefs(),
      pin(clave, on), hide(clave) → deshacer, unhide(clave), setOff(off), forget(), openEdit(desde), openItem(clave,
      desde), closeSheet(), askSlow(forzar), slowWanted(), adultHtml(), fit(soft), SC, PREFS, shown (claves en la fila)}. */
@@ -140,7 +143,7 @@ function shortGram(t){
 const MODE_T = {tarjetas: "Tarjetas", test: "Preguntas", practica: "Escribir"};
 const MODE_IC = {tarjetas: "cards", test: "question", practica: "pencil-simple"};
 function parse(key){
-  const m = /^([a-z]{2})\/(juego|tema|gram):([^:]+)(?::([^:]+))?$/.exec(String(key || ""));
+  const m = /^([a-z]{2})\/(juego|tema|gram|cuento):([^:]+)(?::([^:]+))?$/.exec(String(key || ""));
   return m ? {l: m[1], type: m[2], a: m[3], b: m[4] || ""} : null;
 }
 function docMeta(id){
@@ -171,6 +174,10 @@ function resolve(key){
     if(!x || !x.t) return null;
     return {key, type: "gram", href: `#/leccion/${k.a}`, t: "Gramática", name: x.t, act: "Gramática", top: shortGram(x.t), sub: x.t, label: `Gramática · ${x.t}`,
       img: IMG_GRAM, plate: true};
+  }
+  if(k.type === "cuento"){   /* un cuento del zorro (js/stories.js): solo si está abierto */
+    const it = W.vocabStories && typeof vocabStories.shortcut === "function" ? vocabStories.shortcut(k.a) : null;
+    return it ? Object.assign({}, it, {key, type: "cuento"}) : null;
   }
   return null;
 }
@@ -208,7 +215,8 @@ async function halfItem(o, d){
 
 /* ---------- la fila: qué atajos y en qué sitio ---------- */
 async function ready(){
-  try{ await Promise.all([typeof getIndex === "function" ? getIndex() : null, typeof getMap === "function" ? getMap() : null]); }catch(e){}
+  try{ await Promise.all([typeof getIndex === "function" ? getIndex() : null, typeof getMap === "function" ? getMap() : null,
+    W.vocabStories && typeof vocabStories.ready === "function" ? vocabStories.ready().catch(() => null) : null]); }catch(e){}   /* los cuentos: para saber cuáles están abiertos */
 }
 async function compute(){
   const P = prefs(), n = TABLET.matches ? 4 : 3;
@@ -538,6 +546,7 @@ on("doc-flip", d => {
   if(!FLIP.done && FLIP.seen.size >= Math.min(CARDS_MIN, Math.max(1, +d.n || CARDS_MIN))){ FLIP.done = true; log(keys.doc(String(d.id), "tarjetas")); }
 });
 on("lesson-done", d => { if(d.grammar && d.id) log(keys.gram(String(d.id))); });
+on("story-done", d => { if(d.id && /^[a-z]{2}-[a-z0-9-]+$/.test(String(d.id))) log(`${ab()}/cuento:${d.id}`); });
 on("answer", d => {
   if(d.where !== "practice" || prefs().off) return;
   const p = hp(); if(!p.startsWith("doc/")) return;

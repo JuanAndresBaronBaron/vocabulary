@@ -1,0 +1,389 @@
+{
+ "v": 1,
+ "id": "da-colours",
+ "lang": "dansk",
+ "n": 2,
+ "title": "Farver på gården",
+ "es": "Los colores de la granja",
+ "short": "Colores",
+ "cover": "img/pj/cerdo.png",
+ "tint": "yellow",
+ "words": [
+  {
+   "w": "en ræv",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "orange",
+   "id": "colores|Naranja",
+   "img": "img/a99bad73df.png"
+  },
+  {
+   "w": "en gris",
+   "id": "animales|Cerdo",
+   "img": "img/98b47c184e.png"
+  },
+  {
+   "w": "lyserød",
+   "id": "colores|Rosa",
+   "img": "img/b2ee2b0aa3.png"
+  },
+  {
+   "w": "en frø",
+   "id": "animales|Rana",
+   "img": "img/2c8ad30871.png"
+  },
+  {
+   "w": "grøn",
+   "id": "colores|Verde",
+   "img": "img/2368d85824.png"
+  },
+  {
+   "w": "et får",
+   "id": "animales|Oveja",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  {
+   "w": "hvid",
+   "id": "colores|Blanco",
+   "img": "img/458f834f61.png"
+  },
+  {
+   "w": "en kat",
+   "id": "animales|Gato",
+   "img": "img/ab47b70a6b.png"
+  },
+  {
+   "w": "sort",
+   "id": "colores|Negro",
+   "img": "img/73c8a4092d.png"
+  },
+  {
+   "w": "en tiger",
+   "id": "animales|Tigre",
+   "img": "img/450f253311.png"
+  },
+  {
+   "w": "en bi",
+   "id": "animales|Abeja",
+   "img": "img/7280962d48.png"
+  },
+  {
+   "w": "gul",
+   "id": "colores|Amarillo",
+   "img": "img/f9ebe8fd08.png"
+  }
+ ],
+ "gloss": {
+  "bien": {
+   "es": "la abeja",
+   "id": "animales|Abeja",
+   "ipa": "/ˈbiˀən/",
+   "img": "img/7280962d48.png"
+  },
+  "en": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/en/"
+  },
+  "en bi": {
+   "es": "una abeja",
+   "id": "animales|Abeja",
+   "ipa": "/en ˈbiˀ/",
+   "img": "img/7280962d48.png"
+  },
+  "en tiger": {
+   "es": "un tigre",
+   "id": "animales|Tigre",
+   "ipa": "/en ˈtiːˀɐ/",
+   "img": "img/450f253311.png"
+  },
+  "er": {
+   "es": "es, está, son",
+   "id": "w24|ser, estar",
+   "ipa": "/ˈæɐ̯/"
+  },
+  "farver": {
+   "es": "colores",
+   "ipa": "/ˈfɑːvɐ/"
+  },
+  "frøen": {
+   "es": "la rana",
+   "id": "animales|Rana",
+   "ipa": "/ˈfʁøˀən/",
+   "img": "img/2c8ad30871.png"
+  },
+  "fåret": {
+   "es": "la oveja",
+   "id": "animales|Oveja",
+   "ipa": "/ˈfɒːˀəð/",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  "glad": {
+   "es": "contento, feliz",
+   "id": "w32|feliz",
+   "ipa": "/ˈglað/",
+   "img": "img/om_1F600.png"
+  },
+  "god": {
+   "es": "buena",
+   "id": "w33|bueno",
+   "ipa": "/ˈgoˀð/",
+   "img": "img/om_1F44D.png"
+  },
+  "grisen": {
+   "es": "el cerdo",
+   "id": "animales|Cerdo",
+   "ipa": "/ˈɡʁiˀsən/",
+   "img": "img/98b47c184e.png"
+  },
+  "grøn": {
+   "es": "verde",
+   "id": "colores|Verde",
+   "ipa": "/ɡʁœnˀ/",
+   "img": "img/2368d85824.png"
+  },
+  "gul": {
+   "es": "amarillo",
+   "id": "colores|Amarillo",
+   "ipa": "/ɡuˀl/",
+   "img": "img/f9ebe8fd08.png"
+  },
+  "hele dagen": {
+   "es": "todo el día",
+   "id": "w08|día",
+   "ipa": "/ˈheːlə ˈdæˀən/"
+  },
+  "her": {
+   "es": "aquí",
+   "id": "w38|aquí",
+   "ipa": "/ˈhɛɐ̯ˀ/"
+  },
+  "hun": {
+   "es": "ella",
+   "id": "w41|ella",
+   "ipa": "/ˈhun/"
+  },
+  "hvem": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/ˈvɛmˀ/"
+  },
+  "hvidt": {
+   "es": "blanca (con et)",
+   "id": "colores|Blanco",
+   "ipa": "/ˈvit/",
+   "img": "img/458f834f61.png"
+  },
+  "ikke": {
+   "es": "no",
+   "id": "w38|no",
+   "ipa": "/ˈegə/"
+  },
+  "katten": {
+   "es": "el gato",
+   "id": "animales|Gato",
+   "ipa": "/ˈkadən/",
+   "img": "img/ab47b70a6b.png"
+  },
+  "leger": {
+   "es": "juega",
+   "ipa": "/ˈlɑjɐ/"
+  },
+  "ligesom": {
+   "es": "como",
+   "ipa": "/ˈliːəsʌm/"
+  },
+  "lyserød": {
+   "es": "rosa",
+   "id": "colores|Rosa",
+   "ipa": "/ˈlyːsəˌʁøðˀ/",
+   "img": "img/b2ee2b0aa3.png"
+  },
+  "med": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/ˈmɛð/"
+  },
+  "men": {
+   "es": "pero",
+   "id": "w42|pero",
+   "ipa": "/mɛn/"
+  },
+  "og": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ʌ/"
+  },
+  "også": {
+   "es": "también",
+   "id": "w38|también",
+   "ipa": "/ˈʌsə/"
+  },
+  "orange": {
+   "es": "naranja",
+   "id": "colores|Naranja",
+   "ipa": "/oˈʁɑŋɕə/",
+   "img": "img/a99bad73df.png"
+  },
+  "på gården": {
+   "es": "en la granja",
+   "id": "w09|granja",
+   "ipa": "/pɔ ˈɡɒˀn/"
+  },
+  "ræven": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ˈʁɛwˀən/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "se": {
+   "es": "¡mira!",
+   "id": "w27|ver",
+   "ipa": "/ˈseˀ/",
+   "img": "img/om_1F441.png"
+  },
+  "sort": {
+   "es": "negro",
+   "id": "colores|Negro",
+   "ipa": "/soɐ̯t/",
+   "img": "img/73c8a4092d.png"
+  },
+  "stor": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/ˈsdoɐ̯ˀ/"
+  },
+  "tigeren": {
+   "es": "el tigre",
+   "id": "animales|Tigre",
+   "ipa": "/ˈtiːˀɐn/",
+   "img": "img/450f253311.png"
+  },
+  "trist": {
+   "es": "triste",
+   "id": "w32|triste",
+   "ipa": "/ˈtʁisd/",
+   "img": "img/om_2639.png"
+  },
+  "ven": {
+   "es": "amiga",
+   "id": "w01|amigo",
+   "ipa": "/ˈvɛn/",
+   "img": "img/om_1FAC2.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/a99bad73df.png"
+   ],
+   "t": "Her er ræven. Ræven er orange.",
+   "es": "Aquí está el zorro. El zorro es naranja."
+  },
+  {
+   "img": "img/pj/cerdo.png",
+   "also": [
+    "img/b2ee2b0aa3.png"
+   ],
+   "t": "Her er grisen. Grisen er lyserød.",
+   "es": "Aquí está el cerdo. El cerdo es rosa."
+  },
+  {
+   "img": "img/pj/rana.png",
+   "also": [
+    "img/2368d85824.png"
+   ],
+   "t": "Her er frøen. Frøen er grøn.",
+   "es": "Aquí está la rana. La rana es verde."
+  },
+  {
+   "img": "img/pj/oveja.png",
+   "also": [
+    "img/458f834f61.png"
+   ],
+   "t": "Her er fåret. Fåret er hvidt.",
+   "es": "Aquí está la oveja. La oveja es blanca."
+  },
+  {
+   "img": "img/pj/gato.png",
+   "also": [
+    "img/73c8a4092d.png"
+   ],
+   "t": "Her er katten. Katten er sort.",
+   "es": "Aquí está el gato. El gato es negro."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "t": "Ræven er trist. Hvem er også orange?",
+   "es": "El zorro está triste. ¿Quién es naranja también?"
+  }
+ ],
+ "choice": {
+  "img": "img/pj/tigre.png",
+  "also": [
+   "img/pj/abeja.png"
+  ],
+  "t": "Se! En tiger og en bi. Hvem leger med ræven?",
+  "es": "¡Mira! Un tigre y una abeja. ¿Quién juega con el zorro?",
+  "opts": [
+   {
+    "key": "tiger",
+    "t": "Tigeren",
+    "es": "El tigre",
+    "img": "img/pj/tigre.png",
+    "pages": [
+     {
+      "img": "img/pj/tigre.png",
+      "also": [
+       "img/a99bad73df.png"
+      ],
+      "t": "Tigeren er stor og orange. Ligesom ræven!",
+      "es": "El tigre es grande y naranja. ¡Como el zorro!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/tigre.png"
+      ],
+      "t": "Ræven og tigeren leger hele dagen.",
+      "es": "El zorro y el tigre juegan todo el día.",
+      "gl": {
+       "leger": {
+        "es": "juegan",
+        "ipa": "/ˈlɑjɐ/"
+       }
+      }
+     }
+    ]
+   },
+   {
+    "key": "bee",
+    "t": "Bien",
+    "es": "La abeja",
+    "img": "img/pj/abeja.png",
+    "pages": [
+     {
+      "img": "img/pj/abeja.png",
+      "also": [
+       "img/f9ebe8fd08.png",
+       "img/73c8a4092d.png"
+      ],
+      "t": "Bien er gul og sort. Hun er ikke orange.",
+      "es": "La abeja es amarilla y negra. No es naranja."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/abeja.png"
+      ],
+      "t": "Men hun er en god ven. Ræven er glad!",
+      "es": "Pero es una buena amiga. ¡El zorro está contento!"
+     }
+    ]
+   }
+  ]
+ }
+}

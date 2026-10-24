@@ -431,10 +431,10 @@ const FIELD = 'input:not([type=button]):not([type=submit]):not([type=reset]):not
 const SOUND = ".say, [data-say], [data-play], [data-mic], .mic, .bd-wotd, .fcx-card, .ph-say1, .hm-say, .rv-spk, .ph-spk, .fm-spk, .mb-rb, .mb-spk, .mb-slow, #mb-play, .vl-try";
 const ASK = ".qz:not(.qz-end), .pr-card, .ss-door, .ss-w, .ss-o, .fm-it, .fm-prod, .fm-sun, .fm-moon, .fm-cloud, .fm-hero, .fm-opt, .fm-stage.finding, .opt, .ph-tiles, .ph-line, .ph-acts";
 const NO_TAP = `[data-no-renew], ${SOUND}, ${ASK}, #sv-box, ${FIELD}`;
-/* …ni lo que empieza una lección, un repaso, una partida o una práctica de Palabras (su primer sonido sale enseguida;
+/* …ni lo que empieza una lección, un repaso, una partida, un cuento o una práctica de Palabras (su primer sonido sale enseguida;
    aún no está en modo foco: la ruta cambia después del toque), ni «Automático» de Palabras › Tarjetas (empieza a decir
    las palabras una tras otra) */
-const START = 'a[href^="#/leccion/"], a[href^="#/repaso"], a[href^="#/juegos/"], .node[data-ls], #ls-rep, .fm-fa, [data-play-find], #pr-go, #pr-cont, #pr-again, .fcx #auto';
+const START = 'a[href^="#/leccion/"], a[href^="#/repaso"], a[href^="#/juegos/"], a[href^="#/cuento/"], .node[data-ls], #ls-rep, .fm-fa, [data-play-find], #pr-go, #pr-cont, #pr-again, .fcx #auto';
 const ENDS = ".ls-end, #rv-end";   /* el final de una lección o de un repaso (todavía en modo foco) */
 function tapOk(e){
   const t = e.target, a = t && t.closest ? t.closest(TAP) : null;

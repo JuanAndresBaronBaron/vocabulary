@@ -1,0 +1,469 @@
+{
+ "v": 1,
+ "id": "fr-play",
+ "lang": "français",
+ "n": 1,
+ "title": "Le renard veut jouer",
+ "es": "El zorro quiere jugar",
+ "short": "A jugar",
+ "cover": "img/pj/zorro.png",
+ "tint": "green",
+ "words": [
+  {
+   "w": "le renard",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "petit, petite",
+   "id": "w31|pequeño"
+  },
+  {
+   "w": "orange",
+   "id": "colores|Naranja",
+   "img": "img/a99bad73df.png"
+  },
+  {
+   "w": "la ferme",
+   "id": "w09|granja"
+  },
+  {
+   "w": "vivre",
+   "id": "w28|vivir"
+  },
+  {
+   "w": "vouloir",
+   "id": "w24|querer"
+  },
+  {
+   "w": "jouer",
+   "id": "w28|jugar, tocar (música)",
+   "img": "img/om_1F3AE.png"
+  },
+  {
+   "w": "la poule",
+   "id": "animales|Gallina",
+   "img": "img/f501d7335c.png"
+  },
+  {
+   "w": "l'œuf",
+   "id": "w03|huevo",
+   "img": "img/om_1F95A.png"
+  },
+  {
+   "w": "occupé, occupée",
+   "id": "w35|ocupado"
+  },
+  {
+   "w": "la vache",
+   "id": "animales|Vaca",
+   "img": "img/9d5456806f.png"
+  },
+  {
+   "w": "manger",
+   "id": "w28|comer",
+   "img": "img/om_1F374.png"
+  },
+  {
+   "w": "l'herbe",
+   "id": "w09|hierba, césped"
+  },
+  {
+   "w": "triste",
+   "id": "w32|triste",
+   "img": "img/om_2639.png"
+  },
+  {
+   "w": "le canard",
+   "id": "animales|Pato",
+   "img": "img/e17d706969.png"
+  },
+  {
+   "w": "le chien",
+   "id": "animales|Perro",
+   "img": "img/3e394d37a4.png"
+  },
+  {
+   "w": "le lac",
+   "id": "w09|lago"
+  },
+  {
+   "w": "nager",
+   "id": "w28|nadar",
+   "img": "img/om_1F3CA.png"
+  },
+  {
+   "w": "sauter",
+   "id": "w25|saltar"
+  },
+  {
+   "w": "l'eau",
+   "id": "w03|agua",
+   "img": "img/om_1F4A7.png"
+  },
+  {
+   "w": "content, contente",
+   "id": "w32|contento",
+   "img": "img/om_1F642.png"
+  },
+  {
+   "w": "nouveau, nouvelle",
+   "id": "w35|nuevo",
+   "img": "img/om_1F195.png"
+  },
+  {
+   "w": "l'ami , l'amie",
+   "id": "w01|amigo",
+   "img": "img/om_1FAC2.png"
+  },
+  {
+   "w": "le ballon",
+   "id": "w13|pelota, balón",
+   "img": "img/om_1F3D0.png"
+  },
+  {
+   "w": "courir",
+   "id": "w25|correr",
+   "img": "img/om_1F3C3.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/a/"
+  },
+  "ami": {
+   "es": "amigo",
+   "id": "w01|amigo",
+   "ipa": "/ami/",
+   "img": "img/om_1FAC2.png"
+  },
+  "au lac": {
+   "es": "al lago",
+   "id": "w09|lago",
+   "ipa": "/o lak/"
+  },
+  "aussi": {
+   "es": "también",
+   "id": "w38|también",
+   "ipa": "/osi/"
+  },
+  "avec": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/avɛk/"
+  },
+  "content": {
+   "es": "contento",
+   "id": "w32|contento",
+   "ipa": "/kɔ̃tɑ̃/",
+   "img": "img/om_1F642.png"
+  },
+  "courent": {
+   "es": "corren",
+   "id": "w25|correr",
+   "ipa": "/kuʁ/",
+   "img": "img/om_1F3C3.png"
+  },
+  "dans": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/dɑ̃/"
+  },
+  "de l'herbe": {
+   "es": "hierba",
+   "id": "w09|hierba, césped",
+   "ipa": "/də lɛʁb/"
+  },
+  "des œufs": {
+   "es": "huevos",
+   "id": "w03|huevo",
+   "ipa": "/de.zø/",
+   "img": "img/om_1F95A.png"
+  },
+  "elle": {
+   "es": "ella",
+   "id": "w41|ella",
+   "ipa": "/ɛl/"
+  },
+  "est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɛ/"
+  },
+  "et": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/e/"
+  },
+  "joue": {
+   "es": "juega",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ʒu/",
+   "img": "img/om_1F3AE.png"
+  },
+  "jouer": {
+   "es": "jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ʒwe/",
+   "img": "img/om_1F3AE.png"
+  },
+  "l'eau": {
+   "es": "el agua",
+   "id": "w03|agua",
+   "ipa": "/lo/",
+   "img": "img/om_1F4A7.png"
+  },
+  "la poule": {
+   "es": "la gallina",
+   "id": "animales|Gallina",
+   "ipa": "/la pul/",
+   "img": "img/f501d7335c.png"
+  },
+  "la vache": {
+   "es": "la vaca",
+   "id": "animales|Vaca",
+   "ipa": "/la vaʃ/",
+   "img": "img/9d5456806f.png"
+  },
+  "le canard": {
+   "es": "el pato",
+   "id": "animales|Pato",
+   "ipa": "/lə kanaʁ/",
+   "img": "img/e17d706969.png"
+  },
+  "le chien": {
+   "es": "el perro",
+   "id": "animales|Perro",
+   "ipa": "/lə ʃjɛ̃/",
+   "img": "img/3e394d37a4.png"
+  },
+  "le renard": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/lə ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "lui": {
+   "es": "él",
+   "id": "w41|él, lo, le",
+   "ipa": "/lɥi/"
+  },
+  "mange": {
+   "es": "come",
+   "id": "w28|comer",
+   "ipa": "/mɑ̃ʒ/",
+   "img": "img/om_1F374.png"
+  },
+  "nage": {
+   "es": "nada",
+   "id": "w28|nadar",
+   "ipa": "/naʒ/",
+   "img": "img/om_1F3CA.png"
+  },
+  "nouvel": {
+   "es": "nuevo",
+   "id": "w35|nuevo",
+   "ipa": "/nuvɛl/",
+   "img": "img/om_1F195.png"
+  },
+  "occupée": {
+   "es": "ocupada",
+   "id": "w35|ocupado",
+   "ipa": "/ɔkype/"
+  },
+  "orange": {
+   "es": "naranja",
+   "id": "colores|Naranja",
+   "ipa": "/ɔʁɑ̃ʒ/",
+   "img": "img/a99bad73df.png"
+  },
+  "petit": {
+   "es": "pequeño",
+   "id": "w31|pequeño",
+   "ipa": "/pəti/"
+  },
+  "plouf": {
+   "es": "¡plaf! (ruido del agua)",
+   "ipa": "/pluf/"
+  },
+  "qui": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/ki/"
+  },
+  "saute": {
+   "es": "salta",
+   "id": "w25|saltar",
+   "ipa": "/sot/"
+  },
+  "sautent": {
+   "es": "saltan",
+   "id": "w25|saltar",
+   "ipa": "/sot/"
+  },
+  "son": {
+   "es": "su",
+   "id": "w41|su (de él)",
+   "ipa": "/sɔ̃/"
+  },
+  "triste": {
+   "es": "triste",
+   "id": "w32|triste",
+   "ipa": "/tʁist/",
+   "img": "img/om_2639.png"
+  },
+  "un ballon": {
+   "es": "una pelota",
+   "id": "w13|pelota, balón",
+   "ipa": "/œ̃ balɔ̃/",
+   "img": "img/om_1F3D0.png"
+  },
+  "une ferme": {
+   "es": "una granja",
+   "id": "w09|granja",
+   "ipa": "/yn fɛʁm/"
+  },
+  "veulent": {
+   "es": "quieren",
+   "id": "w24|querer",
+   "ipa": "/vœl/"
+  },
+  "veut": {
+   "es": "quiere",
+   "id": "w24|querer",
+   "ipa": "/vø/"
+  },
+  "vit": {
+   "es": "vive",
+   "id": "w28|vivir",
+   "ipa": "/vi/"
+  },
+  "voici": {
+   "es": "aquí está, este es",
+   "ipa": "/vwasi/"
+  },
+  "vont": {
+   "es": "van",
+   "id": "w24|ir",
+   "ipa": "/vɔ̃/"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/pj/zorro.png",
+   "t": "Voici le renard. Le renard est petit et orange.",
+   "es": "Este es el zorro. El zorro es pequeño y naranja."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/shop/tractor.png"
+   ],
+   "t": "Le renard vit dans une ferme.",
+   "es": "El zorro vive en una granja."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "t": "Le renard veut jouer.",
+   "es": "El zorro quiere jugar."
+  },
+  {
+   "img": "img/pj/gallina.png",
+   "also": [
+    "img/om_1F95A.png"
+   ],
+   "t": "La poule a des œufs. Elle est occupée.",
+   "es": "La gallina tiene huevos. Está ocupada."
+  },
+  {
+   "img": "img/pj/vaca.png",
+   "also": [
+    "img/om_1F33F.png"
+   ],
+   "t": "La vache mange de l'herbe. Elle est occupée aussi.",
+   "es": "La vaca come hierba. También está ocupada."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "t": "Le renard est triste. Qui veut jouer avec lui ?",
+   "es": "El zorro está triste. ¿Quién quiere jugar con él?"
+  }
+ ],
+ "choice": {
+  "img": "img/pj/pato.png",
+  "also": [
+   "img/pj/perro.png"
+  ],
+  "t": "Le canard et le chien veulent jouer. Qui joue avec le renard ?",
+  "es": "El pato y el perro quieren jugar. ¿Quién juega con el zorro?",
+  "opts": [
+   {
+    "key": "duck",
+    "t": "Le canard",
+    "es": "El pato",
+    "img": "img/pj/pato.png",
+    "pages": [
+     {
+      "img": "img/pj/pato.png",
+      "also": [
+       "img/om_1F30A.png"
+      ],
+      "t": "Le renard et le canard vont au lac.",
+      "es": "El zorro y el pato van al lago."
+     },
+     {
+      "img": "img/pj/pato.png",
+      "also": [
+       "img/om_1F4A7.png"
+      ],
+      "t": "Le canard nage. Le renard saute dans l'eau. Plouf !",
+      "es": "El pato nada. El zorro salta al agua. ¡Plaf!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/pato.png"
+      ],
+      "t": "Le renard est content. Le canard est son nouvel ami.",
+      "es": "El zorro está contento. El pato es su nuevo amigo."
+     }
+    ]
+   },
+   {
+    "key": "dog",
+    "t": "Le chien",
+    "es": "El perro",
+    "img": "img/pj/perro.png",
+    "pages": [
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/shop/balon.png"
+      ],
+      "t": "Le chien a un ballon.",
+      "es": "El perro tiene una pelota."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/perro.png",
+       "img/shop/balon.png"
+      ],
+      "t": "Le renard et le chien courent et sautent.",
+      "es": "El zorro y el perro corren y saltan."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/perro.png"
+      ],
+      "t": "Le renard est content. Le chien est son nouvel ami.",
+      "es": "El zorro está contento. El perro es su nuevo amigo."
+     }
+    ]
+   }
+  ]
+ }
+}

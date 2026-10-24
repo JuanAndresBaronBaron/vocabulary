@@ -1,0 +1,405 @@
+{
+ "v": 1,
+ "id": "fr-colours",
+ "lang": "français",
+ "n": 2,
+ "title": "Les couleurs de la ferme",
+ "es": "Los colores de la granja",
+ "short": "Colores",
+ "cover": "img/pj/cerdo.png",
+ "tint": "yellow",
+ "words": [
+  {
+   "w": "le renard",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "orange",
+   "id": "colores|Naranja",
+   "img": "img/a99bad73df.png"
+  },
+  {
+   "w": "le cochon",
+   "id": "animales|Cerdo",
+   "img": "img/98b47c184e.png"
+  },
+  {
+   "w": "rose",
+   "id": "colores|Rosa",
+   "img": "img/b2ee2b0aa3.png"
+  },
+  {
+   "w": "la grenouille",
+   "id": "animales|Rana",
+   "img": "img/2c8ad30871.png"
+  },
+  {
+   "w": "vert",
+   "id": "colores|Verde",
+   "img": "img/2368d85824.png"
+  },
+  {
+   "w": "le mouton",
+   "id": "animales|Oveja",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  {
+   "w": "blanc",
+   "id": "colores|Blanco",
+   "img": "img/458f834f61.png"
+  },
+  {
+   "w": "le chat",
+   "id": "animales|Gato",
+   "img": "img/ab47b70a6b.png"
+  },
+  {
+   "w": "noir",
+   "id": "colores|Negro",
+   "img": "img/73c8a4092d.png"
+  },
+  {
+   "w": "le tigre",
+   "id": "animales|Tigre",
+   "img": "img/450f253311.png"
+  },
+  {
+   "w": "l'abeille",
+   "id": "animales|Abeja",
+   "img": "img/7280962d48.png"
+  },
+  {
+   "w": "jaune",
+   "id": "colores|Amarillo",
+   "img": "img/f9ebe8fd08.png"
+  }
+ ],
+ "gloss": {
+  "amie": {
+   "es": "amiga",
+   "id": "w01|amigo",
+   "ipa": "/ami/",
+   "img": "img/om_1FAC2.png"
+  },
+  "avec": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/avɛk/"
+  },
+  "blanc": {
+   "es": "blanco",
+   "id": "colores|Blanco",
+   "ipa": "/blɑ̃/",
+   "img": "img/458f834f61.png"
+  },
+  "bonne": {
+   "es": "buena",
+   "id": "w33|bueno",
+   "ipa": "/bɔn/",
+   "img": "img/om_1F44D.png"
+  },
+  "c'est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/sɛ/"
+  },
+  "comme": {
+   "es": "como",
+   "id": "w42|como, mientras",
+   "ipa": "/kɔm/"
+  },
+  "content": {
+   "es": "contento",
+   "id": "w32|contento",
+   "ipa": "/kɔ̃tɑ̃/",
+   "img": "img/om_1F642.png"
+  },
+  "de la ferme": {
+   "es": "de la granja",
+   "id": "w09|granja",
+   "ipa": "/də la fɛʁm/"
+  },
+  "elle": {
+   "es": "ella",
+   "id": "w41|ella",
+   "ipa": "/ɛl/"
+  },
+  "est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɛ/"
+  },
+  "et": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/e/"
+  },
+  "grand": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/ɡʁɑ̃/"
+  },
+  "jaune": {
+   "es": "amarillo",
+   "id": "colores|Amarillo",
+   "ipa": "/ʒon/",
+   "img": "img/f9ebe8fd08.png"
+  },
+  "joue": {
+   "es": "juega",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ʒu/",
+   "img": "img/om_1F3AE.png"
+  },
+  "jouent": {
+   "es": "juegan",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ʒu/",
+   "img": "img/om_1F3AE.png"
+  },
+  "l'abeille": {
+   "es": "la abeja",
+   "id": "animales|Abeja",
+   "ipa": "/labɛj/",
+   "img": "img/7280962d48.png"
+  },
+  "la grenouille": {
+   "es": "la rana",
+   "id": "animales|Rana",
+   "ipa": "/la ɡʁənuj/",
+   "img": "img/2c8ad30871.png"
+  },
+  "le chat": {
+   "es": "el gato",
+   "id": "animales|Gato",
+   "ipa": "/lə ʃa/",
+   "img": "img/ab47b70a6b.png"
+  },
+  "le cochon": {
+   "es": "el cerdo",
+   "id": "animales|Cerdo",
+   "ipa": "/lə kɔʃɔ̃/",
+   "img": "img/98b47c184e.png"
+  },
+  "le mouton": {
+   "es": "la oveja",
+   "id": "animales|Oveja",
+   "ipa": "/lə mutɔ̃/",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  "le renard": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/lə ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "le tigre": {
+   "es": "el tigre",
+   "id": "animales|Tigre",
+   "ipa": "/lə tiɡʁ/",
+   "img": "img/450f253311.png"
+  },
+  "les couleurs": {
+   "es": "los colores",
+   "ipa": "/le kulœʁ/"
+  },
+  "lui": {
+   "es": "él",
+   "id": "w41|él, lo, le",
+   "ipa": "/lɥi/"
+  },
+  "mais": {
+   "es": "pero",
+   "id": "w42|pero",
+   "ipa": "/mɛ/"
+  },
+  "n'est": {
+   "es": "no es, no está",
+   "id": "w24|ser, estar",
+   "ipa": "/nɛ/"
+  },
+  "noir": {
+   "es": "negro",
+   "id": "colores|Negro",
+   "ipa": "/nwaʁ/",
+   "img": "img/73c8a4092d.png"
+  },
+  "noire": {
+   "es": "negra",
+   "id": "colores|Negro",
+   "ipa": "/nwaʁ/",
+   "img": "img/73c8a4092d.png"
+  },
+  "orange": {
+   "es": "naranja",
+   "id": "colores|Naranja",
+   "ipa": "/ɔʁɑ̃ʒ/",
+   "img": "img/a99bad73df.png"
+  },
+  "pas": {
+   "es": "no (ne… pas)",
+   "ipa": "/pa/"
+  },
+  "qui": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/ki/"
+  },
+  "regarde": {
+   "es": "¡mira!",
+   "id": "w27|mirar, parecer",
+   "ipa": "/ʁəɡaʁd/",
+   "img": "img/om_1F440.png"
+  },
+  "rose": {
+   "es": "rosa",
+   "id": "colores|Rosa",
+   "ipa": "/ʁoz/",
+   "img": "img/b2ee2b0aa3.png"
+  },
+  "toute la journée": {
+   "es": "todo el día",
+   "ipa": "/tut la ʒuʁne/"
+  },
+  "triste": {
+   "es": "triste",
+   "id": "w32|triste",
+   "ipa": "/tʁist/",
+   "img": "img/om_2639.png"
+  },
+  "un tigre": {
+   "es": "un tigre",
+   "id": "animales|Tigre",
+   "ipa": "/œ̃ tiɡʁ/",
+   "img": "img/450f253311.png"
+  },
+  "une": {
+   "es": "una",
+   "id": "w41|un, una",
+   "ipa": "/yn/"
+  },
+  "une abeille": {
+   "es": "una abeja",
+   "id": "animales|Abeja",
+   "ipa": "/yn abɛj/",
+   "img": "img/7280962d48.png"
+  },
+  "verte": {
+   "es": "verde",
+   "id": "colores|Verde",
+   "ipa": "/vɛʁt/",
+   "img": "img/2368d85824.png"
+  },
+  "voici": {
+   "es": "aquí está, este es",
+   "ipa": "/vwasi/"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/a99bad73df.png"
+   ],
+   "t": "Voici le renard. Le renard est orange.",
+   "es": "Este es el zorro. El zorro es naranja."
+  },
+  {
+   "img": "img/pj/cerdo.png",
+   "also": [
+    "img/b2ee2b0aa3.png"
+   ],
+   "t": "Voici le cochon. Le cochon est rose.",
+   "es": "Este es el cerdo. El cerdo es rosa."
+  },
+  {
+   "img": "img/pj/rana.png",
+   "also": [
+    "img/2368d85824.png"
+   ],
+   "t": "Voici la grenouille. La grenouille est verte.",
+   "es": "Esta es la rana. La rana es verde."
+  },
+  {
+   "img": "img/pj/oveja.png",
+   "also": [
+    "img/458f834f61.png"
+   ],
+   "t": "Voici le mouton. Le mouton est blanc.",
+   "es": "Esta es la oveja. La oveja es blanca."
+  },
+  {
+   "img": "img/pj/gato.png",
+   "also": [
+    "img/73c8a4092d.png"
+   ],
+   "t": "Voici le chat. Le chat est noir.",
+   "es": "Este es el gato. El gato es negro."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "t": "Le renard est triste. Qui est orange comme lui ?",
+   "es": "El zorro está triste. ¿Quién es naranja como él?"
+  }
+ ],
+ "choice": {
+  "img": "img/pj/tigre.png",
+  "also": [
+   "img/pj/abeja.png"
+  ],
+  "t": "Regarde ! Un tigre et une abeille. Qui joue avec le renard ?",
+  "es": "¡Mira! Un tigre y una abeja. ¿Quién juega con el zorro?",
+  "opts": [
+   {
+    "key": "tiger",
+    "t": "Le tigre",
+    "es": "El tigre",
+    "img": "img/pj/tigre.png",
+    "pages": [
+     {
+      "img": "img/pj/tigre.png",
+      "also": [
+       "img/a99bad73df.png"
+      ],
+      "t": "Le tigre est grand et orange. Comme le renard !",
+      "es": "El tigre es grande y naranja. ¡Como el zorro!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/tigre.png"
+      ],
+      "t": "Le renard et le tigre jouent toute la journée.",
+      "es": "El zorro y el tigre juegan todo el día."
+     }
+    ]
+   },
+   {
+    "key": "bee",
+    "t": "L'abeille",
+    "es": "La abeja",
+    "img": "img/pj/abeja.png",
+    "pages": [
+     {
+      "img": "img/pj/abeja.png",
+      "also": [
+       "img/f9ebe8fd08.png",
+       "img/73c8a4092d.png"
+      ],
+      "t": "L'abeille est jaune et noire. Elle n'est pas orange.",
+      "es": "La abeja es amarilla y negra. No es naranja."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/abeja.png"
+      ],
+      "t": "Mais c'est une bonne amie. Le renard est content !",
+      "es": "Pero es una buena amiga. ¡El zorro está contento!"
+     }
+    ]
+   }
+  ]
+ }
+}

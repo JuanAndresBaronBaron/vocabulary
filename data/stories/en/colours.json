@@ -1,0 +1,394 @@
+{
+ "v": 1,
+ "id": "en-colours",
+ "lang": "english",
+ "n": 2,
+ "title": "Colours on the Farm",
+ "es": "Los colores de la granja",
+ "short": "Colores",
+ "cover": "img/pj/cerdo.png",
+ "tint": "yellow",
+ "words": [
+  {
+   "w": "fox",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "orange",
+   "id": "colores|Naranja",
+   "img": "img/a99bad73df.png"
+  },
+  {
+   "w": "pig",
+   "id": "animales|Cerdo",
+   "img": "img/98b47c184e.png"
+  },
+  {
+   "w": "pink",
+   "id": "colores|Rosa",
+   "img": "img/b2ee2b0aa3.png"
+  },
+  {
+   "w": "frog",
+   "id": "animales|Rana",
+   "img": "img/2c8ad30871.png"
+  },
+  {
+   "w": "green",
+   "id": "colores|Verde",
+   "img": "img/2368d85824.png"
+  },
+  {
+   "w": "sheep",
+   "id": "animales|Oveja",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  {
+   "w": "white",
+   "id": "colores|Blanco",
+   "img": "img/458f834f61.png"
+  },
+  {
+   "w": "cat",
+   "id": "animales|Gato",
+   "img": "img/ab47b70a6b.png"
+  },
+  {
+   "w": "black",
+   "id": "colores|Negro",
+   "img": "img/73c8a4092d.png"
+  },
+  {
+   "w": "tiger",
+   "id": "animales|Tigre",
+   "img": "img/450f253311.png"
+  },
+  {
+   "w": "bee",
+   "id": "animales|Abeja",
+   "img": "img/7280962d48.png"
+  },
+  {
+   "w": "yellow",
+   "id": "colores|Amarillo",
+   "img": "img/f9ebe8fd08.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ə/"
+  },
+  "all": {
+   "es": "todo",
+   "id": "w41|todo, todos",
+   "ipa": "/ɔːl/"
+  },
+  "and": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ænd/"
+  },
+  "bee": {
+   "es": "abeja",
+   "id": "animales|Abeja",
+   "ipa": "/biː/",
+   "img": "img/7280962d48.png"
+  },
+  "big": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/bɪɡ/"
+  },
+  "black": {
+   "es": "negro",
+   "id": "colores|Negro",
+   "ipa": "/blæk/",
+   "img": "img/73c8a4092d.png"
+  },
+  "but": {
+   "es": "pero",
+   "id": "w42|pero",
+   "ipa": "/bʌt/"
+  },
+  "cat": {
+   "es": "gato",
+   "id": "animales|Gato",
+   "ipa": "/kæt/",
+   "img": "img/ab47b70a6b.png"
+  },
+  "colours": {
+   "es": "colores",
+   "ipa": "/ˈkʌləz/"
+  },
+  "day": {
+   "es": "día",
+   "id": "w08|día",
+   "ipa": "/deɪ/"
+  },
+  "farm": {
+   "es": "granja",
+   "id": "w09|granja",
+   "ipa": "/fɑːm/"
+  },
+  "fox": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/fɒks/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "friend": {
+   "es": "amiga",
+   "id": "w01|amigo",
+   "ipa": "/frend/",
+   "img": "img/om_1FAC2.png"
+  },
+  "frog": {
+   "es": "rana",
+   "id": "animales|Rana",
+   "ipa": "/frɒɡ/",
+   "img": "img/2c8ad30871.png"
+  },
+  "good": {
+   "es": "buena",
+   "id": "w33|bueno",
+   "ipa": "/ɡʊd/",
+   "img": "img/om_1F44D.png"
+  },
+  "green": {
+   "es": "verde",
+   "id": "colores|Verde",
+   "ipa": "/ɡriːn/",
+   "img": "img/2368d85824.png"
+  },
+  "happy": {
+   "es": "contento, feliz",
+   "id": "w32|feliz",
+   "ipa": "/ˈhæpi/",
+   "img": "img/om_1F600.png"
+  },
+  "him": {
+   "es": "él, lo, le",
+   "id": "w41|él, lo, le",
+   "ipa": "/hɪm/"
+  },
+  "is": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪz/"
+  },
+  "like": {
+   "es": "como",
+   "ipa": "/laɪk/"
+  },
+  "look": {
+   "es": "¡mira!",
+   "id": "w27|mirar, parecer",
+   "ipa": "/lʊk/",
+   "img": "img/om_1F440.png"
+  },
+  "not": {
+   "es": "no",
+   "id": "w38|no",
+   "ipa": "/nɒt/"
+  },
+  "on": {
+   "es": "en",
+   "id": "w40|en, sobre",
+   "ipa": "/ɒn/"
+  },
+  "orange": {
+   "es": "naranja",
+   "id": "colores|Naranja",
+   "ipa": "/ˈɒrɪndʒ/",
+   "img": "img/a99bad73df.png"
+  },
+  "pig": {
+   "es": "cerdo",
+   "id": "animales|Cerdo",
+   "ipa": "/pɪɡ/",
+   "img": "img/98b47c184e.png"
+  },
+  "pink": {
+   "es": "rosa",
+   "id": "colores|Rosa",
+   "ipa": "/pɪŋk/",
+   "img": "img/b2ee2b0aa3.png"
+  },
+  "play": {
+   "es": "juegan",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/pleɪ/",
+   "img": "img/om_1F3AE.png"
+  },
+  "plays": {
+   "es": "juega",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/pleɪz/",
+   "img": "img/om_1F3AE.png"
+  },
+  "sad": {
+   "es": "triste",
+   "id": "w32|triste",
+   "ipa": "/sæd/",
+   "img": "img/om_2639.png"
+  },
+  "she": {
+   "es": "ella",
+   "id": "w41|ella",
+   "ipa": "/ʃiː/"
+  },
+  "sheep": {
+   "es": "oveja",
+   "id": "animales|Oveja",
+   "ipa": "/ʃiːp/",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  "the": {
+   "es": "el, la, los, las",
+   "id": "w41|el, la, los, las",
+   "ipa": "/ðə/"
+  },
+  "this": {
+   "es": "este, esta",
+   "id": "w41|este, esto",
+   "ipa": "/ðɪs/"
+  },
+  "tiger": {
+   "es": "tigre",
+   "id": "animales|Tigre",
+   "ipa": "/ˈtaɪɡə/",
+   "img": "img/450f253311.png"
+  },
+  "white": {
+   "es": "blanca",
+   "id": "colores|Blanco",
+   "ipa": "/waɪt/",
+   "img": "img/458f834f61.png"
+  },
+  "who": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/huː/"
+  },
+  "with": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/wɪð/"
+  },
+  "yellow": {
+   "es": "amarillo",
+   "id": "colores|Amarillo",
+   "ipa": "/ˈjeləʊ/",
+   "img": "img/f9ebe8fd08.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/a99bad73df.png"
+   ],
+   "t": "This is the fox. The fox is orange.",
+   "es": "Este es el zorro. El zorro es naranja."
+  },
+  {
+   "img": "img/pj/cerdo.png",
+   "also": [
+    "img/b2ee2b0aa3.png"
+   ],
+   "t": "This is the pig. The pig is pink.",
+   "es": "Este es el cerdo. El cerdo es rosa."
+  },
+  {
+   "img": "img/pj/rana.png",
+   "also": [
+    "img/2368d85824.png"
+   ],
+   "t": "This is the frog. The frog is green.",
+   "es": "Esta es la rana. La rana es verde."
+  },
+  {
+   "img": "img/pj/oveja.png",
+   "also": [
+    "img/458f834f61.png"
+   ],
+   "t": "This is the sheep. The sheep is white.",
+   "es": "Esta es la oveja. La oveja es blanca."
+  },
+  {
+   "img": "img/pj/gato.png",
+   "also": [
+    "img/73c8a4092d.png"
+   ],
+   "t": "This is the cat. The cat is black.",
+   "es": "Este es el gato. El gato es negro."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "t": "The fox is sad. Who is orange like him?",
+   "es": "El zorro está triste. ¿Quién es naranja como él?"
+  }
+ ],
+ "choice": {
+  "img": "img/pj/tigre.png",
+  "also": [
+   "img/pj/abeja.png"
+  ],
+  "t": "Look! A tiger and a bee. Who plays with the fox?",
+  "es": "¡Mira! Un tigre y una abeja. ¿Quién juega con el zorro?",
+  "opts": [
+   {
+    "key": "tiger",
+    "t": "The tiger",
+    "es": "El tigre",
+    "img": "img/pj/tigre.png",
+    "pages": [
+     {
+      "img": "img/pj/tigre.png",
+      "also": [
+       "img/a99bad73df.png"
+      ],
+      "t": "The tiger is big and orange. Like the fox!",
+      "es": "El tigre es grande y naranja. ¡Como el zorro!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/tigre.png"
+      ],
+      "t": "The fox and the tiger play all day.",
+      "es": "El zorro y el tigre juegan todo el día."
+     }
+    ]
+   },
+   {
+    "key": "bee",
+    "t": "The bee",
+    "es": "La abeja",
+    "img": "img/pj/abeja.png",
+    "pages": [
+     {
+      "img": "img/pj/abeja.png",
+      "also": [
+       "img/f9ebe8fd08.png",
+       "img/73c8a4092d.png"
+      ],
+      "t": "The bee is yellow and black. She is not orange.",
+      "es": "La abeja es amarilla y negra. No es naranja."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/abeja.png"
+      ],
+      "t": "But she is a good friend. The fox is happy!",
+      "es": "Pero es una buena amiga. ¡El zorro está contento!"
+     }
+    ]
+   }
+  ]
+ }
+}

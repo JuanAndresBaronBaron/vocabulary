@@ -1,0 +1,464 @@
+{
+ "v": 1,
+ "id": "da-cake",
+ "lang": "dansk",
+ "n": 3,
+ "title": "Ræven bager en kage",
+ "es": "El zorro hace un pastel",
+ "short": "El pastel",
+ "cover": "img/pj/gallina.png",
+ "tint": "blue",
+ "words": [
+  {
+   "w": "en ræv",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "at bage",
+   "id": "w28|hornear",
+   "img": "img/om_1F956.png"
+  },
+  {
+   "w": "en kage",
+   "id": "w03|pastel, tarta",
+   "img": "img/om_1F382.png"
+  },
+  {
+   "w": "en ven",
+   "id": "w01|amigo",
+   "img": "img/om_1FAC2.png"
+  },
+  {
+   "w": "en høne",
+   "id": "animales|Gallina",
+   "img": "img/f501d7335c.png"
+  },
+  {
+   "w": "at give",
+   "id": "w24|dar"
+  },
+  {
+   "w": "et æg",
+   "id": "w03|huevo",
+   "img": "img/om_1F95A.png"
+  },
+  {
+   "w": "en ko",
+   "id": "animales|Vaca",
+   "img": "img/9d5456806f.png"
+  },
+  {
+   "w": "en mælk",
+   "id": "w03|leche",
+   "img": "img/om_1F95B.png"
+  },
+  {
+   "w": "en skål",
+   "id": "w03|cuenco, bol",
+   "img": "img/om_1F963.png"
+  },
+  {
+   "w": "at blande",
+   "id": "w28|mezclar"
+  },
+  {
+   "w": "et æble",
+   "id": "w03|manzana",
+   "img": "img/om_1F34E.png"
+  },
+  {
+   "w": "en chokolade",
+   "id": "w03|chocolate",
+   "img": "img/om_1F36B.png"
+  },
+  {
+   "w": "en hest",
+   "id": "animales|Caballo",
+   "img": "img/7452a76de5.png"
+  },
+  {
+   "w": "rød",
+   "id": "colores|Rojo",
+   "img": "img/746cbfda58.png"
+  },
+  {
+   "w": "en gris",
+   "id": "animales|Cerdo",
+   "img": "img/98b47c184e.png"
+  },
+  {
+   "w": "at spise",
+   "id": "w28|comer",
+   "img": "img/om_1F374.png"
+  },
+  {
+   "w": "sammen",
+   "id": "w38|juntos",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  {
+   "w": "glad",
+   "id": "w32|feliz",
+   "img": "img/om_1F600.png"
+  }
+ ],
+ "gloss": {
+  "bage": {
+   "es": "hornear",
+   "id": "w28|hornear",
+   "ipa": "/ˈbæːjə/",
+   "img": "img/om_1F956.png"
+  },
+  "bager": {
+   "es": "hornea",
+   "id": "w28|hornear",
+   "ipa": "/ˈbæːjɐ/",
+   "img": "img/om_1F956.png"
+  },
+  "blander": {
+   "es": "mezcla",
+   "id": "w28|mezclar",
+   "ipa": "/ˈblanɐ/"
+  },
+  "chokolade": {
+   "es": "chocolate",
+   "id": "w03|chocolate",
+   "ipa": "/ɕogoˈlæːðə/",
+   "img": "img/om_1F36B.png"
+  },
+  "chokoladekagen": {
+   "es": "el pastel de chocolate",
+   "ipa": "/ɕoɡoˈlæːðəˌkæːjən/"
+  },
+  "de": {
+   "es": "ellos",
+   "id": "w41|ellos, ellas",
+   "ipa": "/ˈdi/"
+  },
+  "eller": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ˈɛlɐ/"
+  },
+  "en kage": {
+   "es": "un pastel",
+   "id": "w03|pastel, tarta",
+   "ipa": "/en ˈkæːjə/",
+   "img": "img/om_1F382.png"
+  },
+  "en skål": {
+   "es": "un bol",
+   "id": "w03|cuenco, bol",
+   "ipa": "/en ˈsɡɔˀl/",
+   "img": "img/om_1F963.png"
+  },
+  "er": {
+   "es": "es, está, son",
+   "id": "w24|ser, estar",
+   "ipa": "/ˈæɐ̯/"
+  },
+  "færdig": {
+   "es": "listo",
+   "ipa": "/ˈfæɐ̯di/"
+  },
+  "giver": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/ˈɡiːɐ/"
+  },
+  "glade": {
+   "es": "contentos",
+   "id": "w32|feliz",
+   "ipa": "/ˈɡlaːðə/",
+   "img": "img/om_1F600.png"
+  },
+  "grisen": {
+   "es": "el cerdo",
+   "id": "animales|Cerdo",
+   "ipa": "/ˈɡʁiˀsən/",
+   "img": "img/98b47c184e.png"
+  },
+  "ham": {
+   "es": "le (a él)",
+   "id": "w41|él, lo, le",
+   "ipa": "/ˈham/"
+  },
+  "han": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/ˈhan/"
+  },
+  "hans": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/ˈhanˀs/"
+  },
+  "hesten": {
+   "es": "el caballo",
+   "id": "animales|Caballo",
+   "ipa": "/ˈhɛsdən/",
+   "img": "img/7452a76de5.png"
+  },
+  "hvad": {
+   "es": "qué",
+   "id": "w43|qué, lo que",
+   "ipa": "/ˈvað/",
+   "img": "img/om_2753.png"
+  },
+  "hønen": {
+   "es": "la gallina",
+   "id": "animales|Gallina",
+   "ipa": "/ˈhøːnən/",
+   "img": "img/f501d7335c.png"
+  },
+  "i": {
+   "es": "en",
+   "id": "w40|en, dentro de",
+   "ipa": "/ˈi/"
+  },
+  "kagen": {
+   "es": "el pastel",
+   "id": "w03|pastel, tarta",
+   "ipa": "/ˈkæːjən/",
+   "img": "img/om_1F382.png"
+  },
+  "koen": {
+   "es": "la vaca",
+   "id": "animales|Vaca",
+   "ipa": "/ˈkoˀən/",
+   "img": "img/9d5456806f.png"
+  },
+  "kommer": {
+   "es": "echa, pone",
+   "ipa": "/ˈkʌmɐ/"
+  },
+  "meget": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/ˈmɑːəð/"
+  },
+  "mmm": {
+   "es": "¡mmm! (¡qué rico!)",
+   "ipa": "/mː/"
+  },
+  "mælk": {
+   "es": "leche",
+   "id": "w03|leche",
+   "ipa": "/ˈmɛlˀg/",
+   "img": "img/om_1F95B.png"
+  },
+  "mælken": {
+   "es": "la leche",
+   "id": "w03|leche",
+   "ipa": "/ˈmɛlˀɡən/",
+   "img": "img/om_1F95B.png"
+  },
+  "nu": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/ˈnu/"
+  },
+  "og": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ʌ/"
+  },
+  "ræven": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ˈʁɛwˀən/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "røde": {
+   "es": "rojas",
+   "id": "colores|Rojo",
+   "ipa": "/ˈʁøːðə/",
+   "img": "img/746cbfda58.png"
+  },
+  "sammen": {
+   "es": "juntos",
+   "id": "w38|juntos",
+   "ipa": "/ˈsamən/",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  "spiser": {
+   "es": "comen",
+   "id": "w28|comer",
+   "ipa": "/ˈsbiːsɐ/",
+   "img": "img/om_1F374.png"
+  },
+  "til": {
+   "es": "para",
+   "id": "w40|a, hacia, para",
+   "ipa": "/ˈtel/"
+  },
+  "to": {
+   "es": "dos",
+   "id": "numeros|2",
+   "ipa": "/toˀ/"
+  },
+  "tre": {
+   "es": "tres",
+   "id": "numeros|3",
+   "ipa": "/tʁeˀ/"
+  },
+  "venner": {
+   "es": "amigos",
+   "id": "w01|amigo",
+   "ipa": "/ˈvɛnɐ/",
+   "img": "img/om_1FAC2.png"
+  },
+  "vennerne": {
+   "es": "los amigos",
+   "id": "w01|amigo",
+   "ipa": "/ˈvɛnɐnə/",
+   "img": "img/om_1FAC2.png"
+  },
+  "vil": {
+   "es": "quiere",
+   "id": "w24|querer",
+   "ipa": "/ˈvel/"
+  },
+  "æblekagen": {
+   "es": "el pastel de manzana",
+   "ipa": "/ˈɛːbləˌkæːjən/"
+  },
+  "æbler": {
+   "es": "manzanas",
+   "id": "w03|manzana",
+   "ipa": "/ˈɛːblɐ/",
+   "img": "img/om_1F34E.png"
+  },
+  "æg": {
+   "es": "huevos",
+   "id": "w03|huevo",
+   "ipa": "/ˈɛˀg/",
+   "img": "img/om_1F95A.png"
+  },
+  "æggene": {
+   "es": "los huevos",
+   "id": "w03|huevo",
+   "ipa": "/ˈɛɡənə/",
+   "img": "img/om_1F95A.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F382.png"
+   ],
+   "t": "Ræven vil bage en kage. Kagen er til hans venner.",
+   "es": "El zorro quiere hacer un pastel. El pastel es para sus amigos."
+  },
+  {
+   "img": "img/pj/gallina.png",
+   "also": [
+    "img/om_1F95A.png"
+   ],
+   "t": "Hønen giver ham to æg.",
+   "es": "La gallina le da dos huevos."
+  },
+  {
+   "img": "img/pj/vaca.png",
+   "also": [
+    "img/om_1F95B.png"
+   ],
+   "t": "Koen giver ham mælk.",
+   "es": "La vaca le da leche."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F963.png"
+   ],
+   "t": "Ræven kommer æggene og mælken i en skål.",
+   "es": "El zorro echa los huevos y la leche en un bol."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F963.png"
+   ],
+   "t": "Han blander og blander.",
+   "es": "Mezcla y mezcla."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/om_1F382.png"
+  ],
+  "t": "Hvad kommer ræven i kagen? Æbler eller chokolade?",
+  "es": "¿Qué echa el zorro en el pastel? ¿Manzanas o chocolate?",
+  "opts": [
+   {
+    "key": "apples",
+    "t": "Æbler",
+    "es": "Manzanas",
+    "img": "img/om_1F34E.png",
+    "pages": [
+     {
+      "img": "img/pj/caballo.png",
+      "also": [
+       "img/om_1F34E.png"
+      ],
+      "t": "Hesten giver ham tre røde æbler.",
+      "es": "El caballo le da tres manzanas rojas."
+     },
+     {
+      "img": "img/om_1F382.png",
+      "also": [
+       "img/om_1F34E.png"
+      ],
+      "t": "Nu er æblekagen færdig. Mmm!",
+      "es": "Ya está listo el pastel de manzana. ¡Mmm!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/gallina.png",
+       "img/pj/caballo.png"
+      ],
+      "t": "Vennerne spiser kagen sammen. De er meget glade.",
+      "es": "Los amigos comen el pastel juntos. Están muy contentos."
+     }
+    ]
+   },
+   {
+    "key": "chocolate",
+    "t": "Chokolade",
+    "es": "Chocolate",
+    "img": "img/om_1F36B.png",
+    "pages": [
+     {
+      "img": "img/pj/cerdo.png",
+      "also": [
+       "img/om_1F36B.png"
+      ],
+      "t": "Grisen giver ham chokolade.",
+      "es": "El cerdo le da chocolate."
+     },
+     {
+      "img": "img/om_1F382.png",
+      "also": [
+       "img/om_1F36B.png"
+      ],
+      "t": "Nu er chokoladekagen færdig. Mmm!",
+      "es": "Ya está listo el pastel de chocolate. ¡Mmm!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/cerdo.png",
+       "img/pj/vaca.png"
+      ],
+      "t": "Vennerne spiser kagen sammen. De er meget glade.",
+      "es": "Los amigos comen el pastel juntos. Están muy contentos."
+     }
+    ]
+   }
+  ]
+ }
+}

@@ -1,0 +1,442 @@
+{
+ "v": 1,
+ "id": "fr-night",
+ "lang": "français",
+ "n": 4,
+ "title": "Bonne nuit, renard",
+ "es": "Buenas noches, zorro",
+ "short": "Buenas noches",
+ "cover": "img/pj/buho.png",
+ "tint": "teal",
+ "words": [
+  {
+   "w": "la nuit",
+   "id": "w08|noche",
+   "img": "img/om_1F303.png"
+  },
+  {
+   "w": "la lune",
+   "id": "w09|luna",
+   "img": "img/om_1F319.png"
+  },
+  {
+   "w": "le ciel",
+   "id": "w09|cielo"
+  },
+  {
+   "w": "la vache",
+   "id": "animales|Vaca",
+   "img": "img/9d5456806f.png"
+  },
+  {
+   "w": "dormir",
+   "id": "w28|dormir",
+   "img": "img/om_1F634.png"
+  },
+  {
+   "w": "le cochon",
+   "id": "animales|Cerdo",
+   "img": "img/98b47c184e.png"
+  },
+  {
+   "w": "le renard",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "le lit",
+   "id": "w04|cama",
+   "img": "img/om_1F6CF.png"
+  },
+  {
+   "w": "fatigué, fatiguée",
+   "id": "w31|cansado",
+   "img": "img/om_1F62B.png"
+  },
+  {
+   "w": "compter",
+   "id": "w29|contar",
+   "img": "img/om_1F522.png"
+  },
+  {
+   "w": "le mouton",
+   "id": "animales|Oveja",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  {
+   "w": "le hibou",
+   "id": "animales|Búho",
+   "img": "img/7a0d4a0582.png"
+  },
+  {
+   "w": "l'idée",
+   "id": "w21|idea",
+   "img": "img/om_1F4A1.png"
+  },
+  {
+   "w": "chaud, chaude",
+   "id": "w31|cálido, templado"
+  },
+  {
+   "w": "le lait",
+   "id": "w03|leche",
+   "img": "img/om_1F95B.png"
+  },
+  {
+   "w": "l'histoire",
+   "id": "w13|historia, cuento",
+   "img": "img/om_1F4D6.png"
+  },
+  {
+   "w": "boire",
+   "id": "w28|beber",
+   "img": "img/om_1F964.png"
+  },
+  {
+   "w": "lire",
+   "id": "w28|leer",
+   "img": "img/om_1F4D6.png"
+  },
+  {
+   "w": "bon, bonne",
+   "id": "w33|bueno",
+   "img": "img/om_1F44D.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/a/"
+  },
+  "au lit": {
+   "es": "en la cama",
+   "id": "w04|cama",
+   "ipa": "/o li/",
+   "img": "img/om_1F6CF.png"
+  },
+  "au renard": {
+   "es": "al zorro",
+   "id": "animales|Zorro",
+   "ipa": "/o ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "aussi": {
+   "es": "también",
+   "id": "w38|también",
+   "ipa": "/osi/"
+  },
+  "boit": {
+   "es": "bebe",
+   "id": "w28|beber",
+   "ipa": "/bwa/",
+   "img": "img/om_1F964.png"
+  },
+  "bon": {
+   "es": "bueno, rico",
+   "id": "w33|bueno",
+   "ipa": "/bɔ̃/",
+   "img": "img/om_1F44D.png"
+  },
+  "bonne nuit": {
+   "es": "buenas noches",
+   "ipa": "/bɔn nɥi/"
+  },
+  "c'est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/sɛ/"
+  },
+  "chaud": {
+   "es": "caliente",
+   "id": "w31|cálido, templado",
+   "ipa": "/ʃo/"
+  },
+  "cinq": {
+   "es": "cinco",
+   "id": "numeros|5",
+   "ipa": "/sɛ̃k/"
+  },
+  "compte": {
+   "es": "cuenta",
+   "id": "w29|contar",
+   "ipa": "/kɔ̃t/",
+   "img": "img/om_1F522.png"
+  },
+  "dans": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/dɑ̃/"
+  },
+  "demande": {
+   "es": "pregunta",
+   "id": "w26|preguntar, pedir",
+   "ipa": "/dəmɑ̃d/",
+   "img": "img/om_2753.png"
+  },
+  "deux": {
+   "es": "dos",
+   "id": "numeros|2",
+   "ipa": "/dø/"
+  },
+  "dort": {
+   "es": "duerme",
+   "id": "w28|dormir",
+   "ipa": "/dɔʁ/",
+   "img": "img/om_1F634.png"
+  },
+  "du lait": {
+   "es": "leche",
+   "id": "w03|leche",
+   "ipa": "/dy lɛ/",
+   "img": "img/om_1F95B.png"
+  },
+  "est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɛ/"
+  },
+  "fatigué": {
+   "es": "cansado",
+   "id": "w31|cansado",
+   "ipa": "/fatiɡe/",
+   "img": "img/om_1F62B.png"
+  },
+  "idées": {
+   "es": "ideas",
+   "id": "w21|idea",
+   "ipa": "/ide/",
+   "img": "img/om_1F4A1.png"
+  },
+  "il": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/il/"
+  },
+  "la lune": {
+   "es": "la luna",
+   "id": "w09|luna",
+   "ipa": "/la lyn/",
+   "img": "img/om_1F319.png"
+  },
+  "la nuit": {
+   "es": "la noche",
+   "id": "w08|noche",
+   "ipa": "/la nɥi/",
+   "img": "img/om_1F303.png"
+  },
+  "la vache": {
+   "es": "la vaca",
+   "id": "animales|Vaca",
+   "ipa": "/la vaʃ/",
+   "img": "img/9d5456806f.png"
+  },
+  "le ciel": {
+   "es": "el cielo",
+   "id": "w09|cielo",
+   "ipa": "/lə sjɛl/"
+  },
+  "le cochon": {
+   "es": "el cerdo",
+   "id": "animales|Cerdo",
+   "ipa": "/lə kɔʃɔ̃/",
+   "img": "img/98b47c184e.png"
+  },
+  "le hibou": {
+   "es": "el búho",
+   "id": "animales|Búho",
+   "ipa": "/lə ibu/",
+   "img": "img/7a0d4a0582.png"
+  },
+  "le renard": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/lə ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "les moutons": {
+   "es": "las ovejas",
+   "id": "animales|Oveja",
+   "ipa": "/le mutɔ̃/",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  "lit": {
+   "es": "lee",
+   "id": "w28|leer",
+   "ipa": "/li/",
+   "img": "img/om_1F4D6.png"
+  },
+  "maintenant": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/mɛ̃tnɑ̃/"
+  },
+  "mais": {
+   "es": "pero",
+   "id": "w42|pero",
+   "ipa": "/mɛ/"
+  },
+  "n'est": {
+   "es": "no es, no está",
+   "id": "w24|ser, estar",
+   "ipa": "/nɛ/"
+  },
+  "ou": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/u/"
+  },
+  "pas": {
+   "es": "no (ne… pas)",
+   "ipa": "/pa/"
+  },
+  "quatre": {
+   "es": "cuatro",
+   "id": "numeros|4",
+   "ipa": "/katʁ/"
+  },
+  "renard": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "réveillé": {
+   "es": "despierto",
+   "id": "w28|despertarse",
+   "ipa": "/ʁeveje/",
+   "img": "img/om_23F0.png"
+  },
+  "toujours": {
+   "es": "todavía (ne… toujours pas: todavía no)",
+   "id": "w38|siempre",
+   "ipa": "/tuʒuʁ/"
+  },
+  "trois": {
+   "es": "tres",
+   "id": "numeros|3",
+   "ipa": "/tʁwa/"
+  },
+  "très": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/tʁɛ/"
+  },
+  "un": {
+   "es": "uno",
+   "id": "numeros|1",
+   "ipa": "/œ̃/"
+  },
+  "une histoire": {
+   "es": "un cuento",
+   "id": "w13|historia, cuento",
+   "ipa": "/yn istwaʁ/",
+   "img": "img/om_1F4D6.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/om_1F319.png",
+   "also": [
+    "img/om_2B50.png"
+   ],
+   "t": "C'est la nuit. La lune est dans le ciel.",
+   "es": "Es de noche. La luna está en el cielo."
+  },
+  {
+   "img": "img/pj/vaca.png",
+   "also": [
+    "img/pj/cerdo.png"
+   ],
+   "t": "La vache dort. Le cochon dort aussi.",
+   "es": "La vaca duerme. El cerdo también duerme."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F6CF.png"
+   ],
+   "t": "Le renard est au lit. Mais il n'est pas fatigué.",
+   "es": "El zorro está en la cama. Pero no está cansado."
+  },
+  {
+   "img": "img/pj/oveja.png",
+   "t": "Il compte les moutons. Un, deux, trois, quatre, cinq…",
+   "es": "Cuenta ovejas. Uno, dos, tres, cuatro, cinco…"
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F319.png"
+   ],
+   "t": "Il n'est toujours pas fatigué !",
+   "es": "¡Todavía no está cansado!"
+  },
+  {
+   "img": "img/pj/buho.png",
+   "also": [
+    "img/om_1F4A1.png"
+   ],
+   "t": "Le hibou est réveillé. Il a deux idées.",
+   "es": "El búho está despierto. Tiene dos ideas."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/buho.png",
+  "also": [
+   "img/pj/zorro.png"
+  ],
+  "t": "Le hibou demande au renard : du lait chaud ou une histoire ?",
+  "es": "El búho le pregunta al zorro: ¿leche caliente o un cuento?",
+  "opts": [
+   {
+    "key": "milk",
+    "t": "Du lait chaud",
+    "es": "Leche caliente",
+    "img": "img/om_1F95B.png",
+    "pages": [
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F95B.png"
+      ],
+      "t": "Le renard boit du lait chaud. C'est très bon.",
+      "es": "El zorro bebe leche caliente. Está muy rica."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F634.png"
+      ],
+      "t": "Maintenant, il est fatigué. Bonne nuit, renard !",
+      "es": "Ahora está cansado. ¡Buenas noches, zorro!"
+     }
+    ]
+   },
+   {
+    "key": "story",
+    "t": "Une histoire",
+    "es": "Un cuento",
+    "img": "img/om_1F4D6.png",
+    "pages": [
+     {
+      "img": "img/pj/buho.png",
+      "also": [
+       "img/om_1F4D6.png"
+      ],
+      "t": "Le hibou lit une histoire au renard.",
+      "es": "El búho le lee un cuento al zorro."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F634.png"
+      ],
+      "t": "Maintenant, il est fatigué. Bonne nuit, renard !",
+      "es": "Ahora está cansado. ¡Buenas noches, zorro!"
+     }
+    ]
+   }
+  ]
+ }
+}
