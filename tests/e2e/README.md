@@ -263,6 +263,25 @@ compartida no responde).
   con la misma versión de la base, la IPA de serie para Lucía y apagada para Leo hasta que se enciende, los cuentos, el
   loro y el cazador abren, y el siguiente toque en una pestaña pide el permiso dentro del toque y sube la partida de la
   v22 tal cual; sin conexión, la app nueva. Capturas en `capturas/v23`.
+- `test_tech_int.py` (Tech Prep S1 entero, la sección de mayores; `js/tech-boot.js` siempre y, solo al entrar,
+  `js/tech.js`, `js/tech-lesson.js` y `js/tech-pages.js` con `?v=<VERSION>`): apagado o encendido sin entrar solo se pide
+  `js/tech-boot.js` (nada de `data/tech`); cada ruta de S1-SPEC §3 por enlace directo y al recargar (pestaña, cápsula de
+  volver, modo foco, título, `lang=en-GB`); las dos barras de pestañas de ida y vuelta con su memoria y la Puerta al
+  entrar (y en una sesión nueva); los botones de las páginas abren sus sesiones (Start/Continue, «Next lesson», la
+  práctica de un caso con sus preguntas, «Write yours» crea la historia). Y el recorrido de un mayor en 390×844 claro y
+  oscuro y en escritorio, en dos días (interruptor en Para mayores, menú y Puerta, Today, lecciones técnica y de
+  liderazgo, repaso, entrevista corta, Path, unidad, chuleta, glosario, Pairs, Beat the clock, casos propio y modelo con
+  práctica, una historia, ajustes con fecha, «Download for offline» y uso sin red, borrar el progreso, volver a los
+  idiomas y apagar), sin español en Tech Prep, sin scroll lateral, contraste y paleta, y la partida del niño intacta;
+  capturas `S1-*.png` en `/mnt/project-files/tech-prep/capturas/S1` (`VOCAB_TECH_CAPTURAS` cambia la carpeta). Con
+  `VOCAB_TECH=1`, `routes.py` añade las rutas de Tech Prep (con `"tech": True`) a las pruebas que recorren todas las rutas
+  y a `shots.py`.
+- `test_update_v23.py` (la actualización desde main 4185280 con sw `vocab-shell-v23` a esta versión en el mismo origen,
+  como `test_update_v22.py`; `VOCAB_BASE23=<copia de ese commit>` o sacada con `git archive`): lo de siempre (primera
+  carga ya nueva, sw nuevo con todo `SHELL`, partida y granja iguales, mensaje del Buzón en IndexedDB, IPA, el toque que
+  sube a Google) y además Tech Prep sale apagado (sin entrada en el menú, `#/tech…` a `#/`, solo `js/tech-boot.js`); un
+  mayor lo enciende en el aparato de Leo, lo usa, pide «Download for offline» y, con el servidor parado, Today, una unidad,
+  el glosario, una lección y un caso siguen; luego lo apaga. Capturas en `capturas/v24`.
 - `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en
   Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso, «Escucha y elige» de la lección y
   «Elige el dibujo» de Truco o trato, en 360×740 y 390×844 (Globos también en 320, 375, 430 y 844×390) contra un mínimo;

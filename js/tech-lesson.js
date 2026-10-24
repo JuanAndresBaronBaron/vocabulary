@@ -1075,6 +1075,9 @@ function runStart(cfg){
 }
 function persist(r){
   if(r !== RUN || r.ended) return;
+  /* abrir otra lección sin contestar nada no pisa la que está a medias: esa sigue con «Continue» (el orden de una
+     lección es el de sus ítems y se rehace igual) */
+  if(r.kind === "lesson" && !r.started){ const o = sGet("lesson"); if(o && o.id !== r.id && o.started) return; }
   sSet(r.kind, Object.assign({}, r.st, {id: r.id, steps: r.steps.map(s => ({k: s.k, id: s.id, re: s.re ? 1 : 0})), i: r.i, res: r.res, cur: r.cur, started: r.started, day: T.day()}));
 }
 function setDock(r, btns){
@@ -1760,7 +1763,7 @@ const STYLE = `
 .tp-lstory dd{margin:0;font:400 var(--fs-sub)/1.55 var(--f-text);color:var(--label);max-width:70ch}
 .tp-lwrite{display:flex;flex-direction:column;align-items:flex-start;gap:4px}
 .tp-lwrite .tp-sub{margin:0}
-.tp-lwr[aria-pressed=true]{color:var(--ok-ink)}
+.tp-lwr[aria-pressed=true] .ico{color:var(--ok-ink)}   /* (el texto, del color de siempre: verde sobre el gris no llega a 4,5:1) */
 /* explain */
 .tp-lexbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .tp-ltm{display:inline-flex;align-items:center;gap:8px;min-height:44px;font:600 var(--fs-sub)/1 var(--f-text);font-variant-numeric:tabular-nums;color:var(--label)}

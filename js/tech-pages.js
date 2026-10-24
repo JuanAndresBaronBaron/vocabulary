@@ -1141,9 +1141,6 @@ const CSS = `
 .tp-gd-o{display:flex;align-items:flex-start;gap:12px}
 .tp-gd-o .tp-quote{flex:1;margin:0}
 .tp-gd .tp-go{margin-top:22px}
-/* en claro, el texto secundario de estas hojas de vidrio, un poco más fuerte (≥ 4,5:1 sobre el vidrio con el fondo
-   oscurecido): las de aquí y «Stop this round?» de js/tech.js, que sale en las partidas */
-:root:not([data-theme=dark]) :is(#tp-guide,#tp-del,#tp-stop).glass{--label2:rgba(60,60,67,.86)}
 @media (min-width:600px){.tp-pgrid{gap:12px}.tp-pcol{gap:12px}.tp-tile{font-size:var(--fs-sub)}}
 @media (prefers-reduced-motion:reduce){.tp-tile,.tp-stmt,.tp-wc-bar>i,.tp-more .tp-more-ic{transition-duration:100ms}}
 :root[data-motion=calm] .tp-tile,:root[data-motion=calm] .tp-stmt,:root[data-motion=calm] .tp-wc-bar>i{transition-duration:100ms}

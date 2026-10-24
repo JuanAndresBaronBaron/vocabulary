@@ -553,7 +553,8 @@ def test_focus_visible_and_in_order():
                 if not f["ring"] or not f["vis"]:
                     probs.append(f"{r['name']}: {f}")
             # (con una hoja modal abierta, p. ej. la cápsula del mes al entrar en el loro, el foco se queda en sus botones)
-            if len(set(seen)) < 3 and not page.evaluate("() => !!document.querySelector('dialog[open]:modal')"):
+            # (con VOCAB_TECH=1, el repaso vacío de Tech Prep en modo foco solo tiene la ✕ y «Learn something new»)
+            if len(set(seen)) < (2 if r.get("tech") else 3) and not page.evaluate("() => !!document.querySelector('dialog[open]:modal')"):
                 probs.append(f"{r['name']}: el foco solo pasa por {sorted(set(seen))}")
             ti = page.evaluate(A11Y, {"what": ["roles"]})["roles"]
             probs += [f"{r['name']} {x}" for x in ti if "tabindex" in x]

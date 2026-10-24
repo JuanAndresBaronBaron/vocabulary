@@ -51,7 +51,8 @@ _V22 = """() => ({ipa: typeof ipaOn === 'function', sync: !!(window.vocabSync &&
   noF6: !window.vocabCalls && !window.vocabStories && !window.vocabParrot && !window.vocabHunter && !window.vocabMenu})"""
 _F6 = """() => ({menu: !!window.vocabMenu, nav: !!window.vocabNavMotion, parrot: !!window.vocabParrot, calls: !!window.vocabCalls,
   stories: !!window.vocabStories, hunter: !!window.vocabHunter, media: !!window.vocabMedia})"""
-_GIS_NEW = "() => JSON.parse(sessionStorage.getItem('__gis_all') || '[]').filter(c => c.app === 'v22' && c.ver === 23)"
+# (la versión nueva: 23 o más, las fases de después siguen subiendo VERSION)
+_GIS_NEW = "() => JSON.parse(sessionStorage.getItem('__gis_all') || '[]').filter(c => c.app === 'v22' && c.ver >= 23)"
 # la granja: cada animal y planta (data-fid, su tipo) y si tiene hambre (lo dice su nombre accesible)
 _FARM = """() => [...document.querySelectorAll('#app .fm-stage .fm-it')].map(e => [e.dataset.fid,
   (e.className.match(/\\bk-(\\w+)/) || [])[1] || '', /tiene hambre/.test(e.getAttribute('aria-label') || '')]).sort()"""

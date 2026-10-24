@@ -31,6 +31,17 @@ DATA = C.REPO / "data" / "tech"
 CAPTURAS = Path(os.environ.get("VOCAB_CAPTURAS") or "/mnt/project-files/tech-prep/capturas/S1")
 SECS = ["tech", "techpath", "techunit", "techsheet", "techgloss", "techplay", "techcases", "techcase", "techstories",
         "techstory", "techmock", "techl"]
+# la barra mientras se está en Tech Prep (index.html TECH_TABS): sus pestañas y la marcada en cada sección (en modo foco,
+# #/techl/…, la barra no se ve y no hay una en particular)
+TABS = [("tp-today", "Today"), ("tp-path", "Path"), ("tp-play", "Play"), ("tp-cases", "My cases"), ("tp-mock", "Interview")]
+_TAB_OF = {"tech": "tp-today", "techpath": "tp-path", "techunit": "tp-path", "techsheet": "tp-path", "techgloss": "tp-path",
+           "techplay": "tp-play", "techcases": "tp-cases", "techcase": "tp-cases", "techstories": "tp-cases",
+           "techstory": "tp-cases", "techmock": "tp-mock"}
+
+
+def tab_of(hash):
+    """La pestaña marcada en esa ruta de Tech Prep ("#/techunit/u01" → "tp-path"); None en modo foco (#/techl/…)."""
+    return _TAB_OF.get(hash.lstrip("#/").split("/")[0].split("?")[0])
 
 # antes que la app, en cada documento del contexto: Tech Prep encendido y la Puerta pasada en esta sesión
 ENABLE = """(() => { try { localStorage.setItem('tech:on', 'true'); sessionStorage.setItem('tech:in', '1'); } catch (e) {} })();"""

@@ -8,6 +8,7 @@ import re
 
 import common as C
 import routes as R
+import tech_common as TC
 
 TABS = [("hoy", "Hoy"), ("aprender", "Aprender"), ("jugar", "Jugar"), ("granja", "Granja"), ("premios", "Premios")]
 
@@ -65,13 +66,14 @@ def test_tabbar_on_every_route():
             for r in R.all_routes():
                 C.goto(page, r["hash"])
                 b = page.evaluate(_BAR)
-                exp = _expect_tab(r["name"])
+                tech = r.get("tech")   # (con VOCAB_TECH=1: las rutas de Tech Prep, con sus cinco pestañas en inglés)
+                exp = TC.tab_of(r["hash"]) if tech else _expect_tab(r["name"])
                 if b["role"] != "tablist" or not b["land"]:
                     probs.append(f"{kind} {r['name']}: la lista de pestañas tiene role={b['role']} (nav como punto de referencia: {b['land']})")
-                if [(t["id"], t["label"]) for t in b["tabs"]] != TABS:
+                if [(t["id"], t["label"]) for t in b["tabs"]] != (TC.TABS if tech else TABS):
                     probs.append(f"{kind} {r['name']}: pestañas {[(t['id'], t['label']) for t in b['tabs']]}")
                 sel = [t["id"] for t in b["tabs"] if t["sel"] == "true"]
-                if sel != [exp]:
+                if sel != [exp] and not (tech and exp is None):   # (en el modo foco de Tech Prep, ninguna en particular)
                     probs.append(f"{kind} {r['name']}: pestaña marcada {sel}, se esperaba {exp}")
                 if [t["ti"] for t in b["tabs"]].count(0) != 1:
                     probs.append(f"{kind} {r['name']}: el foco itinerante no está en una sola pestaña: {[t['ti'] for t in b['tabs']]}")

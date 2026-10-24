@@ -776,6 +776,9 @@ dialog#tp-set .m-grab{flex:none;margin:0;position:relative}
 .tp-off-p[hidden]{display:none}
 .tp-off-p>i{display:block;height:100%;width:0;background:var(--teal)}
 dialog#tp-erase .tp-stop-b .glass-btn{white-space:normal}
+/* en claro, el texto secundario de todas las hojas de vidrio de Tech Prep, un poco más fuerte (≥ 4,5:1 sobre el vidrio
+   con el fondo oscurecido detrás) */
+:root:not([data-theme=dark]) dialog.tp-sheet.glass{--label2:rgba(60,60,67,.86)}
 @media (min-width:820px){dialog#tp-set.m-sheet{height:fit-content;max-height:min(760px,calc(100dvh - 152px))}}
 @media (forced-colors:active){.tp-say,.tp-chip,.tp-wk span{border:1px solid CanvasText}}
 `;
