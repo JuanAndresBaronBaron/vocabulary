@@ -650,6 +650,7 @@ dialog.ar-up-d{max-width:440px}
 .gm-short .ar-let{width:min(88px,70%);font-size:3rem}
 .gm-short .ar-term b{font-size:1.3rem}
 :root[data-theme=dark] .ar-pic,:root[data-theme=dark] .ar-sgt{background:#F2F2F7}
+:root[data-theme=dark] .ar-let{background:#F2F2F7;color:#0b2545}
 @media (prefers-reduced-motion: reduce){.ar-c,.ar-pic{transition:none;animation:none}.ar-up-pic img{animation:none}}
 @media (forced-colors:active){.ar-rk,.ar-li,.ar-c{border:1px solid CanvasText}}`;
 function css(){
