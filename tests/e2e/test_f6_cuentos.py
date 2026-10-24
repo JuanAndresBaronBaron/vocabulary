@@ -28,6 +28,7 @@ import common as C
 
 OUT = C.CAPTURAS / "F6"
 _AUDIT = (C.HERE / "audit.js").read_text(encoding="utf-8")
+_A11Y = (C.HERE / "a11y.js").read_text(encoding="utf-8")
 IDX = json.loads((C.REPO / "data" / "stories" / "index.json").read_text(encoding="utf-8"))
 AB = {"english": "en", "français": "fr", "dansk": "da"}
 CODE = {"english": "en-GB", "français": "fr-FR", "dansk": "da-DK"}
@@ -1078,8 +1079,9 @@ def test_export_matches_baseline():
 def test_captures_no_console_errors_reduced_motion():
     """Capturas en /mnt/project-files/rediseno/capturas/F6/ (F6i-*): estantería, hoja de un cuento cerrado, portada, una
     página, el globo de una palabra, la elección, el final; a 360 y 390 px y en el ordenador, claro y oscuro. En todas:
-    contraste suficiente, sin colores fuera de la paleta, sin errores de consola. Con «Reducir movimiento», ninguna
-    animación del cuento dura más de 160 ms."""
+    contraste suficiente, sin colores fuera de la paleta, a11y.js sin fallos (nombres, dibujos, cada palabra y botón de
+    44 px o más, diálogos modales con nombre) y sin errores de consola. Con «Reducir movimiento», ninguna animación del
+    cuento dura más de 160 ms."""
     probs = []
     runs = [("phone", 360, "light"), ("phone", 390, "light"), ("phone", 390, "dark"), ("desk", 1280, "light"), ("desk", 1280, "dark")]
     for kind, w, scheme in runs:
@@ -1096,6 +1098,9 @@ def test_captures_no_console_errors_reduced_motion():
                 a = page.evaluate(_AUDIT, {"what": ["contrast", "palette"]})
                 for x in a["contrast"] + a["palette"]:
                     probs.append(f"{tag}-{name}: {x}")
+                b = page.evaluate(_A11Y, {})
+                for k in ("names", "roles", "images", "targets", "ids", "dialogs", "focusable"):
+                    probs.extend(f"{tag}-{name} [{k}] {x}" for x in b.get(k, []))
                 C.shot(page, f"{tag}-{name}", OUT, full_page=False)
 
             snap("estanteria")

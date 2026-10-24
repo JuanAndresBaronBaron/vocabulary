@@ -226,10 +226,10 @@ dialog.st-sh .st-ls-p{margin:0 0 12px;font:400 var(--fs-body)/1.4 var(--f-text);
 .st-stks img{display:block;width:100%;height:auto;aspect-ratio:1/1;object-fit:contain}
 .st-body{display:flex;flex-direction:column;gap:12px;padding:0 4px}
 .st-kick{margin:0;color:var(--label2);font:700 var(--fs-note)/1.3 var(--f-text)}
-.st-txt{margin:0;font:800 min(calc(1.75rem*var(--k)),40px)/1.42 var(--f-round);color:var(--label);overflow-wrap:normal;word-break:normal;hyphens:manual;text-wrap:pretty}
-.st-title{font-size:min(calc(2rem*var(--k)),46px);line-height:1.25;text-wrap:balance}
+.st-txt{margin:0;font:800 min(calc(1.75rem*var(--k)),40px)/1.6 var(--f-round);color:var(--label);overflow-wrap:normal;word-break:normal;hyphens:manual;text-wrap:pretty}
+.st-title{font-size:min(calc(2rem*var(--k)),46px);line-height:1.4;text-wrap:balance}
 .st-u{display:inline-block;margin:0 -3px;padding:0 3px;border:0;border-radius:10px;background:transparent;color:inherit;font:inherit;line-height:inherit;letter-spacing:inherit;
-  text-align:inherit;vertical-align:baseline;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
+  text-align:center;vertical-align:baseline;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color var(--d-fast,160ms),color var(--d-fast,160ms)}
 .st-u.is-say{background:var(--gold-soft);box-shadow:0 0 0 2px var(--gold-soft)}
 .st-u.is-tap{background:var(--brand-fill);color:#fff;box-shadow:none}
 .st-u:focus-visible{outline:3px solid var(--brand-tint);outline-offset:1px}
@@ -264,7 +264,7 @@ dialog.st-sh .st-ls-p{margin:0 0 12px;font:400 var(--fs-body)/1.4 var(--f-text);
 .st-fox{height:136px;display:grid;place-items:end center}
 .st-fox .hero{animation:st-hop .62s cubic-bezier(.3,.7,.4,1) .15s 2 both}
 @keyframes st-hop{0%,100%{translate:0 0;rotate:0deg}40%{translate:0 -18px;rotate:-4deg}70%{translate:0 0;rotate:3deg}}
-.st-end-t{margin:0;font:800 var(--fs-lt)/1.15 var(--f-round)}
+.st-end-t{margin:0;font:800 var(--fs-lt)/1.3 var(--f-round)}
 .st-end .ipa{font-size:var(--fs-sub)}
 .st-end-m{margin:0;font:700 var(--fs-body)/1.4 var(--f-text);text-wrap:balance}
 .st-ends{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:12px 16px;margin:0;padding:0;list-style:none}
@@ -339,6 +339,17 @@ function model(text, gloss, pgl){
   const sents = [], re = /[^.!?…]+(?:[.!?…]+|$)/g;
   while((m = re.exec(text))){ if(!m[0].length){ re.lastIndex++; continue; } if(/[\p{L}\p{N}]/u.test(m[0])) sents.push({s: m.index, e: m.index + m[0].length}); }
   return {text, toks, units, sents};
+}
+/* cada palabra se toca con el dedo: 44 px de ancho como poco. Las cortas («is», «a», «på») crecen hasta 44 px y se comen
+   parte del espacio de al lado (como mucho 8 px por lado: apenas pisan el borde de la vecina), así casi no se separan más */
+function fitTaps(root){
+  root.querySelectorAll(".st-u").forEach(b => { b.style.minWidth = ""; b.style.marginLeft = b.style.marginRight = ""; });
+  root.querySelectorAll(".st-u").forEach(b => {
+    const w = b.getBoundingClientRect().width;
+    if(!w || w >= 44) return;
+    const m = -Math.min(8, 3 + (44 - w) / 2);
+    b.style.minWidth = "44px"; b.style.marginLeft = b.style.marginRight = `${m.toFixed(1)}px`;
+  });
 }
 function unitsHtml(M){
   let out = "", at = 0;
@@ -679,6 +690,7 @@ function show(dir){
   closeBub();
   R.M = x.k === "cover" ? model(R.s.title, R.s.gloss) : model(x.pg.t, R.s.gloss, x.pg.gl);
   stage.innerHTML = pageHtml(x);
+  fitTaps(stage);
   const el = stage.firstElementChild;
   bar(); dock();
   const lv = $("#st-live"); if(lv) lv.textContent = R.p ? (x.k === "choice" ? "Elige el final" : `Página ${R.p}`) : R.s.title;
@@ -736,6 +748,7 @@ function end(){
     <ul class="st-ends" aria-label="Finales">${opts.map(o => `<li class="st-endc${res.ends.includes(o.key) ? " ok" : ""}"><img src="${esc(o.img)}" alt="" draggable="false">${res.ends.includes(o.key) ? `<span class="ck" aria-hidden="true">${ico("check", "bold", 16)}</span>` : ""}<span class="vh">${esc(o.es)}: ${res.ends.includes(o.key) ? "visto" : "por descubrir"}</span></li>`).join("")}
       <li class="st-ends-t">${res.ends.length >= 2 ? "¡Has encontrado los 2 finales!" : "Has encontrado 1 de 2 finales"}</li></ul>
     <p class="st-note" id="st-note" role="status"></p></article>`;
+  fitTaps(stage);
   const other = opts.find(o => !res.ends.includes(o.key));
   $("#st-dock").innerHTML = `<button type="button" class="glass-btn glass-btn--lg st-again" id="st-again">${ico(other ? "sparkle" : "arrow-counter-clockwise", "bold", 20)}${other ? "Otro final" : "Otra vez"}</button>
     <a class="glass-btn glass-btn--pri glass-btn--lg st-more" id="st-more" href="#/cuentos" data-key="enter">Más cuentos</a>`;
@@ -795,7 +808,10 @@ function placeBub(b, anchor){
 }
 DOC.addEventListener("pointerdown", e => { if(BUB && e.target && e.target.closest && !e.target.closest("#st-bub, .st-u")) closeBub(); }, true);
 DOC.addEventListener("keydown", e => { if(BUB && e.key === "Escape"){ e.preventDefault(); e.stopPropagation(); closeBub(); } }, true);
-W.addEventListener("resize", closeBub);
+/* al girar o cambiar el tamaño cambia la letra: se vuelven a medir las palabras cortas (y al llegar la fuente) */
+const refit = () => { const st = R && $("#st-stage"); if(st) fitTaps(st); };
+W.addEventListener("resize", () => { closeBub(); refit(); });
+try{ DOC.fonts.ready.then(refit); DOC.fonts.addEventListener("loadingdone", refit); }catch(e){}
 W.addEventListener("scroll", () => { if(BUB) closeBub(); }, {passive: true});
 
 async function reader(parts){
