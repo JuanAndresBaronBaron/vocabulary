@@ -1,0 +1,173 @@
+{
+ "v": 1,
+ "id": "da-familie",
+ "lang": "dansk",
+ "city": "Copenhague",
+ "t": "La familia de Zorro",
+ "lines": [
+  {
+   "say": "Hej! Det er Ræven! Jeg er hjemme hos min mor i København.",
+   "es": "¡Hola! ¡Soy Zorro! Estoy en casa de mi madre, en Copenhague.",
+   "k": [
+    {
+     "t": "Hej",
+     "r": "w43|hola"
+    },
+    {
+     "t": "mor",
+     "r": "familia|Madre"
+    }
+   ]
+  },
+  {
+   "say": "Min mor har en kat. Den hedder Mis.",
+   "es": "Mi madre tiene un gato. Se llama Mis.",
+   "k": [
+    {
+     "t": "kat",
+     "r": "animales|Gato"
+    }
+   ]
+  },
+  {
+   "say": "Hvilket dyr har min mor?",
+   "es": "¿Qué animal tiene mi madre?",
+   "a": [
+    {
+     "r": "animales|Gato"
+    },
+    {
+     "r": "animales|Perro"
+    },
+    {
+     "r": "animales|Conejo"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, en kat! Den hedder Mis.",
+    "es": "¡Sí, un gato! Se llama Mis."
+   },
+   "no": {
+    "say": "Det er en kat! Den hedder Mis.",
+    "es": "¡Es un gato! Se llama Mis."
+   }
+  },
+  {
+   "say": "Min søster spiller guitar. Hun spiller rigtig godt!",
+   "es": "Mi hermana toca la guitarra. ¡Toca muy bien!",
+   "k": [
+    {
+     "t": "søster",
+     "r": "familia|Hermana"
+    },
+    {
+     "t": "guitar",
+     "r": "w13|guitarra"
+    }
+   ]
+  },
+  {
+   "say": "Hvad spiller min søster?",
+   "es": "¿Qué toca mi hermana?",
+   "a": [
+    {
+     "r": "w13|guitarra"
+    },
+    {
+     "r": "w13|piano"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, guitar! Pling, pling!",
+    "es": "¡Sí, la guitarra! ¡Plin, plin!"
+   },
+   "no": {
+    "say": "Hun spiller guitar! Pling, pling!",
+    "es": "¡Toca la guitarra! ¡Plin, plin!"
+   }
+  },
+  {
+   "say": "Min far laver mad. Han laver suppe.",
+   "es": "Mi padre está cocinando. Hace sopa.",
+   "k": [
+    {
+     "t": "far",
+     "r": "familia|Padre"
+    },
+    {
+     "t": "suppe",
+     "r": "w03|sopa"
+    }
+   ]
+  },
+  {
+   "say": "Hvem laver mad?",
+   "es": "¿Quién cocina?",
+   "a": [
+    {
+     "r": "familia|Padre",
+     "img": "img/om_1F468.png"
+    },
+    {
+     "r": "familia|Hermana",
+     "img": "img/om_1F467.png"
+    },
+    {
+     "r": "familia|Madre",
+     "img": "img/om_1F469.png"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, min far!",
+    "es": "¡Sí, mi padre!"
+   },
+   "no": {
+    "say": "Det er min far! Han laver suppe.",
+    "es": "¡Es mi padre! Hace sopa."
+   }
+  },
+  {
+   "say": "Og du? Hvem er hjemme hos dig nu?",
+   "es": "¿Y tú? ¿Quién está en casa contigo ahora?",
+   "a": [
+    {
+     "r": "w01|mamá",
+     "img": "img/om_1F469.png",
+     "re": {
+      "say": "Din mor! Sig hej til din mor fra mig!",
+      "es": "¡Tu mamá! ¡Saluda a tu mamá de mi parte!"
+     }
+    },
+    {
+     "r": "w01|papá",
+     "img": "img/om_1F468.png",
+     "re": {
+      "say": "Din far! Sig hej til din far fra mig!",
+      "es": "¡Tu papá! ¡Saluda a tu papá de mi parte!"
+     }
+    },
+    {
+     "r": "familia|Hermano",
+     "img": "img/om_1F466.png",
+     "re": {
+      "say": "Din bror! Sig hej til ham fra mig!",
+      "es": "¡Tu hermano! ¡Salúdalo de mi parte!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Nu skal vi spise. Hej hej! Vi ses!",
+   "es": "Ahora vamos a comer. ¡Adiós! ¡Nos vemos!",
+   "k": [
+    {
+     "t": "Hej hej",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

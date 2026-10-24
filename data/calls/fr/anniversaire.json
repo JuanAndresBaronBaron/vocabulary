@@ -1,0 +1,186 @@
+{
+ "v": 1,
+ "id": "fr-anniversaire",
+ "lang": "français",
+ "city": "París",
+ "t": "¡El cumpleaños de Zorro!",
+ "lines": [
+  {
+   "say": "Allô ! C'est Renard ! Aujourd'hui, c'est mon anniversaire !",
+   "es": "¡Hola! ¡Soy Zorro! ¡Hoy es mi cumpleaños!",
+   "k": [
+    {
+     "t": "anniversaire",
+     "r": "w13|cumpleaños"
+    }
+   ]
+  },
+  {
+   "say": "Mes amis font une fête. Il y a un grand gâteau au chocolat.",
+   "es": "Mis amigos hacen una fiesta. Hay un gran pastel de chocolate.",
+   "k": [
+    {
+     "t": "amis",
+     "r": "w01|amigo"
+    },
+    {
+     "t": "gâteau",
+     "r": "w03|pastel, tarta"
+    },
+    {
+     "t": "chocolat",
+     "r": "w03|chocolate"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce qu'il y a pour la fête ?",
+   "es": "¿Qué hay para la fiesta?",
+   "a": [
+    {
+     "r": "w03|pastel, tarta"
+    },
+    {
+     "r": "w03|sopa"
+    },
+    {
+     "r": "w03|queso"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, un gâteau ! Miam !",
+    "es": "¡Sí, un pastel! ¡Ñam!"
+   },
+   "no": {
+    "say": "Il y a un gâteau ! Miam !",
+    "es": "¡Hay un pastel! ¡Ñam!"
+   }
+  },
+  {
+   "say": "Mon ami le chien m'offre un cadeau. C'est rond, et on joue avec.",
+   "es": "Mi amigo el perro me hace un regalo. Es redondo y se juega con él.",
+   "k": [
+    {
+     "t": "chien",
+     "r": "animales|Perro"
+    },
+    {
+     "t": "cadeau",
+     "r": "w13|regalo"
+    },
+    {
+     "t": "rond",
+     "r": "w31|redondo"
+    }
+   ]
+  },
+  {
+   "say": "C'est quoi, mon cadeau ?",
+   "es": "¿Qué es mi regalo?",
+   "a": [
+    {
+     "r": "w13|pelota, balón"
+    },
+    {
+     "r": "w10|libro"
+    },
+    {
+     "r": "w05|zapato"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, un ballon ! Merci, le chien !",
+    "es": "¡Sí, una pelota! ¡Gracias, perro!"
+   },
+   "no": {
+    "say": "C'est un ballon ! Merci, le chien !",
+    "es": "¡Es una pelota! ¡Gracias, perro!"
+   }
+  },
+  {
+   "say": "Et maintenant, de la musique ! Mon amie la vache joue de la guitare.",
+   "es": "¡Y ahora, música! Mi amiga la vaca toca la guitarra.",
+   "k": [
+    {
+     "t": "musique",
+     "r": "w13|música"
+    },
+    {
+     "t": "vache",
+     "r": "animales|Vaca"
+    },
+    {
+     "t": "guitare",
+     "r": "w13|guitarra"
+    }
+   ]
+  },
+  {
+   "say": "Qui joue de la guitare ?",
+   "es": "¿Quién toca la guitarra?",
+   "a": [
+    {
+     "r": "animales|Vaca"
+    },
+    {
+     "r": "animales|Cerdo"
+    },
+    {
+     "r": "animales|Gallina"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, la vache ! Meuh !",
+    "es": "¡Sí, la vaca! ¡Muu!"
+   },
+   "no": {
+    "say": "C'est la vache ! Meuh !",
+    "es": "¡Es la vaca! ¡Muu!"
+   }
+  },
+  {
+   "say": "Et toi, qu'est-ce que tu préfères pour ton anniversaire ?",
+   "es": "Y tú, ¿qué es lo que más te gusta de tu cumpleaños?",
+   "a": [
+    {
+     "r": "w03|pastel, tarta",
+     "re": {
+      "say": "Le gâteau ! Moi aussi !",
+      "es": "¡El pastel! ¡A mí también!"
+     }
+    },
+    {
+     "r": "w13|regalo",
+     "re": {
+      "say": "Les cadeaux ! Super !",
+      "es": "¡Los regalos! ¡Genial!"
+     }
+    },
+    {
+     "r": "w13|música",
+     "re": {
+      "say": "La musique ! On danse !",
+      "es": "¡La música! ¡A bailar!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Merci, et au revoir ! À bientôt !",
+   "es": "¡Gracias, y adiós! ¡Hasta pronto!",
+   "k": [
+    {
+     "t": "Merci",
+     "r": "w43|gracias"
+    },
+    {
+     "t": "au revoir",
+     "r": "w43|adiós|1"
+    }
+   ]
+  }
+ ]
+}

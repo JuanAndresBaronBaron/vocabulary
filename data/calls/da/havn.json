@@ -1,0 +1,174 @@
+{
+ "v": 1,
+ "id": "da-havn",
+ "lang": "dansk",
+ "city": "Copenhague",
+ "t": "En el puerto",
+ "lines": [
+  {
+   "say": "Hej! Det er Ræven! Jeg er ved havnen i København.",
+   "es": "¡Hola! ¡Soy Zorro! Estoy en el puerto de Copenhague.",
+   "k": [
+    {
+     "t": "Hej",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "Her kan jeg se Den Lille Havfrue. Hun sidder på en sten.",
+   "es": "Desde aquí veo la Sirenita. Está sentada en una piedra."
+  },
+  {
+   "say": "Der er mange både her. Jeg sidder i en lille båd.",
+   "es": "Aquí hay muchos barcos. Estoy sentado en un barco pequeño.",
+   "k": [
+    {
+     "t": "lille",
+     "r": "w31|pequeño"
+    },
+    {
+     "t": "båd",
+     "r": "w07|barco"
+    }
+   ]
+  },
+  {
+   "say": "Hvor er jeg?",
+   "es": "¿Dónde estoy?",
+   "a": [
+    {
+     "r": "w07|barco"
+    },
+    {
+     "r": "w07|coche"
+    },
+    {
+     "r": "w07|autobús"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, i en båd!",
+    "es": "¡Sí, en un barco!"
+   },
+   "no": {
+    "say": "Jeg er i en båd!",
+    "es": "¡Estoy en un barco!"
+   }
+  },
+  {
+   "say": "I vandet er der mange fisk. Se, en fisk hopper!",
+   "es": "En el agua hay muchos peces. ¡Mira, un pez salta!",
+   "k": [
+    {
+     "t": "vandet",
+     "r": "w03|agua"
+    },
+    {
+     "t": "fisk",
+     "r": "animales|Pez"
+    }
+   ]
+  },
+  {
+   "say": "Hvad hopper i vandet?",
+   "es": "¿Qué salta en el agua?",
+   "a": [
+    {
+     "r": "animales|Pez"
+    },
+    {
+     "r": "animales|Vaca"
+    },
+    {
+     "r": "animales|Caballo"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, en fisk! Plask!",
+    "es": "¡Sí, un pez! ¡Chof!"
+   },
+   "no": {
+    "say": "Det er en fisk! Plask!",
+    "es": "¡Es un pez! ¡Chof!"
+   }
+  },
+  {
+   "say": "Solen skinner. Jeg spiser en is.",
+   "es": "Brilla el sol. Me como un helado.",
+   "k": [
+    {
+     "t": "Solen",
+     "r": "w09|sol"
+    },
+    {
+     "t": "is",
+     "r": "w03|helado"
+    }
+   ]
+  },
+  {
+   "say": "Hvad spiser jeg?",
+   "es": "¿Qué me como?",
+   "a": [
+    {
+     "r": "w03|helado"
+    },
+    {
+     "r": "w03|pan"
+    },
+    {
+     "r": "w03|queso"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, en is! Den er kold!",
+    "es": "¡Sí, un helado! ¡Está frío!"
+   },
+   "no": {
+    "say": "Det er en is! Mmm, den er kold!",
+    "es": "¡Es un helado! ¡Mmm, está frío!"
+   }
+  },
+  {
+   "say": "Og du? Hvilken farve kan du bedst lide?",
+   "es": "¿Y tú? ¿Qué color te gusta más?",
+   "a": [
+    {
+     "r": "colores|Azul",
+     "re": {
+      "say": "Blå! Ligesom havet!",
+      "es": "¡Azul! ¡Como el mar!"
+     }
+    },
+    {
+     "r": "colores|Verde",
+     "re": {
+      "say": "Grøn! Ligesom et træ!",
+      "es": "¡Verde! ¡Como un árbol!"
+     }
+    },
+    {
+     "r": "colores|Rojo",
+     "re": {
+      "say": "Rød! Ligesom et æble!",
+      "es": "¡Rojo! ¡Como una manzana!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Nu sejler båden hjem. Hej hej! Vi ses!",
+   "es": "Ahora el barco vuelve a casa. ¡Adiós! ¡Nos vemos!",
+   "k": [
+    {
+     "t": "Hej hej",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,175 @@
+{
+ "v": 1,
+ "id": "da-sne",
+ "lang": "dansk",
+ "city": "Copenhague",
+ "t": "Nieve en Copenhague",
+ "lines": [
+  {
+   "say": "Hej! Det er Ræven! I dag sner det i København!",
+   "es": "¡Hola! ¡Soy Zorro! ¡Hoy nieva en Copenhague!",
+   "k": [
+    {
+     "t": "Hej",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "Alt er hvidt. Jeg laver en snemand!",
+   "es": "Todo está blanco. ¡Estoy haciendo un muñeco de nieve!",
+   "k": [
+    {
+     "t": "hvidt",
+     "r": "colores|Blanco"
+    }
+   ]
+  },
+  {
+   "say": "Det er koldt, så jeg har en varm frakke på.",
+   "es": "Hace frío, así que llevo un abrigo calentito.",
+   "k": [
+    {
+     "t": "koldt",
+     "r": "w31|frío"
+    },
+    {
+     "t": "frakke",
+     "r": "w05|abrigo"
+    }
+   ]
+  },
+  {
+   "say": "Hvad har jeg på?",
+   "es": "¿Qué llevo puesto?",
+   "a": [
+    {
+     "r": "w05|abrigo"
+    },
+    {
+     "r": "w05|camiseta"
+    },
+    {
+     "r": "w05|sombrero"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, en frakke! Den er varm.",
+    "es": "¡Sí, un abrigo! Es calentito."
+   },
+   "no": {
+    "say": "En frakke! Den er varm.",
+    "es": "¡Un abrigo! Es calentito."
+   }
+  },
+  {
+   "say": "Min bror er her også. Han kaster en snebold!",
+   "es": "Mi hermano también está aquí. ¡Tira una bola de nieve!",
+   "k": [
+    {
+     "t": "bror",
+     "r": "familia|Hermano"
+    }
+   ]
+  },
+  {
+   "say": "Hvem er her også?",
+   "es": "¿Quién está aquí también?",
+   "a": [
+    {
+     "r": "familia|Hermano",
+     "img": "img/om_1F466.png"
+    },
+    {
+     "r": "familia|Bebé",
+     "img": "img/om_1F476.png"
+    },
+    {
+     "r": "familia|Abuelo",
+     "img": "img/calls/abuelo.png"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, min bror!",
+    "es": "¡Sí, mi hermano!"
+   },
+   "no": {
+    "say": "Det er min bror!",
+    "es": "¡Es mi hermano!"
+   }
+  },
+  {
+   "say": "Nu fryser vi. Vi drikker varm chokolade.",
+   "es": "Ahora tenemos frío. Bebemos chocolate caliente.",
+   "k": [
+    {
+     "t": "chokolade",
+     "r": "w03|chocolate"
+    }
+   ]
+  },
+  {
+   "say": "Hvad drikker vi?",
+   "es": "¿Qué bebemos?",
+   "a": [
+    {
+     "r": "w03|chocolate"
+    },
+    {
+     "r": "w03|agua"
+    },
+    {
+     "r": "w03|zumo, jugo"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, varm chokolade! Mmm!",
+    "es": "¡Sí, chocolate caliente! ¡Mmm!"
+   },
+   "no": {
+    "say": "Vi drikker varm chokolade! Mmm!",
+    "es": "¡Bebemos chocolate caliente! ¡Mmm!"
+   }
+  },
+  {
+   "say": "Og du? Hvad kan du bedst lide: sne, sol eller regn?",
+   "es": "¿Y tú? ¿Qué te gusta más: la nieve, el sol o la lluvia?",
+   "a": [
+    {
+     "r": "w09|nieve",
+     "re": {
+      "say": "Sne! Så kan vi lave en snemand!",
+      "es": "¡La nieve! ¡Así podemos hacer un muñeco de nieve!"
+     }
+    },
+    {
+     "r": "w09|sol",
+     "re": {
+      "say": "Sol! Så kan vi tage på stranden!",
+      "es": "¡El sol! ¡Así podemos ir a la playa!"
+     }
+    },
+    {
+     "r": "w09|lluvia",
+     "re": {
+      "say": "Regn! Plask, plask!",
+      "es": "¡La lluvia! ¡Chof, chof!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Hej hej! Vi ses!",
+   "es": "¡Adiós! ¡Nos vemos!",
+   "k": [
+    {
+     "t": "Hej hej",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

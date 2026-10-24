@@ -1,0 +1,184 @@
+{
+ "v": 1,
+ "id": "da-cykel",
+ "lang": "dansk",
+ "city": "Copenhague",
+ "t": "En bici por Copenhague",
+ "lines": [
+  {
+   "say": "Hej! Det er mig, Ræven! Jeg ringer fra København.",
+   "es": "¡Hola! ¡Soy yo, Zorro! Te llamo desde Copenhague.",
+   "k": [
+    {
+     "t": "Hej",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "I København cykler alle. Jeg har også en cykel!",
+   "es": "En Copenhague todo el mundo va en bici. ¡Yo también tengo una bici!",
+   "k": [
+    {
+     "t": "cykel",
+     "r": "w07|bicicleta"
+    }
+   ]
+  },
+  {
+   "say": "Min cykel er blå, ligesom himlen.",
+   "es": "Mi bici es azul, como el cielo.",
+   "k": [
+    {
+     "t": "blå",
+     "r": "colores|Azul"
+    },
+    {
+     "t": "himlen",
+     "r": "w09|cielo"
+    }
+   ]
+  },
+  {
+   "say": "Hvilken farve har min cykel?",
+   "es": "¿De qué color es mi bici?",
+   "a": [
+    {
+     "r": "colores|Azul"
+    },
+    {
+     "r": "colores|Rojo"
+    },
+    {
+     "r": "colores|Amarillo"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja! Den er blå!",
+    "es": "¡Sí! ¡Es azul!"
+   },
+   "no": {
+    "say": "Den er blå, ligesom himlen!",
+    "es": "¡Es azul, como el cielo!"
+   }
+  },
+  {
+   "say": "Jeg cykler i parken. Der er en stor hund. Den siger vov vov!",
+   "es": "Voy en bici por el parque. Hay un perro grande. ¡Hace guau, guau!",
+   "k": [
+    {
+     "t": "parken",
+     "r": "w06|parque"
+    },
+    {
+     "t": "stor",
+     "r": "w31|grande"
+    },
+    {
+     "t": "hund",
+     "r": "animales|Perro"
+    }
+   ]
+  },
+  {
+   "say": "Hvilket dyr siger vov vov?",
+   "es": "¿Qué animal hace guau, guau?",
+   "a": [
+    {
+     "r": "animales|Perro"
+    },
+    {
+     "r": "animales|Gato"
+    },
+    {
+     "r": "animales|Caballo"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, en hund!",
+    "es": "¡Sí, un perro!"
+   },
+   "no": {
+    "say": "Det er en hund! Vov vov!",
+    "es": "¡Es un perro! ¡Guau, guau!"
+   }
+  },
+  {
+   "say": "Nu er jeg sulten. Jeg køber en kage med chokolade.",
+   "es": "Ahora tengo hambre. Me compro un pastel de chocolate.",
+   "k": [
+    {
+     "t": "kage",
+     "r": "w03|pastel, tarta"
+    },
+    {
+     "t": "chokolade",
+     "r": "w03|chocolate"
+    }
+   ]
+  },
+  {
+   "say": "Hvad køber jeg?",
+   "es": "¿Qué me compro?",
+   "a": [
+    {
+     "r": "w03|pastel, tarta"
+    },
+    {
+     "r": "w03|manzana"
+    },
+    {
+     "r": "w03|plátano"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, en kage! Mmm!",
+    "es": "¡Sí, un pastel! ¡Mmm!"
+   },
+   "no": {
+    "say": "En kage! Med chokolade!",
+    "es": "¡Un pastel! ¡De chocolate!"
+   }
+  },
+  {
+   "say": "Og du? Hvad kan du bedst lide: en cykel, en bil eller et tog?",
+   "es": "¿Y tú? ¿Qué te gusta más: la bici, el coche o el tren?",
+   "a": [
+    {
+     "r": "w07|bicicleta",
+     "re": {
+      "say": "En cykel! Ligesom mig!",
+      "es": "¡La bici! ¡Como yo!"
+     }
+    },
+    {
+     "r": "w07|coche",
+     "re": {
+      "say": "En bil! Brum brum!",
+      "es": "¡El coche! ¡Brum, brum!"
+     }
+    },
+    {
+     "r": "w07|tren",
+     "re": {
+      "say": "Et tog! Tøf tøf!",
+      "es": "¡El tren! ¡Chu, chu!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Hej hej! Vi ses!",
+   "es": "¡Adiós! ¡Nos vemos!",
+   "k": [
+    {
+     "t": "Hej hej",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

@@ -854,6 +854,8 @@ dialog label,dialog .dlab{display:block;font-weight:600;margin:14px 0 6px}
 <symbol id="i-copy-bold" viewBox="0 0 256 256"><path d="M216,28H88A12,12,0,0,0,76,40V76H40A12,12,0,0,0,28,88V216a12,12,0,0,0,12,12H168a12,12,0,0,0,12-12V180h36a12,12,0,0,0,12-12V40A12,12,0,0,0,216,28ZM156,204H52V100H156Zm48-48H180V88a12,12,0,0,0-12-12H100V52H204Z"/></symbol>
 <symbol id="i-clipboard-text-bold" viewBox="0 0 256 256"><path d="M172,164a12,12,0,0,1-12,12H96a12,12,0,0,1,0-24h64A12,12,0,0,1,172,164Zm-12-52H96a12,12,0,0,0,0,24h64a12,12,0,0,0,0-24Zm60-64V216a20,20,0,0,1-20,20H56a20,20,0,0,1-20-20V48A20,20,0,0,1,56,28H90.53a51.88,51.88,0,0,1,74.94,0H200A20,20,0,0,1,220,48ZM100.29,60h55.42a28,28,0,0,0-55.42,0ZM196,52H178.59A52.13,52.13,0,0,1,180,64v8a12,12,0,0,1-12,12H88A12,12,0,0,1,76,72V64a52.13,52.13,0,0,1,1.41-12H60V212H196Z"/></symbol>
 <symbol id="i-envelope-open-bold" viewBox="0 0 256 256"><path d="M230.66,86l-96-64a12,12,0,0,0-13.32,0l-96,64A12,12,0,0,0,20,96V200a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V96A12,12,0,0,0,230.66,86ZM89.81,152,44,184.31v-65ZM114.36,164h27.28L187,196H69.05ZM166.19,152,212,119.29v65ZM128,46.42l74.86,49.91L141.61,140H114.39L53.14,96.33Z"/></symbol>
+<symbol id="i-phone-fill" viewBox="0 0 256 256"><path d="M231.88,175.08A56.26,56.26,0,0,1,176,224C96.6,224,32,159.4,32,80A56.26,56.26,0,0,1,80.92,24.12a16,16,0,0,1,16.62,9.52l21.12,47.15,0,.12A16,16,0,0,1,117.39,96c-.18.27-.37.52-.57.77L96,121.45c7.49,15.22,23.41,31,38.83,38.51l24.34-20.71a8.12,8.12,0,0,1,.75-.56,16,16,0,0,1,15.17-1.4l.13.06,47.11,21.11A16,16,0,0,1,231.88,175.08Z"/></symbol>
+<symbol id="i-phone-disconnect-fill" viewBox="0 0 256 256"><path d="M236.28,161.84a16,16,0,0,1-18.38,5.06l-49-17.39-.29-.11a16,16,0,0,1-9.72-11.59l-6.21-29.75h0a76.52,76.52,0,0,0-49.68.11l-5.9,29.52a16,16,0,0,1-9.75,11.73l-.29.11-49,17.37A15.8,15.8,0,0,1,32.35,168a16,16,0,0,1-12.63-6.14c-17.23-22.22-15.3-51.71,4.69-71.71,56.15-56.17,151-56.17,207.18,0h0C251.58,110.13,253.51,139.62,236.28,161.84ZM216,192H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"/></symbol>
 </svg>
 <header class="topbar" id="topbar">
   <a class="tb-back glass lite" id="dv-back" href="#/palabras" data-key="esc" data-key-pos="right"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-caret-left-bold"></use></svg><span>Palabras</span></a>
@@ -1583,6 +1585,10 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "js/phrases.js", "data/phrases.json", "img/games/frases.png",
   "js/navmotion.js",
   "js/parrot.js",
+  "js/calls.js", "data/calls/index.json",
+  "data/calls/en/zoo.json", "data/calls/en/rain.json", "data/calls/en/breakfast.json", "data/calls/en/family.json", "data/calls/en/birthday.json",
+  "data/calls/fr/tour.json", "data/calls/fr/matin.json", "data/calls/fr/pluie.json", "data/calls/fr/famille.json", "data/calls/fr/anniversaire.json",
+  "data/calls/da/cykel.json", "data/calls/da/havn.json", "data/calls/da/bondegaard.json", "data/calls/da/sne.json", "data/calls/da/familie.json",
   "js/stories.js", "data/stories/index.json", "img/games/cuentos.png",
   "data/stories/en/play.json", "data/stories/en/colours.json", "data/stories/en/cake.json", "data/stories/en/night.json",
   "data/stories/fr/play.json", "data/stories/fr/colours.json", "data/stories/fr/cake.json", "data/stories/fr/night.json",
@@ -1740,6 +1746,7 @@ async function downloadAll(){
     if(window.vocabGames && typeof vocabGames.pic === "function") [...imgs].forEach(u => { const p = vocabGames.pic(u); if(p && p !== u) imgs.add(p); });
     if(window.vocabSeason && vocabSeason.images) (await vocabSeason.images()).forEach(u => imgs.add(u));   /* los de las temporadas (img/season) */
     if(window.vocabMailbox && vocabMailbox.images) vocabMailbox.images().forEach(u => imgs.add(u));   /* los del Buzón del tío */
+    if(window.vocabCalls && vocabCalls.images) (await vocabCalls.images()).forEach(u => imgs.add(u));   /* los de las llamadas del zorro (img/calls) */
     if(window.vocabStories && vocabStories.images) (await vocabStories.images()).forEach(u => imgs.add(u));   /* los de los Cuentos del zorro */
     const second = [...[...imgs].map(u => [u, media]), ...ids.map(id => [`audio/${ab}/${id}.mp3`, media])];
     job.total = first.length + second.length;
@@ -2241,13 +2248,14 @@ async function homeSlots(){
   /* el orden de las filas (en cualquier pantalla; las de igual prioridad, en el orden en que se apuntaron):
      1) «¡Tienes carta!» (mail, js/mailbox.js): una carta sin abrir o un candado recién abierto; llega pocas veces y es
         de alguien de casa; 2) un animal que se fue al refugio por hambre (granja, js/farm.js): espera a que lo traigan;
-     3) la temporada (season, js/season.js): pocas semanas al año y la única entrada a #/temporada; 4) una carta con
-     candado aún cerrada y cómo va (mail-lock, js/mailbox.js): dura pocos días; 5) «La frase de la cena» (phrase,
-     js/phrases.js): sale cada día y también está en Juegos › Frases mágicas; 6) el resto. (Google no tiene fila: la
+     3) «1 llamada perdida» del zorro (call, js/calls.js): dura 3 días y se le devuelve la llamada al tocarla;
+     4) la temporada (season, js/season.js): pocas semanas al año y la única entrada a #/temporada; 5) una carta con
+     candado aún cerrada y cómo va (mail-lock, js/mailbox.js): dura pocos días; 6) «La frase de la cena» (phrase,
+     js/phrases.js): sale cada día y también está en Juegos › Frases mágicas; 7) el resto. (Google no tiene fila: la
      partida se guarda sola y su estado está en Ajustes › Para mayores.)
      fit() de js/shortcuts.js quita del final, así que lo último en irse es lo primero de esta lista. Una fila que no
      cabe no gasta su vez: se llama a su .skip(), si la tiene (así puede volver a salir en esta visita). */
-  const PRI = {mail: 6, granja: 5, season: 4, "mail-lock": 2, phrase: 1}, pri = i => PRI[(HOME_SLOTS[i] || {}).id] || 0;
+  const PRI = {mail: 7, granja: 6, call: 5, season: 4, "mail-lock": 2, phrase: 1}, pri = i => PRI[(HOME_SLOTS[i] || {}).id] || 0;
   const ord = vals.map((v, i) => i).sort((a, b) => pri(b) - pri(a) || a - b);
   ord.forEach(i => {
     const f = HOME_SLOTS[i], el = out.length < max ? slotEl(vals[i], f) : null;
@@ -2725,6 +2733,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/mailbox.js?v=22"></script>
 <script src="js/phrases.js?v=22"></script>
 <script src="js/parrot.js?v=22"></script>
+<script src="js/calls.js?v=22"></script>
 <script src="js/stories.js?v=22"></script>
 <script src="js/navmotion.js?v=22"></script>
 </body>

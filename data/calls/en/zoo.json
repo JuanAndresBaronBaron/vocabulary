@@ -1,0 +1,181 @@
+{
+ "v": 1,
+ "id": "en-zoo",
+ "lang": "english",
+ "city": "Londres",
+ "t": "En el zoo",
+ "lines": [
+  {
+   "say": "Hello! It's me, Fox! I'm calling from London.",
+   "es": "¡Hola! ¡Soy yo, Zorro! Te llamo desde Londres.",
+   "k": [
+    {
+     "t": "Hello",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "Today I'm at the zoo. There are lots of animals here!",
+   "es": "Hoy estoy en el zoo. ¡Aquí hay muchos animales!",
+   "k": [
+    {
+     "t": "animals",
+     "r": "w09|animal"
+    }
+   ]
+  },
+  {
+   "say": "I can see a very big animal. It's grey, and it's got a long nose.",
+   "es": "Veo un animal muy grande. Es gris y tiene una nariz muy larga.",
+   "k": [
+    {
+     "t": "big",
+     "r": "w31|grande"
+    },
+    {
+     "t": "grey",
+     "r": "colores|Gris"
+    },
+    {
+     "t": "nose",
+     "r": "w02|nariz"
+    }
+   ]
+  },
+  {
+   "say": "What animal is it?",
+   "es": "¿Qué animal es?",
+   "a": [
+    {
+     "r": "animales|Elefante"
+    },
+    {
+     "r": "w09|ratón"
+    },
+    {
+     "r": "animales|Gato"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes! It's an elephant!",
+    "es": "¡Sí! ¡Es un elefante!"
+   },
+   "no": {
+    "say": "Good try! It's an elephant.",
+    "es": "¡Buen intento! Es un elefante."
+   }
+  },
+  {
+   "say": "Now I can see a tall animal. It eats leaves from the trees.",
+   "es": "Ahora veo un animal alto. Come hojas de los árboles.",
+   "k": [
+    {
+     "t": "tall",
+     "r": "w31|alto|1"
+    },
+    {
+     "t": "trees",
+     "r": "w09|árbol"
+    }
+   ]
+  },
+  {
+   "say": "Is it a giraffe or a penguin?",
+   "es": "¿Es una jirafa o un pingüino?",
+   "a": [
+    {
+     "r": "animales|Jirafa"
+    },
+    {
+     "r": "animales|Pingüino"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "That's right! A giraffe!",
+    "es": "¡Muy bien! ¡Una jirafa!"
+   },
+   "no": {
+    "say": "Look again! It's a giraffe.",
+    "es": "¡Mira otra vez! Es una jirafa."
+   }
+  },
+  {
+   "say": "Oh, I'm hungry! I want some fruit. It's long and yellow.",
+   "es": "¡Ay, tengo hambre! Quiero fruta. Es larga y amarilla.",
+   "k": [
+    {
+     "t": "fruit",
+     "r": "w03|fruta"
+    },
+    {
+     "t": "yellow",
+     "r": "colores|Amarillo"
+    }
+   ]
+  },
+  {
+   "say": "What fruit do I want?",
+   "es": "¿Qué fruta quiero?",
+   "a": [
+    {
+     "r": "w03|plátano"
+    },
+    {
+     "r": "w03|manzana"
+    },
+    {
+     "r": "w03|limón"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, a banana! Yummy!",
+    "es": "¡Sí, un plátano! ¡Qué rico!"
+   },
+   "no": {
+    "say": "It's a banana! Long and yellow.",
+    "es": "¡Es un plátano! Largo y amarillo."
+   }
+  },
+  {
+   "say": "And you? What's your favourite animal?",
+   "es": "¿Y tú? ¿Cuál es tu animal favorito?",
+   "a": [
+    {
+     "r": "animales|Perro",
+     "re": {
+      "say": "A dog! Woof woof! I love dogs.",
+      "es": "¡Un perro! ¡Guau, guau! Me encantan los perros."
+     }
+    },
+    {
+     "r": "animales|Gato",
+     "re": {
+      "say": "A cat! Miaow! Cats are lovely.",
+      "es": "¡Un gato! ¡Miau! Los gatos son preciosos."
+     }
+    },
+    {
+     "r": "animales|Caballo",
+     "re": {
+      "say": "A horse! Horses are fantastic!",
+      "es": "¡Un caballo! ¡Los caballos son fantásticos!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Thank you for talking to me. Bye! See you soon!",
+   "es": "Gracias por hablar conmigo. ¡Adiós! ¡Hasta pronto!",
+   "k": [
+    {
+     "t": "Bye",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

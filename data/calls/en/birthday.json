@@ -1,0 +1,194 @@
+{
+ "v": 1,
+ "id": "en-birthday",
+ "lang": "english",
+ "city": "Londres",
+ "t": "¡Un cumpleaños!",
+ "lines": [
+  {
+   "say": "Hello! It's Fox! Guess what? It's my friend's birthday today!",
+   "es": "¡Hola! ¡Soy Zorro! ¿Sabes qué? ¡Hoy es el cumpleaños de mi amiga!",
+   "k": [
+    {
+     "t": "Hello",
+     "r": "w43|hola"
+    },
+    {
+     "t": "friend",
+     "r": "w01|amigo"
+    },
+    {
+     "t": "birthday",
+     "r": "w13|cumpleaños"
+    }
+   ]
+  },
+  {
+   "say": "Her name is Rosie. She's a rabbit, and she's eight today!",
+   "es": "Se llama Rosie. Es una coneja, ¡y hoy cumple ocho años!",
+   "k": [
+    {
+     "t": "rabbit",
+     "r": "animales|Conejo"
+    }
+   ]
+  },
+  {
+   "say": "There's a big party in the park.",
+   "es": "Hay una gran fiesta en el parque.",
+   "k": [
+    {
+     "t": "park",
+     "r": "w06|parque"
+    }
+   ]
+  },
+  {
+   "say": "What do we eat at a birthday party?",
+   "es": "¿Qué comemos en una fiesta de cumpleaños?",
+   "a": [
+    {
+     "r": "w03|pastel, tarta"
+    },
+    {
+     "r": "w03|sopa"
+    },
+    {
+     "r": "w03|ensalada"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes! A big chocolate cake!",
+    "es": "¡Sí! ¡Un gran pastel de chocolate!"
+   },
+   "no": {
+    "say": "We eat cake! A big chocolate cake!",
+    "es": "¡Comemos pastel! ¡Un gran pastel de chocolate!"
+   }
+  },
+  {
+   "say": "I've got a gift for Rosie. It's round, and you can play football with it.",
+   "es": "Tengo un regalo para Rosie. Es redondo y se puede jugar al fútbol con él.",
+   "k": [
+    {
+     "t": "gift",
+     "r": "w13|regalo"
+    },
+    {
+     "t": "round",
+     "r": "w31|redondo"
+    },
+    {
+     "t": "football",
+     "r": "w13|fútbol"
+    }
+   ]
+  },
+  {
+   "say": "What is my gift?",
+   "es": "¿Cuál es mi regalo?",
+   "a": [
+    {
+     "r": "w13|pelota, balón",
+     "img": "img/om_26BD.png"
+    },
+    {
+     "r": "w10|libro"
+    },
+    {
+     "r": "w07|coche"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, a ball! Rosie loves football.",
+    "es": "¡Sí, una pelota! A Rosie le encanta el fútbol."
+   },
+   "no": {
+    "say": "It's a ball! Rosie loves football.",
+    "es": "¡Es una pelota! A Rosie le encanta el fútbol."
+   }
+  },
+  {
+   "say": "Now there's music. Rosie's grandfather is playing the guitar!",
+   "es": "Ahora hay música. ¡El abuelo de Rosie toca la guitarra!",
+   "k": [
+    {
+     "t": "music",
+     "r": "w13|música"
+    },
+    {
+     "t": "grandfather",
+     "r": "familia|Abuelo"
+    },
+    {
+     "t": "guitar",
+     "r": "w13|guitarra"
+    }
+   ]
+  },
+  {
+   "say": "What is he playing?",
+   "es": "¿Qué toca?",
+   "a": [
+    {
+     "r": "w13|guitarra"
+    },
+    {
+     "r": "w13|piano"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, the guitar! Everybody is dancing.",
+    "es": "¡Sí, la guitarra! Todos están bailando."
+   },
+   "no": {
+    "say": "He's playing the guitar! Everybody is dancing.",
+    "es": "¡Toca la guitarra! Todos están bailando."
+   }
+  },
+  {
+   "say": "What do you like best at a party?",
+   "es": "¿Qué es lo que más te gusta de una fiesta?",
+   "a": [
+    {
+     "r": "w03|pastel, tarta",
+     "re": {
+      "say": "Cake! Yum yum!",
+      "es": "¡El pastel! ¡Ñam, ñam!"
+     }
+    },
+    {
+     "r": "w13|música",
+     "re": {
+      "say": "Music! Let's dance!",
+      "es": "¡La música! ¡A bailar!"
+     }
+    },
+    {
+     "r": "w13|regalo",
+     "re": {
+      "say": "Gifts! How exciting!",
+      "es": "¡Los regalos! ¡Qué emoción!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "I have to go and eat some cake now. Bye!",
+   "es": "Ahora tengo que ir a comer pastel. ¡Adiós!",
+   "k": [
+    {
+     "t": "cake",
+     "r": "w03|pastel, tarta"
+    },
+    {
+     "t": "Bye",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

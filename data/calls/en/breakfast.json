@@ -1,0 +1,193 @@
+{
+ "v": 1,
+ "id": "en-breakfast",
+ "lang": "english",
+ "city": "Londres",
+ "t": "El desayuno",
+ "lines": [
+  {
+   "say": "Good morning! It's Fox, in London.",
+   "es": "¡Buenos días! Soy Zorro, desde Londres.",
+   "k": [
+    {
+     "t": "morning",
+     "r": "w08|mañana"
+    }
+   ]
+  },
+  {
+   "say": "I'm having breakfast. In England, lots of people drink tea.",
+   "es": "Estoy desayunando. En Inglaterra, mucha gente bebe té.",
+   "k": [
+    {
+     "t": "breakfast",
+     "r": "w03|desayuno"
+    },
+    {
+     "t": "England",
+     "r": "paises|Inglaterra"
+    },
+    {
+     "t": "tea",
+     "r": "w03|té"
+    }
+   ]
+  },
+  {
+   "say": "I've got a big cup of tea with milk.",
+   "es": "Tengo una taza grande de té con leche.",
+   "k": [
+    {
+     "t": "cup",
+     "r": "w03|taza"
+    },
+    {
+     "t": "milk",
+     "r": "w03|leche"
+    }
+   ]
+  },
+  {
+   "say": "What do I put in my tea?",
+   "es": "¿Qué le pongo a mi té?",
+   "a": [
+    {
+     "r": "w03|leche"
+    },
+    {
+     "r": "w03|queso"
+    },
+    {
+     "r": "w03|zumo, jugo"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, milk! Lovely!",
+    "es": "¡Sí, leche! ¡Qué rico!"
+   },
+   "no": {
+    "say": "I put milk in my tea!",
+    "es": "¡Le pongo leche a mi té!"
+   }
+  },
+  {
+   "say": "I've also got bread with butter, and an egg.",
+   "es": "También tengo pan con mantequilla y un huevo.",
+   "k": [
+    {
+     "t": "bread",
+     "r": "w03|pan"
+    },
+    {
+     "t": "butter",
+     "r": "w03|mantequilla"
+    },
+    {
+     "t": "egg",
+     "r": "w03|huevo"
+    }
+   ]
+  },
+  {
+   "say": "What else have I got: an egg or a cake?",
+   "es": "¿Qué más tengo: un huevo o un pastel?",
+   "a": [
+    {
+     "r": "w03|huevo"
+    },
+    {
+     "r": "w03|pastel, tarta"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, an egg!",
+    "es": "¡Sí, un huevo!"
+   },
+   "no": {
+    "say": "I've got an egg!",
+    "es": "¡Tengo un huevo!"
+   }
+  },
+  {
+   "say": "And now some fruit. It's red and round.",
+   "es": "Y ahora, fruta. Es roja y redonda.",
+   "k": [
+    {
+     "t": "fruit",
+     "r": "w03|fruta"
+    },
+    {
+     "t": "red",
+     "r": "colores|Rojo"
+    },
+    {
+     "t": "round",
+     "r": "w31|redondo"
+    }
+   ]
+  },
+  {
+   "say": "What fruit is it?",
+   "es": "¿Qué fruta es?",
+   "a": [
+    {
+     "r": "w03|manzana"
+    },
+    {
+     "r": "w03|plátano"
+    },
+    {
+     "r": "w03|limón"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, an apple! Crunch, crunch!",
+    "es": "¡Sí, una manzana! ¡Ñac, ñac!"
+   },
+   "no": {
+    "say": "It's an apple! Crunch, crunch!",
+    "es": "¡Es una manzana! ¡Ñac, ñac!"
+   }
+  },
+  {
+   "say": "And you? What do you like for breakfast?",
+   "es": "¿Y tú? ¿Qué te gusta desayunar?",
+   "a": [
+    {
+     "r": "w03|pan",
+     "re": {
+      "say": "Bread! Very good!",
+      "es": "¡Pan! ¡Muy bien!"
+     }
+    },
+    {
+     "r": "w03|huevo",
+     "re": {
+      "say": "An egg! Just like me!",
+      "es": "¡Un huevo! ¡Igual que yo!"
+     }
+    },
+    {
+     "r": "w03|leche",
+     "re": {
+      "say": "Milk! That's very healthy.",
+      "es": "¡Leche! Es muy sana."
+     }
+    }
+   ]
+  },
+  {
+   "say": "Have a lovely day! Bye!",
+   "es": "¡Que tengas un día estupendo! ¡Adiós!",
+   "k": [
+    {
+     "t": "Bye",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}
