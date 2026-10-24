@@ -203,7 +203,7 @@ def test_right_answers_advance_alone_and_lesson_ends_once():
             probs.append(f"las notas de las estrellas no suben: {T['notes'][:6]}")
         if T["snd"].count("ok") != 8 or "bad" in T["snd"]:
             probs.append(f"sonidos: {T['snd']}")
-        if T["hap"].count("success") != 8:
+        if T["hap"].count("success") != 9:      # una por acierto y otra al terminar la lección (F6a, js/navmotion.js)
             probs.append(f"vibraciones de éxito: {T['hap']}")
         if T["nope"]:
             probs.append(f"M.nope se llamó {T['nope']} veces")

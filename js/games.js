@@ -225,7 +225,7 @@ document.addEventListener("keydown", e => {
   if(e.key !== "Escape" || e.defaultPrevented || !live(RUN) || !document.documentElement.hasAttribute("data-gm-play")) return;
   if(document.querySelector("dialog[open]")) return;
   e.preventDefault(); e.stopPropagation();
-  pause(null);
+  pause(document.getElementById("fx-x"));   /* la hoja nace de la ✕, como al tocarla */
 }, true);
 
 /* ---------- «?»: cómo se juega, con la partida en pausa ----------

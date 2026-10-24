@@ -22,6 +22,14 @@
      o animate() si el navegador no lo tiene; desde su botón con from), con agarre (.m-grab o [data-sheet-grab]) que se
      arrastra 1:1, y que se cierra al bajarla, al tocar fuera y con Esc, siempre con dialog.close() de verdad (los
      oyentes de "close" siguen funcionando). Mientras hay una abierta: html[data-sheet].
+     M.sheet(dialog, from, opciones) es lo mismo con el que la abrió como segundo parámetro. from: el elemento que se
+     tocó (o un rectángulo {left, top, width, height} o un punto {x, y}): la hoja crece desde él y, al cerrarse (sin
+     arrastrarla), vuelve a él si aún se ve. Las hojas a pantalla completa en el móvil (data-detent=large, o ≥86 % del
+     alto) suben y bajan como siempre; desde 820 px, que son de formulario centradas, crecen desde su botón.
+   - M.popIn(el, {from}) · M.popOut(el, {from, display}) → Promise: un menú o globo que no es una hoja (el de idioma)
+     nace de su botón (escala desde su centro, con muelle) y vuelve a él. Quien lo abre o cierra cambia [hidden] al
+     momento; popOut lo deja visible (display, "block" si no se dice) e inerte mientras sale. popIn corta una salida a
+     medias; M.popOut(el, {instant: true}) la corta sin animar.
    - M.springTo(el, keyframes, {velocity, damping:.86, response:.35, commit}) → Animation: muelle que conserva la velocidad
      del dedo (px/ms, número o {x, y}); keyframes de animate(), o uno solo y sale de donde esté. M.spring(d, r, v0) → {easing, ms}.
    Pone en :root (solo si faltan): --d-press 90ms · --d-fast 160ms · --d-base 260ms · --d-slow 420ms ·
@@ -204,6 +212,22 @@ function shown(el){
   try{ if(el.checkVisibility) return el.checkVisibility({checkOpacity: true, checkVisibilityCSS: true, opacityProperty: true, visibilityProperty: true}); }catch(e){}
   for(let n = el; n && n.nodeType === 1; n = n.parentElement){ const cs = getComputedStyle(n); if(cs.visibility === "hidden" || +cs.opacity === 0 || cs.display === "none") return false; }
   return true;
+}
+/* de dónde nace una hoja o un menú: el elemento que se tocó (si se ve), un rectángulo o un punto → {left, top, width, height} */
+function rectOf(p){
+  if(!p || typeof p !== "object" || p.nodeType) return null;
+  if(isFinite(p.left) && isFinite(p.top)) return {left: +p.left, top: +p.top, width: Math.max(0, +p.width || 0), height: Math.max(0, +p.height || 0)};
+  if(isFinite(p.x) && isFinite(p.y)) return {left: +p.x, top: +p.y, width: 0, height: 0};
+  return null;
+}
+const fromRect = f => !f ? null : f.nodeType === 1 ? (shown(f) ? f.getBoundingClientRect() : null) : rectOf(f);
+/* hoja a pantalla completa en el móvil: sube y baja como siempre, no nace de su botón */
+const WIDE = (() => { try{ return matchMedia("(min-width:820px)"); }catch(e){ return {matches: false}; } })();
+function full(d){
+  if(WIDE.matches || !d) return false;
+  if(d.dataset.detent === "large") return true;
+  const r = d.getBoundingClientRect();
+  return r.height >= innerHeight * .86;
 }
 /* las capas propias van en la capa superior (popover) para verse también encima de una hoja abierta */
 function raise(el){
@@ -672,11 +696,11 @@ function openSheet(d, o = {}){
     if(y) settle(d, y); else { stopJs(d); d.classList.remove("m-drag"); d.style.removeProperty("translate"); }
   }
   if(d.open){ markOpen(d, true); return Promise.resolve(); }
-  s.from = o.from && o.from.nodeType === 1 ? o.from : null;
+  s.from = o.from && (o.from.nodeType === 1 || rectOf(o.from)) ? o.from : null;
   if(!d.isConnected) DOC.body.appendChild(d);
   d.classList.remove("m-closing", "m-drag"); stopJs(d);
   d.style.removeProperty("translate"); d.style.removeProperty("scale"); d.style.removeProperty("opacity"); d.style.removeProperty("--m-bd");
-  const R = rm(), viaJs = !R && (!STARTING || !!(s.from && shown(s.from)));
+  const R = rm(), viaJs = !R && (!STARTING || !!fromRect(s.from));
   d.classList.toggle("m-js", viaJs || (R && !STARTING));
   try{ d.showModal(); }catch(e){ try{ d.show(); }catch(e2){ d.setAttribute("open", ""); } }
   if(!d.querySelector("[autofocus]")){   /* como en iOS: abre sin una fila enfocada (el foco va a la hoja) */
@@ -688,7 +712,7 @@ function openSheet(d, o = {}){
   let a;
   if(R) a = anim(d, [{opacity: 0}, {opacity: 1}], {duration: 150, easing: "ease-out"});
   else {
-    const r = d.getBoundingClientRect(), f = s.from && shown(s.from) ? s.from.getBoundingClientRect() : null;
+    const r = d.getBoundingClientRect(), f = full(d) ? null : fromRect(s.from);
     if(f){
       const dx = f.left + f.width / 2 - (r.left + r.width / 2), dy = f.top + f.height / 2 - (r.top + r.height / 2);
       const sc = clamp(Math.max(f.width / Math.max(1, r.width), f.height / Math.max(1, r.height)), .08, 1);
@@ -706,13 +730,13 @@ function closeSheet(d, o = {}){
   let res; const p = new Promise(r => res = r);
   s.closing = {p, anim: null};
   d.style.setProperty("--m-bd", "0");
-  const R = rm(), from = !o.drag && s.from && shown(s.from) ? s.from : null;
+  const R = rm(), from = !o.drag && !full(d) ? fromRect(s.from) : null;
   let a;
   if(R){ stopJs(d); d.classList.add("m-js"); a = anim(d, [{opacity: 1}, {opacity: 0}], {duration: 150, easing: "ease-out", fill: "forwards"}); }
   else {
     const y = freeze(d), r = d.getBoundingClientRect();
     if(from){
-      const f = from.getBoundingClientRect(), dx = f.left + f.width / 2 - (r.left + r.width / 2), dy = y + f.top + f.height / 2 - (r.top + r.height / 2);
+      const f = from, dx = f.left + f.width / 2 - (r.left + r.width / 2), dy = y + f.top + f.height / 2 - (r.top + r.height / 2);
       const sc = clamp(Math.max(f.width / Math.max(1, r.width), f.height / Math.max(1, r.height)), .08, 1);
       a = anim(d, [{translate: `0 ${y}px`, scale: 1, opacity: 1}, {opacity: 1, offset: .55}, {translate: `${dx}px ${dy}px`, scale: sc, opacity: 0}], {duration: 300, easing: "cubic-bezier(.3,0,.2,1)", fill: "forwards"});
     } else {
@@ -734,11 +758,56 @@ function closeSheet(d, o = {}){
   if(a){ a.onfinish = fin; a.oncancel = () => { shut = true; if(s.closing && s.closing.anim === a) s.closing = null; res(); }; } else fin();
   return p;
 }
+/* M.sheet(dialog, from, opciones): openSheet con el que la abrió (elemento, rectángulo o punto) como segundo parámetro */
+function sheet(d, from, o){
+  if(from && typeof from === "object" && !from.nodeType && !rectOf(from)) return openSheet(d, from);   /* (también vale M.sheet(d, {from})) */
+  return openSheet(d, Object.assign({}, o || {}, {from: from || null}));
+}
+
+/* ---------- menús que nacen de su botón ---------- */
+const POPS = new WeakMap();
+function popAt(el, from){
+  const f = fromRect(from); if(!f) return "50% 0";
+  const r = el.getBoundingClientRect();
+  return `${(f.left + f.width / 2 - r.left).toFixed(1)}px ${(f.top + f.height / 2 - r.top).toFixed(1)}px`;
+}
+function popStop(el){
+  const st = POPS.get(el); if(!st) return;
+  POPS.delete(el);
+  try{ if(st.a) st.a.cancel(); }catch(e){}
+  if(st.out){ el.style.removeProperty("display"); el.inert = !!st.inert; }
+}
+function popIn(el, o = {}){
+  if(!el || typeof el.animate !== "function") return Promise.resolve();
+  popStop(el);
+  el.style.transformOrigin = popAt(el, o.from);
+  const a = rm() ? anim(el, [{opacity: 0}, {opacity: 1}], {duration: 150, easing: "ease-out"})
+    : anim(el, [{opacity: 0, transform: "scale(.25)"}, {opacity: 1, offset: .3}, {opacity: 1, transform: "none"}], {duration: SNAPPY.ms, easing: easeOf(SNAPPY)});
+  const st = {a, out: false}; POPS.set(el, st);
+  return new Promise(res => { const f = () => { if(POPS.get(el) === st) POPS.delete(el); res(); }; if(a) a.finished.then(f, f); else f(); });
+}
+function popOut(el, o = {}){
+  if(!el) return Promise.resolve();
+  const prev = POPS.get(el);
+  if(o.instant){ popStop(el); return Promise.resolve(); }
+  if(prev && prev.out) return prev.p;
+  const inert = !!el.inert;
+  popStop(el);
+  if(typeof el.animate !== "function") return Promise.resolve();
+  el.style.setProperty("display", o.display || "block", "important");   /* ya lleva [hidden]: se ve mientras sale */
+  el.inert = true;
+  el.style.transformOrigin = popAt(el, o.from);
+  const a = rm() ? anim(el, [{opacity: 1}, {opacity: 0}], {duration: 150, easing: "ease-out", fill: "forwards"})
+    : anim(el, [{opacity: 1, transform: "none"}, {opacity: 1, offset: .45}, {opacity: 0, transform: "scale(.25)"}], {duration: 240, easing: "cubic-bezier(.3,0,.2,1)", fill: "forwards"});
+  const st = {a, out: true, inert}; POPS.set(el, st);
+  st.p = new Promise(res => { const f = () => { if(POPS.get(el) === st) popStop(el); res(); }; if(a) a.finished.then(f, f); else f(); });
+  return st.p;
+}
 
 /* ---------- arranque ---------- */
 function init(){ if(DOC.body) thost(); }
 if(DOC.readyState === "loading") DOC.addEventListener("DOMContentLoaded", init, {once: true}); else init();
 
-window.M = {rm, ok, nope, bump, coins, coinTarget, burst, confetti, toast, openSheet, closeSheet, springTo, spring, unpress,
+window.M = {rm, ok, nope, bump, coins, coinTarget, burst, confetti, toast, openSheet, closeSheet, sheet, popIn, popOut, springTo, spring, unpress,
   get snappy(){ return SNAPPY; }, get bouncy(){ return BOUNCY; }};
 })();

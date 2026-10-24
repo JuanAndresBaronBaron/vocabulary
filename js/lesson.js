@@ -922,7 +922,7 @@ function onKey(e){
   if(e.key === "Escape"){
     e.preventDefault();
     if(s.ended) navTo("#/mapa/" + s.lv);
-    else if(s.saved) ask(null);
+    else if(s.saved) ask($("#fx-x"));   /* «¿Paramos aquí?» nace de la ✕, como al tocarla */
     else { const x = $("#fx-x"); if(x) x.click(); }   /* nada hecho aún: como la ✕ */
     return;
   }

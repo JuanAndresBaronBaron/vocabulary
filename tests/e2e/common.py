@@ -359,6 +359,8 @@ def settle(page, quiet_ms=300, max_ms=6000):
         page.wait_for_timeout(50)
     try:
         page.evaluate("""async () => {
+          /* el paso de una pantalla a otra (js/navmotion.js): mientras dura, los toques no llegan a la página */
+          try { if (window.vocabNavMotion) await Promise.race([vocabNavMotion.idle(), new Promise(r => setTimeout(r, 2000))]); } catch (e) {}
           try { await document.fonts.ready; } catch (e) {}
           const vis = i => { const r = i.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight && r.width > 0; };
           const imgs = [...document.images].filter(i => !i.complete && (i.loading !== "lazy" || vis(i)));
