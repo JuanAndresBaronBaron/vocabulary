@@ -494,8 +494,8 @@ def test_pet_keeps_fed_and_hold_moves_and_persists():
     """Tocar la gallina (llena) la acaricia: corazones y su nombre, sin globo de comer y sin tocar s.fed ni la despensa;
     tocar el pato (puede comer) abre su globo junto a él, sin tocar s.fed. Mantener pulsada 500 ms la gallina la levanta
     (escala 1,06, sombra, G.haptic('selection')); al moverla y soltar se guarda en farm:state.pos y sigue ahí tras
-    recargar; mantener y soltar sin mover la deja donde estaba y también la acaricia (mantener el dedo siempre responde:
-    F4 #38), sin tocar s.fed."""
+    recargar; mantener y soltar sin mover la deja donde estaba y abre su menú (F6b), cuyo «Acariciar» la acaricia
+    (mantener el dedo siempre responde: F4 #38), sin tocar s.fed."""
     probs = []
     page = _page("phone", reduced_motion="reduce")
     try:
@@ -531,6 +531,14 @@ def test_pet_keeps_fed_and_hold_moves_and_persists():
         page.mouse.up()
         page.wait_for_timeout(300)
         f2 = page.evaluate(_FARM)
+        # F6b: soltar sin mover un animal abre su menú (js/ctxmenu.js: Acariciar, Dar de comer, Oír su nombre) y la deja
+        # quieta; «Acariciar» es lo mismo que tocarla (antes, soltar sin mover ya la acariciaba: mantener sigue respondiendo)
+        menu = page.evaluate("() => { const d = document.querySelector('dialog.vm[open]'); return d ? [...d.querySelectorAll('[role=menuitem]')].map(b => b.textContent.trim()) : null; }")
+        if not menu or menu[0] != "Acariciar":
+            probs.append(f"soltar sin mover no abre el menú de la gallina: {menu}")
+        else:
+            page.locator("dialog.vm [role=menuitem]", has_text="Acariciar").click()
+            page.wait_for_timeout(300)
         st = page.evaluate("() => { const b = document.querySelector('#app .fm-bub'); return {bub: !b.hidden, text: b.textContent, lift: !!document.querySelector('.fm-it.lift'), hap: __hap}; }")
         if f2["pos"]["gallina"] != f0["pos"]["gallina"] or not st["bub"] or "hen" not in st["text"] or st["lift"] or f2["fed"] != f0["fed"]:
             probs.append(f"soltar sin mover (se queda y la acaricia): pos {f0['pos']['gallina']} → {f2['pos']['gallina']}, bocadillo {st['bub']} {st['text']!r}, levantada {st['lift']}")

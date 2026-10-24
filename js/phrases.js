@@ -423,7 +423,7 @@ const CSS = `
 .ph-ct .ico{color:var(--gold-ink)}
 .ph-sn{flex:none;padding:4px 12px;border-radius:var(--r-pill);background:var(--fill2);color:var(--label);font:800 var(--fs-note)/1.3 var(--f-round);font-variant-numeric:tabular-nums}
 .ph-cl{display:flex;align-items:center;gap:8px;margin:12px 0 0}
-.ph-cl a{flex:1;min-width:0;color:var(--label);font:700 var(--fs-sub)/1.3 var(--f-round);text-decoration:none}
+.ph-cl a{flex:1;min-width:0;min-height:var(--tap);display:flex;flex-direction:column;justify-content:center;color:var(--label);font:700 var(--fs-sub)/1.3 var(--f-round);text-decoration:none}
 .ph-cl a small{display:block;color:var(--label2);font:400 var(--fs-note)/1.3 var(--f-text)}
 .ph-say1{flex:none;width:var(--tap);height:var(--tap);border:0;border-radius:50%;display:grid;place-items:center;background:var(--brand-soft);color:var(--brand-tint);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .ph-say1.playing{background:var(--brand-fill);color:#fff}

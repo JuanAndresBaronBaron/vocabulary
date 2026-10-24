@@ -874,9 +874,15 @@ function mount(host){
         el._lift = true; el.classList.add("lift"); hideBub(); closePop(true);
         try{ g.haptic("selection"); }catch(e){}
         play("tap");
+        /* un animal: su menú (js/ctxmenu.js, sin desenfoque). Si el dedo lo arrastra, el menú se va y se mueve como siempre */
+        if(kindOf(id) === "animal" && !foodMode && !waterMode && window.vocabMenu)
+          lift.menu = window.vocabMenu.open(el, animalMenu(id), {x, y, lite: true, haptic: false}).then(r => {
+            if(r === null && !(lift && lift.el === el) && isOn() && ANIM[id] && els[id]){ busy[id] = false; resume(id, 1500); }
+          });
       },
-      onMove: ({x, y}) => {
+      onMove: ({x, y, moved}) => {
         if(!lift || lift.el !== el) return;
+        if(lift.menu && window.vocabMenu && window.vocabMenu.isOpen(el)){ if(!moved) return; window.vocabMenu.close(true); }
         const L = lift.L, hw = el._hw || 0;
         lift.x = clamp((x - L.left - lift.ox) / L.width * 100, Math.max(GR.x0, hw), Math.min(GR.x1, 100 - hw));
         lift.y = clamp((y - L.top - lift.oy) / L.height * 100, GR.y0, GR.y1);
@@ -893,6 +899,8 @@ function mount(host){
           cls(el, "land", 400); play("pop");
           try{ g.learned("fm-lift"); }catch(e){}
         }
+        /* con su menú abierto (soltar sin moverlo), sigue quieto: lo que se elija (o cerrarlo) decide */
+        if(!moved && d.menu && window.vocabMenu && window.vocabMenu.isOpen(el)){ render(id, true); return; }
         if(ANIM[id]){ busy[id] = false; resume(id, 3000); }
         render(id, true);
         if(!moved) tap(id);   /* mantener el dedo sin moverlo también acaricia (o riega, o da de comer): siempre responde */
@@ -901,8 +909,25 @@ function mount(host){
         if(!lift || lift.el !== el) return;
         const d = lift; lift = null; el._lift = false; el.classList.remove("lift");
         const p = posOf(id); if(p) put(el, p.x, p.y, 0);
+        if(d.menu && window.vocabMenu && window.vocabMenu.isOpen(el)) return;   /* el menú sigue abierto: él decide */
         if(ANIM[d.id]){ busy[d.id] = false; resume(d.id, 2000); }
       }}));
+  }
+  /* el menú de un animal: Acariciar es tocarlo; Dar de comer, su globo de comida (lleno: «¡Está lleno!»); Oír su nombre, el
+     altavoz de su globo. Con la IPA de su palabra en el tema «animales», si está */
+  function animalMenu(id){
+    const it = itemById(id), w = iw(it), lc = code();
+    const go = f => () => { if(!isOn() || !els[id] || !ANIM[id]) return; busy[id] = false; resume(id, 3000); f(); };
+    const ipa = Promise.resolve().then(() => getDoc("animales")).then(doc => {
+      const lw = w.toLowerCase(), es = String(it.n || "").toLowerCase();
+      const r = ((doc && doc.rows) || []).find(r => r && r.l && r.l[lang] && (String(r.l[lang].word).toLowerCase() === lw || String(r.es || "").toLowerCase() === es) && r.l[lang].ipa);
+      return r ? ipaHtml(r.l[lang].ipa, lc) : "";
+    }).catch(() => "");
+    return {title: w, sub: it.n, lang: lc, ipa, items: [
+      {id: "pet", t: "Acariciar", ic: "hand-heart", fn: go(() => tap(id))},
+      {id: "feed", t: "Dar de comer", ic: "bowl-food", fn: go(() => { freeze(id); if(hungry(id)) openFeed(id); else giveFood(id, ANIM[id].eats); })},
+      {id: "say", t: "Oír su nombre", ic: "speaker-high", st: "fill", say: w, fn: go(() => {})},
+    ], tap: go(() => tap(id))};
   }
 
   /* tras la primera caricia o comida de la visita, la pista de que se puede mover (como mucho 3 veces en total) */
@@ -1943,6 +1968,9 @@ function css(){
 :root[data-sec=granja]{overflow:hidden;overscroll-behavior:none}
 :root[data-sec=granja] body{overscroll-behavior:none}
 :root[data-sec=granja] #acc{display:none!important}
+/* en la granja, nada con desenfoque (vidrio lite): tampoco el fondo de la barra de arriba */
+:root[data-sec=granja] .topbar::before{-webkit-backdrop-filter:none;backdrop-filter:none;background:var(--g-lite,rgba(255,255,255,.96))}
+:root[data-sec=granja][data-theme=dark] .topbar::before{background:var(--g-lite-d,rgba(28,28,30,.96))}
 .fm{position:relative}
 .fm-stage{--hz:50%;--u:56px;--fm-wh:calc(100vh - 150px);position:fixed;inset:0;z-index:0;overflow:hidden;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;isolation:isolate;cursor:pointer;touch-action:none;
   --sky1:#2f86d9;--sky2:#7cc3f2;--sky3:#d2efff;--h1:#5aa84a;--h2:#7db86e;--g1:#66bd4c;--g2:#3c9431;--g3:#2f7d27;--path:#d9b67c;--path2:#c39a5c;--fence:#8a5a2b;--cloud:#fff;--cloudo:.95;background:var(--g2)}

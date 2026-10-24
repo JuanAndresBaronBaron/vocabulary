@@ -872,8 +872,20 @@ function lista(doc){
       onCancel: () => { fg.style.transition = rm() ? "none" : "translate .25s cubic-bezier(.3,.8,.3,1)"; fg.style.translate = "0px 0";
         setTimeout(() => { fg.style.transition = ""; row.classList.remove("is-swiping"); }, rm() ? 0 : 260); }}));
   });
+  /* mantener pulsada una palabra: el menú de js/ctxmenu.js (Oír, Oír despacio, Al repaso), lo mismo que sus botones */
+  if(W.vocabMenu) list.querySelectorAll(".dl-r").forEach(row => gest(vocabMenu.hold(row.querySelector(".dl-fg"), () => wordMenu(doc, row), {radius: 14})));
   const first = list.querySelector(".dl-r .dl-fg");
   if(first) setTimeout(() => { if(state.mode === "lista" && first.isConnected) hint(first, {id: "doc-swipe", gesture: "left", text: "Desliza para el repaso"}); }, 900);
+}
+/* el menú de una palabra de la lista: su altavoz, la tortuga y «Al repaso» del detalle (tocar la copia abre el detalle) */
+function wordMenu(doc, row){
+  const r = doc.rows[+row.dataset.i], d = r && r.l && r.l[lang]; if(!d) return null;
+  const lc = code(), inSrs = !!srsAll()[srsK(doc.id, r)];
+  return {title: d.word, sub: r.es, lang: lc, ipa: ipaHtml(d.ipa, lc), items: [
+    {id: "say", t: "Oír", ic: "speaker-high", st: "fill", say: d.word},
+    {id: "slow", t: "Oír despacio", ic: "turtle", st: "fill", say: d.word, slow: true},
+    inSrs ? {id: "srs", t: "Ya está en el repaso", ic: "check", disabled: true} : {id: "srs", t: "Al repaso", ic: "plus", fn: () => toReview(doc, row, null)},
+  ], tap: () => { const o = row.querySelector(".dl-open"); if(o) o.click(); }};
 }
 /* el nombre de la línea de las formas: «Plural» en los nombres, «Formas» en lo demás (verbos, adjetivos…) */
 const formsK = r => !r.pos || r.pos === "noun" ? "Plural" : "Formas";
