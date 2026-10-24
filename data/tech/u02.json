@@ -1,0 +1,1185 @@
+{
+  "format": 1,
+  "id": "u02",
+  "n": 2,
+  "block": "integration",
+  "title": "Failures and retries",
+  "summary": "Explain how to make integrations safe to retry, decide which failures to retry, use backoff, dead-letter queues and circuit breakers, and plan how a system recovers from a long outage.",
+  "reviewed": "2026-10-24",
+  "versionNotes": [
+    "Idempotency-Key header: draft-ietf-httpapi-idempotency-key-header-08 (22 October 2026), an active Internet-Draft of the IETF httpapi working group (Datatracker state: WG Document; the draft header gives Standards Track as the intended status). It is not an RFC, it expires on 25 April 2027, and it may still change.",
+    "Resilience4j defaults and Spring Boot 3 property names as documented on resilience4j.readme.io (docs version v2.2.0) on 2026-10-24. Unconfirmed: whether newer library releases change them.",
+    "Pub/Sub on 2026-10-24: max delivery attempts 5 to 100 (default 5); exponential backoff retry policy defaults 10 s minimum and 600 s maximum; subscription message retention 7 days by default (10 minutes to 31 days).",
+    "Cloud Run on 2026-10-24: request timeout 5 minutes by default, maximum 60 minutes."
+  ],
+  "terms": [
+    {
+      "id": "t-idempotency",
+      "term": "Idempotency",
+      "ipa": "/ˌaɪdɛmˈpəʊtənsi/",
+      "say": "idempotency",
+      "def": "An operation is idempotent when running it many times leaves the same final state as running it once. Idempotent operations are safe to retry.",
+      "example": "Setting an application's status to Interview is idempotent: if the call is sent twice, the final state is the same.",
+      "src": "s3"
+    },
+    {
+      "id": "t-idempotency-key",
+      "term": "Idempotency key",
+      "ipa": "/ˌaɪdɛmˈpəʊtənsi kiː/",
+      "say": "idempotency key",
+      "def": "A unique value that the client sends with a non-idempotent request, such as a POST, so that the server can recognise a retry and return the first result instead of acting twice.",
+      "example": "The middleware sends an Idempotency-Key with a UUID when it creates a candidate, and it reuses the same key on every retry.",
+      "src": "s1"
+    },
+    {
+      "id": "t-transient-fault",
+      "term": "Transient fault",
+      "ipa": "/ˈtrænziənt fɔːlt/",
+      "say": "transient fault",
+      "def": "A temporary failure, such as a brief loss of network connectivity, a busy service or a timeout. The call often succeeds if you repeat it after a short delay.",
+      "example": "A 503 from a service that is being redeployed is a transient fault; an invalid payload is not.",
+      "src": "s16"
+    },
+    {
+      "id": "t-timeout",
+      "term": "Timeout",
+      "ipa": "/ˈtaɪmaʊt/",
+      "say": "timeout",
+      "def": "The longest time a client waits for a remote call before it gives up. A good value comes from the downstream latency, for example its p99.9.",
+      "example": "We set a two-second timeout on calls to the scoring service, based on its p99.9 latency.",
+      "src": "s2"
+    },
+    {
+      "id": "t-exponential-backoff",
+      "term": "Exponential backoff",
+      "ipa": "/ˌɛkspəˈnɛnʃəl ˈbækɒf/",
+      "say": "exponential backoff",
+      "def": "A retry strategy in which the wait between attempts grows exponentially, for example 1, 2, 4 and 8 seconds, up to a maximum delay.",
+      "example": "The client retries a 503 after 1 second, then 2, then 4, and stops after the fourth attempt.",
+      "src": "s3"
+    },
+    {
+      "id": "t-jitter",
+      "term": "Jitter",
+      "ipa": "/ˈdʒɪtə/",
+      "say": "jitter",
+      "def": "A random amount of time added before making or retrying a request. It spreads out the arrival rate, so clients that failed together do not retry together.",
+      "example": "With jitter, a thousand clients that failed at 10:00 retry at different moments instead of all at the same second.",
+      "src": "s2"
+    },
+    {
+      "id": "t-retry-storm",
+      "term": "Retry storm",
+      "ipa": "/ˈriːtraɪ stɔːm/",
+      "say": "retry storm",
+      "def": "A situation in which many clients retry a busy or failed service so often that it cannot recover. It is sometimes called a thundering herd.",
+      "example": "After the outage, every client retried every second in an endless loop, and the retry storm took the API down again.",
+      "src": "s17"
+    },
+    {
+      "id": "t-retry-budget",
+      "term": "Retry budget",
+      "ipa": "/ˈriːtraɪ ˈbʌdʒɪt/",
+      "say": "retry budget",
+      "def": "A limit on how much a client may retry, for example up to three attempts per request, or retries only while they are below 10% of all its requests.",
+      "example": "Thanks to a 10% retry budget, an outage adds only about 10% extra load from each client.",
+      "src": "s18"
+    },
+    {
+      "id": "t-dead-letter-queue",
+      "term": "Dead-letter queue (DLQ)",
+      "ipa": "/ˌdɛd ˈlɛtə kjuː/",
+      "say": "dead letter queue",
+      "def": "A separate queue or topic that receives messages that could not be processed after a set number of attempts, so that they can be analysed later. In Pub/Sub it is called a dead-letter topic.",
+      "example": "After five failed deliveries, Pub/Sub forwards the message to the applications-dead-letter topic.",
+      "src": "s5"
+    },
+    {
+      "id": "t-poison-message",
+      "term": "Poison message",
+      "ipa": "/ˈpɔɪzən ˈmɛsɪdʒ/",
+      "say": "poison message",
+      "def": "A message that is received but can never be processed, for example because its payload is invalid. Retrying it will never succeed. AWS calls it a poison pill message.",
+      "example": "An application event with a start date of 31 February is a poison message: every retry fails in the same way.",
+      "src": "s11"
+    },
+    {
+      "id": "t-redrive",
+      "term": "Redrive",
+      "ipa": null,
+      "ipaTodo": true,
+      "say": "redrive",
+      "def": "In Amazon SQS, the redrive policy moves a message to a dead-letter queue after maxReceiveCount receives. A dead-letter queue redrive moves messages back out, by default to the source queue.",
+      "example": "Once the mapping bug was fixed, we started a dead-letter queue redrive with a low custom maximum velocity.",
+      "src": "s10"
+    },
+    {
+      "id": "t-circuit-breaker",
+      "term": "Circuit breaker",
+      "ipa": "/ˈsɜːkɪt ˌbreɪkə/",
+      "say": "circuit breaker",
+      "def": "A proxy around a remote call that stops calls for a while when too many of them fail, so the caller fails fast instead of waiting. It has three states: closed, open and half-open.",
+      "example": "When most calls to the SuccessFactors API failed, the circuit breaker opened and the middleware queued new requests instead.",
+      "src": "s15"
+    },
+    {
+      "id": "t-half-open",
+      "term": "Half-open state",
+      "ipa": "/ˌhɑːf ˈəʊpən steɪt/",
+      "say": "half-open state",
+      "def": "The circuit breaker state after the wait time in the open state. A limited number of trial calls go through: if they succeed, the breaker closes; if they fail (in Resilience4j, if their failure rate reaches the threshold), it opens again.",
+      "example": "In the half-open state, Resilience4j lets 10 trial calls through by default.",
+      "src": "s12"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u02-l1",
+      "kind": "concepts",
+      "title": "The vocabulary of safe retries",
+      "items": [
+        {
+          "id": "u02-l1-i1",
+          "type": "card",
+          "term": "t-idempotency",
+          "src": "s3"
+        },
+        {
+          "id": "u02-l1-i2",
+          "type": "card",
+          "term": "t-idempotency-key",
+          "src": "s1",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "c",
+                "label": "Client"
+              },
+              {
+                "id": "a",
+                "label": "API"
+              },
+              {
+                "id": "k",
+                "label": "Key store"
+              }
+            ],
+            "edges": [
+              {
+                "from": "c",
+                "to": "a",
+                "label": "POST with Idempotency-Key K"
+              },
+              {
+                "from": "a",
+                "to": "k",
+                "label": "save K and the result"
+              },
+              {
+                "from": "a",
+                "to": "c",
+                "label": "201 Created (response lost)"
+              },
+              {
+                "from": "c",
+                "to": "a",
+                "label": "retry with the same K"
+              },
+              {
+                "from": "a",
+                "to": "k",
+                "label": "K found"
+              },
+              {
+                "from": "a",
+                "to": "c",
+                "label": "same 201, no second record"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u02-l1-i3",
+          "type": "card",
+          "term": "t-transient-fault",
+          "src": "s16"
+        },
+        {
+          "id": "u02-l1-i4",
+          "type": "pick",
+          "src": "s3",
+          "q": "Which of these responses is usually worth retrying with backoff?",
+          "options": [
+            "400 Bad Request",
+            "403 Forbidden",
+            "503 Service Unavailable",
+            "404 Not Found"
+          ],
+          "answer": 2,
+          "why": "503 means the service is temporarily unavailable, so a later attempt may succeed. 400, 403 and 404 are client errors: the same request will fail again."
+        },
+        {
+          "id": "u02-l1-i5",
+          "type": "card",
+          "term": "t-exponential-backoff",
+          "src": "s3"
+        },
+        {
+          "id": "u02-l1-i6",
+          "type": "card",
+          "term": "t-jitter",
+          "src": "s2"
+        },
+        {
+          "id": "u02-l1-i7",
+          "type": "card",
+          "term": "t-circuit-breaker",
+          "src": "s15",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "closed",
+                "label": "Closed"
+              },
+              {
+                "id": "open",
+                "label": "Open"
+              },
+              {
+                "id": "half",
+                "label": "Half-open"
+              }
+            ],
+            "edges": [
+              {
+                "from": "closed",
+                "to": "open",
+                "label": "failures reach the threshold"
+              },
+              {
+                "from": "open",
+                "to": "half",
+                "label": "wait time ends"
+              },
+              {
+                "from": "half",
+                "to": "closed",
+                "label": "trial calls succeed"
+              },
+              {
+                "from": "half",
+                "to": "open",
+                "label": "trial calls fail"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u02-l1-i8",
+          "type": "card",
+          "term": "t-dead-letter-queue",
+          "src": "s5"
+        },
+        {
+          "id": "u02-l1-i9",
+          "type": "tf",
+          "src": "s1",
+          "statement": "The Idempotency-Key HTTP header is already a published RFC.",
+          "answer": false,
+          "why": "It is still an Internet-Draft of the IETF httpapi working group (revision 08, 22 October 2026), so the text can change. Many APIs already use the same idea."
+        },
+        {
+          "id": "u02-l1-i10",
+          "type": "match",
+          "src": "s16",
+          "q": "Match each term with its meaning.",
+          "pairs": [
+            [
+              "Idempotency",
+              "Repeating the call leaves the same final state"
+            ],
+            [
+              "Jitter",
+              "A random delay that spreads retries out"
+            ],
+            [
+              "Dead-letter queue",
+              "Where messages go after too many failed attempts"
+            ],
+            [
+              "Circuit breaker",
+              "Stops calls to a failing dependency for a while"
+            ],
+            [
+              "Transient fault",
+              "A short failure that often fixes itself"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u02-l2",
+      "kind": "practice",
+      "title": "Design the failure path",
+      "items": [
+        {
+          "id": "u02-l2-i1",
+          "type": "match",
+          "src": "s3",
+          "q": "Match each response with what the client should do.",
+          "pairs": [
+            [
+              "503 Service Unavailable",
+              "Retry later with backoff"
+            ],
+            [
+              "429 Too Many Requests",
+              "Slow down and wait as long as Retry-After says"
+            ],
+            [
+              "400 Bad Request",
+              "Do not retry; fix the payload first"
+            ],
+            [
+              "403 Forbidden",
+              "Do not retry; fix the permissions first"
+            ],
+            [
+              "404 Not Found",
+              "Do not retry the same call; check the ID"
+            ]
+          ]
+        },
+        {
+          "id": "u02-l2-i2",
+          "type": "scenario",
+          "src": "s8",
+          "q": "A Cloud Run service receives Pub/Sub push messages for new job applications and creates a candidate in SuccessFactors Recruiting. Sometimes the same applicant appears twice. What is the best fix?",
+          "options": [
+            {
+              "text": "Use the application ID as an idempotency key: check it before creating the candidate and skip duplicates.",
+              "ok": true,
+              "why": "Pub/Sub can deliver a message more than once, so the handler must be idempotent. A business key also catches duplicates from the publishing side."
+            },
+            {
+              "text": "Enable exactly-once delivery on the push subscription.",
+              "ok": false,
+              "why": "Only pull subscriptions support exactly-once delivery; push and export subscriptions do not."
+            },
+            {
+              "text": "Return HTTP 500 while the candidate is being created so that Pub/Sub waits.",
+              "ok": false,
+              "why": "Any status other than 102, 200, 201, 202 or 204 is a negative acknowledgement, so Pub/Sub sends the message again."
+            },
+            {
+              "text": "Set the maximum delivery attempts to 1.",
+              "ok": false,
+              "why": "The minimum is 5, and a dead-letter policy controls failed messages, not duplicates of successful ones."
+            }
+          ]
+        },
+        {
+          "id": "u02-l2-i3",
+          "type": "order",
+          "src": "s2",
+          "q": "Put the steps of one safe outbound call in order.",
+          "steps": [
+            "Generate an idempotency key and set a timeout on the call",
+            "Send the request",
+            "If the error is not retryable, such as a 400, stop and report it",
+            "If it is retryable, wait using exponential backoff with jitter, or the Retry-After time",
+            "Retry with the same idempotency key, up to the maximum number of attempts",
+            "After the last failed attempt, log an error and move the work to a dead-letter queue"
+          ]
+        },
+        {
+          "id": "u02-l2-i4",
+          "type": "code",
+          "src": "s1",
+          "lang": "http",
+          "q": "Complete the exchange. The middleware creates a candidate with an idempotency key. A quick retry arrives while the first call is still running. Later, a faulty job reuses the key with a different email.",
+          "code": "POST /candidates HTTP/1.1\nContent-Type: application/json\n[[1]]: \"8e03978e-40d5-43e8-bc93-6894a57f9324\"\n\n{\"applicationId\": \"APP-1042\", \"email\": \"a.lee@example.com\"}\n\n# Second call: same key, sent while the first call is still running\nHTTP/1.1 [[2]]\n\n# Third call, later: same key, but a different email\nHTTP/1.1 [[3]]",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "Idempotency-Key",
+              "decoys": [
+                "If-Match",
+                "Retry-After",
+                "X-Request-Retry"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "409 Conflict",
+              "decoys": [
+                "422 Unprocessable Content",
+                "503 Service Unavailable"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "422 Unprocessable Content",
+              "decoys": [
+                "409 Conflict",
+                "201 Created"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u02-l2-i5",
+          "type": "diagram",
+          "src": "s5",
+          "layout": "flow",
+          "q": "Complete the Pub/Sub flow so that poison messages leave the main subscription and are kept for analysis.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Topic: new-applications",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Subscription with a dead-letter policy",
+              "slot": false
+            },
+            {
+              "id": "n3",
+              "label": "Cloud Run push endpoint",
+              "slot": false
+            },
+            {
+              "id": "n4",
+              "label": "Dead-letter topic",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "Subscription on the dead-letter topic",
+              "slot": true
+            },
+            {
+              "id": "n6",
+              "label": "Support team analyses and replays",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "message"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "push (non-success code = nack)"
+            },
+            {
+              "from": "n2",
+              "to": "n4",
+              "label": "after max delivery attempts"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "forwarded message"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "pull for analysis"
+            }
+          ],
+          "decoys": [
+            "Topic with no subscription",
+            "The new-applications topic again"
+          ]
+        },
+        {
+          "id": "u02-l2-i6",
+          "type": "scenario",
+          "src": "s15",
+          "q": "Your Spring Boot middleware calls the SuccessFactors Recruiting API to create candidates. During a long outage of the API, every call waits 30 seconds and times out, and the middleware runs out of threads.",
+          "options": [
+            {
+              "text": "Wrap the call in a circuit breaker with a fallback that queues the request, so calls fail fast while the API is down.",
+              "ok": true,
+              "why": "An open breaker rejects calls at once, which frees threads, and the fallback keeps the work for later."
+            },
+            {
+              "text": "Raise the timeout to 5 minutes so that calls have time to finish.",
+              "ok": false,
+              "why": "The API is down, not slow, and longer timeouts hold threads even longer."
+            },
+            {
+              "text": "Increase the retries from 3 to 10, with no delay between them.",
+              "ok": false,
+              "why": "More immediate retries add load to a service that is already failing and can start a retry storm."
+            },
+            {
+              "text": "Add a dead-letter queue and keep calling the API for every request.",
+              "ok": false,
+              "why": "A dead-letter queue stores failed messages, but it does not stop callers from waiting on a service that is down."
+            }
+          ]
+        },
+        {
+          "id": "u02-l2-i7",
+          "type": "scenario",
+          "src": "s17",
+          "q": "An internal API on Cloud Run comes back after a 10-minute outage, then fails again within a minute. The logs show the same clients retrying every second, without limit.",
+          "options": [
+            {
+              "text": "Change the clients to exponential backoff with jitter, a maximum number of attempts, and respect for Retry-After.",
+              "ok": true,
+              "why": "Growing, random delays spread the load, and the limit stops the endless loop that keeps the service down."
+            },
+            {
+              "text": "Ask the clients to retry every 100 ms so they reconnect faster.",
+              "ok": false,
+              "why": "Shorter fixed delays send even more traffic and make the retry storm worse."
+            },
+            {
+              "text": "Add retries in the API gateway as well as in the clients.",
+              "ok": false,
+              "why": "Retries at several layers multiply the load on a service that is trying to recover."
+            },
+            {
+              "text": "Remove the client timeouts so that requests wait until the service answers.",
+              "ok": false,
+              "why": "Clients then hold connections and threads, and the service still receives the same flood of requests."
+            }
+          ]
+        },
+        {
+          "id": "u02-l2-i8",
+          "type": "code",
+          "src": "s14",
+          "lang": "yaml",
+          "q": "Complete the Resilience4j configuration for calls to SuccessFactors: the breaker waits 30 seconds before trial calls, it allows 5 trial calls, and the retry uses exponential backoff.",
+          "code": "resilience4j:\n  circuitbreaker:\n    instances:\n      sfRecruiting:\n        slidingWindowSize: 50\n        failureRateThreshold: 50\n        [[1]]: 30s\n        [[2]]: 5\n  retry:\n    instances:\n      sfRecruiting:\n        maxAttempts: 3\n        waitDuration: 1s\n        [[3]]: true\n        exponentialBackoffMultiplier: 2\n        # Note: this also ignores 429 (HttpClientErrorException.TooManyRequests)\n        ignoreExceptions:\n          - org.springframework.web.client.HttpClientErrorException",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "waitDurationInOpenState",
+              "decoys": [
+                "slowCallDurationThreshold",
+                "timeoutDuration"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "permittedNumberOfCallsInHalfOpenState",
+              "decoys": [
+                "minimumNumberOfCalls",
+                "maxAttempts"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "enableExponentialBackoff",
+              "decoys": [
+                "failAfterMaxAttempts",
+                "automaticTransitionFromOpenToHalfOpenEnabled"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u02-l3",
+      "kind": "interview",
+      "title": "Talk about failures",
+      "items": [
+        {
+          "id": "u02-l3-i1",
+          "type": "say",
+          "src": "s17",
+          "text": "I only retry transient failures, such as timeouts and 503 errors. A 400 means the request itself is wrong, so a retry will not help."
+        },
+        {
+          "id": "u02-l3-i2",
+          "type": "tf",
+          "src": "s2",
+          "statement": "Retrying at every layer of a call chain makes the whole system more resilient.",
+          "answer": false,
+          "why": "Retries multiply: in the AWS example, layers that each retry independently raise the database load 243 times. The advice is to retry at a single point in the stack."
+        },
+        {
+          "id": "u02-l3-i10",
+          "type": "scenario",
+          "src": "s1",
+          "q": "The interviewer asks: your middleware sends a POST to create a candidate, and the call times out. Did it fail, and what do you do next?",
+          "options": [
+            {
+              "text": "We do not know yet: the server may have created the candidate. I retry with the same idempotency key, or I first check whether a candidate with that application ID exists.",
+              "ok": true,
+              "why": "A timeout only means that no response arrived in time. The same key, or a check by business key, makes the retry safe."
+            },
+            {
+              "text": "It failed, so I send the POST again with a new idempotency key.",
+              "ok": false,
+              "why": "A new key tells the server that this is a new request, so it can create a second candidate."
+            },
+            {
+              "text": "I raise the timeout until the call never times out.",
+              "ok": false,
+              "why": "A longer timeout holds threads for longer, and it still does not tell you what happened to this call."
+            },
+            {
+              "text": "I move the message to the dead-letter queue straight away.",
+              "ok": false,
+              "why": "A timeout is often a transient fault, so a safe retry comes first. The dead-letter queue is for work that still fails after the last attempt."
+            }
+          ]
+        },
+        {
+          "id": "u02-l3-i3",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 150,
+          "q": "How do you make an API call safe to retry?",
+          "model": "I make sure that sending the call twice has the same effect as sending it once. It matters because a timeout does not tell me if the first call worked. Reads, and updates that set a field to a fixed value, are already safe to retry. A POST that creates something is not, so I use an idempotency key. For example, when the middleware creates a candidate, it sends a UUID or the application ID as the key, and reuses it on retries. The server stores the key with the result, and on a retry it returns the first response instead of creating a second record. There is an IETF draft, the Idempotency-Key header. It is still a draft, so I follow the target API's documentation. The draft suggests a 422 when the same key comes with a different payload, and a 409 while the first request is still running. The trade-off is storage: the server must keep the keys, so we agree how long. After a key expires, a late retry looks like a new request.",
+          "keypoints": [
+            {
+              "text": "A timeout does not tell you whether the call worked",
+              "kw": [
+                "timeout",
+                "timed out",
+                "not know",
+                "do not know",
+                "don't know",
+                "unknown",
+                "if it worked",
+                "whether it worked"
+              ]
+            },
+            {
+              "text": "Check whether the operation is idempotent",
+              "kw": [
+                "idempotent",
+                "idempotency",
+                "same effect",
+                "same final state",
+                "same result",
+                "safe to retry"
+              ]
+            },
+            {
+              "text": "Send an idempotency key and reuse it on every retry",
+              "kw": [
+                "idempotency key",
+                "idempotency-key",
+                "uuid",
+                "unique key",
+                "business key",
+                "application id",
+                "same key"
+              ]
+            },
+            {
+              "text": "The server stores the key and returns the first result",
+              "kw": [
+                "store",
+                "stores",
+                "first response",
+                "same response",
+                "cache",
+                "second record",
+                "duplicate"
+              ]
+            },
+            {
+              "text": "Know the draft status and its error codes",
+              "kw": [
+                "draft",
+                "internet-draft",
+                "not an rfc",
+                "422",
+                "409",
+                "different payload"
+              ]
+            },
+            {
+              "text": "Agree how long keys are kept",
+              "kw": [
+                "expire",
+                "expires",
+                "expiry",
+                "expiration",
+                "how long",
+                "retention",
+                "storage"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u02-l3-i4",
+          "type": "scenario",
+          "src": "s5",
+          "q": "The interviewer says: a Pub/Sub message with an invalid hire date fails on every delivery, and the subscription uses immediate redelivery. What do you do?",
+          "options": [
+            {
+              "text": "Add a dead-letter topic with its own subscription, keep max delivery attempts low, alert on it, then fix and replay the message.",
+              "ok": true,
+              "why": "It is a poison message, so retries cannot help. The dead-letter topic moves it aside and keeps it for analysis."
+            },
+            {
+              "text": "Keep immediate redelivery; the message will succeed in the end.",
+              "ok": false,
+              "why": "The payload is invalid, so every attempt fails in the same way and wastes resources."
+            },
+            {
+              "text": "Acknowledge the message and drop it to keep the subscription clean.",
+              "ok": false,
+              "why": "This hides the problem and loses a hire event that someone still has to process."
+            },
+            {
+              "text": "Set max delivery attempts to 1,000 to be safe.",
+              "ok": false,
+              "why": "Pub/Sub accepts values from 5 to 100, and more attempts cannot fix an invalid payload."
+            }
+          ]
+        },
+        {
+          "id": "u02-l3-i5",
+          "type": "say",
+          "src": "s15",
+          "text": "While a dependency is down, the circuit breaker makes calls fail fast. In the half-open state, it allows a few trial calls to check whether the dependency has recovered."
+        },
+        {
+          "id": "u02-l3-i7",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 150,
+          "q": "Walk me through your retry strategy for an integration that calls an external API.",
+          "model": "In short, I retry only transient errors, a few times, with backoff and jitter, at one layer. First, every call has a timeout, based on the downstream latency, for example the p99.9, so it cannot hang and hold resources. Then I split errors into two groups. Timeouts, network errors and 5xx errors such as 503 are worth retrying, and so is a 429, if I wait for the Retry-After time. Client errors like 400 or 403 are not, because the same request will fail again. I also check that the call is idempotent, or has an idempotency key, because a retry after a timeout can create a duplicate. For retryable errors I use exponential backoff with jitter, a maximum delay and usually three attempts. I retry at one layer only, because retries at every layer multiply the load, and a retry budget stops an outage from becoming a retry storm. After the last attempt, I log one error and move the message to a dead-letter queue. The trade-off is latency: every retry makes the caller wait longer.",
+          "keypoints": [
+            {
+              "text": "Set timeouts based on latency",
+              "kw": [
+                "timeout",
+                "timeouts",
+                "p99",
+                "latency"
+              ]
+            },
+            {
+              "text": "Retry only transient errors",
+              "kw": [
+                "429",
+                "503",
+                "5xx",
+                "transient",
+                "retry-after",
+                "not retry",
+                "retry after",
+                "client error",
+                "400"
+              ]
+            },
+            {
+              "text": "Retry only idempotent calls, or use an idempotency key",
+              "kw": [
+                "idempotent",
+                "idempotency",
+                "idempotency key",
+                "duplicate"
+              ]
+            },
+            {
+              "text": "Exponential backoff with jitter",
+              "kw": [
+                "exponential backoff",
+                "backoff",
+                "jitter",
+                "random"
+              ]
+            },
+            {
+              "text": "Limit retries: one layer, few attempts, a budget",
+              "kw": [
+                "one layer",
+                "single layer",
+                "retry budget",
+                "budget",
+                "attempts",
+                "retry storm",
+                "maximum"
+              ]
+            },
+            {
+              "text": "Dead-letter queue and logging after the last attempt",
+              "kw": [
+                "dead-letter",
+                "dead letter",
+                "dlq",
+                "log one error",
+                "logging",
+                "log"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u02-l3-i8",
+          "type": "say",
+          "src": "s10",
+          "text": "We alert on the dead-letter queue, fix the root cause, and then replay the messages slowly, so nothing is lost and nothing is overloaded."
+        },
+        {
+          "id": "u02-l3-i9",
+          "type": "explain",
+          "src": "s12",
+          "seconds": 150,
+          "q": "Explain the circuit breaker pattern. How does it work together with retries?",
+          "model": "A circuit breaker stops my service from calling a dependency that keeps failing, so we fail fast instead of waiting. It has three states. In the closed state, calls go through and the breaker records the results. In Resilience4j it looks at the failure rate, or the slow-call rate, over a sliding window, after a minimum number of calls. When the rate reaches the threshold, the breaker opens. In the open state, calls fail at once with a CallNotPermittedException, so threads are not blocked by a service that is down. After a wait duration, it moves to half-open and lets a few trial calls through. If they succeed, it closes; if they fail, it opens again. With retries, I put the retry outside the breaker, which is the default aspect order in Resilience4j for Spring Boot, and I stop retrying when the breaker is open. I also add a fallback, for example queueing the request. The trade-off is tuning: if the wait in the open state is too long, we keep rejecting calls after the service has recovered.",
+          "keypoints": [
+            {
+              "text": "Three states: closed, open, half-open",
+              "kw": [
+                "closed",
+                "open",
+                "half-open",
+                "half open",
+                "three states"
+              ]
+            },
+            {
+              "text": "Opens on a failure or slow-call rate over a window",
+              "kw": [
+                "failure rate",
+                "threshold",
+                "sliding window",
+                "slow call",
+                "failures",
+                "slow-call"
+              ]
+            },
+            {
+              "text": "Fails fast while open",
+              "kw": [
+                "fail fast",
+                "fail at once",
+                "fail immediately",
+                "callnotpermittedexception",
+                "reject"
+              ]
+            },
+            {
+              "text": "Half-open lets a few trial calls through",
+              "kw": [
+                "trial calls",
+                "trial",
+                "test calls",
+                "wait duration",
+                "few calls"
+              ]
+            },
+            {
+              "text": "Retry outside the breaker; stop retrying when it is open",
+              "kw": [
+                "retry outside",
+                "stop retrying",
+                "wraps",
+                "outside the breaker",
+                "retry"
+              ]
+            },
+            {
+              "text": "Fallback",
+              "kw": [
+                "fallback",
+                "queue",
+                "queueing",
+                "degrade"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u02-l3-i11",
+          "type": "explain",
+          "src": "s15",
+          "seconds": 150,
+          "q": "What would you do if the SuccessFactors Recruiting API went down for three hours during a busy hiring week?",
+          "model": "My goal is that nothing is lost and the integration catches up by itself. First, the circuit breaker opens, so the middleware fails fast instead of holding threads, and an alert goes to the team. The work waits in a queue. For example, a Pub/Sub subscription keeps unacknowledged messages for seven days by default. But I check the dead-letter settings, because a long outage can use up the delivery attempts and move good messages to the dead-letter topic. If that happens, we replay them later. When the API recovers, the breaker lets a few trial calls through. Then we drain the backlog at a controlled rate, for example with a rate limiter, so we do not overload an API that has just come back. Some calls timed out when the outage started, and we do not know if they worked, so every replay must be idempotent, with the application ID as the key. The trade-off is delay: recruiters see new candidates hours later, so I agree that with the business in advance.",
+          "keypoints": [
+            {
+              "text": "The circuit breaker opens: fail fast and alert",
+              "kw": [
+                "circuit breaker",
+                "breaker",
+                "fail fast",
+                "alert"
+              ]
+            },
+            {
+              "text": "The work waits in a queue, within its retention period",
+              "kw": [
+                "queue",
+                "buffer",
+                "subscription",
+                "retention",
+                "seven days",
+                "7 days",
+                "nothing is lost"
+              ]
+            },
+            {
+              "text": "Check that the outage does not move good messages to the dead-letter topic",
+              "kw": [
+                "dead-letter",
+                "dead letter",
+                "dlq",
+                "delivery attempts",
+                "replay"
+              ]
+            },
+            {
+              "text": "Trial calls first, then drain the backlog at a controlled rate",
+              "kw": [
+                "backlog",
+                "controlled rate",
+                "rate limiter",
+                "rate limit",
+                "throttle",
+                "slowly",
+                "overload",
+                "trial calls"
+              ]
+            },
+            {
+              "text": "Replays must be idempotent",
+              "kw": [
+                "idempotent",
+                "idempotency",
+                "duplicate",
+                "application id",
+                "same key"
+              ]
+            },
+            {
+              "text": "Agree the delay with the business",
+              "kw": [
+                "delay",
+                "business",
+                "trade-off",
+                "hours later",
+                "agree"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Idempotency",
+        "points": [
+          "Idempotent: running it again leaves the same final state.",
+          "POST and PATCH are not idempotent: send an Idempotency-Key and reuse it on retries.",
+          "Idempotency-Key is an IETF Internet-Draft (08, 22 October 2026), not an RFC.",
+          "Draft errors: missing key 400, same key with a different payload 422, first request still running 409.",
+          "Use a UUID (the draft's recommendation) or a business key; the server should publish how long keys are kept."
+        ]
+      },
+      {
+        "h": "Retry or not",
+        "points": [
+          "Retry: timeouts, network errors, 408, 429 and 5xx such as 503.",
+          "Do not retry as is: 400, 401, 403, 404. A 409 usually needs a fix first.",
+          "Exception: the draft's 409 for a key still in progress can be retried later, unchanged.",
+          "429 and 503 may carry Retry-After: wait at least that long.",
+          "A 429 can also mean an exhausted quota, which can last hours: AIP-194 says RESOURCE_EXHAUSTED should generally not be retried automatically."
+        ]
+      },
+      {
+        "h": "Backoff and budgets",
+        "points": [
+          "Exponential backoff + jitter + maximum delay + maximum attempts.",
+          "Retry at one layer only: in the AWS example, retries at every layer raise the load 243 times.",
+          "Retry budget: up to 3 attempts per request; retry only while retries are under 10% of requests (Google SRE).",
+          "The AWS SDK limits retries locally with a token bucket.",
+          "Resilience4j maxAttempts includes the first call (default 3)."
+        ]
+      },
+      {
+        "h": "Timeouts",
+        "points": [
+          "Put a timeout on every remote call.",
+          "A timeout does not mean the call failed: the side effect may already have happened (AWS).",
+          "Choose it from latency: accept, say, 0.1% false timeouts and use the p99.9.",
+          "Cloud Run request timeout: 5 minutes by default, up to 60 minutes; then it returns 504."
+        ]
+      },
+      {
+        "h": "Dead-letter queues",
+        "points": [
+          "Poison message: received but never processable. Move it aside after N attempts.",
+          "Pub/Sub: dead-letter policy on the subscription; max delivery attempts 5 to 100, default 5, approximate.",
+          "Grant the Pub/Sub service agent Publisher on the dead-letter topic and Subscriber on the subscription.",
+          "Add a subscription to the dead-letter topic, or the messages are lost.",
+          "SQS: maxReceiveCount in the redrive policy; DLQ redrive moves messages back, at up to 500 messages per second with a custom velocity."
+        ]
+      },
+      {
+        "h": "Circuit breaker",
+        "points": [
+          "Closed: calls pass and results are recorded.",
+          "Open: fail fast (Resilience4j throws CallNotPermittedException).",
+          "Half-open: a few trial calls; success closes it, failure opens it again.",
+          "Resilience4j defaults: failure rate 50%, window 100 calls, wait 60 s, 10 trial calls.",
+          "Retry wraps the breaker; stop retrying when it is open."
+        ]
+      },
+      {
+        "h": "Long outages",
+        "points": [
+          "The breaker opens: fail fast, keep threads free, alert the team.",
+          "The work waits in the queue: a Pub/Sub subscription keeps unacknowledged messages 7 days by default (10 minutes to 31 days).",
+          "A long outage can use up max delivery attempts: check the dead-letter topic and replay it after recovery.",
+          "Half-open trial calls first, then drain the backlog at a controlled rate.",
+          "Replays must be idempotent: some calls timed out with an unknown result."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "The Idempotency-Key HTTP Header Field (draft-ietf-httpapi-idempotency-key-header-08)",
+      "url": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Timeouts, retries, and backoff with jitter (Amazon Builders' Library)",
+      "url": "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Retry strategy (Cloud Storage documentation)",
+      "url": "https://docs.cloud.google.com/storage/docs/retry-strategy",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "AIP-194: Automatic retry configuration",
+      "url": "https://google.aip.dev/194",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Dead-letter topics (Pub/Sub documentation)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/dead-letter-topics",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Subscription retry policy (Pub/Sub documentation)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-retry-policy",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Push subscriptions (Pub/Sub documentation)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/push",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Exactly-once delivery (Pub/Sub documentation)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/exactly-once-delivery",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Using dead-letter queues in Amazon SQS",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-dead-letter-queues.html",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Configure a dead-letter queue redrive in Amazon SQS",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-configure-dead-letter-queue-redrive.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Capturing problematic messages in Amazon SQS",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/capturing-problematic-messages.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "CircuitBreaker (Resilience4j documentation)",
+      "url": "https://resilience4j.readme.io/docs/circuitbreaker",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Retry (Resilience4j documentation)",
+      "url": "https://resilience4j.readme.io/docs/retry",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Getting started with resilience4j-spring-boot3",
+      "url": "https://resilience4j.readme.io/docs/getting-started-3",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Circuit Breaker pattern (Azure Architecture Center)",
+      "url": "https://learn.microsoft.com/azure/architecture/patterns/circuit-breaker",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Retry pattern (Azure Architecture Center)",
+      "url": "https://learn.microsoft.com/azure/architecture/patterns/retry",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Retry Storm antipattern (Azure Architecture Center)",
+      "url": "https://learn.microsoft.com/azure/architecture/antipatterns/retry-storm/",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Handling Overload (Google SRE book)",
+      "url": "https://sre.google/sre-book/handling-overload/",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "RFC 6585: Additional HTTP Status Codes (429 Too Many Requests)",
+      "url": "https://www.rfc-editor.org/rfc/rfc6585.html",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Set request timeout for services (Cloud Run documentation)",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/request-timeout",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Configure message retention for a subscription (Pub/Sub documentation)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-message-retention",
+      "official": true
+    }
+  ]
+}

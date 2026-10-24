@@ -1,0 +1,1282 @@
+{
+  "format": 1,
+  "id": "u06",
+  "n": 6,
+  "block": "integration",
+  "title": "API contracts",
+  "summary": "After this unit you can choose the right status codes for async work, conflicts and rate limits, protect updates with ETag and If-Match, return RFC 9457 errors, design a contract first with OpenAPI, evolve an API without breaking clients, and explain contract testing with Pact.",
+  "reviewed": "2026-10-24",
+  "versionNotes": [
+    "OpenAPI: version 3.2.1 (10 September 2026) is the newest version listed on spec.openapis.org on 2026-10-24.",
+    "Idempotency-Key header: draft-ietf-httpapi-idempotency-key-header-08 (22 October 2026), an Internet-Draft of the IETF httpapi working group. It is not an RFC, it expires on 25 April 2027, and it may still change.",
+    "Spring Cloud Contract: on 6 July 2026 the Spring team said it will stop maintaining the project and remove it from future Spring Cloud release trains; one of its original creators continues it as Stubborn.sh. The reference on docs.spring.io still shows 5.0.3 as the stable version.",
+    "Spring examples checked against the Spring Framework 7.0.10 reference (built-in API versioning, RFC 9457 support) on 2026-10-24.",
+    "GitHub REST API on 2026-10-24: versions 2026-03-10 and 2022-11-28; requests without X-GitHub-Api-Version use 2022-11-28; when a new version is released, the previous one is supported for at least 24 more months (2022-11-28 until 10 March 2028).",
+    "RFC 9745 (Deprecation header, March 2025) is Standards Track; RFC 8594 (Sunset header, May 2019) is Informational."
+  ],
+  "terms": [
+    {
+      "id": "t-api-contract",
+      "term": "API contract",
+      "ipa": "/ˌeɪ piː ˈaɪ ˌkɒntrækt/",
+      "say": "A P I contract",
+      "def": "An agreement on how an API or a message should look: its operations, request and response formats, status codes and errors. Consumers build on it, so the provider changes it only in compatible ways or with a new version.",
+      "example": "The contract for the candidate API is an OpenAPI document that the Cloud Run team and the SuccessFactors integration team review before every change.",
+      "src": "s18"
+    },
+    {
+      "id": "t-202-accepted",
+      "term": "202 Accepted",
+      "ipa": "/ˌtuː əʊ ˈtuː əkˈseptɪd/",
+      "say": "two oh two accepted",
+      "def": "A status code that says the server has accepted the request for processing, but the processing is not finished. It is non-committal: HTTP cannot send the final status later, so the response ought to describe the current status and point to (or embed) a status monitor.",
+      "example": "POST /exports returns 202 Accepted with a link to /exports/81, and a Cloud Run worker builds the file from a Pub/Sub message.",
+      "src": "s1"
+    },
+    {
+      "id": "t-etag",
+      "term": "ETag",
+      "ipa": "/ˈiː tæɡ/",
+      "say": "E tag",
+      "def": "A response header that carries an entity tag: an opaque validator for the current representation of a resource. A weak entity tag starts with W/, and If-Match only accepts a strong match.",
+      "example": "GET /requisitions/7 returns ETag: \"v7\", and the middleware sends If-Match: \"v7\" with its next PUT.",
+      "src": "s1"
+    },
+    {
+      "id": "t-optimistic-concurrency",
+      "term": "Optimistic concurrency",
+      "ipa": "/ˌɒptɪˈmɪstɪk kənˈkʌrənsi/",
+      "say": "optimistic concurrency",
+      "def": "A way to prevent lost updates without locks. The client reads the resource and its ETag, then sends the change with If-Match; if someone changed the resource in between, the condition is false and the server answers 412 Precondition Failed.",
+      "example": "Two recruiters edit the same job requisition. The second save still carries the old ETag, so the API returns 412 and the app shows the latest version.",
+      "src": "s1"
+    },
+    {
+      "id": "t-429",
+      "term": "429 Too Many Requests",
+      "ipa": "/ˌfɔː ˌtwenti ˈnaɪn ˌtuː ˌmeni rɪˈkwests/",
+      "say": "four twenty-nine, too many requests",
+      "def": "A status code from RFC 6585: the client has sent too many requests in a given amount of time (rate limiting). The response should explain the limit, may include Retry-After to say how long to wait, and must not be stored by a cache.",
+      "example": "When the nightly sync floods the candidate API, it gets 429 with Retry-After: 120 and pauses for two minutes.",
+      "src": "s2"
+    },
+    {
+      "id": "t-problem-details",
+      "term": "Problem details",
+      "ipa": "/ˈprɒbləm ˌdiːteɪlz/",
+      "say": "problem details",
+      "def": "A standard format for machine-readable errors in HTTP APIs, defined in RFC 9457 and sent as application/problem+json. Its members are type, title, status, detail and instance, and a problem type can add extension members.",
+      "example": "A rejected requisition update returns application/problem+json with a type URI, a short title, the status 412 and a detail that explains what happened.",
+      "src": "s3"
+    },
+    {
+      "id": "t-api-versioning",
+      "term": "API versioning",
+      "ipa": "/ˌeɪ piː ˈaɪ ˈvɜːʃənɪŋ/",
+      "say": "A P I versioning",
+      "def": "The way an API exposes incompatible changes as a new version, so that existing clients keep working. The version usually goes in the URI path, a request header, a query parameter or the media type in the Accept header.",
+      "example": "The candidate API keeps /v1 running for existing integrations while new consumers move to /v2.",
+      "src": "s20"
+    },
+    {
+      "id": "t-breaking-change",
+      "term": "Breaking change",
+      "ipa": "/ˌbreɪkɪŋ ˈtʃeɪndʒ/",
+      "say": "breaking change",
+      "def": "A change that makes existing client code fail or behave wrongly, such as removing or renaming a field, changing its type or default value, adding a required field or changing what a field means. Adding new optional fields is not a breaking change.",
+      "example": "Changing the location field from a city to a country code is a breaking change, even though the JSON still looks the same.",
+      "src": "s6"
+    },
+    {
+      "id": "t-tolerant-reader",
+      "term": "Tolerant reader",
+      "ipa": "/ˌtɒlərənt ˈriːdə/",
+      "say": "tolerant reader",
+      "def": "A consumer that takes only the elements it needs and ignores anything else. It is the 'be liberal in what you accept' side of Postel's law, and it lets a provider add fields without breaking anyone.",
+      "example": "The Spring consumer maps only the five candidate fields it uses, so a new field in the response does not break it.",
+      "src": "s24"
+    },
+    {
+      "id": "t-openapi",
+      "term": "OpenAPI",
+      "ipa": "/ˌəʊpən ˌeɪ piː ˈaɪ/",
+      "say": "open A P I",
+      "def": "The OpenAPI Specification (OAS) defines a standard, language-agnostic interface to HTTP APIs, so that people and tools can understand a service without its source code. The openapi field gives the OAS version; info.version gives the version of the OpenAPI document itself.",
+      "example": "The team generates the Java client for the requisition API from its OpenAPI document and checks every change in a pull request.",
+      "src": "s5"
+    },
+    {
+      "id": "t-design-first",
+      "term": "Design-first",
+      "ipa": "/dɪˌzaɪn ˈfɜːst/",
+      "say": "design first",
+      "def": "An approach where the team writes and reviews the API description, such as an OpenAPI document, before it writes the code. In the opposite approach, code-first, the description is created from the code.",
+      "example": "The candidate API was design-first: both teams reviewed the OpenAPI document in a pull request before anyone wrote the service.",
+      "src": "s25"
+    },
+    {
+      "id": "t-consumer-driven-contract",
+      "term": "Consumer-driven contract",
+      "ipa": "/kənˌsjuːmə ˌdrɪvən ˈkɒntrækt/",
+      "say": "consumer-driven contract",
+      "def": "A contract based on what the consumer needs. With Pact it is generated by the consumer's tests, which record the requests the consumer sends and the responses it needs. The provider then proves that it meets these expectations, so only the parts that consumers really use are tested.",
+      "example": "The scheduling app's Pact tests record the two calls it makes to the candidate API, and the candidate API's build verifies them.",
+      "src": "s12"
+    },
+    {
+      "id": "t-provider-verification",
+      "term": "Provider verification",
+      "ipa": "/prəˈvaɪdə ˌverɪfɪˈkeɪʃən/",
+      "say": "provider verification",
+      "def": "The Pact step where the requests in a pact file are replayed against the real provider and the real responses are compared with the expected ones. Provider states set up the data that each interaction needs.",
+      "example": "Before each release, the candidate API's pipeline runs provider verification against the latest pacts from the Pact Broker.",
+      "src": "s13"
+    },
+    {
+      "id": "t-deprecation-header",
+      "term": "Deprecation header",
+      "ipa": "/ˌdeprəˈkeɪʃən ˌhedə/",
+      "say": "deprecation header",
+      "def": "A response header from RFC 9745 that gives the date when a resource is or will be deprecated. It often comes with the Sunset header (RFC 8594), which says when the resource is expected to stop responding and must not be earlier than the deprecation date.",
+      "example": "Every /v1 response now carries Deprecation and Sunset headers and a Link with rel=\"deprecation\" that points to the migration guide.",
+      "src": "s10"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u06-l1",
+      "kind": "concepts",
+      "title": "Status codes, errors and change",
+      "items": [
+        {
+          "id": "u06-l1-i1",
+          "type": "card",
+          "term": "t-api-contract",
+          "src": "s18"
+        },
+        {
+          "id": "u06-l1-i2",
+          "type": "card",
+          "term": "t-202-accepted",
+          "src": "s1",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "c",
+                "label": "Client"
+              },
+              {
+                "id": "api",
+                "label": "Cloud Run API"
+              },
+              {
+                "id": "q",
+                "label": "Pub/Sub topic"
+              },
+              {
+                "id": "w",
+                "label": "Worker"
+              },
+              {
+                "id": "st",
+                "label": "Status resource /exports/81"
+              }
+            ],
+            "edges": [
+              {
+                "from": "c",
+                "to": "api",
+                "label": "POST /exports"
+              },
+              {
+                "from": "api",
+                "to": "q",
+                "label": "publish the job"
+              },
+              {
+                "from": "api",
+                "to": "c",
+                "label": "202 Accepted + status link"
+              },
+              {
+                "from": "q",
+                "to": "w",
+                "label": "deliver the message"
+              },
+              {
+                "from": "w",
+                "to": "st",
+                "label": "update the state"
+              },
+              {
+                "from": "c",
+                "to": "st",
+                "label": "GET until done"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u06-l1-i3",
+          "type": "card",
+          "term": "t-optimistic-concurrency",
+          "src": "s1",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "a",
+                "label": "Recruiter A's app"
+              },
+              {
+                "id": "api",
+                "label": "Requisition API"
+              },
+              {
+                "id": "b",
+                "label": "Recruiter B's app"
+              }
+            ],
+            "edges": [
+              {
+                "from": "a",
+                "to": "api",
+                "label": "GET /requisitions/7"
+              },
+              {
+                "from": "api",
+                "to": "a",
+                "label": "200 OK, ETag \"v1\""
+              },
+              {
+                "from": "b",
+                "to": "api",
+                "label": "PUT with If-Match \"v1\""
+              },
+              {
+                "from": "api",
+                "to": "b",
+                "label": "200 OK, ETag \"v2\""
+              },
+              {
+                "from": "a",
+                "to": "api",
+                "label": "PUT with If-Match \"v1\""
+              },
+              {
+                "from": "api",
+                "to": "a",
+                "label": "412 Precondition Failed"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u06-l1-i4",
+          "type": "tf",
+          "src": "s1",
+          "statement": "If-Match uses the weak comparison, so a weak ETag such as W/\"v7\" works well for optimistic concurrency.",
+          "answer": false,
+          "why": "An origin server must use the strong comparison for If-Match, and a weak entity tag never matches. Give strong ETags to resources that clients update."
+        },
+        {
+          "id": "u06-l1-i5",
+          "type": "card",
+          "term": "t-429",
+          "src": "s2"
+        },
+        {
+          "id": "u06-l1-i6",
+          "type": "card",
+          "term": "t-problem-details",
+          "src": "s3"
+        },
+        {
+          "id": "u06-l1-i7",
+          "type": "pick",
+          "src": "s8",
+          "q": "The candidate API is at v1 and has many consumers. Which change can you ship in v1 without breaking them?",
+          "options": [
+            "Add an optional field preferredName to the candidate response",
+            "Rename lastName to familyName",
+            "Make the optional phone field required in POST /candidates",
+            "Change the type of score from a number to a string"
+          ],
+          "answer": 0,
+          "why": "Adding a response field is an additive change, and tolerant readers ignore it. Renaming a field, making an optional parameter required and changing a type are all breaking changes in GitHub's list."
+        },
+        {
+          "id": "u06-l1-i8",
+          "type": "card",
+          "term": "t-tolerant-reader",
+          "src": "s24"
+        },
+        {
+          "id": "u06-l1-i9",
+          "type": "card",
+          "term": "t-consumer-driven-contract",
+          "src": "s12"
+        },
+        {
+          "id": "u06-l1-i10",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each status code with the situation where you use it.",
+          "pairs": [
+            [
+              "202 Accepted",
+              "The work is queued and will finish later"
+            ],
+            [
+              "409 Conflict",
+              "The request conflicts with the current state, and the user may fix it and resubmit"
+            ],
+            [
+              "412 Precondition Failed",
+              "An If-Match condition was false on the server"
+            ],
+            [
+              "428 Precondition Required",
+              "The server requires a conditional request, for example with If-Match"
+            ],
+            [
+              "429 Too Many Requests",
+              "The client went over the rate limit"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u06-l2",
+      "kind": "practice",
+      "title": "Designing and testing the contract",
+      "items": [
+        {
+          "id": "u06-l2-i1",
+          "type": "match",
+          "src": "s20",
+          "q": "Match each versioning strategy with an example request.",
+          "pairs": [
+            [
+              "URI path",
+              "GET /v2/candidates/42"
+            ],
+            [
+              "Request header",
+              "API-Version: 1.1"
+            ],
+            [
+              "Query parameter",
+              "GET /candidates/42?version=1.1"
+            ],
+            [
+              "Media type",
+              "Accept: application/vnd.acme.candidate.v2+json"
+            ]
+          ]
+        },
+        {
+          "id": "u06-l2-i2",
+          "type": "scenario",
+          "src": "s1",
+          "q": "Recruiters can start a bulk export of all candidates for a job requisition from SuccessFactors Recruiting. The export takes up to 20 minutes and runs on Cloud Run workers fed by Pub/Sub. What should POST /exports return?",
+          "options": [
+            {
+              "text": "202 Accepted, with a link to a status resource such as /exports/81 that the client can poll.",
+              "ok": true,
+              "why": "202 says the work was accepted but is not finished, and RFC 9110 says the response ought to describe the current status and point to a status monitor."
+            },
+            {
+              "text": "200 OK, but only after the export has finished, so the client gets everything in one call.",
+              "ok": false,
+              "why": "The client must hold the connection for 20 minutes, and a time-out leaves it unsure whether the export ran."
+            },
+            {
+              "text": "201 Created, with the finished file in the body.",
+              "ok": false,
+              "why": "The file does not exist yet when the request arrives, so the server cannot return it."
+            },
+            {
+              "text": "409 Conflict until the export is ready, so that the client keeps retrying.",
+              "ok": false,
+              "why": "409 means the request conflicts with the current state of the resource. It is an error, not a progress signal."
+            }
+          ]
+        },
+        {
+          "id": "u06-l2-i3",
+          "type": "code",
+          "src": "s1",
+          "lang": "http",
+          "q": "The middleware reads a job requisition and then updates it, but another user changed it in between. Complete the exchange.",
+          "code": "GET /requisitions/7 HTTP/1.1\nHost: api.example.com\n\nHTTP/1.1 200 OK\nContent-Type: application/json\n[[1]]: \"v7\"\n\nPUT /requisitions/7 HTTP/1.1\nHost: api.example.com\nContent-Type: application/json\n[[2]]: \"v7\"\n\nHTTP/1.1 [[3]]\nContent-Type: [[4]]",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "ETag",
+              "decoys": [
+                "Last-Modified",
+                "Location"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "If-Match",
+              "decoys": [
+                "If-None-Match",
+                "ETag"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "412 Precondition Failed",
+              "decoys": [
+                "409 Conflict",
+                "304 Not Modified",
+                "428 Precondition Required"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "application/problem+json",
+              "decoys": [
+                "application/json+problem",
+                "text/problem"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u06-l2-i4",
+          "type": "code",
+          "src": "s3",
+          "lang": "http",
+          "q": "The candidate API rate-limits a nightly sync job. Complete the response so that the client knows how long to wait and can read the error.",
+          "code": "HTTP/1.1 429 Too Many Requests\nContent-Type: application/problem+json\n[[1]]: 120\n\n{\n  \"[[2]]\": \"https://example.com/probs/rate-limited\",\n  \"title\": \"Too many requests\",\n  \"status\": [[3]],\n  \"detail\": \"You sent 300 requests in the last minute. The limit is 100.\",\n  \"instance\": \"/sync-runs/2026-10-24\"\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "Retry-After",
+              "decoys": [
+                "Sunset",
+                "Expires"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "type",
+              "decoys": [
+                "code",
+                "error"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "429",
+              "decoys": [
+                "\"429\"",
+                "200"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u06-l2-i5",
+          "type": "order",
+          "src": "s16",
+          "q": "Put the Pact workflow in order, from the consumer's test to production.",
+          "steps": [
+            "The consumer team writes a test that calls the Pact mock provider",
+            "Pact writes the recorded interactions to a pact file",
+            "The consumer pipeline publishes the pact file to the Pact Broker",
+            "The provider pipeline replays each request against the real provider, using provider states",
+            "The verification result is published to the Pact Broker",
+            "can-i-deploy checks the Pact Matrix before the release to production",
+            "record-deployment tells the broker which version now runs in production"
+          ]
+        },
+        {
+          "id": "u06-l2-i6",
+          "type": "diagram",
+          "src": "s17",
+          "layout": "flow",
+          "q": "Drag the labels into the Spring Cloud Contract flow, from the producer's contract to the consumer's test.",
+          "nodes": [
+            {
+              "id": "c",
+              "label": "Contract (YAML) in src/test/resources/contracts",
+              "slot": false
+            },
+            {
+              "id": "p",
+              "label": "Spring Cloud Contract Maven plugin",
+              "slot": false
+            },
+            {
+              "id": "t",
+              "label": "Generated tests that extend the base class",
+              "slot": true
+            },
+            {
+              "id": "s",
+              "label": "Stubs artifact for WireMock",
+              "slot": true
+            },
+            {
+              "id": "r",
+              "label": "Stub Runner in the consumer's tests",
+              "slot": true
+            }
+          ],
+          "edges": [
+            {
+              "from": "c",
+              "to": "p",
+              "label": "read at build time"
+            },
+            {
+              "from": "p",
+              "to": "t",
+              "label": "generates"
+            },
+            {
+              "from": "p",
+              "to": "s",
+              "label": "builds and installs"
+            },
+            {
+              "from": "s",
+              "to": "r",
+              "label": "fetched by"
+            }
+          ],
+          "decoys": [
+            "Pact Broker",
+            "Provider states",
+            "Retry-After header"
+          ]
+        },
+        {
+          "id": "u06-l2-i7",
+          "type": "scenario",
+          "src": "s6",
+          "q": "The requisition API has a field location that holds the office city. A new HR process needs the country code, and a team wants location to hold the country code from next month. What do you propose?",
+          "options": [
+            {
+              "text": "Add a new optional field countryCode and keep location as it is; deprecate location later if nobody needs it.",
+              "ok": true,
+              "why": "Adding an optional field is a compatible change, and every existing consumer keeps the meaning it relies on."
+            },
+            {
+              "text": "Change the meaning of location and explain it in the release notes.",
+              "ok": false,
+              "why": "The JSON looks the same, but old clients now read a country as a city. AIP-180 forbids changes to visible behaviour or semantics that are likely to break reasonable user code."
+            },
+            {
+              "text": "Rename location to countryCode in the same version.",
+              "ok": false,
+              "why": "A rename is a removal plus an addition, so every client that reads location breaks."
+            },
+            {
+              "text": "Add countryCode as a required field in every request that creates a requisition.",
+              "ok": false,
+              "why": "New required fields must not be added to existing requests, because old clients do not send them."
+            }
+          ]
+        },
+        {
+          "id": "u06-l2-i8",
+          "type": "scenario",
+          "src": "s7",
+          "q": "Partners call your candidate API with curl, low-code tools and a caching gateway that routes by path. You must remove a field, which is a breaking change. What do you do?",
+          "options": [
+            {
+              "text": "Publish /v2 next to /v1, keep /v1 for a published support period, and add Deprecation and Sunset headers to /v1 responses.",
+              "ok": true,
+              "why": "A new major version protects existing clients, and the path is easy to see and route. The two headers tell clients when v1 is deprecated and when it will stop."
+            },
+            {
+              "text": "Remove the field from /v1 and announce the change in the release notes.",
+              "ok": false,
+              "why": "Removing a field is a breaking change, so every client that reads it fails on the day you deploy."
+            },
+            {
+              "text": "Add a minor version to the path, such as /v1.4, for this change.",
+              "ok": false,
+              "why": "AIP-185 says APIs must not expose minor or patch version numbers, and a breaking change needs a new major version, not a minor one."
+            },
+            {
+              "text": "Move to a version header and use the newest version when a client sends no header.",
+              "ok": false,
+              "why": "Clients that send no header would get the breaking change at once. GitHub, for example, uses a fixed older version (2022-11-28) when the header is missing."
+            }
+          ]
+        },
+        {
+          "id": "u06-l2-i9",
+          "type": "scenario",
+          "src": "s25",
+          "q": "Next week one team starts a new candidate API on Cloud Run, and another team starts the SuccessFactors Recruiting integration that calls it. Both must go live on the same date. How do you start?",
+          "options": [
+            {
+              "text": "Write the OpenAPI document first, review it with both teams, keep it in source control and check the code against it in the pipeline.",
+              "ok": true,
+              "why": "Design-first gives both teams one agreed contract before any code exists. The pipeline check stops the code and the document from going out of sync."
+            },
+            {
+              "text": "Let the API team build the service first and generate the OpenAPI document from the code at the end.",
+              "ok": false,
+              "why": "The integration team has nothing to build against until the end. Also, OpenAPI cannot describe every possible HTTP API, so the code may do things that the document cannot show."
+            },
+            {
+              "text": "Ask each team to describe the contract on its own wiki page.",
+              "ok": false,
+              "why": "Two copies of the same information soon stop matching. The OpenAPI best practices say to keep a single source of truth."
+            },
+            {
+              "text": "Skip the contract and test the two systems end to end once both are deployed.",
+              "ok": false,
+              "why": "Mismatches appear only at the end, when they cost the most to fix. There is also no contract to review or to check the code against."
+            }
+          ]
+        },
+        {
+          "id": "u06-l2-i10",
+          "type": "code",
+          "src": "s21",
+          "lang": "java",
+          "q": "In Spring Framework 7, the client sends the version in the API-Version header. Complete the code so that the second method serves version 1.2 and every supported version above it.",
+          "code": "@Configuration\npublic class WebConfiguration implements WebMvcConfigurer {\n\n    @Override\n    public void configureApiVersioning(ApiVersionConfigurer configurer) {\n        configurer.[[1]](\"API-Version\");\n    }\n}\n\n@RestController\n@RequestMapping(\"/candidates/{id}\")\npublic class CandidateController {\n\n    @GetMapping(version = \"1.1\")\n    public CandidateV1 getCandidate1_1() { ... }\n\n    @GetMapping(version = \"[[2]]\")\n    public CandidateV2 getCandidate1_2() { ... }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "useRequestHeader",
+              "decoys": [
+                "usePathSegment",
+                "useMediaTypeParameter"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "1.2+",
+              "decoys": [
+                "1.2",
+                ">=1.2"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u06-l3",
+      "kind": "interview",
+      "title": "Talking about API contracts",
+      "items": [
+        {
+          "id": "u06-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "For long-running work, I return 202 Accepted with a link to a status resource, so the client does not hold a connection open."
+        },
+        {
+          "id": "u06-l3-i2",
+          "type": "tf",
+          "src": "s15",
+          "statement": "In Pact, provider verification fails if the provider's JSON response contains extra fields that the consumer did not describe.",
+          "answer": false,
+          "why": "Pact ignores unexpected values in response bodies, because another consumer may need them. Request matching is stricter: unexpected values in JSON request bodies are not allowed."
+        },
+        {
+          "id": "u06-l3-i3",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "Two systems can update the same job requisition at the same time. How do you prevent lost updates in your API?",
+          "model": "I use optimistic concurrency, with an ETag and the If-Match header. It works well because real conflicts are rare, and the server does not need to hold locks between requests. When a client reads the requisition, the API returns a strong ETag for the current version. When the client sends a PUT or a PATCH, it puts that value in If-Match. If someone else changed the requisition in between, the tags do not match, so the server does not apply the change and returns 412 Precondition Failed, with a problem details body. The client then reads the latest version, merges the change or asks the user, and tries again. I do not use weak ETags here, because If-Match needs the strong comparison. To make the rule mandatory, the server can return 428 Precondition Required when If-Match is missing. The trade-off is that every client must handle 412, so I document it in the contract. I keep 409 Conflict for other state conflicts, for example closing a requisition that still has open offers.",
+          "keypoints": [
+            {
+              "text": "Why: no locks between requests, and conflicts are rare",
+              "kw": [
+                "optimistic",
+                "lock",
+                "locks",
+                "locking",
+                "rare"
+              ]
+            },
+            {
+              "text": "Return a strong ETag when the client reads",
+              "kw": [
+                "etag",
+                "entity tag",
+                "validator",
+                "version"
+              ]
+            },
+            {
+              "text": "Send If-Match with the update",
+              "kw": [
+                "if-match",
+                "if match",
+                "conditional"
+              ]
+            },
+            {
+              "text": "A mismatch means 412 Precondition Failed",
+              "kw": [
+                "412",
+                "precondition failed"
+              ]
+            },
+            {
+              "text": "The client re-reads, merges and tries again",
+              "kw": [
+                "re-read",
+                "read the latest",
+                "reload",
+                "merge",
+                "try again",
+                "retry"
+              ]
+            },
+            {
+              "text": "428 to require conditional requests; 409 for other conflicts",
+              "kw": [
+                "428",
+                "precondition required",
+                "409",
+                "conflict"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u06-l3-i4",
+          "type": "scenario",
+          "src": "s6",
+          "q": "Yesterday you deployed a change that renamed a field in v1 of the candidate API, because you thought nobody used it. This morning a partner's nightly import failed on the missing field. What do you do first?",
+          "options": [
+            {
+              "text": "Put the old field back in v1 at once, next to the new one, with a hotfix or a rollback. Then tell the partner, and plan any removal for a new major version.",
+              "ok": true,
+              "why": "AIP-180 treats a rename as a removal plus an addition: you may add the new field, but you must not remove the old one in the same major version. Restore compatibility first, then discuss the change."
+            },
+            {
+              "text": "Ask the partner to change its mapping to the new name today.",
+              "ok": false,
+              "why": "That moves the cost of your breaking change to the consumer. Other consumers that you do not know about may be failing too."
+            },
+            {
+              "text": "Publish v2 with the new name and ask the partner to move to it.",
+              "ok": false,
+              "why": "A new version is the right way to plan the change, but v1 is still broken. The partner's import keeps failing until v1 works as before."
+            },
+            {
+              "text": "Wait a few days to see how many consumers report the same problem.",
+              "ok": false,
+              "why": "Every failed import while you wait is a real business problem. Fix v1 first, then find out who uses the field."
+            }
+          ]
+        },
+        {
+          "id": "u06-l3-i5",
+          "type": "say",
+          "src": "s6",
+          "text": "I never change the meaning of an existing field. If the business needs different data, I add a new optional field instead."
+        },
+        {
+          "id": "u06-l3-i6",
+          "type": "explain",
+          "src": "s7",
+          "seconds": 150,
+          "q": "How do you version an API, and how do you change it without breaking existing clients?",
+          "model": "In short, I avoid breaking changes, and when I cannot avoid one, I publish a new major version. Additive changes, like a new optional field or a new operation, go into the current version, and I ask consumers to be tolerant readers that ignore fields they do not know. Breaking changes are different: removing or renaming a field, changing its type, adding a required field, or changing what a field means. For a partner API, I usually put the major version in the URI path, like v2, because it is visible, easy to route at the gateway and easy to test with curl. A header or a media type keeps the URIs stable, but it is less visible, and caches must take it into account. I run both versions side by side, mark the old one with the Deprecation and Sunset headers, and publish a support window, for example at least 24 months, as GitHub does. The trade-off is cost: every version we keep is code that we must run, test and secure.",
+          "keypoints": [
+            {
+              "text": "Additive changes stay in the same version",
+              "kw": [
+                "additive",
+                "optional field",
+                "new field",
+                "same version",
+                "backward compatible",
+                "backwards compatible"
+              ]
+            },
+            {
+              "text": "Name the breaking changes",
+              "kw": [
+                "breaking",
+                "remove",
+                "rename",
+                "type",
+                "required",
+                "meaning"
+              ]
+            },
+            {
+              "text": "A new major version for breaking changes",
+              "kw": [
+                "major version",
+                "new version",
+                "v2"
+              ]
+            },
+            {
+              "text": "Trade-offs of URI path, header and media type",
+              "kw": [
+                "uri",
+                "path",
+                "header",
+                "media type",
+                "accept",
+                "cache"
+              ]
+            },
+            {
+              "text": "Deprecation, Sunset and a support window",
+              "kw": [
+                "deprecation",
+                "sunset",
+                "support window",
+                "months",
+                "migration"
+              ]
+            },
+            {
+              "text": "Consumers as tolerant readers",
+              "kw": [
+                "tolerant reader",
+                "ignore unknown",
+                "ignore fields",
+                "ignore"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u06-l3-i7",
+          "type": "scenario",
+          "src": "s24",
+          "q": "The provider added an optional field to the candidate response, and now your Spring consumer fails because its JSON mapping rejects unknown properties. The provider did nothing wrong. What do you change?",
+          "options": [
+            {
+              "text": "Configure the consumer to ignore unknown properties and to map only the fields it uses.",
+              "ok": true,
+              "why": "That is a tolerant reader: it takes only what it needs and ignores the rest, so additive changes stay safe."
+            },
+            {
+              "text": "Ask the provider to remove the field until every consumer is ready.",
+              "ok": false,
+              "why": "Adding an optional field is a compatible change, and blocking it makes every consumer a release dependency of the provider."
+            },
+            {
+              "text": "Ask the provider to publish a new major version for every new field.",
+              "ok": false,
+              "why": "Major versions are for breaking changes. A version for each new field gives everyone many versions to run and support."
+            },
+            {
+              "text": "Copy the provider's full response schema into the consumer and validate every field strictly.",
+              "ok": false,
+              "why": "That ties the consumer to fields it does not use, so the next additive change breaks it again."
+            }
+          ]
+        },
+        {
+          "id": "u06-l3-i8",
+          "type": "explain",
+          "src": "s25",
+          "seconds": 120,
+          "q": "Do you design the API contract first, or do you write the code first and generate the OpenAPI document from it? Why?",
+          "model": "For integration APIs, I prefer design-first. We write the OpenAPI document before the code, and we review it with the consumer teams in a pull request. I have three reasons. First, consumers see the contract early, when a change is still cheap. Second, both teams can work in parallel, because they build against the same agreed document. Third, OpenAPI cannot describe every possible HTTP API, so if we start in code, we can build something that is hard to describe later. For example, for a new candidate API on Cloud Run, the integration team and the service team agreed the document in the first week, and then both started at the same time. The document lives in source control as the single source of truth, and a check in the pipeline makes sure the code still matches it. The trade-off is more work at the start. For a small internal API with one consumer, code-first with annotations can be enough, as long as there is still one source of truth.",
+          "keypoints": [
+            {
+              "text": "Design-first: write and review the OpenAPI document before the code",
+              "kw": [
+                "design-first",
+                "design first",
+                "contract-first",
+                "contract first",
+                "api-first",
+                "api first",
+                "before the code",
+                "before writing code"
+              ]
+            },
+            {
+              "text": "Consumers review the contract early, when a change is cheap",
+              "kw": [
+                "review",
+                "early",
+                "feedback",
+                "pull request",
+                "cheap"
+              ]
+            },
+            {
+              "text": "Both teams work in parallel against the agreed document",
+              "kw": [
+                "parallel",
+                "at the same time",
+                "same document",
+                "agreed",
+                "mock"
+              ]
+            },
+            {
+              "text": "One source of truth in source control",
+              "kw": [
+                "single source of truth",
+                "source of truth",
+                "source control",
+                "git",
+                "repository"
+              ]
+            },
+            {
+              "text": "A pipeline check keeps the code and the document in sync",
+              "kw": [
+                "pipeline",
+                "continuous integration",
+                "ci check",
+                "in sync",
+                "matches",
+                "validate",
+                "validation"
+              ]
+            },
+            {
+              "text": "Trade-off: more work at the start; code-first can fit a small API",
+              "kw": [
+                "trade-off",
+                "tradeoff",
+                "at the start",
+                "up front",
+                "upfront",
+                "code-first",
+                "code first",
+                "annotations"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u06-l3-i9",
+          "type": "say",
+          "src": "s3",
+          "text": "All our errors use RFC 9457 problem details, so every client can rely on the same fields: type, title, status, detail and instance."
+        },
+        {
+          "id": "u06-l3-i10",
+          "type": "explain",
+          "src": "s14",
+          "seconds": 150,
+          "q": "What is consumer-driven contract testing, and why would you use it instead of only end-to-end tests?",
+          "model": "In consumer-driven contract testing, the consumer's tests define the contract, and the provider proves that it meets it. With Pact, the consumer team writes a test against a Pact mock provider. The test records each request the consumer sends and the minimal response it needs, and Pact writes them to a pact file, which we publish to the Pact Broker. The provider's pipeline replays each request against the real provider, with provider states to set up the data. Before a release, can-i-deploy asks the broker whether this version works with the versions in production. Compared with end-to-end tests, this is faster and more stable, because each service is tested on its own, and we only test what consumers really use. The trade-off is that it needs known consumers who also use Pact. For a public API with unknown consumers, I rely on the OpenAPI document and strict compatibility rules instead. I still keep a few end-to-end tests for the main business flows.",
+          "keypoints": [
+            {
+              "text": "The consumer's tests define the contract against a mock provider",
+              "kw": [
+                "consumer",
+                "mock",
+                "expectations",
+                "pact file"
+              ]
+            },
+            {
+              "text": "The pact file is shared through the Pact Broker",
+              "kw": [
+                "broker",
+                "publish",
+                "share"
+              ]
+            },
+            {
+              "text": "Provider verification replays the requests against the real provider",
+              "kw": [
+                "verification",
+                "verify",
+                "replay",
+                "real provider",
+                "provider states"
+              ]
+            },
+            {
+              "text": "can-i-deploy before a release",
+              "kw": [
+                "can-i-deploy",
+                "can i deploy",
+                "matrix",
+                "environment",
+                "production"
+              ]
+            },
+            {
+              "text": "Faster and more stable than end-to-end tests",
+              "kw": [
+                "end-to-end",
+                "end to end",
+                "on its own",
+                "isolation",
+                "faster",
+                "stable"
+              ]
+            },
+            {
+              "text": "Trade-off: it needs known consumers, so it does not fit a public API",
+              "kw": [
+                "public api",
+                "unknown consumers",
+                "known consumers",
+                "not a good fit",
+                "trade-off",
+                "tradeoff"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Status codes",
+        "points": [
+          "202 Accepted: accepted, not finished. Point to a status monitor; HTTP cannot send the final status later.",
+          "409 Conflict: the request conflicts with the current state; explain the conflict so the user can fix it and resubmit.",
+          "412 Precondition Failed: a condition such as If-Match was false on the server.",
+          "428 Precondition Required (RFC 6585): the server wants a conditional request.",
+          "429 Too Many Requests (RFC 6585): rate limit. Explain the limit, may add Retry-After, never cached."
+        ]
+      },
+      {
+        "h": "Optimistic concurrency",
+        "points": [
+          "GET returns ETag: \"v7\". The update sends If-Match: \"v7\".",
+          "Mismatch: the server must not apply the method; it usually answers 412.",
+          "If-Match uses the strong comparison: a weak (W/) ETag never matches.",
+          "Client: read again, merge or ask the user, then try again."
+        ]
+      },
+      {
+        "h": "Retry-After",
+        "points": [
+          "Two forms: a delay in seconds (Retry-After: 120) or an HTTP-date.",
+          "With 429: how long to wait before a new request.",
+          "With 503: how long the service is expected to be unavailable. With 3xx: the minimum wait before the redirected request."
+        ]
+      },
+      {
+        "h": "Problem details (RFC 9457)",
+        "points": [
+          "Media type application/problem+json (XML: application/problem+xml). RFC 9457 obsoletes RFC 7807.",
+          "Members: type (a URI reference; about:blank if absent), title, status (a JSON number), detail, instance.",
+          "Extension members are allowed; clients must ignore the ones they do not recognise.",
+          "Not a debugging tool: do not expose stack traces or implementation details.",
+          "Spring: return ProblemDetail, or extend ResponseEntityExceptionHandler in a @ControllerAdvice class."
+        ]
+      },
+      {
+        "h": "Idempotency-Key (Internet-Draft)",
+        "points": [
+          "draft-08 of 22 October 2026, expires 25 April 2027. Not an RFC yet.",
+          "Makes POST and PATCH fault-tolerant. Use a UUID or a similar random value.",
+          "Key missing where the API requires it: 400. Same key with a different payload: 422. First request still running: 409.",
+          "Each API documents its key rules, including how long keys are kept."
+        ]
+      },
+      {
+        "h": "Evolution and versioning",
+        "points": [
+          "Compatible: new optional fields, new operations, new optional parameters.",
+          "Breaking: remove, rename, change a type or default, add a required field, change the meaning.",
+          "Tolerant reader: take what you need, ignore the rest.",
+          "Where the version goes: URI path (/v2), header (API-Version), query parameter or media type (application/vnd.acme.v2+json).",
+          "Retire with Deprecation (RFC 9745) and Sunset (RFC 8594) headers and a published support window."
+        ]
+      },
+      {
+        "h": "OpenAPI",
+        "points": [
+          "Design-first: write and review the OpenAPI document before the code. Keep one source of truth in source control and check the code against it in CI.",
+          "Latest on spec.openapis.org: OAS 3.2.1 (10 September 2026).",
+          "openapi is the OAS version; info.version is the version of the OpenAPI document itself.",
+          "major.minor names the feature set; patch releases only fix or clarify the text.",
+          "deprecated: true on an operation tells consumers to stop using it."
+        ]
+      },
+      {
+        "h": "Contract testing",
+        "points": [
+          "Pact: consumer tests against a mock create a pact file; provider verification replays it against the real provider.",
+          "Requests are strict, responses are relaxed: extra response fields are fine.",
+          "Pact Broker: can-i-deploy before each release, record-deployment after it.",
+          "Pact fits best when you know each consumer and both sides use Pact. It is not a good fit for public APIs with unknown consumers.",
+          "Spring Cloud Contract: contracts in the producer, generated tests, WireMock stubs, Stub Runner. Since July 2026 it continues outside Spring as Stubborn.sh."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "RFC 9110: HTTP Semantics",
+      "url": "https://www.rfc-editor.org/rfc/rfc9110.html",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "RFC 6585: Additional HTTP Status Codes (428 and 429)",
+      "url": "https://www.rfc-editor.org/rfc/rfc6585.html",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "RFC 9457: Problem Details for HTTP APIs",
+      "url": "https://www.rfc-editor.org/rfc/rfc9457.html",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "The Idempotency-Key HTTP Header Field (draft-ietf-httpapi-idempotency-key-header-08)",
+      "url": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "OpenAPI Specification v3.2.1",
+      "url": "https://spec.openapis.org/oas/v3.2.1.html",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "AIP-180: Backwards compatibility",
+      "url": "https://google.aip.dev/180",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "AIP-185: API Versioning",
+      "url": "https://google.aip.dev/185",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "API Versions (GitHub REST API documentation)",
+      "url": "https://docs.github.com/en/rest/about-the-rest-api/api-versions",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "RFC 6838: Media Type Specifications and Registration Procedures",
+      "url": "https://www.rfc-editor.org/rfc/rfc6838.html",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "RFC 9745: The Deprecation HTTP Response Header Field",
+      "url": "https://www.rfc-editor.org/rfc/rfc9745.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "RFC 8594: The Sunset HTTP Header Field",
+      "url": "https://www.rfc-editor.org/rfc/rfc8594.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Introduction (Pact documentation)",
+      "url": "https://docs.pact.io/",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Terminology (Pact documentation)",
+      "url": "https://docs.pact.io/getting_started/terminology",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "How Pact works (Pact documentation)",
+      "url": "https://docs.pact.io/getting_started/how_pact_works",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Matching (Pact documentation)",
+      "url": "https://docs.pact.io/getting_started/matching",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Can I Deploy (Pact Broker documentation)",
+      "url": "https://docs.pact.io/pact_broker/can_i_deploy",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Spring Cloud Contract: A Three-second Tour",
+      "url": "https://docs.spring.io/spring-cloud-contract/reference/getting-started/three-second-tour.html",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Introducing Spring Cloud Contract",
+      "url": "https://docs.spring.io/spring-cloud-contract/reference/getting-started/introducing-spring-cloud-contract.html",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "A New Home for Spring Cloud Contract: Transitioning to Stubborn.sh (Spring blog, 6 July 2026)",
+      "url": "https://spring.io/blog/2026/07/06/spring-cloud-contract-transition-to-stubbornsh/",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "API Versioning (Spring Framework reference, Spring MVC)",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc-versioning.html",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "API Version configuration (Spring Framework reference, MVC Config)",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-config/api-version.html",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Mapping Requests (Spring Framework reference)",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-requestmapping.html",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Error Responses (Spring Framework reference)",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "Tolerant Reader (Martin Fowler)",
+      "url": "https://martinfowler.com/bliki/TolerantReader.html",
+      "official": false
+    },
+    {
+      "id": "s25",
+      "title": "Best Practices (OpenAPI Initiative documentation)",
+      "url": "https://learn.openapis.org/best-practices",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "When to use Pact (Pact documentation)",
+      "url": "https://docs.pact.io/getting_started/what_is_pact_good_for",
+      "official": true
+    }
+  ]
+}

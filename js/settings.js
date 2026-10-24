@@ -14,7 +14,8 @@
      este aparato, no va en la partida) sin tocar sus otras propiedades; el <head> de index.html los pone antes de pintar.
    - Para mayores: Progreso por tema › · Google (el bloque lo monta js/sync.js en [data-sync-block]) · instalar la app
      · Descargar todo (offlinePanel) · Atajos (vocabShortcuts.adultHtml(), js/shortcuts.js) · Mostrar pronunciación (IPA)
-     (encendido de serie: apagarlo guarda vocab:ui.ipa = false y encenderlo quita la marca; ipaOn() de index.html) · Buzón del tío (vocabMailbox.adultHtml()) · Llamadas del zorro (vocabCalls.adultHtml(), js/calls.js; encendido de serie) · Borrar grabaciones y fotos (vocabMailbox.mediaHtml(),
+     (encendido de serie: apagarlo guarda vocab:ui.ipa = false y encenderlo quita la marca; ipaOn() de index.html) · Buzón del tío (vocabMailbox.adultHtml()) · Llamadas del zorro (vocabCalls.adultHtml(), js/calls.js; encendido de serie) · Mi casa (vocabHunter.adultHtml())
+     · Tech Prep (vocabTech.adultHtml(), js/tech-boot.js: el interruptor de este aparato, apagado de serie) · Borrar grabaciones y fotos (vocabMailbox.mediaHtml(),
      solo si hay algo) · créditos · Privacidad.
    - Progreso por tema (el informe de antes de Premios, solo lectura): las repeticiones de los últimos 14 días (store
      "act") y, por partes (Temas · Las 3000 · Avanzado, data/index.json), cada tema empezado con sus palabras
@@ -438,6 +439,7 @@ function adultHtml(){
     ${window.vocabMailbox && typeof vocabMailbox.adultHtml === "function" ? vocabMailbox.adultHtml() : ""}
     ${window.vocabCalls && typeof vocabCalls.adultHtml === "function" ? vocabCalls.adultHtml() : ""}
     ${window.vocabHunter && typeof vocabHunter.adultHtml === "function" ? vocabHunter.adultHtml() : ""}
+    ${window.vocabTech && typeof vocabTech.adultHtml === "function" ? vocabTech.adultHtml() : ""}
     ${window.vocabMailbox && typeof vocabMailbox.mediaHtml === "function" ? vocabMailbox.mediaHtml() : ""}
     <section class="st-sec" aria-labelledby="aj-c-h"><h3 class="st-h" id="aj-c-h">Créditos</h3><div class="st-g ics">
       <p class="st-cred">${credits()}</p>

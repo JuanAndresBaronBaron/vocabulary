@@ -1,0 +1,1308 @@
+{
+  "format": 1,
+  "id": "u05",
+  "n": 5,
+  "block": "integration",
+  "title": "Observability",
+  "summary": "After this unit you can explain how you follow one transaction across services with structured logs, W3C Trace Context and OpenTelemetry, how you set SLOs and alert on error budget burn rate, and how you investigate a transaction that never arrived.",
+  "reviewed": "2026-10-24",
+  "versionNotes": [
+    "W3C Trace Context Level 1 is a W3C Recommendation dated 23 November 2021 (checked on 2026-10-24). Version 00 of traceparent defines only the sampled flag.",
+    "OpenTelemetry documentation checked on 2026-10-24: supported signals are traces, metrics, logs and baggage; events and profiles are under development or at the proposal stage.",
+    "The OpenTelemetry semantic conventions for messaging spans have the status Development, so names and rules may still change.",
+    "Spring Boot examples checked against the Spring Boot 4.1.2 reference documentation on 2026-10-24 (default sampling 10%, starter spring-boot-starter-opentelemetry).",
+    "unconfirmed: the exact name of the Pub/Sub message attribute that carries the trace context. The Google Cloud page only says the attribute has the googclient_ prefix, so the unit does not name it.",
+    "unconfirmed: whether SAP SuccessFactors Recruiting APIs or webhooks send or accept the W3C traceparent header. The unit does not claim it; the examples start the trace in the adapter.",
+    "W3C Trace Context Level 2 is still a Candidate Recommendation Draft (28 March 2024, checked on 2026-10-24). It adds a random trace-id flag, so this unit follows Level 1.",
+    "Cloud Run documentation checked on 2026-10-24: incoming requests to Cloud Run services automatically generate traces and the traceparent header is populated, so the adapter's SERVER span is not necessarily the root span.",
+    "unconfirmed: whether the Pub/Sub client library's spans become children of the publisher's current span. The Pub/Sub page says that the client library creates a new trace for every message published, so the unit does not call the PRODUCER span a child of the webhook span in the Pub/Sub diagram.",
+    "OpenTelemetry sampling page checked on 2026-10-24: head sampling decides as early as possible; tail sampling looks at all or most of the spans, and the Collector has a Tail Sampling Processor.",
+    "Pub/Sub documentation checked on 2026-10-24: undeliverable messages can be forwarded to a dead-letter topic after a configured number of delivery attempts (5 to 100, default 5). The monitoring page recommends the regional metrics subscription/oldest_unacked_message_age_by_region and subscription/num_unacked_messages_by_region, and subscription/dead_letter_message_count for forwarded messages."
+  ],
+  "terms": [
+    {
+      "id": "t-observability",
+      "term": "Observability",
+      "ipa": "/əbˌzɜːvəˈbɪləti/",
+      "say": "observability",
+      "def": "The ability to understand a system from the outside, by asking questions about it without knowing its inner workings. The system needs instrumentation that emits signals such as traces, metrics and logs.",
+      "example": "Because the adapter emits traces, metrics and logs, the on-call engineer found why one job application never reached the HR system without adding new code.",
+      "src": "s2"
+    },
+    {
+      "id": "t-structured-log",
+      "term": "Structured log",
+      "ipa": "/ˌstrʌktʃəd ˈlɒɡ/",
+      "say": "structured log",
+      "def": "A log record with a defined, consistent schema or typed fields that tools can parse reliably. A JSON encoding alone does not make a log structured; the stable schema does.",
+      "example": "Every log line from the Cloud Run adapter is one line of JSON with the same fields: severity, message, applicationId and the trace ID.",
+      "src": "s5"
+    },
+    {
+      "id": "t-correlation-id",
+      "term": "Correlation ID",
+      "ipa": "/ˌkɒrəˈleɪʃn ˌaɪ ˈdiː/",
+      "say": "correlation I D",
+      "def": "An identifier that every log line and message about one request carries, so that you can find all of them together. In Spring Boot, the default correlation ID in log lines is built from the trace ID and the span ID.",
+      "example": "Support searched the logs for one correlation ID and found every line about that job application in three different services.",
+      "src": "s12"
+    },
+    {
+      "id": "t-trace",
+      "term": "Distributed trace",
+      "ipa": "/dɪˈstrɪbjuːtɪd ˈtreɪs/",
+      "say": "distributed trace",
+      "def": "The record of the path that a single request takes as it travels through several services. A trace is made of spans that share one trace ID.",
+      "example": "The trace shows the webhook call, the mapping step and the call to the HR API on one timeline.",
+      "src": "s2"
+    },
+    {
+      "id": "t-span",
+      "term": "Span",
+      "ipa": "/spæn/",
+      "say": "span",
+      "def": "A single unit of work or operation, such as one HTTP call or the processing of one message. It has a name, start and end times, attributes, events, links, a status and a span context with the trace ID and its own span ID.",
+      "example": "The CLIENT span for PUT /employees took four seconds, so the delay was in the call to the HR API, not in our own code.",
+      "src": "s3"
+    },
+    {
+      "id": "t-traceparent",
+      "term": "traceparent header",
+      "ipa": "/ˈtreɪsˌpeərənt ˈhedə/",
+      "say": "trace parent header",
+      "def": "The W3C HTTP header that carries the trace context in four fields: version, trace-id, parent-id and trace-flags. Each service keeps the trace-id and sets the parent-id to the ID of its own operation.",
+      "example": "The value 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01 means version 00, parent span b7ad6b7169203331, and the sampled flag set.",
+      "src": "s1"
+    },
+    {
+      "id": "t-tracestate",
+      "term": "tracestate header",
+      "ipa": "/ˈtreɪsˌsteɪt ˈhedə/",
+      "say": "trace state header",
+      "def": "The second W3C Trace Context header. It carries vendor-specific trace data as a comma-separated list of key=value members, with at most 32 members.",
+      "example": "The monitoring vendor adds its own entry to tracestate, while traceparent stays the common format that every vendor reads.",
+      "src": "s1"
+    },
+    {
+      "id": "t-context-propagation",
+      "term": "Context propagation",
+      "ipa": "/ˈkɒntekst ˌprɒpəˈɡeɪʃn/",
+      "say": "context propagation",
+      "def": "The mechanism that moves trace context between services and processes. The sender writes the context into a carrier, such as HTTP headers, and the receiver extracts it so that its spans join the same trace.",
+      "example": "The Spring Boot service extracts the context from the incoming HTTP headers, so its span appears in the same trace as the caller's span.",
+      "src": "s4"
+    },
+    {
+      "id": "t-opentelemetry",
+      "term": "OpenTelemetry",
+      "ipa": "/ˌəʊpən təˈlemətri/",
+      "say": "open telemetry",
+      "def": "An open-source, vendor-neutral framework and toolkit to generate, collect and export telemetry such as traces, metrics and logs. It is a CNCF project, and it is not an observability backend itself.",
+      "example": "We instrument the Spring Boot services with OpenTelemetry once, and the OpenTelemetry Collector exports the data to the backend we choose.",
+      "src": "s6"
+    },
+    {
+      "id": "t-golden-signals",
+      "term": "Four golden signals",
+      "ipa": "/ˌfɔː ˌɡəʊldən ˈsɪɡnəlz/",
+      "say": "four golden signals",
+      "def": "Latency, traffic, errors and saturation. The Google SRE book says that if you can only measure four metrics of a user-facing system, you should focus on these four.",
+      "example": "For the candidate API we chart 99th percentile latency, requests per second, the rate of HTTP 5xx responses and CPU use.",
+      "src": "s8"
+    },
+    {
+      "id": "t-sli",
+      "term": "SLI (service level indicator)",
+      "ipa": "/ˌes ˌel ˈaɪ/",
+      "say": "S L I",
+      "def": "A quantitative measure of one aspect of the level of service. The SRE workbook recommends the number of good events divided by the total number of events, as a percentage from 0% to 100%.",
+      "example": "Our SLI is the percentage of candidate messages that reach the HR system within five minutes.",
+      "src": "s10"
+    },
+    {
+      "id": "t-slo",
+      "term": "SLO (service level objective)",
+      "ipa": "/ˌes ˌel ˈəʊ/",
+      "say": "S L O",
+      "def": "A target value or range for a service level that an SLI measures. Unlike an SLA, missing it has no explicit consequence written into a contract.",
+      "example": "SLO: 99.9% of candidate messages reach the HR system within five minutes, measured over a four-week rolling window.",
+      "src": "s9"
+    },
+    {
+      "id": "t-error-budget",
+      "term": "Error budget",
+      "ipa": "/ˈerə ˌbʌdʒɪt/",
+      "say": "error budget",
+      "def": "The amount of failure that the SLO allows: 100% minus the SLO. An error budget policy says what the team does when the budget runs out, for example a freeze on changes until the service is back within its SLO.",
+      "example": "With a 99.9% SLO and 3 million requests in four weeks, the error budget is 3,000 failed requests.",
+      "src": "s10"
+    },
+    {
+      "id": "t-burn-rate",
+      "term": "Burn rate",
+      "ipa": "/ˈbɜːn ˌreɪt/",
+      "say": "burn rate",
+      "def": "How fast, relative to the SLO, the service consumes its error budget. A burn rate of 1 uses exactly the whole budget by the end of the SLO window.",
+      "example": "A 1% error rate against a 99.9% SLO is a burn rate of 10, so the 30-day budget is gone in 3 days.",
+      "src": "s11"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u05-l1",
+      "kind": "concepts",
+      "title": "Signals, traces and SLOs",
+      "items": [
+        {
+          "id": "u05-l1-i1",
+          "type": "card",
+          "term": "t-observability",
+          "src": "s2",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "app",
+                "label": "Instrumented service"
+              },
+              {
+                "id": "tr",
+                "label": "Traces"
+              },
+              {
+                "id": "me",
+                "label": "Metrics"
+              },
+              {
+                "id": "lo",
+                "label": "Logs"
+              }
+            ],
+            "edges": [
+              {
+                "from": "app",
+                "to": "tr",
+                "label": "emits"
+              },
+              {
+                "from": "app",
+                "to": "me",
+                "label": "emits"
+              },
+              {
+                "from": "app",
+                "to": "lo",
+                "label": "emits"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u05-l1-i2",
+          "type": "card",
+          "term": "t-correlation-id",
+          "src": "s12"
+        },
+        {
+          "id": "u05-l1-i3",
+          "type": "card",
+          "term": "t-span",
+          "src": "s3",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "a",
+                "label": "POST /webhooks/application (SERVER)"
+              },
+              {
+                "id": "b",
+                "label": "create candidate.created (PRODUCER)"
+              },
+              {
+                "id": "c",
+                "label": "process candidate.created (CONSUMER)"
+              },
+              {
+                "id": "d",
+                "label": "PUT /employees (CLIENT)"
+              }
+            ],
+            "edges": [
+              {
+                "from": "a",
+                "to": "b",
+                "label": "child span"
+              },
+              {
+                "from": "b",
+                "to": "c",
+                "label": "creation context in the message"
+              },
+              {
+                "from": "c",
+                "to": "d",
+                "label": "child span"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u05-l1-i4",
+          "type": "card",
+          "term": "t-traceparent",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "v",
+                "label": "version: 00"
+              },
+              {
+                "id": "t",
+                "label": "trace-id: 32 hex characters"
+              },
+              {
+                "id": "p",
+                "label": "parent-id: 16 hex characters"
+              },
+              {
+                "id": "f",
+                "label": "trace-flags: 01 = sampled"
+              }
+            ],
+            "edges": [
+              {
+                "from": "v",
+                "to": "t",
+                "label": "-"
+              },
+              {
+                "from": "t",
+                "to": "p",
+                "label": "-"
+              },
+              {
+                "from": "p",
+                "to": "f",
+                "label": "-"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u05-l1-i5",
+          "type": "pick",
+          "src": "s1",
+          "q": "A Spring Boot service receives traceparent 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01 and then calls the next API. Which part does it change in the header it sends?",
+          "options": [
+            "The parent-id: it becomes the ID of the service's own span",
+            "The trace-id: each service starts its own trace",
+            "The version: each hop adds one to it",
+            "Nothing: the header must be forwarded exactly as received"
+          ],
+          "answer": 0,
+          "why": "The spec calls setting the parent-id to the ID of the current operation the most typical change and the default, while the trace-id stays the same for the whole trace. The version stays 00, and unchanged forwarding is for pass-through services such as proxies."
+        },
+        {
+          "id": "u05-l1-i6",
+          "type": "card",
+          "term": "t-golden-signals",
+          "src": "s8"
+        },
+        {
+          "id": "u05-l1-i7",
+          "type": "match",
+          "src": "s8",
+          "q": "Match each golden signal with its meaning in the Google SRE book.",
+          "pairs": [
+            [
+              "Latency",
+              "The time it takes to service a request"
+            ],
+            [
+              "Traffic",
+              "How much demand is placed on the system, such as requests per second"
+            ],
+            [
+              "Errors",
+              "The rate of requests that fail, explicitly, implicitly or by policy"
+            ],
+            [
+              "Saturation",
+              "How full the service is, on its most constrained resources"
+            ]
+          ]
+        },
+        {
+          "id": "u05-l1-i8",
+          "type": "card",
+          "term": "t-slo",
+          "src": "s9"
+        },
+        {
+          "id": "u05-l1-i9",
+          "type": "tf",
+          "src": "s9",
+          "statement": "If nothing happens to the provider when a target is missed, that target is an SLA.",
+          "answer": false,
+          "why": "An SLA is a contract that includes consequences of meeting or missing its SLOs. The SRE book says that with no explicit consequence, you are almost certainly looking at an SLO."
+        },
+        {
+          "id": "u05-l1-i10",
+          "type": "pick",
+          "src": "s10",
+          "q": "Your SLO is that 99.9% of requests succeed over four weeks, and the service gets 3 million requests in that time. How many failed requests does the error budget allow?",
+          "options": [
+            "3,000",
+            "300",
+            "30,000",
+            "None, because the goal is zero errors"
+          ],
+          "answer": 0,
+          "why": "The error budget is 100% minus the SLO, and 0.1% of 3 million is 3,000. 300 would be 0.01%, 30,000 would be 1%, and the SRE book says a 100% target is unrealistic."
+        }
+      ]
+    },
+    {
+      "id": "u05-l2",
+      "kind": "practice",
+      "title": "Tracing an integration end to end",
+      "items": [
+        {
+          "id": "u05-l2-i1",
+          "type": "match",
+          "src": "s3",
+          "q": "Match each operation in the job-application integration with its OpenTelemetry span kind.",
+          "pairs": [
+            [
+              "The Spring controller receives the webhook from the recruiting system",
+              "SERVER"
+            ],
+            [
+              "The adapter calls the HR API over HTTP",
+              "CLIENT"
+            ],
+            [
+              "The adapter creates a candidate.created message to publish",
+              "PRODUCER"
+            ],
+            [
+              "The subscriber processes the candidate.created message",
+              "CONSUMER"
+            ],
+            [
+              "The adapter maps fields inside the same process",
+              "INTERNAL"
+            ]
+          ]
+        },
+        {
+          "id": "u05-l2-i2",
+          "type": "order",
+          "src": "s7",
+          "q": "Put the life of one trace in order, from the recruiting webhook to the HR system.",
+          "steps": [
+            "The webhook from the recruiting system reaches the Cloud Run adapter, which starts a SERVER span for the request",
+            "The adapter writes a structured log line with the trace ID and the span ID",
+            "The adapter publishes the message with the trace context in its attributes",
+            "Pub/Sub delivers the message to the Spring Boot subscriber",
+            "The subscriber extracts the context and starts a CONSUMER span connected to the producer's span",
+            "The subscriber calls the HR API with a traceparent that carries its own span ID as the parent-id"
+          ]
+        },
+        {
+          "id": "u05-l2-i3",
+          "type": "code",
+          "src": "s1",
+          "lang": "http",
+          "q": "The adapter receives the first request and then calls the HR API. Its own span ID is 00f067aa0ba902b7, and it follows the caller's sampling decision. Complete the outgoing traceparent.",
+          "code": "# Incoming request to the adapter\nPOST /webhooks/application HTTP/1.1\nHost: adapter.example.com\ntraceparent: 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01\n\n# Outgoing request from the adapter to the HR API\nPUT /employees/48213 HTTP/1.1\nHost: hr.example.com\ntraceparent: 00-[[1]]-[[2]]-[[3]]",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "0af7651916cd43dd8448eb211c80319c",
+              "decoys": [
+                "4bf92f3577b34da6a3ce929d0e0e4736",
+                "00000000000000000000000000000000"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "00f067aa0ba902b7",
+              "decoys": [
+                "b7ad6b7169203331",
+                "0000000000000000"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "01",
+              "decoys": [
+                "00",
+                "ff"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u05-l2-i4",
+          "type": "diagram",
+          "src": "s3",
+          "layout": "flow",
+          "q": "Fill in the missing spans on the path of one job application. Drag each label to its place.",
+          "nodes": [
+            {
+              "id": "a",
+              "label": "Cloud Run adapter: SERVER span",
+              "slot": false
+            },
+            {
+              "id": "b",
+              "label": "PRODUCER span: create the message",
+              "slot": true
+            },
+            {
+              "id": "c",
+              "label": "Pub/Sub topic",
+              "slot": false
+            },
+            {
+              "id": "d",
+              "label": "CONSUMER span: process the message",
+              "slot": true
+            },
+            {
+              "id": "e",
+              "label": "CLIENT span: PUT /employees",
+              "slot": true
+            },
+            {
+              "id": "f",
+              "label": "HR API: SERVER span",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "a",
+              "to": "b",
+              "label": "creates"
+            },
+            {
+              "from": "b",
+              "to": "c",
+              "label": "context in message attributes"
+            },
+            {
+              "from": "c",
+              "to": "d",
+              "label": "deliver"
+            },
+            {
+              "from": "d",
+              "to": "e",
+              "label": "child span"
+            },
+            {
+              "from": "e",
+              "to": "f",
+              "label": "traceparent header"
+            }
+          ],
+          "decoys": [
+            "INTERNAL span: process the message",
+            "SERVER span: publish the message"
+          ]
+        },
+        {
+          "id": "u05-l2-i5",
+          "type": "scenario",
+          "src": "s12",
+          "q": "Traces stop at a Spring Boot adapter: each call it makes to the HR API starts a new trace. The code creates the client with RestClient.create(). What do you change?",
+          "options": [
+            {
+              "text": "Build the client from the auto-configured RestClient.Builder that Spring Boot provides.",
+              "ok": true,
+              "why": "Spring Boot says automatic trace propagation works only with the auto-configured RestTemplateBuilder, RestClient.Builder or WebClient.Builder."
+            },
+            {
+              "text": "Set management.tracing.sampling.probability to 1.0.",
+              "ok": false,
+              "why": "Sampling decides how many traces are recorded. It does not add trace headers to a client that was built by hand."
+            },
+            {
+              "text": "Copy a custom X-Request-ID header by hand on every call.",
+              "ok": false,
+              "why": "A custom header is not W3C Trace Context, so the tracing in the HR API still cannot join the caller's trace."
+            },
+            {
+              "text": "Switch from W3C to B3 propagation.",
+              "ok": false,
+              "why": "The format is not the problem: a client built without the auto-configured builder sends no trace headers at all."
+            }
+          ]
+        },
+        {
+          "id": "u05-l2-i6",
+          "type": "code",
+          "src": "s15",
+          "lang": "json",
+          "q": "The Cloud Run adapter writes this single line of JSON to stdout. Complete it so that Cloud Logging shows the text, nests the line under the request log, and support can find the record without personal data.",
+          "code": "{\"severity\": \"WARNING\", \"[[1]]\": \"HR API returned 503; the message will be retried\", \"[[2]]\": \"projects/acme-recruiting/traces/0af7651916cd43dd8448eb211c80319c\", \"[[3]]\": \"48213\", \"attempt\": 2}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "message",
+              "decoys": [
+                "textPayload",
+                "body"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "logging.googleapis.com/trace",
+              "decoys": [
+                "traceparent",
+                "X-Cloud-Trace-Context"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "applicationId",
+              "decoys": [
+                "candidateEmail",
+                "candidateFullName"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u05-l2-i7",
+          "type": "scenario",
+          "src": "s17",
+          "q": "To debug a mapping error between SuccessFactors Recruiting and the HR system, a developer logs the whole candidate payload, with name, e-mail address and CV text. What do you suggest?",
+          "options": [
+            {
+              "text": "Log the application ID, the trace ID and the name of the field that failed, but not the candidate's personal data.",
+              "ok": true,
+              "why": "OWASP says not to log sensitive personal data directly. The IDs are enough to find the record in the source system."
+            },
+            {
+              "text": "Keep it, but only at DEBUG level.",
+              "ok": false,
+              "why": "The level does not change what is stored: whenever DEBUG is on, the personal data still reaches the logs."
+            },
+            {
+              "text": "Move the e-mail address into the tracestate header instead.",
+              "ok": false,
+              "why": "The W3C spec says traceparent and tracestate MUST NOT carry personally identifiable or sensitive information."
+            },
+            {
+              "text": "Also log the access token, so that the call can be replayed.",
+              "ok": false,
+              "why": "Access tokens are on the OWASP list of data to exclude from logs."
+            }
+          ]
+        },
+        {
+          "id": "u05-l2-i8",
+          "type": "match",
+          "src": "s11",
+          "q": "For a 99.9% SLO over 30 days, match each burn rate with the time it takes to use the whole error budget.",
+          "pairs": [
+            [
+              "Burn rate 1",
+              "30 days"
+            ],
+            [
+              "Burn rate 2",
+              "15 days"
+            ],
+            [
+              "Burn rate 10",
+              "3 days"
+            ],
+            [
+              "Burn rate 1,000",
+              "43 minutes"
+            ]
+          ]
+        },
+        {
+          "id": "u05-l2-i9",
+          "type": "scenario",
+          "src": "s11",
+          "q": "Your team pages whenever the error rate is above 0.1% for 10 minutes. The SLO is 99.9% over 30 days. People are paged almost every day, but the SLO is always met. What do you propose?",
+          "options": [
+            {
+              "text": "Multiwindow, multi-burn-rate alerts: page at burn rate 14.4 over 1 hour (5-minute short window) or 6 over 6 hours (30-minute short window), and open a ticket at 1 over 3 days.",
+              "ok": true,
+              "why": "The SRE workbook recommends these values for a 99.9% SLO. A page then means that 2% or 5% of the budget is already gone."
+            },
+            {
+              "text": "Raise the threshold to a 1% error rate over 10 minutes.",
+              "ok": false,
+              "why": "It still fires on short events that do not threaten the SLO, and it never fires for a slow burn below 1%."
+            },
+            {
+              "text": "Keep the alert, but post it to a chat channel instead of paging.",
+              "ok": false,
+              "why": "The noise stays, and the workbook says pages and tickets are the only valid ways to get a human to take action."
+            },
+            {
+              "text": "Page on every single failed request.",
+              "ok": false,
+              "why": "That has even lower precision: the workbook shows that a 0.1% error rate for 10 minutes uses only 0.02% of the monthly budget."
+            }
+          ]
+        },
+        {
+          "id": "u05-l2-i10",
+          "type": "scenario",
+          "src": "s11",
+          "q": "An integration that sends offer letters gets about 20 requests a day. One failed request is 5% of the day's traffic, so the burn-rate alert pages at night for a single error. What would you consider first?",
+          "options": [
+            {
+              "text": "Add synthetic traffic, or combine its requests with related low-traffic services into one larger group, so that a single failure does not dominate the SLI.",
+              "ok": true,
+              "why": "The SRE workbook lists artificial traffic and combining services among the options for low-traffic services."
+            },
+            {
+              "text": "Delete the SLO for this service.",
+              "ok": false,
+              "why": "You would lose the shared target that tells you when offer letters fail."
+            },
+            {
+              "text": "Set the SLO to 100%, so that every error is visible.",
+              "ok": false,
+              "why": "The SRE book calls a 100% target unrealistic and undesirable, and it would page even more often."
+            },
+            {
+              "text": "Shorten the alert window to one minute.",
+              "ok": false,
+              "why": "In a shorter window one error is an even larger share of the requests, so the alert fires more often, not less."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u05-l3",
+      "kind": "interview",
+      "title": "Talking about observability",
+      "items": [
+        {
+          "id": "u05-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "On every HTTP call we send the W3C traceparent header, so the trace ID stays the same from one service to the next."
+        },
+        {
+          "id": "u05-l3-i2",
+          "type": "tf",
+          "src": "s6",
+          "statement": "OpenTelemetry is an observability backend that stores and displays your traces.",
+          "answer": false,
+          "why": "The OpenTelemetry documentation says it is not an observability backend itself. It generates, collects and exports telemetry to the backend you choose."
+        },
+        {
+          "id": "u05-l3-i3",
+          "type": "explain",
+          "src": "s4",
+          "seconds": 120,
+          "q": "How do you follow one business transaction across several services and a message queue?",
+          "model": "I rely on two things: context propagation and structured logs. When a new job application arrives from SuccessFactors Recruiting, the first service starts a trace, or joins one if a traceparent header is already there. On every HTTP call we send the W3C traceparent header. The trace ID stays the same, and each service sets the parent ID to the ID of its own span. We use the W3C standard so that tools from different vendors can read the same context. For Pub/Sub, the producer attaches the trace context to each message as attributes, and the consumer extracts it. Usually the consumer's span links to the producer's span, so the work after the queue can appear as a separate, linked trace. That is why every log line is structured JSON with the trace ID, the span ID and the job application ID. OpenTelemetry instrumentation does most of the work. The main risk is a client that someone builds by hand. In Spring Boot it does not propagate the context, so I always use the auto-configured RestClient builder.",
+          "keypoints": [
+            {
+              "text": "Start or join a trace at the entry point and keep one trace ID",
+              "kw": [
+                "trace id",
+                "start a trace",
+                "starts a trace",
+                "joins",
+                "root span",
+                "same trace"
+              ]
+            },
+            {
+              "text": "Send the W3C traceparent header on HTTP calls",
+              "kw": [
+                "traceparent",
+                "trace parent",
+                "w3c",
+                "trace context",
+                "header"
+              ]
+            },
+            {
+              "text": "Each service sets the parent ID to its own span ID",
+              "kw": [
+                "parent id",
+                "parent-id",
+                "span id",
+                "own span"
+              ]
+            },
+            {
+              "text": "Put the context in message attributes; the consumer links to the producer",
+              "kw": [
+                "message",
+                "attributes",
+                "pub/sub",
+                "pub sub",
+                "pubsub",
+                "producer",
+                "consumer",
+                "link"
+              ]
+            },
+            {
+              "text": "Structured logs carry the trace ID and the business ID",
+              "kw": [
+                "structured",
+                "json",
+                "log line",
+                "application id",
+                "business id"
+              ]
+            },
+            {
+              "text": "Let OpenTelemetry and the auto-configured clients do the propagation",
+              "kw": [
+                "opentelemetry",
+                "open telemetry",
+                "instrumentation",
+                "auto-configured",
+                "auto configured",
+                "builder"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u05-l3-i4",
+          "type": "scenario",
+          "src": "s1",
+          "q": "The interviewer says: a partner already sends its own X-Request-ID header on every call. Why would you still ask for traceparent?",
+          "options": [
+            {
+              "text": "traceparent is the W3C standard, so tracing tools from different vendors can join the same trace. I would also keep their request ID as a log field.",
+              "ok": true,
+              "why": "The W3C spec exists because each tracing vendor used its own propagation format, so traces could not be correlated across vendors."
+            },
+            {
+              "text": "Because custom headers such as X-Request-ID are not allowed in HTTP.",
+              "ok": false,
+              "why": "Custom headers are allowed. The point is interoperability between tracing tools, not whether the header is legal."
+            },
+            {
+              "text": "Because traceparent can also carry business data, such as the candidate's name.",
+              "ok": false,
+              "why": "traceparent has a fixed format of IDs and flags, and the spec says trace headers MUST NOT carry personally identifiable information."
+            },
+            {
+              "text": "There is no reason: any ID that reaches the logs is as good as traceparent.",
+              "ok": false,
+              "why": "A custom ID helps you search logs, but it does not let tracing tools connect the spans of both companies into one trace."
+            }
+          ]
+        },
+        {
+          "id": "u05-l3-i5",
+          "type": "say",
+          "src": "s5",
+          "text": "Every log line is structured JSON with the trace ID and the job application ID, but never the candidate's personal data."
+        },
+        {
+          "id": "u05-l3-i6",
+          "type": "scenario",
+          "src": "s20",
+          "q": "Your services use head sampling at 10%, the Spring Boot default. The team wants the trace of every failed request, but recording 100% of traces costs too much. What do you propose?",
+          "options": [
+            {
+              "text": "Tail sampling in the OpenTelemetry Collector: keep every trace that contains an error, and only a small share of the others.",
+              "ok": true,
+              "why": "Tail sampling decides after it sees all or most of the spans, so it can always keep traces with errors. The trade-off is a stateful Collector that is harder to run and must be monitored closely."
+            },
+            {
+              "text": "Raise head sampling to 50%.",
+              "ok": false,
+              "why": "Head sampling decides at the start, before anyone knows whether the request will fail. Half of the failed traces are still lost, and the cost goes up."
+            },
+            {
+              "text": "Let each service decide at random, at 10%, whether to keep its own spans.",
+              "ok": false,
+              "why": "Then most traces keep some spans and lose others, so they are incomplete. Downstream services should follow the sampled flag in traceparent instead."
+            },
+            {
+              "text": "Turn off tracing and use only logs.",
+              "ok": false,
+              "why": "Logs show what each service did, but you lose the single timeline that shows where a call failed or where the time went."
+            }
+          ]
+        },
+        {
+          "id": "u05-l3-i7",
+          "type": "explain",
+          "src": "s10",
+          "seconds": 120,
+          "q": "What are SLIs, SLOs and error budgets, and how do you use them?",
+          "model": "In short, the SLI measures, the SLO sets the target, and the error budget says how much failure we can accept. An SLI is a service level indicator: ideally the good events divided by all events, as a percentage. For an integration, it could be the share of candidate messages that reach the HR system within five minutes. The SLO is the target for that SLI over a window, for example 99.9% over a four-week rolling window. An SLA is different: it is a contract, with consequences if we miss the target. The error budget is 100% minus the SLO. With 99.9% and three million requests in four weeks, three thousand requests may fail. I use the budget to balance speed and reliability. While we have budget left, the team ships features. If it runs out, our error budget policy says we focus on reliability and may freeze changes. I never aim for 100%, because it slows down releases and needs expensive, overly careful solutions.",
+          "keypoints": [
+            {
+              "text": "SLI: good events divided by all events",
+              "kw": [
+                "indicator",
+                "good events",
+                "measure",
+                "ratio",
+                "percentage"
+              ]
+            },
+            {
+              "text": "SLO: a target for the SLI over a window",
+              "kw": [
+                "objective",
+                "target",
+                "window",
+                "99.9",
+                "ninety-nine",
+                "rolling"
+              ]
+            },
+            {
+              "text": "SLA: a contract with consequences",
+              "kw": [
+                "agreement",
+                "contract",
+                "consequence",
+                "sla"
+              ]
+            },
+            {
+              "text": "Error budget: 100% minus the SLO",
+              "kw": [
+                "error budget",
+                "minus",
+                "allowed",
+                "budget"
+              ]
+            },
+            {
+              "text": "Error budget policy when the budget runs out",
+              "kw": [
+                "policy",
+                "freeze",
+                "reliability",
+                "run out",
+                "runs out",
+                "exhausted"
+              ]
+            },
+            {
+              "text": "Never aim for 100%, because it slows change and costs too much",
+              "kw": [
+                "100%",
+                "100 percent",
+                "hundred percent",
+                "unrealistic",
+                "undesirable",
+                "expensive",
+                "slows"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u05-l3-i8",
+          "type": "say",
+          "src": "s11",
+          "text": "I define SLOs from the user's point of view, and I alert on how fast we burn the error budget, not on single errors."
+        },
+        {
+          "id": "u05-l3-i9",
+          "type": "explain",
+          "src": "s8",
+          "seconds": 120,
+          "q": "What would you monitor for a new integration, and when would you page someone?",
+          "model": "I start with the four golden signals from the Google SRE book. For latency, I look at percentiles, like the 99th, not the average, and I keep failed requests apart, because a slow error is even worse than a fast one. Traffic is the demand, for example messages per second. Errors include explicit ones, like HTTP 500s, implicit ones, like a wrong response, and requests that break a policy, like a time limit. Saturation is how full the service is on its most constrained resource. For a Pub/Sub subscriber, I also watch the age of the oldest unacknowledged message, because it shows if we are falling behind. I keep metric labels bounded, like the outcome or the target system. The application ID goes into logs and traces, because every new label value creates a new time series. For paging, every page must be actionable, so I never page on a single error. I page when we burn the budget fast, for example 2% of the month's budget in one hour, and I open a ticket for slow burns.",
+          "keypoints": [
+            {
+              "text": "Latency with percentiles, failed requests kept apart",
+              "kw": [
+                "latency",
+                "percentile",
+                "99th",
+                "p99",
+                "slow error"
+              ]
+            },
+            {
+              "text": "Traffic and errors: demand, and explicit, implicit or policy failures",
+              "kw": [
+                "traffic",
+                "demand",
+                "per second",
+                "error rate",
+                "errors",
+                "500",
+                "failed"
+              ]
+            },
+            {
+              "text": "Saturation, and the backlog of the queue",
+              "kw": [
+                "saturation",
+                "full",
+                "constrained",
+                "backlog",
+                "oldest unacknowledged",
+                "unacked",
+                "falling behind"
+              ]
+            },
+            {
+              "text": "Bounded metric labels; IDs go into logs and traces",
+              "kw": [
+                "label",
+                "labels",
+                "cardinality",
+                "bounded",
+                "time series"
+              ]
+            },
+            {
+              "text": "Every page must be actionable",
+              "kw": [
+                "actionable",
+                "judgement",
+                "single error",
+                "urgent",
+                "action"
+              ]
+            },
+            {
+              "text": "Burn-rate alerts: page for fast burns, ticket for slow ones",
+              "kw": [
+                "burn rate",
+                "burn-rate",
+                "multiwindow",
+                "multi-window",
+                "ticket",
+                "error budget"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u05-l3-i10",
+          "type": "explain",
+          "src": "s22",
+          "seconds": 150,
+          "q": "A recruiter tells you that one job application never reached the HR system. What would you do?",
+          "model": "I would follow the evidence, starting from the business ID. I ask for the job application ID and search the structured logs for it. The log lines give me the trace ID, so I open the trace and look for the span with an error, or the point where the work stops. If the trace was not sampled, I follow the same ID through the logs of each service. For example, if the call to PUT /employees failed with HTTP 503, the HR API was not available. If nothing happened after we published the message, I check the subscription. Is the message still waiting, or did Pub/Sub forward it to our dead-letter topic after the maximum number of delivery attempts? When I know the cause, I fix it and process the message again, which is safe because our consumer is idempotent. Then I tell the recruiter what happened. Finally, I ask why a person found the problem before our alerts did. Maybe we need an alert on the dead-letter topic, or an SLO for end-to-end delivery.",
+          "keypoints": [
+            {
+              "text": "Start from the business ID in the logs",
+              "kw": [
+                "application id",
+                "business id",
+                "search the logs",
+                "logs",
+                "log"
+              ]
+            },
+            {
+              "text": "Use the trace ID to find the failed span or where the work stops",
+              "kw": [
+                "trace id",
+                "trace",
+                "span",
+                "where it stops",
+                "stops"
+              ]
+            },
+            {
+              "text": "Check the subscription and the dead-letter topic",
+              "kw": [
+                "dead-letter",
+                "dead letter",
+                "dlq",
+                "subscription",
+                "backlog",
+                "queue",
+                "unacknowledged"
+              ]
+            },
+            {
+              "text": "Fix the cause and process the message again safely",
+              "kw": [
+                "process the message again",
+                "reprocess",
+                "replay",
+                "resend",
+                "idempotent",
+                "idempotency"
+              ]
+            },
+            {
+              "text": "Tell the recruiter what happened",
+              "kw": [
+                "recruiter",
+                "tell",
+                "inform",
+                "communicate",
+                "let them know"
+              ]
+            },
+            {
+              "text": "Improve the alerts so that you find it first next time",
+              "kw": [
+                "alert",
+                "alerts",
+                "slo",
+                "next time",
+                "prevent",
+                "monitoring"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Logs and correlation",
+        "points": [
+          "Structured log: a stable schema with typed fields. JSON alone does not make a log structured.",
+          "Put the trace ID and span ID on every log line; Spring Boot builds its default correlation ID from them.",
+          "Cloud Run: one line of JSON on stdout becomes jsonPayload; the message field is the display text.",
+          "Add logging.googleapis.com/trace so container logs nest under the request log.",
+          "A reply carries a correlation identifier that matches its request (Enterprise Integration Patterns)."
+        ]
+      },
+      {
+        "h": "W3C Trace Context (Recommendation, 23 November 2021)",
+        "points": [
+          "traceparent = version-traceid-parentid-flags, for example 00-0af7651916cd43dd8448eb211c80319c-b7ad6b7169203331-01.",
+          "trace-id: 32 lowercase hex characters, the same for the whole trace; all zeros is invalid.",
+          "parent-id: 16 hex characters; each service sets it to the ID of its own span.",
+          "trace-flags: version 00 defines only the sampled flag (01).",
+          "tracestate: vendor data, comma-separated key=value members, at most 32.",
+          "No personal or sensitive data in either header.",
+          "Google Cloud: prefer traceparent to the legacy X-Cloud-Trace-Context header."
+        ]
+      },
+      {
+        "h": "OpenTelemetry",
+        "points": [
+          "Open-source, vendor-neutral toolkit to generate, collect and export telemetry; not a backend.",
+          "Signals: traces, metrics, logs and baggage.",
+          "Span: one unit of work with a name, start and end times, attributes, events, links, status and span context.",
+          "Span kinds: SERVER, CLIENT, PRODUCER, CONSUMER, INTERNAL.",
+          "The default propagator uses the W3C Trace Context headers.",
+          "Messaging: attach a creation context to each message; consumers use span links by default.",
+          "Pub/Sub: turn on OpenTelemetry tracing in the client library; the context travels in an attribute with the googclient_ prefix.",
+          "Spring Boot: build clients from the auto-configured builders; tracing samples 10% by default.",
+          "Sampling: head sampling decides at the start (Spring Boot: 10%); tail sampling in the Collector can keep every trace with an error, but it is stateful and harder to run."
+        ]
+      },
+      {
+        "h": "Four golden signals (Google SRE book)",
+        "points": [
+          "Latency: time to serve a request. Keep successful and failed requests apart.",
+          "Traffic: demand, such as requests or messages per second.",
+          "Errors: failed requests, explicit (HTTP 500), implicit, or by policy (too slow).",
+          "Saturation: how full the service is, on its most constrained resource.",
+          "Use percentiles and latency buckets, not the mean.",
+          "Metric labels: keep them bounded (outcome, target system); every new label value is a new time series, so IDs go into logs and traces.",
+          "Pub/Sub: watch the age of the oldest unacknowledged message and the number of dead-lettered messages."
+        ]
+      },
+      {
+        "h": "SLIs, SLOs and error budgets",
+        "points": [
+          "SLI = good events / all events, as a percentage.",
+          "SLO = a target for an SLI; a four-week rolling window is a good general choice.",
+          "SLA = a contract with consequences if the SLOs are missed.",
+          "Error budget = 100% minus the SLO: 99.9% of 3 million requests allows 3,000 failures.",
+          "Error budget policy: what the team does when the budget is gone, such as a change freeze.",
+          "Never 100%: unrealistic and undesirable."
+        ]
+      },
+      {
+        "h": "Alerting on burn rate (99.9% SLO, 30 days)",
+        "points": [
+          "Burn rate 1 uses the whole budget exactly by the end of the window.",
+          "Page: burn rate 14.4 over 1 hour, short window 5 minutes (2% of the budget).",
+          "Page: burn rate 6 over 6 hours, short window 30 minutes (5%).",
+          "Ticket: burn rate 1 over 3 days, short window 6 hours (10%).",
+          "Short window = 1/12 of the long window; it stops the alert soon after recovery.",
+          "Every page must be actionable; low-traffic services need extra care."
+        ]
+      },
+      {
+        "h": "What to log in an integration",
+        "points": [
+          "Log: when, where (service and version), the trace ID, business IDs, the event and its outcome.",
+          "Never log: passwords, access tokens, keys, connection strings, payment data or sensitive personal data.",
+          "Sanitise event data, such as CR, LF and delimiter characters, before you log it, to prevent log injection."
+        ]
+      },
+      {
+        "h": "Investigating a missing transaction",
+        "points": [
+          "Start from the business ID, such as the job application ID, in the structured logs.",
+          "Take the trace ID from the log line, open the trace and find the failed span or where the work stops.",
+          "Queue: is the message still waiting in the subscription, or in the dead-letter topic?",
+          "Fix the cause, process the message again (safe only with an idempotent consumer) and tell the user.",
+          "Ask why a person found it before the alerts did, and improve the alerts or the SLO."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Trace Context (W3C Recommendation, Level 1)",
+      "url": "https://www.w3.org/TR/trace-context/",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Observability primer (OpenTelemetry documentation)",
+      "url": "https://opentelemetry.io/docs/concepts/observability-primer/",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Traces (OpenTelemetry documentation)",
+      "url": "https://opentelemetry.io/docs/concepts/signals/traces/",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Context propagation (OpenTelemetry documentation)",
+      "url": "https://opentelemetry.io/docs/concepts/context-propagation/",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Logs (OpenTelemetry documentation)",
+      "url": "https://opentelemetry.io/docs/concepts/signals/logs/",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "What is OpenTelemetry? (OpenTelemetry documentation)",
+      "url": "https://opentelemetry.io/docs/what-is-opentelemetry/",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Semantic conventions for messaging spans (OpenTelemetry)",
+      "url": "https://opentelemetry.io/docs/specs/semconv/messaging/messaging-spans/",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Monitoring Distributed Systems (Google SRE book)",
+      "url": "https://sre.google/sre-book/monitoring-distributed-systems/",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Service Level Objectives (Google SRE book)",
+      "url": "https://sre.google/sre-book/service-level-objectives/",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Implementing SLOs (Google SRE workbook)",
+      "url": "https://sre.google/workbook/implementing-slos/",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Alerting on SLOs (Google SRE workbook)",
+      "url": "https://sre.google/workbook/alerting-on-slos/",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Tracing (Spring Boot 4.1 reference)",
+      "url": "https://docs.spring.io/spring-boot/reference/actuator/tracing.html",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Pub/Sub OpenTelemetry tracing (Google Cloud documentation)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/open-telemetry-tracing",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Trace context (Cloud Trace documentation)",
+      "url": "https://docs.cloud.google.com/trace/docs/trace-context",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Logging and viewing logs in Cloud Run (Google Cloud documentation)",
+      "url": "https://docs.cloud.google.com/run/docs/logging",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Signals (OpenTelemetry documentation)",
+      "url": "https://opentelemetry.io/docs/concepts/signals/",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Logging Cheat Sheet (OWASP Cheat Sheet Series)",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Logging_Cheat_Sheet.html",
+      "official": false
+    },
+    {
+      "id": "s18",
+      "title": "Correlation Identifier (Enterprise Integration Patterns)",
+      "url": "https://www.enterpriseintegrationpatterns.com/patterns/messaging/CorrelationIdentifier.html",
+      "official": false
+    },
+    {
+      "id": "s19",
+      "title": "Using distributed tracing (Cloud Run documentation)",
+      "url": "https://docs.cloud.google.com/run/docs/trace",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Sampling (OpenTelemetry documentation)",
+      "url": "https://opentelemetry.io/docs/concepts/sampling/",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Metric and label naming (Prometheus documentation)",
+      "url": "https://prometheus.io/docs/practices/naming/",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Dead-letter topics (Pub/Sub, Google Cloud documentation)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/dead-letter-topics",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Monitor Pub/Sub in Cloud Monitoring (Google Cloud documentation)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/monitoring",
+      "official": true
+    }
+  ]
+}

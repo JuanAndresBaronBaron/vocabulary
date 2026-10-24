@@ -1,0 +1,1293 @@
+{
+  "format": 1,
+  "id": "u04",
+  "n": 4,
+  "block": "integration",
+  "title": "Security",
+  "summary": "After this unit you can choose the right OAuth 2.0 grant for a person or a service, explain tokens, scopes and assertions, quote the RFC 9700 rules exactly, troubleshoot rejected tokens, and describe how you keep secrets safe on Google Cloud.",
+  "reviewed": "2026-10-24",
+  "versionNotes": [
+    "RFC 9700 (BCP 240, January 2025), checked on 2026-10-24: public clients MUST use PKCE; PKCE is RECOMMENDED for confidential clients; the implicit grant SHOULD NOT be used; the resource owner password credentials grant MUST NOT be used; sender-constrained access tokens SHOULD be used.",
+    "OAuth 2.1: draft-ietf-oauth-v2-1-16 (3 September 2026) is an active Internet-Draft of the IETF OAuth working group. It is not an RFC, it expires on 7 March 2027, and it may still change.",
+    "Spring examples checked against the Spring Security 7.1.2 and Spring Boot 4.1.2 reference documentation on 2026-10-24.",
+    "unconfirmed: the default value of ClientRegistration.clientSettings.requireProofKey in Spring Security 7.1. The 7.1.2 reference only says to set it to false when the provider does not support PKCE for confidential clients; in 6.5 PKCE for confidential clients was opt-in.",
+    "unconfirmed: the SuccessFactors token request parameters, token lifetime and any retirement dates for Basic Authentication on SuccessFactors APIs. The SAP Help Portal and SAP Knowledge Base pages could not be read for this review, so the unit only says that SuccessFactors offers X.509 certificates for OAuth with SAML and for mTLS (SAP Learning)."
+  ],
+  "terms": [
+    {
+      "id": "t-oauth",
+      "term": "OAuth 2.0",
+      "ipa": "/ˌəʊ ɔːθ ˌtuː pɔɪnt ˈəʊ/",
+      "say": "oh auth two point oh",
+      "def": "A framework that lets a client get limited access to an HTTP service with an access token, instead of using the resource owner's password. It defines four roles: resource owner, client, authorization server and resource server.",
+      "example": "The recruiting middleware is the OAuth client: it gets a token from the authorization server and calls the candidate API, which is the resource server.",
+      "src": "s1"
+    },
+    {
+      "id": "t-access-token",
+      "term": "Access token",
+      "ipa": "/ˈækses ˌtəʊkən/",
+      "say": "access token",
+      "def": "A credential that the client sends to the resource server to access protected resources. It stands for a specific scope and lifetime, and the client usually treats it as an opaque string.",
+      "example": "The Cloud Run service sends the access token in the Authorization header on every call to the candidate API.",
+      "src": "s1"
+    },
+    {
+      "id": "t-refresh-token",
+      "term": "Refresh token",
+      "ipa": "/rɪˈfreʃ ˌtəʊkən/",
+      "say": "refresh token",
+      "def": "A credential that the client uses only at the authorization server, to get a new access token when the current one expires or becomes invalid. It is never sent to resource servers.",
+      "example": "When the access token expires, the scheduling app sends its refresh token to the token endpoint and receives a new access token.",
+      "src": "s1"
+    },
+    {
+      "id": "t-scope",
+      "term": "Scope",
+      "ipa": "/skəʊp/",
+      "say": "scope",
+      "def": "A list of space-delimited, case-sensitive strings that says what an access token allows. The client asks for scopes, and the authorization server can grant fewer than it asked for.",
+      "example": "The payroll adapter asks only for the scope candidates.read, so its token cannot change candidate data.",
+      "src": "s1"
+    },
+    {
+      "id": "t-client-credentials",
+      "term": "Client credentials grant",
+      "ipa": "/ˈklaɪənt krəˈdenʃlz ˌɡrɑːnt/",
+      "say": "client credentials grant",
+      "def": "A grant in which the client gets an access token with only its own credentials, with no user involved. Only confidential clients may use it, and the response SHOULD NOT include a refresh token.",
+      "example": "Every night, a Spring Boot job uses client credentials to get a token and export new job applications from the candidate API.",
+      "src": "s1"
+    },
+    {
+      "id": "t-auth-code",
+      "term": "Authorization code grant",
+      "ipa": "/ˌɔːθəraɪˈzeɪʃn ˈkəʊd ˌɡrɑːnt/",
+      "say": "authorization code grant",
+      "def": "A grant for apps where a person signs in. The browser goes to the authorization server, the user approves, and the client receives a short-lived code that it exchanges for tokens at the token endpoint.",
+      "example": "A recruiter opens the interview-scheduling app, signs in at the company's authorization server, and the app exchanges the returned code for an access token.",
+      "src": "s1"
+    },
+    {
+      "id": "t-pkce",
+      "term": "PKCE (Proof Key for Code Exchange)",
+      "ipa": "/ˈpɪksi/",
+      "say": "pixie",
+      "def": "An extension to the authorization code grant. The client keeps a random code verifier secret, sends only a Base64url-encoded SHA-256 hash of it (the code challenge, method S256) when the flow starts, and sends the verifier itself when it exchanges the code.",
+      "example": "Even if malware on a mobile intercepts the authorization code, it cannot redeem the code without the code verifier.",
+      "src": "s3"
+    },
+    {
+      "id": "t-bearer-token",
+      "term": "Bearer token",
+      "ipa": "/ˈbeərə ˌtəʊkən/",
+      "say": "bearer token",
+      "def": "A token that any party in possession of it can use, without proving anything else. It is usually sent in the Authorization header with the Bearer scheme, and clients MUST always use TLS.",
+      "example": "If a bearer token leaks into a log file, anyone who reads the log can call the API until the token expires.",
+      "src": "s2"
+    },
+    {
+      "id": "t-jwt-bearer",
+      "term": "JWT bearer assertion",
+      "ipa": "/ˈdʒɒt ˌbeərə əˈsɜːʃn/",
+      "say": "jot bearer assertion",
+      "def": "A JSON Web Token that a client sends to the token endpoint, either as a grant to get an access token or to authenticate itself (RFC 7523). It MUST contain iss, sub, aud and exp, and it MUST be signed or have a MAC.",
+      "example": "The integration signs a JWT that is valid for five minutes with its private key, and exchanges it for an access token instead of sending a client secret.",
+      "src": "s4"
+    },
+    {
+      "id": "t-saml-bearer",
+      "term": "SAML 2.0 bearer assertion",
+      "ipa": "/ˈsæml ˌtuː pɔɪnt ˈəʊ ˈbeərə əˈsɜːʃn/",
+      "say": "sam-ul two point oh bearer assertion",
+      "def": "A SAML 2.0 assertion that a client exchanges for an access token at the token endpoint (RFC 7522). The assertion MUST have an expiry and a signature or MAC, and the server MUST reject it if the server is not the audience.",
+      "example": "An HR middleware signs an assertion with the private key of its X.509 certificate and exchanges it for an access token before it calls the HR system's API.",
+      "src": "s5"
+    },
+    {
+      "id": "t-sender-constrained",
+      "term": "Sender-constrained access token",
+      "ipa": "/ˈsendə kənˌstreɪnd ˈækses ˌtəʊkən/",
+      "say": "sender constrained access token",
+      "def": "An access token bound to a key that the client holds, so a stolen token alone is not enough to call the API. RFC 9700 says such tokens SHOULD be used, for example with mutual TLS (RFC 8705) or DPoP (RFC 9449).",
+      "example": "The candidate API accepts the token only over a mutual TLS connection that uses the certificate whose SHA-256 thumbprint is in the token's cnf claim.",
+      "src": "s6"
+    },
+    {
+      "id": "t-wif",
+      "term": "Workload Identity Federation",
+      "ipa": "/ˈwɜːkləʊd aɪˈdentəti ˌfedəˈreɪʃn/",
+      "say": "workload identity federation",
+      "def": "A Google Cloud feature that lets workloads outside Google Cloud exchange their own credentials, for example from AWS, Microsoft Entra ID or an OIDC or SAML 2.0 provider, at the Security Token Service for a federated access token. It removes the need for service account keys.",
+      "example": "The on-premises integration server exchanges its Microsoft Entra ID token at the Security Token Service, so no service account key file is stored on the server.",
+      "src": "s16"
+    },
+    {
+      "id": "t-secret-rotation",
+      "term": "Secret rotation",
+      "ipa": "/ˈsiːkrət rəʊˈteɪʃn/",
+      "say": "secret rotation",
+      "def": "Replacing a secret, such as a client secret or a private key, with a new version on a regular schedule. It limits the impact of a leaked secret.",
+      "example": "The team adds a new version of the client secret in Secret Manager, deploys the services pinned to that version, and then disables the old version.",
+      "src": "s14"
+    },
+    {
+      "id": "t-least-privilege",
+      "term": "Least privilege",
+      "ipa": "/ˌliːst ˈprɪvəlɪdʒ/",
+      "say": "least privilege",
+      "def": "Giving each identity only the permissions that it needs for its job, and nothing more.",
+      "example": "The Cloud Run service gets the Secret Manager Secret Accessor role on one secret only, not on the whole project.",
+      "src": "s14"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u04-l1",
+      "kind": "concepts",
+      "title": "Roles, tokens and grants",
+      "items": [
+        {
+          "id": "u04-l1-i1",
+          "type": "card",
+          "term": "t-oauth",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "ro",
+                "label": "Resource owner (recruiter)"
+              },
+              {
+                "id": "c",
+                "label": "Client (scheduling app)"
+              },
+              {
+                "id": "as",
+                "label": "Authorization server"
+              },
+              {
+                "id": "rs",
+                "label": "Resource server (candidate API)"
+              }
+            ],
+            "edges": [
+              {
+                "from": "ro",
+                "to": "c",
+                "label": "gives permission"
+              },
+              {
+                "from": "c",
+                "to": "as",
+                "label": "authorization grant"
+              },
+              {
+                "from": "as",
+                "to": "c",
+                "label": "access token"
+              },
+              {
+                "from": "c",
+                "to": "rs",
+                "label": "request with the access token"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u04-l1-i2",
+          "type": "card",
+          "term": "t-access-token",
+          "src": "s1"
+        },
+        {
+          "id": "u04-l1-i3",
+          "type": "card",
+          "term": "t-refresh-token",
+          "src": "s1"
+        },
+        {
+          "id": "u04-l1-i5",
+          "type": "card",
+          "term": "t-client-credentials",
+          "src": "s1",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "job",
+                "label": "Nightly job (confidential client)"
+              },
+              {
+                "id": "as",
+                "label": "Token endpoint"
+              },
+              {
+                "id": "api",
+                "label": "Candidate API"
+              }
+            ],
+            "edges": [
+              {
+                "from": "job",
+                "to": "as",
+                "label": "grant_type=client_credentials + client authentication"
+              },
+              {
+                "from": "as",
+                "to": "job",
+                "label": "access token (no refresh token)"
+              },
+              {
+                "from": "job",
+                "to": "api",
+                "label": "Authorization: Bearer access token"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u04-l1-i4",
+          "type": "pick",
+          "src": "s1",
+          "q": "A nightly Spring Boot job exports new applications from the candidate API. No person is involved. Which grant fits best?",
+          "options": [
+            "Authorization code with PKCE",
+            "Client credentials",
+            "Implicit",
+            "Resource owner password credentials"
+          ],
+          "answer": 1,
+          "why": "Client credentials is for a confidential client that acts on its own behalf, with no user. Authorization code needs a person in a browser, the implicit grant SHOULD NOT be used, and the password grant MUST NOT be used."
+        },
+        {
+          "id": "u04-l1-i6",
+          "type": "card",
+          "term": "t-pkce",
+          "src": "s3",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "app",
+                "label": "Mobile app (public client)"
+              },
+              {
+                "id": "az",
+                "label": "Authorization endpoint"
+              },
+              {
+                "id": "tk",
+                "label": "Token endpoint"
+              }
+            ],
+            "edges": [
+              {
+                "from": "app",
+                "to": "az",
+                "label": "code_challenge, method S256"
+              },
+              {
+                "from": "az",
+                "to": "app",
+                "label": "authorization code"
+              },
+              {
+                "from": "app",
+                "to": "tk",
+                "label": "code + code_verifier"
+              },
+              {
+                "from": "tk",
+                "to": "app",
+                "label": "tokens, only if the hash matches"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u04-l1-i7",
+          "type": "card",
+          "term": "t-jwt-bearer",
+          "src": "s4"
+        },
+        {
+          "id": "u04-l1-i8",
+          "type": "card",
+          "term": "t-sender-constrained",
+          "src": "s6"
+        },
+        {
+          "id": "u04-l1-i9",
+          "type": "tf",
+          "src": "s1",
+          "statement": "A refresh token is sent to the resource server together with the access token.",
+          "answer": false,
+          "why": "Refresh tokens are only for the authorization server and are never sent to resource servers. The API only ever sees the access token."
+        },
+        {
+          "id": "u04-l1-i10",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each OAuth 2.0 role with what it does.",
+          "pairs": [
+            [
+              "Resource owner",
+              "Can give access to a protected resource, often a person"
+            ],
+            [
+              "Client",
+              "The application that calls the API with the owner's permission"
+            ],
+            [
+              "Authorization server",
+              "Issues access tokens after it checks the grant"
+            ],
+            [
+              "Resource server",
+              "Hosts the protected API and accepts access tokens"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u04-l2",
+      "kind": "practice",
+      "title": "Choosing and wiring the flows",
+      "items": [
+        {
+          "id": "u04-l2-i1",
+          "type": "match",
+          "src": "s6",
+          "q": "Match each practice with its requirement level in RFC 9700 (BCP 240).",
+          "pairs": [
+            [
+              "PKCE for public clients",
+              "MUST use"
+            ],
+            [
+              "PKCE for confidential clients",
+              "RECOMMENDED"
+            ],
+            [
+              "Implicit grant",
+              "SHOULD NOT use"
+            ],
+            [
+              "Resource owner password credentials grant",
+              "MUST NOT use"
+            ],
+            [
+              "Sender-constrained access tokens",
+              "SHOULD use"
+            ]
+          ]
+        },
+        {
+          "id": "u04-l2-i2",
+          "type": "scenario",
+          "src": "s6",
+          "q": "A background-check vendor builds an Angular single-page app for recruiters. It has no back end, and the vendor wants the implicit grant because it is simple. What do you propose?",
+          "options": [
+            {
+              "text": "The authorization code grant with PKCE (S256), with the app registered as a public client.",
+              "ok": true,
+              "why": "A browser app cannot keep a secret, so it is a public client, and RFC 9700 says public clients MUST use PKCE."
+            },
+            {
+              "text": "Keep the implicit grant, but make the tokens short-lived.",
+              "ok": false,
+              "why": "RFC 9700 says clients SHOULD NOT use the implicit grant, because the access token comes back in the redirect, where it can leak or be injected."
+            },
+            {
+              "text": "The authorization code grant with a client secret stored in the JavaScript bundle.",
+              "ok": false,
+              "why": "Anyone can read the bundle in the browser, so the secret is not secret and the app is still a public client."
+            },
+            {
+              "text": "Ask the recruiters for their passwords and use the password grant.",
+              "ok": false,
+              "why": "RFC 9700 says the resource owner password credentials grant MUST NOT be used, because it exposes the user's credentials to the client."
+            }
+          ]
+        },
+        {
+          "id": "u04-l2-i3",
+          "type": "order",
+          "src": "s3",
+          "q": "Put the authorization code flow with PKCE in order.",
+          "steps": [
+            "The app creates a random code verifier and derives the code challenge with S256",
+            "The app sends the user to the authorization endpoint with the code challenge",
+            "The user signs in and approves; the server stores the challenge and returns an authorization code",
+            "The app sends the code and the code verifier to the token endpoint",
+            "The server hashes the verifier, compares it with the stored challenge and returns the tokens",
+            "The app calls the API with the access token"
+          ]
+        },
+        {
+          "id": "u04-l2-i4",
+          "type": "code",
+          "src": "s1",
+          "lang": "http",
+          "q": "Complete the client credentials exchange between the recruiting middleware and the authorization server. Note that the response contains no refresh token.",
+          "code": "POST /oauth2/token HTTP/1.1\nHost: auth.example.com\nAuthorization: Basic cmVjcnVpdGluZy1taWRkbGV3YXJlOnMzY3IzdA==\nContent-Type: application/x-www-form-urlencoded\n\ngrant_type=[[1]]&scope=candidates.read\n\nHTTP/1.1 200 OK\nContent-Type: application/json\nCache-Control: [[2]]\n\n{\"access_token\": \"2YotnFZFEjr1zCsicMWpAA\", \"token_type\": \"[[3]]\", \"expires_in\": 3600}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "client_credentials",
+              "decoys": [
+                "password",
+                "authorization_code",
+                "implicit"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "no-store",
+              "decoys": [
+                "public",
+                "max-age=3600"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "Bearer",
+              "decoys": [
+                "Basic",
+                "Refresh"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u04-l2-i5",
+          "type": "code",
+          "src": "s12",
+          "lang": "yaml",
+          "q": "Complete the Spring Boot configuration. The middleware calls the candidate API with client credentials, and its own API accepts only JWTs whose audience is the middleware.",
+          "code": "spring:\n  security:\n    oauth2:\n      client:\n        registration:\n          candidate-api:\n            client-id: recruiting-middleware\n            client-secret: ${CANDIDATE_API_SECRET}  # resolved at run time, never stored in this file\n            authorization-grant-type: [[1]]\n            scope: candidates.read\n        provider:\n          candidate-api:\n            [[2]]: https://auth.example.com/oauth2/token\n      resourceserver:\n        jwt:\n          issuer-uri: https://auth.example.com\n          [[3]]: https://middleware.example.com",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "client_credentials",
+              "decoys": [
+                "authorization_code",
+                "password"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "token-uri",
+              "decoys": [
+                "authorization-uri",
+                "user-info-uri"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "audiences",
+              "decoys": [
+                "scope",
+                "jwk-set-uri"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u04-l2-i6",
+          "type": "code",
+          "src": "s13",
+          "lang": "java",
+          "q": "Only tokens with the scope candidates.read may call this method. Spring Security turns each scope in the JWT into an authority with a prefix. Complete the annotation.",
+          "code": "@PreAuthorize(\"hasAuthority('[[1]]candidates.read')\")\npublic List<Candidate> listCandidates() {\n    return candidateService.findAll();\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "SCOPE_",
+              "decoys": [
+                "ROLE_",
+                "AUTHORITY_"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u04-l2-i7",
+          "type": "diagram",
+          "src": "s5",
+          "layout": "sequence",
+          "q": "Complete the flow: a Spring Boot service on Cloud Run reads data from the SuccessFactors Recruiting OData API, using OAuth with a SAML 2.0 bearer assertion.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Spring Boot service on Cloud Run",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Secret Manager",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "SuccessFactors OAuth token endpoint",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "SuccessFactors Recruiting OData API",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "read the signing key (Secret Accessor role)"
+            },
+            {
+              "from": "n2",
+              "to": "n1",
+              "label": "private key"
+            },
+            {
+              "from": "n1",
+              "to": "n3",
+              "label": "signed SAML 2.0 assertion"
+            },
+            {
+              "from": "n3",
+              "to": "n1",
+              "label": "access token"
+            },
+            {
+              "from": "n1",
+              "to": "n4",
+              "label": "Authorization: Bearer access token"
+            }
+          ],
+          "decoys": [
+            "Recruiter's browser",
+            "Git repository with the key file"
+          ]
+        },
+        {
+          "id": "u04-l2-i8",
+          "type": "scenario",
+          "src": "s6",
+          "q": "A partner's support team pasted a full HTTP request, including the access token for your candidate API, into a shared ticket. What change limits the damage of leaks like this in future?",
+          "options": [
+            {
+              "text": "Use sender-constrained access tokens, for example with mutual TLS or DPoP, and keep lifetimes short and scopes narrow.",
+              "ok": true,
+              "why": "A sender-constrained token is useless without the client's private key, and RFC 9700 says such tokens SHOULD be used."
+            },
+            {
+              "text": "Make access tokens last 30 days so that partners request them less often.",
+              "ok": false,
+              "why": "A longer lifetime gives an attacker more time to use a stolen bearer token."
+            },
+            {
+              "text": "Send the token as a query parameter instead of in the Authorization header.",
+              "ok": false,
+              "why": "URLs end up in logs and browser history, and RFC 6750 says bearer tokens SHOULD NOT be passed in page URLs."
+            },
+            {
+              "text": "Give the partner one token with every scope, so there is only one token to protect.",
+              "ok": false,
+              "why": "Broad scopes make each leak worse; RFC 9700 says token privileges SHOULD be restricted to the minimum required."
+            }
+          ]
+        },
+        {
+          "id": "u04-l2-i9",
+          "type": "scenario",
+          "src": "s15",
+          "q": "A developer committed the private key that signs your SuccessFactors assertions to the integration repository. The repository is private. What do you do first?",
+          "options": [
+            {
+              "text": "Treat the key as leaked: create a new key and certificate, register the new certificate, remove the old one, keep the new key in Secret Manager and turn on secret scanning.",
+              "ok": true,
+              "why": "A key stays in the Git history even after the file is deleted, so it must be replaced and kept out of source code from now on."
+            },
+            {
+              "text": "Delete the file in a new commit; the repository is private anyway.",
+              "ok": false,
+              "why": "Copies remain in the Git history and in every clone, and private repositories can still leak or become public."
+            },
+            {
+              "text": "Encode the key in Base64 so that people cannot read it.",
+              "ok": false,
+              "why": "Base64 is an encoding, not encryption, so anyone can decode it in one step."
+            },
+            {
+              "text": "Copy the key into the container image instead, so it is no longer in Git.",
+              "ok": false,
+              "why": "Anyone who can pull the image can read the key, and the leaked key is still valid."
+            }
+          ]
+        },
+        {
+          "id": "u04-l2-i10",
+          "type": "scenario",
+          "src": "s19",
+          "q": "Pub/Sub pushes new-application events to your own HTTPS endpoint, a Spring Boot service, with authentication turned on in the subscription. What must the service check before it trusts a request?",
+          "options": [
+            {
+              "text": "The JWT signature, that aud matches the configured audience, that email is the expected service account and verified, and that the token has not expired.",
+              "ok": true,
+              "why": "These are the checks the Pub/Sub documentation describes. A valid signature alone does not prove that the token was meant for this endpoint."
+            },
+            {
+              "text": "Only that the request has an Authorization header.",
+              "ok": false,
+              "why": "Anyone can send a header, so without signature and claim checks the endpoint is open to everyone."
+            },
+            {
+              "text": "Only that the token is signed by Google.",
+              "ok": false,
+              "why": "Google signs tokens for many services and audiences, so you must also check aud and email."
+            },
+            {
+              "text": "That the token's scope claim contains pubsub.",
+              "ok": false,
+              "why": "The documented checks are the signature and the aud, email and email_verified claims, not a scope."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u04-l3",
+      "kind": "interview",
+      "title": "Talking about security",
+      "items": [
+        {
+          "id": "u04-l3-i11",
+          "type": "say",
+          "src": "s22",
+          "text": "Authentication proves who is calling, and authorization decides what they may do. OAuth 2.0 handles authorization, and OpenID Connect adds authentication on top with an ID token."
+        },
+        {
+          "id": "u04-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "For service-to-service calls with no user, I use the client credentials grant, with narrow scopes and short-lived access tokens."
+        },
+        {
+          "id": "u04-l3-i2",
+          "type": "tf",
+          "src": "s9",
+          "statement": "OAuth 2.1 is already a published RFC that replaces RFC 6749.",
+          "answer": false,
+          "why": "It is still an Internet-Draft: revision 16 is dated 3 September 2026 and expires on 7 March 2027. Today you cite RFC 6749 and RFC 9700."
+        },
+        {
+          "id": "u04-l3-i3",
+          "type": "explain",
+          "src": "s6",
+          "seconds": 120,
+          "q": "What are the OAuth 2.0 roles, and which grants would you use today?",
+          "model": "OAuth 2.0 has four roles. The resource owner is usually a person who can give access. The client is the application that wants to call an API. The authorization server checks the grant and issues access tokens, and the resource server hosts the API and accepts those tokens. To choose a grant, my first question is: is there a user? If a person signs in, for example a recruiter in a scheduling app, I use the authorization code grant with PKCE. RFC 9700, the current security best practice, says public clients must use PKCE, and it recommends PKCE for confidential clients too. It costs very little, so I use it everywhere. If there is no user, for example a nightly job between two back-end services, I use client credentials with narrow scopes. I avoid the implicit grant, which the RFC says should not be used, and I never use the password grant, which must not be used.",
+          "keypoints": [
+            {
+              "text": "Name the four roles",
+              "kw": [
+                "four roles",
+                "resource owner",
+                "authorization server",
+                "resource server"
+              ]
+            },
+            {
+              "text": "Authorization code with PKCE when a person signs in",
+              "kw": [
+                "authorization code",
+                "pkce",
+                "pixie",
+                "signs in",
+                "sign in",
+                "log in",
+                "person"
+              ]
+            },
+            {
+              "text": "Client credentials when there is no user",
+              "kw": [
+                "client credentials",
+                "no user",
+                "machine to machine",
+                "machine-to-machine",
+                "service-to-service",
+                "service to service",
+                "back-end",
+                "backend"
+              ]
+            },
+            {
+              "text": "Quote RFC 9700: PKCE is a MUST for public clients and RECOMMENDED for confidential ones",
+              "kw": [
+                "rfc 9700",
+                "best current practice",
+                "best practice",
+                "public client",
+                "confidential",
+                "recommended",
+                "recommends"
+              ]
+            },
+            {
+              "text": "Avoid the implicit grant and never use the password grant",
+              "kw": [
+                "implicit",
+                "password grant",
+                "password",
+                "must not",
+                "should not"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u04-l3-i4",
+          "type": "scenario",
+          "src": "s6",
+          "q": "The interviewer says: a partner wants to use the password grant with a technical user, because it is the quickest way to call your API. How do you answer?",
+          "options": [
+            {
+              "text": "I say no, because RFC 9700 says that grant MUST NOT be used. I offer client credentials for a machine, or the authorization code grant with PKCE if a person signs in.",
+              "ok": true,
+              "why": "It is a clear rule in the current best practice, and the two alternatives cover both cases."
+            },
+            {
+              "text": "I accept it if the password is long and changed every month.",
+              "ok": false,
+              "why": "The rule is MUST NOT whatever the password quality, because the client sees and handles the user's credentials."
+            },
+            {
+              "text": "I accept it for internal partners only.",
+              "ok": false,
+              "why": "RFC 9700 makes no exception for internal clients."
+            },
+            {
+              "text": "I suggest the implicit grant instead, because it needs no password.",
+              "ok": false,
+              "why": "The implicit grant SHOULD NOT be used, and it is a browser flow for a person, not for a machine."
+            }
+          ]
+        },
+        {
+          "id": "u04-l3-i5",
+          "type": "say",
+          "src": "s6",
+          "text": "RFC 9700 says public clients must use PKCE and recommends it for confidential clients, so I use PKCE in every authorization code flow."
+        },
+        {
+          "id": "u04-l3-i9",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "What is the difference between an access token and a refresh token, and how do you protect each one?",
+          "model": "An access token is what the client sends to the resource server, the API, on every call. It stands for a specific scope and lifetime, so I keep it short-lived and ask only for the scopes the client needs. A refresh token is different: the client uses it only at the authorization server, to get a new access token when the old one expires. It is never sent to the API. Most access tokens are bearer tokens, so anyone who steals one can use it. That is why I send them only over TLS, in the Authorization header, never in a URL and never in logs. RFC 9700 says sender-constrained tokens should be used, for example with mutual TLS or DPoP, so a stolen token is useless without the client's key. For public clients, refresh tokens must be sender-constrained or rotated. And with client credentials, the server should not issue a refresh token at all.",
+          "keypoints": [
+            {
+              "text": "The access token goes to the API; short-lived, narrow scopes",
+              "kw": [
+                "resource server",
+                "every call",
+                "every request",
+                "short-lived",
+                "short lived",
+                "scope",
+                "scopes"
+              ]
+            },
+            {
+              "text": "The refresh token is used only at the authorization server",
+              "kw": [
+                "authorization server",
+                "token endpoint",
+                "never sent",
+                "new access token",
+                "only to get"
+              ]
+            },
+            {
+              "text": "Bearer tokens: TLS, header, never in URLs or logs",
+              "kw": [
+                "bearer",
+                "tls",
+                "https",
+                "authorization header",
+                "header",
+                "url",
+                "logs"
+              ]
+            },
+            {
+              "text": "Sender-constrained tokens with mutual TLS or DPoP",
+              "kw": [
+                "sender-constrained",
+                "sender constrained",
+                "mutual tls",
+                "mtls",
+                "dpop",
+                "proof of possession"
+              ]
+            },
+            {
+              "text": "Public clients: refresh tokens sender-constrained or rotated",
+              "kw": [
+                "rotation",
+                "rotate",
+                "rotated",
+                "public client"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u04-l3-i7",
+          "type": "explain",
+          "src": "s14",
+          "seconds": 150,
+          "q": "How do you manage secrets and credentials in a cloud integration platform?",
+          "model": "My first rule is to avoid long-lived secrets where I can. On Google Cloud, I give each Cloud Run service its own user-managed service account instead of the default one, so the code gets short-lived tokens from the metadata server and there is no key file. For workloads outside Google Cloud, I use Workload Identity Federation instead of exporting service account keys. When I do need a secret, for example the private key that signs assertions for SuccessFactors, I keep it in Secret Manager. I grant the Secret Accessor role only to the service that needs it, on that secret, not on the whole project. I rotate secrets on a schedule and pin the version in the deployment. The trade-off is that each rotation needs a release, but every change is tested and traceable. Secrets never go into source code, container images or logs. I enable audit logs for secret access and turn on secret scanning in the repositories. If a secret leaks, I revoke it and rotate it at once.",
+          "keypoints": [
+            {
+              "text": "Prefer no long-lived secret: an attached service account or Workload Identity Federation",
+              "kw": [
+                "service account",
+                "workload identity",
+                "metadata server",
+                "short-lived",
+                "no key"
+              ]
+            },
+            {
+              "text": "Store secrets in a secrets manager",
+              "kw": [
+                "secret manager",
+                "secrets manager",
+                "vault"
+              ]
+            },
+            {
+              "text": "Least privilege on each secret",
+              "kw": [
+                "least privilege",
+                "secret accessor",
+                "only the service",
+                "minimal",
+                "minimum"
+              ]
+            },
+            {
+              "text": "Rotate secrets and pin versions",
+              "kw": [
+                "rotate",
+                "rotation",
+                "version",
+                "pin"
+              ]
+            },
+            {
+              "text": "Never in code or logs; scan and audit",
+              "kw": [
+                "source code",
+                "logs",
+                "secret scanning",
+                "audit",
+                "git",
+                "repository"
+              ]
+            },
+            {
+              "text": "Revoke and rotate a leaked secret at once",
+              "kw": [
+                "leak",
+                "leaked",
+                "leaks",
+                "revoke"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u04-l3-i12",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 150,
+          "q": "An integration that worked yesterday now gets 401 errors from a partner API. How do you troubleshoot it?",
+          "model": "First I look at the exact status code and the error in the WWW-Authenticate header, because 401 and 403 mean different things. A 401 with invalid_token means the token is expired, revoked, malformed or invalid for another reason, for example the wrong audience. A 403 with insufficient_scope means the token is valid, but it does not carry the scope that the call needs. For a 401, I check the common causes. Does the client reuse a cached token after its expires_in time? Did someone rotate the client secret, or did a certificate expire? Is the audience still right for this API? Are the clocks in sync, so that the expiry check works? Then I ask what changed: a release, a configuration change or a change on the partner side. To test, I request a fresh token. If it is a JWT, I decode it and check aud, exp and scope, but I never write it to a log. Finally, I add an alert before certificates expire, so it does not happen again.",
+          "keypoints": [
+            {
+              "text": "Read the status code and the error in the WWW-Authenticate header",
+              "kw": [
+                "www-authenticate",
+                "status code",
+                "error code",
+                "invalid_token",
+                "invalid token",
+                "header"
+              ]
+            },
+            {
+              "text": "401 means an invalid token; 403 means the scope is not enough",
+              "kw": [
+                "403",
+                "forbidden",
+                "insufficient_scope",
+                "insufficient scope",
+                "expired",
+                "revoked"
+              ]
+            },
+            {
+              "text": "Check cached tokens, expiry, rotated secrets and expired certificates",
+              "kw": [
+                "expires_in",
+                "expiry",
+                "cache",
+                "cached",
+                "rotated",
+                "certificate",
+                "secret"
+              ]
+            },
+            {
+              "text": "Check the audience and the clocks",
+              "kw": [
+                "audience",
+                "aud claim",
+                "clock",
+                "clock skew",
+                "in sync"
+              ]
+            },
+            {
+              "text": "Ask what changed and test with a fresh token, without logging it",
+              "kw": [
+                "what changed",
+                "release",
+                "configuration",
+                "fresh token",
+                "new token",
+                "decode"
+              ]
+            },
+            {
+              "text": "Prevent a repeat with monitoring and alerts",
+              "kw": [
+                "alert",
+                "alerts",
+                "monitoring",
+                "monitor",
+                "so it does not happen again"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u04-l3-i13",
+          "type": "explain",
+          "src": "s6",
+          "seconds": 180,
+          "q": "How would you secure a new integration between SuccessFactors Recruiting and a Spring Boot service on Google Cloud?",
+          "model": "I think about it in layers: who is calling, what they may do, how the data travels and where the credentials live. For calls into SuccessFactors, I use OAuth with a SAML 2.0 assertion that I sign with the private key of an X.509 certificate, not a password. I prefer keys to shared secrets: RFC 9700 recommends asymmetric client authentication, such as mutual TLS or a signed JWT, so the server stores no secret that can leak. The private key lives in Secret Manager, and only the Cloud Run service that needs it can read it. For calls into my service, for example Pub/Sub push messages, I check the JWT: the signature, the audience, the service account email and the expiry. I ask only for the scopes and fields that I need, because candidate data is personal data. Everything travels over TLS, and tokens never go into logs. The trade-off is operational work: certificates expire, so I monitor the dates and rotate keys early. Finally, I turn on audit logs to see who read each secret.",
+          "keypoints": [
+            {
+              "text": "Structure the answer in layers: identity, permissions, transport, credentials",
+              "kw": [
+                "layers",
+                "who is calling",
+                "identity",
+                "authentication",
+                "permissions"
+              ]
+            },
+            {
+              "text": "Use a signed assertion or keys instead of passwords and shared secrets",
+              "kw": [
+                "saml",
+                "assertion",
+                "x.509",
+                "certificate",
+                "private key",
+                "asymmetric",
+                "signed jwt",
+                "mutual tls"
+              ]
+            },
+            {
+              "text": "Keep the key in Secret Manager with least privilege",
+              "kw": [
+                "secret manager",
+                "service account",
+                "least privilege",
+                "only the service",
+                "secret accessor"
+              ]
+            },
+            {
+              "text": "Validate incoming tokens: signature, audience, expiry",
+              "kw": [
+                "validate",
+                "verify",
+                "signature",
+                "audience",
+                "expiry",
+                "expired"
+              ]
+            },
+            {
+              "text": "Minimal scopes and data, TLS, no tokens in logs",
+              "kw": [
+                "scopes",
+                "personal data",
+                "minimal",
+                "only the fields",
+                "tls",
+                "https",
+                "logs"
+              ]
+            },
+            {
+              "text": "Name the trade-off: certificate and key rotation work, monitoring and audit",
+              "kw": [
+                "trade-off",
+                "trade off",
+                "rotate",
+                "rotation",
+                "monitor",
+                "audit"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Roles and tokens",
+        "points": [
+          "Four roles: resource owner, client, authorization server, resource server.",
+          "OAuth 2.0 is for authorization. OpenID Connect adds authentication on top; its ID token is a JWT about the user's sign-in.",
+          "Access token: sent to the API; it stands for a scope and a lifetime.",
+          "Refresh token: only for the authorization server, never sent to the API.",
+          "Scope: space-delimited, case-sensitive strings; the server may grant less than asked.",
+          "Bearer token: whoever holds it can use it. TLS only, in the Authorization header, not in URLs.",
+          "Token responses carry Cache-Control: no-store."
+        ]
+      },
+      {
+        "h": "Which grant",
+        "points": [
+          "A person signs in: authorization code + PKCE (S256).",
+          "No user, service to service: client credentials (confidential clients only; no refresh token).",
+          "Signed assertion instead of a shared secret: JWT bearer (RFC 7523) or SAML 2.0 bearer (RFC 7522).",
+          "Never the password grant; avoid the implicit grant."
+        ]
+      },
+      {
+        "h": "RFC 9700 (BCP 240, January 2025)",
+        "points": [
+          "Public clients MUST use PKCE; for confidential clients it is RECOMMENDED.",
+          "Clients SHOULD use a challenge method that does not expose the verifier: today only S256.",
+          "Implicit grant: SHOULD NOT. Password grant: MUST NOT.",
+          "Sender-constrained access tokens SHOULD be used: mTLS (RFC 8705) or DPoP (RFC 9449).",
+          "Public clients: refresh tokens MUST be sender-constrained or rotated.",
+          "Token privileges SHOULD be minimal, and tokens SHOULD be audience-restricted.",
+          "Redirect URIs: exact string matching (MUST), except localhost ports for native apps.",
+          "Asymmetric client authentication (mTLS or a signed JWT) is RECOMMENDED, so the server does not store a shared secret."
+        ]
+      },
+      {
+        "h": "Assertions",
+        "points": [
+          "JWT bearer: grant_type urn:ietf:params:oauth:grant-type:jwt-bearer, parameter assertion.",
+          "The JWT MUST have iss, sub, aud and exp, and MUST be signed or have a MAC.",
+          "SAML bearer: grant_type urn:ietf:params:oauth:grant-type:saml2-bearer, one base64url-encoded assertion.",
+          "The server MUST reject an assertion that does not name it as the audience.",
+          "SuccessFactors offers X.509 certificates for OAuth with SAML and for mTLS."
+        ]
+      },
+      {
+        "h": "Spring Security",
+        "points": [
+          "Client: authorization-grant-type: client_credentials, and the provider's token-uri.",
+          "Resource server: jwt.issuer-uri checks the signature, iss, exp and nbf; add jwt.audiences to check aud.",
+          "Scopes become authorities with the prefix SCOPE_, as in hasAuthority('SCOPE_candidates.read').",
+          "PKCE is automatic for public clients. If a provider does not support PKCE for confidential clients, set requireProofKey to false."
+        ]
+      },
+      {
+        "h": "Secrets on Google Cloud",
+        "points": [
+          "Prefer an attached user-managed service account or Workload Identity Federation to service account keys.",
+          "Secret Manager: least privilege at secret level, rotation, pinned versions, audit logs.",
+          "Secret Manager advises against passing secrets in environment variables or files. If Cloud Run passes one as an environment variable, it is read at start-up, so pin a version.",
+          "Never in source code, images or logs; turn on secret scanning.",
+          "A leaked secret: revoke it and rotate it at once."
+        ]
+      },
+      {
+        "h": "When a call is rejected",
+        "points": [
+          "401 invalid_token: the token is expired, revoked, malformed or invalid for another reason.",
+          "403 insufficient_scope: the token is valid but lacks the scope the call needs.",
+          "The error code comes back in the WWW-Authenticate response header.",
+          "Check: a cached token past expires_in, a rotated secret, an expired certificate, the audience, clock skew.",
+          "Test with a fresh token, and never write tokens to logs."
+        ]
+      },
+      {
+        "h": "Status check",
+        "points": [
+          "OAuth 2.1: draft-ietf-oauth-v2-1-16, 3 September 2026, still an Internet-Draft.",
+          "The draft requires PKCE and leaves out the implicit and password grants."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "RFC 6749: The OAuth 2.0 Authorization Framework",
+      "url": "https://www.rfc-editor.org/rfc/rfc6749.html",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "RFC 6750: The OAuth 2.0 Authorization Framework: Bearer Token Usage",
+      "url": "https://www.rfc-editor.org/rfc/rfc6750.html",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "RFC 7636: Proof Key for Code Exchange by OAuth Public Clients",
+      "url": "https://www.rfc-editor.org/rfc/rfc7636.html",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "RFC 7523: JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants",
+      "url": "https://www.rfc-editor.org/rfc/rfc7523.html",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "RFC 7522: Security Assertion Markup Language (SAML) 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants",
+      "url": "https://www.rfc-editor.org/rfc/rfc7522.html",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "RFC 9700 (BCP 240): Best Current Practice for OAuth 2.0 Security",
+      "url": "https://www.rfc-editor.org/rfc/rfc9700.html",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "RFC 8705: OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens",
+      "url": "https://www.rfc-editor.org/rfc/rfc8705.html",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "RFC 9449: OAuth 2.0 Demonstrating Proof of Possession (DPoP)",
+      "url": "https://www.rfc-editor.org/rfc/rfc9449.html",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "The OAuth 2.1 Authorization Framework (draft-ietf-oauth-v2-1-16)",
+      "url": "https://datatracker.ietf.org/doc/draft-ietf-oauth-v2-1/",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "RFC 7519: JSON Web Token (JWT)",
+      "url": "https://www.rfc-editor.org/rfc/rfc7519.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Authorization Grant Support (Spring Security 7.1 reference)",
+      "url": "https://docs.spring.io/spring-security/reference/servlet/oauth2/client/authorization-grants.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "OAuth2 (Spring Boot 4.1 reference)",
+      "url": "https://docs.spring.io/spring-boot/reference/security/oauth2.html",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "OAuth 2.0 Resource Server JWT (Spring Security 7.1 reference)",
+      "url": "https://docs.spring.io/spring-security/reference/servlet/oauth2/resource-server/jwt.html",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Secret Manager best practices (Google Cloud documentation)",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/best-practices",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Best practices for managing service account keys (Google Cloud IAM documentation)",
+      "url": "https://docs.cloud.google.com/iam/docs/best-practices-for-managing-service-account-keys",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Workload Identity Federation (Google Cloud IAM documentation)",
+      "url": "https://docs.cloud.google.com/iam/docs/workload-identity-federation",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Introduction to service identity (Cloud Run documentation)",
+      "url": "https://docs.cloud.google.com/run/docs/securing/service-identity",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Configure secrets for services (Cloud Run documentation)",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/services/secrets",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Authentication for push subscriptions (Pub/Sub documentation)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/authenticate-push-subscriptions",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Implementing Security Features in SAP SuccessFactors (SAP Learning)",
+      "url": "https://learning.sap.com/courses/sap-successfactors-platform-advanced-and-talent-intelligence-hub-academy/implementing-security-features-in-sap-successfactors_bff2d96d-1610-4d87-9c33-9769353a327a",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Secrets Management Cheat Sheet (OWASP Cheat Sheet Series)",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Secrets_Management_Cheat_Sheet.html",
+      "official": false
+    },
+    {
+      "id": "s22",
+      "title": "OpenID Connect Core 1.0 incorporating errata set 2 (OpenID Foundation)",
+      "url": "https://openid.net/specs/openid-connect-core-1_0.html",
+      "official": true
+    }
+  ]
+}

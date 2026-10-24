@@ -1,0 +1,1276 @@
+{
+  "format": 1,
+  "id": "u01",
+  "n": 1,
+  "block": "integration",
+  "title": "Integration styles",
+  "summary": "After this unit you can compare the main integration styles, choose one from the requirements, and explain the difference between Kafka and Pub/Sub.",
+  "reviewed": "2026-10-24",
+  "versionNotes": [
+    "Apache Kafka facts checked against the Kafka 4.3 documentation: retention.ms default is 604800000 ms (7 days); share groups are documented in the 4.3 design page and were announced as production-ready in Kafka 4.2.0 (17 February 2026).",
+    "Pub/Sub limits as documented on 2026-10-24: 1 MBps publish throughput per ordering key; subscription retention from 10 minutes to 31 days (default 7 days for unacknowledged messages); topic retention up to 31 days.",
+    "Spark facts checked against the Spark 4.2.0 Structured Streaming Programming Guide: micro-batch is the default engine, with end-to-end latencies as low as 100 milliseconds.",
+    "The Migrate from Kafka to Pub/Sub page (s10) still says a subscription can retain acknowledged messages for up to 7 days; the subscription retention page (s9) gives a maximum of 31 days, which this unit follows."
+  ],
+  "terms": [
+    {
+      "id": "t-sync-request-response",
+      "term": "Synchronous request/response",
+      "ipa": "/ˈsɪŋkrənəs rɪˈkwest rɪˈspɒns/",
+      "say": "synchronous request response",
+      "def": "The caller sends a request, for example over HTTP or gRPC, and waits for the reply before it continues. It is simple to reason about, but the downstream service must be available or the operation fails.",
+      "example": "The recruiter's screen calls the interview scheduling API synchronously because the recruiter is waiting to see the free slots.",
+      "src": "s1"
+    },
+    {
+      "id": "t-async-messaging",
+      "term": "Asynchronous messaging",
+      "ipa": "/eɪˈsɪŋkrənəs ˈmesɪdʒɪŋ/",
+      "say": "asynchronous messaging",
+      "def": "The sender puts a message on a queue or topic and does not wait for the result; one or more consumers process it later. It reduces coupling and absorbs load peaks, but you must handle duplicate messages, and latency can grow if the queue fills up.",
+      "example": "The integration publishes a candidate hired message and returns at once; the payroll adapter processes it when it is ready.",
+      "src": "s1"
+    },
+    {
+      "id": "t-event-notification",
+      "term": "Event notification",
+      "ipa": "/ɪˈvent ˌnəʊtɪfɪˈkeɪʃn/",
+      "say": "event notification",
+      "def": "A system sends a small event to say that something changed in its domain, often with little more than an ID. Consumers that need the details call the source system back.",
+      "example": "The event only says that application 4711 changed status, so the background-check adapter calls the Recruiting OData API to read the new status.",
+      "src": "s24"
+    },
+    {
+      "id": "t-ecst",
+      "term": "Event-carried state transfer",
+      "ipa": "/ɪˈvent ˌkærid ˈsteɪt ˈtrænsfɜː/",
+      "say": "event carried state transfer",
+      "def": "The event carries the data that consumers need, so they can keep a local copy and do not have to contact the source system. This improves resilience and removes query load from the source, but more data travels and there are more copies to keep up to date.",
+      "example": "The candidate hired event includes the name, start date and cost centre, so the IT account service never needs to call SuccessFactors.",
+      "src": "s24"
+    },
+    {
+      "id": "t-event-sourcing",
+      "term": "Event sourcing",
+      "ipa": "/ɪˈvent ˈsɔːsɪŋ/",
+      "say": "event sourcing",
+      "def": "Instead of storing only the current state, you store every change as an event in an append-only store and rebuild the current state by replaying the events. It gives a full history, but it adds complexity, and most systems do not need it.",
+      "example": "An offer service could store offer created, offer approved and offer accepted events, and rebuild the state of each offer from them.",
+      "src": "s4"
+    },
+    {
+      "id": "t-pub-sub",
+      "term": "Publish/subscribe (pub/sub)",
+      "ipa": "/ˈpʌblɪʃ səbˈskraɪb/",
+      "say": "publish subscribe, or pub sub",
+      "def": "A publisher sends a message to a topic, and every subscriber receives its own copy. The publisher does not know who is listening, so you can add new consumers without changing it.",
+      "example": "One candidate-hired topic feeds three subscriptions: IT accounts, payroll and badge access.",
+      "src": "s3"
+    },
+    {
+      "id": "t-point-to-point",
+      "term": "Point-to-point queue",
+      "ipa": "/ˌpɔɪnt tə ˈpɔɪnt ˈkjuː/",
+      "say": "point to point queue",
+      "def": "A channel where each message is consumed by only one receiver, even if several receivers are listening. It suits commands and work that must be done once.",
+      "example": "Background-check requests go to one queue, and whichever worker is free takes the next request.",
+      "src": "s22"
+    },
+    {
+      "id": "t-competing-consumers",
+      "term": "Competing consumers",
+      "ipa": "/kəmˈpiːtɪŋ kənˈsjuːməz/",
+      "say": "competing consumers",
+      "def": "Several consumers read from the same queue in parallel, and each message is handled by one of them. This spreads the workload and improves throughput, scalability and availability.",
+      "example": "Five workers read from the same background-check queue, so a sudden peak of requests is processed in parallel.",
+      "src": "s2"
+    },
+    {
+      "id": "t-batch",
+      "term": "Batch processing",
+      "ipa": "/ˈbætʃ ˌprəʊsesɪŋ/",
+      "say": "batch processing",
+      "def": "Many records are collected and then processed together in one run, often on a schedule such as overnight. It handles large volumes efficiently, but results usually arrive hours later, and one bad record can stop the whole job.",
+      "example": "Every night, a flat file with the day's job applications is exported and loaded into the data warehouse.",
+      "src": "s5"
+    },
+    {
+      "id": "t-micro-batch",
+      "term": "Micro-batch",
+      "ipa": "/ˈmaɪkrəʊ ˌbætʃ/",
+      "say": "micro batch",
+      "def": "A stream is processed as a series of very small batch jobs. Spark Structured Streaming works this way by default and can reach end-to-end latencies as low as 100 milliseconds.",
+      "example": "A streaming job groups application events into small batches and updates the recruiting dashboard every few seconds.",
+      "src": "s19"
+    },
+    {
+      "id": "t-cdc",
+      "term": "Change data capture (CDC)",
+      "ipa": "/ˌtʃeɪndʒ ˈdeɪtə ˈkæptʃə/",
+      "say": "change data capture, C D C",
+      "def": "A way to capture the inserts, updates and deletes of a database, usually by reading the change log that the database already keeps, and send them to other systems. Only the changes move, not the whole table.",
+      "example": "Datastream uses PostgreSQL logical decoding to capture changes in the legacy HR database and replicates them into BigQuery.",
+      "src": "s18"
+    },
+    {
+      "id": "t-partition",
+      "term": "Partition (Kafka)",
+      "ipa": "/pɑːˈtɪʃn/",
+      "say": "partition",
+      "def": "A Kafka topic is split into partitions that are spread across brokers. Events with the same key are written to the same partition, and order is guaranteed only within a partition.",
+      "example": "Using the candidate ID as the Kafka message key keeps all events for one candidate in the same partition, in order.",
+      "src": "s13"
+    },
+    {
+      "id": "t-ordering-key",
+      "term": "Ordering key (Pub/Sub)",
+      "ipa": "/ˈɔːdərɪŋ ˌkiː/",
+      "say": "ordering key",
+      "def": "A string on a Pub/Sub message, such as a customer ID, that marks messages which must be delivered in order. Order holds only within one key, messages must be published in the same region, and the subscription must have message ordering enabled.",
+      "example": "The publisher sets the candidate ID as the ordering key, so application received always arrives before offer sent for that candidate.",
+      "src": "s6"
+    },
+    {
+      "id": "t-replay",
+      "term": "Replay",
+      "ipa": "/ˈriːpleɪ/",
+      "say": "replay",
+      "def": "Processing messages again that were already delivered, for example after fixing a bug. In Kafka a consumer rewinds its offset; in Pub/Sub you seek a subscription to a snapshot, or to a timestamp, which needs retained acknowledged messages or topic retention.",
+      "example": "After fixing the payroll adapter, the team used seek to move the subscription back to 09:00, and the fixed code processed the morning's events again.",
+      "src": "s8"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u01-l1",
+      "kind": "concepts",
+      "title": "Styles and vocabulary",
+      "items": [
+        {
+          "id": "u01-l1-i1",
+          "type": "card",
+          "term": "t-sync-request-response",
+          "src": "s1",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "c",
+                "label": "Recruiter screen"
+              },
+              {
+                "id": "api",
+                "label": "Scheduling API"
+              }
+            ],
+            "edges": [
+              {
+                "from": "c",
+                "to": "api",
+                "label": "request"
+              },
+              {
+                "from": "api",
+                "to": "c",
+                "label": "response (the caller waits)"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u01-l1-i2",
+          "type": "card",
+          "term": "t-async-messaging",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "p",
+                "label": "Producer"
+              },
+              {
+                "id": "q",
+                "label": "Queue or topic"
+              },
+              {
+                "id": "c",
+                "label": "Consumer"
+              }
+            ],
+            "edges": [
+              {
+                "from": "p",
+                "to": "q",
+                "label": "send and continue"
+              },
+              {
+                "from": "q",
+                "to": "c",
+                "label": "deliver later"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u01-l1-i3",
+          "type": "pick",
+          "q": "Which is a real benefit of asynchronous messaging compared with a synchronous call?",
+          "options": [
+            "End-to-end latency is always lower.",
+            "If the consumer is down, the sender can keep sending, and the messages are processed when the consumer recovers.",
+            "You no longer need to think about duplicate messages.",
+            "It is easy to move to a different messaging product later."
+          ],
+          "answer": 1,
+          "why": "Messaging isolates failures because the queue holds messages until the consumer is back. Latency can grow when queues fill up, duplicates must still be handled, and you can become tightly coupled to the messaging product.",
+          "src": "s1"
+        },
+        {
+          "id": "u01-l1-i4",
+          "type": "card",
+          "term": "t-pub-sub",
+          "src": "s3",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "p",
+                "label": "Publisher"
+              },
+              {
+                "id": "t",
+                "label": "Topic"
+              },
+              {
+                "id": "a",
+                "label": "Subscriber A"
+              },
+              {
+                "id": "b",
+                "label": "Subscriber B"
+              }
+            ],
+            "edges": [
+              {
+                "from": "p",
+                "to": "t",
+                "label": "publish"
+              },
+              {
+                "from": "t",
+                "to": "a",
+                "label": "own copy"
+              },
+              {
+                "from": "t",
+                "to": "b",
+                "label": "own copy"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u01-l1-i5",
+          "type": "card",
+          "term": "t-point-to-point",
+          "src": "s22"
+        },
+        {
+          "id": "u01-l1-i6",
+          "type": "tf",
+          "statement": "On a point-to-point queue with three competing consumers, every message is processed by all three consumers.",
+          "answer": false,
+          "why": "A point-to-point channel makes sure that only one receiver consumes each message. If every consumer needs its own copy, use publish/subscribe.",
+          "src": "s22"
+        },
+        {
+          "id": "u01-l1-i7",
+          "type": "card",
+          "term": "t-event-notification",
+          "src": "s24"
+        },
+        {
+          "id": "u01-l1-i8",
+          "type": "card",
+          "term": "t-ecst",
+          "src": "s24"
+        },
+        {
+          "id": "u01-l1-i9",
+          "type": "tf",
+          "statement": "With event-carried state transfer, consumers normally call the source system to fetch the details of each change.",
+          "answer": false,
+          "why": "That describes event notification with thin events. Event-carried state transfer puts the data in the event, so consumers do not need to contact the source.",
+          "src": "s24"
+        },
+        {
+          "id": "u01-l1-i10",
+          "type": "match",
+          "q": "Match each term with its meaning.",
+          "pairs": [
+            [
+              "Event sourcing",
+              "Store every change as an event and rebuild the state by replaying the events"
+            ],
+            [
+              "Change data capture",
+              "Read inserts, updates and deletes from the database log and send them on"
+            ],
+            [
+              "Micro-batch",
+              "Process a stream as a series of very small batch jobs"
+            ],
+            [
+              "Batch processing",
+              "Collect many records and process them together, often overnight"
+            ],
+            [
+              "Ordering key",
+              "A Pub/Sub message field that keeps related messages in order"
+            ]
+          ],
+          "src": "s5"
+        }
+      ]
+    },
+    {
+      "id": "u01-l2",
+      "kind": "practice",
+      "title": "Choosing a style in practice",
+      "items": [
+        {
+          "id": "u01-l2-i1",
+          "type": "match",
+          "q": "Match each requirement with the integration style that fits it best.",
+          "pairs": [
+            [
+              "A recruiter waits on screen for free interview slots",
+              "Synchronous request/response"
+            ],
+            [
+              "One hire event must reach five independent systems",
+              "Publish/subscribe"
+            ],
+            [
+              "10,000 background-check jobs must be shared across workers",
+              "Point-to-point queue with competing consumers"
+            ],
+            [
+              "Yesterday's applications must be in the warehouse by 8 am",
+              "Batch"
+            ],
+            [
+              "Row changes in a legacy database must reach BigQuery within minutes",
+              "Change data capture"
+            ]
+          ],
+          "src": "s1"
+        },
+        {
+          "id": "u01-l2-i2",
+          "type": "scenario",
+          "q": "When a candidate is hired in SuccessFactors Recruiting, your integration must inform IT accounts, payroll and badge access. Each system has its own team and release cycle. What do you design?",
+          "options": [
+            {
+              "text": "Publish one candidate-hired event to a Pub/Sub topic, with one subscription per system.",
+              "ok": true,
+              "why": "Each subscription gets its own copy, and a new system can be added later without changing the publisher."
+            },
+            {
+              "text": "Put the event on one shared queue that all three systems read from.",
+              "ok": false,
+              "why": "On a point-to-point queue each message goes to only one consumer, so two of the systems would miss it."
+            },
+            {
+              "text": "Call the three system APIs one after another in the same request.",
+              "ok": false,
+              "why": "If one system is down the whole operation fails, and the waiting times add up."
+            },
+            {
+              "text": "Write the hires to a shared database table that all three systems read directly.",
+              "ok": false,
+              "why": "A shared database couples every system to one schema, so no team can change it safely on its own."
+            }
+          ],
+          "src": "s3"
+        },
+        {
+          "id": "u01-l2-i3",
+          "type": "diagram",
+          "q": "Complete the fan-out design for the candidate-hired event. Drag the missing labels into the blanks.",
+          "layout": "flow",
+          "nodes": [
+            {
+              "id": "pub",
+              "label": "Recruiting integration",
+              "slot": false
+            },
+            {
+              "id": "topic",
+              "label": "Pub/Sub topic: candidate-hired",
+              "slot": true
+            },
+            {
+              "id": "sa",
+              "label": "Subscription: it-accounts",
+              "slot": false
+            },
+            {
+              "id": "sb",
+              "label": "Subscription: payroll",
+              "slot": true
+            },
+            {
+              "id": "ra",
+              "label": "Cloud Run: account service",
+              "slot": false
+            },
+            {
+              "id": "rb",
+              "label": "Cloud Run: payroll adapter",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "pub",
+              "to": "topic",
+              "label": "publish"
+            },
+            {
+              "from": "topic",
+              "to": "sa",
+              "label": "own copy"
+            },
+            {
+              "from": "topic",
+              "to": "sb",
+              "label": "own copy"
+            },
+            {
+              "from": "sa",
+              "to": "ra",
+              "label": "push (HTTPS POST)"
+            },
+            {
+              "from": "sb",
+              "to": "rb",
+              "label": "push (HTTPS POST)"
+            }
+          ],
+          "decoys": [
+            "Shared queue for all systems",
+            "Nightly CSV file"
+          ],
+          "src": "s11"
+        },
+        {
+          "id": "u01-l2-i10",
+          "type": "match",
+          "q": "Enterprise Integration Patterns describes four classic integration styles. Match each style with an example.",
+          "pairs": [
+            [
+              "File transfer",
+              "A nightly CSV file with new hires is placed on an SFTP server for payroll"
+            ],
+            [
+              "Shared database",
+              "Two applications read and write the same applicant tables"
+            ],
+            [
+              "Remote procedure invocation",
+              "The career site calls the Recruiting API and waits for the reply"
+            ],
+            [
+              "Messaging",
+              "The integration puts a hire event on a topic, and payroll processes it later"
+            ]
+          ],
+          "src": "s21"
+        },
+        {
+          "id": "u01-l2-i4",
+          "type": "scenario",
+          "q": "Analysts need all of yesterday's job applications in BigQuery by 8 am for reports. Nobody needs them sooner, and there are about two million records. What is the simplest fit?",
+          "options": [
+            {
+              "text": "A nightly batch: export a flat file from the Recruiting OData APIs, for example with Integration Center, and load it into BigQuery.",
+              "ok": true,
+              "why": "Batch handles large volumes efficiently at a quiet time, and a delay of a few hours is acceptable here."
+            },
+            {
+              "text": "A script that makes one synchronous API call per record at 7 am.",
+              "ok": false,
+              "why": "Two million calls in one hour is slow and fragile, and it leaves no time to recover from failures before 8 am."
+            },
+            {
+              "text": "Publish every application as a Pub/Sub message with an ordering key.",
+              "ok": false,
+              "why": "It adds streaming infrastructure and ordering limits for data that nobody needs before the morning."
+            },
+            {
+              "text": "Change data capture from the SuccessFactors database log.",
+              "ok": false,
+              "why": "CDC tools such as Datastream read the log of a database you can access; with SuccessFactors you integrate through its APIs."
+            }
+          ],
+          "src": "s20"
+        },
+        {
+          "id": "u01-l2-i5",
+          "type": "scenario",
+          "q": "A legacy applicant database on PostgreSQL must feed BigQuery within minutes. The old application cannot be changed, and the database team is worried about extra load.",
+          "options": [
+            {
+              "text": "Use change data capture with Datastream, which reads the changes through PostgreSQL logical decoding and replicates them into BigQuery.",
+              "ok": true,
+              "why": "Only the changes are read from the database log, and the application code stays as it is."
+            },
+            {
+              "text": "Run a full export of the tables every night.",
+              "ok": false,
+              "why": "The data would be hours old, but the requirement is minutes."
+            },
+            {
+              "text": "Change the application so that it publishes an event after each database write.",
+              "ok": false,
+              "why": "The requirement says that the application cannot be changed."
+            },
+            {
+              "text": "Query the whole table every minute and compare it with the previous copy.",
+              "ok": false,
+              "why": "This puts heavy load on the source and reads millions of rows that did not change."
+            }
+          ],
+          "src": "s18"
+        },
+        {
+          "id": "u01-l2-i6",
+          "type": "scenario",
+          "q": "Status updates for each candidate must be processed in order by a Pub/Sub subscriber. Thousands of candidates are active at the same time. Which ordering key do you set?",
+          "options": [
+            {
+              "text": "The candidate ID, with message ordering enabled on the subscription.",
+              "ok": true,
+              "why": "Order is kept per key, so each candidate's updates stay in order while different candidates are processed in parallel."
+            },
+            {
+              "text": "A new random UUID on every message.",
+              "ok": false,
+              "why": "Every message would have its own key, so related messages would have no order between them."
+            },
+            {
+              "text": "The same key, such as all, on every message.",
+              "ok": false,
+              "why": "Everything would wait behind one key, which is limited to 1 MBps of publishing and becomes a hot key."
+            },
+            {
+              "text": "No key at all, because a single subscriber instance keeps the order anyway.",
+              "ok": false,
+              "why": "Pub/Sub only orders messages that share an ordering key, even if there is just one subscriber."
+            }
+          ],
+          "src": "s6"
+        },
+        {
+          "id": "u01-l2-i7",
+          "type": "code",
+          "q": "Complete the Java publisher so that each candidate's events are delivered in order.",
+          "lang": "java",
+          "code": "Publisher publisher =\n    Publisher.newBuilder(TopicName.of(projectId, \"candidate-events\"))\n        // publish to one region so that ordering holds\n        .setEndpoint(\"us-east1-pubsub.googleapis.com:443\")\n        .[[1]]\n        .build();\n\nPubsubMessage message =\n    PubsubMessage.newBuilder()\n        .setData(ByteString.copyFromUtf8(eventJson))\n        .[[2]]\n        .build();\n\nApiFuture<String> future = publisher.publish(message);",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "setEnableMessageOrdering(true)",
+              "decoys": [
+                "setEnableExactlyOnceDelivery(true)",
+                "setOrderingKey(true)"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "setOrderingKey(candidateId)",
+              "decoys": [
+                "setMessageId(candidateId)",
+                "putAttributes(\"partition\", candidateId)"
+              ]
+            }
+          ],
+          "src": "s7"
+        },
+        {
+          "id": "u01-l2-i8",
+          "type": "order",
+          "q": "A bug in the payroll adapter processed this morning's Pub/Sub events wrongly. Put the recovery steps in order.",
+          "steps": [
+            "Beforehand: configure the subscription to retain acknowledged messages, or enable topic retention",
+            "Deploy the fixed version of the payroll adapter",
+            "Seek the subscription to a timestamp just before the bug went live",
+            "Pub/Sub marks the messages after that time as unacknowledged and delivers them again",
+            "The fixed adapter processes them again, so it must handle duplicates safely"
+          ],
+          "src": "s8"
+        },
+        {
+          "id": "u01-l2-i9",
+          "type": "scenario",
+          "q": "A small team on Google Cloud must fan out recruiting events to four services. Nobody on the team can operate brokers, and they must be able to replay up to 14 days of events. What do you recommend?",
+          "options": [
+            {
+              "text": "Pub/Sub, keeping acknowledged messages for 14 days (subscription or topic retention) so that the team can seek back and replay.",
+              "ok": true,
+              "why": "Pub/Sub is managed by Google and scales automatically, and retention of up to 31 days makes replay possible."
+            },
+            {
+              "text": "Self-managed Kafka on Compute Engine VMs.",
+              "ok": false,
+              "why": "Kafka can replay, but the team would have to deploy, patch and scale the brokers themselves."
+            },
+            {
+              "text": "Pub/Sub with the default settings and no retention changes.",
+              "ok": false,
+              "why": "By default a subscription discards each message as soon as it is acknowledged, so processed events could not be replayed."
+            },
+            {
+              "text": "One point-to-point queue shared by the four services.",
+              "ok": false,
+              "why": "Each message would reach only one of the services, so this is not fan-out."
+            }
+          ],
+          "src": "s9"
+        }
+      ]
+    },
+    {
+      "id": "u01-l3",
+      "kind": "interview",
+      "title": "Interview answers",
+      "items": [
+        {
+          "id": "u01-l3-i1",
+          "type": "say",
+          "text": "I start with three questions: who is waiting for the answer, how fresh the data must be, and how many systems need it.",
+          "src": "s21"
+        },
+        {
+          "id": "u01-l3-i2",
+          "type": "tf",
+          "statement": "Kafka deletes an event as soon as a consumer has read it.",
+          "answer": false,
+          "why": "Kafka keeps events for a configured retention time, 7 days by default, whether or not they were read. A consumer can rewind its offset and read them again.",
+          "src": "s15"
+        },
+        {
+          "id": "u01-l3-i3",
+          "type": "scenario",
+          "q": "The interviewer asks: \"In your hire design, the payroll system is offline for a whole day. What happens to the events?\" Which answer is strongest?",
+          "options": [
+            {
+              "text": "They wait in the payroll subscription, which keeps unacknowledged messages for 7 days by default, and the other systems keep working. When payroll is back, the adapter works through the backlog, so it must handle duplicates safely.",
+              "ok": true,
+              "why": "It shows that the topic isolates the failure, and it names the real limits: how long messages are kept and how duplicates are handled."
+            },
+            {
+              "text": "They are lost, so we export the day's hires from SuccessFactors again the next morning.",
+              "ok": false,
+              "why": "Unacknowledged messages are not lost after one day. By default a subscription keeps them for 7 days, and you can configure up to 31 days."
+            },
+            {
+              "text": "The publisher stops publishing until payroll is back, so that nothing is missed.",
+              "ok": false,
+              "why": "This couples the publisher to payroll again, and IT accounts and badge access would stop getting new hires too."
+            },
+            {
+              "text": "There is nothing to worry about, because Pub/Sub keeps every message forever.",
+              "ok": false,
+              "why": "Retention is 7 days by default and 31 days at most, so a long outage still needs monitoring and a plan."
+            }
+          ],
+          "src": "s9"
+        },
+        {
+          "id": "u01-l3-i4",
+          "type": "explain",
+          "q": "When would you use synchronous request/response, and when asynchronous messaging?",
+          "seconds": 120,
+          "model": "I use synchronous request/response when the caller really needs the answer now, for example a recruiter's screen that shows free interview slots. It's simple and well understood, but it couples the two services: if the downstream service is down, the call fails, and a chain of synchronous calls adds latency and can cause cascading failures. I use asynchronous messaging when nobody is waiting for the result, or when several systems need the same information. For example, when a candidate is hired, I publish one event, and payroll and IT process it at their own pace. The queue absorbs peaks and protects us when a consumer is down. The price is more complexity: duplicate messages, eventual consistency and harder tracing. So my general rule is synchronous for queries that a user waits for, and asynchronous for commands and events that can finish later.",
+          "keypoints": [
+            {
+              "text": "Synchronous when the caller needs the answer now",
+              "kw": [
+                "waiting",
+                "waits",
+                "needs the answer",
+                "immediate",
+                "right now",
+                "query"
+              ]
+            },
+            {
+              "text": "Synchronous couples availability and adds latency in chains",
+              "kw": [
+                "availability",
+                "available",
+                "down",
+                "fails",
+                "cascading",
+                "chain",
+                "coupled",
+                "coupling"
+              ]
+            },
+            {
+              "text": "Asynchronous for fan-out and work that can finish later",
+              "kw": [
+                "asynchronous",
+                "async",
+                "queue",
+                "publish",
+                "events",
+                "an event",
+                "later"
+              ]
+            },
+            {
+              "text": "Messaging absorbs peaks and isolates failures",
+              "kw": [
+                "peak",
+                "peaks",
+                "buffer",
+                "load",
+                "recovers",
+                "isolation"
+              ]
+            },
+            {
+              "text": "Trade-offs: duplicates, eventual consistency, tracing",
+              "kw": [
+                "duplicate",
+                "duplicates",
+                "idempotent",
+                "eventual consistency",
+                "tracing",
+                "complexity"
+              ]
+            }
+          ],
+          "src": "s1"
+        },
+        {
+          "id": "u01-l3-i5",
+          "type": "say",
+          "text": "For this flow I would publish one event and let each system subscribe, so we can add consumers without touching the producer.",
+          "src": "s3"
+        },
+        {
+          "id": "u01-l3-i6",
+          "type": "explain",
+          "q": "What is the difference between event notification and event-carried state transfer?",
+          "seconds": 120,
+          "model": "Both are event-driven, but they differ in what the event carries. With event notification, the event is thin. It says that something changed, for example that application 4711 changed status, and consumers call the source system if they need the details. That keeps a single source of truth, but consumers depend on the source being available, and they can add a lot of query load. With event-carried state transfer, the event carries the data that consumers need, such as the new status and the candidate's details. Consumers keep their own copy, so they keep working when the source is down. The price is bigger messages and more copies of the data, which can be out of date for a while. Event sourcing is different again: the events themselves become the system of record. I'd only use it where a full history really justifies the extra complexity.",
+          "keypoints": [
+            {
+              "text": "Notification is thin, and consumers call back for details",
+              "kw": [
+                "thin",
+                "call back",
+                "calls back",
+                "call the source",
+                "only the id",
+                "just the id",
+                "details"
+              ]
+            },
+            {
+              "text": "State transfer carries the data in the event",
+              "kw": [
+                "carries the data",
+                "carries",
+                "fat",
+                "payload",
+                "local copy",
+                "own copy"
+              ]
+            },
+            {
+              "text": "Trade-off: source load and availability versus copies of data",
+              "kw": [
+                "availability",
+                "available",
+                "query load",
+                "load on the source",
+                "resilience",
+                "copies",
+                "out of date",
+                "stale",
+                "consistency"
+              ]
+            },
+            {
+              "text": "Event sourcing: events are the system of record",
+              "kw": [
+                "event sourcing",
+                "system of record",
+                "append-only",
+                "replay",
+                "history",
+                "audit"
+              ]
+            }
+          ],
+          "src": "s24"
+        },
+        {
+          "id": "u01-l3-i7",
+          "type": "scenario",
+          "q": "The interviewer asks: \"Why not just call the payroll API directly every time a candidate is hired?\" Which answer is strongest?",
+          "options": [
+            {
+              "text": "A direct call is fine if payroll is the only consumer and is always available. Here three systems need the event and payroll has maintenance windows, so a topic decouples them and holds messages until payroll is back.",
+              "ok": true,
+              "why": "It accepts the simple option where it fits, then argues from the real constraints: fan-out and availability."
+            },
+            {
+              "text": "Direct API calls are bad practice; architects should use events everywhere.",
+              "ok": false,
+              "why": "Absolute claims sound inexperienced, and a synchronous call is the right choice when the caller needs the answer now."
+            },
+            {
+              "text": "Because messaging is always faster than HTTP.",
+              "ok": false,
+              "why": "Not true: end-to-end latency in an asynchronous flow can be high when queues fill up."
+            },
+            {
+              "text": "Because Pub/Sub guarantees exactly-once delivery, so we never get duplicates.",
+              "ok": false,
+              "why": "Pub/Sub delivers at least once by default; exactly-once delivery is an option only for pull subscriptions within one region."
+            }
+          ],
+          "src": "s1"
+        },
+        {
+          "id": "u01-l3-i8",
+          "type": "explain",
+          "q": "How do you choose between batch, micro-batch, streaming and change data capture?",
+          "seconds": 120,
+          "model": "I start from how fresh the data must be and how much data there is. Batch collects records and processes them together, for example a nightly load of all applications into the warehouse. It's efficient for large volumes and can run at quiet times, but the results are typically a few hours old, and one bad record can stop the whole run. Streaming processes events as they arrive, with latency in seconds or milliseconds, which suits alerts or live dashboards. Micro-batch sits in between: the stream is processed as many small batch jobs. Spark Structured Streaming does this by default and can get down to about 100 milliseconds. Change data capture is how I get data out of a database without changing the application. A tool like Datastream reads the database log and replicates only the inserts, updates and deletes, for example into BigQuery. So, batch for reports, and streaming or CDC when the business needs minutes or less.",
+          "keypoints": [
+            {
+              "text": "Freshness and volume drive the choice",
+              "kw": [
+                "fresh",
+                "freshness",
+                "latency",
+                "volume",
+                "how much"
+              ]
+            },
+            {
+              "text": "Batch: efficient for volume, scheduled, hours of delay",
+              "kw": [
+                "batch",
+                "nightly",
+                "overnight",
+                "hours",
+                "schedule",
+                "scheduled"
+              ]
+            },
+            {
+              "text": "Streaming: seconds or milliseconds",
+              "kw": [
+                "streaming",
+                "as they arrive",
+                "real time",
+                "real-time",
+                "seconds",
+                "milliseconds"
+              ]
+            },
+            {
+              "text": "Micro-batch: many small batch jobs",
+              "kw": [
+                "micro-batch",
+                "micro batch",
+                "small batches",
+                "small batch",
+                "spark"
+              ]
+            },
+            {
+              "text": "CDC reads the database log without code changes",
+              "kw": [
+                "change data capture",
+                "cdc",
+                "database log",
+                "change log",
+                "transaction log",
+                "datastream",
+                "inserts",
+                "deletes"
+              ]
+            }
+          ],
+          "src": "s5"
+        },
+        {
+          "id": "u01-l3-i9",
+          "type": "explain",
+          "q": "How would you compare Apache Kafka and Google Cloud Pub/Sub?",
+          "seconds": 150,
+          "model": "Both decouple producers from consumers, but they work differently. Kafka is a distributed log. A topic is split into partitions, events with the same key go to the same partition, and order is guaranteed within a partition. Events are not deleted when they are read. They stay for the configured retention, seven days by default, and a consumer can rewind its offset to replay them. The cost is operations: if you run Kafka yourself, you size the partitions and you patch and scale the brokers. On Google Cloud there is also a managed Kafka service if you need the Kafka API. Pub/Sub is fully managed, has no partitions and scales automatically. You get order with ordering keys, per key and per region, and you replay with seek, using retention of up to 31 days. Delivery is at least once by default. If a team already has Kafka skills and tools, I keep Kafka. For a new Google Cloud integration with a small operations team, I usually start with Pub/Sub.",
+          "keypoints": [
+            {
+              "text": "Kafka is a log with partitions; order within a partition",
+              "kw": [
+                "distributed log",
+                "commit log",
+                "partition",
+                "partitions",
+                "same key",
+                "offset"
+              ]
+            },
+            {
+              "text": "Retention and replay in both",
+              "kw": [
+                "retention",
+                "replay",
+                "rewind",
+                "seek",
+                "seven days",
+                "31 days",
+                "7 days",
+                "thirty-one days"
+              ]
+            },
+            {
+              "text": "Pub/Sub uses ordering keys instead of partitions",
+              "kw": [
+                "ordering key",
+                "ordering keys",
+                "no partitions",
+                "per key"
+              ]
+            },
+            {
+              "text": "Managed versus self-run operations",
+              "kw": [
+                "managed",
+                "self-managed",
+                "operations",
+                "brokers",
+                "patch",
+                "scales automatically"
+              ]
+            },
+            {
+              "text": "The choice depends on the team and the existing tools",
+              "kw": [
+                "team",
+                "skills",
+                "existing",
+                "tools",
+                "kafka api",
+                "start with"
+              ]
+            }
+          ],
+          "src": "s10"
+        },
+        {
+          "id": "u01-l3-i10",
+          "type": "explain",
+          "q": "A new integration requirement arrives. Walk me through how you choose the integration style.",
+          "seconds": 150,
+          "model": "I choose from the requirements, not from a favourite product, so I ask a few questions. First, is someone waiting for the answer? If a recruiter is waiting on screen, I use a synchronous API call. Second, how many systems need the data, and who owns them? If several teams need the same change, I publish an event to a topic, so we can add consumers without changing the producer. Third, how fresh must the data be, and how much is there? Two million rows for a morning report is a nightly batch, and changes in a database that I can't modify are a good case for change data capture. Finally, I check the failure modes: what happens when the other side is down, whether order matters, and how consumers handle duplicates. For a new hire, for example, I'd publish one candidate-hired event with the candidate ID as the ordering key. It's always a trade-off between simplicity and decoupling, so I choose the simplest style that meets the requirement.",
+          "keypoints": [
+            {
+              "text": "Is someone waiting? Then a synchronous call",
+              "kw": [
+                "waiting",
+                "waits",
+                "on screen",
+                "a synchronous",
+                "api call",
+                "request response"
+              ]
+            },
+            {
+              "text": "Several consumers or teams: publish an event to a topic",
+              "kw": [
+                "how many",
+                "several systems",
+                "consumers",
+                "topic",
+                "publish",
+                "subscribe",
+                "fan-out",
+                "fan out"
+              ]
+            },
+            {
+              "text": "Freshness and volume: batch or change data capture",
+              "kw": [
+                "fresh",
+                "freshness",
+                "how much",
+                "volume",
+                "batch",
+                "nightly",
+                "change data capture",
+                "cdc"
+              ]
+            },
+            {
+              "text": "Failure modes: downtime, ordering and duplicates",
+              "kw": [
+                "failure",
+                "down",
+                "outage",
+                "order",
+                "ordering",
+                "duplicate",
+                "duplicates",
+                "idempotent"
+              ]
+            },
+            {
+              "text": "Choose the simplest style that meets the requirement",
+              "kw": [
+                "simplest",
+                "simple",
+                "simplicity",
+                "trade-off",
+                "trade off",
+                "decoupling",
+                "coupling"
+              ]
+            }
+          ],
+          "src": "s21"
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Four classic styles",
+        "points": [
+          "File transfer: one system writes a file, and others read it later.",
+          "Shared database: systems keep shared data in one database; every team depends on one schema.",
+          "Remote procedure invocation: call an API and wait for the reply, for example REST, gRPC or OData.",
+          "Messaging: exchange messages through a messaging system; the sender does not wait.",
+          "Criteria to compare them: coupling, simplicity, technology, data format, data timeliness, data or functionality, asynchronicity."
+        ]
+      },
+      {
+        "h": "Synchronous or asynchronous",
+        "points": [
+          "Synchronous: the caller waits; simple, but the other service must be up.",
+          "Chains of synchronous calls add latency and can cause cascading failures.",
+          "Asynchronous: send and continue; the queue absorbs peaks and short outages.",
+          "Async costs: duplicate messages, eventual consistency, coupling to the broker."
+        ]
+      },
+      {
+        "h": "Event styles",
+        "points": [
+          "Event notification: thin event; consumers call back for the details.",
+          "Event-carried state transfer: the event carries the data; consumers keep a copy.",
+          "Thin events: one source of truth, more queries. Fat events: more bandwidth, copies can be stale.",
+          "Event sourcing: events are the system of record; only when history and replay justify the complexity."
+        ]
+      },
+      {
+        "h": "Channels",
+        "points": [
+          "Point-to-point queue: each message goes to one consumer; competing consumers share the work.",
+          "Publish/subscribe: each subscription gets its own copy; add consumers without changing the producer.",
+          "Commands usually go to a queue; events usually go to a topic."
+        ]
+      },
+      {
+        "h": "Batch, streaming and CDC",
+        "points": [
+          "Batch: large volumes, scheduled at quiet times, latency typically hours.",
+          "Streaming: event by event, latency in seconds or milliseconds.",
+          "Micro-batch: many small batch jobs; Spark's default, as low as about 100 ms.",
+          "CDC: read the database log (MySQL binary log, PostgreSQL logical decoding, Oracle redo logs), e.g. Datastream into BigQuery."
+        ]
+      },
+      {
+        "h": "How to choose",
+        "points": [
+          "Latency: is someone waiting for the answer?",
+          "Coupling: how many consumers, and who must change when one changes?",
+          "Volume: millions of rows overnight, or a steady flow of events?",
+          "Ordering: which entity needs order? Use its ID as the key. Ordering in Pub/Sub can reduce publish availability and add latency.",
+          "Consistency: can consumers live with data that is briefly out of date?",
+          "Availability: what happens when the other side is down?",
+          "Cost: bigger payloads cost bandwidth; retained messages cost storage."
+        ]
+      },
+      {
+        "h": "Kafka vs Pub/Sub",
+        "points": [
+          "Kafka: partitioned log; same key, same partition; order within a partition.",
+          "Kafka keeps events for a per-topic retention (retention.ms, default 7 days); consumers rewind offsets to replay.",
+          "Kafka consumer groups: each partition is read by one consumer per group. Share groups let consumers share partitions.",
+          "Pub/Sub: managed, autoscaling, no partitions; order per ordering key, published in one region.",
+          "Pub/Sub replay: seek to a timestamp (needs retention, up to 31 days) or to a snapshot (lasts at most 7 days).",
+          "Pub/Sub: at least once per subscription; exactly-once only for pull subscriptions within a region.",
+          "Self-run Kafka means operating brokers; Managed Service for Apache Kafka runs open-source Kafka on Google Cloud."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Interservice communication in microservices - Azure Architecture Center",
+      "url": "https://learn.microsoft.com/azure/architecture/microservices/design/interservice-communication",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Asynchronous messaging options - Azure Architecture Center",
+      "url": "https://learn.microsoft.com/azure/architecture/guide/technology-choices/messaging",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Event-driven architecture style - Azure Architecture Center",
+      "url": "https://learn.microsoft.com/azure/architecture/guide/architecture-styles/event-driven",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Event Sourcing pattern - Azure Architecture Center",
+      "url": "https://learn.microsoft.com/azure/architecture/patterns/event-sourcing",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Understand batch and stream processing - Microsoft Learn",
+      "url": "https://learn.microsoft.com/en-us/training/modules/explore-fundamentals-stream-processing/2-batch-stream",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Order messages - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/ordering",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Publish with ordering keys (code sample) - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/samples/pubsub-publish-with-ordering-keys",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Replay and purge messages with seek - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/replay-overview",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Configure message retention for a subscription - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-message-retention",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Migrate from Kafka to Pub/Sub - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/migrating-from-kafka-to-pubsub",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Push subscriptions - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/push",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Exactly-once delivery - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/exactly-once-delivery",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Introduction - Apache Kafka",
+      "url": "https://kafka.apache.org/intro",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Design - Apache Kafka 4.3 documentation",
+      "url": "https://kafka.apache.org/43/design/design/",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Topic Configs - Apache Kafka 4.3 documentation",
+      "url": "https://kafka.apache.org/43/configuration/topic-configs/",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Managed Service for Apache Kafka overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/managed-service-for-apache-kafka/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Datastream overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/datastream/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Datastream FAQ - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/datastream/docs/faq",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Structured Streaming Programming Guide - Apache Spark",
+      "url": "https://spark.apache.org/docs/latest/streaming/",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Describing OData and APIs in Recruiting - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-administration/describing-odata-and-apis-in-recruiting",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Introduction to Integration Styles - Enterprise Integration Patterns",
+      "url": "https://www.enterpriseintegrationpatterns.com/patterns/messaging/IntegrationStylesIntro.html",
+      "official": false
+    },
+    {
+      "id": "s22",
+      "title": "Point-to-Point Channel - Enterprise Integration Patterns",
+      "url": "https://www.enterpriseintegrationpatterns.com/patterns/messaging/PointToPointChannel.html",
+      "official": false
+    },
+    {
+      "id": "s23",
+      "title": "Publish-Subscribe Channel - Enterprise Integration Patterns",
+      "url": "https://www.enterpriseintegrationpatterns.com/patterns/messaging/PublishSubscribeChannel.html",
+      "official": false
+    },
+    {
+      "id": "s24",
+      "title": "What do you mean by Event-Driven? - Martin Fowler",
+      "url": "https://martinfowler.com/articles/201701-event-driven.html",
+      "official": false
+    }
+  ]
+}

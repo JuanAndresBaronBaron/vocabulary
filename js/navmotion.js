@@ -129,6 +129,7 @@ function focusTo(h){
   if(s === "juegos" && p[1]){ try{ return !!(W.vocabGames && typeof vocabGames.meta === "function" && vocabGames.meta(p[1])); }catch(e){ return false; } }
   if(s === "cuento") return true;   /* un cuento del zorro (js/stories.js) */
   if(s === "cazador") return true;  /* el cazador de cosas (js/hunter-boot.js) */
+  if(s === "techl") return true;    /* una sesión de Tech Prep (lección, repaso, entrevista…; js/tech.js) */
   return false;
 }
 /* la pantalla de la que cuelga (la de la cápsula de volver; si no, la raíz de su pestaña); null en una raíz */

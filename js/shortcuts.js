@@ -567,6 +567,7 @@ const LISTEN = '[data-say], button[aria-label^="Escuchar"], button[aria-label^="
 D.addEventListener("click", e => {
   const b = e.target && e.target.closest ? e.target.closest(LISTEN) : null;
   if(!b || b.closest(".mb-rp, #mb-play") || b.disabled || b.getAttribute("aria-disabled") === "true" || prefs().off) return;
+  if(ROOT.hasAttribute("data-tech")) return;   /* lo que oye un mayor en Tech Prep no cuenta para la tortuga del niño */
   const slow = b.hasAttribute("data-slow") || b.id === "ph-slow" || /despacio/i.test(b.getAttribute("aria-label") || "");
   const o = scGet(); o.sl = (o.sl + (slow ? "1" : "0")).slice(-SLOW_N); scSet(o);
 }, true);

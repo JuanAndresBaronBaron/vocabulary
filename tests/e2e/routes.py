@@ -100,3 +100,49 @@ add("album-casa", "#/album/casa", "Jugar › Álbum › Mi casa (las fotos del C
 # esta sesión, así que van las últimas (lo que venga detrás en la misma página ve Halloween)
 add("temporada", "#/temporada?season=halloween", "Hoy › Truco o trato (Halloween forzado)")
 add("temporada-cosas", "#/temporada/cosas?season=halloween", "Hoy › Truco o trato › Mis cosas de Halloween")
+
+# Tech Prep (S1-SPEC §13; js/tech-boot.js, js/tech.js, js/tech-lesson.js, js/tech-pages.js), SOLO con la variable
+# VOCAB_TECH=1: sus rutas (nombres "tech-…", con "tech": True) van antes de las de temporada, y cada contexto nuevo de
+# common.new_context la tiene encendida y con la Puerta pasada (tech_common.enable). Sin la variable no cambia nada:
+# ni las rutas del niño ni sus capturas de referencia. Las pantallas que aún no existen enseñan «Coming soon».
+import os as _os  # noqa: E402
+
+TECH: list = []
+if _os.environ.get("VOCAB_TECH") == "1":
+    import tech_common as _TC
+
+    _cases = C.REPO / "data" / "tech" / "cases.json"
+    try:
+        _CASE = json.loads(_cases.read_text(encoding="utf-8"))["cases"][0]["id"] if _cases.exists() else None
+    except Exception:
+        _CASE = None
+    TECH = [
+        ("tech-today", "#/tech", "Tech Prep › Today"),
+        ("tech-path", "#/techpath", "Tech Prep › Path (bloques y unidades)"),
+        ("tech-unidad", "#/techunit/u01", "Tech Prep › Path › Unidad 1"),
+        ("tech-hoja", "#/techsheet/integration", "Tech Prep › Path › Cheat sheet de Integration"),
+        ("tech-glosario", "#/techgloss", "Tech Prep › Path › Glossary"),
+        ("tech-jugar", "#/techplay", "Tech Prep › Play"),
+        ("tech-casos", "#/techcases", "Tech Prep › My cases"),
+        *([("tech-caso", f"#/techcase/{_CASE}", "Tech Prep › My cases › un caso modelo")] if _CASE else []),
+        ("tech-historias", "#/techstories", "Tech Prep › My cases › Stories"),
+        ("tech-historia-nueva", "#/techstory/new", "Tech Prep › My cases › Stories › New story"),
+        ("tech-entrevista", "#/techmock", "Tech Prep › Interview (preparar una entrevista de práctica)"),
+        ("tech-leccion", "#/techl/lesson/u01-l1", "Tech Prep › Lección u01-l1 (modo foco)"),
+        ("tech-repaso", "#/techl/review", "Tech Prep › Review (modo foco; vacío: All caught up)"),
+        ("tech-parejas", "#/techl/pairs", "Tech Prep › Play › Pairs (modo foco)"),
+        ("tech-reloj", "#/techl/clock", "Tech Prep › Play › Beat the clock (modo foco)"),
+        *([("tech-caso-practica", f"#/techl/case/{_CASE}", "Tech Prep › Practise a case (modo foco)")] if _CASE else []),
+    ]
+    _at = next((i for i, r in enumerate(ROUTES) if r["name"] == "temporada"), len(ROUTES))
+    for _n, (_name, _hash, _what) in enumerate(TECH):
+        if not any(r["name"] == _name for r in ROUTES):
+            _r = {"name": _name, "hash": _hash, "what": _what, "tech": True}
+            NEW.append(_r)
+            ROUTES.insert(_at + _n, _r)
+    _orig_ctx = C.new_context
+    if not getattr(_orig_ctx, "_tech", False):
+        def _tech_ctx(*a, **kw):
+            return _TC.enable(_orig_ctx(*a, **kw))
+        _tech_ctx._tech = True
+        C.new_context = _tech_ctx

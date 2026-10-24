@@ -1,0 +1,1280 @@
+{
+  "format": 1,
+  "id": "u03",
+  "n": 3,
+  "block": "integration",
+  "title": "Consistency across services",
+  "summary": "After this unit you can explain the dual-write problem, design an outbox with a polling relay or Debezium, make consumers idempotent, and choose and defend a saga design.",
+  "reviewed": "2026-10-24",
+  "versionNotes": [
+    "Debezium 3.7 (3.7.0.Final, latest stable on 2026-10-24): outbox event router defaults route.by.field = aggregatetype, route.topic.replacement = outbox.event.${routedByValue}, key from aggregateid, event ID in the id header; Debezium provides at-least-once delivery, and exactly-once needs Kafka Connect 3.3.0 or later in distributed mode.",
+    "Spring Modulith 2.1.2 (latest stable on 2026-10-24, released 2026-10-22; the reference pages checked are still labelled 2.1.1): the event publication registry, the property spring.modulith.events.republish-outstanding-events-on-restart (default false), and, since 2.1, spring.modulith.events.externalization.mode = outbox (delegates to Namastack Outbox or JobRunr).",
+    "Google Cloud Workflows as a saga orchestrator comes from a Google Cloud blog post of 5 February 2022; unconfirmed: the Workflows syntax was not checked against the current reference pages.",
+    "PostgreSQL 18 documentation (18.6 on 2026-10-24): replication slots persist when no consumer is connected and keep the WAL they need, and after a crash a logical slot can send recent changes again."
+  ],
+  "terms": [
+    {
+      "id": "t-dual-write",
+      "term": "Dual write",
+      "ipa": "/ˌdjuːəl ˈraɪt/",
+      "say": "dual write",
+      "def": "One operation writes to two different systems, such as a database and a message broker, and no transaction covers both. If one write succeeds and the other fails, the two systems disagree.",
+      "example": "The service commits the hire to Cloud SQL and then stops before it publishes to Pub/Sub, so payroll never hears about the new employee.",
+      "src": "s1"
+    },
+    {
+      "id": "t-outbox",
+      "term": "Transactional outbox",
+      "ipa": "/trænˈzækʃənl ˈaʊtbɒks/",
+      "say": "transactional outbox",
+      "def": "The service writes the event as a row in an outbox table, in the same local transaction as the business change. A separate process publishes the row later, so an event exists only if the change was committed.",
+      "example": "When a recruiter moves an application to Hired, the service updates the application table and inserts a CandidateHired row into the outbox table, then commits once.",
+      "src": "s1"
+    },
+    {
+      "id": "t-message-relay",
+      "term": "Message relay",
+      "ipa": "/ˈmesɪdʒ ˈriːleɪ/",
+      "say": "message relay",
+      "def": "The process that reads committed outbox rows and publishes them to the broker. A polling publisher queries the table on a schedule; transaction log tailing, as Debezium does, reads the database log instead.",
+      "example": "A scheduled Spring job reads 100 outbox rows in ID order, publishes them to Pub/Sub and deletes them only after Pub/Sub confirms.",
+      "src": "s16"
+    },
+    {
+      "id": "t-outbox-router",
+      "term": "Outbox event router (Debezium)",
+      "ipa": "/ˈaʊtbɒks ɪˈvent ˈruːtə/",
+      "say": "outbox event router",
+      "def": "A Debezium single message transformation that turns rows inserted into an outbox table into events. By default the topic name is outbox.event. followed by the aggregatetype value, aggregateid is the message key, and the event ID goes in a header called id.",
+      "example": "An outbox row with aggregatetype candidate goes to the topic outbox.event.candidate, keyed by the candidate ID, so events for one candidate stay in order.",
+      "src": "s10"
+    },
+    {
+      "id": "t-at-least-once",
+      "term": "At-least-once delivery",
+      "ipa": "/ət ˌliːst ˈwʌns dɪˈlɪvəri/",
+      "say": "at least once delivery",
+      "def": "Every message is delivered, but some may be delivered more than once. Pub/Sub works this way by default and can, rarely, redeliver a message even after it was acknowledged.",
+      "example": "Pub/Sub delivered the same CandidateHired message twice, so the payroll consumer had to recognise the second copy.",
+      "src": "s14"
+    },
+    {
+      "id": "t-idempotent-consumer",
+      "term": "Idempotent consumer",
+      "ipa": "/ˌaɪdɛmˈpəʊtənt kənˈsjuːmə/",
+      "say": "idempotent consumer",
+      "def": "A consumer that gives the same result whether it processes a message once or several times. It uses operations that are idempotent by design, or it detects duplicates by a unique event ID and discards them.",
+      "example": "The event says set the start date to 1 March, not move it by one day, so applying it twice changes nothing.",
+      "src": "s8"
+    },
+    {
+      "id": "t-inbox",
+      "term": "Inbox (processed-messages table)",
+      "ipa": "/ˈɪnbɒks/",
+      "say": "inbox",
+      "def": "A table on the consumer side that stores the IDs of messages already processed. The consumer inserts the ID in the same transaction as its business change, and a primary key makes a duplicate insert fail, so the duplicate is ignored.",
+      "example": "The payroll adapter stores the pair (payroll, event ID) under a primary key, so a redelivered BonusApproved event cannot add a second bonus.",
+      "src": "s17"
+    },
+    {
+      "id": "t-saga",
+      "term": "Saga",
+      "ipa": "/ˈsɑːɡə/",
+      "say": "saga",
+      "def": "A sequence of local transactions in different services. Each step commits in its own service and triggers the next; if a step fails, compensating transactions undo the steps that already completed.",
+      "example": "The onboarding saga creates the employee in the HR system, then the IT account, then the payroll record; if payroll rejects the data, the earlier steps are undone.",
+      "src": "s5"
+    },
+    {
+      "id": "t-compensating-transaction",
+      "term": "Compensating transaction",
+      "ipa": "/ˈkɒmpənseɪtɪŋ trænˈzækʃn/",
+      "say": "compensating transaction",
+      "def": "A business action that undoes the effect of a step that is already committed. It is application specific, it does not always restore the exact original state, and it must be idempotent because it can be retried.",
+      "example": "If the laptop order fails, the compensation disables the IT account that the saga created earlier.",
+      "src": "s6"
+    },
+    {
+      "id": "t-pivot-transaction",
+      "term": "Pivot transaction",
+      "ipa": "/ˈpɪvət trænˈzækʃn/",
+      "say": "pivot transaction",
+      "def": "The point of no return in a saga. Steps before it can be compensated; after it succeeds, the remaining steps must complete, so they are designed to be retryable and idempotent.",
+      "example": "Sending the final contract to the candidate is the pivot: after it, the saga retries the IT and payroll steps until they succeed instead of undoing the hire.",
+      "src": "s5"
+    },
+    {
+      "id": "t-orchestration",
+      "term": "Saga orchestration",
+      "ipa": "/ˈsɑːɡə ˌɔːkɪˈstreɪʃn/",
+      "say": "saga orchestration",
+      "def": "A central orchestrator tells each participant which step to run, stores the state of the saga and runs the compensating transactions when a step fails. It suits complex workflows, but the orchestrator can become a single point of failure.",
+      "example": "An orchestrator sends CreateEmployee and then CreateAccount; when the payroll step fails, it sends DisableAccount and RemoveEmployee.",
+      "src": "s5"
+    },
+    {
+      "id": "t-choreography",
+      "term": "Saga choreography",
+      "ipa": "/ˈsɑːɡə ˌkɒriˈɒɡrəfi/",
+      "say": "saga choreography",
+      "def": "There is no central controller: each service listens for events, runs its local transaction and publishes a new event. It is simple for a few participants, but the flow becomes hard to follow and to test as services are added.",
+      "example": "The HR service publishes EmployeeCreated, the IT service reacts and publishes AccountCreated, and the badge service reacts to that event.",
+      "src": "s5"
+    },
+    {
+      "id": "t-eventual-consistency",
+      "term": "Eventual consistency",
+      "ipa": "/ɪˈventʃuəl kənˈsɪstənsi/",
+      "say": "eventual consistency",
+      "def": "Copies of the data in different services can disagree for a short time, but they agree again once all updates are processed. Without distributed transactions, you move from immediate consistency to eventual consistency.",
+      "example": "For about a minute after the hire, the recruiting system shows Hired while payroll has no record yet.",
+      "src": "s9"
+    },
+    {
+      "id": "t-2pc",
+      "term": "Two-phase commit (2PC)",
+      "ipa": "/ˌtuː ˌfeɪz kəˈmɪt/",
+      "say": "two phase commit, two P C",
+      "def": "A protocol in which a coordinator first asks every participant to prepare and promise to commit, and then tells all of them to commit, or to roll back if any cannot. In a database-per-service design there is no single coordinator, so it is not an option.",
+      "example": "Instead of a two-phase commit across the HR, IT and payroll databases, the team used a saga.",
+      "src": "s4"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u03-l1",
+      "kind": "concepts",
+      "title": "The vocabulary of consistency",
+      "items": [
+        {
+          "id": "u03-l1-i1",
+          "type": "card",
+          "term": "t-dual-write",
+          "src": "s1",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "svc",
+                "label": "Hiring service"
+              },
+              {
+                "id": "db",
+                "label": "Cloud SQL"
+              },
+              {
+                "id": "ps",
+                "label": "Pub/Sub"
+              }
+            ],
+            "edges": [
+              {
+                "from": "svc",
+                "to": "db",
+                "label": "1. commit the hire"
+              },
+              {
+                "from": "svc",
+                "to": "ps",
+                "label": "2. publish CandidateHired (a crash before this loses the event)"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u03-l1-i2",
+          "type": "card",
+          "term": "t-outbox",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "svc",
+                "label": "Hiring service"
+              },
+              {
+                "id": "db",
+                "label": "Database: application table and outbox table"
+              },
+              {
+                "id": "relay",
+                "label": "Message relay"
+              },
+              {
+                "id": "topic",
+                "label": "Pub/Sub topic"
+              },
+              {
+                "id": "pay",
+                "label": "Payroll consumer"
+              }
+            ],
+            "edges": [
+              {
+                "from": "svc",
+                "to": "db",
+                "label": "one local transaction"
+              },
+              {
+                "from": "db",
+                "to": "relay",
+                "label": "reads committed rows"
+              },
+              {
+                "from": "relay",
+                "to": "topic",
+                "label": "publishes"
+              },
+              {
+                "from": "topic",
+                "to": "pay",
+                "label": "delivers at least once"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u03-l1-i3",
+          "type": "pick",
+          "src": "s1",
+          "q": "In the transactional outbox pattern, what does the service write in the same local transaction as the business change?",
+          "options": [
+            "The event, as a new row in an outbox table",
+            "A prepared transaction on the message broker",
+            "The consumer's processed-message ID",
+            "A copy of the event in a local log file"
+          ],
+          "answer": 0,
+          "why": "The outbox row commits or rolls back together with the business change, so a rolled-back change never produces an event. A prepared broker transaction is two-phase commit, the processed-message ID belongs to the consumer, and a file is outside the database transaction."
+        },
+        {
+          "id": "u03-l1-i4",
+          "type": "card",
+          "term": "t-message-relay",
+          "src": "s16"
+        },
+        {
+          "id": "u03-l1-i5",
+          "type": "tf",
+          "src": "s15",
+          "statement": "In Spring Modulith, the event publication registry writes its log entries as part of the original business transaction.",
+          "answer": true,
+          "why": "Entries are written in the same transaction and marked as completed when the listener succeeds. If the listener fails, the entry stays, so the event can be retried."
+        },
+        {
+          "id": "u03-l1-i6",
+          "type": "tf",
+          "src": "s16",
+          "statement": "With a transactional outbox, every event reaches the broker exactly once.",
+          "answer": false,
+          "why": "The relay can crash after publishing but before it records that the row was sent, so it publishes the event again. Consumers must therefore be idempotent."
+        },
+        {
+          "id": "u03-l1-i7",
+          "type": "card",
+          "term": "t-saga",
+          "src": "s5",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "hr",
+                "label": "Create employee (HR)"
+              },
+              {
+                "id": "it",
+                "label": "Create IT account"
+              },
+              {
+                "id": "pay",
+                "label": "Create payroll record: fails"
+              },
+              {
+                "id": "c1",
+                "label": "Disable IT account"
+              },
+              {
+                "id": "c2",
+                "label": "Remove employee"
+              }
+            ],
+            "edges": [
+              {
+                "from": "hr",
+                "to": "it",
+                "label": "then"
+              },
+              {
+                "from": "it",
+                "to": "pay",
+                "label": "then"
+              },
+              {
+                "from": "pay",
+                "to": "c1",
+                "label": "compensate"
+              },
+              {
+                "from": "c1",
+                "to": "c2",
+                "label": "compensate"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u03-l1-i8",
+          "type": "card",
+          "term": "t-compensating-transaction",
+          "src": "s6"
+        },
+        {
+          "id": "u03-l1-i9",
+          "type": "tf",
+          "src": "s6",
+          "statement": "A compensating transaction always returns the data to exactly the state it had before the saga started.",
+          "answer": false,
+          "why": "Other processes may have changed the data in the meantime, so compensation is a business action, not a restore. It does not necessarily return the data to its original state."
+        },
+        {
+          "id": "u03-l1-i10",
+          "type": "match",
+          "src": "s5",
+          "q": "Match each term with its meaning.",
+          "pairs": [
+            [
+              "Pivot transaction",
+              "The point of no return in a saga"
+            ],
+            [
+              "Saga orchestration",
+              "A central coordinator tells each service what to do"
+            ],
+            [
+              "Saga choreography",
+              "Services react to each other's events, with no coordinator"
+            ],
+            [
+              "Two-phase commit",
+              "Prepare, then commit, with one coordinator for all participants"
+            ],
+            [
+              "Inbox table",
+              "Stores the IDs of messages a consumer has already processed"
+            ],
+            [
+              "Outbox event router",
+              "Debezium transformation that sends outbox rows to topics"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u03-l2",
+      "kind": "practice",
+      "title": "Design for consistency",
+      "items": [
+        {
+          "id": "u03-l2-i1",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each failure with what happens when you use an outbox, idempotent consumers and a saga.",
+          "pairs": [
+            [
+              "The database transaction rolls back",
+              "The outbox row is rolled back too, so no event is sent"
+            ],
+            [
+              "Pub/Sub is unavailable for ten minutes",
+              "The rows wait in the outbox and are published later"
+            ],
+            [
+              "The relay crashes after publishing, before deleting the row",
+              "The event is published a second time"
+            ],
+            [
+              "A consumer receives the same event twice",
+              "The inbox insert fails on the key, so the copy is skipped"
+            ],
+            [
+              "A saga step fails a business rule",
+              "The saga runs compensating transactions"
+            ]
+          ]
+        },
+        {
+          "id": "u03-l2-i2",
+          "type": "scenario",
+          "src": "s1",
+          "q": "A Spring Boot service on Cloud Run receives status changes from SuccessFactors Recruiting. When an application moves to Hired, it commits the change to Cloud SQL and then publishes CandidateHired to Pub/Sub. After a deployment, a few hires never reached payroll.",
+          "options": [
+            {
+              "text": "Insert the event into an outbox table in the same transaction as the status change, and let a relay publish it.",
+              "ok": true,
+              "why": "The event now commits with the change, and the relay keeps trying until the broker accepts it."
+            },
+            {
+              "text": "Publish to Pub/Sub first and commit to Cloud SQL afterwards.",
+              "ok": false,
+              "why": "This only moves the problem: if the commit then fails, payroll processes a hire that does not exist."
+            },
+            {
+              "text": "Wrap the publish call in a try/catch block and retry it three times.",
+              "ok": false,
+              "why": "The lost events came from instances that stopped after the commit, and an in-memory retry stops with the instance."
+            },
+            {
+              "text": "Use a two-phase commit across Cloud SQL and Pub/Sub.",
+              "ok": false,
+              "why": "Distributed transactions that include the broker are not recommended for microservices, and the broker may not support 2PC at all."
+            }
+          ]
+        },
+        {
+          "id": "u03-l2-i3",
+          "type": "order",
+          "src": "s1",
+          "q": "Put the steps of the outbox flow with a polling relay in order.",
+          "steps": [
+            "Begin a local database transaction",
+            "Update the application status to Hired",
+            "Insert a CandidateHired row into the outbox table",
+            "Commit the transaction",
+            "The relay reads committed outbox rows in ID order",
+            "The relay publishes each event to the topic",
+            "After the broker confirms, the relay deletes the rows"
+          ]
+        },
+        {
+          "id": "u03-l2-i4",
+          "type": "code",
+          "src": "s1",
+          "lang": "java",
+          "q": "Complete the Spring code. The status change and the event must commit together, and a scheduled relay forwards the events and then removes them.",
+          "code": "@Service\npublic class HireService {\n\n    [[1]]\n    public void markHired(Application app) {\n        applicationRepository.save(app.markHired());\n        [[2]].save(new OutboxEvent(app.getId(), \"CandidateHired\", toJson(app)));\n    }\n}\n\n@Component\npublic class OutboxRelay {\n\n    [[3]](fixedDelayString = \"${outbox.polling-ms}\")\n    public void forward() {\n        List<OutboxEvent> batch =\n            outboxRepository.findAllByOrderByIdAsc(Pageable.ofSize(100)).toList();\n        for (OutboxEvent e : batch) {\n            eventPublisher.send(e); // our own class: waits until Pub/Sub confirms\n        }\n        outboxRepository.[[4]](batch);\n    }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "@Transactional",
+              "decoys": [
+                "@Async",
+                "@Scheduled"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "outboxRepository",
+              "decoys": [
+                "eventPublisher",
+                "applicationRepository"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "@Scheduled",
+              "decoys": [
+                "@Transactional",
+                "@EventListener"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "deleteAllInBatch",
+              "decoys": [
+                "saveAll",
+                "flush"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u03-l2-i5",
+          "type": "diagram",
+          "src": "s11",
+          "layout": "flow",
+          "q": "Complete the CDC version of the outbox. Debezium reads the database log, so there is no polling query.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Hiring service (Spring Boot)",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "PostgreSQL: application table and outbox table",
+              "slot": false
+            },
+            {
+              "id": "n3",
+              "label": "Transaction log",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Debezium with the outbox event router",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "Topic outbox.event.candidate",
+              "slot": false
+            },
+            {
+              "id": "n6",
+              "label": "Payroll consumer with an inbox table",
+              "slot": true
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "insert in one local transaction"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "the commit is written to the log"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "reads the changes"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "topic from aggregatetype, key from aggregateid"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "delivers at least once"
+            }
+          ],
+          "decoys": [
+            "Polling query every second",
+            "Two-phase commit coordinator",
+            "Database shared by every service"
+          ]
+        },
+        {
+          "id": "u03-l2-i6",
+          "type": "scenario",
+          "src": "s17",
+          "q": "A payroll adapter on Cloud Run adds a sign-on bonus line for each BonusApproved event from Pub/Sub. After a short network problem, some new hires received the bonus twice.",
+          "options": [
+            {
+              "text": "In one local transaction, insert the event ID into a processed-messages table with a unique key and add the bonus line; if the insert fails as a duplicate, skip the event.",
+              "ok": true,
+              "why": "The ID and the business change commit together, so a redelivered event is detected and ignored."
+            },
+            {
+              "text": "Check the processed-messages table, add the bonus, and record the ID afterwards in a second transaction.",
+              "ok": false,
+              "why": "If the adapter stops between the two transactions, the ID is never saved, and the redelivery adds the bonus again."
+            },
+            {
+              "text": "Acknowledge the message as soon as it arrives, before adding the bonus.",
+              "ok": false,
+              "why": "If processing then fails, the event is lost, so you swap a duplicate bonus for a missing one."
+            },
+            {
+              "text": "Change nothing: the publisher uses an outbox, so duplicates cannot happen.",
+              "ok": false,
+              "why": "An outbox prevents lost events, not duplicates, and Pub/Sub delivers at least once by default."
+            }
+          ]
+        },
+        {
+          "id": "u03-l2-i7",
+          "type": "code",
+          "src": "s13",
+          "lang": "text",
+          "q": "The team has Pub/Sub but no Kafka cluster. Complete the Debezium Server configuration: events go to Pub/Sub, the topic comes from the aggregate type, and events for one candidate keep their order.",
+          "code": "debezium.sink.type=[[1]]\ndebezium.sink.pubsub.project.id=acme-hr-prod\ndebezium.transforms=outbox\ndebezium.transforms.outbox.type=[[2]]\ndebezium.transforms.outbox.route.by.field=[[3]]\ndebezium.transforms.outbox.table.field.event.key=[[4]]",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "pubsub",
+              "decoys": [
+                "kafka",
+                "kinesis"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "io.debezium.transforms.outbox.EventRouter",
+              "decoys": [
+                "io.debezium.transforms.ExtractNewRecordState",
+                "org.apache.kafka.connect.transforms.RegexRouter"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "aggregatetype",
+              "decoys": [
+                "aggregateid",
+                "payload"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "aggregateid",
+              "decoys": [
+                "id",
+                "type"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u03-l2-i8",
+          "type": "scenario",
+          "src": "s3",
+          "q": "The onboarding flow after a hire now has seven participants: recruiting, HR, payroll, IT accounts, badges, laptops and learning. The business wants one place to see where each hire is stuck, with timeouts for slow steps.",
+          "options": [
+            {
+              "text": "Use saga orchestration, for example Google Cloud Workflows or a Spring orchestrator service that keeps the state of each hire.",
+              "ok": true,
+              "why": "An orchestrator suits complex flows, keeps the state in one place and makes timeouts and monitoring easier."
+            },
+            {
+              "text": "Use choreography, because it has no single point of failure.",
+              "ok": false,
+              "why": "With seven participants, choreography makes the dependencies hard to track, and global timeouts are harder to implement."
+            },
+            {
+              "text": "Let every service subscribe to the events of every other service.",
+              "ok": false,
+              "why": "Services that consume each other's events risk cyclic dependencies, and they are hard to test together."
+            },
+            {
+              "text": "Use a two-phase commit across the seven databases.",
+              "ok": false,
+              "why": "In a database-per-service design there is no single coordinator for 2PC, so this is not an option."
+            }
+          ]
+        },
+        {
+          "id": "u03-l2-i9",
+          "type": "scenario",
+          "src": "s6",
+          "q": "Your onboarding saga creates the employee in the HR system, creates an IT account, orders a laptop and sends a welcome email to the new hire. Where does the welcome email belong?",
+          "options": [
+            {
+              "text": "At the end, after all the critical checks have passed, because an email cannot be undone.",
+              "ok": true,
+              "why": "Irreversible steps should come only after all critical validations succeed."
+            },
+            {
+              "text": "First, so the new hire hears from the company quickly.",
+              "ok": false,
+              "why": "If a later step fails, the saga cannot take the email back, and the new hire has wrong information."
+            },
+            {
+              "text": "Anywhere: if a later step fails, a second email that cancels the first one is a full undo.",
+              "ok": false,
+              "why": "A second message does not undo the first; the person may already have acted on it."
+            },
+            {
+              "text": "Inside the HR database transaction, so it rolls back with the employee record.",
+              "ok": false,
+              "why": "An email is an external side effect, and a database rollback cannot recall it."
+            }
+          ]
+        },
+        {
+          "id": "u03-l2-i10",
+          "type": "order",
+          "src": "s2",
+          "q": "An orchestrated onboarding saga fails at the payroll step because the bank details are invalid, which is a business rule failure. Put the orchestrator's actions in order.",
+          "steps": [
+            "Create the employee in the HR system",
+            "Create the IT account",
+            "Payroll rejects the record because the bank details are invalid",
+            "Disable the IT account (compensation)",
+            "Remove the employee record (compensation)",
+            "Mark the saga as failed and alert the HR team"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u03-l3",
+      "kind": "interview",
+      "title": "Talk about consistency",
+      "items": [
+        {
+          "id": "u03-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "I never write to the database and the broker as two separate steps. I write the event to an outbox table, in the same local transaction as the change."
+        },
+        {
+          "id": "u03-l3-i2",
+          "type": "tf",
+          "src": "s8",
+          "statement": "Two-phase commit is a good default for keeping a service's database and a message broker consistent in a microservices system.",
+          "answer": false,
+          "why": "Distributed transactions that include the broker are not recommended for microservices, which favour availability over strong consistency. An outbox makes the change and the event atomic with only a local transaction."
+        },
+        {
+          "id": "u03-l3-i3",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "What is the dual-write problem, and how would you solve it?",
+          "model": "The dual-write problem happens when one operation must update two systems that do not share a transaction, usually the service's database and a message broker. For example, when an application moves to Hired, the service commits the change and then publishes CandidateHired to Pub/Sub. If the service crashes between the two steps, payroll never hears about the hire. If I publish first and the commit then fails, payroll processes a hire that does not exist. I solve it with a transactional outbox. In the same local transaction, I update the application and insert the event into an outbox table, so both commit or neither does. Then a relay publishes the outbox rows. It can be a simple scheduled poller, or change data capture with Debezium, which reads the database log. The relay can publish an event twice, for example after a crash, so I always make the consumers idempotent.",
+          "keypoints": [
+            {
+              "text": "Two systems with no shared transaction",
+              "kw": [
+                "two systems",
+                "no shared transaction",
+                "not atomic",
+                "database and the broker",
+                "broker",
+                "dual write",
+                "dual-write"
+              ]
+            },
+            {
+              "text": "Both failure orders: a lost event, or an event for a change that never committed",
+              "kw": [
+                "crash",
+                "lost",
+                "lose",
+                "rolled back",
+                "roll back",
+                "does not exist",
+                "never happened",
+                "inconsistent"
+              ]
+            },
+            {
+              "text": "Outbox row in the same local transaction",
+              "kw": [
+                "outbox",
+                "same transaction",
+                "local transaction",
+                "same local transaction"
+              ]
+            },
+            {
+              "text": "A relay publishes the rows: polling or CDC",
+              "kw": [
+                "relay",
+                "poll",
+                "polling",
+                "cdc",
+                "debezium",
+                "change data capture",
+                "transaction log",
+                "database log"
+              ]
+            },
+            {
+              "text": "Duplicates are possible, so consumers are idempotent",
+              "kw": [
+                "idempotent",
+                "duplicate",
+                "twice",
+                "at least once",
+                "at-least-once",
+                "deduplicate"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u03-l3-i11",
+          "type": "explain",
+          "src": "s11",
+          "seconds": 150,
+          "q": "You mentioned a relay. Would you build it as a polling job or with change data capture, and why?",
+          "model": "It depends on the volume, the delay the business accepts and what the team can operate. My default is a polling relay, because it is simple and needs no extra infrastructure. A scheduled job reads the outbox rows in ID order, publishes them and deletes them after the broker confirms. The cost is that frequent polling adds load on the database, and an event can wait for a full polling interval. When the volume grows, or we need a very low delay, I move to change data capture with Debezium. It reads the transaction log, so there is no polling query, and on PostgreSQL the delay is only milliseconds. Then the outbox event router sends each row to the right topic. The trade-off is more to operate. For example, on PostgreSQL Debezium uses a replication slot. If the connector stops, the database keeps the log for it, so I monitor disk use. With either option, the relay can publish an event twice, so the consumers stay idempotent.",
+          "keypoints": [
+            {
+              "text": "Polling is simple: a scheduled job reads the rows in order",
+              "kw": [
+                "polling",
+                "poller",
+                "poll",
+                "scheduled job",
+                "scheduler"
+              ]
+            },
+            {
+              "text": "The cost of polling: database load and a delay of up to one interval",
+              "kw": [
+                "database load",
+                "load on the database",
+                "adds load",
+                "cpu",
+                "expensive",
+                "interval",
+                "delay",
+                "latency"
+              ]
+            },
+            {
+              "text": "CDC reads the transaction log, with no polling query and very low delay",
+              "kw": [
+                "change data capture",
+                "cdc",
+                "debezium",
+                "transaction log",
+                "log tailing",
+                "write-ahead log",
+                "binlog",
+                "milliseconds"
+              ]
+            },
+            {
+              "text": "CDC means more to operate, for example a replication slot to monitor",
+              "kw": [
+                "operate",
+                "operations",
+                "infrastructure",
+                "replication slot",
+                "kafka connect",
+                "connector",
+                "monitor",
+                "disk"
+              ]
+            },
+            {
+              "text": "Either way the relay can publish twice, so consumers are idempotent",
+              "kw": [
+                "idempotent",
+                "duplicate",
+                "twice",
+                "at least once",
+                "at-least-once",
+                "more than once"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u03-l3-i4",
+          "type": "scenario",
+          "src": "s4",
+          "q": "A business stakeholder complains: a hire shows as Hired in SuccessFactors Recruiting, but payroll only sees the new employee about two minutes later. What do you say?",
+          "options": [
+            {
+              "text": "Explain that the systems are eventually consistent, agree how long a delay is acceptable for this process, and monitor it.",
+              "ok": true,
+              "why": "AWS suggests setting the business teams' expectations for the consistency model. Where strong consistency is truly needed, that part can use a strongly consistent data store."
+            },
+            {
+              "text": "Promise immediate consistency by adding a distributed transaction across both systems.",
+              "ok": false,
+              "why": "Two-phase commit is not an option when each service owns its database, so you cannot keep this promise."
+            },
+            {
+              "text": "Move the integration to a nightly batch so that the data is always complete.",
+              "ok": false,
+              "why": "A nightly batch makes the delay hours instead of minutes."
+            },
+            {
+              "text": "Say that it is a technical limitation and nothing can be changed.",
+              "ok": false,
+              "why": "You can tune the delay, and where strong consistency is truly required you can choose a strongly consistent design for that part."
+            }
+          ]
+        },
+        {
+          "id": "u03-l3-i5",
+          "type": "say",
+          "src": "s4",
+          "text": "Eventual consistency means the data will match in every system, just not at the same moment. I agree an acceptable delay with the business and monitor it."
+        },
+        {
+          "id": "u03-l3-i10",
+          "type": "explain",
+          "src": "s17",
+          "seconds": 120,
+          "q": "Your consumer receives events from Pub/Sub. How do you make sure that a duplicate does not create a second record?",
+          "model": "I start from the fact that delivery is at least once. Pub/Sub can redeliver a message, even after an acknowledgement, and Debezium also delivers at least once, so duplicates will happen. My first choice is an operation that is idempotent by design. For example, the event says set the start date to the first of March, not move it by one day. When that is not possible, I use an inbox table. Every event carries a unique ID, for example the outbox ID that the Debezium router puts in the id header. In the same local transaction as the business change, I insert the subscriber name and the event ID into a processed-messages table, with a primary key on both. If the insert fails because the key already exists, I roll back, skip the event and acknowledge it. Because the ID and the change commit together, a crash in the middle cannot leave one without the other.",
+          "keypoints": [
+            {
+              "text": "Delivery is at least once, so duplicates happen",
+              "kw": [
+                "at least once",
+                "at-least-once",
+                "redeliver",
+                "duplicate",
+                "duplicates",
+                "more than once"
+              ]
+            },
+            {
+              "text": "Prefer operations that are idempotent by design",
+              "kw": [
+                "idempotent",
+                "by design",
+                "set the value",
+                "set the start date",
+                "same result"
+              ]
+            },
+            {
+              "text": "A unique event ID",
+              "kw": [
+                "event id",
+                "message id",
+                "unique id",
+                "header"
+              ]
+            },
+            {
+              "text": "An inbox table written in the same local transaction",
+              "kw": [
+                "inbox",
+                "processed",
+                "same transaction",
+                "local transaction"
+              ]
+            },
+            {
+              "text": "The key rejects the duplicate: skip it and acknowledge it",
+              "kw": [
+                "primary key",
+                "unique key",
+                "unique constraint",
+                "skip",
+                "acknowledge",
+                "ignore"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u03-l3-i6",
+          "type": "explain",
+          "src": "s5",
+          "seconds": 120,
+          "q": "Saga orchestration or choreography: how do you choose?",
+          "model": "I look at the number of participants and at how much control and visibility the business needs. With choreography, each service reacts to events and publishes its own events, with no central controller. It is simple for two or three services, and it has no single point of failure. But as you add steps, it gets hard to see the whole flow, there is a risk of cyclic dependencies, and integration testing needs every service running. With orchestration, one orchestrator sends the commands, keeps the state of each saga and runs the compensations. That suits complex flows, like onboarding a new hire across HR, IT and payroll, and it makes timeouts, retries and monitoring much easier. The risk is that the orchestrator becomes a single point of failure, so I prefer a managed engine, such as AWS Step Functions, or Workflows on Google Cloud. For more than a few steps, my default is orchestration.",
+          "keypoints": [
+            {
+              "text": "Choreography: events and no central controller",
+              "kw": [
+                "choreography",
+                "no central",
+                "no coordinator",
+                "react",
+                "listen"
+              ]
+            },
+            {
+              "text": "Choreography gets hard to follow as steps are added",
+              "kw": [
+                "hard to track",
+                "hard to see",
+                "hard to follow",
+                "cyclic",
+                "testing",
+                "dependencies"
+              ]
+            },
+            {
+              "text": "Orchestration: a central coordinator with state and compensations",
+              "kw": [
+                "orchestrator",
+                "orchestration",
+                "central orchestrator",
+                "central coordinator",
+                "keeps the state",
+                "saga state",
+                "compensation"
+              ]
+            },
+            {
+              "text": "The orchestrator can be a single point of failure; use a managed engine",
+              "kw": [
+                "single point of failure",
+                "managed",
+                "step functions",
+                "workflows",
+                "highly available"
+              ]
+            },
+            {
+              "text": "Choose by the number of participants and the need for visibility",
+              "kw": [
+                "participants",
+                "how many",
+                "few services",
+                "visibility",
+                "monitoring",
+                "timeouts",
+                "complex"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u03-l3-i7",
+          "type": "tf",
+          "src": "s5",
+          "statement": "After the pivot transaction of a saga succeeds, a failure in a later step should trigger compensation of all the earlier steps.",
+          "answer": false,
+          "why": "The pivot is the point of no return, so compensation is no longer relevant after it. The remaining steps are retryable and idempotent, and the saga retries them until it reaches its final state."
+        },
+        {
+          "id": "u03-l3-i8",
+          "type": "explain",
+          "src": "s6",
+          "seconds": 150,
+          "q": "How do you design compensating transactions, and what do you do with steps that cannot be undone?",
+          "model": "First, I treat compensation as a business action, not a database rollback. Each step of the saga has already committed, and other processes may have changed the data since then, so I cannot simply restore the old values. For example, the compensation for creating an IT account is to disable it. As the saga runs, I record each completed step and how to undo it, and I make every compensation idempotent, because it can fail and be retried. Then I identify the steps that cannot be undone, such as an email to the candidate or a legally binding contract. I move them to the end, after all critical validations, so they become the pivot or come after it. If a compensation keeps failing, the saga raises an alert with the details, and a person decides what to do. Finally, because sagas have no isolation, I use pending states as a semantic lock, so other processes can see that the hire is still in progress.",
+          "keypoints": [
+            {
+              "text": "A business action, not a rollback",
+              "kw": [
+                "business action",
+                "not a rollback",
+                "not a database rollback",
+                "application specific",
+                "restore"
+              ]
+            },
+            {
+              "text": "Record each step and make compensations idempotent",
+              "kw": [
+                "record each step",
+                "keep track",
+                "saga log",
+                "idempotent",
+                "retry",
+                "retried"
+              ]
+            },
+            {
+              "text": "Irreversible steps go last, after the validations",
+              "kw": [
+                "cannot be undone",
+                "irreversible",
+                "at the end",
+                "last step",
+                "pivot",
+                "point of no return",
+                "validation"
+              ]
+            },
+            {
+              "text": "Alert and manual intervention when compensation fails",
+              "kw": [
+                "alert",
+                "manual",
+                "person",
+                "human",
+                "intervention"
+              ]
+            },
+            {
+              "text": "Pending states or semantic locks, because there is no isolation",
+              "kw": [
+                "pending",
+                "semantic lock",
+                "lock",
+                "isolation",
+                "in progress"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Dual write and the outbox",
+        "points": [
+          "Dual write: one operation writes to the database and to the broker, with no shared transaction.",
+          "Commit, then crash before publishing: the event is lost.",
+          "Publish, then the commit fails: consumers act on a change that never happened.",
+          "Outbox: insert the event row in the same local transaction as the business change.",
+          "A relay publishes the rows later and deletes or marks them only after the broker confirms."
+        ]
+      },
+      {
+        "h": "Polling relay or CDC",
+        "points": [
+          "Polling publisher: a scheduled job reads outbox rows in ID or sequence order; simple, but frequent polling adds load.",
+          "Log tailing (CDC): Debezium reads the transaction log, with very low delay and no polling query.",
+          "Debezium outbox event router: aggregatetype candidate goes to topic outbox.event.candidate, the key is aggregateid, the event ID is in the id header.",
+          "The outbox is insert-only: the router filters out deletes and warns on updates by default.",
+          "Debezium Server can stream to Pub/Sub without Kafka.",
+          "Spring Modulith's native event externalisation is simple, but its docs say it lacks critical features of real outbox implementations; since 2.1 it can delegate to Namastack Outbox or JobRunr.",
+          "Choosing: start with polling; move to CDC when volume or delay requires it, and accept more to operate.",
+          "PostgreSQL: a replication slot keeps the WAL while the connector is stopped, so monitor disk use."
+        ]
+      },
+      {
+        "h": "Idempotent consumers",
+        "points": [
+          "Assume at least once: Pub/Sub and Debezium can both deliver a message twice.",
+          "First choice: idempotent operations (set the value, do not add to it).",
+          "Otherwise an inbox table: primary key (subscriber, message ID), inserted in the same transaction as the change.",
+          "Duplicate key: roll back, skip the event, acknowledge it.",
+          "Check at both levels: broker deduplication where it exists, and your own code."
+        ]
+      },
+      {
+        "h": "Sagas",
+        "points": [
+          "A sequence of local transactions; each step commits and triggers the next.",
+          "Platform failure: retry and go forward. Business rule failure: compensate and go back.",
+          "Choreography: events and no coordinator; fine for a few participants.",
+          "Orchestration: a central coordinator with state; better for complex flows, timeouts and monitoring.",
+          "Managed orchestrators: AWS Step Functions, which AWS says mitigates the single point of failure, or Google Cloud Workflows.",
+          "Every participant must be idempotent."
+        ]
+      },
+      {
+        "h": "Compensation and the point of no return",
+        "points": [
+          "Compensation is a business action, not a rollback, and it may not restore the exact old state.",
+          "Record each step and how to undo it; make every compensation idempotent.",
+          "Pivot transaction: the point of no return; after it, only retryable steps.",
+          "Irreversible steps (emails, legal actions, external side effects) go after all critical validations.",
+          "If compensation fails: raise an alert with details and let a person decide.",
+          "No isolation between sagas: use semantic locks such as a PENDING state, reread values, commutative updates."
+        ]
+      },
+      {
+        "h": "Eventual consistency and 2PC",
+        "points": [
+          "2PC: prepare, then commit, under one coordinator; a database-per-service design has none.",
+          "Distributed transactions that include the broker are not recommended for microservices.",
+          "Eventual consistency: copies agree after a short delay.",
+          "With the business: say which data can lag, agree the acceptable delay, and monitor it.",
+          "Where strong consistency is truly needed, keep one service as the single source of truth."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Saga patterns - AWS Prescriptive Guidance",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga.html",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Saga choreography pattern - AWS Prescriptive Guidance",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-choreography.html",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Saga orchestration pattern - AWS Prescriptive Guidance",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/saga-orchestration.html",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Saga distributed transactions pattern - Azure Architecture Center",
+      "url": "https://learn.microsoft.com/azure/architecture/patterns/saga",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Compensating Transaction pattern - Azure Architecture Center",
+      "url": "https://learn.microsoft.com/azure/architecture/patterns/compensating-transaction",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Data considerations for microservices - Azure Architecture Center",
+      "url": "https://learn.microsoft.com/azure/architecture/microservices/design/data-considerations",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Subscribing to events (.NET Microservices: Architecture for Containerized .NET Applications) - Microsoft Learn",
+      "url": "https://learn.microsoft.com/dotnet/architecture/microservices/multi-container-microservice-net-applications/subscribe-events",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Distributed data (Architecting Cloud Native .NET Applications for Azure) - Microsoft Learn",
+      "url": "https://learn.microsoft.com/dotnet/architecture/cloud-native/distributed-data",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Outbox Event Router - Debezium 3.7 documentation",
+      "url": "https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Debezium Features - Debezium 3.7 documentation",
+      "url": "https://debezium.io/documentation/reference/stable/features.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Exactly once delivery - Debezium 3.7 documentation",
+      "url": "https://debezium.io/documentation/reference/stable/configuration/eos.html",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Debezium Server - Debezium 3.7 documentation",
+      "url": "https://debezium.io/documentation/reference/stable/operations/debezium-server.html",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Subscription overview - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-overview",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Working with Application Events - Spring Modulith 2.1.1 reference",
+      "url": "https://docs.spring.io/spring-modulith/reference/events.html",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Pattern: Transactional outbox - microservices.io",
+      "url": "https://microservices.io/patterns/data/transactional-outbox.html",
+      "official": false
+    },
+    {
+      "id": "s17",
+      "title": "Pattern: Idempotent Consumer - microservices.io",
+      "url": "https://microservices.io/patterns/communication-style/idempotent-consumer.html",
+      "official": false
+    },
+    {
+      "id": "s18",
+      "title": "Implementing the saga pattern in Workflows - Google Cloud Blog (February 2022)",
+      "url": "https://cloud.google.com/blog/topics/developers-practitioners/implementing-saga-pattern-workflows",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Logical Decoding Concepts - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/logicaldecoding-explanation.html",
+      "official": true
+    }
+  ]
+}

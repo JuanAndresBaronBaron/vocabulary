@@ -1,0 +1,588 @@
+{
+  "format": 1,
+  "id": "u07",
+  "n": 7,
+  "block": "leadership",
+  "title": "Making the case",
+  "summary": "After this unit you can argue for a technical proposal with options, criteria and evidence, record the decision in an ADR, adapt it for engineers and managers, and tell a clear STAR story about persuading others.",
+  "reviewed": "2026-10-24",
+  "versionNotes": [
+    "Sources checked on 2026-10-24. Azure Well-Architected ADR page last updated 2026-04-13; AWS Architecture Blog post on ADR best practices dated 20 March 2025; GDS Way page last reviewed 5 March 2026.",
+    "ADR statuses differ between sources: the AWS process uses Proposed, Accepted, Rejected and Superseded; the Microsoft engineering playbook uses Proposed, Accepted, Deprecated and Superseded; Azure Well-Architected gives Proposed, Accepted and Superseded as examples.",
+    "The HM Treasury Green Book (2026 edition) is public-sector appraisal guidance. The unit uses only its ideas of a business-as-usual benchmark, a do-minimum option and optimism bias.",
+    "The proposal outline in this unit (problem, options, criteria, evidence, recommendation, risks, ask) is a teaching structure built from the Microsoft trade study template and the Green Book. No single source prescribes it.",
+    "unconfirmed: a standard length for a design doc or RFC. The sources say keep records short and focused on one decision, but give no page limit, so 'one page' is presented as a habit, not a standard.",
+    "STAR follows the National Careers Service, whose Result step includes what you learned. This unit shows Lessons learned as a separate fifth step.",
+    "Decision wording differs: the AWS ADR FAQ asks for imperative language such as 'We use...'; the Microsoft decision log template says the decision should begin with 'We will...' or 'We have agreed to...'."
+  ],
+  "terms": [
+    {
+      "id": "t-trade-study",
+      "term": "Trade study",
+      "ipa": "/ˈtreɪd ˌstʌdi/",
+      "say": "trade study",
+      "def": "A structured comparison of a few options for one problem, rated against agreed criteria. It leaves a record of why one option was chosen.",
+      "example": "Before choosing between an hourly batch and Pub/Sub events, the team wrote a trade study with a results table that rated each option against the criteria.",
+      "src": "s8"
+    },
+    {
+      "id": "t-evaluation-criteria",
+      "term": "Evaluation criteria",
+      "ipa": "/ɪˌvæljuˈeɪʃn kraɪˈtɪəriə/",
+      "say": "evaluation criteria",
+      "def": "The measures, qualitative and quantitative, that stand in for the requirements, so that every option is rated in the same way. Where you can, include measurable metrics.",
+      "example": "Our evaluation criteria were the delay to payroll, the monthly running cost and the effort to operate the flow.",
+      "src": "s8"
+    },
+    {
+      "id": "t-bau",
+      "term": "Business as usual (BAU)",
+      "ipa": "/ˈbɪznəs əz ˈjuːʒuəl/",
+      "say": "business as usual",
+      "def": "The outcome you expect if current arrangements continue and the proposal is not implemented. It is the benchmark for the other options, and it is not the same as doing nothing: it has its own costs, benefits and risks.",
+      "example": "Our business-as-usual option kept the nightly export from SuccessFactors Recruiting, including the cost of about forty manual tickets a month.",
+      "src": "s17"
+    },
+    {
+      "id": "t-do-minimum",
+      "term": "Do-minimum option",
+      "ipa": "/ˌduː ˈmɪnɪməm ˌɒpʃn/",
+      "say": "do minimum option",
+      "def": "The option that just achieves the objectives and goes no further. It shows whether a bigger option adds real value or only extra features.",
+      "example": "Our objective was accounts on the first day, so the do-minimum option was to run the existing batch every hour instead of every night.",
+      "src": "s17"
+    },
+    {
+      "id": "t-optimism-bias",
+      "term": "Optimism bias",
+      "ipa": "/ˈɒptɪmɪzəm ˌbaɪəs/",
+      "say": "optimism bias",
+      "def": "The proven tendency for appraisals to be over-optimistic about key assumptions. To correct it, you raise your estimates of cost and duration and lower your estimates of benefits.",
+      "example": "To allow for optimism bias, I raised the migration estimate from four weeks to six.",
+      "src": "s17"
+    },
+    {
+      "id": "t-adr",
+      "term": "Architecture decision record (ADR)",
+      "ipa": "/ˈɑːkɪtektʃə dɪˈsɪʒn ˈrekɔːd/",
+      "say": "architecture decision record",
+      "def": "A short document that captures one significant decision, its context and the considerations behind it, so current and future team members know what was decided and why. AWS says architectural decision record; most people just say A D R.",
+      "example": "ADR 7 records why candidate updates now travel through Pub/Sub instead of a nightly batch.",
+      "src": "s1"
+    },
+    {
+      "id": "t-decision-log",
+      "term": "Decision log",
+      "ipa": "/dɪˈsɪʒn lɒɡ/",
+      "say": "decision log",
+      "def": "The collection of ADRs in a project. Readers skim the titles for an overview and open a record for the details.",
+      "example": "New team members read our decision log in their first week to learn why the integration looks the way it does.",
+      "src": "s2"
+    },
+    {
+      "id": "t-superseded",
+      "term": "Superseded",
+      "ipa": "/ˌsuːpəˈsiːdɪd/",
+      "say": "superseded",
+      "def": "The status of an ADR that a newer, approved ADR has replaced. The old record stays in the log and points to the new one.",
+      "example": "ADR 3, the nightly batch export, is now superseded by ADR 7.",
+      "src": "s2"
+    },
+    {
+      "id": "t-asr",
+      "term": "Architecturally significant requirement",
+      "ipa": "/ˌɑːkɪˈtektʃərəli sɪɡˈnɪfɪkənt rɪˈkwaɪəmənt/",
+      "say": "architecturally significant requirement",
+      "def": "A requirement that has a measurable effect on the architecture and quality of a system. The decisions that address it are the ones worth recording.",
+      "example": "The rule that hires must reach payroll within five minutes was architecturally significant, because it ruled out a nightly batch.",
+      "src": "s13"
+    },
+    {
+      "id": "t-y-statement",
+      "term": "Y-statement",
+      "ipa": "/ˈwaɪ ˌsteɪtmənt/",
+      "say": "Y statement",
+      "def": "A one-sentence format for a decision: in the context of a use case, facing a concern, we decided for an option, to achieve a quality, accepting a downside.",
+      "example": "In the context of new hires, facing a one-day delay, we decided for Pub/Sub events, to achieve updates in minutes, accepting a new service to operate.",
+      "src": "s14"
+    },
+    {
+      "id": "t-two-way-door",
+      "term": "Two-way door decision",
+      "ipa": "/ˌtuː weɪ ˈdɔː dɪˈsɪʒn/",
+      "say": "two way door decision",
+      "def": "A decision that you can change later with little impact. Most decisions are of this kind, so it is usually better to decide and try than to debate for weeks.",
+      "example": "Starting the new flow with one HR region was a two-way door, so we did not need a month of meetings.",
+      "src": "s3"
+    },
+    {
+      "id": "t-poc",
+      "term": "Proof of concept (PoC)",
+      "ipa": "/ˌpruːf əv ˈkɒnsept/",
+      "say": "proof of concept",
+      "def": "A small, quick build that tests a risky or new part of a design before you finalise it. Its code is disposable: it often has no security, logging or error handling, so it must not go into production.",
+      "example": "Our two-week proof of concept measured how long a hire event took to reach the payroll test system.",
+      "src": "s7"
+    },
+    {
+      "id": "t-readout",
+      "term": "Readout meeting",
+      "ipa": "/ˈriːdaʊt ˌmiːtɪŋ/",
+      "say": "readout meeting",
+      "def": "A review meeting that starts with 10 to 15 minutes of silent reading, with written comments, before the discussion. AWS architects suggest at most 30 to 45 minutes and fewer than 10 people.",
+      "example": "In the readout, each tech lead read the ADR and left comments before anyone spoke.",
+      "src": "s3"
+    },
+    {
+      "id": "t-star",
+      "term": "STAR method",
+      "ipa": "/ˈstɑː ˌmeθəd/",
+      "say": "star method",
+      "def": "A way to structure answers to behavioural questions: the Situation, your Task, the Action you took, and the Result, including what you learned.",
+      "example": "With the STAR method, I describe the late hires, my task, what I did and the measured result in about two minutes.",
+      "src": "s18"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u07-l1",
+      "kind": "concepts",
+      "title": "Options, criteria and decision records",
+      "items": [
+        {
+          "id": "u07-l1-i1",
+          "type": "card",
+          "src": "s8",
+          "term": "t-trade-study"
+        },
+        {
+          "id": "u07-l1-i2",
+          "type": "tf",
+          "src": "s17",
+          "statement": "In a proposal, the business-as-usual option means the team does nothing, so it costs nothing.",
+          "answer": false,
+          "why": "Business as usual does not mean doing nothing: continuing current arrangements has its own costs, benefits and risks. For example, the old batch still needs servers, patches and manual fixes."
+        },
+        {
+          "id": "u07-l1-i3",
+          "type": "pick",
+          "src": "s17",
+          "q": "You want to replace a nightly SuccessFactors Recruiting export with hire events on Pub/Sub. Which set of options should your proposal compare?",
+          "options": [
+            "Only the event design, because it is your recommendation",
+            "Keep the nightly batch, run the batch every hour, and the event design",
+            "Three versions of the event design with different Cloud Run settings",
+            "Every integration tool on the market, to show that you were thorough"
+          ],
+          "answer": 1,
+          "why": "Business as usual is the benchmark and always goes on the shortlist, and a do-minimum option such as an hourly batch shows whether the bigger change is worth it. The other sets either have no baseline or are too wide to evaluate."
+        },
+        {
+          "id": "u07-l1-i4",
+          "type": "pick",
+          "src": "s9",
+          "q": "Which is the best evaluation criterion for choosing how new hires reach payroll?",
+          "options": [
+            "It uses the newest technology on the market",
+            "A hire reaches payroll within five minutes in 99 per cent of cases, measured in a test",
+            "The architect likes it best",
+            "It feels more modern than the batch"
+          ],
+          "answer": 1,
+          "why": "Criteria stand in for the requirements, and a measurable metric lets you rate every option in the same way. The other options are opinions or fashion, not measures."
+        },
+        {
+          "id": "u07-l1-i5",
+          "type": "order",
+          "src": "s8",
+          "q": "Put the steps of a trade study in order.",
+          "steps": [
+            "Agree the requirements with the stakeholders",
+            "Turn the requirements into evaluation criteria",
+            "Shortlist the two to four most promising options",
+            "Evaluate each option against the criteria, with a time box",
+            "Recommend an option and align the team on the decision"
+          ]
+        },
+        {
+          "id": "u07-l1-i6",
+          "type": "card",
+          "src": "s1",
+          "term": "t-adr"
+        },
+        {
+          "id": "u07-l1-i7",
+          "type": "pick",
+          "src": "s4",
+          "q": "Which of these decisions deserves an ADR?",
+          "options": [
+            "Renaming a private method in a Spring service",
+            "Sending candidate updates through Pub/Sub to Cloud Run instead of a nightly batch",
+            "Fixing a typo in a log message",
+            "Changing the colour of a monitoring dashboard"
+          ],
+          "answer": 1,
+          "why": "Record choices that affect the structure, key quality attributes or are difficult to reverse, such as the integration style between systems. The other changes are small and easy to undo."
+        },
+        {
+          "id": "u07-l1-i8",
+          "type": "match",
+          "src": "s15",
+          "q": "Match each section of a Nygard-style ADR to what it contains.",
+          "pairs": [
+            ["Title", "A short description of the decision, not of the problem"],
+            ["Status", "Where the decision is in its life cycle, for example Accepted"],
+            ["Context", "The facts behind the need to make the decision"],
+            ["Decision", "What the team has decided to do"],
+            ["Consequences", "The positive and negative effects of the decision"]
+          ]
+        },
+        {
+          "id": "u07-l1-i9",
+          "type": "code",
+          "src": "s10",
+          "q": "Complete this ADR from the team's decision log.",
+          "lang": "text",
+          "code": "7. Publish hire events to Pub/Sub\n\nDate: 2026-03-02\n[[1]]: Accepted\n\n[[2]]\nNew hires reach payroll and IT up to a day late, because a nightly\nbatch exports them from SuccessFactors Recruiting. HR and IT agreed\ntwo criteria: a delay under five minutes and no manual re-runs.\n\nDecision\n[[3]] publish a CandidateHired event to Pub/Sub when an application\nmoves to Hired. A Cloud Run service delivers it to payroll and IT.\n\n[[4]]\nPositive: hires arrive in minutes, and the batch can be switched off.\nNegative: the team must operate and monitor a new subscription.",
+          "gaps": [
+            { "n": 1, "answer": "Status", "decoys": ["Version", "Owner"] },
+            { "n": 2, "answer": "Context", "decoys": ["Solution", "Summary"] },
+            { "n": 3, "answer": "We will", "decoys": ["We might", "Someone could"] },
+            { "n": 4, "answer": "Consequences", "decoys": ["Conclusion", "Next steps"] }
+          ]
+        },
+        {
+          "id": "u07-l1-i10",
+          "type": "diagram",
+          "src": "s2",
+          "q": "Complete the life cycle of an ADR in the AWS process.",
+          "layout": "flow",
+          "nodes": [
+            { "id": "p", "label": "Proposed", "slot": false },
+            { "id": "a", "label": "Accepted", "slot": true },
+            { "id": "r", "label": "Rejected", "slot": true },
+            { "id": "s", "label": "Superseded", "slot": true }
+          ],
+          "edges": [
+            { "from": "p", "to": "a", "label": "team accepts after review" },
+            { "from": "p", "to": "r", "label": "team rejects; owner records why" },
+            { "from": "a", "to": "s", "label": "a newer ADR is approved" }
+          ],
+          "decoys": ["Edited in place", "Deleted"]
+        }
+      ]
+    },
+    {
+      "id": "u07-l2",
+      "kind": "stories",
+      "title": "My stories: persuading others",
+      "items": [
+        {
+          "id": "u07-l2-i1",
+          "type": "tf",
+          "src": "s18",
+          "statement": "In the STAR method, the Result can include what you learned from the experience.",
+          "answer": true,
+          "why": "The National Careers Service describes the Result as what happened and what you learned. This unit shows Lessons learned as a separate last step, so you do not forget it."
+        },
+        {
+          "id": "u07-l2-i2",
+          "type": "story",
+          "src": "s18",
+          "prompt": "Tell me about a time you convinced others to adopt your proposal.",
+          "template": ["Situation", "Task", "Action", "Result", "Lessons learned"],
+          "model": "Situation: At a retail company, new starters often had no accounts on their first day. A nightly batch exported hires from SuccessFactors Recruiting, so IT and payroll saw each hire up to a day late. Task: As the integration lead, I wanted to move to events, but the HR systems team wanted to keep the batch, which had worked for years. Action: First I agreed the criteria with both teams: delay, running cost, effort and failure handling. Then I wrote a short proposal with three options: keep the batch, run it every hour, or publish a hire event to Pub/Sub for a Cloud Run service. I built a two-week proof of concept and measured the delay and the cost. I showed the engineers the sequence diagram and the failure cases, and I showed the HR director the impact on new starters. Result: Both teams accepted the event design, and we recorded it as an ADR. After go-live, hires reached IT in about two minutes, and first-day access tickets fell by about 80 per cent. Lessons learned: Agreeing the criteria first made the discussion about facts, not opinions."
+        },
+        {
+          "id": "u07-l2-i3",
+          "type": "scenario",
+          "src": "s18",
+          "q": "You practise your first story with a friend. She says: 'I still do not know what you did. You always say we.' What is the best change?",
+          "options": [
+            { "text": "Say I for your own actions and we for the team's results.", "ok": true, "why": "The interviewer is assessing you, so your actions must be clear. In the National Careers Service examples, the Action parts mostly use I." },
+            { "text": "Keep saying we, because it sounds modest.", "ok": false, "why": "Modest but unclear: the interviewer still cannot see your part." },
+            { "text": "Say that you did everything alone.", "ok": false, "why": "This is not honest, and follow-up questions will show it." },
+            { "text": "Skip the Action and give only the Result.", "ok": false, "why": "The Action is the most important part of the answer. Without it, the result says nothing about you." }
+          ]
+        },
+        {
+          "id": "u07-l2-i4",
+          "type": "story",
+          "src": "s18",
+          "prompt": "Tell me about a time you influenced a decision without formal authority.",
+          "template": ["Situation", "Task", "Action", "Result", "Lessons learned"],
+          "model": "Situation: At a logistics company, three squads called the same candidate API from their own Spring Boot services. Each squad used different timeout and retry settings, and in one quarter this caused five incidents. Task: I was the integration architect, but I did not manage any of the squads. I wanted one shared way to call the API. Action: I met each tech lead one to one to understand their constraints. I collected the incident data and wrote an ADR proposal with three options: keep things as they are, a written guideline, or a small shared client library. In a readout meeting, everyone read the document for fifteen minutes and left comments. One lead objected that a shared library would slow down their releases. We agreed to version the library, so each squad could upgrade on its own schedule. Result: All three leads accepted the ADR, the squads adopted the library within two sprints, and we had no incidents of this kind in the next quarter. Lessons learned: Listening first, and changing the design for a fair objection, built more support than a job title could."
+        },
+        {
+          "id": "u07-l2-i5",
+          "type": "scenario",
+          "src": "s3",
+          "q": "In the readout of your ADR, a senior engineer comments: 'Events add new failure modes. The batch has worked for years.' What do you do?",
+          "options": [
+            { "text": "Ask which failure worries him most, show what the proof of concept measured, and add that risk and its mitigation to the ADR.", "ok": true, "why": "Every comment should be resolved, by changing the document or by reaching agreement with its author. His concern also makes the ADR stronger." },
+            { "text": "Tell him the decision is already made.", "ok": false, "why": "Then the review is only a formality, and unresolved concerns come back later as resistance." },
+            { "text": "Report him to his manager before the meeting ends.", "ok": false, "why": "Escalation is a last step, not the first reaction to a fair question." },
+            { "text": "Skip the comment to finish within 45 minutes.", "ok": false, "why": "Time matters, but an ADR with an unresolved comment is not ready to accept." }
+          ]
+        },
+        {
+          "id": "u07-l2-i6",
+          "type": "tf",
+          "src": "s11",
+          "statement": "If a disagreement in a design pull request is still open after two rounds of written questions and answers, you should move to a call or a meeting.",
+          "answer": true,
+          "why": "The Microsoft engineering playbook recommends synchronous communication after two round trips of question and response. Long written threads are slow for real disagreement."
+        },
+        {
+          "id": "u07-l2-i7",
+          "type": "tf",
+          "src": "s18",
+          "statement": "A good STAR answer is memorised word for word, so that you never hesitate.",
+          "answer": false,
+          "why": "The National Careers Service advises a conversational style, so that you do not sound too rehearsed. Know your key points and be ready for follow-up questions."
+        },
+        {
+          "id": "u07-l2-i8",
+          "type": "story",
+          "src": "s17",
+          "prompt": "Tell me about a time a proposal of yours was not accepted.",
+          "template": ["Situation", "Task", "Action", "Result", "Lessons learned"],
+          "model": "Situation: At an insurance company, two of our twelve integrations failed almost every week. Task: I proposed to rebuild the whole integration layer as services on Cloud Run. Action: I presented a detailed design to the steering group. The finance manager asked what it would cost to keep the current platform, and I did not have a clear answer. I had compared my design only with an ideal future, not with business as usual. The group rejected the proposal, and I recorded the reasons in the ADR, so the topic would not come back without new facts. Two weeks later I came back with a smaller option: move only the two failing flows first. This time I showed the cost of each option, including the cost of keeping things as they were. Result: The smaller proposal was accepted. After three months the weekly failures had stopped, and the group asked me for a plan for the next flows. Lessons learned: I now always include business as usual and a do-minimum option, and I start with a step that is easy to reverse."
+        }
+      ]
+    },
+    {
+      "id": "u07-l3",
+      "kind": "interview",
+      "title": "Making the case in the interview",
+      "items": [
+        {
+          "id": "u07-l3-i1",
+          "type": "say",
+          "src": "s8",
+          "text": "Before I recommend anything, I agree the criteria with the stakeholders, so we judge every option, including business as usual, in the same way."
+        },
+        {
+          "id": "u07-l3-i2",
+          "type": "tf",
+          "src": "s3",
+          "statement": "Most architecture decisions are two-way doors, so it is often better to decide and try quickly than to debate for weeks.",
+          "answer": true,
+          "why": "AWS architects note that most decisions can be changed later with little impact. They advise making a decision and trying it fast instead of discussing it endlessly."
+        },
+        {
+          "id": "u07-l3-i3",
+          "type": "scenario",
+          "src": "s5",
+          "q": "You present the event-driven proposal to the Head of HR, who is not technical. She has ten minutes. What do you lead with?",
+          "options": [
+            { "text": "The outcome for new starters, the cost and the timeline, the main risk, and the decision you need from her.", "ok": true, "why": "With business stakeholders, keep the conversation on goals, not implementation. Leading with the outcome and the ask uses her ten minutes well." },
+            { "text": "How Pub/Sub push subscriptions call the Cloud Run endpoint and how acknowledgements work.", "ok": false, "why": "That depth is right for engineers, not for this audience. Save it for the design review." },
+            { "text": "A full list of every tool you looked at, to show how thorough you were.", "ok": false, "why": "Too much detail hides the recommendation. Keep the alternatives in the written document." },
+            { "text": "That events are modern best practice, so she should trust the team.", "ok": false, "why": "This gives no evidence. It asks for trust instead of earning it with facts." }
+          ]
+        },
+        {
+          "id": "u07-l3-i4",
+          "type": "explain",
+          "src": "s8",
+          "seconds": 120,
+          "q": "How do you make the case for a technical proposal?",
+          "model": "In short, I build a fair comparison with evidence, and I end with a clear ask. First, I state the problem and its impact, ideally in numbers. For example, new hires reach payroll a day late, which creates about forty tickets a month. Then I agree the evaluation criteria with the stakeholders before I show any options, so we judge every option in the same way. I always include business as usual as the baseline, a do-minimum option, and one or two real alternatives. For each option I bring evidence: monitoring data, incident history or a short proof of concept. I recommend one option, state the trade-offs I accept, and name the main risks with a mitigation for each. I also raise my estimates of time and cost to allow for optimism bias. I finish with the ask: the decision I need, from whom, and by when. Afterwards, I record the decision in an ADR. The trade-off is time, so for a small decision that is easy to reverse, I keep this much lighter.",
+          "keypoints": [
+            { "text": "Start with the problem and its impact, in numbers", "kw": ["problem", "impact", "numbers", "tickets", "cost today"] },
+            { "text": "Agree the evaluation criteria first", "kw": ["criteria", "agree", "measure", "metrics"] },
+            { "text": "Compare options, including business as usual", "kw": ["business as usual", "do nothing", "baseline", "do-minimum", "do minimum", "alternatives", "options"] },
+            { "text": "Bring evidence for each option", "kw": ["evidence", "data", "proof of concept", "poc", "monitoring", "incident"] },
+            { "text": "Recommend, with trade-offs, risks and mitigations", "kw": ["recommend", "recommendation", "trade-off", "tradeoff", "risk", "mitigation"] },
+            { "text": "End with a clear ask and record the decision", "kw": ["ask", "decision i need", "by when", "approval", "approve", "adr"] }
+          ]
+        },
+        {
+          "id": "u07-l3-i5",
+          "type": "scenario",
+          "src": "s5",
+          "q": "A product owner tells you: 'HR wants real-time integration for every candidate field in SuccessFactors Recruiting. Please design it.' What do you do first?",
+          "options": [
+            { "text": "Ask why they need it and which tasks depend on fresh data, then turn the real need into a measurable criterion, such as hires in payroll within five minutes.", "ok": true, "why": "Treat a request as a request, not a requirement, and ask why until the real need appears. The answer becomes a criterion you can test every option against." },
+            { "text": "Start the design at once, because the business owns the requirements.", "ok": false, "why": "Business teams often jump to a solution before the real motivation is clear. You could build an expensive design that solves the wrong problem." },
+            { "text": "Say no, because real-time integration for every field is too expensive.", "ok": false, "why": "It may be too expensive, but a quick no dismisses a real business concern. Find the need first, then propose an option that still achieves the outcome." },
+            { "text": "Ask the team to compare streaming products before you talk to HR again.", "ok": false, "why": "This is still solution mode. Until you know the need, you cannot choose the criteria to compare products." }
+          ]
+        },
+        {
+          "id": "u07-l3-i6",
+          "type": "say",
+          "src": "s12",
+          "text": "If the decision goes against me, I disagree and commit. I support it fully, and I reopen it only if new facts appear."
+        },
+        {
+          "id": "u07-l3-i7",
+          "type": "scenario",
+          "src": "s4",
+          "q": "Your manager asks: 'Is there any risk in moving from the nightly batch to events?' What is the best answer?",
+          "options": [
+            { "text": "Yes. The team is new to Pub/Sub, so we will run both flows side by side for a month and compare. My confidence is medium, and I have written that in the ADR.", "ok": true, "why": "It names the risk, gives a mitigation and records the confidence level. Hiding consequences, on purpose or by accident, is what ADRs should avoid." },
+            { "text": "No. Google manages Pub/Sub, so there is nothing to worry about.", "ok": false, "why": "A managed service still needs a design for failures, and an ADR should not hide consequences." },
+            { "text": "There are many risks, and I cannot promise anything.", "ok": false, "why": "It is honest but not useful: risks without mitigations do not help the manager decide." },
+            { "text": "We can talk about risks after go-live, when we have real data.", "ok": false, "why": "Risks belong in the decision, so that stakeholders decide with full information." }
+          ]
+        },
+        {
+          "id": "u07-l3-i8",
+          "type": "explain",
+          "src": "s4",
+          "seconds": 120,
+          "q": "What is an architecture decision record, and how do you use ADRs in a team?",
+          "model": "An ADR is a short document that records one significant decision and the reasons for it. It has a title that names the decision, a status, the context, the decision itself, and the consequences, both positive and negative. I also list the options we ruled out and our confidence level, because that helps people who revisit the decision later. We only write ADRs for choices that affect the structure, the key quality attributes, or are hard to reverse, for example moving candidate updates from a nightly batch to Pub/Sub. We keep them in the repository next to the code. A new ADR starts as a pull request in the Proposed state, and we review it in a short readout meeting. Once it is accepted, we never edit it. If we change our mind, we write a new ADR that supersedes the old one and link the two. Together, the ADRs form our decision log. The cost is a little writing time, but it stops old debates from coming back.",
+          "keypoints": [
+            { "text": "One significant decision and its reasons", "kw": ["one decision", "significant", "reasons", "rationale", "why"] },
+            { "text": "Sections: status, context, decision, consequences", "kw": ["context", "consequences", "status"] },
+            { "text": "Options ruled out and confidence level", "kw": ["options", "alternatives", "ruled out", "confidence"] },
+            { "text": "Only for structural or hard-to-reverse choices", "kw": ["structure", "quality attributes", "hard to reverse", "difficult to reverse", "architecturally significant"] },
+            { "text": "Stored in the repository and reviewed", "kw": ["repository", "repo", "pull request", "review", "readout"] },
+            { "text": "Append-only: a new ADR supersedes the old one", "kw": ["supersede", "supersedes", "superseded", "never edit", "immutable", "append-only"] }
+          ]
+        },
+        {
+          "id": "u07-l3-i9",
+          "type": "scenario",
+          "src": "s12",
+          "q": "The interviewer asks: 'Two senior engineers disagree with your design, and you cannot convince them. What do you do?'",
+          "options": [
+            { "text": "Find out what worries them, test it with data or a short spike, and change the proposal if they are right. If there is still no agreement, use the agreed way to decide and record why.", "ok": true, "why": "Design reviews aim for a quorum; without one, the person with the most context makes the final decision, and the team commits to it. Recording the reasons stops the same debate from starting again." },
+            { "text": "Use your role as architect to make the final decision at once.", "ok": false, "why": "Deciding without listening loses trust, and you may miss a real risk." },
+            { "text": "Keep the discussion going until every person agrees.", "ok": false, "why": "Endless debate is expensive, and most decisions can be changed later." },
+            { "text": "Drop the proposal so that the team stays happy.", "ok": false, "why": "If the problem is real, it is still there. Withdraw only if the objection shows a better option." }
+          ]
+        },
+        {
+          "id": "u07-l3-i10",
+          "type": "explain",
+          "src": "s16",
+          "seconds": 120,
+          "q": "How would you present the same proposal to engineers and to managers?",
+          "model": "The facts stay the same, but the depth and the vocabulary change. With engineers, I show the design: a sequence diagram, the failure modes, how we retry and how we monitor the flow, and the data from the proof of concept. They want to know what can break and how much work it is. With managers, I start with the outcome and the decision I need. For example: new starters get their accounts on day one, it costs about this much per month, it takes six weeks, and these are the two main risks. I avoid jargon, or I explain it, because the wider the audience, the more I need to explain. In both cases, I listen for the real concern behind a question, and I bring the discussion back to the goals. I also share one written document, so both groups read the same proposal at the level they need.",
+          "keypoints": [
+            { "text": "Same facts, different depth", "kw": ["same facts", "depth", "level of detail", "detail"] },
+            { "text": "Engineers: design, failure modes and data", "kw": ["diagram", "failure", "design", "data", "proof of concept"] },
+            { "text": "Managers: outcome, cost, timeline, risks and the ask", "kw": ["outcome", "cost", "risk", "timeline", "weeks", "decision", "business"] },
+            { "text": "Avoid or explain jargon", "kw": ["jargon", "vocabulary", "explain", "plain"] },
+            { "text": "Listen for the concern and go back to the goals", "kw": ["listen", "concern", "goals", "goal"] }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "The shape of a proposal",
+        "points": [
+          "Problem: the impact today, in numbers if you have them.",
+          "Write it as a short design doc or RFC that people read before or at the start of the meeting; link the details.",
+          "Criteria: agree them with the stakeholders before you show any option.",
+          "Options: business as usual, a do-minimum option and one or two real alternatives.",
+          "Evidence: monitoring data, incidents, a time-boxed proof of concept.",
+          "Recommendation: the option and the trade-offs you accept.",
+          "Risks: each with a mitigation; allow for optimism bias in cost and time.",
+          "The ask: the decision you need, from whom, by when."
+        ]
+      },
+      {
+        "h": "Baseline and options (HM Treasury Green Book)",
+        "points": [
+          "Business as usual: the outcome if current arrangements continue. It is not doing nothing.",
+          "It always goes on the shortlist as the benchmark, even if it does not meet the objectives.",
+          "Do minimum: just meets the objectives; shows whether bigger options add real value.",
+          "Do not normalise business as usual to zero: it has its own costs, benefits and risks.",
+          "Optimism bias: raise cost and time estimates, lower benefit estimates."
+        ]
+      },
+      {
+        "h": "Trade study (Microsoft engineering playbook)",
+        "points": [
+          "Requirements, then criteria, then 2 to 4 options, then a time-boxed evaluation, then a recommendation.",
+          "Results: a table that rates each option against each criterion.",
+          "Each option has an experiment and the evidence it produced.",
+          "No trade study if there is a clear choice: just add it to the decision log.",
+          "No agreement yet: list action items with owners to reach the decision."
+        ]
+      },
+      {
+        "h": "ADR essentials",
+        "points": [
+          "One significant decision per ADR: structure, key quality attributes, hard to reverse.",
+          "Minimum: context, decision, consequences (AWS). Nygard: title, status, context, decision, consequences.",
+          "The title names the decision, not the problem. The decision starts with We will.",
+          "Add options ruled out, trade-offs and your confidence level (Azure).",
+          "Y-statement: in the context of, facing, we decided for, to achieve, accepting.",
+          "Explore the details in a separate design doc and link it; the ADR must still stand alone."
+        ]
+      },
+      {
+        "h": "ADR life cycle and reviews",
+        "points": [
+          "Proposed, then Accepted or Rejected; rework keeps it Proposed.",
+          "Rejected: the owner records why, so the topic is not reopened without new facts.",
+          "Accepted or rejected ADRs do not change. A new ADR supersedes the old one, and the two are linked.",
+          "Store ADRs in the repository. One convention: the pull request is the proposal, the merge is the acceptance.",
+          "Readout: 10 to 15 minutes of reading, 30 to 45 minutes at most, fewer than 10 people.",
+          "Reviewers point to accepted ADRs in code reviews."
+        ]
+      },
+      {
+        "h": "Engineers and managers",
+        "points": [
+          "Same facts, different depth and vocabulary.",
+          "Engineers: diagrams, failure modes, data, effort.",
+          "Managers: outcome, cost, timeline, risks, the ask.",
+          "The wider the audience, the more you must explain.",
+          "Treat requests as requests, not requirements: ask why until you find the real need."
+        ]
+      },
+      {
+        "h": "Handling objections",
+        "points": [
+          "Listen first and find the real concern; it may be a missing criterion or risk.",
+          "Resolve every comment: change the document or agree with its author.",
+          "After two rounds of written comments, talk live.",
+          "No quorum: the person with the most context makes the final decision.",
+          "Decision against you: disagree and commit; reopen it only with new facts.",
+          "Most decisions are two-way doors: decide, try, and review."
+        ]
+      },
+      {
+        "h": "My stories (STAR)",
+        "points": [
+          "Situation, Task, Action, Result, Lessons learned.",
+          "Say I for your actions and we for team results.",
+          "Put a number in the result: time, cost, incidents, tickets.",
+          "Short and conversational, not memorised; expect follow-up questions.",
+          "Prepare three: you convinced others, you influenced without authority, a proposal was rejected."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    { "id": "s1", "title": "Using architectural decision records to streamline technical decision-making for a software development project (AWS Prescriptive Guidance)", "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/architectural-decision-records/welcome.html", "official": true },
+    { "id": "s2", "title": "ADR process (AWS Prescriptive Guidance)", "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/architectural-decision-records/adr-process.html", "official": true },
+    { "id": "s3", "title": "Master architecture decision records (ADRs): Best practices for effective decision-making (AWS Architecture Blog, 20 March 2025)", "url": "https://aws.amazon.com/blogs/architecture/master-architecture-decision-records-adrs-best-practices-for-effective-decision-making/", "official": true },
+    { "id": "s4", "title": "Maintain an architecture decision record (ADR) (Azure Well-Architected Framework)", "url": "https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record", "official": true },
+    { "id": "s5", "title": "Align technical strategy with business requirements (Azure Well-Architected Framework)", "url": "https://learn.microsoft.com/en-us/azure/well-architected/architect-role/design-business-requirements", "official": true },
+    { "id": "s6", "title": "Solution Architect's Responsibilities and Guiding Principles (Azure Well-Architected Framework)", "url": "https://learn.microsoft.com/en-us/azure/well-architected/architect-role/checklist", "official": true },
+    { "id": "s7", "title": "Collaborate with workload and platform teams (Azure Well-Architected Framework)", "url": "https://learn.microsoft.com/en-us/azure/well-architected/architect-role/collaboration", "official": true },
+    { "id": "s8", "title": "Trade Studies (Microsoft Code With Engineering Playbook)", "url": "https://microsoft.github.io/code-with-engineering-playbook/design/design-reviews/trade-studies/", "official": true },
+    { "id": "s9", "title": "Trade Study Template (Microsoft Code With Engineering Playbook)", "url": "https://microsoft.github.io/code-with-engineering-playbook/design/design-reviews/trade-studies/template/", "official": true },
+    { "id": "s10", "title": "Design Decision Log (Microsoft Code With Engineering Playbook)", "url": "https://microsoft.github.io/code-with-engineering-playbook/design/design-reviews/decision-log/", "official": true },
+    { "id": "s11", "title": "Async Design Reviews (Microsoft Code With Engineering Playbook)", "url": "https://microsoft.github.io/code-with-engineering-playbook/design/design-reviews/recipes/async-design-reviews/", "official": true },
+    { "id": "s12", "title": "Design Reviews (Microsoft Code With Engineering Playbook)", "url": "https://microsoft.github.io/code-with-engineering-playbook/design/design-reviews/", "official": true },
+    { "id": "s13", "title": "Architectural Decision Records (adr.github.io)", "url": "https://adr.github.io/", "official": false },
+    { "id": "s14", "title": "ADR Templates (adr.github.io)", "url": "https://adr.github.io/adr-templates/", "official": false },
+    { "id": "s15", "title": "Documenting architecture decisions (The GDS Way, UK Government Digital Service)", "url": "https://gds-way.digital.cabinet-office.gov.uk/standards/architecture-decisions.html", "official": false },
+    { "id": "s16", "title": "Audience (Google Technical Writing One)", "url": "https://developers.google.com/tech-writing/one/audience", "official": true },
+    { "id": "s17", "title": "The Green Book (2026): appraisal and evaluation in central government (HM Treasury)", "url": "https://www.gov.uk/government/publications/the-green-book-appraisal-and-evaluation-in-central-government/the-green-book-2026", "official": true },
+    { "id": "s18", "title": "The STAR method (National Careers Service)", "url": "https://nationalcareers.service.gov.uk/careers-advice/interview-advice/the-star-method", "official": false },
+    { "id": "s19", "title": "FAQ (AWS Prescriptive Guidance: Using architectural decision records)", "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/architectural-decision-records/faq.html", "official": true }
+  ]
+}

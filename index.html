@@ -304,6 +304,13 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
 .lm-t{flex:1;min-width:0}.lm-t small{display:block;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
 .lm-i .lm-chk{flex:none;color:var(--brand-ink);visibility:hidden}
 .lm-i[aria-checked=true] .lm-chk{visibility:visible}
+/* Tech Prep (js/tech-boot.js, html[data-tech] mientras se está dentro): su entrada del menú va tras una línea, con su
+   icono en un círculo azul (también en el sitio de la bandera); dentro no hay monedas */
+.flag.tp-flag{display:grid;place-items:center;background:var(--brand-fill);color:#fff;box-shadow:none}
+.tb-flag .flag.tp-flag .ico{width:18px;height:18px}
+.lang-m .lm-tp{margin-top:9px}
+.lang-m .lm-tp::before,.lang-m .lm-i:hover+.lm-tp::before,.lang-m .lm-tp:hover::before{visibility:visible;top:-5px;left:12px;right:12px}
+:root[data-tech] .tb-coins,:root[data-tech] .tb-sep,:root[data-tech] .fx-coins{display:none}
 /* barra de pestañas flotante */
 .tabbar{position:fixed;z-index:var(--z-bar);left:max(16px,var(--safe-l));right:max(16px,var(--safe-r));bottom:var(--tabbar-b);
   max-width:520px;height:var(--tabbar-h);margin:0 auto;padding:4px;display:flex;border-radius:calc(var(--tabbar-h) / 2)}
@@ -397,6 +404,7 @@ main{padding:var(--topbar-h) 0 calc(var(--tabbar-h) + var(--tabbar-b) + 28px)}
 .focusbar>*{pointer-events:auto}
 /* en la lección y el repaso, la ✕ y las monedas van en la misma columna de 560 px que la barra y la tarjeta */
 :root:is([data-focus=leccion],[data-focus=repaso]) .focusbar{left:max(16px,var(--safe-l),calc(50% - 280px));right:max(16px,var(--safe-r),calc(50% - 280px))}
+:root[data-focus=tech] .focusbar{left:max(16px,var(--safe-l),calc(50% - 340px));right:max(16px,var(--safe-r),calc(50% - 340px))}   /* Tech Prep: columna de 680 px */
 .fx-x{flex:none;width:var(--tap);height:var(--tap);border-radius:50%;display:grid;place-items:center;color:var(--label);text-decoration:none}
 .fx-coins{display:flex;align-items:center;gap:5px;min-height:32px;padding:0 2px;font:800 calc(1.0625rem*var(--k))/1 var(--f-round);
   font-variant-numeric:tabular-nums;color:var(--gold-ink);white-space:nowrap}
@@ -827,6 +835,29 @@ dialog label{display:block;font-weight:600;margin:14px 0 6px}
 <symbol id="i-envelope-open-bold" viewBox="0 0 256 256"><path d="M230.66,86l-96-64a12,12,0,0,0-13.32,0l-96,64A12,12,0,0,0,20,96V200a20,20,0,0,0,20,20H216a20,20,0,0,0,20-20V96A12,12,0,0,0,230.66,86ZM89.81,152,44,184.31v-65ZM114.36,164h27.28L187,196H69.05ZM166.19,152,212,119.29v65ZM128,46.42l74.86,49.91L141.61,140H114.39L53.14,96.33Z"/></symbol>
 <symbol id="i-phone-fill" viewBox="0 0 256 256"><path d="M231.88,175.08A56.26,56.26,0,0,1,176,224C96.6,224,32,159.4,32,80A56.26,56.26,0,0,1,80.92,24.12a16,16,0,0,1,16.62,9.52l21.12,47.15,0,.12A16,16,0,0,1,117.39,96c-.18.27-.37.52-.57.77L96,121.45c7.49,15.22,23.41,31,38.83,38.51l24.34-20.71a8.12,8.12,0,0,1,.75-.56,16,16,0,0,1,15.17-1.4l.13.06,47.11,21.11A16,16,0,0,1,231.88,175.08Z"/></symbol>
 <symbol id="i-phone-disconnect-fill" viewBox="0 0 256 256"><path d="M236.28,161.84a16,16,0,0,1-18.38,5.06l-49-17.39-.29-.11a16,16,0,0,1-9.72-11.59l-6.21-29.75h0a76.52,76.52,0,0,0-49.68.11l-5.9,29.52a16,16,0,0,1-9.75,11.73l-.29.11-49,17.37A15.8,15.8,0,0,1,32.35,168a16,16,0,0,1-12.63-6.14c-17.23-22.22-15.3-51.71,4.69-71.71,56.15-56.17,151-56.17,207.18,0h0C251.58,110.13,253.51,139.62,236.28,161.84ZM216,192H40a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16Z"/></symbol>
+<symbol id="i-sun-fill" viewBox="0 0 256 256"><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm8,24a64,64,0,1,0,64,64A64.07,64.07,0,0,0,128,64ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></symbol>
+<symbol id="i-path-fill" viewBox="0 0 256 256"><path d="M228,200a28,28,0,0,1-54.83,8H72a48,48,0,0,1,0-96h96a24,24,0,0,0,0-48H72a8,8,0,0,1,0-16h96a40,40,0,0,1,0,80H72a32,32,0,0,0,0,64H173.17A28,28,0,0,1,228,200Z"/></symbol>
+<symbol id="i-briefcase-fill" viewBox="0 0 256 256"><path d="M152,112a8,8,0,0,1-8,8H112a8,8,0,0,1,0-16h32A8,8,0,0,1,152,112Zm80-40V200a16,16,0,0,1-16,16H40a16,16,0,0,1-16-16V72A16,16,0,0,1,40,56H80V48a24,24,0,0,1,24-24h48a24,24,0,0,1,24,24v8h40A16,16,0,0,1,232,72ZM96,56h64V48a8,8,0,0,0-8-8H104a8,8,0,0,0-8,8Zm120,57.61V72H40v41.61A184,184,0,0,0,128,136,184,184,0,0,0,216,113.61Z"/></symbol>
+<symbol id="i-microphone-stage-fill" viewBox="0 0 256 256"><path d="M115.06,46.36a4,4,0,0,0-6.11.54A71.54,71.54,0,0,0,96,88a73.29,73.29,0,0,0,.63,9.42L27.12,192.22A15.93,15.93,0,0,0,28.71,213L43,227.29a15.93,15.93,0,0,0,20.78,1.59l94.81-69.53A73.29,73.29,0,0,0,168,160a71.54,71.54,0,0,0,41.09-12.93,4,4,0,0,0,.54-6.11Zm2.61,103.28-16,16a8,8,0,1,1-11.31-11.31l16-16a8,8,0,0,1,11.31,11.31Zm109.4-20.56a4,4,0,0,1-6.12.54L126.38,35.05a4,4,0,0,1,.54-6.12A71.93,71.93,0,0,1,227.07,129.08Z"/></symbol>
+<symbol id="i-briefcase-bold" viewBox="0 0 256 256"><path d="M100,100a12,12,0,0,1,12-12h32a12,12,0,0,1,0,24H112A12,12,0,0,1,100,100ZM236,68V196a20,20,0,0,1-20,20H40a20,20,0,0,1-20-20V68A20,20,0,0,1,40,48H76V40a28,28,0,0,1,28-28h48a28,28,0,0,1,28,28v8h36A20,20,0,0,1,236,68ZM100,48h56V40a4,4,0,0,0-4-4H104a4,4,0,0,0-4,4ZM44,72v35.23A180.06,180.06,0,0,0,128,128a180,180,0,0,0,84-20.78V72ZM212,192V133.94A204.27,204.27,0,0,1,128,152a204.21,204.21,0,0,1-84-18.06V192Z"/></symbol>
+<symbol id="i-calendar-blank-bold" viewBox="0 0 256 256"><path d="M208,28H188V24a12,12,0,0,0-24,0v4H92V24a12,12,0,0,0-24,0v4H48A20,20,0,0,0,28,48V208a20,20,0,0,0,20,20H208a20,20,0,0,0,20-20V48A20,20,0,0,0,208,28ZM68,52a12,12,0,0,0,24,0h72a12,12,0,0,0,24,0h16V76H52V52ZM52,204V100H204V204Z"/></symbol>
+<symbol id="i-medal-fill" viewBox="0 0 256 256"><path d="M216,96A88,88,0,1,0,72,163.83V240a8,8,0,0,0,11.58,7.16L128,225l44.43,22.21A8.07,8.07,0,0,0,176,248a8,8,0,0,0,8-8V163.83A87.85,87.85,0,0,0,216,96ZM56,96a72,72,0,1,1,72,72A72.08,72.08,0,0,1,56,96Zm16,0a56,56,0,1,1,56,56A56.06,56.06,0,0,1,72,96Z"/></symbol>
+<symbol id="i-arrow-square-out-bold" viewBox="0 0 256 256"><path d="M228,104a12,12,0,0,1-24,0V69l-59.51,59.51a12,12,0,0,1-17-17L187,52H152a12,12,0,0,1,0-24h64a12,12,0,0,1,12,12Zm-44,24a12,12,0,0,0-12,12v64H52V84h64a12,12,0,0,0,0-24H48A20,20,0,0,0,28,80V208a20,20,0,0,0,20,20H176a20,20,0,0,0,20-20V140A12,12,0,0,0,184,128Z"/></symbol>
+<symbol id="i-translate-bold" viewBox="0 0 256 256"><path d="M250.73,210.63l-56-112a12,12,0,0,0-21.46,0l-20.52,41A84.2,84.2,0,0,1,114,126.22,107.48,107.48,0,0,0,139.33,68H160a12,12,0,0,0,0-24H108V32a12,12,0,0,0-24,0V44H32a12,12,0,0,0,0,24h83.13A83.69,83.69,0,0,1,96,110.35,84,84,0,0,1,83.6,91a12,12,0,1,0-21.81,10A107.55,107.55,0,0,0,78,126.24,83.54,83.54,0,0,1,32,140a12,12,0,0,0,0,24,107.47,107.47,0,0,0,64-21.07,108.4,108.4,0,0,0,45.39,19.44l-24.13,48.26a12,12,0,1,0,21.46,10.73L151.41,196h65.17l12.68,25.36a12,12,0,1,0,21.47-10.73ZM163.41,172,184,130.83,204.58,172Z"/></symbol>
+<symbol id="i-timer-bold" viewBox="0 0 256 256"><path d="M128,44a96,96,0,1,0,96,96A96.11,96.11,0,0,0,128,44Zm0,168a72,72,0,1,1,72-72A72.08,72.08,0,0,1,128,212ZM164.49,99.51a12,12,0,0,1,0,17l-28,28a12,12,0,0,1-17-17l28-28A12,12,0,0,1,164.49,99.51ZM92,16A12,12,0,0,1,104,4h48a12,12,0,0,1,0,24H104A12,12,0,0,1,92,16Z"/></symbol>
+<symbol id="i-lightning-bold" viewBox="0 0 256 256"><path d="M219.71,117.38a12,12,0,0,0-7.25-8.52L161.28,88.39l10.59-70.61a12,12,0,0,0-20.64-10l-112,120a12,12,0,0,0,4.31,19.33l51.18,20.47L84.13,238.22a12,12,0,0,0,20.64,10l112-120A12,12,0,0,0,219.71,117.38ZM113.6,203.55l6.27-41.77a12,12,0,0,0-7.41-12.92L68.74,131.37,142.4,52.45l-6.27,41.77a12,12,0,0,0,7.41,12.92l43.72,17.49Z"/></symbol>
+<symbol id="i-squares-four-bold" viewBox="0 0 256 256"><path d="M100,36H56A20,20,0,0,0,36,56v44a20,20,0,0,0,20,20h44a20,20,0,0,0,20-20V56A20,20,0,0,0,100,36ZM96,96H60V60H96ZM200,36H156a20,20,0,0,0-20,20v44a20,20,0,0,0,20,20h44a20,20,0,0,0,20-20V56A20,20,0,0,0,200,36Zm-4,60H160V60h36Zm-96,40H56a20,20,0,0,0-20,20v44a20,20,0,0,0,20,20h44a20,20,0,0,0,20-20V156A20,20,0,0,0,100,136Zm-4,60H60V160H96Zm104-60H156a20,20,0,0,0-20,20v44a20,20,0,0,0,20,20h44a20,20,0,0,0,20-20V156A20,20,0,0,0,200,136Zm-4,60H160V160h36Z"/></symbol>
+<symbol id="i-code-bold" viewBox="0 0 256 256"><path d="M71.68,97.22,34.74,128l36.94,30.78a12,12,0,1,1-15.36,18.44l-48-40a12,12,0,0,1,0-18.44l48-40A12,12,0,0,1,71.68,97.22Zm176,21.56-48-40a12,12,0,1,0-15.36,18.44L221.26,128l-36.94,30.78a12,12,0,1,0,15.36,18.44l48-40a12,12,0,0,0,0-18.44ZM164.1,28.72a12,12,0,0,0-15.38,7.18l-64,176a12,12,0,0,0,7.18,15.37A11.79,11.79,0,0,0,96,228a12,12,0,0,0,11.28-7.9l64-176A12,12,0,0,0,164.1,28.72Z"/></symbol>
+<symbol id="i-tree-structure-bold" viewBox="0 0 256 256"><path d="M160,116h48a20,20,0,0,0,20-20V48a20,20,0,0,0-20-20H160a20,20,0,0,0-20,20V60H128a28,28,0,0,0-28,28v28H76v-4A20,20,0,0,0,56,92H24A20,20,0,0,0,4,112v32a20,20,0,0,0,20,20H56a20,20,0,0,0,20-20v-4h24v28a28,28,0,0,0,28,28h12v12a20,20,0,0,0,20,20h48a20,20,0,0,0,20-20V160a20,20,0,0,0-20-20H160a20,20,0,0,0-20,20v12H128a4,4,0,0,1-4-4V88a4,4,0,0,1,4-4h12V96A20,20,0,0,0,160,116ZM52,140H28V116H52Zm112,24h40v40H164Zm0-112h40V92H164Z"/></symbol>
+<symbol id="i-list-checks-bold" viewBox="0 0 256 256"><path d="M228,128a12,12,0,0,1-12,12H128a12,12,0,0,1,0-24h88A12,12,0,0,1,228,128ZM128,76h88a12,12,0,0,0,0-24H128a12,12,0,0,0,0,24Zm88,104H128a12,12,0,0,0,0,24h88a12,12,0,0,0,0-24ZM79.51,39.51,56,63l-7.51-7.52a12,12,0,0,0-17,17l16,16a12,12,0,0,0,17,0l32-32a12,12,0,0,0-17-17Zm0,64L56,127l-7.51-7.52a12,12,0,1,0-17,17l16,16a12,12,0,0,0,17,0l32-32a12,12,0,0,0-17-17Zm0,64L56,191l-7.51-7.52a12,12,0,1,0-17,17l16,16a12,12,0,0,0,17,0l32-32a12,12,0,0,0-17-17Z"/></symbol>
+<symbol id="i-notebook-bold" viewBox="0 0 256 256"><path d="M108,108a12,12,0,0,1,12-12h56a12,12,0,0,1,0,24H120A12,12,0,0,1,108,108Zm68,28H120a12,12,0,0,0,0,24h56a12,12,0,0,0,0-24Zm52-88V208a20,20,0,0,1-20,20H48a20,20,0,0,1-20-20V48A20,20,0,0,1,48,28H208A20,20,0,0,1,228,48ZM52,204H68V52H52ZM204,52H92V204H204Z"/></symbol>
+<symbol id="i-arrow-right-bold" viewBox="0 0 256 256"><path d="M224.49,136.49l-72,72a12,12,0,0,1-17-17L187,140H40a12,12,0,0,1,0-24H187L135.51,64.48a12,12,0,0,1,17-17l72,72A12,12,0,0,1,224.49,136.49Z"/></symbol>
+<symbol id="i-check-circle-bold" viewBox="0 0 256 256"><path d="M176.49,95.51a12,12,0,0,1,0,17l-56,56a12,12,0,0,1-17,0l-24-24a12,12,0,1,1,17-17L112,143l47.51-47.52A12,12,0,0,1,176.49,95.51ZM236,128A108,108,0,1,1,128,20,108.12,108.12,0,0,1,236,128Zm-24,0a84,84,0,1,0-84,84A84.09,84.09,0,0,0,212,128Z"/></symbol>
+<symbol id="i-circle-bold" viewBox="0 0 256 256"><path d="M128,20A108,108,0,1,0,236,128,108.12,108.12,0,0,0,128,20Zm0,192a84,84,0,1,1,84-84A84.09,84.09,0,0,1,128,212Z"/></symbol>
+<symbol id="i-quotes-bold" viewBox="0 0 256 256"><path d="M100,52H40A20,20,0,0,0,20,72v64a20,20,0,0,0,20,20H96v4a28,28,0,0,1-28,28,12,12,0,0,0,0,24,52.06,52.06,0,0,0,52-52V72A20,20,0,0,0,100,52Zm-4,80H44V76H96ZM216,52H156a20,20,0,0,0-20,20v64a20,20,0,0,0,20,20h56v4a28,28,0,0,1-28,28,12,12,0,0,0,0,24,52.06,52.06,0,0,0,52-52V72A20,20,0,0,0,216,52Zm-4,80H160V76h52Z"/></symbol>
+<symbol id="i-chats-circle-bold" viewBox="0 0 256 256"><path d="M236.34,187.09A84,84,0,0,0,172.29,68.9,84,84,0,0,0,19.66,139.09l-6.84,23.26a20,20,0,0,0,24.83,24.83l23.26-6.84a83.94,83.94,0,0,0,22.76,6.74,84.06,84.06,0,0,0,111.42,41.26l23.26,6.84a20,20,0,0,0,24.83-24.83ZM62,155.5a11.88,11.88,0,0,0-3.39.49l-20.72,6.09L44,141.35a12,12,0,0,0-.93-9A60,60,0,1,1,67.7,156.92,12,12,0,0,0,62,155.5Zm150.89,24.8a12,12,0,0,0-.93,9l6.09,20.73L197.36,204a12,12,0,0,0-9.06.93A60,60,0,0,1,111,186.63a83.93,83.93,0,0,0,68.55-91.37,60,60,0,0,1,33.38,85Z"/></symbol>
+<symbol id="i-path-bold" viewBox="0 0 256 256"><path d="M200,164a36.07,36.07,0,0,0-33.94,24H72a28,28,0,0,1,0-56h96a44,44,0,0,0,0-88H72a12,12,0,0,0,0,24h96a20,20,0,0,1,0,40H72a52,52,0,0,0,0,104h94.06A36,36,0,1,0,200,164Zm0,48a12,12,0,1,1,12-12A12,12,0,0,1,200,212Z"/></symbol>
+<symbol id="i-microphone-stage-bold" viewBox="0 0 256 256"><path d="M168,12A75.9,75.9,0,0,0,92.49,96.33L23.91,189.85a19.89,19.89,0,0,0,2,26l14.29,14.29a19.89,19.89,0,0,0,26,2l93.52-68.58A76,76,0,1,0,168,12Zm52,76a51.66,51.66,0,0,1-7.75,27.27L140.74,43.75A52,52,0,0,1,220,88ZM54.72,210.71l-9.43-9.43,56.19-76.63a76.46,76.46,0,0,0,29.87,29.87ZM116,88a51.63,51.63,0,0,1,7.75-27.27l71.51,71.51A52,52,0,0,1,116,88Z"/></symbol>
 </svg>
 <header class="topbar" id="topbar">
   <a class="tb-back glass lite" id="dv-back" href="#/palabras" data-key="esc" data-key-pos="right"><svg class="ico" width="22" height="22" viewBox="0 0 256 256" aria-hidden="true" focusable="false"><use href="#i-caret-left-bold"></use></svg><span>Palabras</span></a>
@@ -1113,6 +1144,8 @@ function playClip(text, slow, done){
   return true;
 }
 function say(text, btn, slow){
+  /* en Tech Prep (los [data-say] y Mayús+Espacio de js/keys.js) habla su voz inglesa, sin los audios grabados del niño */
+  if(document.documentElement.hasAttribute("data-tech") && window.vocabTech && typeof vocabTech.speak === "function") return void vocabTech.speak(text, btn, {slow: !!slow});
   if(!("speechSynthesis" in window) && !clipFor(text)) return alert("Tu navegador no permite audio.");
   if("speechSynthesis" in window) speechSynthesis.cancel(); else stopClip();
   document.querySelectorAll(".say.playing").forEach(b=>b.classList.remove("playing"));
@@ -1563,7 +1596,8 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "data/stories/en/play.json", "data/stories/en/colours.json", "data/stories/en/cake.json", "data/stories/en/night.json",
   "data/stories/fr/play.json", "data/stories/fr/colours.json", "data/stories/fr/cake.json", "data/stories/fr/night.json",
   "data/stories/da/play.json", "data/stories/da/colours.json", "data/stories/da/cake.json", "data/stories/da/night.json",
-  "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png"];
+  "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
+  "js/tech-boot.js", "js/tech.js"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
 const OFF_IMG_MB = 8, OFF_IMG_N = 996;            /* dibujos y personajes, con img/fam2 (los que ya están no se vuelven a pedir) */
@@ -1810,13 +1844,20 @@ function rootOf(h){
   if(a === "loro") return "granja";   /* el loro eco y su cápsula (js/parrot.js) se abren desde la granja */
   if(a === "cuentos" || a === "cuento") return "juegos";   /* los Cuentos del zorro (js/stories.js) son de Juegos */
   if(a === "cazador") return "juegos";   /* el Cazador de cosas (js/hunter-boot.js, js/hunter.js) es de Juegos */
+  if(a === "techunit" || a === "techsheet") return "techpath";   /* Tech Prep (js/tech-boot.js): una unidad y una chuleta son de Path, */
+  if(a === "techcase") return "techcases";   /* un caso de My cases */
+  if(a === "techstory") return "techstories";   /* y una historia de Stories */
   return String(h || "");
 }
 const isRootPath = h => rootOf(h) === h;
 /* cada pestaña recuerda su última pantalla y su scroll (solo en esta sesión: sessionStorage, fuera de la partida) */
 const TABMEM = (() => { try{ const m = JSON.parse(sessionStorage.getItem("vocab:tabs")); return m && typeof m === "object" ? m : {}; }catch(e){ return {}; } })();
+/* las pestañas de Tech Prep ("tp-…") se recuerdan aparte ("tech:tabs"): la memoria del niño no lleva nada suyo */
+try{ const m = JSON.parse(sessionStorage.getItem("tech:tabs")); if(m && typeof m === "object") for(const k in m) if(k.startsWith("tp-")) TABMEM[k] = m[k]; }catch(e){}
 let memT = 0;
-const memSave = () => { clearTimeout(memT); memT = setTimeout(() => { try{ sessionStorage.setItem("vocab:tabs", JSON.stringify(TABMEM)); }catch(e){} }, 250); };
+const memSave = () => { clearTimeout(memT); memT = setTimeout(() => { try{
+  const kid = {}, tp = {}; for(const k in TABMEM) (k.startsWith("tp-") ? tp : kid)[k] = TABMEM[k];
+  sessionStorage.setItem("vocab:tabs", JSON.stringify(kid)); if(Object.keys(tp).length) sessionStorage.setItem("tech:tabs", JSON.stringify(tp)); }catch(e){} }, 250); };
 /* lo que se recuerda de una ruta: de una lección, su nivel del camino; de una partida, el menú de juegos */
 const memHash = h => secOf(h) === "leccion" || (secOf(h) === "juegos" && h.includes("/")) ? "#/" + rootOf(h) : "#/" + h;
 let curTab = null, tabRestore = null, ROUTE_RESTORE = false, ROUTE_FROM = null, focusOn = "", lastInput = 0;
@@ -1825,14 +1866,49 @@ let curTab = null, tabRestore = null, ROUTE_RESTORE = false, ROUTE_FROM = null, 
 function renderTabbar(){
   const nav = $("#tabbar"); if(!nav) return;
   /* el <nav> es el punto de referencia («Principal») y dentro va la lista de pestañas (role=tablist) */
-  nav.innerHTML = `<div class="tb-list" role="tablist" aria-label="Secciones">${TABS.map(t => `<a class="tab" role="tab" id="tab-${t.id}" data-nav="${t.id}" href="${esc(t.root)}" aria-selected="false" tabindex="-1">${ico(t.ic, "fill", 26)}<span class="tl">${esc(t.t)}</span><span class="tb-badge"${t.id === "aprender" ? ' id="due-b"' : ""} aria-hidden="true" hidden></span></a>`).join("")}</div>`;
+  nav.innerHTML = `<div class="tb-list" role="tablist" aria-label="${document.documentElement.hasAttribute("data-tech") ? "Sections" : "Secciones"}">${TABS.map(t => `<a class="tab" role="tab" id="tab-${t.id}" data-nav="${t.id}" href="${esc(t.root)}" aria-selected="false" tabindex="-1">${ico(t.ic, "fill", 26)}<span class="tl">${esc(t.t)}</span><span class="tb-badge"${t.id === "aprender" ? ' id="due-b"' : ""} aria-hidden="true" hidden></span></a>`).join("")}</div>`;
+}
+/* Tech Prep (js/tech-boot.js, S1-SPEC §2): mientras se está en una de sus rutas (interruptor encendido y Puerta pasada en
+   esta sesión: vocabTech.active), la barra enseña sus cinco pestañas en inglés, con el mismo componente, sitio, memoria
+   (TABMEM, guardada en "tech:tabs"), título grande y segmentos. TABS se cambia en su sitio (el resto del código sigue
+   leyendo TABS) y html[data-tech] (y lang="en-GB") lo dice; al salir vuelven las del niño tal cual, con sus avisos. */
+const TECH_TABS = [
+  {id:"tp-today", t:"Today", ic:"sun", root:"#/tech", title:"Today", secs:["tech"]},
+  {id:"tp-path", t:"Path", ic:"path", root:"#/techpath", title:"Path", secs:["techpath", "techunit", "techsheet", "techgloss"],
+    segs:[{t:"Units", h:"#/techpath", secs:["techpath", "techunit", "techsheet"]}, {t:"Glossary", h:"#/techgloss", secs:["techgloss"]}]},
+  {id:"tp-play", t:"Play", ic:"game-controller", root:"#/techplay", title:"Play", secs:["techplay"]},
+  {id:"tp-cases", t:"My cases", ic:"briefcase", root:"#/techcases", title:"My cases", secs:["techcases", "techcase", "techstories", "techstory"],
+    segs:[{t:"Cases", h:"#/techcases", secs:["techcases", "techcase"]}, {t:"Stories", h:"#/techstories", secs:["techstories", "techstory"]}]},
+  {id:"tp-mock", t:"Interview", ic:"microphone-stage", root:"#/techmock", title:"Mock interview", secs:["techmock"]},
+];
+let KID_TABS = null;
+const techOn = hp => !!(window.vocabTech && typeof vocabTech.active === "function" && vocabTech.active(hp));
+function tabSet(tech){
+  const root = document.documentElement; tech = !!tech;
+  if(tech === root.hasAttribute("data-tech")) return false;
+  if(tech) KID_TABS = TABS.splice(0, TABS.length, ...TECH_TABS);
+  else { TABS.splice(0, TABS.length, ...(KID_TABS || [])); KID_TABS = null; }
+  root.toggleAttribute("data-tech", tech);
+  root.lang = tech ? "en-GB" : "es";
+  curTab = null;
+  const nav = $("#tabbar"), gear = $("[data-open=ajustes]"), x = $("#fx-x"), head = $("#tabhead");
+  if(nav) nav.setAttribute("aria-label", tech ? "Main" : "Principal");
+  if(gear){ gear.setAttribute("aria-label", tech ? "Tech Prep settings" : "Ajustes"); gear.title = tech ? "Settings" : "Ajustes"; }
+  if(x) x.setAttribute("aria-label", tech ? "Close" : "Salir");
+  if(head){ head.dataset.k = ""; head.innerHTML = ""; }
+  renderTabbar(); renderLangs();
+  for(const id in BARGS){ delete BADGES[id]; tabBadge(id, ...BARGS[id]); }   /* los avisos del juego de pestañas que vuelve */
+  placeBarSoon();
+  bus.emit("tech-mode", {on: tech});
+  return true;
 }
 /* aviso en una pestaña: v = número (más de 9 sale «9+»), true = punto azul, 0/false = nada. label es lo que lee el
    lector de pantalla junto al nombre («6 palabras para repasar»). Da un saltito (M.bump) cuando cambia. Siempre azul.
    seg (opcional): la ruta del segmento al que se refiere el aviso ("#/repaso", "#/album"); el mismo aviso sale también
    en ese segmento, para que al entrar en la pestaña se vea dónde está lo nuevo. */
-const BADGES = {}, SEGB = {};
+const BADGES = {}, SEGB = {}, BARGS = {};
 function tabBadge(id, v, label, seg){
+  BARGS[id] = [v, label, seg];   /* (en Tech Prep la pestaña no está: se pone al volver, tabSet) */
   const a = document.getElementById("tab-" + id), b = a && a.querySelector(".tb-badge"); if(!b) return;
   const n = typeof v === "number" ? Math.max(0, Math.floor(v) || 0) : !!v;
   const key = n === true ? "dot" : String(n || 0), old = BADGES[id];
@@ -1853,7 +1929,8 @@ function paintSegBadges(){
   });
 }
 /* la cápsula de volver de la barra de arriba (#dv-back): adónde y con qué nombre */
-const backOf = h => secOf(h) === "doc" ? {h: "#/palabras", t: "Palabras"} : /^album\/./.test(h) ? {h: "#/album", t: "Álbum"}
+const backOf = h => window.vocabTech && typeof vocabTech.isSec === "function" && vocabTech.isSec(h) ? vocabTech.backOf(h)   /* Tech Prep: ‹ Path, ‹ My cases, ‹ My stories */
+  : secOf(h) === "doc" ? {h: "#/palabras", t: "Palabras"} : /^album\/./.test(h) ? {h: "#/album", t: "Álbum"}
   : secOf(h) === "temporada" ? {h: "#/", t: "Hoy"} : secOf(h) === "loro" ? {h: "#/granja", t: "Granja"}
   : secOf(h) === "frases" ? (window.vocabPhrases ? vocabPhrases.back() : {h: "#/juegos", t: "Juegos"})   /* a Hoy si se entró desde Hoy */
   : secOf(h) === "carta" || h === "buzon/responder" ? {h: "#/buzon", t: "Buzón"} : secOf(h) === "buzon" ? {h: "#/juegos", t: "Juegos"}
@@ -1891,10 +1968,11 @@ function paintHead(h){
 /* el título de la ventana y el aviso para el lector de pantalla cuando cambia la pantalla: «Aprender · Palabras» */
 let saidTitle = "";
 function sayScreen(h){
-  const t = tabOf(h), seg = segOf(t, h), f = focusOn;
-  const name = f === "leccion" ? "Lección" : f === "repaso" ? "Repaso" : f === "juego" ? "Partida" : f === "cuento" ? "Cuento"
-    : f === "cazador" ? "Cazador de cosas" : t ? (seg && t.segs && t.segs.length > 1 ? `${t.t} · ${seg.t}` : t.t) : "Vocabulary";
-  document.title = name === "Vocabulary" ? "Vocabulary – Vocabulario" : `${name} · Vocabulary`;
+  const t = tabOf(h), seg = segOf(t, h), f = focusOn, tp = document.documentElement.hasAttribute("data-tech");
+  const name = f === "tech" ? (window.vocabTech && vocabTech.focus && typeof vocabTech.focus.title === "function" && vocabTech.focus.title(h) || "Practice")   /* Tech Prep: «Lesson», «Review»… */
+    : f === "leccion" ? "Lección" : f === "repaso" ? "Repaso" : f === "juego" ? "Partida" : f === "cuento" ? "Cuento"
+    : f === "cazador" ? "Cazador de cosas" : t ? (seg && t.segs && t.segs.length > 1 ? `${t.t} · ${seg.t}` : t.t) : tp ? "Tech Prep" : "Vocabulary";
+  document.title = tp ? (name === "Tech Prep" ? name : `Tech Prep · ${name}`) : name === "Vocabulary" ? "Vocabulary – Vocabulario" : `${name} · Vocabulary`;
   if(name === saidTitle) return;
   const first = !saidTitle; saidTitle = name;
   const live = document.getElementById("route-say");
@@ -1911,11 +1989,11 @@ function setFocusFrom(v){ focusFrom = v || null; try{ if(v) sessionStorage.setIt
 function focusBack(f, h){
   if(f === "juego") return "#/juegos";
   if(focusFrom && tabOf(hashPath(focusFrom)) && secOf(hashPath(focusFrom)) !== "leccion") return focusFrom;
-  return f === "leccion" ? "#/" + rootOf(h) : f === "cuento" ? "#/cuentos" : f === "cazador" ? "#/juegos" : "#/";   /* el repaso (sin pantalla de antes) sale a Hoy */
+  return f === "leccion" ? "#/" + rootOf(h) : f === "cuento" ? "#/cuentos" : f === "cazador" ? "#/juegos" : f === "tech" ? "#/tech" : "#/";   /* el repaso (sin pantalla de antes) sale a Hoy; Tech Prep, a Today */
 }
 function updFocus(){
   const h = hashPath(), root = document.documentElement;
-  const f = secOf(h) === "leccion" ? "leccion" : rv && secOf(h) === "repaso" ? "repaso" : root.hasAttribute("data-gm-play") ? "juego" : secOf(h) === "cuento" ? "cuento" : secOf(h) === "cazador" ? "cazador" : "";
+  const f = secOf(h) === "techl" ? "tech" : secOf(h) === "leccion" ? "leccion" : rv && secOf(h) === "repaso" ? "repaso" : root.hasAttribute("data-gm-play") ? "juego" : secOf(h) === "cuento" ? "cuento" : secOf(h) === "cazador" ? "cazador" : "";
   if(f && !focusOn && plainHash) setFocusFrom(plainHash);   /* entra en el modo foco: de dónde viene */
   const x = $("#fx-x");
   if(x) x.setAttribute("href", f ? focusBack(f, h) : "#/");
@@ -2043,7 +2121,11 @@ function wireNav(){
     if(mz){ mz.scrollIntoView({block: "start", behavior: window.M && M.rm() ? "auto" : "smooth"}); return; }
     if(window.vocabFarm && typeof vocabFarm.openShop === "function") vocabFarm.openShop({from: e.currentTarget}); else location.hash = "#/granja";
   });
-  $("[data-open=ajustes]").addEventListener("click", e => { if(typeof window.openSettings === "function") window.openSettings(null, e.currentTarget); });
+  $("[data-open=ajustes]").addEventListener("click", e => {
+    /* en Tech Prep, sus ajustes (js/tech.js) y no los del niño */
+    if(document.documentElement.hasAttribute("data-tech")){ if(window.vocabTech && typeof vocabTech.openSettings === "function") vocabTech.openSettings(e.currentTarget); return; }
+    if(typeof window.openSettings === "function") window.openSettings(null, e.currentTarget);
+  });
   /* ✕ del modo foco: en una partida, la pausa de games.js («¿Paramos aquí?»); en el repaso, la hoja de js/review.js;
      si no, vuelve a donde estaba antes de entrar (o a la raíz de la pestaña) */
   $("#fx-x").addEventListener("click", e => {
@@ -2051,6 +2133,8 @@ function wireNav(){
     if(focusOn === "juego" && window.vocabGames && typeof vocabGames.pause === "function" && vocabGames.pause(e.currentTarget)) return;
     /* en el repaso, «¿Paramos aquí?» de js/review.js (Salir deja el repaso abierto para el accesorio «Seguir») */
     if(focusOn === "repaso" && window.vocabReview && typeof vocabReview.exit === "function" && vocabReview.exit(e.currentTarget)) return;
+    /* en Tech Prep, el módulo de la sesión abierta («Stop here?», vocabTech.focus.exit de js/tech.js) */
+    if(focusOn === "tech" && window.vocabTech && vocabTech.focus && typeof vocabTech.focus.exit === "function" && vocabTech.focus.exit(e.currentTarget)) return;
     if(focusOn === "repaso") rv = null;
     const to = e.currentTarget.getAttribute("href"), y = HASHY[to];
     if(to !== location.hash && y > 0) tabRestore = y;
@@ -2086,10 +2170,14 @@ const FLAGS = {
 const LANG_ES = {english: ["Inglés", "English"], "français": ["Francés", "Français"], dansk: ["Danés", "Dansk"]};
 function renderLangs(){
   const b = $("#lang-b"), m = $("#lang-m"); if(!b || !m) return;
-  b.innerHTML = `<span class="flag">${FLAGS[lang] || ""}</span>`;
-  b.setAttribute("aria-label", `Idioma: ${LANGS[lang].name}. Cambiar idioma`); b.title = `Idioma: ${LANGS[lang].name}`;
-  m.innerHTML = Object.keys(LANGS).map(k => `<button type="button" class="lm-i" role="menuitemradio" data-lang="${esc(k)}" aria-checked="${k === lang}" tabindex="-1">
-    <span class="flag">${FLAGS[k] || ""}</span><span class="lm-t">${esc((LANG_ES[k] || [k])[0])}<small lang="${esc(LANGS[k].code)}">${esc((LANG_ES[k] || [, ""])[1])}</small></span>${ico("check", "bold", 22, "lm-chk")}</button>`).join("");
+  /* en Tech Prep (html[data-tech]): su icono en el sitio de la bandera y el menú en inglés, con Tech Prep marcado */
+  const tp = document.documentElement.hasAttribute("data-tech"), EN = {english: "English", "français": "French", dansk: "Danish"};
+  b.innerHTML = tp ? `<span class="flag tp-flag">${ico("briefcase", "fill", 18)}</span>` : `<span class="flag">${FLAGS[lang] || ""}</span>`;
+  b.setAttribute("aria-label", tp ? "Tech Prep. Switch section" : `Idioma: ${LANGS[lang].name}. Cambiar idioma`); b.title = tp ? "Tech Prep" : `Idioma: ${LANGS[lang].name}`;
+  m.setAttribute("aria-label", tp ? "Switch section" : "Idioma que aprendes");
+  m.innerHTML = Object.keys(LANGS).map(k => `<button type="button" class="lm-i" role="menuitemradio" data-lang="${esc(k)}" aria-checked="${!tp && k === lang}" tabindex="-1">
+    <span class="flag">${FLAGS[k] || ""}</span><span class="lm-t">${esc(tp ? EN[k] || k : (LANG_ES[k] || [k])[0])}<small lang="${esc(LANGS[k].code)}">${esc(tp && k === "english" ? "" : (LANG_ES[k] || [, ""])[1])}</small></span>${ico("check", "bold", 22, "lm-chk")}</button>`).join("")
+    + (window.vocabTech && typeof vocabTech.menuItem === "function" ? vocabTech.menuItem() : "");   /* «Tech Prep», si está encendido (js/tech-boot.js) */
 }
 /* el menú nace de la bandera y vuelve a ella al cerrarse (M.popIn/M.popOut); [hidden] cambia al momento. now: sin
    animación (al cambiar de pantalla), y corta la salida que esté a medias */
@@ -2113,8 +2201,13 @@ function setLang(k){
 function wireLangs(){
   const m = $("#lang-m"), b = $("#lang-b");
   m.addEventListener("click", e => {
+    /* «Tech Prep» (js/tech-boot.js): Puerta y #/tech, sin cambiar el idioma del niño */
+    const tp = e.target.closest("[data-tech-entry]");
+    if(tp){ langMenu(false); b.focus({preventScroll: true}); if(window.vocabTech && typeof vocabTech.enter === "function") vocabTech.enter(b); return; }
     const it = e.target.closest("[data-lang]"); if(!it) return;
     langMenu(false); b.focus({preventScroll: true});
+    /* dentro de Tech Prep, un idioma sale a Hoy (y lo pone, si es otro) */
+    if(document.documentElement.hasAttribute("data-tech") && window.vocabTech && typeof vocabTech.leave === "function"){ vocabTech.leave(it.dataset.lang); return; }
     setLang(it.dataset.lang);
   });
   m.addEventListener("keydown", e => {
@@ -2297,7 +2390,7 @@ async function accRefresh(){
   const a = accEl(), h = hashPath(), root = document.documentElement;
   const same = !!(st && h === "" && homeOffer && homeOffer.kind === st.kind && (st.kind === "repaso" || homeOffer.id === st.id))
     || !!(st && h === "" && window.vocabShortcuts && vocabShortcuts.covers(st));   /* ya sale en «Tus atajos» */
-  const show = !!st && !focusOn && !same;
+  const show = !!st && !focusOn && !same && !root.hasAttribute("data-tech");   /* (en Tech Prep no sale el del niño) */
   if(st){
     a.setAttribute("href", st.href); a.setAttribute("aria-label", `${st.aria}. Vas por el ${Math.round(st.p * 100)} %`);
     a.querySelector(".acc-t").innerHTML = `Seguir · <b>${esc(st.label)}</b>`;
@@ -2627,7 +2720,11 @@ const knownRoute = hp => KNOWN.includes(secOf(hp)) || Object.prototype.hasOwnPro
 let prevHp = null, mapScrolled = false;
 async function route(){
   if(window.vocabLesson && vocabLesson.blocks(hashPath())) return;   /* lección a medias: «¿Paramos aquí?» (js/lesson.js) */
+  /* Tech Prep (js/tech-boot.js): una sesión nueva en #/tech… pasa antes la Puerta; dentro, una sesión de foco a medias
+     pregunta «Stop here?» */
+  if(window.vocabTech && typeof vocabTech.blocks === "function" && vocabTech.blocks(hashPath())) return;
   if(!knownRoute(hashPath())){ location.replace("#/"); return; }
+  tabSet(techOn(hashPath()));   /* sus pestañas mientras se está dentro; las del niño al salir */
   autoTok++; if("speechSynthesis" in window) speechSynthesis.cancel();
   const h = location.hash.replace(/^#\/?/,""), hp = hashPath(), from = prevHp; prevHp = hp;
   /* la pestaña se marca al momento (cambiar de pestaña es instantáneo); el título, los segmentos y el modo foco, con la
@@ -2708,6 +2805,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/calls.js?v=23"></script>
 <script src="js/stories.js?v=23"></script>
 <script src="js/hunter-boot.js?v=23"></script>
+<script src="js/tech-boot.js?v=23"></script>
 <script src="js/navmotion.js?v=23"></script>
 </body>
 </html>

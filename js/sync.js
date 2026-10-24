@@ -200,6 +200,43 @@ function upload(id, keys, h, keepalive){
   const url = id ? `${UP}/${encodeURIComponent(id)}?uploadType=multipart&fields=${FIELDS}` : `${UP}?uploadType=multipart&fields=${FIELDS}`;
   return drive(id ? "PATCH" : "POST", url, {body, headers: {"Content-Type": `multipart/related; boundary=${B}`}, keepalive: !!keepalive && small});
 }
+/* otro archivo de la carpeta privada, con el mismo permiso, la misma envoltura drive() y los mismos códigos de error
+   (SErr: e.code "offline" | "reconnect" | "auth" | "full" | "rate" | "gone" | "server" | "net" | "bad"): el de Tech Prep
+   (js/tech.js, "vocabulary-techprep.json"). No pide permiso nunca: sin uno vigente falla con "reconnect" sin marcar
+   nada y espera a que la renovación de siempre (los toques que valen) traiga uno; si Google rechaza el permiso (401/403),
+   drive() hace lo mismo que con el archivo del niño (es el mismo permiso). Nunca toca la partida del niño.
+   file(name) → {find() → {id, modifiedTime, appProperties} | null, meta(id), download(id) → objeto (JSON del archivo),
+   upload(id | null, objeto, appProps, {keepalive}) → {id, modifiedTime, appProperties} (sin id lo crea)} */
+function file(name){
+  if(typeof name !== "string" || !/^[\w.-]{1,80}\.json$/.test(name) || name === NAME) throw new Error("vocabSync.file: nombre no válido");
+  const ok = () => { if(!online()) throw new SErr("offline"); if(!tokOk()) throw new SErr("reconnect"); };
+  return Object.freeze({
+    name,
+    async find(){
+      ok();
+      const q = encodeURIComponent(`name='${name}' and trashed=false`);
+      const r = await drive("GET", `${API}?spaces=appDataFolder&q=${q}&orderBy=modifiedTime%20desc&pageSize=10&fields=files(${FIELDS})`);
+      return r && Array.isArray(r.files) && r.files.find(f => f && f.id) || null;
+    },
+    async meta(id){ ok(); return getMeta(id); },
+    async download(id){
+      ok();
+      const t = await download(id);
+      try{ return JSON.parse(t); }catch(e){ throw new SErr("bad"); }
+    },
+    async upload(id, obj, props, o){
+      ok();
+      const md = {appProperties: Object.assign({}, isObj(props) ? props : {})};
+      for(const k in md.appProperties) md.appProperties[k] = String(md.appProperties[k]);
+      if(!id) Object.assign(md, {name, parents: ["appDataFolder"], mimeType: "application/json"});
+      const B = "vocab" + Math.random().toString(36).slice(2) + now().toString(36);
+      const body = `--${B}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(md)}\r\n--${B}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(obj)}\r\n--${B}--`;
+      let small = false; try{ small = new Blob([body]).size < 60000; }catch(e){}
+      const url = id ? `${UP}/${encodeURIComponent(id)}?uploadType=multipart&fields=${FIELDS}` : `${UP}?uploadType=multipart&fields=${FIELDS}`;
+      return drive(id ? "PATCH" : "POST", url, {body, headers: {"Content-Type": `multipart/related; boundary=${B}`}, keepalive: !!(o && o.keepalive) && small});
+    },
+  });
+}
 async function fetchHint(){
   try{ const r = await drive("GET", ABOUT); const e = r && r.user && r.user.emailAddress; if(typeof e === "string" && e.includes("@") && connected()){ setMeta({hint: e}); paint(); } }catch(e){}
 }
@@ -747,6 +784,7 @@ bus.on("boot", () => {
 /* para pruebas y para los mayores curiosos */
 window.vocabSync = Object.freeze({
   sync: why => sync(why || "manual"), connect, disconnect, hash: localHash, hashKeys, score, renewInTap, tapDue, go,
+  file, connected, tokOk,   /* otro archivo de la carpeta privada (Tech Prep, js/tech.js); ¿entró un mayor?; ¿hay permiso ahora? */
   get state(){ return {phase, errCode, meta: meta(), tokOk: tokOk(), choice: !!choice}; },
   _delays(o){ Object.assign(T, o || {}); if(pollI){ clearInterval(pollI); pollI = 0; startPoll(); } if(pushT){ clearTimeout(pushT); pushT = 0; schedule(); } },
   _idle: () => chain,

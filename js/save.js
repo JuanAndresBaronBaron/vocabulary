@@ -43,6 +43,9 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
      Fuera de localStorage, y nunca en la partida: la base IndexedDB "vocab-media-user" (grabaciones del Buzón, la
      cápsula del tiempo del loro con kind "capsule" y los recortes de «Mi casa» del Cazador con kind "photo" y src
      "hunt"; js/mailbox.js, window.vocabMedia).
+     Fuera del inventario A PROPÓSITO: las claves "tech:…" de Tech Prep (la sección de mayores, js/tech-boot.js y
+     js/tech.js: tech:on, tech:data, tech:ui, tech:sync, tech:lsdraft…). No son de la partida del niño: ni se exportan
+     ni se cargan ni se borran con ella (writeAll solo quita claves del inventario); tienen su propio archivo de Google.
    Propias de este módulo (no se exportan ni se restauran desde un archivo):
      save:last (fecha de la última vez que se cargó una partida) · save:first (primer día de uso) ·
      save:snooze («Ahora no» del aviso de Google de la portada, que ya no existe: sin uso) · save:undo (copia para
