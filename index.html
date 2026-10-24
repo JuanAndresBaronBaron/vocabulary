@@ -1174,6 +1174,21 @@ function ttsTell(){
   M.toast("La voz del aparato no suena. Un mayor puede arreglarlo en Ajustes › Voz y velocidad.", {icon: "🔇", ms: 6000});
 }
 bus.on("route", () => { if(ttsTellWait) setTimeout(ttsTell, 600); });
+/* iPhone y iPad: con el modo silencio, Safari calla la voz del navegador (los audios grabados sí suenan), y ninguna web
+   puede saber si el aparato está en silencio ni su volumen (tampoco en Android ni en Windows). La primera vez que la voz
+   empieza a hablar, un aviso una vez en este aparato (no en Tech Prep, que va en inglés; con una hoja abierta, después) */
+const TTS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+let ttsIosWait = false;
+function ttsIosTip(){
+  if(!TTS_IOS || ttsRec().ios) return;
+  const r = document.documentElement;
+  if(r.hasAttribute("data-tech")) return;
+  if(document.querySelector("dialog[open]") || !window.M || typeof M.toast !== "function"){ ttsIosWait = true; return; }
+  ttsIosWait = false;
+  const o = ttsRec(); o.ios = Date.now(); store.set(TTS_KEY, o);
+  M.toast("¿No oyes la voz? Quita el modo silencio y sube el volumen.", {icon: "🔈", ms: 6000});
+}
+bus.on("route", () => { if(ttsIosWait) setTimeout(ttsIosTip, 600); });
 if("speechSynthesis" in window){
   const SS = speechSynthesis, cancel0 = SS.cancel.bind(SS), speak0 = SS.speak.bind(SS);
   const resume0 = () => { try{ if(TTS_AND || SS.paused) SS.resume(); }catch(e){} };   /* en Android, paused no siempre lo dice */
@@ -1209,7 +1224,7 @@ if("speechSynthesis" in window){
     const w = {cur: u, on: false, done: false, again: false, cut: false, n: 0, t: 0};
     const lg = () => String(u.lang || (LANGS[lang] && LANGS[lang].code) || "");
     const close = () => { w.done = true; clearTimeout(w.t); TTS.live.delete(w); };
-    const ok = () => { if(w.on || w.cut) return; w.on = true; clearTimeout(w.t); ttsMark(lg(), true); };
+    const ok = () => { if(w.on || w.cut) return; w.on = true; clearTimeout(w.t); ttsMark(lg(), true); ttsIosTip(); };
     /* tras un cancel() (w.cut) ya no se vigila, pero lo que diga el navegador («interrupted», end…) sigue llegando */
     const bind = x => {
       x.onstart = e => { if(w.cur !== x || w.done) return; ok(); call("start", e); };
@@ -1547,6 +1562,7 @@ function diagHtml(){
   const L = lang, p = TTS.probe[L], bad = ("speechSynthesis" in window) && (ttsMute(L) || (p && p.ok === false));
   return `<section class="st-sec" aria-labelledby="cfg-dh"><h3 class="st-h" id="cfg-dh">¿No se oye la voz?</h3><div class="st-g ics">
     <button type="button" class="st-r st-btn" id="cfg-pv"><span class="st-ic" aria-hidden="true">${ico("speaker-high", "bold", 18)}</span><span class="st-l">Probar voz<small id="cfg-pr" aria-live="polite">${p ? probeText(p) : `Dice una frase en ${esc(langEs(L).toLowerCase())} y cuenta lo que ve este aparato.`}</small></span></button>
+    <div class="st-r" id="cfg-vol"><span class="st-ic gr" aria-hidden="true">${ico("info", "bold", 18)}</span><span class="st-l">${TTS_IOS ? "Quita el modo silencio y sube el volumen" : "Sube el volumen"}<small>${TTS_IOS ? "Con el modo silencio (el interruptor del lateral o el botón de Acción), la voz no suena, aunque los audios grabados sí. La app no puede saber si está en silencio." : "La app no puede saber el volumen del aparato: si no se oye nada, súbelo."}</small></span></div>
     ${bad ? `<div class="st-r" id="cfg-fix"><span class="st-ic gr" aria-hidden="true">${ico("info", "bold", 18)}</span><span class="st-l">${ttsMute(L) ? "En este aparato la voz no suena" : "Cómo arreglarlo"}<small>${ttsHelp(L)}</small></span></div>` : ""}
   </div></section>`;
 }

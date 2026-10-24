@@ -570,3 +570,49 @@ def test_hunter_keeps_going_with_ios_like_video():
     finally:
         page.context.close()
     assert not probs, "\n".join(probs)
+
+
+_IPHONE_UA = ("Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) "
+              "Version/18.0 Mobile/15E148 Safari/604.1")
+_SILENT_MSG = "¿No oyes la voz? Quita el modo silencio y sube el volumen."
+
+
+def test_silent_mode_tip_on_iphone_once():
+    """Ninguna web puede saber si el aparato está en silencio: en iPhone y iPad, la primera vez que la voz del navegador
+    empieza a hablar sale una vez «¿No oyes la voz? Quita el modo silencio y sube el volumen.» (vocab:tts.ios); la
+    segunda, nada. En Voz y velocidad, «¿No se oye la voz?» lo explica (en iPhone, el modo silencio; en los demás,
+    el volumen). En Android, el aviso del iPhone nunca sale."""
+    probs = []
+    page = _tts_page("ok", ms=300, user_agent=_IPHONE_UA)
+    try:
+        page.evaluate("() => say('a phrase without a recording', null)")
+        page.wait_for_timeout(900)
+        if page.evaluate("() => __toasts") != [_SILENT_MSG]:
+            probs.append(f"iPhone, primera voz: {page.evaluate('() => __toasts')}")
+        if not (page.evaluate(_TTSREC) or {}).get("ios"):
+            probs.append(f"iPhone: vocab:tts sin ios: {page.evaluate(_TTSREC)}")
+        page.evaluate("() => say('another phrase without a recording', null)")
+        page.wait_for_timeout(900)
+        if page.evaluate("() => __toasts").count(_SILENT_MSG) != 1:
+            probs.append(f"iPhone, segunda voz: {page.evaluate('() => __toasts')}")
+        page.evaluate("() => { const d = document.createElement('div'); d.innerHTML = diagHtml(); document.body.append(d); }")
+        t = page.locator("#cfg-vol").inner_text()
+        if "modo silencio" not in t:
+            probs.append(f"iPhone, Voz y velocidad: {t!r}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    page = _tts_page("ok", ms=300)
+    try:
+        page.evaluate("() => say('a phrase without a recording', null)")
+        page.wait_for_timeout(900)
+        if _SILENT_MSG in page.evaluate("() => __toasts"):
+            probs.append("Android: sale el aviso del iPhone")
+        page.evaluate("() => { const d = document.createElement('div'); d.innerHTML = diagHtml(); document.body.append(d); }")
+        t = page.locator("#cfg-vol").inner_text()
+        if "Sube el volumen" not in t or "silencio" in t:
+            probs.append(f"Android, Voz y velocidad: {t!r}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
