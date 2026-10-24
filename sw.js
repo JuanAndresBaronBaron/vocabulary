@@ -37,6 +37,7 @@ const SHELL = [
   "data/calls/fr/tour.json", "data/calls/fr/matin.json", "data/calls/fr/pluie.json", "data/calls/fr/famille.json", "data/calls/fr/anniversaire.json",
   "data/calls/da/cykel.json", "data/calls/da/havn.json", "data/calls/da/bondegaard.json", "data/calls/da/sne.json", "data/calls/da/familie.json",
   "js/stories.js", "data/stories/index.json", "img/games/cuentos.png",
+  "js/hunter-boot.js", "js/hunter.js", "img/games/cazador.png",
   "data/stories/en/play.json", "data/stories/en/colours.json", "data/stories/en/cake.json", "data/stories/en/night.json",
   "data/stories/fr/play.json", "data/stories/fr/colours.json", "data/stories/fr/cake.json", "data/stories/fr/night.json",
   "data/stories/da/play.json", "data/stories/da/colours.json", "data/stories/da/cake.json", "data/stories/da/night.json",

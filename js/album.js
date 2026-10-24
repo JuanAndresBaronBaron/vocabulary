@@ -429,6 +429,7 @@ async function cover(nav){
       <div class="st-g">${news.map(x => `<a class="st-r al-nw" href="#/album/${esc(x.d.id)}" aria-label="${esc(x.d.title)}: ${x.nw} ${plural(x.nw, "pegatina nueva", "pegatinas nuevas")}">
         <span class="al-nw-e" aria-hidden="true">${emo(x.d)}</span><span class="st-l">${esc(x.d.title)}</span>
         <span class="al-cnt" aria-hidden="true">${x.nw > 99 ? "99+" : x.nw}</span>${IC("caret-right", "bold", 18, "al-chev")}</a>`).join("")}</div></section>` : ""}
+    ${window.vocabHunter && typeof vocabHunter.casaRow === "function" ? vocabHunter.casaRow() : ""}
     <div class="seg al-grps" role="tablist" aria-label="Partes del álbum">${groups.map(segI).join("")}</div>
     ${groups.map(g => `<div class="al-ths" id="al-ths-${g.g}" role="tabpanel" aria-labelledby="al-g-${g.g}" data-g="${g.g}" ${g.g === tab ? "" : "hidden"}>
       ${g.list.map(thumb).join("")}</div>`).join("")}
@@ -1016,7 +1017,9 @@ ROUTES["album"] = async parts => {
   css(); stopAll();
   const nav = ++NAV, raw = parts && parts[0] ? String(parts[0]) : "";
   let id = raw; try{ id = decodeURIComponent(raw); }catch(e){}   /* «#/album/%E2» → página no encontrada, sin error */
-  if(id) await page(id, nav); else { SLIDE = null; await cover(nav); }
+  /* «Mi casa»: las fotos del Cazador de cosas (las pinta js/hunter.js, que se carga aquí la primera vez) */
+  if(id === "casa" && window.vocabHunter && typeof vocabHunter.casa === "function"){ SLIDE = null; await vocabHunter.casa(() => alive(nav)); }
+  else if(id) await page(id, nav); else { SLIDE = null; await cover(nav); }
 };
 /* atrás del navegador con la tarjeta o la hoja abierta: se cierran en el acto, sin esperar a que se pinte la ruta nueva */
 window.addEventListener("hashchange", () => { if(DLG && DLG.open) closeDlg(); closeTopics(true); });

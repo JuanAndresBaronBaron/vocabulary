@@ -1590,6 +1590,7 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "data/calls/fr/tour.json", "data/calls/fr/matin.json", "data/calls/fr/pluie.json", "data/calls/fr/famille.json", "data/calls/fr/anniversaire.json",
   "data/calls/da/cykel.json", "data/calls/da/havn.json", "data/calls/da/bondegaard.json", "data/calls/da/sne.json", "data/calls/da/familie.json",
   "js/stories.js", "data/stories/index.json", "img/games/cuentos.png",
+  "js/hunter-boot.js", "js/hunter.js", "img/games/cazador.png",
   "data/stories/en/play.json", "data/stories/en/colours.json", "data/stories/en/cake.json", "data/stories/en/night.json",
   "data/stories/fr/play.json", "data/stories/fr/colours.json", "data/stories/fr/cake.json", "data/stories/fr/night.json",
   "data/stories/da/play.json", "data/stories/da/colours.json", "data/stories/da/cake.json", "data/stories/da/night.json",
@@ -1748,6 +1749,7 @@ async function downloadAll(){
     if(window.vocabMailbox && vocabMailbox.images) vocabMailbox.images().forEach(u => imgs.add(u));   /* los del Buzón del tío */
     if(window.vocabCalls && vocabCalls.images) (await vocabCalls.images()).forEach(u => imgs.add(u));   /* los de las llamadas del zorro (img/calls) */
     if(window.vocabStories && vocabStories.images) (await vocabStories.images()).forEach(u => imgs.add(u));   /* los de los Cuentos del zorro */
+    if(window.vocabHunter && vocabHunter.images) vocabHunter.images().forEach(u => imgs.add(u));   /* los del Cazador de cosas (modo tocar) */
     const second = [...[...imgs].map(u => [u, media]), ...ids.map(id => [`audio/${ab}/${id}.mp3`, media])];
     job.total = first.length + second.length;
     await pool(second, ([u, c]) => one(u, c, true, false));
@@ -1838,6 +1840,7 @@ function rootOf(h){
   if(a === "frases") return "juegos";   /* Frases mágicas y la frase de la cena (js/phrases.js) son de Juegos */
   if(a === "loro") return "granja";   /* el loro eco y su cápsula (js/parrot.js) se abren desde la granja */
   if(a === "cuentos" || a === "cuento") return "juegos";   /* los Cuentos del zorro (js/stories.js) son de Juegos */
+  if(a === "cazador") return "juegos";   /* el Cazador de cosas (js/hunter-boot.js, js/hunter.js) es de Juegos */
   return String(h || "");
 }
 const isRootPath = h => rootOf(h) === h;
@@ -1921,7 +1924,7 @@ let saidTitle = "";
 function sayScreen(h){
   const t = tabOf(h), seg = segOf(t, h), f = focusOn;
   const name = f === "leccion" ? "Lección" : f === "repaso" ? "Repaso" : f === "juego" ? "Partida" : f === "cuento" ? "Cuento"
-    : t ? (seg && t.segs && t.segs.length > 1 ? `${t.t} · ${seg.t}` : t.t) : "Vocabulary";
+    : f === "cazador" ? "Cazador de cosas" : t ? (seg && t.segs && t.segs.length > 1 ? `${t.t} · ${seg.t}` : t.t) : "Vocabulary";
   document.title = name === "Vocabulary" ? "Vocabulary – Vocabulario" : `${name} · Vocabulary`;
   if(name === saidTitle) return;
   const first = !saidTitle; saidTitle = name;
@@ -1939,11 +1942,11 @@ function setFocusFrom(v){ focusFrom = v || null; try{ if(v) sessionStorage.setIt
 function focusBack(f, h){
   if(f === "juego") return "#/juegos";
   if(focusFrom && tabOf(hashPath(focusFrom)) && secOf(hashPath(focusFrom)) !== "leccion") return focusFrom;
-  return f === "leccion" ? "#/" + rootOf(h) : f === "cuento" ? "#/cuentos" : "#/";   /* el repaso (sin pantalla de antes) sale a Hoy */
+  return f === "leccion" ? "#/" + rootOf(h) : f === "cuento" ? "#/cuentos" : f === "cazador" ? "#/juegos" : "#/";   /* el repaso (sin pantalla de antes) sale a Hoy */
 }
 function updFocus(){
   const h = hashPath(), root = document.documentElement;
-  const f = secOf(h) === "leccion" ? "leccion" : rv && secOf(h) === "repaso" ? "repaso" : root.hasAttribute("data-gm-play") ? "juego" : secOf(h) === "cuento" ? "cuento" : "";
+  const f = secOf(h) === "leccion" ? "leccion" : rv && secOf(h) === "repaso" ? "repaso" : root.hasAttribute("data-gm-play") ? "juego" : secOf(h) === "cuento" ? "cuento" : secOf(h) === "cazador" ? "cazador" : "";
   if(f && !focusOn && plainHash) setFocusFrom(plainHash);   /* entra en el modo foco: de dónde viene */
   const x = $("#fx-x");
   if(x) x.setAttribute("href", f ? focusBack(f, h) : "#/");
@@ -2735,6 +2738,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/parrot.js?v=22"></script>
 <script src="js/calls.js?v=22"></script>
 <script src="js/stories.js?v=22"></script>
+<script src="js/hunter-boot.js?v=22"></script>
 <script src="js/navmotion.js?v=22"></script>
 </body>
 </html>

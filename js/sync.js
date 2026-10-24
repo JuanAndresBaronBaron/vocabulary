@@ -434,7 +434,7 @@ const NO_TAP = `[data-no-renew], ${SOUND}, ${ASK}, #sv-box, ${FIELD}`;
 /* …ni lo que empieza una lección, un repaso, una partida, un cuento o una práctica de Palabras (su primer sonido sale enseguida;
    aún no está en modo foco: la ruta cambia después del toque), ni «Automático» de Palabras › Tarjetas (empieza a decir
    las palabras una tras otra) */
-const START = 'a[href^="#/leccion/"], a[href^="#/repaso"], a[href^="#/juegos/"], a[href^="#/cuento/"], .node[data-ls], #ls-rep, .fm-fa, [data-play-find], #pr-go, #pr-cont, #pr-again, .fcx #auto';
+const START = 'a[href^="#/leccion/"], a[href^="#/repaso"], a[href^="#/juegos/"], a[href^="#/cuento/"], a[href^="#/cazador"], .node[data-ls], #ls-rep, .fm-fa, [data-play-find], #pr-go, #pr-cont, #pr-again, .fcx #auto';
 const ENDS = ".ls-end, #rv-end";   /* el final de una lección o de un repaso (todavía en modo foco) */
 function tapOk(e){
   const t = e.target, a = t && t.closest ? t.closest(TAP) : null;
