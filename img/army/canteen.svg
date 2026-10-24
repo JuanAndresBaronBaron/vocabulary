@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 72" width="72" height="72"><title>Water bottle / Gourde / Feltflaske</title>
+<g stroke="#000" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+<path d="M29 18 h14 v7 h-14 z" fill="#9B9B9A"/>
+<rect x="27" y="10" width="18" height="8" rx="2.5" fill="#3F3F3F"/>
+<path d="M20 32 Q20 24 28 24 L44 24 Q52 24 52 32 L52 56 Q52 64 44 64 L28 64 Q20 64 20 56 Z" fill="#5C9E31"/>
+<path d="M27 14 Q16 20 20 32" fill="none"/>
+</g>
+<path d="M24 31 V57" stroke="#B1CC33" stroke-width="3" stroke-linecap="round"/>
+<path d="M21 44 H51" stroke="#3E6B21" stroke-width="2" stroke-dasharray="3 2.4"/>
+<rect x="31" y="34" width="10" height="7" rx="1.5" fill="#A57939" stroke="#000" stroke-width="1.6"/>
+</svg>

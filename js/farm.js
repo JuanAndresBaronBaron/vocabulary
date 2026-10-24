@@ -14,7 +14,8 @@
        farm:state.pos); soltar sin moverla = se queda donde está.
    - Hambre y tareas: un globo encima de cada animal con hambre enseña la comida que pide; el más urgente dice en el idioma
      «I'm hungry!» / «J'ai faim !» / «Jeg er sulten!» (con «¡Tengo hambre!» pequeño y en gris) y lo dice en voz alta una vez
-     por animal y visita (al tocarlo, o al entrar si no suena nada). Gotas sobre las plantas con sed y chispas en las que
+     por animal y visita (al tocarlo, o al entrar si no suena nada). Tocar ese globo es tocar el animal (con hambre, sale
+     «¿Qué le das…?» para darle de comer). Gotas sobre las plantas con sed y chispas en las que
      están listas. El globo de comer y «¿Cómo me llamo?» salen junto al animal (no tapan la granja).
    - Después de comer: «¿Cómo me llamo?» con 3 opciones para tocar y, si hay micrófono (canListen()), «Dilo»: lo que el
      reconocedor no entiende nunca cuenta como fallo (se puede tocar). Si la palabra está en el corpus del idioma (CORPUS,
@@ -935,7 +936,7 @@ function mount(host){
   function liftHint(id){
     const g = GS(); if(liftHinted || !g || typeof g.hint !== "function") return;
     liftHinted = true;
-    later(() => { const el = els[id]; if(el && !el._lift && !popOpen() && !dlgOpen() && !trayOpen() && !finding() && !coachEl && !dragging) g.hint(el, {id: "fm-lift", gesture: "hold", text: "Mantén para moverlo", max: 3, delay: 0}); }, 2800);
+    later(() => { const el = els[id]; if(el && !el._lift && !popOpen() && !dlgOpen() && !trayOpen() && !finding() && !coachEl && !dragging) g.hint(el, {id: "fm-lift", gesture: "hold", text: "Mantén para moverlo", max: 3, delay: 0, side: el.querySelector(".fm-ask") ? "bottom" : undefined}); }, 2800);   /* con hambre, debajo: la nube se sigue pudiendo tocar */
   }
 
   /* ---------- tocar cosas ---------- */
@@ -1821,11 +1822,22 @@ function mount(host){
     }
     return best;
   }
+  /* una pista de gestos (G.hint, fuera de la escena) que sale encima de la nube del hambre no se come el toque: va a la nube */
+  const onHintTap = e => {
+    const t = e.target; if(!alive || !t || !t.closest || !t.closest(".g-hint") || t.closest(".g-hint-x")) return;
+    let a = null; try{ a = document.elementsFromPoint(e.clientX, e.clientY).map(x => x.closest && x.closest(".fm-ask")).find(Boolean); }catch(err){}
+    const ai = a && a.closest(".fm-it"); if(!ai || !stage.contains(ai) || !ai.dataset.fid) return;
+    e.stopPropagation(); noHint(); tap(ai.dataset.fid, e);
+  };
+  document.addEventListener("click", onHintTap, true); OFF.push(() => document.removeEventListener("click", onHintTap, true));
   stage.addEventListener("click", e => {
     const t = e.target;
     /* (un botón del globo que ya se quitó al tocarlo, p. ej. la comida elegida, no es un toque en la escena) */
     if(!t.isConnected || t.closest(".fm-bub, .fm-find, .fm-hint, .fm-pop, .fm-tray, .fm-dock, .fm-coach")) return;
     if(t.closest(".fm-shel")){ if(!finding()) openShelter(); return; }
+    /* el globo del hambre (la nube blanca que sale del animal) es del animal: tocarlo es tocarlo a él (con hambre, su comida) */
+    const ask = t.closest(".fm-ask"), ai = ask && ask.closest(".fm-it");
+    if(ai && ai.dataset.fid) return tap(ai.dataset.fid, e);
     const it = pickIt(e, t.closest(".fm-it")); if(it) return tap(it.dataset.fid, e);
     const pr = t.closest(".fm-prod"); if(pr){ if(!finding()) collect(pr.dataset.pk, pr); return; }
     /* el personaje no tapa nada: se le toca solo si debajo no hay otra cosa */
@@ -2069,7 +2081,7 @@ function css(){
 .fm-stage.finding .fm-need,.fm-stage.finding .fm-zz,.fm-stage.finding .fm-spk,.fm-stage.finding .fm-ask,.fm-stage.finding .fm-shel{display:none}
 /* el globo del hambre: la comida que pide (y, en el más urgente, la frase en el idioma con la traducción en gris) */
 .fm-ask{position:absolute;left:50%;bottom:calc(100% + 6px);transform:translateX(-50%) scale(calc(1 / var(--d,1)));transform-origin:50% 100%;display:flex;align-items:center;gap:8px;min-height:40px;padding:4px 14px 4px 8px;border-radius:20px;background:#fff;color:#000;
-  font:600 15px/1.15 var(--f-text);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.2);pointer-events:none;z-index:2;animation:fmBob 1.6s ease-in-out 3}
+  font:600 15px/1.15 var(--f-text);white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.2);pointer-events:auto;cursor:pointer;-webkit-tap-highlight-color:transparent;z-index:2;animation:fmBob 1.6s ease-in-out 3}
 .fm-ask::after{content:"";position:absolute;top:calc(100% - 1px);left:var(--tl,50%);margin-left:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
 .fm-ae{flex:none;font-size:24px;line-height:1}
 .fm-at{display:flex;flex-direction:column;text-align:left;min-width:0}

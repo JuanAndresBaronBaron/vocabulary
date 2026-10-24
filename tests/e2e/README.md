@@ -276,12 +276,27 @@ compartida no responde).
   capturas `S1-*.png` en `/mnt/project-files/tech-prep/capturas/S1` (`VOCAB_TECH_CAPTURAS` cambia la carpeta). Con
   `VOCAB_TECH=1`, `routes.py` añade las rutas de Tech Prep (con `"tech": True`) a las pruebas que recorren todas las rutas
   y a `shots.py`.
-- `test_update_v23.py` (la actualización desde main 4185280 con sw `vocab-shell-v23` a esta versión en el mismo origen,
+- `test_update_v23_tech.py` (la actualización desde main 4185280 con sw `vocab-shell-v23` a esta versión en el mismo origen, mirando Tech Prep;
   como `test_update_v22.py`; `VOCAB_BASE23=<copia de ese commit>` o sacada con `git archive`): lo de siempre (primera
   carga ya nueva, sw nuevo con todo `SHELL`, partida y granja iguales, mensaje del Buzón en IndexedDB, IPA, el toque que
   sube a Google) y además Tech Prep sale apagado (sin entrada en el menú, `#/tech…` a `#/`, solo `js/tech-boot.js`); un
   mayor lo enciende en el aparato de Leo, lo usa, pide «Download for offline» y, con el servidor parado, Today, una unidad,
   el glosario, una lección y un caso siguen; luego lo apaga. Capturas en `capturas/v24`.
+- `test_update_v23.py` (la actualización desde main 4185280 con sw `vocab-shell-v23` a esta, la v24; `VOCAB_BASE23=<copia
+  de ese commit>` o `git archive`): lo mismo que `test_update_v22.py` un paso después (`?v=24`, `vocab-shell-v24`, sin
+  claves nuevas) y, además, el botón de Google de la barra de arriba sale para Leo (sin Google) y no para Lucía.
+  Capturas en `capturas/arreglos-v24/actualizar`.
+- `test_arreglos_v24.py` (lo que vio el dueño en los aparatos de su sobrino): la voz del navegador en Android con un
+  `speechSynthesis` de mentira que imita sus fallos (lang «en_GB», el speak justo tras cancel() que se pierde, en pausa,
+  una voz que no acepta, un motor que nunca suena): se oye lo que se toca mientras otra cosa suena, sin cancel() de más,
+  el « » de desbloquear no llega al motor de Android, resume() en pausa, el reintento sin voz a los ~2 s, `vocab:tts` (solo del aparato) con un aviso una vez, «¿No se oye la
+  voz?» en Voz y velocidad con los pasos de Android y el enlace a «Servicios de voz de Google» por la Puerta, y «Probar
+  voz» con lo que ve el aparato; la nube del hambre de la granja (grande y pequeña) y el animal abren «¿Qué le das…?»,
+  también con una pista de gestos encima de la nube;
+  el botón de Google arriba (cabe a 360 px con texto grande, Puerta, permiso dentro del toque, se va al conectar, nunca
+  con `html[data-tech]`); y el cazador: tres rondas seguidas con la cámara falsa de Chromium (un `.y4m` con los 4
+  colores) y dos con un vídeo «de iPhone» (al sonar algo se para y `play()` no contesta tras `pause()`). Capturas en
+  `capturas/arreglos-v24`.
 - `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en
   Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso, «Escucha y elige» de la lección y
   «Elige el dibujo» de Truco o trato, en 360×740 y 390×844 (Globos también en 320, 375, 430 y 844×390) contra un mínimo;
@@ -312,6 +327,14 @@ compartida no responde).
   propia `dialog#cfg`, sin internet las del aparato y el reintento (también del ▶), códigos de otros idiomas (`es-ES`),
   Chrome en Android (`u.lang`, un acento por fila) y el teclado. Con `VOCES_SHOTS=1` guarda capturas en
   `/mnt/project-files/rediseno/capturas/voces/`.
+- `test_juegos_grupo.py` (`js/party.js` y `data/party.json`; `say`/`sayP` espiados): los datos sacados del vocabulario
+  (misma palabra e IPA que en `data/<d>.json`, dibujos, temas de Juegos), las dos tarjetas tras «Oído de lince»; El
+  impostor en grupo (nombres que se guardan solos en `"party:st"`, fuera de la exportación; un impostor; el papel no suena
+  solo; «Tapar y pasar»; 3 rondas sin que empiece el impostor; votar; última oportunidad entre 4 dibujos; ★★★ o ★★ y
+  monedas), solo (el zorro y sus amigos con palabras e IPA, una opción buena de 3, el impostor de la app con palabras
+  de otra cosa de su familia; con `Math.random` fijo, también el niño de impostor que adivina la palabra) y Ordenar
+  (cestas con nombre, IPA, dibujo y altavoz; tocar y arrastrar; gris con ✗ y la buena iluminada al segundo fallo;
+  estrellas, récord «N a la primera» y monedas), en francés y danés, y capturas en `capturas/juegos-grupo`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

@@ -24,6 +24,9 @@ _FINISH = """() => { for (const a of document.getAnimations()) { try {
 } catch (e) {} } }"""
 OUT = C.CAPTURAS / "F4"
 GAMES = ["memoria", "lluvia", "globos", "letras", "lince"]
+# los juegos en grupo de js/party.js (El impostor y Ordenar por grupo), con su chip «Nuevo» como «Oído de lince»
+CARDS = GAMES + ["impostor", "ordenar"]
+FRESH = {"lince", "impostor", "ordenar"}
 AB = {"english": "en", "français": "fr", "dansk": "da"}
 _ARTS = {"english": re.compile(r"^(?:the|an?|to)\s+", re.I),   # los artículos de js/lince.js (ARTS)
          "français": re.compile(r"^(?:les|le|la|une|un|des|du|se)\s+|^(?:l|s|d)['’]", re.I),
@@ -269,7 +272,7 @@ def test_menu_cards_and_topic_sheet():
             pill: document.getElementById('gm-tpill').textContent.replace(/\\s+/g, ' ').trim()}; }""")
         if m["fox"] or m["inicio"] or m["prueba"] or m["tpanel"]:
             probs.append(f"quedan piezas viejas en el menú: {m}")
-        if [c["g"] for c in m["cards"]] != GAMES:
+        if [c["g"] for c in m["cards"] if c["g"] != "soldados"] != CARDS:   # soldados (js/army.js) va aparte
             probs.append(f"tarjetas: {[c['g'] for c in m['cards']]}")
         best = page.evaluate(_BEST)
         for c in m["cards"]:
@@ -285,7 +288,7 @@ def test_menu_cards_and_topic_sheet():
                 probs.append(f"{c['g']}: las estrellas que faltan no son grises: {c['offColor']}")
             if not b and c["rec"] != "Sin récord":
                 probs.append(f"{c['g']}: sin jugar dice {c['rec']!r}")
-            if c["nuevo"] != (c["g"] == "lince" and not b):
+            if c["nuevo"] != (c["g"] in FRESH and not b):
                 probs.append(f"{c['g']}: chip «Nuevo» {c['nuevo']} (récord {b})")
             if re.search(r"[?!.]\.", c["aria"] or "") or c["recH"] != 36 or c["recLines"] != 1:
                 probs.append(f"{c['g']}: nombre {c['aria']!r} o fila del récord de {c['recH']} px y {c['recLines']} líneas")

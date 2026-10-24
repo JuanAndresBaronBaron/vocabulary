@@ -1435,7 +1435,9 @@ def test_f5_voices_use_the_voice_of_each_language():
                     probs.append(f"la carta {lt['id']} no suena con {want} ({lang_tag}): {sp}")
             except Exception as e:  # noqa: BLE001
                 probs.append(f"la carta {lt['id']} no se lee: {str(e).splitlines()[0]} · {page.evaluate(_SPOKEN)}")
-        # el toque que desbloquea la voz: un atajo de juego en Hoy y una tarjeta de Juegos
+        # el toque que desbloquea la voz: un atajo de juego en Hoy y una tarjeta de Juegos (con la voz del idioma; desde
+        # v24, en Android ese « » no llega al motor: solo hace falta en iPhone y iPad, y en Android puede atascar la voz)
+        andr = page.evaluate("() => /Android/i.test(navigator.userAgent)")
         _hoy(page)
         _hoy(page)
         if page.locator("#hm-sc .sc-p[data-game]").count():
@@ -1443,7 +1445,7 @@ def test_f5_voices_use_the_voice_of_each_language():
             page.locator("#hm-sc .sc-p[data-game]").first.click()
             page.wait_for_timeout(300)
             un = page.evaluate("() => window.__spoken.filter(s => !s.text.trim())")
-            if not un or any(x["voice"] != _HAZEL for x in un):
+            if un if andr else (not un or any(x["voice"] != _HAZEL for x in un)):
                 probs.append(f"el atajo de un juego desbloquea la voz sin la voz del idioma: {un}")
         else:
             probs.append(f"Hoy sin atajos de juego: {page.evaluate(_SCROW)}")
@@ -1453,7 +1455,7 @@ def test_f5_voices_use_the_voice_of_each_language():
         page.locator(".gm-card[data-g=globos]").click()
         page.wait_for_timeout(300)
         un = page.evaluate("() => window.__spoken.filter(s => !s.text.trim())")
-        if not un or any(x["voice"] != _HAZEL for x in un):
+        if un if andr else (not un or any(x["voice"] != _HAZEL for x in un)):
             probs.append(f"la tarjeta de un juego desbloquea la voz sin la voz del idioma: {un}")
         probs += [f"inglés: {e}" for e in C.errors(page)]
     finally:

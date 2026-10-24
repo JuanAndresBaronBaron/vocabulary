@@ -75,6 +75,10 @@ def all_routes(only=None):
 add("palabras", "#/palabras", "Aprender › Palabras (temas, las 3000 y avanzado)")
 # F4a: Oído de lince (js/lince.js), el juego nuevo de Juegos
 add("juego-lince", "#/juegos/lince", "Juego Oído de lince (inicio de partida)")
+# Juegos en grupo (js/party.js): El impostor (elegir modo; en grupo, los nombres) y Ordenar por grupo
+add("juego-impostor", "#/juegos/impostor", "Juego El impostor (elegir: en grupo o solo)")
+add("juego-impostor-grupo", "#/juegos/impostor?m=grupo", "Juego El impostor en grupo (los nombres)")
+add("juego-ordenar", "#/juegos/ordenar", "Juego Ordenar por grupo (inicio de partida)")
 # F4c: Premios › Mi zorro (js/rewards.js): el personaje y sus trajes
 add("mizorro", "#/mizorro", "Premios › Mi zorro (personaje y trajes)")
 # F5c: el Buzón del tío (js/mailbox.js): grabar, contestar (tras la Puerta de mayores) y una carta que llega por enlace
@@ -96,6 +100,9 @@ add("juegos-cuento", "#/cuento/en-play", "Jugar › Cuentos › The Fox Wants to
 # F6k: el Cazador de cosas (js/hunter-boot.js, js/hunter.js): la frase de antes de la cámara (modo foco) y «Mi casa» del álbum
 add("juegos-cazador", "#/cazador", "Jugar › Cazador de cosas (antes de la cámara: una frase y un botón; modo foco)")
 add("album-casa", "#/album/casa", "Jugar › Álbum › Mi casa (las fotos del Cazador; vacía en la partida sembrada)")
+# Soldado (js/army.js): el juego «Misión por radio» (inicio de partida) y Mi zorro (la partida sembrada no tiene el
+# soldado: se ve en Personajes con su uniforme del idioma)
+add("juego-soldados", "#/juegos/soldados", "Jugar › Misión por radio (órdenes del sargento por radio)")
 # F4d: las temporadas (js/season.js). La partida sembrada es de marzo (sin temporada): ?season=halloween la fuerza en
 # esta sesión, así que van las últimas (lo que venga detrás en la misma página ve Halloween)
 add("temporada", "#/temporada?season=halloween", "Hoy › Truco o trato (Halloween forzado)")

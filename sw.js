@@ -14,13 +14,13 @@
    Al subir VERSION se sube también OFF_SHELL y el «?v=» de los <script> de index.html y privacy.html: GitHub Pages manda
    max-age=600 y, sin eso, el sw anterior (que pide a la red con la caché HTTP) daría el index.html nuevo con módulos
    viejos de esa caché. El shell se guarda y se busca sin el «?v=». */
-const VERSION = 24;
+const VERSION = 26;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
 const SHELL = [
   "./", "index.html", "privacy.html", "manifest.webmanifest",
   "data/index.json", "data/map.json", "data/game.json", "data/sprites.json",
-  "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/buddy.js", "js/album.js",
+  "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/party.js", "data/party.json", "img/games/impostor.png", "img/games/ordenar.png", "js/buddy.js", "js/album.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "js/rewards.js",
   "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png",
@@ -42,6 +42,7 @@ const SHELL = [
   "data/stories/fr/play.json", "data/stories/fr/colours.json", "data/stories/fr/cake.json", "data/stories/fr/night.json",
   "data/stories/da/play.json", "data/stories/da/colours.json", "data/stories/da/cake.json", "data/stories/da/night.json",
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
+  "js/army.js", "data/army/en.json", "data/army/fr.json", "data/army/da.json", "img/games/soldados.png",
   "js/tech-boot.js", "js/tech.js", "js/tech-lesson.js",
   "js/tech-pages.js",
 ];

@@ -478,7 +478,7 @@ def test_api_items_state_and_cards():
             worn: [S.worn('hero'), S.worn('hat'), S.worn('face')], coins: S.coins(), st, html, none: S.card('nada'),
             types: S.types.map(t => t.t), imgs: S.images(),
             modes: [S.card('gallina', {mode: 'farm'}).includes('data-mode="farm"'), S.card('gorra').includes('data-mode="zorro"')]}; }""")
-        exp = {"all": 64, "n": 64, "farm": 29, "farmOk": True, "zorro": 35, "zorroOk": True, "hat": 6, "two": 9, "fn": 5, "copy": True,
+        exp = {"all": 65, "n": 65, "farm": 29, "farmOk": True, "zorro": 36, "zorroOk": True, "hat": 6, "two": 9, "fn": 5, "copy": True,
                "by": 60, "word": "hen", "owned": [True, False], "worn": ["zorro", "gorra", None], "coins": 245,
                "types": ["hero", "hat", "face", "hand", "pet", "farm"], "modes": [True, True], "none": ""}
         for k, v in exp.items():

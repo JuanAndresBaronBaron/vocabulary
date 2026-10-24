@@ -22,7 +22,8 @@
      ahora», que un mayor puede tocar cuando quiera). Si Google contesta tarde, el permiso vale igual.
    - Interfaz: el bloque va en Ajustes › Para mayores (js/settings.js avisa por el bus «settings»; se llega tras la
      Puerta de mayores) y el estado en la fila «Para mayores» de Ajustes ([data-sync-cfg]). Entrar, salir o cambiar la
-     partida pasan por la Puerta (window.adultGate).
+     partida pasan por la Puerta (window.adultGate). Mientras no hay Google, además un botón con la G en la barra de
+     arriba (#tb-google, topPaint): Puerta y el mismo «Entrar con Google» de Para mayores; conectado, se quita.
    Estado propio (no se sube ni se restaura): "save:sync" {fileId, remoteModified, baseHash, lastPushedHash,
    localDirty, connectedAt, lastSync, lastPull, hint, reconnect (sin permiso desde…; con intentos de renovarlo, desde el
    primero), choice, tapAt (el último intento)} y "save:tok" {t, exp} (compartido por las pestañas). */
@@ -466,7 +467,7 @@ const FIELD = 'input:not([type=button]):not([type=submit]):not([type=reset]):not
      «¿Dónde está…?»; la barra de abajo y el refugio sí valen); las piezas de Frases mágicas y las respuestas (.opt);
    - lo marcado con [data-no-renew] (la Puerta de mayores y las hojas de la lección, del repaso y de las partidas), los
      campos de texto y el bloque de Google de Para mayores (sus botones piden el permiso ellos mismos) */
-const SOUND = ".say, [data-say], [data-play], [data-mic], .mic, .bd-wotd, .fcx-card, .ph-say1, .hm-say, .rv-spk, .ph-spk, .fm-spk, .mb-rb, .mb-spk, .mb-slow, #mb-play, .vl-try, .al-st, [data-al=prev], [data-al=next]";
+const SOUND = ".say, [data-say], [data-play], [data-mic], .mic, .bd-wotd, .fcx-card, .ph-say1, .hm-say, .rv-spk, .ph-spk, .fm-spk, .mb-rb, .mb-spk, .mb-slow, #mb-play, .vl-try, #cfg-pv, .al-st, [data-al=prev], [data-al=next]";
 const ASK = ".qz:not(.qz-end), .pr-card, .ss-door, .ss-w, .ss-o, .fm-it, .fm-prod, .fm-sun, .fm-moon, .fm-cloud, .fm-hero, .fm-opt, .fm-stage.finding, .opt, .ph-tiles, .ph-line, .ph-acts";
 const NO_TAP = `[data-no-renew], ${SOUND}, ${ASK}, #sv-box, ${FIELD}`;
 /* …ni lo que empieza una lección, un repaso, una partida, un cuento o una práctica de Palabras (su primer sonido sale enseguida;
@@ -506,13 +507,15 @@ const AUTH_MSG = {
   offline: "Sin internet. Conéctate a internet para entrar con Google.",
   gis: "No se pudo abrir Google. Comprueba la conexión e inténtalo otra vez.",
 };
+let joining = false;
 async function connect(){
   if(!online()){ msg(AUTH_MSG.offline, "bad"); return; }
   const b = document.querySelector("#sv-g, #sv-re"); if(b) b.disabled = true;
-  msg("Abriendo Google…");
+  joining = true; msg("Abriendo Google…");
   try{ await askToken(true); }
-  catch(e){ const c = (e && e.code) || "gis"; if(c !== "superseded") msg(AUTH_MSG[c] || AUTH_MSG.gis, "bad"); if(b && b.isConnected) b.disabled = false; return; }
-  clearReconnect(); nowFail = false; msg("");
+  catch(e){ const c = (e && e.code) || "gis"; if(c !== "superseded") msg(AUTH_MSG[c] || AUTH_MSG.gis, "bad"); joining = false;
+    const g = $s("sv-g") || $s("sv-re"); if(g) g.disabled = false; return; }
+  joining = false; clearReconnect(); nowFail = false; msg("");
   if(connected() && !meta().choice){ if(!meta().hint) fetchHint(); sync("reconnect"); return; }
   setPhase("busy");
   job(firstSync).then(() => { if(phase === "ok") msg("✓ Conectado. La partida se guarda sola en Google.", "ok"); startPoll(); if(connected() && !meta().hint) fetchHint(); })
@@ -572,7 +575,8 @@ const G = `<svg viewBox="0 0 48 48" aria-hidden="true" data-brand="google"><path
 /* ---------- bloque «Guardar la partida en Google» (Ajustes › Para mayores) ---------- */
 const $s = id => document.getElementById(id);
 const flag = L => { const l = (typeof LANGS !== "undefined" && LANGS[L] && LANGS[L].label) || L; return l.split(" ")[0]; };
-const msg = (t, k) => { const m = $s("sv-msg"); if(m){ m.textContent = t; m.className = "sv-msg" + (k ? " " + k : ""); } };
+let lastMsg = null;   /* el último aviso mientras se entra (desde la barra de arriba el bloque llega después) */
+const msg = (t, k) => { lastMsg = joining ? [t, k, now()] : null; const m = $s("sv-msg"); if(m){ m.textContent = t; m.className = "sv-msg" + (k ? " " + k : ""); } };
 const ERR = {
   full: "Tu Google Drive está lleno: libera espacio para seguir guardando la partida.",
   rate: "Google está muy ocupado ahora. Lo intentaremos otra vez en un rato.",
@@ -735,6 +739,8 @@ function mountBlock(host){
   css();
   host.innerHTML = blockHtml();
   paint(); paintUndo(); paintSafe();
+  const lm = lastMsg; lastMsg = null;
+  if(lm && now() - lm[2] < MIN){ msg(lm[0], lm[1]); if(joining){ const g = $s("sv-g"); if(g) g.disabled = true; } }
   /* el script de Google se prepara al abrir «Para mayores», así la ventana sale enseguida al tocar */
   if(online() && (!connected() || meta().reconnect || !tokOk())) loadGis().catch(() => {});
 }
@@ -768,10 +774,37 @@ function cfgText(){
   if((m.reconnect || phase === "reconnect") && m.lastSync && dirtyNow()) return `Google: última copia ${agoMin(m.lastSync)}`;
   return m.lastSync ? `Google: guardado ${agoMin(m.lastSync)}` : "Google: conectado";
 }
-function cfgPaint(){ document.querySelectorAll("[data-sync-cfg]").forEach(el => { el.textContent = cfgText(); }); }
+function cfgPaint(){ document.querySelectorAll("[data-sync-cfg]").forEach(el => { el.textContent = cfgText(); }); topPaint(); }
+
+/* ---------- el botón de Google de la barra de arriba ----------
+   Mientras este aparato no tenga Google, un botón redondo con la G va en la barra de arriba, antes de las monedas y
+   Ajustes. Tocarlo pasa por la Puerta de mayores y abre Ajustes › Para mayores con el bloque de Google; si el script de
+   Google ya está listo (se empieza a preparar con este toque, mientras el mayor contesta la Puerta), la ventana de
+   Google se pide en ese mismo toque, como con «Entrar con Google». Con Google conectado no sale (queda solo en Para
+   mayores). Nunca con html[data-tech] (Tech Prep). El botón y su estilo están en la barra de index.html (#tb-google). */
+function topBtn(){
+  const b = $s("tb-google"); if(!b) return null;   /* el botón está en la barra de index.html, escondido */
+  if(!b._on){ b._on = true; b.addEventListener("click", topTap); }
+  return b;
+}
+function topPaint(){
+  const show = !meta().connectedAt && !document.documentElement.hasAttribute("data-tech");
+  const b = show ? topBtn() : $s("tb-google");
+  if(b && b.hidden === show) b.hidden = !show;
+}
+function topTap(e){
+  const b = e.currentTarget;
+  if(online() && !gisReady()) loadGis().catch(() => {});
+  gated("Para entrar con Google.", () => {
+    const ready = online() && gisReady() && !connected();
+    if(typeof window.openSettings === "function") window.openSettings("google", {from: b});
+    if(ready) connect();   /* dentro del toque: la ventana de Google sale enseguida */
+  }, b);
+}
 
 /* ---------- arranque ---------- */
 bus.on("boot", () => {
+  topPaint();
   const f = S.takeFlash();
   if(f){ setTimeout(() => { try{ toast(f.t); }catch(e){} }, 400); if(f.adult) setTimeout(() => go({auto: true}), 900); }
   if(!connected()) return;
