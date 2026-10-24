@@ -130,6 +130,7 @@ if _os.environ.get("VOCAB_TECH") == "1":
         ("tech-entrevista", "#/techmock", "Tech Prep › Interview (preparar una entrevista de práctica)"),
         ("tech-leccion", "#/techl/lesson/u01-l1", "Tech Prep › Lección u01-l1 (modo foco)"),
         ("tech-repaso", "#/techl/review", "Tech Prep › Review (modo foco; vacío: All caught up)"),
+        ("tech-entrevista-en-marcha", "#/techl/mock", "Tech Prep › Interview › Mock interview (modo foco)"),
         ("tech-parejas", "#/techl/pairs", "Tech Prep › Play › Pairs (modo foco)"),
         ("tech-reloj", "#/techl/clock", "Tech Prep › Play › Beat the clock (modo foco)"),
         *([("tech-caso-practica", f"#/techl/case/{_CASE}", "Tech Prep › Practise a case (modo foco)")] if _CASE else []),

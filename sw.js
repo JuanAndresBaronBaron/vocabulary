@@ -42,7 +42,7 @@ const SHELL = [
   "data/stories/fr/play.json", "data/stories/fr/colours.json", "data/stories/fr/cake.json", "data/stories/fr/night.json",
   "data/stories/da/play.json", "data/stories/da/colours.json", "data/stories/da/cake.json", "data/stories/da/night.json",
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
-  "js/tech-boot.js", "js/tech.js",
+  "js/tech-boot.js", "js/tech.js", "js/tech-lesson.js",
   "js/tech-pages.js",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */
