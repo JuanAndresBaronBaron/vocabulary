@@ -646,7 +646,7 @@ dialog.ar-up-d{max-width:440px}
   background:linear-gradient(to bottom,transparent,var(--bg) 45%);pointer-events:none}
 .ar-sp{height:calc(var(--btn-main) + 24px)}
 .gm-short .ar-c{min-height:132px;padding:8px 6px}
-.gm-short .ar-pic{width:min(96px,80%)}
+.gm-short .ar-pic{width:min(100px,80%)}
 .gm-short .ar-let{width:min(88px,70%);font-size:3rem}
 .gm-short .ar-term b{font-size:1.3rem}
 :root[data-theme=dark] .ar-pic,:root[data-theme=dark] .ar-sgt{background:#F2F2F7}
