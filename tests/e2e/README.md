@@ -180,6 +180,13 @@ compartida no responde).
   frase» y «Dilo» (no entender no es fallo); la frase de la cena igual todo el día y en otro aparato; el sello con la
   Puerta (+5 una vez al día, en la partida como `phrase:stamps`); la fila de Hoy con su altavoz y sin scroll; la tarjeta
   de Juegos; inglés, francés y danés; capturas `F5d-*`; la partida exportada como la base.
+- `test_f6_cuentos.py` (F6i, `js/stories.js` y `data/stories/`; voz con onstart/onboundary y audio simulados): los 12
+  cuentos con su formato, palabras del corpus con id, glosa e IPA de cada palabra y dibujos que dan 200; la estantería
+  (el primero libre, los demás con candado según el repaso sembrado, la hoja de las palabras que faltan y el saltito al
+  abrirse); leer entero deslizando y con botones, con dibujos grandes a 360 y 390 px; la voz elegida de cada idioma y la
+  palabra que se ilumina (por tiempo y con onboundary); tocar una palabra (mp3 o voz despacio, globo con la IPA); la
+  elección cambia el final; award una vez por cuento, 3 al día y la medalla; sin conexión con el servidor parado; la
+  tarjeta de Juegos y el atajo de Hoy; la partida exportada como la base salvo `cuentos`; capturas `capturas/F6/F6i-*`.
 - `test_ipa.py` (la IPA a la vista, «recuerda no quitar la IPA»): sale de serie en inglés, francés y danés en la palabra
   nueva, «Cómo suena», la respuesta de «¿Cuál es…?», el reverso del repaso (en la pregunta no), Palabras (detalle,
   Tarjetas, Preguntas y Escribir), la ficha del álbum, Oído de lince al contestar y la Palabra del día girada; con

@@ -1,0 +1,490 @@
+{
+ "v": 1,
+ "id": "en-play",
+ "lang": "english",
+ "n": 1,
+ "title": "The Fox Wants to Play",
+ "es": "El zorro quiere jugar",
+ "short": "A jugar",
+ "cover": "img/pj/zorro.png",
+ "tint": "green",
+ "words": [
+  {
+   "w": "fox",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "small",
+   "id": "w31|pequeño"
+  },
+  {
+   "w": "orange",
+   "id": "colores|Naranja",
+   "img": "img/a99bad73df.png"
+  },
+  {
+   "w": "farm",
+   "id": "w09|granja"
+  },
+  {
+   "w": "live",
+   "id": "w28|vivir"
+  },
+  {
+   "w": "want",
+   "id": "w24|querer"
+  },
+  {
+   "w": "play",
+   "id": "w28|jugar, tocar (música)",
+   "img": "img/om_1F3AE.png"
+  },
+  {
+   "w": "hen",
+   "id": "animales|Gallina",
+   "img": "img/f501d7335c.png"
+  },
+  {
+   "w": "egg",
+   "id": "w03|huevo",
+   "img": "img/om_1F95A.png"
+  },
+  {
+   "w": "busy",
+   "id": "w35|ocupado"
+  },
+  {
+   "w": "cow",
+   "id": "animales|Vaca",
+   "img": "img/9d5456806f.png"
+  },
+  {
+   "w": "eat",
+   "id": "w28|comer",
+   "img": "img/om_1F374.png"
+  },
+  {
+   "w": "grass",
+   "id": "w09|hierba, césped"
+  },
+  {
+   "w": "sad",
+   "id": "w32|triste",
+   "img": "img/om_2639.png"
+  },
+  {
+   "w": "duck",
+   "id": "animales|Pato",
+   "img": "img/e17d706969.png"
+  },
+  {
+   "w": "dog",
+   "id": "animales|Perro",
+   "img": "img/3e394d37a4.png"
+  },
+  {
+   "w": "lake",
+   "id": "w09|lago"
+  },
+  {
+   "w": "swim",
+   "id": "w28|nadar",
+   "img": "img/om_1F3CA.png"
+  },
+  {
+   "w": "jump",
+   "id": "w25|saltar"
+  },
+  {
+   "w": "water",
+   "id": "w03|agua",
+   "img": "img/om_1F4A7.png"
+  },
+  {
+   "w": "happy",
+   "id": "w32|feliz",
+   "img": "img/om_1F600.png"
+  },
+  {
+   "w": "new",
+   "id": "w35|nuevo",
+   "img": "img/om_1F195.png"
+  },
+  {
+   "w": "friend",
+   "id": "w01|amigo",
+   "img": "img/om_1FAC2.png"
+  },
+  {
+   "w": "ball",
+   "id": "w13|pelota, balón",
+   "img": "img/om_1F3D0.png"
+  },
+  {
+   "w": "run",
+   "id": "w25|correr",
+   "img": "img/om_1F3C3.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ə/"
+  },
+  "and": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ænd/"
+  },
+  "ball": {
+   "es": "pelota",
+   "id": "w13|pelota, balón",
+   "ipa": "/bɔːl/",
+   "img": "img/om_1F3D0.png"
+  },
+  "busy": {
+   "es": "ocupado, ocupada",
+   "id": "w35|ocupado",
+   "ipa": "/ˈbɪzi/"
+  },
+  "cow": {
+   "es": "vaca",
+   "id": "animales|Vaca",
+   "ipa": "/kaʊ/",
+   "img": "img/9d5456806f.png"
+  },
+  "dog": {
+   "es": "perro",
+   "id": "animales|Perro",
+   "ipa": "/dɒɡ/",
+   "img": "img/3e394d37a4.png"
+  },
+  "duck": {
+   "es": "pato",
+   "id": "animales|Pato",
+   "ipa": "/dʌk/",
+   "img": "img/e17d706969.png"
+  },
+  "eats": {
+   "es": "come",
+   "id": "w28|comer",
+   "ipa": "/iːts/",
+   "img": "img/om_1F374.png"
+  },
+  "eggs": {
+   "es": "huevos",
+   "id": "w03|huevo",
+   "ipa": "/eɡz/",
+   "img": "img/om_1F95A.png"
+  },
+  "farm": {
+   "es": "granja",
+   "id": "w09|granja",
+   "ipa": "/fɑːm/"
+  },
+  "fox": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/fɒks/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "friend": {
+   "es": "amigo",
+   "id": "w01|amigo",
+   "ipa": "/frend/",
+   "img": "img/om_1FAC2.png"
+  },
+  "go": {
+   "es": "van",
+   "id": "w24|ir",
+   "ipa": "/ɡəʊ/"
+  },
+  "grass": {
+   "es": "hierba",
+   "id": "w09|hierba, césped",
+   "ipa": "/ɡrɑːs/"
+  },
+  "happy": {
+   "es": "contento, feliz",
+   "id": "w32|feliz",
+   "ipa": "/ˈhæpi/",
+   "img": "img/om_1F600.png"
+  },
+  "has": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/hæz/"
+  },
+  "hen": {
+   "es": "gallina",
+   "id": "animales|Gallina",
+   "ipa": "/hen/",
+   "img": "img/f501d7335c.png"
+  },
+  "him": {
+   "es": "él, lo, le",
+   "id": "w41|él, lo, le",
+   "ipa": "/hɪm/"
+  },
+  "his": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/hɪz/"
+  },
+  "in": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/ɪn/"
+  },
+  "is": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪz/"
+  },
+  "jump": {
+   "es": "saltan",
+   "id": "w25|saltar",
+   "ipa": "/dʒʌmp/"
+  },
+  "jumps": {
+   "es": "salta",
+   "id": "w25|saltar",
+   "ipa": "/dʒʌmps/"
+  },
+  "lake": {
+   "es": "lago",
+   "id": "w09|lago",
+   "ipa": "/leɪk/"
+  },
+  "lives": {
+   "es": "vive",
+   "id": "w28|vivir",
+   "ipa": "/lɪvz/"
+  },
+  "new": {
+   "es": "nuevo",
+   "id": "w35|nuevo",
+   "ipa": "/njuː/",
+   "img": "img/om_1F195.png"
+  },
+  "on": {
+   "es": "en, sobre",
+   "id": "w40|en, sobre",
+   "ipa": "/ɒn/"
+  },
+  "orange": {
+   "es": "naranja",
+   "id": "colores|Naranja",
+   "ipa": "/ˈɒrɪndʒ/",
+   "img": "img/a99bad73df.png"
+  },
+  "plays": {
+   "es": "juega",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/pleɪz/",
+   "img": "img/om_1F3AE.png"
+  },
+  "run": {
+   "es": "corren",
+   "id": "w25|correr",
+   "ipa": "/rʌn/",
+   "img": "img/om_1F3C3.png"
+  },
+  "sad": {
+   "es": "triste",
+   "id": "w32|triste",
+   "ipa": "/sæd/",
+   "img": "img/om_2639.png"
+  },
+  "she": {
+   "es": "ella",
+   "id": "w41|ella",
+   "ipa": "/ʃiː/"
+  },
+  "small": {
+   "es": "pequeño",
+   "id": "w31|pequeño",
+   "ipa": "/smɔːl/"
+  },
+  "splash": {
+   "es": "¡plaf! (ruido del agua)",
+   "ipa": "/splæʃ/"
+  },
+  "swims": {
+   "es": "nada",
+   "id": "w28|nadar",
+   "ipa": "/swɪmz/",
+   "img": "img/om_1F3CA.png"
+  },
+  "the": {
+   "es": "el, la, los, las",
+   "id": "w41|el, la, los, las",
+   "ipa": "/ðə/"
+  },
+  "this": {
+   "es": "este, esta",
+   "id": "w41|este, esto",
+   "ipa": "/ðɪs/"
+  },
+  "to": {
+   "es": "a, hacia",
+   "id": "w40|a, hacia, para",
+   "ipa": "/tuː/"
+  },
+  "to play": {
+   "es": "jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/tə ˈpleɪ/",
+   "img": "img/om_1F3AE.png"
+  },
+  "too": {
+   "es": "también",
+   "id": "w38|también, demasiado",
+   "ipa": "/tuː/"
+  },
+  "want": {
+   "es": "quieren",
+   "id": "w24|querer",
+   "ipa": "/wɒnt/"
+  },
+  "wants": {
+   "es": "quiere",
+   "id": "w24|querer",
+   "ipa": "/wɒnts/"
+  },
+  "water": {
+   "es": "agua",
+   "id": "w03|agua",
+   "ipa": "/ˈwɔːtə/",
+   "img": "img/om_1F4A7.png"
+  },
+  "who": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/huː/"
+  },
+  "with": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/wɪð/"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/pj/zorro.png",
+   "t": "This is the fox. The fox is small and orange.",
+   "es": "Este es el zorro. El zorro es pequeño y naranja."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/shop/tractor.png"
+   ],
+   "t": "The fox lives on a farm.",
+   "es": "El zorro vive en una granja."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "t": "The fox wants to play.",
+   "es": "El zorro quiere jugar."
+  },
+  {
+   "img": "img/pj/gallina.png",
+   "also": [
+    "img/om_1F95A.png"
+   ],
+   "t": "The hen has eggs. She is busy.",
+   "es": "La gallina tiene huevos. Está ocupada."
+  },
+  {
+   "img": "img/pj/vaca.png",
+   "also": [
+    "img/om_1F33F.png"
+   ],
+   "t": "The cow eats grass. She is busy too.",
+   "es": "La vaca come hierba. También está ocupada."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "t": "The fox is sad. Who wants to play with him?",
+   "es": "El zorro está triste. ¿Quién quiere jugar con él?"
+  }
+ ],
+ "choice": {
+  "img": "img/pj/pato.png",
+  "also": [
+   "img/pj/perro.png"
+  ],
+  "t": "The duck and the dog want to play. Who plays with the fox?",
+  "es": "El pato y el perro quieren jugar. ¿Quién juega con el zorro?",
+  "opts": [
+   {
+    "key": "duck",
+    "t": "The duck",
+    "es": "El pato",
+    "img": "img/pj/pato.png",
+    "pages": [
+     {
+      "img": "img/pj/pato.png",
+      "also": [
+       "img/om_1F30A.png"
+      ],
+      "t": "The fox and the duck go to the lake.",
+      "es": "El zorro y el pato van al lago."
+     },
+     {
+      "img": "img/pj/pato.png",
+      "also": [
+       "img/om_1F4A7.png"
+      ],
+      "t": "The duck swims. The fox jumps in the water. Splash!",
+      "es": "El pato nada. El zorro salta al agua. ¡Plaf!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/pato.png"
+      ],
+      "t": "The fox is happy. The duck is his new friend.",
+      "es": "El zorro está contento. El pato es su nuevo amigo."
+     }
+    ]
+   },
+   {
+    "key": "dog",
+    "t": "The dog",
+    "es": "El perro",
+    "img": "img/pj/perro.png",
+    "pages": [
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/shop/balon.png"
+      ],
+      "t": "The dog has a ball.",
+      "es": "El perro tiene una pelota."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/perro.png",
+       "img/shop/balon.png"
+      ],
+      "t": "The fox and the dog run and jump.",
+      "es": "El zorro y el perro corren y saltan."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/perro.png"
+      ],
+      "t": "The fox is happy. The dog is his new friend.",
+      "es": "El zorro está contento. El perro es su nuevo amigo."
+     }
+    ]
+   }
+  ]
+ }
+}

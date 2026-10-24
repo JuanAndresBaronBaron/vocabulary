@@ -1,0 +1,475 @@
+{
+ "v": 1,
+ "id": "en-cake",
+ "lang": "english",
+ "n": 3,
+ "title": "The Fox Makes a Cake",
+ "es": "El zorro hace un pastel",
+ "short": "El pastel",
+ "cover": "img/pj/gallina.png",
+ "tint": "blue",
+ "words": [
+  {
+   "w": "fox",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "make",
+   "id": "w24|hacer, fabricar"
+  },
+  {
+   "w": "cake",
+   "id": "w03|pastel, tarta",
+   "img": "img/om_1F382.png"
+  },
+  {
+   "w": "friend",
+   "id": "w01|amigo",
+   "img": "img/om_1FAC2.png"
+  },
+  {
+   "w": "hen",
+   "id": "animales|Gallina",
+   "img": "img/f501d7335c.png"
+  },
+  {
+   "w": "give",
+   "id": "w24|dar"
+  },
+  {
+   "w": "egg",
+   "id": "w03|huevo",
+   "img": "img/om_1F95A.png"
+  },
+  {
+   "w": "cow",
+   "id": "animales|Vaca",
+   "img": "img/9d5456806f.png"
+  },
+  {
+   "w": "milk",
+   "id": "w03|leche",
+   "img": "img/om_1F95B.png"
+  },
+  {
+   "w": "put",
+   "id": "w24|poner"
+  },
+  {
+   "w": "bowl",
+   "id": "w03|cuenco, bol",
+   "img": "img/om_1F963.png"
+  },
+  {
+   "w": "mix",
+   "id": "w28|mezclar"
+  },
+  {
+   "w": "apple",
+   "id": "w03|manzana",
+   "img": "img/om_1F34E.png"
+  },
+  {
+   "w": "chocolate",
+   "id": "w03|chocolate",
+   "img": "img/om_1F36B.png"
+  },
+  {
+   "w": "horse",
+   "id": "animales|Caballo",
+   "img": "img/7452a76de5.png"
+  },
+  {
+   "w": "red",
+   "id": "colores|Rojo",
+   "img": "img/746cbfda58.png"
+  },
+  {
+   "w": "pig",
+   "id": "animales|Cerdo",
+   "img": "img/98b47c184e.png"
+  },
+  {
+   "w": "ready",
+   "id": "w35|listo, preparado"
+  },
+  {
+   "w": "eat",
+   "id": "w28|comer",
+   "img": "img/om_1F374.png"
+  },
+  {
+   "w": "together",
+   "id": "w38|juntos",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  {
+   "w": "happy",
+   "id": "w32|feliz",
+   "img": "img/om_1F600.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ə/"
+  },
+  "and": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ænd/"
+  },
+  "apple": {
+   "es": "de manzana",
+   "id": "w03|manzana",
+   "ipa": "/ˈæpl/",
+   "img": "img/om_1F34E.png"
+  },
+  "apples": {
+   "es": "manzanas",
+   "id": "w03|manzana",
+   "ipa": "/ˈæplz/",
+   "img": "img/om_1F34E.png"
+  },
+  "are": {
+   "es": "son, están",
+   "id": "w24|ser, estar",
+   "ipa": "/ɑː/"
+  },
+  "bowl": {
+   "es": "bol",
+   "id": "w03|cuenco, bol",
+   "ipa": "/bəʊl/",
+   "img": "img/om_1F963.png"
+  },
+  "cake": {
+   "es": "pastel",
+   "id": "w03|pastel, tarta",
+   "ipa": "/keɪk/",
+   "img": "img/om_1F382.png"
+  },
+  "chocolate": {
+   "es": "chocolate",
+   "id": "w03|chocolate",
+   "ipa": "/ˈtʃɒklət/",
+   "img": "img/om_1F36B.png"
+  },
+  "cow": {
+   "es": "vaca",
+   "id": "animales|Vaca",
+   "ipa": "/kaʊ/",
+   "img": "img/9d5456806f.png"
+  },
+  "eat": {
+   "es": "comen",
+   "id": "w28|comer",
+   "ipa": "/iːt/",
+   "img": "img/om_1F374.png"
+  },
+  "eggs": {
+   "es": "huevos",
+   "id": "w03|huevo",
+   "ipa": "/eɡz/",
+   "img": "img/om_1F95A.png"
+  },
+  "for": {
+   "es": "para",
+   "id": "w40|para, por",
+   "ipa": "/fɔː/"
+  },
+  "fox": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/fɒks/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "friends": {
+   "es": "amigos",
+   "id": "w01|amigo",
+   "ipa": "/frendz/",
+   "img": "img/om_1FAC2.png"
+  },
+  "gives": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/ɡɪvz/"
+  },
+  "goes": {
+   "es": "va",
+   "id": "w24|ir",
+   "ipa": "/ɡəʊz/"
+  },
+  "happy": {
+   "es": "contentos",
+   "id": "w32|feliz",
+   "ipa": "/ˈhæpi/",
+   "img": "img/om_1F600.png"
+  },
+  "he": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/hiː/"
+  },
+  "hen": {
+   "es": "gallina",
+   "id": "animales|Gallina",
+   "ipa": "/hen/",
+   "img": "img/f501d7335c.png"
+  },
+  "him": {
+   "es": "le (a él)",
+   "id": "w41|él, lo, le",
+   "ipa": "/hɪm/"
+  },
+  "his": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/hɪz/"
+  },
+  "horse": {
+   "es": "caballo",
+   "id": "animales|Caballo",
+   "ipa": "/hɔːs/",
+   "img": "img/7452a76de5.png"
+  },
+  "in": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/ɪn/"
+  },
+  "is": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪz/"
+  },
+  "make": {
+   "es": "hacer",
+   "id": "w24|hacer, fabricar",
+   "ipa": "/meɪk/"
+  },
+  "makes": {
+   "es": "hace",
+   "id": "w24|hacer, fabricar",
+   "ipa": "/meɪks/"
+  },
+  "milk": {
+   "es": "leche",
+   "id": "w03|leche",
+   "ipa": "/mɪlk/",
+   "img": "img/om_1F95B.png"
+  },
+  "mixes": {
+   "es": "mezcla",
+   "id": "w28|mezclar",
+   "ipa": "/ˈmɪksɪz/"
+  },
+  "mmm": {
+   "es": "¡mmm! (¡qué rico!)",
+   "ipa": "/mː/"
+  },
+  "now": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/naʊ/"
+  },
+  "or": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ɔː/"
+  },
+  "pig": {
+   "es": "cerdo",
+   "id": "animales|Cerdo",
+   "ipa": "/pɪɡ/",
+   "img": "img/98b47c184e.png"
+  },
+  "puts": {
+   "es": "pone",
+   "id": "w24|poner",
+   "ipa": "/pʊts/"
+  },
+  "ready": {
+   "es": "listo",
+   "id": "w35|listo, preparado",
+   "ipa": "/ˈredi/"
+  },
+  "red": {
+   "es": "rojas",
+   "id": "colores|Rojo",
+   "ipa": "/red/",
+   "img": "img/746cbfda58.png"
+  },
+  "some": {
+   "es": "un poco de",
+   "id": "w41|algún, algunos, algo de",
+   "ipa": "/sʌm/"
+  },
+  "the": {
+   "es": "el, la, los, las",
+   "id": "w41|el, la, los, las",
+   "ipa": "/ðə/"
+  },
+  "they": {
+   "es": "ellos, ellas",
+   "id": "w41|ellos, ellas",
+   "ipa": "/ðeɪ/"
+  },
+  "three": {
+   "es": "tres",
+   "id": "numeros|3",
+   "ipa": "/θriː/"
+  },
+  "to": {
+   "es": "a, hacia",
+   "id": "w40|a, hacia, para",
+   "ipa": "/tuː/"
+  },
+  "together": {
+   "es": "juntos",
+   "id": "w38|juntos",
+   "ipa": "/təˈɡeðə/",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  "two": {
+   "es": "dos",
+   "id": "numeros|2",
+   "ipa": "/tuː/"
+  },
+  "very": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/ˈveri/"
+  },
+  "wants": {
+   "es": "quiere",
+   "id": "w24|querer",
+   "ipa": "/wɒnts/"
+  },
+  "what": {
+   "es": "qué",
+   "id": "w43|qué, lo que",
+   "ipa": "/wɒt/",
+   "img": "img/om_2753.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F382.png"
+   ],
+   "t": "The fox wants to make a cake. The cake is for his friends.",
+   "es": "El zorro quiere hacer un pastel. El pastel es para sus amigos."
+  },
+  {
+   "img": "img/pj/gallina.png",
+   "also": [
+    "img/om_1F95A.png"
+   ],
+   "t": "The hen gives him two eggs.",
+   "es": "La gallina le da dos huevos."
+  },
+  {
+   "img": "img/pj/vaca.png",
+   "also": [
+    "img/om_1F95B.png"
+   ],
+   "t": "The cow gives him some milk.",
+   "es": "La vaca le da leche."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F963.png"
+   ],
+   "t": "The fox puts the eggs and the milk in a bowl.",
+   "es": "El zorro pone los huevos y la leche en un bol."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F963.png"
+   ],
+   "t": "He mixes and mixes.",
+   "es": "Mezcla y mezcla."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/om_1F382.png"
+  ],
+  "t": "What goes in the cake? Apples or chocolate?",
+  "es": "¿Qué lleva el pastel? ¿Manzanas o chocolate?",
+  "opts": [
+   {
+    "key": "apples",
+    "t": "Apples",
+    "es": "Manzanas",
+    "img": "img/om_1F34E.png",
+    "pages": [
+     {
+      "img": "img/pj/caballo.png",
+      "also": [
+       "img/om_1F34E.png"
+      ],
+      "t": "The horse gives him three red apples.",
+      "es": "El caballo le da tres manzanas rojas."
+     },
+     {
+      "img": "img/om_1F382.png",
+      "also": [
+       "img/om_1F34E.png"
+      ],
+      "t": "Now the apple cake is ready. Mmm!",
+      "es": "Ya está listo el pastel de manzana. ¡Mmm!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/gallina.png",
+       "img/pj/caballo.png"
+      ],
+      "t": "The friends eat the cake together. They are very happy.",
+      "es": "Los amigos comen el pastel juntos. Están muy contentos."
+     }
+    ]
+   },
+   {
+    "key": "chocolate",
+    "t": "Chocolate",
+    "es": "Chocolate",
+    "img": "img/om_1F36B.png",
+    "pages": [
+     {
+      "img": "img/pj/cerdo.png",
+      "also": [
+       "img/om_1F36B.png"
+      ],
+      "t": "The pig gives him some chocolate.",
+      "es": "El cerdo le da chocolate."
+     },
+     {
+      "img": "img/om_1F382.png",
+      "also": [
+       "img/om_1F36B.png"
+      ],
+      "t": "Now the chocolate cake is ready. Mmm!",
+      "es": "Ya está listo el pastel de chocolate. ¡Mmm!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/cerdo.png",
+       "img/pj/vaca.png"
+      ],
+      "t": "The friends eat the cake together. They are very happy.",
+      "es": "Los amigos comen el pastel juntos. Están muy contentos."
+     }
+    ]
+   }
+  ]
+ }
+}

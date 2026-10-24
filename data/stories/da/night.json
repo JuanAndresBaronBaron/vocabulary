@@ -1,0 +1,422 @@
+{
+ "v": 1,
+ "id": "da-night",
+ "lang": "dansk",
+ "n": 4,
+ "title": "Godnat, ræv",
+ "es": "Buenas noches, zorro",
+ "short": "Buenas noches",
+ "cover": "img/pj/buho.png",
+ "tint": "teal",
+ "words": [
+  {
+   "w": "en nat",
+   "id": "w08|noche",
+   "img": "img/om_1F303.png"
+  },
+  {
+   "w": "en måne",
+   "id": "w09|luna",
+   "img": "img/om_1F319.png"
+  },
+  {
+   "w": "en himmel",
+   "id": "w09|cielo"
+  },
+  {
+   "w": "en ko",
+   "id": "animales|Vaca",
+   "img": "img/9d5456806f.png"
+  },
+  {
+   "w": "at sove",
+   "id": "w28|dormir",
+   "img": "img/om_1F634.png"
+  },
+  {
+   "w": "en gris",
+   "id": "animales|Cerdo",
+   "img": "img/98b47c184e.png"
+  },
+  {
+   "w": "en ræv",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "en seng",
+   "id": "w04|cama",
+   "img": "img/om_1F6CF.png"
+  },
+  {
+   "w": "træt",
+   "id": "w31|cansado",
+   "img": "img/om_1F62B.png"
+  },
+  {
+   "w": "at tælle",
+   "id": "w29|contar",
+   "img": "img/om_1F522.png"
+  },
+  {
+   "w": "et får",
+   "id": "animales|Oveja",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  {
+   "w": "en ugle",
+   "id": "animales|Búho",
+   "img": "img/7a0d4a0582.png"
+  },
+  {
+   "w": "en idé",
+   "id": "w21|idea",
+   "img": "img/om_1F4A1.png"
+  },
+  {
+   "w": "varm",
+   "id": "w31|caliente, caluroso",
+   "img": "img/om_1F975.png"
+  },
+  {
+   "w": "en mælk",
+   "id": "w03|leche",
+   "img": "img/om_1F95B.png"
+  },
+  {
+   "w": "en historie",
+   "id": "w10|historia"
+  },
+  {
+   "w": "at drikke",
+   "id": "w28|beber",
+   "img": "img/om_1F964.png"
+  },
+  {
+   "w": "at læse",
+   "id": "w28|leer",
+   "img": "img/om_1F4D6.png"
+  }
+ ],
+ "gloss": {
+  "den": {
+   "es": "él, ella (animal o cosa)",
+   "id": "w41|ello, lo (cosa)",
+   "ipa": "/ˈdɛn/"
+  },
+  "det er nat": {
+   "es": "es de noche",
+   "id": "w08|noche",
+   "ipa": "/de ɐ ˈnad/",
+   "img": "img/om_1F303.png"
+  },
+  "det smager godt": {
+   "es": "está rico",
+   "ipa": "/de ˈsmæːˀjɐ ˈɡʌt/"
+  },
+  "drikker": {
+   "es": "bebe",
+   "id": "w28|beber",
+   "ipa": "/ˈdʁeɡɐ/",
+   "img": "img/om_1F964.png"
+  },
+  "eller": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ˈɛlɐ/"
+  },
+  "en": {
+   "es": "uno",
+   "id": "numeros|1",
+   "ipa": "/eˀn/"
+  },
+  "en historie": {
+   "es": "un cuento",
+   "id": "w10|historia",
+   "ipa": "/en hiˈsdoɐ̯ˀiə/"
+  },
+  "er": {
+   "es": "es, está, son",
+   "id": "w24|ser, estar",
+   "ipa": "/ˈæɐ̯/"
+  },
+  "fem": {
+   "es": "cinco",
+   "id": "numeros|5",
+   "ipa": "/fɛmˀ/"
+  },
+  "fire": {
+   "es": "cuatro",
+   "id": "numeros|4",
+   "ipa": "/ˈfiːɐ/"
+  },
+  "for": {
+   "es": "a, para",
+   "id": "w40|para, por",
+   "ipa": "/ˈfʌ/"
+  },
+  "får": {
+   "es": "ovejas",
+   "id": "animales|Oveja",
+   "ipa": "/fɒːˀ/",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  "godnat": {
+   "es": "buenas noches",
+   "ipa": "/ɡoˈnad/"
+  },
+  "grisen": {
+   "es": "el cerdo",
+   "id": "animales|Cerdo",
+   "ipa": "/ˈɡʁiˀsən/",
+   "img": "img/98b47c184e.png"
+  },
+  "han": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/ˈhan/"
+  },
+  "har": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/ˈhɑː/"
+  },
+  "i sengen": {
+   "es": "en la cama",
+   "id": "w04|cama",
+   "ipa": "/i ˈsɛŋˀən/",
+   "img": "img/om_1F6CF.png"
+  },
+  "idéer": {
+   "es": "ideas",
+   "id": "w21|idea",
+   "ipa": "/iˈdeˀɐ/",
+   "img": "img/om_1F4A1.png"
+  },
+  "ikke": {
+   "es": "no",
+   "id": "w38|no",
+   "ipa": "/ˈegə/"
+  },
+  "koen": {
+   "es": "la vaca",
+   "id": "animales|Vaca",
+   "ipa": "/ˈkoˀən/",
+   "img": "img/9d5456806f.png"
+  },
+  "ligger": {
+   "es": "está tumbado",
+   "ipa": "/ˈleɡɐ/"
+  },
+  "læser": {
+   "es": "lee",
+   "id": "w28|leer",
+   "ipa": "/ˈlɛːsɐ/",
+   "img": "img/om_1F4D6.png"
+  },
+  "men": {
+   "es": "pero",
+   "id": "w42|pero",
+   "ipa": "/mɛn/"
+  },
+  "månen": {
+   "es": "la luna",
+   "id": "w09|luna",
+   "ipa": "/ˈmɔːnən/",
+   "img": "img/om_1F319.png"
+  },
+  "mælk": {
+   "es": "leche",
+   "id": "w03|leche",
+   "ipa": "/ˈmɛlˀg/",
+   "img": "img/om_1F95B.png"
+  },
+  "nu": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/ˈnu/"
+  },
+  "også": {
+   "es": "también",
+   "id": "w38|también",
+   "ipa": "/ˈʌsə/"
+  },
+  "på himlen": {
+   "es": "en el cielo",
+   "id": "w09|cielo",
+   "ipa": "/pɔ ˈhemlən/"
+  },
+  "ræv": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ʁɛwˀ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "ræven": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ˈʁɛwˀən/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "sover": {
+   "es": "duerme",
+   "id": "w28|dormir",
+   "ipa": "/ˈsɒwɐ/",
+   "img": "img/om_1F634.png"
+  },
+  "spørger": {
+   "es": "pregunta",
+   "id": "w26|preguntar, pedir",
+   "ipa": "/ˈsbœɐ̯ɐ/",
+   "img": "img/om_2753.png"
+  },
+  "stadig": {
+   "es": "todavía",
+   "id": "w38|todavía, aún",
+   "ipa": "/ˈsdaːði/"
+  },
+  "to": {
+   "es": "dos",
+   "id": "numeros|2",
+   "ipa": "/toˀ/"
+  },
+  "tre": {
+   "es": "tres",
+   "id": "numeros|3",
+   "ipa": "/tʁeˀ/"
+  },
+  "træt": {
+   "es": "cansado",
+   "id": "w31|cansado",
+   "ipa": "/ˈtʁæd/",
+   "img": "img/om_1F62B.png"
+  },
+  "tæller": {
+   "es": "cuenta",
+   "id": "w29|contar",
+   "ipa": "/ˈtɛlɐ/",
+   "img": "img/om_1F522.png"
+  },
+  "uglen": {
+   "es": "el búho",
+   "id": "animales|Búho",
+   "ipa": "/ˈuːlən/",
+   "img": "img/7a0d4a0582.png"
+  },
+  "varm": {
+   "es": "caliente",
+   "id": "w31|caliente, caluroso",
+   "ipa": "/ˈvɑˀm/",
+   "img": "img/om_1F975.png"
+  },
+  "vågen": {
+   "es": "despierto",
+   "ipa": "/ˈvɔːˀən/"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/om_1F319.png",
+   "also": [
+    "img/om_2B50.png"
+   ],
+   "t": "Det er nat. Månen er på himlen.",
+   "es": "Es de noche. La luna está en el cielo."
+  },
+  {
+   "img": "img/pj/vaca.png",
+   "also": [
+    "img/pj/cerdo.png"
+   ],
+   "t": "Koen sover. Grisen sover også.",
+   "es": "La vaca duerme. El cerdo también duerme."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F6CF.png"
+   ],
+   "t": "Ræven ligger i sengen. Men han er ikke træt.",
+   "es": "El zorro está en la cama. Pero no está cansado."
+  },
+  {
+   "img": "img/pj/oveja.png",
+   "t": "Han tæller får. En, to, tre, fire, fem…",
+   "es": "Cuenta ovejas. Uno, dos, tres, cuatro, cinco…"
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F319.png"
+   ],
+   "t": "Han er stadig ikke træt!",
+   "es": "¡Todavía no está cansado!"
+  },
+  {
+   "img": "img/pj/buho.png",
+   "also": [
+    "img/om_1F4A1.png"
+   ],
+   "t": "Uglen er vågen. Den har to idéer.",
+   "es": "El búho está despierto. Tiene dos ideas."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/buho.png",
+  "also": [
+   "img/pj/zorro.png"
+  ],
+  "t": "Uglen spørger ræven: varm mælk eller en historie?",
+  "es": "El búho le pregunta al zorro: ¿leche caliente o un cuento?",
+  "opts": [
+   {
+    "key": "milk",
+    "t": "Varm mælk",
+    "es": "Leche caliente",
+    "img": "img/om_1F95B.png",
+    "pages": [
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F95B.png"
+      ],
+      "t": "Ræven drikker varm mælk. Det smager godt.",
+      "es": "El zorro bebe leche caliente. Está muy rica."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F634.png"
+      ],
+      "t": "Nu er han træt. Godnat, ræv!",
+      "es": "Ahora está cansado. ¡Buenas noches, zorro!"
+     }
+    ]
+   },
+   {
+    "key": "story",
+    "t": "En historie",
+    "es": "Un cuento",
+    "img": "img/om_1F4D6.png",
+    "pages": [
+     {
+      "img": "img/pj/buho.png",
+      "also": [
+       "img/om_1F4D6.png"
+      ],
+      "t": "Uglen læser en historie for ræven.",
+      "es": "El búho le lee un cuento al zorro."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F634.png"
+      ],
+      "t": "Nu er han træt. Godnat, ræv!",
+      "es": "Ahora está cansado. ¡Buenas noches, zorro!"
+     }
+    ]
+   }
+  ]
+ }
+}

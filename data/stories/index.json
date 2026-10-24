@@ -1,0 +1,1273 @@
+{
+ "v": 1,
+ "english": [
+  {
+   "id": "en-play",
+   "file": "data/stories/en/play.json",
+   "n": 1,
+   "title": "The Fox Wants to Play",
+   "es": "El zorro quiere jugar",
+   "short": "A jugar",
+   "cover": "img/pj/zorro.png",
+   "tint": "green",
+   "words": [
+    {
+     "w": "fox",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "small",
+     "id": "w31|pequeño"
+    },
+    {
+     "w": "orange",
+     "id": "colores|Naranja",
+     "img": "img/a99bad73df.png"
+    },
+    {
+     "w": "farm",
+     "id": "w09|granja"
+    },
+    {
+     "w": "live",
+     "id": "w28|vivir"
+    },
+    {
+     "w": "want",
+     "id": "w24|querer"
+    },
+    {
+     "w": "play",
+     "id": "w28|jugar, tocar (música)",
+     "img": "img/om_1F3AE.png"
+    },
+    {
+     "w": "hen",
+     "id": "animales|Gallina",
+     "img": "img/f501d7335c.png"
+    },
+    {
+     "w": "egg",
+     "id": "w03|huevo",
+     "img": "img/om_1F95A.png"
+    },
+    {
+     "w": "busy",
+     "id": "w35|ocupado"
+    },
+    {
+     "w": "cow",
+     "id": "animales|Vaca",
+     "img": "img/9d5456806f.png"
+    },
+    {
+     "w": "eat",
+     "id": "w28|comer",
+     "img": "img/om_1F374.png"
+    },
+    {
+     "w": "grass",
+     "id": "w09|hierba, césped"
+    },
+    {
+     "w": "sad",
+     "id": "w32|triste",
+     "img": "img/om_2639.png"
+    },
+    {
+     "w": "duck",
+     "id": "animales|Pato",
+     "img": "img/e17d706969.png"
+    },
+    {
+     "w": "dog",
+     "id": "animales|Perro",
+     "img": "img/3e394d37a4.png"
+    },
+    {
+     "w": "lake",
+     "id": "w09|lago"
+    },
+    {
+     "w": "swim",
+     "id": "w28|nadar",
+     "img": "img/om_1F3CA.png"
+    },
+    {
+     "w": "jump",
+     "id": "w25|saltar"
+    },
+    {
+     "w": "water",
+     "id": "w03|agua",
+     "img": "img/om_1F4A7.png"
+    },
+    {
+     "w": "happy",
+     "id": "w32|feliz",
+     "img": "img/om_1F600.png"
+    },
+    {
+     "w": "new",
+     "id": "w35|nuevo",
+     "img": "img/om_1F195.png"
+    },
+    {
+     "w": "friend",
+     "id": "w01|amigo",
+     "img": "img/om_1FAC2.png"
+    },
+    {
+     "w": "ball",
+     "id": "w13|pelota, balón",
+     "img": "img/om_1F3D0.png"
+    },
+    {
+     "w": "run",
+     "id": "w25|correr",
+     "img": "img/om_1F3C3.png"
+    }
+   ],
+   "pages": 10
+  },
+  {
+   "id": "en-colours",
+   "file": "data/stories/en/colours.json",
+   "n": 2,
+   "title": "Colours on the Farm",
+   "es": "Los colores de la granja",
+   "short": "Colores",
+   "cover": "img/pj/cerdo.png",
+   "tint": "yellow",
+   "words": [
+    {
+     "w": "fox",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "orange",
+     "id": "colores|Naranja",
+     "img": "img/a99bad73df.png"
+    },
+    {
+     "w": "pig",
+     "id": "animales|Cerdo",
+     "img": "img/98b47c184e.png"
+    },
+    {
+     "w": "pink",
+     "id": "colores|Rosa",
+     "img": "img/b2ee2b0aa3.png"
+    },
+    {
+     "w": "frog",
+     "id": "animales|Rana",
+     "img": "img/2c8ad30871.png"
+    },
+    {
+     "w": "green",
+     "id": "colores|Verde",
+     "img": "img/2368d85824.png"
+    },
+    {
+     "w": "sheep",
+     "id": "animales|Oveja",
+     "img": "img/f1dcc1b9cc.png"
+    },
+    {
+     "w": "white",
+     "id": "colores|Blanco",
+     "img": "img/458f834f61.png"
+    },
+    {
+     "w": "cat",
+     "id": "animales|Gato",
+     "img": "img/ab47b70a6b.png"
+    },
+    {
+     "w": "black",
+     "id": "colores|Negro",
+     "img": "img/73c8a4092d.png"
+    },
+    {
+     "w": "tiger",
+     "id": "animales|Tigre",
+     "img": "img/450f253311.png"
+    },
+    {
+     "w": "bee",
+     "id": "animales|Abeja",
+     "img": "img/7280962d48.png"
+    },
+    {
+     "w": "yellow",
+     "id": "colores|Amarillo",
+     "img": "img/f9ebe8fd08.png"
+    }
+   ],
+   "pages": 9
+  },
+  {
+   "id": "en-cake",
+   "file": "data/stories/en/cake.json",
+   "n": 3,
+   "title": "The Fox Makes a Cake",
+   "es": "El zorro hace un pastel",
+   "short": "El pastel",
+   "cover": "img/pj/gallina.png",
+   "tint": "blue",
+   "words": [
+    {
+     "w": "fox",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "make",
+     "id": "w24|hacer, fabricar"
+    },
+    {
+     "w": "cake",
+     "id": "w03|pastel, tarta",
+     "img": "img/om_1F382.png"
+    },
+    {
+     "w": "friend",
+     "id": "w01|amigo",
+     "img": "img/om_1FAC2.png"
+    },
+    {
+     "w": "hen",
+     "id": "animales|Gallina",
+     "img": "img/f501d7335c.png"
+    },
+    {
+     "w": "give",
+     "id": "w24|dar"
+    },
+    {
+     "w": "egg",
+     "id": "w03|huevo",
+     "img": "img/om_1F95A.png"
+    },
+    {
+     "w": "cow",
+     "id": "animales|Vaca",
+     "img": "img/9d5456806f.png"
+    },
+    {
+     "w": "milk",
+     "id": "w03|leche",
+     "img": "img/om_1F95B.png"
+    },
+    {
+     "w": "put",
+     "id": "w24|poner"
+    },
+    {
+     "w": "bowl",
+     "id": "w03|cuenco, bol",
+     "img": "img/om_1F963.png"
+    },
+    {
+     "w": "mix",
+     "id": "w28|mezclar"
+    },
+    {
+     "w": "apple",
+     "id": "w03|manzana",
+     "img": "img/om_1F34E.png"
+    },
+    {
+     "w": "chocolate",
+     "id": "w03|chocolate",
+     "img": "img/om_1F36B.png"
+    },
+    {
+     "w": "horse",
+     "id": "animales|Caballo",
+     "img": "img/7452a76de5.png"
+    },
+    {
+     "w": "red",
+     "id": "colores|Rojo",
+     "img": "img/746cbfda58.png"
+    },
+    {
+     "w": "pig",
+     "id": "animales|Cerdo",
+     "img": "img/98b47c184e.png"
+    },
+    {
+     "w": "ready",
+     "id": "w35|listo, preparado"
+    },
+    {
+     "w": "eat",
+     "id": "w28|comer",
+     "img": "img/om_1F374.png"
+    },
+    {
+     "w": "together",
+     "id": "w38|juntos",
+     "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+    },
+    {
+     "w": "happy",
+     "id": "w32|feliz",
+     "img": "img/om_1F600.png"
+    }
+   ],
+   "pages": 9
+  },
+  {
+   "id": "en-night",
+   "file": "data/stories/en/night.json",
+   "n": 4,
+   "title": "Good Night, Fox",
+   "es": "Buenas noches, zorro",
+   "short": "Buenas noches",
+   "cover": "img/pj/buho.png",
+   "tint": "teal",
+   "words": [
+    {
+     "w": "night",
+     "id": "w08|noche",
+     "img": "img/om_1F303.png"
+    },
+    {
+     "w": "moon",
+     "id": "w09|luna",
+     "img": "img/om_1F319.png"
+    },
+    {
+     "w": "sky",
+     "id": "w09|cielo"
+    },
+    {
+     "w": "cow",
+     "id": "animales|Vaca",
+     "img": "img/9d5456806f.png"
+    },
+    {
+     "w": "sleep",
+     "id": "w28|dormir",
+     "img": "img/om_1F634.png"
+    },
+    {
+     "w": "pig",
+     "id": "animales|Cerdo",
+     "img": "img/98b47c184e.png"
+    },
+    {
+     "w": "fox",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "bed",
+     "id": "w04|cama",
+     "img": "img/om_1F6CF.png"
+    },
+    {
+     "w": "tired",
+     "id": "w31|cansado",
+     "img": "img/om_1F62B.png"
+    },
+    {
+     "w": "count",
+     "id": "w29|contar",
+     "img": "img/om_1F522.png"
+    },
+    {
+     "w": "sheep",
+     "id": "animales|Oveja",
+     "img": "img/f1dcc1b9cc.png"
+    },
+    {
+     "w": "owl",
+     "id": "animales|Búho",
+     "img": "img/7a0d4a0582.png"
+    },
+    {
+     "w": "idea",
+     "id": "w21|idea",
+     "img": "img/om_1F4A1.png"
+    },
+    {
+     "w": "warm",
+     "id": "w31|cálido, templado"
+    },
+    {
+     "w": "milk",
+     "id": "w03|leche",
+     "img": "img/om_1F95B.png"
+    },
+    {
+     "w": "story",
+     "id": "w13|historia, cuento",
+     "img": "img/om_1F4D6.png"
+    },
+    {
+     "w": "drink",
+     "id": "w28|beber",
+     "img": "img/om_1F964.png"
+    },
+    {
+     "w": "read",
+     "id": "w28|leer",
+     "img": "img/om_1F4D6.png"
+    },
+    {
+     "w": "good",
+     "id": "w33|bueno",
+     "img": "img/om_1F44D.png"
+    }
+   ],
+   "pages": 9
+  }
+ ],
+ "français": [
+  {
+   "id": "fr-play",
+   "file": "data/stories/fr/play.json",
+   "n": 1,
+   "title": "Le renard veut jouer",
+   "es": "El zorro quiere jugar",
+   "short": "A jugar",
+   "cover": "img/pj/zorro.png",
+   "tint": "green",
+   "words": [
+    {
+     "w": "le renard",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "petit, petite",
+     "id": "w31|pequeño"
+    },
+    {
+     "w": "orange",
+     "id": "colores|Naranja",
+     "img": "img/a99bad73df.png"
+    },
+    {
+     "w": "la ferme",
+     "id": "w09|granja"
+    },
+    {
+     "w": "vivre",
+     "id": "w28|vivir"
+    },
+    {
+     "w": "vouloir",
+     "id": "w24|querer"
+    },
+    {
+     "w": "jouer",
+     "id": "w28|jugar, tocar (música)",
+     "img": "img/om_1F3AE.png"
+    },
+    {
+     "w": "la poule",
+     "id": "animales|Gallina",
+     "img": "img/f501d7335c.png"
+    },
+    {
+     "w": "l'œuf",
+     "id": "w03|huevo",
+     "img": "img/om_1F95A.png"
+    },
+    {
+     "w": "occupé, occupée",
+     "id": "w35|ocupado"
+    },
+    {
+     "w": "la vache",
+     "id": "animales|Vaca",
+     "img": "img/9d5456806f.png"
+    },
+    {
+     "w": "manger",
+     "id": "w28|comer",
+     "img": "img/om_1F374.png"
+    },
+    {
+     "w": "l'herbe",
+     "id": "w09|hierba, césped"
+    },
+    {
+     "w": "triste",
+     "id": "w32|triste",
+     "img": "img/om_2639.png"
+    },
+    {
+     "w": "le canard",
+     "id": "animales|Pato",
+     "img": "img/e17d706969.png"
+    },
+    {
+     "w": "le chien",
+     "id": "animales|Perro",
+     "img": "img/3e394d37a4.png"
+    },
+    {
+     "w": "le lac",
+     "id": "w09|lago"
+    },
+    {
+     "w": "nager",
+     "id": "w28|nadar",
+     "img": "img/om_1F3CA.png"
+    },
+    {
+     "w": "sauter",
+     "id": "w25|saltar"
+    },
+    {
+     "w": "l'eau",
+     "id": "w03|agua",
+     "img": "img/om_1F4A7.png"
+    },
+    {
+     "w": "content, contente",
+     "id": "w32|contento",
+     "img": "img/om_1F642.png"
+    },
+    {
+     "w": "nouveau, nouvelle",
+     "id": "w35|nuevo",
+     "img": "img/om_1F195.png"
+    },
+    {
+     "w": "l'ami , l'amie",
+     "id": "w01|amigo",
+     "img": "img/om_1FAC2.png"
+    },
+    {
+     "w": "le ballon",
+     "id": "w13|pelota, balón",
+     "img": "img/om_1F3D0.png"
+    },
+    {
+     "w": "courir",
+     "id": "w25|correr",
+     "img": "img/om_1F3C3.png"
+    }
+   ],
+   "pages": 10
+  },
+  {
+   "id": "fr-colours",
+   "file": "data/stories/fr/colours.json",
+   "n": 2,
+   "title": "Les couleurs de la ferme",
+   "es": "Los colores de la granja",
+   "short": "Colores",
+   "cover": "img/pj/cerdo.png",
+   "tint": "yellow",
+   "words": [
+    {
+     "w": "le renard",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "orange",
+     "id": "colores|Naranja",
+     "img": "img/a99bad73df.png"
+    },
+    {
+     "w": "le cochon",
+     "id": "animales|Cerdo",
+     "img": "img/98b47c184e.png"
+    },
+    {
+     "w": "rose",
+     "id": "colores|Rosa",
+     "img": "img/b2ee2b0aa3.png"
+    },
+    {
+     "w": "la grenouille",
+     "id": "animales|Rana",
+     "img": "img/2c8ad30871.png"
+    },
+    {
+     "w": "vert",
+     "id": "colores|Verde",
+     "img": "img/2368d85824.png"
+    },
+    {
+     "w": "le mouton",
+     "id": "animales|Oveja",
+     "img": "img/f1dcc1b9cc.png"
+    },
+    {
+     "w": "blanc",
+     "id": "colores|Blanco",
+     "img": "img/458f834f61.png"
+    },
+    {
+     "w": "le chat",
+     "id": "animales|Gato",
+     "img": "img/ab47b70a6b.png"
+    },
+    {
+     "w": "noir",
+     "id": "colores|Negro",
+     "img": "img/73c8a4092d.png"
+    },
+    {
+     "w": "le tigre",
+     "id": "animales|Tigre",
+     "img": "img/450f253311.png"
+    },
+    {
+     "w": "l'abeille",
+     "id": "animales|Abeja",
+     "img": "img/7280962d48.png"
+    },
+    {
+     "w": "jaune",
+     "id": "colores|Amarillo",
+     "img": "img/f9ebe8fd08.png"
+    }
+   ],
+   "pages": 9
+  },
+  {
+   "id": "fr-cake",
+   "file": "data/stories/fr/cake.json",
+   "n": 3,
+   "title": "Le renard fait un gâteau",
+   "es": "El zorro hace un pastel",
+   "short": "El pastel",
+   "cover": "img/pj/gallina.png",
+   "tint": "blue",
+   "words": [
+    {
+     "w": "le renard",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "faire",
+     "id": "w24|hacer, fabricar"
+    },
+    {
+     "w": "le gâteau",
+     "id": "w03|pastel, tarta",
+     "img": "img/om_1F382.png"
+    },
+    {
+     "w": "l'ami , l'amie",
+     "id": "w01|amigo",
+     "img": "img/om_1FAC2.png"
+    },
+    {
+     "w": "la poule",
+     "id": "animales|Gallina",
+     "img": "img/f501d7335c.png"
+    },
+    {
+     "w": "donner",
+     "id": "w24|dar"
+    },
+    {
+     "w": "l'œuf",
+     "id": "w03|huevo",
+     "img": "img/om_1F95A.png"
+    },
+    {
+     "w": "la vache",
+     "id": "animales|Vaca",
+     "img": "img/9d5456806f.png"
+    },
+    {
+     "w": "le lait",
+     "id": "w03|leche",
+     "img": "img/om_1F95B.png"
+    },
+    {
+     "w": "mettre",
+     "id": "w24|poner"
+    },
+    {
+     "w": "le bol",
+     "id": "w03|cuenco, bol",
+     "img": "img/om_1F963.png"
+    },
+    {
+     "w": "mélanger",
+     "id": "w28|mezclar"
+    },
+    {
+     "w": "la pomme",
+     "id": "w03|manzana",
+     "img": "img/om_1F34E.png"
+    },
+    {
+     "w": "le chocolat",
+     "id": "w03|chocolate",
+     "img": "img/om_1F36B.png"
+    },
+    {
+     "w": "le cheval",
+     "id": "animales|Caballo",
+     "img": "img/7452a76de5.png"
+    },
+    {
+     "w": "rouge",
+     "id": "colores|Rojo",
+     "img": "img/746cbfda58.png"
+    },
+    {
+     "w": "le cochon",
+     "id": "animales|Cerdo",
+     "img": "img/98b47c184e.png"
+    },
+    {
+     "w": "prêt, prête",
+     "id": "w35|listo, preparado"
+    },
+    {
+     "w": "manger",
+     "id": "w28|comer",
+     "img": "img/om_1F374.png"
+    },
+    {
+     "w": "ensemble",
+     "id": "w38|juntos",
+     "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+    },
+    {
+     "w": "content, contente",
+     "id": "w32|contento",
+     "img": "img/om_1F642.png"
+    }
+   ],
+   "pages": 9
+  },
+  {
+   "id": "fr-night",
+   "file": "data/stories/fr/night.json",
+   "n": 4,
+   "title": "Bonne nuit, renard",
+   "es": "Buenas noches, zorro",
+   "short": "Buenas noches",
+   "cover": "img/pj/buho.png",
+   "tint": "teal",
+   "words": [
+    {
+     "w": "la nuit",
+     "id": "w08|noche",
+     "img": "img/om_1F303.png"
+    },
+    {
+     "w": "la lune",
+     "id": "w09|luna",
+     "img": "img/om_1F319.png"
+    },
+    {
+     "w": "le ciel",
+     "id": "w09|cielo"
+    },
+    {
+     "w": "la vache",
+     "id": "animales|Vaca",
+     "img": "img/9d5456806f.png"
+    },
+    {
+     "w": "dormir",
+     "id": "w28|dormir",
+     "img": "img/om_1F634.png"
+    },
+    {
+     "w": "le cochon",
+     "id": "animales|Cerdo",
+     "img": "img/98b47c184e.png"
+    },
+    {
+     "w": "le renard",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "le lit",
+     "id": "w04|cama",
+     "img": "img/om_1F6CF.png"
+    },
+    {
+     "w": "fatigué, fatiguée",
+     "id": "w31|cansado",
+     "img": "img/om_1F62B.png"
+    },
+    {
+     "w": "compter",
+     "id": "w29|contar",
+     "img": "img/om_1F522.png"
+    },
+    {
+     "w": "le mouton",
+     "id": "animales|Oveja",
+     "img": "img/f1dcc1b9cc.png"
+    },
+    {
+     "w": "le hibou",
+     "id": "animales|Búho",
+     "img": "img/7a0d4a0582.png"
+    },
+    {
+     "w": "l'idée",
+     "id": "w21|idea",
+     "img": "img/om_1F4A1.png"
+    },
+    {
+     "w": "chaud, chaude",
+     "id": "w31|cálido, templado"
+    },
+    {
+     "w": "le lait",
+     "id": "w03|leche",
+     "img": "img/om_1F95B.png"
+    },
+    {
+     "w": "l'histoire",
+     "id": "w13|historia, cuento",
+     "img": "img/om_1F4D6.png"
+    },
+    {
+     "w": "boire",
+     "id": "w28|beber",
+     "img": "img/om_1F964.png"
+    },
+    {
+     "w": "lire",
+     "id": "w28|leer",
+     "img": "img/om_1F4D6.png"
+    },
+    {
+     "w": "bon, bonne",
+     "id": "w33|bueno",
+     "img": "img/om_1F44D.png"
+    }
+   ],
+   "pages": 9
+  }
+ ],
+ "dansk": [
+  {
+   "id": "da-play",
+   "file": "data/stories/da/play.json",
+   "n": 1,
+   "title": "Ræven vil lege",
+   "es": "El zorro quiere jugar",
+   "short": "A jugar",
+   "cover": "img/pj/zorro.png",
+   "tint": "green",
+   "words": [
+    {
+     "w": "en ræv",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "lille",
+     "id": "w31|pequeño"
+    },
+    {
+     "w": "orange",
+     "id": "colores|Naranja",
+     "img": "img/a99bad73df.png"
+    },
+    {
+     "w": "en gård",
+     "id": "w09|granja"
+    },
+    {
+     "w": "at bo",
+     "id": "w28|vivir"
+    },
+    {
+     "w": "at ville",
+     "id": "w24|querer"
+    },
+    {
+     "w": "en høne",
+     "id": "animales|Gallina",
+     "img": "img/f501d7335c.png"
+    },
+    {
+     "w": "et æg",
+     "id": "w03|huevo",
+     "img": "img/om_1F95A.png"
+    },
+    {
+     "w": "travl",
+     "id": "w35|ocupado"
+    },
+    {
+     "w": "en ko",
+     "id": "animales|Vaca",
+     "img": "img/9d5456806f.png"
+    },
+    {
+     "w": "at spise",
+     "id": "w28|comer",
+     "img": "img/om_1F374.png"
+    },
+    {
+     "w": "et græs",
+     "id": "w09|hierba, césped"
+    },
+    {
+     "w": "trist",
+     "id": "w32|triste",
+     "img": "img/om_2639.png"
+    },
+    {
+     "w": "en and",
+     "id": "animales|Pato",
+     "img": "img/e17d706969.png"
+    },
+    {
+     "w": "en hund",
+     "id": "animales|Perro",
+     "img": "img/3e394d37a4.png"
+    },
+    {
+     "w": "en sø",
+     "id": "w09|lago"
+    },
+    {
+     "w": "at svømme",
+     "id": "w28|nadar",
+     "img": "img/om_1F3CA.png"
+    },
+    {
+     "w": "at hoppe",
+     "id": "w25|saltar"
+    },
+    {
+     "w": "et vand",
+     "id": "w03|agua",
+     "img": "img/om_1F4A7.png"
+    },
+    {
+     "w": "glad",
+     "id": "w32|feliz",
+     "img": "img/om_1F600.png"
+    },
+    {
+     "w": "ny",
+     "id": "w35|nuevo",
+     "img": "img/om_1F195.png"
+    },
+    {
+     "w": "en ven",
+     "id": "w01|amigo",
+     "img": "img/om_1FAC2.png"
+    },
+    {
+     "w": "en bold",
+     "id": "w13|pelota, balón",
+     "img": "img/om_1F3D0.png"
+    },
+    {
+     "w": "at løbe",
+     "id": "w25|correr",
+     "img": "img/om_1F3C3.png"
+    }
+   ],
+   "pages": 10
+  },
+  {
+   "id": "da-colours",
+   "file": "data/stories/da/colours.json",
+   "n": 2,
+   "title": "Farver på gården",
+   "es": "Los colores de la granja",
+   "short": "Colores",
+   "cover": "img/pj/cerdo.png",
+   "tint": "yellow",
+   "words": [
+    {
+     "w": "en ræv",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "orange",
+     "id": "colores|Naranja",
+     "img": "img/a99bad73df.png"
+    },
+    {
+     "w": "en gris",
+     "id": "animales|Cerdo",
+     "img": "img/98b47c184e.png"
+    },
+    {
+     "w": "lyserød",
+     "id": "colores|Rosa",
+     "img": "img/b2ee2b0aa3.png"
+    },
+    {
+     "w": "en frø",
+     "id": "animales|Rana",
+     "img": "img/2c8ad30871.png"
+    },
+    {
+     "w": "grøn",
+     "id": "colores|Verde",
+     "img": "img/2368d85824.png"
+    },
+    {
+     "w": "et får",
+     "id": "animales|Oveja",
+     "img": "img/f1dcc1b9cc.png"
+    },
+    {
+     "w": "hvid",
+     "id": "colores|Blanco",
+     "img": "img/458f834f61.png"
+    },
+    {
+     "w": "en kat",
+     "id": "animales|Gato",
+     "img": "img/ab47b70a6b.png"
+    },
+    {
+     "w": "sort",
+     "id": "colores|Negro",
+     "img": "img/73c8a4092d.png"
+    },
+    {
+     "w": "en tiger",
+     "id": "animales|Tigre",
+     "img": "img/450f253311.png"
+    },
+    {
+     "w": "en bi",
+     "id": "animales|Abeja",
+     "img": "img/7280962d48.png"
+    },
+    {
+     "w": "gul",
+     "id": "colores|Amarillo",
+     "img": "img/f9ebe8fd08.png"
+    }
+   ],
+   "pages": 9
+  },
+  {
+   "id": "da-cake",
+   "file": "data/stories/da/cake.json",
+   "n": 3,
+   "title": "Ræven bager en kage",
+   "es": "El zorro hace un pastel",
+   "short": "El pastel",
+   "cover": "img/pj/gallina.png",
+   "tint": "blue",
+   "words": [
+    {
+     "w": "en ræv",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "at bage",
+     "id": "w28|hornear",
+     "img": "img/om_1F956.png"
+    },
+    {
+     "w": "en kage",
+     "id": "w03|pastel, tarta",
+     "img": "img/om_1F382.png"
+    },
+    {
+     "w": "en ven",
+     "id": "w01|amigo",
+     "img": "img/om_1FAC2.png"
+    },
+    {
+     "w": "en høne",
+     "id": "animales|Gallina",
+     "img": "img/f501d7335c.png"
+    },
+    {
+     "w": "at give",
+     "id": "w24|dar"
+    },
+    {
+     "w": "et æg",
+     "id": "w03|huevo",
+     "img": "img/om_1F95A.png"
+    },
+    {
+     "w": "en ko",
+     "id": "animales|Vaca",
+     "img": "img/9d5456806f.png"
+    },
+    {
+     "w": "en mælk",
+     "id": "w03|leche",
+     "img": "img/om_1F95B.png"
+    },
+    {
+     "w": "en skål",
+     "id": "w03|cuenco, bol",
+     "img": "img/om_1F963.png"
+    },
+    {
+     "w": "at blande",
+     "id": "w28|mezclar"
+    },
+    {
+     "w": "et æble",
+     "id": "w03|manzana",
+     "img": "img/om_1F34E.png"
+    },
+    {
+     "w": "en chokolade",
+     "id": "w03|chocolate",
+     "img": "img/om_1F36B.png"
+    },
+    {
+     "w": "en hest",
+     "id": "animales|Caballo",
+     "img": "img/7452a76de5.png"
+    },
+    {
+     "w": "rød",
+     "id": "colores|Rojo",
+     "img": "img/746cbfda58.png"
+    },
+    {
+     "w": "en gris",
+     "id": "animales|Cerdo",
+     "img": "img/98b47c184e.png"
+    },
+    {
+     "w": "at spise",
+     "id": "w28|comer",
+     "img": "img/om_1F374.png"
+    },
+    {
+     "w": "sammen",
+     "id": "w38|juntos",
+     "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+    },
+    {
+     "w": "glad",
+     "id": "w32|feliz",
+     "img": "img/om_1F600.png"
+    }
+   ],
+   "pages": 9
+  },
+  {
+   "id": "da-night",
+   "file": "data/stories/da/night.json",
+   "n": 4,
+   "title": "Godnat, ræv",
+   "es": "Buenas noches, zorro",
+   "short": "Buenas noches",
+   "cover": "img/pj/buho.png",
+   "tint": "teal",
+   "words": [
+    {
+     "w": "en nat",
+     "id": "w08|noche",
+     "img": "img/om_1F303.png"
+    },
+    {
+     "w": "en måne",
+     "id": "w09|luna",
+     "img": "img/om_1F319.png"
+    },
+    {
+     "w": "en himmel",
+     "id": "w09|cielo"
+    },
+    {
+     "w": "en ko",
+     "id": "animales|Vaca",
+     "img": "img/9d5456806f.png"
+    },
+    {
+     "w": "at sove",
+     "id": "w28|dormir",
+     "img": "img/om_1F634.png"
+    },
+    {
+     "w": "en gris",
+     "id": "animales|Cerdo",
+     "img": "img/98b47c184e.png"
+    },
+    {
+     "w": "en ræv",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "en seng",
+     "id": "w04|cama",
+     "img": "img/om_1F6CF.png"
+    },
+    {
+     "w": "træt",
+     "id": "w31|cansado",
+     "img": "img/om_1F62B.png"
+    },
+    {
+     "w": "at tælle",
+     "id": "w29|contar",
+     "img": "img/om_1F522.png"
+    },
+    {
+     "w": "et får",
+     "id": "animales|Oveja",
+     "img": "img/f1dcc1b9cc.png"
+    },
+    {
+     "w": "en ugle",
+     "id": "animales|Búho",
+     "img": "img/7a0d4a0582.png"
+    },
+    {
+     "w": "en idé",
+     "id": "w21|idea",
+     "img": "img/om_1F4A1.png"
+    },
+    {
+     "w": "varm",
+     "id": "w31|caliente, caluroso",
+     "img": "img/om_1F975.png"
+    },
+    {
+     "w": "en mælk",
+     "id": "w03|leche",
+     "img": "img/om_1F95B.png"
+    },
+    {
+     "w": "en historie",
+     "id": "w10|historia"
+    },
+    {
+     "w": "at drikke",
+     "id": "w28|beber",
+     "img": "img/om_1F964.png"
+    },
+    {
+     "w": "at læse",
+     "id": "w28|leer",
+     "img": "img/om_1F4D6.png"
+    }
+   ],
+   "pages": 9
+  }
+ ]
+}

@@ -26,6 +26,7 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
      sc:prefs (atajos de Hoy fijados y ocultos, interruptor y pregunta de la tortuga, js/shortcuts.js)
      mail:box (cartas del Buzón del tío y las ya abiertas y pagadas, js/mailbox.js)
      phrase:stamps (los sellos de «La frase de la cena»: días sellados, 60 como mucho, y el total; js/phrases.js)
+     cuentos (los Cuentos del zorro leídos: finales vistos, veces y si ya pagó, y los pagados hoy; js/stories.js)
    Por idioma (<lang> = una clave de LANGS: english, français, dansk):
      srs:<lang> (repaso) · map:<lang> (lecciones del camino) · voice:<lang> · album:seen|done|uniq|orph:<lang>
    Prácticas por documento: pr:<docId>:<lang>
@@ -52,6 +53,7 @@ const EXACT = {
   "sc:prefs": "o",
   "mail:box": "o",
   "phrase:stamps": "o",
+  cuentos: "o",
 };
 const PER_LANG = {"srs:": "o", "map:": "o", "voice:": "*", "album:seen:": "*", "album:done:": "*", "album:uniq:": "*", "album:orph:": "*"};
 const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft", "vocab:sc", "phrase:day", "vocab:voice", "parrot:st"];

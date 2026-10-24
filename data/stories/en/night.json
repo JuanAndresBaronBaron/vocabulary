@@ -1,0 +1,439 @@
+{
+ "v": 1,
+ "id": "en-night",
+ "lang": "english",
+ "n": 4,
+ "title": "Good Night, Fox",
+ "es": "Buenas noches, zorro",
+ "short": "Buenas noches",
+ "cover": "img/pj/buho.png",
+ "tint": "teal",
+ "words": [
+  {
+   "w": "night",
+   "id": "w08|noche",
+   "img": "img/om_1F303.png"
+  },
+  {
+   "w": "moon",
+   "id": "w09|luna",
+   "img": "img/om_1F319.png"
+  },
+  {
+   "w": "sky",
+   "id": "w09|cielo"
+  },
+  {
+   "w": "cow",
+   "id": "animales|Vaca",
+   "img": "img/9d5456806f.png"
+  },
+  {
+   "w": "sleep",
+   "id": "w28|dormir",
+   "img": "img/om_1F634.png"
+  },
+  {
+   "w": "pig",
+   "id": "animales|Cerdo",
+   "img": "img/98b47c184e.png"
+  },
+  {
+   "w": "fox",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "bed",
+   "id": "w04|cama",
+   "img": "img/om_1F6CF.png"
+  },
+  {
+   "w": "tired",
+   "id": "w31|cansado",
+   "img": "img/om_1F62B.png"
+  },
+  {
+   "w": "count",
+   "id": "w29|contar",
+   "img": "img/om_1F522.png"
+  },
+  {
+   "w": "sheep",
+   "id": "animales|Oveja",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  {
+   "w": "owl",
+   "id": "animales|Búho",
+   "img": "img/7a0d4a0582.png"
+  },
+  {
+   "w": "idea",
+   "id": "w21|idea",
+   "img": "img/om_1F4A1.png"
+  },
+  {
+   "w": "warm",
+   "id": "w31|cálido, templado"
+  },
+  {
+   "w": "milk",
+   "id": "w03|leche",
+   "img": "img/om_1F95B.png"
+  },
+  {
+   "w": "story",
+   "id": "w13|historia, cuento",
+   "img": "img/om_1F4D6.png"
+  },
+  {
+   "w": "drink",
+   "id": "w28|beber",
+   "img": "img/om_1F964.png"
+  },
+  {
+   "w": "read",
+   "id": "w28|leer",
+   "img": "img/om_1F4D6.png"
+  },
+  {
+   "w": "good",
+   "id": "w33|bueno",
+   "img": "img/om_1F44D.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ə/"
+  },
+  "asks": {
+   "es": "pregunta",
+   "id": "w26|preguntar, pedir",
+   "ipa": "/ɑːsks/",
+   "img": "img/om_2753.png"
+  },
+  "awake": {
+   "es": "despierto",
+   "ipa": "/əˈweɪk/"
+  },
+  "bed": {
+   "es": "cama",
+   "id": "w04|cama",
+   "ipa": "/bed/",
+   "img": "img/om_1F6CF.png"
+  },
+  "but": {
+   "es": "pero",
+   "id": "w42|pero",
+   "ipa": "/bʌt/"
+  },
+  "counts": {
+   "es": "cuenta",
+   "id": "w29|contar",
+   "ipa": "/kaʊnts/",
+   "img": "img/om_1F522.png"
+  },
+  "cow": {
+   "es": "vaca",
+   "id": "animales|Vaca",
+   "ipa": "/kaʊ/",
+   "img": "img/9d5456806f.png"
+  },
+  "drinks": {
+   "es": "bebe",
+   "id": "w28|beber",
+   "ipa": "/drɪŋks/",
+   "img": "img/om_1F964.png"
+  },
+  "five": {
+   "es": "cinco",
+   "id": "numeros|5",
+   "ipa": "/faɪv/"
+  },
+  "four": {
+   "es": "cuatro",
+   "id": "numeros|4",
+   "ipa": "/fɔː/"
+  },
+  "fox": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/fɒks/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "good": {
+   "es": "bueno, rico",
+   "id": "w33|bueno",
+   "ipa": "/ɡʊd/",
+   "img": "img/om_1F44D.png"
+  },
+  "good night": {
+   "es": "buenas noches",
+   "ipa": "/ˌɡʊd ˈnaɪt/"
+  },
+  "has": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/hæz/"
+  },
+  "he": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/hiː/"
+  },
+  "ideas": {
+   "es": "ideas",
+   "id": "w21|idea",
+   "ipa": "/aɪˈdɪəz/",
+   "img": "img/om_1F4A1.png"
+  },
+  "in": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/ɪn/"
+  },
+  "is": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪz/"
+  },
+  "it": {
+   "es": "ello (la leche)",
+   "id": "w41|ello, lo (cosa)",
+   "ipa": "/ɪt/"
+  },
+  "it is night": {
+   "es": "es de noche",
+   "id": "w08|noche",
+   "ipa": "/ɪt ɪz ˈnaɪt/",
+   "img": "img/om_1F303.png"
+  },
+  "milk": {
+   "es": "leche",
+   "id": "w03|leche",
+   "ipa": "/mɪlk/",
+   "img": "img/om_1F95B.png"
+  },
+  "moon": {
+   "es": "luna",
+   "id": "w09|luna",
+   "ipa": "/muːn/",
+   "img": "img/om_1F319.png"
+  },
+  "not": {
+   "es": "no",
+   "id": "w38|no",
+   "ipa": "/nɒt/"
+  },
+  "now": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/naʊ/"
+  },
+  "one": {
+   "es": "uno",
+   "id": "numeros|1",
+   "ipa": "/wʌn/"
+  },
+  "or": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ɔː/"
+  },
+  "owl": {
+   "es": "búho",
+   "id": "animales|Búho",
+   "ipa": "/aʊl/",
+   "img": "img/7a0d4a0582.png"
+  },
+  "pig": {
+   "es": "cerdo",
+   "id": "animales|Cerdo",
+   "ipa": "/pɪɡ/",
+   "img": "img/98b47c184e.png"
+  },
+  "reads": {
+   "es": "lee",
+   "id": "w28|leer",
+   "ipa": "/riːdz/",
+   "img": "img/om_1F4D6.png"
+  },
+  "sheep": {
+   "es": "ovejas",
+   "id": "animales|Oveja",
+   "ipa": "/ʃiːp/",
+   "img": "img/f1dcc1b9cc.png"
+  },
+  "sky": {
+   "es": "cielo",
+   "id": "w09|cielo",
+   "ipa": "/skaɪ/"
+  },
+  "sleeps": {
+   "es": "duerme",
+   "id": "w28|dormir",
+   "ipa": "/sliːps/",
+   "img": "img/om_1F634.png"
+  },
+  "still": {
+   "es": "todavía",
+   "id": "w38|todavía, aún",
+   "ipa": "/stɪl/"
+  },
+  "story": {
+   "es": "cuento",
+   "id": "w13|historia, cuento",
+   "ipa": "/ˈstɔːri/",
+   "img": "img/om_1F4D6.png"
+  },
+  "the": {
+   "es": "el, la, los, las",
+   "id": "w41|el, la, los, las",
+   "ipa": "/ðə/"
+  },
+  "three": {
+   "es": "tres",
+   "id": "numeros|3",
+   "ipa": "/θriː/"
+  },
+  "tired": {
+   "es": "cansado",
+   "id": "w31|cansado",
+   "ipa": "/ˈtaɪəd/",
+   "img": "img/om_1F62B.png"
+  },
+  "to": {
+   "es": "a, hacia",
+   "id": "w40|a, hacia, para",
+   "ipa": "/tuː/"
+  },
+  "too": {
+   "es": "también",
+   "id": "w38|también, demasiado",
+   "ipa": "/tuː/"
+  },
+  "two": {
+   "es": "dos",
+   "id": "numeros|2",
+   "ipa": "/tuː/"
+  },
+  "very": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/ˈveri/"
+  },
+  "warm": {
+   "es": "caliente",
+   "id": "w31|cálido, templado",
+   "ipa": "/wɔːm/"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/om_1F319.png",
+   "also": [
+    "img/om_2B50.png"
+   ],
+   "t": "It is night. The moon is in the sky.",
+   "es": "Es de noche. La luna está en el cielo."
+  },
+  {
+   "img": "img/pj/vaca.png",
+   "also": [
+    "img/pj/cerdo.png"
+   ],
+   "t": "The cow sleeps. The pig sleeps too.",
+   "es": "La vaca duerme. El cerdo también duerme."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F6CF.png"
+   ],
+   "t": "The fox is in bed. But he is not tired.",
+   "es": "El zorro está en la cama. Pero no está cansado."
+  },
+  {
+   "img": "img/pj/oveja.png",
+   "t": "He counts sheep. One, two, three, four, five…",
+   "es": "Cuenta ovejas. Uno, dos, tres, cuatro, cinco…"
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F319.png"
+   ],
+   "t": "He is still not tired!",
+   "es": "¡Todavía no está cansado!"
+  },
+  {
+   "img": "img/pj/buho.png",
+   "also": [
+    "img/om_1F4A1.png"
+   ],
+   "t": "The owl is awake. He has two ideas.",
+   "es": "El búho está despierto. Tiene dos ideas."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/buho.png",
+  "also": [
+   "img/pj/zorro.png"
+  ],
+  "t": "The owl asks the fox: warm milk or a story?",
+  "es": "El búho le pregunta al zorro: ¿leche caliente o un cuento?",
+  "opts": [
+   {
+    "key": "milk",
+    "t": "Warm milk",
+    "es": "Leche caliente",
+    "img": "img/om_1F95B.png",
+    "pages": [
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F95B.png"
+      ],
+      "t": "The fox drinks warm milk. It is very good.",
+      "es": "El zorro bebe leche caliente. Está muy rica."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F634.png"
+      ],
+      "t": "Now he is tired. Good night, fox!",
+      "es": "Ahora está cansado. ¡Buenas noches, zorro!"
+     }
+    ]
+   },
+   {
+    "key": "story",
+    "t": "A story",
+    "es": "Un cuento",
+    "img": "img/om_1F4D6.png",
+    "pages": [
+     {
+      "img": "img/pj/buho.png",
+      "also": [
+       "img/om_1F4D6.png"
+      ],
+      "t": "The owl reads a story to the fox.",
+      "es": "El búho le lee un cuento al zorro."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F634.png"
+      ],
+      "t": "Now he is tired. Good night, fox!",
+      "es": "Ahora está cansado. ¡Buenas noches, zorro!"
+     }
+    ]
+   }
+  ]
+ }
+}

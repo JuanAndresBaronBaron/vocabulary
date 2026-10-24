@@ -1583,6 +1583,10 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "js/phrases.js", "data/phrases.json", "img/games/frases.png",
   "js/navmotion.js",
   "js/parrot.js",
+  "js/stories.js", "data/stories/index.json", "img/games/cuentos.png",
+  "data/stories/en/play.json", "data/stories/en/colours.json", "data/stories/en/cake.json", "data/stories/en/night.json",
+  "data/stories/fr/play.json", "data/stories/fr/colours.json", "data/stories/fr/cake.json", "data/stories/fr/night.json",
+  "data/stories/da/play.json", "data/stories/da/colours.json", "data/stories/da/cake.json", "data/stories/da/night.json",
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
@@ -1736,6 +1740,7 @@ async function downloadAll(){
     if(window.vocabGames && typeof vocabGames.pic === "function") [...imgs].forEach(u => { const p = vocabGames.pic(u); if(p && p !== u) imgs.add(p); });
     if(window.vocabSeason && vocabSeason.images) (await vocabSeason.images()).forEach(u => imgs.add(u));   /* los de las temporadas (img/season) */
     if(window.vocabMailbox && vocabMailbox.images) vocabMailbox.images().forEach(u => imgs.add(u));   /* los del Buzón del tío */
+    if(window.vocabStories && vocabStories.images) (await vocabStories.images()).forEach(u => imgs.add(u));   /* los de los Cuentos del zorro */
     const second = [...[...imgs].map(u => [u, media]), ...ids.map(id => [`audio/${ab}/${id}.mp3`, media])];
     job.total = first.length + second.length;
     await pool(second, ([u, c]) => one(u, c, true, false));
@@ -1825,6 +1830,7 @@ function rootOf(h){
   if(a === "buzon" || a === "carta") return "juegos";   /* el Buzón y sus cartas (js/mailbox.js) se abren desde Juegos */
   if(a === "frases") return "juegos";   /* Frases mágicas y la frase de la cena (js/phrases.js) son de Juegos */
   if(a === "loro") return "granja";   /* el loro eco y su cápsula (js/parrot.js) se abren desde la granja */
+  if(a === "cuentos" || a === "cuento") return "juegos";   /* los Cuentos del zorro (js/stories.js) son de Juegos */
   return String(h || "");
 }
 const isRootPath = h => rootOf(h) === h;
@@ -1871,7 +1877,8 @@ function paintSegBadges(){
 const backOf = h => secOf(h) === "doc" ? {h: "#/palabras", t: "Palabras"} : /^album\/./.test(h) ? {h: "#/album", t: "Álbum"}
   : secOf(h) === "temporada" ? {h: "#/", t: "Hoy"} : secOf(h) === "loro" ? {h: "#/granja", t: "Granja"}
   : secOf(h) === "frases" ? (window.vocabPhrases ? vocabPhrases.back() : {h: "#/juegos", t: "Juegos"})   /* a Hoy si se entró desde Hoy */
-  : secOf(h) === "carta" || h === "buzon/responder" ? {h: "#/buzon", t: "Buzón"} : secOf(h) === "buzon" ? {h: "#/juegos", t: "Juegos"} : null;
+  : secOf(h) === "carta" || h === "buzon/responder" ? {h: "#/buzon", t: "Buzón"} : secOf(h) === "buzon" ? {h: "#/juegos", t: "Juegos"}
+  : secOf(h) === "cuentos" ? {h: "#/juegos", t: "Juegos"} : null;
 /* lo que se ve de la barra: pestaña marcada, adónde lleva cada una, vidrio ligero en la granja y en las partidas */
 function paintTabs(h){
   const t = tabOf(h); if(t) curTab = t.id;
@@ -1906,7 +1913,7 @@ function paintHead(h){
 let saidTitle = "";
 function sayScreen(h){
   const t = tabOf(h), seg = segOf(t, h), f = focusOn;
-  const name = f === "leccion" ? "Lección" : f === "repaso" ? "Repaso" : f === "juego" ? "Partida"
+  const name = f === "leccion" ? "Lección" : f === "repaso" ? "Repaso" : f === "juego" ? "Partida" : f === "cuento" ? "Cuento"
     : t ? (seg && t.segs && t.segs.length > 1 ? `${t.t} · ${seg.t}` : t.t) : "Vocabulary";
   document.title = name === "Vocabulary" ? "Vocabulary – Vocabulario" : `${name} · Vocabulary`;
   if(name === saidTitle) return;
@@ -1914,7 +1921,7 @@ function sayScreen(h){
   const live = document.getElementById("route-say");
   if(live && !first){ live.textContent = ""; setTimeout(() => { live.textContent = name; }, 60); }
 }
-/* modo foco (html[data-focus]): lección, repaso en marcha o partida (games.js marca html[data-gm-play]). Sin barras,
+/* modo foco (html[data-focus]): lección, repaso en marcha, partida (games.js marca html[data-gm-play]) o cuento (#/cuento/<id>). Sin barras,
    con la ✕ (vuelve a la raíz de la pestaña) y el contador de monedas. */
 /* La ✕ vuelve a la pantalla desde la que se entró en el modo foco (Hoy › Empezar › ✕ vuelve a Hoy; desde el camino,
    al camino), con su scroll. Si no se sabe (un enlace directo), a la raíz de la pestaña. Se guarda en sessionStorage
@@ -1925,11 +1932,11 @@ function setFocusFrom(v){ focusFrom = v || null; try{ if(v) sessionStorage.setIt
 function focusBack(f, h){
   if(f === "juego") return "#/juegos";
   if(focusFrom && tabOf(hashPath(focusFrom)) && secOf(hashPath(focusFrom)) !== "leccion") return focusFrom;
-  return f === "leccion" ? "#/" + rootOf(h) : "#/";   /* el repaso (sin pantalla de antes) sale a Hoy */
+  return f === "leccion" ? "#/" + rootOf(h) : f === "cuento" ? "#/cuentos" : "#/";   /* el repaso (sin pantalla de antes) sale a Hoy */
 }
 function updFocus(){
   const h = hashPath(), root = document.documentElement;
-  const f = secOf(h) === "leccion" ? "leccion" : rv && secOf(h) === "repaso" ? "repaso" : root.hasAttribute("data-gm-play") ? "juego" : "";
+  const f = secOf(h) === "leccion" ? "leccion" : rv && secOf(h) === "repaso" ? "repaso" : root.hasAttribute("data-gm-play") ? "juego" : secOf(h) === "cuento" ? "cuento" : "";
   if(f && !focusOn && plainHash) setFocusFrom(plainHash);   /* entra en el modo foco: de dónde viene */
   const x = $("#fx-x");
   if(x) x.setAttribute("href", f ? focusBack(f, h) : "#/");
@@ -2552,6 +2559,7 @@ function achList(){
     ["c200","💰","Ahorrador","Gana 200 monedas", g.earned, 200], ["c1000","🏦","Banquero","Gana 1000 monedas", g.earned, 1000],
     ["f5","🌾","Granjero","Ten 5 cosas en tu granja", farm, 5], ["f20","🚜","Gran granjero","Ten 20 cosas en tu granja", farm, 20],
     ["t10","🎽","Con estilo","Consigue 10 premios de la tienda", things, 10],
+    ["k4","🔖","Ratón de biblioteca","Lee 4 cuentos del zorro", window.vocabStories ? vocabStories.doneCount() : 0, 4],
   ];
   return A.map(([id, e, t, d, v, goal]) => ({id, e, t, d, v: Math.min(v, goal), goal, ok: v >= goal}));
 }
@@ -2717,6 +2725,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/mailbox.js?v=22"></script>
 <script src="js/phrases.js?v=22"></script>
 <script src="js/parrot.js?v=22"></script>
+<script src="js/stories.js?v=22"></script>
 <script src="js/navmotion.js?v=22"></script>
 </body>
 </html>
