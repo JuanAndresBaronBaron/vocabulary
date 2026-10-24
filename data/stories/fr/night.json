@@ -15,23 +15,9 @@
    "img": "img/om_1F303.png"
   },
   {
-   "w": "la lune",
-   "id": "w09|luna",
-   "img": "img/om_1F319.png"
-  },
-  {
-   "w": "le ciel",
-   "id": "w09|cielo"
-  },
-  {
    "w": "la vache",
    "id": "animales|Vaca",
    "img": "img/9d5456806f.png"
-  },
-  {
-   "w": "dormir",
-   "id": "w28|dormir",
-   "img": "img/om_1F634.png"
   },
   {
    "w": "le cochon",
@@ -49,16 +35,6 @@
    "img": "img/om_1F6CF.png"
   },
   {
-   "w": "fatigué, fatiguée",
-   "id": "w31|cansado",
-   "img": "img/om_1F62B.png"
-  },
-  {
-   "w": "compter",
-   "id": "w29|contar",
-   "img": "img/om_1F522.png"
-  },
-  {
    "w": "le mouton",
    "id": "animales|Oveja",
    "img": "img/f1dcc1b9cc.png"
@@ -74,10 +50,6 @@
    "img": "img/om_1F4A1.png"
   },
   {
-   "w": "chaud, chaude",
-   "id": "w31|cálido, templado"
-  },
-  {
    "w": "le lait",
    "id": "w03|leche",
    "img": "img/om_1F95B.png"
@@ -86,21 +58,6 @@
    "w": "l'histoire",
    "id": "w13|historia, cuento",
    "img": "img/om_1F4D6.png"
-  },
-  {
-   "w": "boire",
-   "id": "w28|beber",
-   "img": "img/om_1F964.png"
-  },
-  {
-   "w": "lire",
-   "id": "w28|leer",
-   "img": "img/om_1F4D6.png"
-  },
-  {
-   "w": "bon, bonne",
-   "id": "w33|bueno",
-   "img": "img/om_1F44D.png"
   }
  ],
  "gloss": {

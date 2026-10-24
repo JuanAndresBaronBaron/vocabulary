@@ -15,10 +15,6 @@
    "img": "img/d98dc83bdf.png"
   },
   {
-   "w": "make",
-   "id": "w24|hacer, fabricar"
-  },
-  {
    "w": "cake",
    "id": "w03|pastel, tarta",
    "img": "img/om_1F382.png"
@@ -34,10 +30,6 @@
    "img": "img/f501d7335c.png"
   },
   {
-   "w": "give",
-   "id": "w24|dar"
-  },
-  {
    "w": "egg",
    "id": "w03|huevo",
    "img": "img/om_1F95A.png"
@@ -51,19 +43,6 @@
    "w": "milk",
    "id": "w03|leche",
    "img": "img/om_1F95B.png"
-  },
-  {
-   "w": "put",
-   "id": "w24|poner"
-  },
-  {
-   "w": "bowl",
-   "id": "w03|cuenco, bol",
-   "img": "img/om_1F963.png"
-  },
-  {
-   "w": "mix",
-   "id": "w28|mezclar"
   },
   {
    "w": "apple",
@@ -89,25 +68,6 @@
    "w": "pig",
    "id": "animales|Cerdo",
    "img": "img/98b47c184e.png"
-  },
-  {
-   "w": "ready",
-   "id": "w35|listo, preparado"
-  },
-  {
-   "w": "eat",
-   "id": "w28|comer",
-   "img": "img/om_1F374.png"
-  },
-  {
-   "w": "together",
-   "id": "w38|juntos",
-   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
-  },
-  {
-   "w": "happy",
-   "id": "w32|feliz",
-   "img": "img/om_1F600.png"
   }
  ],
  "gloss": {

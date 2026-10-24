@@ -68,12 +68,12 @@
    }
   },
   {
-   "say": "I've got a gift for Rosie. It's round, and you can play football with it.",
+   "say": "I've got a present for Rosie. It's round, and you can play football with it.",
    "es": "Tengo un regalo para Rosie. Es redondo y se puede jugar al fútbol con él.",
    "k": [
     {
-     "t": "gift",
-     "r": "w13|regalo"
+     "t": "present",
+     "r": "w13|regalo; presente"
     },
     {
      "t": "round",
@@ -86,7 +86,7 @@
    ]
   },
   {
-   "say": "What is my gift?",
+   "say": "What is my present?",
    "es": "¿Cuál es mi regalo?",
    "a": [
     {
@@ -168,9 +168,10 @@
      }
     },
     {
-     "r": "w13|regalo",
+     "r": "w13|regalo; presente",
+     "img": "img/om_1F381.png",
      "re": {
-      "say": "Gifts! How exciting!",
+      "say": "Presents! How exciting!",
       "es": "¡Los regalos! ¡Qué emoción!"
      }
     }

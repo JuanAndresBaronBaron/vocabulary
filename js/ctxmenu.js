@@ -51,7 +51,9 @@ ${DARK(".vm", "--vm-bg:rgba(44,44,46,.97);--vm-hl:rgba(120,120,128,.32);--vm-gap
 .vm-scrim{position:absolute;inset:0;background:rgba(0,0,0,.16);-webkit-backdrop-filter:blur(14px) saturate(150%);backdrop-filter:blur(14px) saturate(150%)}
 ${DARK(".vm-scrim", "background:rgba(0,0,0,.42)")}
 .vm.lite .vm-scrim{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.42)}
+.vm.lite{--vm-bg:#fff}
 ${DARK(".vm.lite .vm-scrim", "background:rgba(0,0,0,.6)")}
+${DARK(".vm.lite", "--vm-bg:#2C2C2E")}
 :root[data-glass=off] .vm-scrim,:root[data-contrast=more] .vm-scrim{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.42)}
 @media (prefers-reduced-transparency:reduce){.vm-scrim{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.42)}}
 @media (prefers-contrast:more){.vm-scrim{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(0,0,0,.42)}}
@@ -176,6 +178,7 @@ function open(src, spec, o = {}){
   const d = DOC.createElement("dialog");
   d.className = "vm" + (lite ? " lite" : "");
   d.setAttribute("aria-label", label);
+  d.setAttribute("data-no-renew", "");   /* sus opciones acarician, dan de comer o dicen la palabra: nunca piden el permiso de Google */
   d.innerHTML = `<style>${pse}</style><div class="vm-scrim"></div>
     <div class="vm-pv" aria-hidden="true"><div class="vm-pv-in" inert></div><div class="vm-pv-hit"></div></div>
     <div class="vm-box">${head}<div class="vm-m" role="menu" tabindex="-1" aria-label="${E(label)}">${spec.items.map(itemHtml).join("")}</div></div>`;
@@ -193,6 +196,7 @@ function open(src, spec, o = {}){
   DOC.body.appendChild(d);
   try{ d.showModal(); }catch(e){ d.setAttribute("open", ""); }
   ROOT.setAttribute("data-cmenu", "");
+  { const g = W.G; if(g && typeof g.hideHint === "function") g.hideHint(); }   /* nada de pistas debajo del menú */
   const c = CUR = {n, d, src, spec, o, R, V, pv, box, hit, lite, prevFocus, vis: [src.style.getPropertyValue("visibility"), src.style.getPropertyPriority("visibility")], res: null};
   const p = new Promise(r => { c.res = r; });
   src.style.setProperty("visibility", "hidden", "important");

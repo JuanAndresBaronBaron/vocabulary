@@ -36,7 +36,7 @@ WORD = {"english": {"red": "red", "yellow": "yellow", "green": "green", "blue": 
 ASKW = {"english": WORD["english"], "français": WORD["français"],
         "dansk": {"red": "rødt", "yellow": "gult", "green": "grønt", "blue": "blåt"}}
 PHRASE = {"english": "Find something {}!", "français": "Trouve quelque chose de {} !", "dansk": "Find noget {}!"}
-INTRO = "Para jugar, la app mira por la cámara. Nada sale del aparato."
+INTRO = "La app mira por la cámara y guarda un trocito pequeño de cada cosa en Mi casa. Todo se queda en este aparato."
 TODAY = C.FIXED_NOW.strftime("%Y-%m-%d")
 CLIPS = {ab: json.loads((C.REPO / "audio" / f"{ab}.json").read_text(encoding="utf-8")) for ab in AB.values()}
 

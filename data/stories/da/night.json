@@ -15,23 +15,9 @@
    "img": "img/om_1F303.png"
   },
   {
-   "w": "en måne",
-   "id": "w09|luna",
-   "img": "img/om_1F319.png"
-  },
-  {
-   "w": "en himmel",
-   "id": "w09|cielo"
-  },
-  {
    "w": "en ko",
    "id": "animales|Vaca",
    "img": "img/9d5456806f.png"
-  },
-  {
-   "w": "at sove",
-   "id": "w28|dormir",
-   "img": "img/om_1F634.png"
   },
   {
    "w": "en gris",
@@ -49,16 +35,6 @@
    "img": "img/om_1F6CF.png"
   },
   {
-   "w": "træt",
-   "id": "w31|cansado",
-   "img": "img/om_1F62B.png"
-  },
-  {
-   "w": "at tælle",
-   "id": "w29|contar",
-   "img": "img/om_1F522.png"
-  },
-  {
    "w": "et får",
    "id": "animales|Oveja",
    "img": "img/f1dcc1b9cc.png"
@@ -74,11 +50,6 @@
    "img": "img/om_1F4A1.png"
   },
   {
-   "w": "varm",
-   "id": "w31|caliente, caluroso",
-   "img": "img/om_1F975.png"
-  },
-  {
    "w": "en mælk",
    "id": "w03|leche",
    "img": "img/om_1F95B.png"
@@ -86,24 +57,9 @@
   {
    "w": "en historie",
    "id": "w10|historia"
-  },
-  {
-   "w": "at drikke",
-   "id": "w28|beber",
-   "img": "img/om_1F964.png"
-  },
-  {
-   "w": "at læse",
-   "id": "w28|leer",
-   "img": "img/om_1F4D6.png"
   }
  ],
  "gloss": {
-  "den": {
-   "es": "él, ella (animal o cosa)",
-   "id": "w41|ello, lo (cosa)",
-   "ipa": "/ˈdɛn/"
-  },
   "det er nat": {
    "es": "es de noche",
    "id": "w08|noche",
@@ -357,7 +313,7 @@
    "also": [
     "img/om_1F4A1.png"
    ],
-   "t": "Uglen er vågen. Den har to idéer.",
+   "t": "Uglen er vågen. Han har to idéer.",
    "es": "El búho está despierto. Tiene dos ideas."
   }
  ],

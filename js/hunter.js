@@ -6,8 +6,9 @@
      navegador («Find something red!», «Trouve quelque chose de rouge !», «Find noget rødt!»; useVoice(u, idioma) y
      retryLocal en onerror; sin voz de ese idioma no se lee con otro acento) y después la palabra con su mp3 (say/sayP;
      sin mp3, la voz). La palabra se ve con su IPA (ipaHtml) y su traducción.
-     - Antes de la cámara, una frase y un botón: «Para jugar, la app mira por la cámara. Nada sale del aparato.» (si el
-       navegador ya dio permiso, se salta). getUserMedia con la cámara de atrás (facingMode ideal "environment"; si no
+     - Antes de la cámara, una frase y un botón: «La app mira por la cámara y guarda un trocito pequeño de cada cosa en
+       Mi casa. Todo se queda en este aparato.» (con «Guardar fotos al cazar» apagado: «Para jugar, la app mira por la
+       cámara. Nada sale del aparato.»; si el navegador ya dio permiso, se salta). getUserMedia con la cámara de atrás (facingMode ideal "environment"; si no
        hay, la de delante, que se ve en espejo) y sin audio.
      - Un cuadro en el centro mide el color: cada 90 ms se copian los píxeles de ese cuadro (la mitad del lado corto de
        lo que se ve, con el mismo recorte que object-fit: cover) a un lienzo de 40×40 y cada píxel pasa a HSV (tono,
@@ -15,9 +16,11 @@
        mínimas; si el 40 % del cuadro es del color pedido (y la luz media llega a 0,12), vale. Mantenerlo 1 s (el anillo
        del cuadro se llena; si se va, se vacía más deprisa) = encontrado: G.haptic, M.ok, M.burst, award() con tope
        diario, la palabra otra vez y una foto pequeña a «Mi casa». Con poca luz, o con otro color, lo dice.
-     - Sin cámara, sin permiso, si está ocupada o si se prefiere («Jugar tocando»): el modo tocar, con 4 dibujos (uno del
-       color pedido y uno de cada uno de los otros); así nunca se queda atascado. Fallar: el dibujo en gris con ✗ y el
-       bueno con ✓, sin sonido triste.
+     - Sin cámara, sin permiso, si está ocupada o si se prefiere («Jugar tocando»; abajo, «Tocar»): el modo tocar, con 4
+       dibujos (uno del color pedido y uno de cada uno de los otros), cada uno con su palabra en el idioma (del corpus:
+       «apple», «la pomme», «et æble»…), su IPA y el español pequeño; así nunca se queda atascado. Fallar: el dibujo en
+       gris con ✗ y el bueno con ✓, sin sonido triste y sin vibrar. El resultado sale en la tarjeta de la pregunta y en
+       el móvil todo cabe sin scroll (fitTap() encoge los dibujos lo justo, nunca por debajo de 118 px de alto).
      - La cámara se apaga (track.stop() de todas sus pistas) al salir de #/cazador (hashchange y bus "route"), al ocultar
        la pestaña (visibilitychange y pagehide; al volver, «La cámara está en pausa» y «Seguir»), al pasar a tocar y al
        acabar la ronda. Si el permiso llega cuando ya se salió, se apaga al momento.
@@ -25,19 +28,24 @@
    · «Mi casa» (#/album/casa, una página del álbum; js/album.js llama a vocabHunter.casa): los recortes guardados en este
      aparato, el más nuevo primero, cada uno con el color en el idioma de ahora, su IPA, el altavoz (data-say) y el día.
    Privacidad: la foto NUNCA es la imagen entera. No hay detector de caras, así que solo se guarda un recorte de 192×192
-   px del centro del cuadro (el 80 % de dentro del cuadro: lo que el niño apuntó, nada de alrededor). Va a IndexedDB
+   px del centro del cuadro (el 80 % de dentro del cuadro: lo que el niño apuntó, nada de alrededor) y solo si ese
+   recorte es casi todo del color pedido (PURE: el 72 % de sus píxeles, sin contar los de tono de piel), si casi no tiene
+   piel (SKIN: menos del 12 %), si no es la cámara de delante (la de los selfis) y si «Guardar fotos al cazar» (Para
+   mayores) está encendido; si no, el color cuenta igual, pero no se guarda foto. Va a IndexedDB
    (window.vocabMedia de js/mailbox.js, base "vocab-media-user") como {id: "hunt-<t36><4>", kind: "photo", src: "hunt",
    t (ms), type: "image/jpeg", w: 192, h: 192, buf (ArrayBuffer), color (red|yellow|green|blue), lang ("en"|"fr"|"da"),
    day ("AAAA-MM-DD")}; se quedan las 48 más nuevas. Nunca se exporta ni se sube. Se borran en Ajustes › Para mayores
-   («Borrar las fotos de Mi casa», js/hunter-boot.js; o todo con «Borrar grabaciones y fotos» del Buzón).
+   («Borrar las fotos de Mi casa», js/hunter-boot.js; o todo con «Borrar grabaciones y fotos» del Buzón). En «Mi casa»,
+   mantener pulsada una foto (vocabMenu) da «Oír» y «Borrar esta foto» (con «Deshacer» unos segundos).
    Monedas (solo con award()): 2 por color encontrado con la cámara, 1 por acertar tocando; como mucho 10 al día.
    Guardado: localStorage "hunt:st" (DEVICE_ONLY en js/save.js: no va en la partida) = {v: 1, day: {d: "AAAA-MM-DD",
      c: monedas de ese día}, n: colores cazados en total}.
    Eventos: bus "hunt-found" {color, mode: "cam"|"tap", saved, coins} y "hunt-end" {found, coins}.
    API (se añade a window.vocabHunter): loaded: true, route(partes), casa(vivo) → Promise, state() → lo que se ve,
      measure(video, frac) → lectura | null, classify(rgba) → {frac: {red, yellow, green, blue}, v, top, n},
-     hsv(r, g, b) → [h, s, v], photos() → Promise<[registro]>, stop() (apaga la cámara), COLORS, DAY_CAP, CAM_PAY,
-     TAP_PAY, HOLD, NEED, KEEP, CROP.
+     hsv(r, g, b) → [h, s, v], purity(video, colorId) → {pure, skin} | null, keep(video, colorId) → ¿se guardaría la
+     foto?, photos() → Promise<[registro]>, stop() (apaga la cámara), COLORS, DAY_CAP, CAM_PAY, TAP_PAY, HOLD, NEED, KEEP,
+     CROP, PURE, SKIN.
    Usa de index.html: lang, LANGS, CLIP_AB, store, bus, ROUTES, ROUTE_FROM, esc, ico, getDoc, dayKey, award, heroHtml,
    say, sayP, useVoice, retryLocal, voices, langVoices, rate, ipaHtml, secOf, hashPath, shuffle; window.M, window.G,
    window.vocabMedia. Iconos: Phosphor. Dibujos: img/ (colores del corpus, OpenMoji). */
@@ -46,7 +54,7 @@
 const W = window, D = document, H = W.vocabHunter;
 if(!H || H.loaded) return;
 const DAY_CAP = 10, CAM_PAY = 2, TAP_PAY = 1, KEEP = 48;
-const HOLD = 1000, STEP = 90, GRID = 40, FRAC = .5, INNER = .8, CROP = 192, NEED = .4, DIM = .12;
+const HOLD = 1000, STEP = 90, GRID = 40, FRAC = .5, INNER = .8, CROP = 192, NEED = .4, DIM = .12, PURE = .72, SKIN = .12;
 const KEY = H.KEY || "hunt:st", IMG = H.IMG || "img/games/cazador.png", HOUSE = H.HOUSE || "img/om_1F3E1.png";
 const $id = id => D.getElementById(id);
 const haptic = t => { try{ if(W.G && typeof G.haptic === "function") G.haptic(t || "selection"); }catch(e){} };
@@ -105,8 +113,25 @@ async function words(){
     WORDS = true;
   }catch(e){ /* sin conexión y sin caché: valen las de aquí */ }
 }
-/* los dibujos del modo tocar (js/hunter-boot.js: también van en «Descargar todo») */
+/* los dibujos del modo tocar (js/hunter-boot.js: también van en «Descargar todo»), con su palabra del corpus */
 const THINGS = H.THINGS || {};
+const TW = {};   /* "<tema>|<es>" → {fila del corpus} */
+let TWP = null;
+function thingWords(){
+  if(!TWP) TWP = (async () => {
+    const refs = Object.values(THINGS).flat().map(x => x[2]).filter(Boolean);
+    await Promise.all([...new Set(refs.map(r => r.split("|")[0]))].map(async doc => {
+      try{
+        /* sin pasar por CACHE: así el álbum no cuenta estos temas como «vistos» (album:uniq) solo por mirar el cazador */
+        const d = (typeof CACHE !== "undefined" && CACHE[doc]) || await (await fetch(`data/${doc}.json`)).json();
+        refs.filter(r => r.startsWith(doc + "|")).forEach(r => { const es = r.slice(doc.length + 1), row = ((d && d.rows) || []).find(x => x && x.es === es && x.l); if(row) TW[r] = row; });
+      }catch(e){ /* sin conexión y sin caché: el dibujo con su nombre en español */ }
+    }));
+  })().catch(() => { TWP = null; });
+  return TWP;
+}
+/* la palabra de un dibujo en el idioma: [palabra, ipa] o null */
+function thingWord(ref, L = lang){ const r = TW[ref], x = r && r.l && r.l[L]; return x && x.word ? [speakable(x.word), typeof x.ipa === "string" ? x.ipa : ""] : null; }
 
 /* ---------- las monedas del día ---------- */
 function stGet(){
@@ -158,14 +183,38 @@ function frameRect(v, frac){
   return {sx: (vw - side) / 2, sy: (vh - side) / 2, side};
 }
 let CV = null, CX = null;
+function grid(v, frac){
+  const f = frameRect(v, frac); if(!f) return null;
+  if(!CV){ CV = D.createElement("canvas"); CV.width = CV.height = GRID; CX = CV.getContext("2d", {willReadFrequently: true}); }
+  CX.drawImage(v, f.sx, f.sy, f.side, f.side, 0, 0, GRID, GRID);
+  return CX.getImageData(0, 0, GRID, GRID).data;
+}
 function measure(v, frac = FRAC){
   if(!v) return null;
-  const f = frameRect(v, frac); if(!f) return null;
+  try{ const d = grid(v, frac); return d ? classify(d) : null; }catch(e){ return null; }
+}
+/* tono de piel (de la más clara a la más oscura): naranjas apagados. Nunca se guarda una foto con mucha piel */
+const skinLike = (h, s, v) => h >= 5 && h <= 35 && s >= .18 && s < .62 && v >= .3;
+/* lo que saldría en la foto (el 80 % de dentro del cuadro): qué parte es del color pedido sin ser piel y qué parte es piel */
+function purity(v, id){
+  const c = colorOf(id); if(!v || !c) return null;
   try{
-    if(!CV){ CV = D.createElement("canvas"); CV.width = CV.height = GRID; CX = CV.getContext("2d", {willReadFrequently: true}); }
-    CX.drawImage(v, f.sx, f.sy, f.side, f.side, 0, 0, GRID, GRID);
-    return classify(CX.getImageData(0, 0, GRID, GRID).data);
+    const d = grid(v, FRAC * INNER); if(!d) return null;
+    let pure = 0, skin = 0, n = 0;
+    for(let i = 0; i + 3 < d.length; i += 4){
+      const [h, s, x] = hsv(d[i], d[i + 1], d[i + 2]); n++;
+      const sk = skinLike(h, s, x);
+      if(sk) skin++; else if(s >= c.s && x >= c.v && inHue(c, h)) pure++;
+    }
+    return n ? {pure: pure / n, skin: skin / n} : null;
   }catch(e){ return null; }
+}
+/* ¿se guarda la foto de este color? (interruptor de Para mayores, cámara de atrás, casi todo del color y sin piel) */
+function keep(v, id){
+  if(typeof H.saveOn === "function" && !H.saveOn()) return false;
+  if(CAM.user) return false;
+  const p = purity(v, id);
+  return !!p && p.pure >= PURE && p.skin < SKIN;
 }
 /* la foto: solo el 80 % de dentro del cuadro, a 192×192 (como se ve: en espejo con la cámara de delante) */
 function crop(v){
@@ -341,10 +390,10 @@ function ring(p){
 function found(v){
   const c = cur(); if(!c || !S || S.step !== "ask") return;
   S.step = "found"; S.res[c.id] = "cam"; loopStop();
-  const shot = crop(v);
+  const ok = keep(v, c.id), shot = ok ? crop(v) : null;   /* sin foto (piel, otros colores, selfi o apagado): el color vale igual */
   try{ v.pause(); }catch(e){}
   const paid = pay(CAM_PAY); S.coins += paid;
-  S.last = {paid, capped: paid < CAM_PAY, saved: null};
+  S.last = {paid, capped: paid < CAM_PAY, saved: ok ? null : "skip"};
   ring(1);
   const fr = $id("hn-frame"), okm = $id("hn-okm");
   if(okm){ okm.hidden = false; mo("ok", okm); }
@@ -354,6 +403,7 @@ function found(v){
   paintTop(); paintDock();
   if(paid > 0) award(paid, "¡Color cazado!", false, fr || undefined);
   SPK++; sayP(word(c)[0], $id("hn-say"));
+  if(!ok){ bus.emit("hunt-found", {color: c.id, mode: "cam", saved: false, coins: paid}); return; }
   save(shot, c).then(id => {
     if(S && S.last && S.order[S.i] === c.id) S.last.saved = !!id;
     paintSaved(!!id);
@@ -388,7 +438,7 @@ function paintSaved(ok){
 
 /* ---------- jugar tocando ---------- */
 function tapOpts(c){
-  const one = id => { const l = THINGS[id] || []; const x = l[Math.floor(Math.random() * l.length)] || ["", ""]; return {t: x[0], img: x[1], color: id}; };
+  const one = id => { const l = THINGS[id] || []; const x = l[Math.floor(Math.random() * l.length)] || ["", ""]; return {t: x[0], img: x[1], ref: x[2] || "", color: id}; };
   return shuffle([Object.assign(one(c.id), {ok: true}), ...COLORS.filter(x => x.id !== c.id).map(x => Object.assign(one(x.id), {ok: false}))]);
 }
 function preloadTap(){
@@ -408,8 +458,7 @@ function answer(i){
     if(paid > 0) award(paid, "¡Muy bien!", false, btn || undefined);
     bus.emit("hunt-found", {color: c.id, mode: "tap", saved: false, coins: paid});
   } else {
-    haptic("selection");
-    const ck = right && right.querySelector("svg.chk"); if(ck) mo("ok", ck);
+    const ck = right && right.querySelector("svg.chk"); if(ck) mo("ok", ck);   /* (al fallar no vibra) */
   }
   swapTip(); paintTop(); paintDock();
   SPK++; sayP(word(c)[0], $id("hn-say"));
@@ -439,8 +488,10 @@ function topHtml(){
 }
 function askHtml(c){
   const L = lang, p = phrase(c, L), [w, ipa] = word(c, L), cd = code(L);
-  return `<section class="hn-ask" id="hn-ask" aria-labelledby="hn-q" style="--c:${c.hex}">
-    <p class="hn-q" id="hn-q" lang="${cd}">${esc(p.pre)}<mark class="hn-cw">${esc(p.w)}</mark>${esc(p.post)}</p>
+  /* jugando tocando, el resultado ocupa el sitio de la pregunta (así todo cabe sin scroll en el móvil) */
+  const got = S.mode === "tap" && S.step !== "ask";
+  return `<section class="hn-ask" id="hn-ask"${got ? "" : ` aria-labelledby="hn-q"`} style="--c:${c.hex}">
+    ${got ? gotHtml() : `<p class="hn-q" id="hn-q" lang="${cd}">${esc(p.pre)}<mark class="hn-cw">${esc(p.w)}</mark>${esc(p.post)}</p>`}
     <div class="hn-wr"><img class="hn-sw" src="${esc(c.img)}" alt="" width="56" height="56" draggable="false">
       <p class="hn-wt"><b lang="${cd}">${esc(w)}</b>${ipaHtml(ipa, cd)}<span class="hn-es">${esc(c.n)}</span></p>
       <button type="button" class="hn-spk" id="hn-say" data-key="space" aria-label="Escuchar" title="Escuchar">${ico("speaker-high", "fill", 24)}</button>
@@ -452,7 +503,7 @@ function gotHtml(){
   if(S.step === "miss") return `<section class="hn-got is-miss" id="hn-got" role="status"><p class="hn-got-t">Mira, esto es ${esc(c.n)}: <b lang="${cd}">${esc(w)}</b></p></section>`;
   const cam = S.mode === "cam";
   return `<section class="hn-got" id="hn-got" role="status"><p class="hn-got-t">${cam ? "¡Lo encontraste!" : "¡Muy bien!"} <b lang="${cd}">${esc(w)}</b></p>
-    ${cam ? `<p class="hn-got-s${L.saved === false ? " is-no" : ""}" id="hn-saved">${L.saved === false ? "<span>No se ha podido guardar la foto.</span>"
+    ${cam && L.saved !== "skip" ? `<p class="hn-got-s${L.saved === false ? " is-no" : ""}" id="hn-saved">${L.saved === false ? "<span>No se ha podido guardar la foto.</span>"
       : `${ico("house", "fill", 18)}<span>${L.saved ? "Guardado en Mi casa" : "Guardando en Mi casa…"}</span>`}</p>` : ""}
     ${L.capped ? `<p class="hn-got-n">Hoy ya ganaste todas las monedas del cazador. ¡Sigue jugando!</p>` : ""}</section>`;
 }
@@ -472,10 +523,13 @@ function camHtml(c){
 }
 function tapHtml(c){
   if(!S.tap) S.tap = tapOpts(c);
-  return `<div class="hn-opts" id="hn-opts" role="group" aria-label="Toca lo que es ${esc(c.n)}">${S.tap.map((o, i) => `<button type="button" class="hn-opt" data-i="${i}" data-c="${o.color}" data-key="${i + 1}" data-key-pos="in">
+  const cd = code();
+  return `<div class="hn-opts" id="hn-opts" role="group" aria-label="Toca lo que es ${esc(c.n)}">${S.tap.map((o, i) => { const w = thingWord(o.ref);
+    return `<button type="button" class="hn-opt" data-i="${i}" data-c="${o.color}" data-key="${i + 1}" data-key-pos="in">
       <span class="hn-opt-pic"><img src="${esc(o.img)}" alt="" width="160" height="160" draggable="false"></span>
-      <span class="hn-opt-t">${esc(o.t)}<span class="vh"></span></span><span class="hn-mk" aria-hidden="true"></span></button>`).join("")}</div>
-  ${S.step !== "ask" ? gotHtml() : `<p class="hn-tip" id="hn-tip" role="status">${tipStart(c)}</p>`}`;
+      ${w ? `<span class="hn-opt-t" lang="${cd}">${esc(w[0])}</span>${ipaHtml(w[1], cd)}<small class="hn-opt-es">${esc(o.t)}<span class="vh"></span></small>`
+        : `<span class="hn-opt-t">${esc(o.t)}<span class="vh"></span></span>`}<span class="hn-mk" aria-hidden="true"></span></button>`; }).join("")}</div>
+  ${S.step !== "ask" ? "" : `<p class="vh" id="hn-tip" role="status">${tipStart(c)}</p>`}`;
 }
 function introHtml(){
   const api = camApi(), blocked = CAM.perm === "denied" || CAM.denied;
@@ -486,7 +540,8 @@ function introHtml(){
   return `<section class="hn-intro" aria-labelledby="hn-in-t">
     <img class="hn-in-pic" src="${IMG}" alt="" width="220" height="220" draggable="false">
     <h1 class="hn-in-t" id="hn-in-t">Cazador de cosas</h1>
-    <p class="hn-in-p">Para jugar, la app mira por la cámara. Nada sale del aparato.</p>
+    <p class="hn-in-p">${typeof H.saveOn === "function" && !H.saveOn() ? "Para jugar, la app mira por la cámara. Nada sale del aparato."
+      : "La app mira por la cámara y guarda un trocito pequeño de cada cosa en Mi casa. Todo se queda en este aparato."}</p>
     ${note ? `<p class="hn-note" id="hn-note">${note}</p>` : ""}
     <div class="hn-in-b">${!api || blocked ? tap + cam : cam + tap}</div>
   </section>`;
@@ -516,7 +571,7 @@ function dockHtml(){
     const last = S.i >= S.order.length - 1;
     return `<button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="hn-next" data-key="enter"><span>${last ? "Terminar" : "Siguiente color"}</span>${ico("caret-right", "bold", 20)}</button>`;
   }
-  if(S.mode === "cam") return `<button type="button" class="glass-btn glass-btn--lg" id="hn-tap">${ico("hand-pointing", "bold", 22)}<span>Jugar tocando</span></button>
+  if(S.mode === "cam") return `<button type="button" class="glass-btn glass-btn--lg" id="hn-tap" aria-label="Jugar tocando">${ico("hand-pointing", "bold", 22)}<span>Tocar</span></button>
     <button type="button" class="glass-btn glass-btn--lg" id="hn-skip">${ico("arrows-clockwise", "bold", 20)}<span>Otro color</span></button>`;
   return camApi() && !CAM.denied ? `<button type="button" class="glass-btn glass-btn--lg" id="hn-cam">${ico("camera", "bold", 22)}<span>Usar la cámara</span></button>` : "";
 }
@@ -524,6 +579,15 @@ function paintDock(){ const d = $id("hn-dock"); if(d) d.innerHTML = dockHtml(); 
 function paintTop(){ const t = $id("hn-top"); if(t && S) t.outerHTML = topHtml(); }
 function swapTip(){
   const t = $id("hn-tip"), g = $id("hn-got"), html = gotHtml();
+  if(S && S.mode === "tap"){
+    /* tocando: el resultado va en la tarjeta de la pregunta, en lugar de «Find something red!» */
+    const q = $id("hn-q"), a = $id("hn-ask");
+    if(t) t.remove();
+    if(q) q.outerHTML = html; else if(g) g.outerHTML = html;
+    if(a) a.removeAttribute("aria-labelledby");
+    fitTap(true);
+    return;
+  }
   if(t) t.outerHTML = html; else if(g) g.outerHTML = html;
 }
 function showPause(){
@@ -539,6 +603,20 @@ function fitFrame(){
   set();
   if("ResizeObserver" in W){ RO = new ResizeObserver(set); RO.observe(vf); }
 }
+/* tocando: si la pantalla no cabe (una pregunta de dos líneas, un móvil bajo), los dibujos se encogen lo justo, sin
+   bajar de 118 px de alto (el dibujo, ≥ 110) */
+function fitTap(keep){
+  const h = $id("hn"); if(!h || !S || S.mode !== "tap" || V !== "play") return;
+  /* keep: tras contestar no crecen (nada salta); solo se encogen si ahora no cabe */
+  if(!keep) h.style.removeProperty("--hn-pic");
+  const ps = [...h.querySelectorAll(".hn-opt-pic")]; if(!ps.length) return;
+  const over = (D.scrollingElement || D.documentElement).scrollHeight - innerHeight;
+  if(over <= 0) return;
+  const rows = new Set(ps.map(p => Math.round(p.getBoundingClientRect().top))).size || 1;
+  h.style.setProperty("--hn-pic", Math.max(118, Math.floor(ps[0].getBoundingClientRect().height - over / rows)) + "px");
+}
+W.addEventListener("resize", () => { if(onRoute()) fitTap(); });
+try{ D.fonts.ready.then(() => { if(onRoute()) fitTap(); }); }catch(e){}
 function render(){
   const app = $("#app"); if(!app || !onRoute()) return;
   css();
@@ -552,7 +630,7 @@ function render(){
   app.innerHTML = `<div class="hn" id="hn" data-v="${V}" data-mode="${S ? S.mode : ""}" data-no-renew data-no-hint>${body}<div class="hn-dock" id="hn-dock">${dockHtml()}</div></div>`;
   wire();
   if(V !== "play") return;
-  if(S.mode === "tap"){ if(S.step !== "ask") markOpts(); return; }
+  if(S.mode === "tap"){ if(S.step !== "ask") markOpts(); fitTap(); return; }
   fitFrame();
   if(S.step !== "ask") return;
   if(CAM.paused) showPause(); else if(CAM.stream) attach(); else if(!CAM.busy) camOn();
@@ -592,6 +670,7 @@ function toTap(note){
   Object.assign(S, {mode: "tap", step: "ask", hold: 0, note: note || "", tap: null, pick: -1, tipK: "", tipP: null});
   V = "play";
   preloadTap(); render();
+  if(!Object.keys(TW).length) thingWords().then(() => { if(onRoute() && V === "play" && S && S.mode === "tap" && S.step === "ask" && Object.keys(TW).length) render(); });
   if(Date.now() - S.spoke > 4000) speakAsk();
 }
 function next(skip){
@@ -645,7 +724,7 @@ function hide(){
 /* ---------- la ruta ---------- */
 async function route(){
   css();
-  await words();
+  await Promise.all([words(), thingWords()]);
   if(!onRoute()) return;
   /* la misma pantalla otra vez (cambio de idioma): se sigue donde estaba, con las palabras del idioma nuevo */
   const same = !!S && typeof ROUTE_FROM === "string" && secOf(ROUTE_FROM) === "cazador";
@@ -675,7 +754,7 @@ async function casa(alive){
   const head = `<section class="hn-ch" aria-labelledby="hn-ch-h"><img class="hn-ch-i" src="${HOUSE}" alt="" width="72" height="72" draggable="false">
     <div class="hn-ch-tx"><h1 class="hn-ch-h" id="hn-ch-h">Mi casa</h1><p class="hn-ch-s">${n ? plural(n, "cosa cazada", "cosas cazadas") : "Aquí salen las cosas que caces"}</p></div>
     ${n ? `<a class="glass-btn glass-btn--pri glass-btn--sm hn-ch-go" href="#/cazador">${ico("camera", "bold", 18)}<span>Cazar</span></a>` : ""}</section>`;
-  const note = `<p class="hn-cn">Las fotos son recortes pequeños del centro de la cámara y se quedan en este aparato. Un mayor puede borrarlas en Ajustes › Para mayores.</p>`;
+  const note = `<p class="hn-cn">Las fotos son recortes pequeños del centro de la cámara y se quedan en este aparato.${n ? " Mantén pulsada una foto para borrarla." : ""} Un mayor puede borrarlas todas en Ajustes › Para mayores.</p>`;
   if(!n){
     app.innerHTML = `<div class="hn-casa" id="hn-casa" data-no-renew>${head}<section class="hn-ce" aria-label="Todavía no hay fotos">
       <div class="hn-ce-fox">${heroHtml(110)}</div><p class="hn-ce-t">Busca colores con la cámara y aquí guardamos un trocito de cada cosa.</p>
@@ -691,6 +770,30 @@ async function casa(alive){
         <button type="button" class="hn-spk hn-cc-say" data-say="${esc(w)}" aria-label="Escuchar ${esc(c.n)}" title="Escuchar">${ico("speaker-high", "fill", 20)}</button></div></li>`;
   }).join("");
   app.innerHTML = `<div class="hn-casa" id="hn-casa" data-no-renew>${head}<ul class="hn-cg" id="hn-cg">${items}</ul>${note}</div>`;
+  casaMenus(list, alive);
+}
+/* mantener pulsada una foto: «Oír» y «Borrar esta foto» (con «Deshacer»); también con el clic derecho o la tecla de menú */
+function casaMenus(list, alive){
+  if(!W.vocabMenu || typeof vocabMenu.hold !== "function") return;
+  const cd = code();
+  D.querySelectorAll("#hn-cg .hn-cc").forEach(li => {
+    const x = list.find(r => r.id === li.dataset.id); if(!x) return;
+    const c = colorOf(x.color) || COLORS[0], [w, ipa] = word(c);
+    li.tabIndex = 0; li.setAttribute("aria-label", `Foto de algo ${c.n}, ${when(x.t)}. Mantén pulsado para borrarla`);
+    vocabMenu.hold(li, {title: w, lang: cd, sub: `Foto de algo ${c.n}`, ipa: ipaHtml(ipa, cd), items: [
+      {id: "say", t: "Oír", ic: "speaker-high", st: "fill", say: w},
+      {id: "del", t: "Borrar esta foto", ic: "trash", gap: true, fn: () => delPhoto(x, alive)},
+    ]}, {fallback: () => {}});
+  });
+}
+async function delPhoto(rec, alive){
+  const m = media(); if(!m) return;
+  try{ await m.del(rec.id); }catch(e){ return; }
+  await casa(alive);
+  try{
+    if(W.M && typeof M.toast === "function") M.toast("Foto borrada", {icon: ico("trash", "bold", 20),
+      action: {t: "Deshacer", fn: async () => { try{ await m.put(rec); }catch(e){ return; } if(/^album\/casa(\/|$)/.test(hashPath())) casa(alive); else H.recount(); }}});
+  }catch(e){}
 }
 
 /* ---------- estilos ---------- */
@@ -761,7 +864,16 @@ const STYLE = `
   background:var(--card);color:var(--label);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:box-shadow var(--d-fast,160ms),background-color var(--d-fast,160ms)}
 .hn-opt-pic{display:grid;place-items:center;width:100%;aspect-ratio:1/1;border-radius:18px;background:var(--fill2)}
 .hn-opt-pic img{display:block;width:88%;height:88%;object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none}
-.hn-opt-t{font:700 var(--fs-sub)/1.2 var(--f-round);text-align:center;overflow-wrap:anywhere}
+.hn-opt-t{font:800 var(--fs-sub)/1.2 var(--f-round);text-align:center;overflow-wrap:anywhere}
+.hn-opt .ipa{display:block;max-width:100%;font-size:var(--fs-min);line-height:1.25;color:var(--label2);text-align:center}
+.hn-opt-es{display:block;color:var(--label2);font:400 var(--fs-min)/1.25 var(--f-text);text-align:center}
+.hn[data-mode=tap] .hn-opt{gap:2px;padding:6px 8px 8px}
+/* en el móvil, los 4 dibujos caben con todo lo demás sin scroll (≥ 118 px de alto; a lo ancho, cuadrados) */
+.hn[data-mode=tap]{padding-bottom:calc(var(--btn-main) + 8px)}
+.hn[data-mode=tap] .hn-opt-pic{position:relative;display:block;margin-bottom:4px;min-height:118px;max-height:calc((100vh - 470px) / 2);max-height:var(--hn-pic,calc((100svh - 470px) / 2))}
+.hn[data-mode=tap] .hn-opt-pic img{position:absolute;inset:3%;width:94%;height:94%}
+.hn[data-mode=tap] .hn-sw{width:48px;height:48px}
+.hn-ask .hn-got{margin:-4px -6px 0;padding:8px 12px}
 .hn-mk{position:absolute;top:6px;right:6px;display:none;place-items:center;width:40px;height:40px;border-radius:50%;color:#fff}
 .hn-opt.is-ok{box-shadow:0 0 0 4px var(--ok-fill)}
 .hn-opt.is-ok .hn-mk{display:grid;background:var(--ok-fill)}
@@ -815,7 +927,9 @@ const STYLE = `
 .hn-cg{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:0;padding:0;list-style:none}
 @media (min-width:600px){.hn-cg{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (min-width:900px){.hn-cg{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.hn-cc{display:flex;flex-direction:column;gap:8px;min-width:0;padding:8px 8px 10px;border-radius:var(--r-card);background:var(--card);color:var(--label)}
+.hn-cc{display:flex;flex-direction:column;gap:8px;min-width:0;padding:8px 8px 10px;border-radius:var(--r-card);background:var(--card);color:var(--label);
+  -webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.hn-cc:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 .hn-cc-pic{position:relative;display:block;aspect-ratio:1/1;border-radius:16px;background:var(--fill2);overflow:hidden}
 .hn-cc-pic img{display:block;width:100%;height:100%;object-fit:cover}
 .hn-cc-dot{position:absolute;left:8px;bottom:8px;width:24px;height:24px;border-radius:50%;background:var(--c);box-shadow:0 0 0 3px #fff}

@@ -6,30 +6,42 @@
    · La tarjeta de Juegos (vocabGames.register: tarjeta que lleva a #/cazador, sin estrellas).
    · «Mi casa» del álbum (js/album.js): casaRow() es la fila de la portada del álbum que lleva a #/album/casa, y
      casa(vivo) pinta esa página (carga js/hunter.js; vivo() dice si se sigue en ella).
-   · Para mayores (js/settings.js): adultHtml() es «Borrar las fotos de Mi casa» (solo si hay alguna; dos toques en 5 s)
-     y borra de IndexedDB solo esas fotos (kind "photo", src "hunt"), sin tocar las grabaciones del Buzón ni del loro.
+   · Para mayores (js/settings.js): adultHtml() es el interruptor «Guardar fotos al cazar» (encendido de serie; apagado,
+     el juego no guarda ninguna foto: "hunt:st".nosave = 1, solo en este aparato) y «Borrar las fotos de Mi casa» (solo
+     si hay alguna; dos toques en 5 s), que borra de IndexedDB solo esas fotos (kind "photo", src "hunt"), sin tocar las
+     grabaciones del Buzón ni del loro. saveOn() / setSave(on) leen y cambian el interruptor.
    · count(): cuántas fotos de «Mi casa» hay en este aparato (IndexedDB de window.vocabMedia, kind "photo", src "hunt");
      se cuenta al arrancar (solo si ya se jugó: hay "hunt:st"), al guardar una, al abrir Para mayores y al cerrar Ajustes.
-   · SWATCH (el dibujo de cada color) y THINGS (los dibujos del modo tocar: [nombre, dibujo] de cosas de cada color) van
-     aquí para que images() (lo que «Descargar todo» guarda para jugar sin conexión) y el juego usen la misma lista.
+   · SWATCH (el dibujo de cada color) y THINGS (los dibujos del modo tocar: [nombre en español, dibujo, "<tema>|<es>" de
+     la palabra del corpus, que el juego enseña en el idioma con su IPA] de cosas de cada color) van aquí para que
+     images() (lo que «Descargar todo» guarda para jugar sin conexión) y el juego usen la misma lista.
    API: window.vocabHunter = {loaded (false hasta que llega js/hunter.js, que añade lo demás), load() → Promise,
      count() → número | null, recount() → Promise<número>, casaRow() → HTML, casa(vivo) → Promise, adultHtml() → HTML,
-     images() → [url], wipe() → Promise<número borradas>, SRC, KEY, IMG, HOUSE, SWATCH, THINGS}. */
+     images() → [url], wipe() → Promise<número borradas>, saveOn() → boolean, setSave(on), SRC, KEY, IMG, HOUSE, SWATCH,
+     THINGS}. */
 (() => {
 "use strict";
 const W = window, D = document;
 const SRC = "js/hunter.js", KEY = "hunt:st", IMG = "img/games/cazador.png", HOUSE = "img/om_1F3E1.png";
 const SWATCH = {red: "img/746cbfda58.png", yellow: "img/f9ebe8fd08.png", green: "img/2368d85824.png", blue: "img/a39196ddae.png"};
 const THINGS = {
-  red: [["Manzana", "img/om_1F34E.png"], ["Tomate", "img/om_1F345.png"], ["Coche", "img/om_1F697.png"], ["Globo", "img/om_1F388.png"]],
-  yellow: [["Plátano", "img/om_1F34C.png"], ["Limón", "img/om_1F34B.png"], ["Sol", "img/om_2600.png"], ["Estrella", "img/om_2B50.png"]],
-  green: [["Hoja", "img/om_1F343.png"], ["Rana", "img/2c8ad30871.png"], ["Árbol", "img/om_1F333.png"], ["Cocodrilo", "img/a049197ac5.png"]],
-  blue: [["Ballena", "img/e4b4360485.png"], ["Pez", "img/33c5decbaa.png"], ["Vaqueros", "img/om_1F456.png"], ["Camiseta", "img/om_1F455.png"]],
+  red: [["Manzana", "img/om_1F34E.png", "w03|manzana"], ["Tomate", "img/om_1F345.png", "w03|tomate"], ["Coche", "img/om_1F697.png", "w07|coche"], ["Globo", "img/om_1F388.png", "a54|globo"]],
+  yellow: [["Plátano", "img/om_1F34C.png", "w03|plátano"], ["Limón", "img/om_1F34B.png", "w03|limón"], ["Sol", "img/om_2600.png", "w09|sol"], ["Estrella", "img/om_2B50.png", "w09|estrella"]],
+  green: [["Hoja", "img/om_1F343.png", "w09|hoja (de planta)"], ["Rana", "img/2c8ad30871.png", "animales|Rana"], ["Árbol", "img/om_1F333.png", "w09|árbol"], ["Cocodrilo", "img/a049197ac5.png", "animales|Cocodrilo"]],
+  blue: [["Ballena", "img/e4b4360485.png", "animales|Ballena"], ["Pez", "img/33c5decbaa.png", "animales|Pez"], ["Vaqueros", "img/om_1F456.png", "w05|vaqueros"], ["Camiseta", "img/om_1F455.png", "w05|camiseta"]],
 };
 /* el ?v= de este <script> (la VERSION de sw.js): js/hunter.js sale de la misma versión */
 const V = (() => { try{ const s = D.currentScript && D.currentScript.src, m = s && /[?&]v=([^&#]+)/.exec(s); return m ? `?v=${m[1]}` : ""; }catch(e){ return ""; } })();
 let pend = null, N = null;
 const H = W.vocabHunter = W.vocabHunter || {};
+/* el interruptor «Guardar fotos al cazar» (en "hunt:st", DEVICE_ONLY: cada aparato tiene el suyo) */
+const stRaw = () => { try{ const s = store.get(KEY, null); return s && typeof s === "object" && s.v === 1 ? s : null; }catch(e){ return null; } };
+const saveOn = () => { const s = stRaw(); return !(s && s.nosave); };
+function setSave(on){
+  const s = stRaw() || {v: 1, day: {d: "", c: 0}, n: 0};
+  if(on) delete s.nosave; else s.nosave = 1;
+  try{ store.set(KEY, s); }catch(e){}
+}
 
 function load(){
   if(H.loaded) return Promise.resolve(H);
@@ -92,16 +104,20 @@ function casaRow(){
 /* ---------- Para mayores: borrar las fotos ---------- */
 const delText = () => N ? `${nFotos(N)} en este aparato: recortes pequeños de lo que se cazó.` : "No queda ninguna foto.";
 function adultHtml(){
-  return `<section class="st-sec" id="aj-hn" aria-labelledby="aj-hn-h"${N ? "" : " hidden"}><h3 class="st-h" id="aj-hn-h">Mi casa (Cazador de cosas)</h3><div class="st-g ics">
-      <button type="button" class="st-r st-btn" id="aj-hn-del"><span class="st-ic gr" aria-hidden="true">${ico("trash", "bold", 18)}</span>
+  return `<section class="st-sec" id="aj-hn" aria-labelledby="aj-hn-h"><h3 class="st-h" id="aj-hn-h">Mi casa (Cazador de cosas)</h3><div class="st-g ics">
+      <label class="st-r" for="aj-hn-on"><span class="st-ic ok" aria-hidden="true">${ico("camera", "bold", 18)}</span>
+        <span class="st-l">Guardar fotos al cazar<small>Un recorte pequeño de cada color encontrado, solo en este aparato.</small></span>
+        <input type="checkbox" role="switch" class="st-sw" id="aj-hn-on" ${saveOn() ? "checked" : ""}></label>
+      <button type="button" class="st-r st-btn" id="aj-hn-del"${N ? "" : " hidden"}><span class="st-ic gr" aria-hidden="true">${ico("trash", "bold", 18)}</span>
         <span class="st-l">Borrar las fotos de Mi casa<small id="aj-hn-ds">${esc(delText())}</small></span></button>
     </div></section>`;
 }
 bus.on("settings", d => {
   if(!d || d.page !== "mayores" || !d.el) return;
-  const sec = d.el.querySelector("#aj-hn"), del = d.el.querySelector("#aj-hn-del"), ds = d.el.querySelector("#aj-hn-ds");
+  const sec = d.el.querySelector("#aj-hn"), del = d.el.querySelector("#aj-hn-del"), ds = d.el.querySelector("#aj-hn-ds"), sw = d.el.querySelector("#aj-hn-on");
   if(!sec || !del) return;
-  recount().then(() => { if(!del.isConnected) return; sec.hidden = !N; if(ds) ds.textContent = delText(); });
+  if(sw) sw.onchange = () => setSave(sw.checked);
+  recount().then(() => { if(!del.isConnected) return; del.hidden = !N; if(ds) ds.textContent = delText(); });
   let armed = 0;
   del.onclick = () => {
     const t = Date.now();
@@ -121,7 +137,7 @@ bus.on("settings", d => {
 });
 
 Object.assign(H, {
-  loaded: !!H.loaded, SRC, KEY, IMG, HOUSE, SWATCH, THINGS, load, recount, casaRow, adultHtml, wipe,
+  loaded: !!H.loaded, SRC, KEY, IMG, HOUSE, SWATCH, THINGS, load, recount, casaRow, adultHtml, wipe, saveOn, setSave,
   images: () => [IMG, HOUSE, ...Object.values(SWATCH), ...Object.values(THINGS).flat().map(x => x[1])],
   count: () => N,
   casa: alive => load().then(h => h.casa(alive)),

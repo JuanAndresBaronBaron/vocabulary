@@ -343,8 +343,9 @@ def test_hold_to_record_and_leave_stops_mic():
 
 # ---------------------------------------------------------------- monedas
 def test_coins_once_per_word_with_daily_cap():
-    """Las monedas llegan por award(): lo que suben las estrellas de esa palabra ese día (grabarla otra vez con las mismas
-    no paga), con un tope de vocabParrot.DAY_CAP al día; un silencio da 1 estrella y nada de monedas (nunca castiga)."""
+    """Las monedas llegan por award(): vocabParrot.PAY por grabar cada palabra, una vez al día por palabra y no por las
+    estrellas (grabarla otra vez no paga, aunque suban), con un tope de vocabParrot.DAY_CAP al día; un silencio da 1
+    estrella y nada de monedas (nunca castiga). Los textos son sinceros: 3 = «¡Te he oído! Suena muy parecido»."""
     probs = []
     page = _page()
     page.context.add_init_script("""document.addEventListener('DOMContentLoaded', () => { window.__aw = [];
@@ -359,11 +360,16 @@ def test_coins_once_per_word_with_daily_cap():
         c0 = page.evaluate(_COINS)
         st = _record(page)
         c1 = page.evaluate(_COINS)
-        if st["paid"] != st["stars"] or c1 - c0 != st["paid"]:
-            probs.append(f"primera vez: pagó {st['paid']} por {st['stars']} estrellas, monedas {c0}→{c1}")
+        pay = page.evaluate("() => vocabParrot.PAY")
+        if not (1 <= pay <= 3) or st["paid"] != pay or c1 - c0 != pay:
+            probs.append(f"primera vez: pagó {st['paid']} (PAY {pay}) con {st['stars']} estrellas, monedas {c0}→{c1}")
+        bt = page.evaluate("() => document.getElementById('lr-bt').textContent")
+        want = {3: "¡Te he oído! Suena muy parecido", 2: "¡Casi igual!"}.get(st["stars"])
+        if want and want not in bt or any(x in bt for x in ("Genial", "Lo dices muy bien")):
+            probs.append(f"texto de {st['stars']} estrellas: {bt!r}")
         st2 = _record(page)   # «Otra vez»: la misma palabra
         c2 = page.evaluate(_COINS)
-        if st2["word"] != st["word"] or (st2["stars"] <= st["stars"] and (st2["paid"] or c2 != c1)):
+        if st2["word"] != st["word"] or st2["paid"] or c2 != c1:
             probs.append(f"la misma palabra pagó otra vez: {st2} monedas {c1}→{c2}")
         # cerca del tope: solo lo que falta
         page.evaluate("cap => { const s = JSON.parse(localStorage.getItem('parrot:st')); s.day.c = cap - 1; localStorage.setItem('parrot:st', JSON.stringify(s)); }", cap)

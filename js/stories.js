@@ -3,13 +3,17 @@
      4 desde 744 px). El primer cuento (n = 1) siempre está abierto; los demás se abren al saber el 90 % de sus
      palabras (las de "words" que están en el repaso, srsAll(), mirado cada vez que se pinta). Uno cerrado sale en gris
      con candado, «Aprende N palabras más de este cuento» y una barrita; tocarlo abre una hoja con las palabras que
-     faltan (dibujo, palabra, IPA y altavoz) e «Ir al camino». Uno que se acaba de abrir desde la última visita da un
-     saltito; uno abierto sin leer lleva «¡Nuevo!»; uno leído, «Leído» y cuántos finales lleva.
+     faltan (dibujo, palabra, IPA y altavoz), «Aprender estas palabras» (una tarjeta grande por palabra, que suena
+     sola; cada una que se pasa va al repaso con srsAdd(tema, [fila], 1), así que el cuento se abre al terminar) e «Ir
+     al camino». Las palabras de "words" son las clave del cuento que salen pronto en el Camino (A1, con dibujo casi
+     todas). Uno que se acaba de abrir desde la última visita da un saltito; uno abierto sin leer lleva «¡Nuevo!»; uno
+     leído, «Leído» y cuántos finales lleva.
    · #/cuento/<id>: el cuento en modo foco (html[data-focus=cuento]: sin barras, con la ✕ y las monedas), como un libro:
      arriba el dibujo grande (40 % del alto en el móvil, sobre una placa del color del cuento) y debajo el texto grande
      (28-40 px). Portada, páginas, la página de elegir (dos tarjetas con dibujo: cambian el final) y 2-4 páginas del
      final elegido; después, «The End / Fin / Slut» con el zorro y los finales encontrados. Se pasa de página con
-     ‹ y «Siguiente» (abajo, siempre a la vista), deslizando la página (G.swipe) y con ← →.
+     ‹ y «Siguiente» (abajo, siempre a la vista), deslizando la página (G.swipe) y con ← →: la página se va entera por
+     el lado del gesto (con su velocidad) y la nueva entra por el otro; vibra solo al pasarla deslizando.
      Cada página se lee sola al llegar (y con el altavoz; la tortuga, despacio): una frase cada vez con la voz del
      navegador, useVoice(u, idioma) y retryLocal en onerror. La palabra que suena se ilumina: por tiempo (el peso de
      cada palabra según su largo y las pausas de las comas y los puntos, con una velocidad que se corrige con lo que
@@ -204,6 +208,16 @@ dialog.st-sh .st-ls-p{margin:0 0 12px;font:400 var(--fs-body)/1.4 var(--f-text);
 .st-ls-w small{font:400 var(--fs-note)/1.25 var(--f-text);color:var(--label2)}
 .st-ls-say{flex:none;display:grid;place-items:center;width:var(--tap);height:var(--tap);border:0;border-radius:50%;background:var(--brand-soft);color:var(--brand-tint);cursor:pointer}
 .st-ls-say.playing{background:var(--brand-fill);color:#fff}
+.st-ls-acts{display:grid;gap:12px}
+/* «Aprender estas palabras»: una tarjeta grande por palabra */
+.st-lw{display:flex;flex-direction:column;align-items:center;gap:6px;margin:0 0 16px;padding:16px;border-radius:var(--r-card);background:var(--card);text-align:center}
+.st-lw-n{margin:0;color:var(--label2);font:700 var(--fs-note)/1.3 var(--f-text)}
+.st-lw-pic{display:grid;place-items:center;width:min(64vw,240px);aspect-ratio:1/1;margin:4px 0 6px;border-radius:24px;background:var(--fill2)}
+.st-lw-pic img{width:88%;height:88%;object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.st-lw-w{margin:0;font:800 var(--fs-t1)/1.2 var(--f-round);color:var(--label);overflow-wrap:anywhere}
+.st-lw .ipa{font-size:var(--fs-sub)}
+.st-lw-es{margin:0;color:var(--label2);font:600 var(--fs-sub)/1.3 var(--f-text)}
+.st-lw-say{display:flex;gap:16px;margin-top:8px}
 /* el cuento: un libro */
 .st{position:relative;width:min(100%,960px);margin:0 auto;padding-bottom:calc(var(--btn-main) + 40px)}
 :root[data-focus=cuento] main{overflow-x:hidden;overflow-x:clip}
@@ -213,6 +227,7 @@ dialog.st-sh .st-ls-p{margin:0 0 12px;font:400 var(--fs-body)/1.4 var(--f-text);
 .st-bar{flex:1;height:12px;border-radius:999px;background:var(--fill);overflow:hidden}
 .st-bar>i{display:block;width:0;height:100%;border-radius:inherit;background:var(--teal);transition:width var(--d-base,260ms)}
 .st-stage{position:relative;touch-action:pan-y}
+.st-ghost{position:absolute;z-index:1;top:0;left:0;right:0;margin:0;pointer-events:none}
 .st-page{display:flex;flex-direction:column;gap:14px;margin:0;padding:12px 12px 16px;border-radius:var(--r-card);background:var(--card);color:var(--label)}
 .st-art{position:relative;display:flex;align-items:flex-end;justify-content:center;gap:3%;box-sizing:border-box;height:clamp(220px,42vh,460px);margin:0;
   padding:14px 12px 8px;border-radius:18px;background:var(--st-tint);overflow:hidden}
@@ -251,10 +266,12 @@ dialog.st-sh .st-ls-p{margin:0 0 12px;font:400 var(--fs-body)/1.4 var(--f-text);
 .st-opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .st-opt{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;margin:0;padding:8px 8px 12px;border:0;border-radius:var(--r-card);
   background:var(--card);color:var(--label);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:box-shadow var(--d-fast,160ms)}
-.st-opt-pic{display:grid;place-items:center;width:100%;aspect-ratio:1/1;border-radius:18px;background:var(--st-tint)}
-.st-opt-pic img{width:92%;height:92%;object-fit:contain;pointer-events:none}
+/* la caja del dibujo es cuadrada y el dibujo va dentro (absoluto): todos miden lo mismo y los nombres quedan a la par */
+.st-opt-pic{position:relative;display:block;width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:18px;background:var(--st-tint)}
+.st-opt-pic img{position:absolute;inset:4%;width:92%;height:92%;object-fit:contain;pointer-events:none}
 .st-opt-t{margin-top:6px;font:800 var(--fs-t3)/1.2 var(--f-round);text-align:center;overflow-wrap:anywhere}
 .st-opt-es{color:var(--label2);font:400 var(--fs-note)/1.25 var(--f-text)}
+.st-opt .ipa{font-size:var(--fs-note);text-align:center}
 .st-opt-ok{position:absolute;top:8px;right:8px;display:none;place-items:center;width:32px;height:32px;border-radius:50%;background:var(--brand-fill);color:#fff}
 .st-opt[aria-pressed=true]{box-shadow:0 0 0 4px var(--brand-tint)}
 .st-opt[aria-pressed=true] .st-opt-ok{display:grid}
@@ -281,7 +298,7 @@ dialog.st-sh .st-ls-p{margin:0 0 12px;font:400 var(--fs-body)/1.4 var(--f-text);
 .st-dock::before{content:"";position:absolute;z-index:-1;left:-16px;right:-16px;top:-20px;bottom:calc(-1 * (var(--safe-b) + 16px));
   background:linear-gradient(to bottom,transparent,var(--bg) 45%);pointer-events:none}
 .st-prev{flex:none;width:var(--btn-main);min-height:var(--btn-main);padding:0;border-radius:50%}
-.st-prev.is-off{visibility:hidden}
+.st-prev.is-off{display:none}
 .st-next,.st-more{flex:1}
 .st-again{flex:1}
 .st-pick{flex:1;margin:0;text-align:center;color:var(--label2);font:700 var(--fs-sub)/1.3 var(--f-text)}
@@ -309,7 +326,7 @@ dialog.st-sh .st-ls-p{margin:0 0 12px;font:400 var(--fs-body)/1.4 var(--f-text);
   .st-opts{gap:16px}
   .st-opt-pic{max-height:42vh}
 }
-${DARK(".st-art,.st-cv-art,.st-opt-pic,.st-bub-pic,.st-endc.ok", "background:#E8E8ED")}
+${DARK(".st-art,.st-cv-art,.st-opt-pic,.st-bub-pic,.st-endc.ok,.st-lw-pic", "background:#E8E8ED")}
 ${DARK(".st-cv.is-lock .st-cv-art", "background:var(--fill2)")}
 `;
 function css(){
@@ -538,13 +555,22 @@ async function shelf(){
   /* un cuento cerrado al que se llegó por su enlace: su hoja */
   if(PEND){ const e = items.find(x => x.id === PEND), el = e && grid.querySelector(`.st-cv[data-id="${CSS.escape(e.id)}"]`); PEND = null; if(e) lockSheet(Object.assign({L}, e), el); }
 }
-/* la hoja de un cuento cerrado: las palabras que faltan, con dibujo, IPA y altavoz, e «Ir al camino» */
+/* la hoja de un cuento cerrado: las palabras que faltan (dibujo, palabra, IPA y altavoz), «Aprender estas palabras»
+   (una tarjeta grande por palabra, que suena sola; cada una que se pasa va al repaso: srsAdd(tema, [fila], 1), y la
+   barra avanza ya) e «Ir al camino». «¡Casi lo abres!» solo si faltan 3 o menos. */
 function sheetEl(){
   let d = DOC.getElementById("st-lock-s");
   if(!d){
     d = DOC.createElement("dialog"); d.id = "st-lock-s"; d.className = "st-sh"; d.setAttribute("aria-labelledby", "st-ls-t");
     d.dataset.noRenew = ""; d.dataset.noHint = ""; DOC.body.appendChild(d);
-    d.addEventListener("click", e => { if(e.target.closest && e.target.closest("[data-close]")) closeSheet(d); });
+    d.addEventListener("click", e => {
+      const t = e.target; if(!t || !t.closest) return;
+      if(t.closest("[data-close]")){ closeSheet(d); return; }
+      if(t.closest("#st-ls-go")){ learnCard(d, 0); return; }
+      if(t.closest("#st-lw-next")) learnNext(d);
+    });
+    /* al cerrar (con «Listo», Esc o al terminar): si alguna palabra fue al repaso, la estantería se pinta de nuevo */
+    d.addEventListener("close", () => { const x = LS; if(x && x.added && secOf(hashNow()) === "cuentos") shelf(); LS = null; });
   }
   return d;
 }
@@ -556,29 +582,67 @@ function closeSheet(d, now){
   if(!d || !d.open) return;
   if(!now && W.M && typeof M.closeSheet === "function" && d.classList.contains("m-sheet")) M.closeSheet(d); else d.close();
 }
+let LS = null;   /* la hoja abierta: {e, rows, i, added} */
 async function lockSheet(e, from){
   const st = lockOf(e), d = sheetEl(), my = ++SHEETN;
   const n = st.left === 1 ? "Te falta 1 palabra" : `Te faltan ${st.left} palabras`;
-  d.innerHTML = `<div class="m-head"><h2 id="st-ls-t">¡Casi lo abres!</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
-    <p class="st-ls-p">${esc(n)} para abrir «${esc(e.es)}». Apréndelas en el camino:</p>
+  LS = {e, rows: null, i: 0, added: 0};
+  d.innerHTML = `<div class="m-head"><h2 id="st-ls-t">${st.left <= 3 ? "¡Casi lo abres!" : "Para abrir este cuento"}</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
+    <div class="st-ls-in" id="st-ls-in"><p class="st-ls-p">${esc(n)} para abrir «${esc(e.es)}». Son estas:</p>
     <ul class="st-ls-l" id="st-ls-l" aria-busy="true"></ul>
-    <a class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" href="#/mapa" data-close>${ico("map-trifold", "bold", 20)}Ir al camino</a>`;
+    <div class="st-ls-acts"><button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="st-ls-go" disabled>${ico("cards", "bold", 20)}Aprender estas palabras</button>
+    <a class="glass-btn glass-btn--lg glass-btn--block" href="#/mapa" data-close>${ico("map-trifold", "bold", 20)}Ir al camino</a></div></div>`;
   openSheet(d, from);
   const rows = await Promise.all(st.miss.map(async w => {
     const i = w.id.indexOf("|"), doc = w.id.slice(0, i), es = w.id.slice(i + 1);
     let r = null; try{ const D = await getDoc(doc); r = (D && Array.isArray(D.rows) ? D.rows : []).find(x => x && x.es === es) || null; }catch(err){ r = null; }
     const l = r && r.l ? r.l[e.L] : null;
-    return {w: speakable(l && l.word ? l.word : w.w), ipa: l ? l.ipa : "", img: (r && r.img) || w.img || "", es};
+    return {w: speakable(l && l.word ? l.word : w.w), ipa: l ? l.ipa : "", img: (r && r.img) || w.img || "", es, doc, row: r || {es}};
   }));
-  if(my !== SHEETN || !d.open) return;
+  if(my !== SHEETN || !d.open || !LS) return;
+  LS.rows = rows;
   const ul = d.querySelector("#st-ls-l"); if(!ul) return;
   const c = code(e.L);
   ul.innerHTML = rows.map(x => `<li><span class="st-ls-pic">${x.img ? `<img src="${esc(x.img)}" alt="" width="48" height="48" draggable="false">` : ico("book-open-text", "bold", 26)}</span>
     <span class="st-ls-w"><span lang="${esc(c)}">${esc(x.w)}</span>${ipaHtml(x.ipa, c)}<small>${esc(x.es.toLocaleLowerCase("es"))}</small></span>
-    <button type="button" class="st-ls-say" data-say="${esc(x.w)}" aria-label="Escuchar ${esc(x.w)}">${ico("speaker-high", "fill", 20)}</button></li>`).join("");
+    <button type="button" class="say st-ls-say" data-say="${esc(x.w)}" aria-label="Escuchar ${esc(x.w)}">${ico("speaker-high", "fill", 20)}</button></li>`).join("");
   ul.removeAttribute("aria-busy");
+  const go = d.querySelector("#st-ls-go"); if(go) go.disabled = !rows.length;
 }
 let SHEETN = 0;
+/* una tarjeta de «Aprender estas palabras»: el dibujo grande, la palabra, su IPA, el español y los dos altavoces */
+function learnCard(d, i){
+  const x = LS && LS.rows && LS.rows[i], box = d.querySelector("#st-ls-in"); if(!x || !box) return;
+  LS.i = i;
+  const c = code(LS.e.L), N = LS.rows.length, last = i === N - 1;
+  box.innerHTML = `<div class="st-lw" id="st-lw">
+      <p class="st-lw-n" aria-live="polite">${i + 1} de ${N}</p>
+      <span class="st-lw-pic">${x.img ? `<img src="${esc(x.img)}" alt="" draggable="false">` : ico("book-open-text", "bold", 64)}</span>
+      <p class="st-lw-w" lang="${esc(c)}">${esc(x.w)}</p>${ipaHtml(x.ipa, c)}
+      <p class="st-lw-es">${esc(x.es.toLocaleLowerCase("es"))}</p>
+      <div class="st-lw-say"><button type="button" class="say st-spk" id="st-lw-say" data-say="${esc(x.w)}" aria-label="Escuchar ${esc(x.w)}">${ico("speaker-high", "fill", 24)}</button>
+        <button type="button" class="say st-slow" data-say="${esc(x.w)}" data-slow aria-label="Escuchar despacio">${ico("turtle", "fill", 26)}</button></div>
+    </div>
+    <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" id="st-lw-next">${last ? `${ico("check", "bold", 20)}¡Listo!` : `Siguiente${ico("caret-right", "bold", 20)}`}</button>`;
+  const h = d.querySelector("#st-ls-t"); if(h) h.textContent = "Aprende las palabras";
+  const card = box.querySelector("#st-lw");
+  if(card && card.animate) try{ card.animate(rm() ? [{opacity: 0}, {opacity: 1}] : [{opacity: 0, translate: "24px 0"}, {opacity: 1, translate: "0 0"}], {duration: rm() ? 120 : 220, easing: "cubic-bezier(.2,.8,.2,1)"}); }catch(e){}
+  const nx = box.querySelector("#st-lw-next"); if(nx) try{ nx.focus({preventScroll: true}); }catch(e){}
+  const at = i;
+  setTimeout(() => { if(LS && LS.i === at && d.open && d.querySelector("#st-lw")) try{ say(x.w, d.querySelector("#st-lw-say")); }catch(e){} }, 260);
+}
+/* «Siguiente» / «¡Listo!»: la palabra que se acaba de ver va al repaso (mañana) */
+function learnNext(d){
+  if(!LS || !LS.rows) return;
+  const x = LS.rows[LS.i];
+  if(x && !x.sent){ try{ srsAdd(x.doc, [x.row], 1); x.sent = true; LS.added++; }catch(e){ console.error(e); } }
+  if(LS.i < LS.rows.length - 1){ learnCard(d, LS.i + 1); return; }
+  const e = LS.e, open = lockOf(e).open;
+  closeSheet(d);
+  const t = open ? "¡Cuento abierto!" : "¡Muy bien! Ya están en tu repaso";
+  try{ if(W.M && typeof M.toast === "function") M.toast(t, {icon: ico(open ? "lock-open" : "sparkle", "bold", 20)}); else if(typeof toast === "function") toast(t); }catch(err){}
+  haptic("success");
+}
 
 /* ---------- #/cuento/<id>: el cuento ---------- */
 let R = null, OFFS = [], PICK = 0;
@@ -606,6 +670,11 @@ const actsHtml = () => `<div class="st-acts">
     <button type="button" class="st-slow" id="st-slow" data-key="shift+space" aria-label="Escuchar despacio" title="Despacio">${ico("turtle", "fill", 26)}</button>
     <button type="button" class="st-esb" id="st-esb" aria-pressed="${R.es}">Español</button></div>
   <p class="st-note" id="st-note" role="status"></p>`;
+/* la IPA de una frase corta (las opciones de elegir), juntando la de sus palabras; "" si alguna no la tiene */
+function ipaOf(text){
+  const M = model(text, R.s.gloss), ps = M.units.map(u => String((u.g && u.g.ipa) || "").trim().replace(/^\/|\/$/g, "")).filter(Boolean);
+  return M.units.length && ps.length === M.units.length ? `/${ps.join(" ")}/` : "";
+}
 function pageHtml(x){
   const c = code(R.L), es = t => `<p class="st-es" id="st-es"${R.es ? "" : " hidden"}>${esc(t)}</p>`;
   if(x.k === "cover") return `<article class="card st-page st-cover">${artHtml(R.s.cover, [])}
@@ -613,7 +682,7 @@ function pageHtml(x){
   if(x.k === "choice") return `<div class="st-choice"><section class="card st-page st-q" aria-labelledby="st-txt">
       <div class="st-body"><p class="st-txt" id="st-txt" lang="${esc(c)}">${unitsHtml(R.M)}</p>${es(x.pg.es)}${actsHtml()}</div></section>
     <div class="st-opts" role="group" aria-label="Elige el final">${x.pg.opts.map((o, i) => `<button type="button" class="st-opt" data-k="${esc(o.key)}" data-key="${i + 1}" data-key-pos="in" aria-pressed="${R.ch === o.key}">
-      <span class="st-opt-pic"><img src="${esc(o.img)}" alt="" draggable="false"></span><span class="st-opt-t" lang="${esc(c)}">${esc(o.t)}</span>
+      <span class="st-opt-pic"><img src="${esc(o.img)}" alt="" draggable="false"></span><span class="st-opt-t" lang="${esc(c)}">${esc(o.t)}</span>${ipaHtml(ipaOf(o.t), c)}
       <small class="st-opt-es">${esc(o.es)}</small><span class="st-opt-ok" aria-hidden="true">${ico("check", "bold", 18)}</span></button>`).join("")}</div></div>`;
   return `<article class="card st-page">${artHtml(x.pg.img, x.pg.also)}
     <div class="st-body"><p class="st-txt" id="st-txt" lang="${esc(c)}">${unitsHtml(R.M)}</p>${es(x.pg.es)}${actsHtml()}</div></article>`;
@@ -642,8 +711,8 @@ function mount(){
   });
   if(W.G && typeof G.swipe === "function") OFFS.push(G.swipe(stage, {
     onMove: e => { const pg = stage.firstElementChild; if(pg && !rm()) pg.style.translate = `${e.dx}px 0`; },
-    onLeft: e => { if(!go(1)) springBack(e); },
-    onRight: e => { if(!go(-1)) springBack(e); },
+    onLeft: e => { if(!go(1, e || {})) springBack(e); },
+    onRight: e => { if(!go(-1, e || {})) springBack(e); },
     onCancel: e => springBack(e),
   }));
 }
@@ -677,40 +746,73 @@ function bar(){
   b.setAttribute("aria-valuenow", String(v)); b.setAttribute("aria-valuetext", R.fin ? "Cuento terminado" : R.p ? `Página ${R.p} de ${tot}` : "Portada");
   const i = b.querySelector("i"); if(i) i.style.width = `${(100 * v / tot).toFixed(1)}%`;
 }
-function animIn(el, dir){
+/* pasar de página como un libro: la que se va sigue al dedo (desde donde la dejó y con la velocidad al soltar) y sale
+   entera por ese lado; la nueva entra desde el borde contrario. Con los botones, igual. Con Reducir movimiento, un
+   fundido cruzado de 140 ms. ghost = la página que se va (copia sin ids ni toques, encima, hasta que sale). */
+function turn(stage, ghost, el, dir, v){
   if(!dir || !el || !el.animate) return;
   try{
-    if(rm()) el.animate([{opacity: 0}, {opacity: 1}], {duration: 140, easing: "ease-out"});
-    else el.animate([{opacity: 0, translate: `${dir > 0 ? 56 : -56}px 0`}, {opacity: 1, translate: "0 0"}], {duration: 240, easing: "cubic-bezier(.2,.8,.2,1)"});
-  }catch(e){}
+    if(rm()){
+      el.animate([{opacity: 0}, {opacity: 1}], {duration: 140, easing: "ease-out"});
+      if(ghost){ const a = ghost.animate([{opacity: 1}, {opacity: 0}], {duration: 140, easing: "ease-out", fill: "forwards"}); a.finished.then(() => ghost.remove(), () => ghost.remove()); }
+      return;
+    }
+    const r = stage.getBoundingClientRect(), vw = DOC.documentElement.clientWidth || innerWidth;
+    const outX = dir > 0 ? -(r.right + 8) : vw - r.left + 8, inX = dir > 0 ? vw - r.left + 8 : -(r.right + 8);
+    const x0 = ghost ? parseFloat(ghost.style.translate) || 0 : 0, dist = Math.abs(outX - x0), sp = Math.abs(+v || 0);
+    /* la curva empieza a 4 × dist / dur: con un gesto rápido, más corta (y nunca más de 300 ms) */
+    const ms = Math.round(Math.max(180, Math.min(300, sp > .05 ? 4 * dist / sp : 300))), ease = "cubic-bezier(.2,.8,.2,1)";
+    el.animate([{translate: `${Math.round(inX)}px 0`}, {translate: "0 0"}], {duration: ms, easing: ease});
+    if(ghost){
+      const a = ghost.animate([{translate: `${x0}px 0`}, {translate: `${Math.round(outX)}px 0`}], {duration: ms, easing: ease, fill: "forwards"});
+      a.finished.then(() => ghost.remove(), () => ghost.remove());
+    }
+  }catch(e){ if(ghost) ghost.remove(); }
+}
+/* pinta html en el escenario; con dir, la página de antes se va como en un libro */
+function swap(stage, html, dir, v){
+  stage.querySelectorAll(".st-ghost").forEach(g => g.remove());
+  const old = dir ? stage.firstElementChild : null;
+  if(old){ try{ old.getAnimations().forEach(a => { try{ a.commitStyles(); }catch(e){} a.cancel(); }); }catch(e){} }
+  stage.innerHTML = html;
+  fitTaps(stage);
+  let ghost = null;
+  if(old && old.nodeType === 1){
+    ghost = old; ghost.classList.add("st-ghost"); ghost.removeAttribute("id"); ghost.setAttribute("aria-hidden", "true"); ghost.inert = true;
+    ghost.querySelectorAll("[id]").forEach(n => n.removeAttribute("id"));
+    ghost.querySelectorAll(".is-say,.is-tap,.playing").forEach(n => n.classList.remove("is-say", "is-tap", "playing"));
+    stage.appendChild(ghost);
+  }
+  const el = stage.firstElementChild;
+  turn(stage, ghost, el, dir, v);
+  return el;
 }
 let NT = 0;
-function show(dir){
+function show(dir, v){
   const x = R.path[R.p], stage = $("#st-stage"); if(!stage) return;
   closeBub();
   R.M = x.k === "cover" ? model(R.s.title, R.s.gloss) : model(x.pg.t, R.s.gloss, x.pg.gl);
-  stage.innerHTML = pageHtml(x);
-  fitTaps(stage);
-  const el = stage.firstElementChild;
+  swap(stage, pageHtml(x), dir, v);
   bar(); dock();
   const lv = $("#st-live"); if(lv) lv.textContent = R.p ? (x.k === "choice" ? "Elige el final" : `Página ${R.p}`) : R.s.title;
-  animIn(el, dir);
   clearTimeout(NT);
   const at = R.p, id = R.id;
   NT = setTimeout(() => { if(R && R.id === id && R.p === at && !R.fin && secOf(hashNow()) === "cuento") narrate(R.M, false, $("#st-say"), R.L); }, dir ? 360 : 520);
 }
-/* pasa de página: d = 1 o -1. false si no se pudo (en la portada hacia atrás, o en la de elegir sin elegir) */
-function go(d){
+/* pasa de página: d = 1 o -1; sw = el gesto que la pasó ({v} en px/ms), si fue deslizando (solo entonces vibra).
+   false si no se pudo (en la portada hacia atrás, o en la de elegir sin elegir) */
+function go(d, sw){
   if(!R || R.fin) return false;
   if(d > 0){
     if(R.path[R.p].k === "choice" && !R.ch){ nudge(); return false; }
-    if(R.p >= R.path.length - 1){ stopSay(); end(); return true; }
+    if(R.p >= R.path.length - 1){ stopSay(); end(sw); return true; }
     R.p++;
   } else {
     if(R.p <= 0) return false;
     R.p--;
   }
-  stopSay(); sesSave(); haptic("selection"); show(d);
+  stopSay(); sesSave(); if(sw) haptic("selection");
+  show(d, sw ? sw.v : 0);
   return true;
 }
 /* en la de elegir sin elegir: las dos tarjetas brillan un momento (no es un fallo) */
@@ -724,7 +826,7 @@ function pick(key, btn){
   closeBub(); clearTimeout(NT);
   R.ch = key; R.path = pathOf(R.s, key); sesSave();
   DOC.querySelectorAll(".st-opt").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === key)));
-  if(W.M && typeof M.ok === "function") M.ok(btn); haptic("selection");
+  if(W.M && typeof M.ok === "function") M.ok(btn);
   dock();
   const my = ++PICK, t0 = performance.now(), at = R.p;
   narrate(model(o.t, R.s.gloss), false, null, R.L).then(ok => {
@@ -733,7 +835,7 @@ function pick(key, btn){
   });
 }
 /* el final del cuento */
-function end(){
+function end(sw){
   R.fin = true; clearTimeout(NT); closeBub(); PICK++;
   const res = finish(R.id, R.ch), E = END[R.L] || END.english, c = code(R.L), opts = R.s.choice.opts;
   sesSet(null);
@@ -741,20 +843,18 @@ function end(){
   const msg = !res.first ? (res.ends.length >= 2 && res.n === 2 ? "¡Ya conoces los dos finales!" : "¡Otra vez! Lo lees genial.")
     : res.paid ? `¡Muy bien! Has leído «${R.s.es}».` : `¡Muy bien! Has leído «${R.s.es}». Hoy ya ganaste monedas con ${DAY_PAY} cuentos: mañana ganas más.`;
   const stage = $("#st-stage");
-  stage.innerHTML = `<article class="card st-page st-end" aria-labelledby="st-txt">
+  swap(stage, `<article class="card st-page st-end" aria-labelledby="st-txt">
     <div class="st-fox">${heroHtml(120)}</div>
     <h1 class="st-end-t st-txt" id="st-txt" lang="${esc(c)}">${unitsHtml(R.M)}</h1>${ipaHtml(E.ipa, c)}
     <p class="st-end-m">${esc(msg)}</p>
     <ul class="st-ends" aria-label="Finales">${opts.map(o => `<li class="st-endc${res.ends.includes(o.key) ? " ok" : ""}"><img src="${esc(o.img)}" alt="" draggable="false">${res.ends.includes(o.key) ? `<span class="ck" aria-hidden="true">${ico("check", "bold", 16)}</span>` : ""}<span class="vh">${esc(o.es)}: ${res.ends.includes(o.key) ? "visto" : "por descubrir"}</span></li>`).join("")}
       <li class="st-ends-t">${res.ends.length >= 2 ? "¡Has encontrado los 2 finales!" : "Has encontrado 1 de 2 finales"}</li></ul>
-    <p class="st-note" id="st-note" role="status"></p></article>`;
-  fitTaps(stage);
+    <p class="st-note" id="st-note" role="status"></p></article>`, 1, sw ? sw.v : 0);
   const other = opts.find(o => !res.ends.includes(o.key));
   $("#st-dock").innerHTML = `<button type="button" class="glass-btn glass-btn--lg st-again" id="st-again">${ico(other ? "sparkle" : "arrow-counter-clockwise", "bold", 20)}${other ? "Otro final" : "Otra vez"}</button>
     <a class="glass-btn glass-btn--pri glass-btn--lg st-more" id="st-more" href="#/cuentos" data-key="enter">Más cuentos</a>`;
   bar();
   const lv = $("#st-live"); if(lv) lv.textContent = "Fin del cuento";
-  animIn(stage.firstElementChild, 1);
   const fox = stage.querySelector(".st-fox");
   if(res.paid) setTimeout(() => { try{ award(COINS, "¡Cuento leído!", false, fox); }catch(e){ console.error(e); } }, rm() ? 0 : 450);
   if(W.M && typeof M.burst === "function" && !rm()) setTimeout(() => { if(fox && fox.isConnected) M.burst(fox, {n: 14}); }, 300);

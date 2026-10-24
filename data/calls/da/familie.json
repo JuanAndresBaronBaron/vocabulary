@@ -130,31 +130,28 @@
    }
   },
   {
-   "say": "Og du? Hvem er hjemme hos dig nu?",
-   "es": "¿Y tú? ¿Quién está en casa contigo ahora?",
+   "say": "Og du? Hvilket dyr vil du helst lege med: en kat, en hund eller en kanin?",
+   "es": "¿Y tú? ¿Con qué animal prefieres jugar: con un gato, un perro o un conejo?",
    "a": [
     {
-     "r": "w01|mamá",
-     "img": "img/om_1F469.png",
+     "r": "animales|Gato",
      "re": {
-      "say": "Din mor! Sig hej til din mor fra mig!",
-      "es": "¡Tu mamá! ¡Saluda a tu mamá de mi parte!"
+      "say": "En kat! Ligesom Mis!",
+      "es": "¡Un gato! ¡Como Mis!"
      }
     },
     {
-     "r": "w01|papá",
-     "img": "img/om_1F468.png",
+     "r": "animales|Perro",
      "re": {
-      "say": "Din far! Sig hej til din far fra mig!",
-      "es": "¡Tu papá! ¡Saluda a tu papá de mi parte!"
+      "say": "En hund! Vov, vov!",
+      "es": "¡Un perro! ¡Guau, guau!"
      }
     },
     {
-     "r": "familia|Hermano",
-     "img": "img/om_1F466.png",
+     "r": "animales|Conejo",
      "re": {
-      "say": "Din bror! Sig hej til ham fra mig!",
-      "es": "¡Tu hermano! ¡Salúdalo de mi parte!"
+      "say": "En kanin! Kaniner kan hoppe højt!",
+      "es": "¡Un conejo! ¡Los conejos saltan muy alto!"
      }
     }
    ]

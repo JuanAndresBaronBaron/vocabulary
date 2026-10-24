@@ -225,10 +225,6 @@
      "img": "img/d98dc83bdf.png"
     },
     {
-     "w": "make",
-     "id": "w24|hacer, fabricar"
-    },
-    {
      "w": "cake",
      "id": "w03|pastel, tarta",
      "img": "img/om_1F382.png"
@@ -244,10 +240,6 @@
      "img": "img/f501d7335c.png"
     },
     {
-     "w": "give",
-     "id": "w24|dar"
-    },
-    {
      "w": "egg",
      "id": "w03|huevo",
      "img": "img/om_1F95A.png"
@@ -261,19 +253,6 @@
      "w": "milk",
      "id": "w03|leche",
      "img": "img/om_1F95B.png"
-    },
-    {
-     "w": "put",
-     "id": "w24|poner"
-    },
-    {
-     "w": "bowl",
-     "id": "w03|cuenco, bol",
-     "img": "img/om_1F963.png"
-    },
-    {
-     "w": "mix",
-     "id": "w28|mezclar"
     },
     {
      "w": "apple",
@@ -299,25 +278,6 @@
      "w": "pig",
      "id": "animales|Cerdo",
      "img": "img/98b47c184e.png"
-    },
-    {
-     "w": "ready",
-     "id": "w35|listo, preparado"
-    },
-    {
-     "w": "eat",
-     "id": "w28|comer",
-     "img": "img/om_1F374.png"
-    },
-    {
-     "w": "together",
-     "id": "w38|juntos",
-     "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
-    },
-    {
-     "w": "happy",
-     "id": "w32|feliz",
-     "img": "img/om_1F600.png"
     }
    ],
    "pages": 9
@@ -338,23 +298,9 @@
      "img": "img/om_1F303.png"
     },
     {
-     "w": "moon",
-     "id": "w09|luna",
-     "img": "img/om_1F319.png"
-    },
-    {
-     "w": "sky",
-     "id": "w09|cielo"
-    },
-    {
      "w": "cow",
      "id": "animales|Vaca",
      "img": "img/9d5456806f.png"
-    },
-    {
-     "w": "sleep",
-     "id": "w28|dormir",
-     "img": "img/om_1F634.png"
     },
     {
      "w": "pig",
@@ -372,16 +318,6 @@
      "img": "img/om_1F6CF.png"
     },
     {
-     "w": "tired",
-     "id": "w31|cansado",
-     "img": "img/om_1F62B.png"
-    },
-    {
-     "w": "count",
-     "id": "w29|contar",
-     "img": "img/om_1F522.png"
-    },
-    {
      "w": "sheep",
      "id": "animales|Oveja",
      "img": "img/f1dcc1b9cc.png"
@@ -397,10 +333,6 @@
      "img": "img/om_1F4A1.png"
     },
     {
-     "w": "warm",
-     "id": "w31|cálido, templado"
-    },
-    {
      "w": "milk",
      "id": "w03|leche",
      "img": "img/om_1F95B.png"
@@ -409,21 +341,6 @@
      "w": "story",
      "id": "w13|historia, cuento",
      "img": "img/om_1F4D6.png"
-    },
-    {
-     "w": "drink",
-     "id": "w28|beber",
-     "img": "img/om_1F964.png"
-    },
-    {
-     "w": "read",
-     "id": "w28|leer",
-     "img": "img/om_1F4D6.png"
-    },
-    {
-     "w": "good",
-     "id": "w33|bueno",
-     "img": "img/om_1F44D.png"
     }
    ],
    "pages": 9
@@ -654,10 +571,6 @@
      "img": "img/d98dc83bdf.png"
     },
     {
-     "w": "faire",
-     "id": "w24|hacer, fabricar"
-    },
-    {
      "w": "le gâteau",
      "id": "w03|pastel, tarta",
      "img": "img/om_1F382.png"
@@ -673,10 +586,6 @@
      "img": "img/f501d7335c.png"
     },
     {
-     "w": "donner",
-     "id": "w24|dar"
-    },
-    {
      "w": "l'œuf",
      "id": "w03|huevo",
      "img": "img/om_1F95A.png"
@@ -690,19 +599,6 @@
      "w": "le lait",
      "id": "w03|leche",
      "img": "img/om_1F95B.png"
-    },
-    {
-     "w": "mettre",
-     "id": "w24|poner"
-    },
-    {
-     "w": "le bol",
-     "id": "w03|cuenco, bol",
-     "img": "img/om_1F963.png"
-    },
-    {
-     "w": "mélanger",
-     "id": "w28|mezclar"
     },
     {
      "w": "la pomme",
@@ -728,25 +624,6 @@
      "w": "le cochon",
      "id": "animales|Cerdo",
      "img": "img/98b47c184e.png"
-    },
-    {
-     "w": "prêt, prête",
-     "id": "w35|listo, preparado"
-    },
-    {
-     "w": "manger",
-     "id": "w28|comer",
-     "img": "img/om_1F374.png"
-    },
-    {
-     "w": "ensemble",
-     "id": "w38|juntos",
-     "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
-    },
-    {
-     "w": "content, contente",
-     "id": "w32|contento",
-     "img": "img/om_1F642.png"
     }
    ],
    "pages": 9
@@ -767,23 +644,9 @@
      "img": "img/om_1F303.png"
     },
     {
-     "w": "la lune",
-     "id": "w09|luna",
-     "img": "img/om_1F319.png"
-    },
-    {
-     "w": "le ciel",
-     "id": "w09|cielo"
-    },
-    {
      "w": "la vache",
      "id": "animales|Vaca",
      "img": "img/9d5456806f.png"
-    },
-    {
-     "w": "dormir",
-     "id": "w28|dormir",
-     "img": "img/om_1F634.png"
     },
     {
      "w": "le cochon",
@@ -801,16 +664,6 @@
      "img": "img/om_1F6CF.png"
     },
     {
-     "w": "fatigué, fatiguée",
-     "id": "w31|cansado",
-     "img": "img/om_1F62B.png"
-    },
-    {
-     "w": "compter",
-     "id": "w29|contar",
-     "img": "img/om_1F522.png"
-    },
-    {
      "w": "le mouton",
      "id": "animales|Oveja",
      "img": "img/f1dcc1b9cc.png"
@@ -826,10 +679,6 @@
      "img": "img/om_1F4A1.png"
     },
     {
-     "w": "chaud, chaude",
-     "id": "w31|cálido, templado"
-    },
-    {
      "w": "le lait",
      "id": "w03|leche",
      "img": "img/om_1F95B.png"
@@ -838,21 +687,6 @@
      "w": "l'histoire",
      "id": "w13|historia, cuento",
      "img": "img/om_1F4D6.png"
-    },
-    {
-     "w": "boire",
-     "id": "w28|beber",
-     "img": "img/om_1F964.png"
-    },
-    {
-     "w": "lire",
-     "id": "w28|leer",
-     "img": "img/om_1F4D6.png"
-    },
-    {
-     "w": "bon, bonne",
-     "id": "w33|bueno",
-     "img": "img/om_1F44D.png"
     }
    ],
    "pages": 9
@@ -1078,11 +912,6 @@
      "img": "img/d98dc83bdf.png"
     },
     {
-     "w": "at bage",
-     "id": "w28|hornear",
-     "img": "img/om_1F956.png"
-    },
-    {
      "w": "en kage",
      "id": "w03|pastel, tarta",
      "img": "img/om_1F382.png"
@@ -1098,10 +927,6 @@
      "img": "img/f501d7335c.png"
     },
     {
-     "w": "at give",
-     "id": "w24|dar"
-    },
-    {
      "w": "et æg",
      "id": "w03|huevo",
      "img": "img/om_1F95A.png"
@@ -1115,15 +940,6 @@
      "w": "en mælk",
      "id": "w03|leche",
      "img": "img/om_1F95B.png"
-    },
-    {
-     "w": "en skål",
-     "id": "w03|cuenco, bol",
-     "img": "img/om_1F963.png"
-    },
-    {
-     "w": "at blande",
-     "id": "w28|mezclar"
     },
     {
      "w": "et æble",
@@ -1149,21 +965,6 @@
      "w": "en gris",
      "id": "animales|Cerdo",
      "img": "img/98b47c184e.png"
-    },
-    {
-     "w": "at spise",
-     "id": "w28|comer",
-     "img": "img/om_1F374.png"
-    },
-    {
-     "w": "sammen",
-     "id": "w38|juntos",
-     "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
-    },
-    {
-     "w": "glad",
-     "id": "w32|feliz",
-     "img": "img/om_1F600.png"
     }
    ],
    "pages": 9
@@ -1184,23 +985,9 @@
      "img": "img/om_1F303.png"
     },
     {
-     "w": "en måne",
-     "id": "w09|luna",
-     "img": "img/om_1F319.png"
-    },
-    {
-     "w": "en himmel",
-     "id": "w09|cielo"
-    },
-    {
      "w": "en ko",
      "id": "animales|Vaca",
      "img": "img/9d5456806f.png"
-    },
-    {
-     "w": "at sove",
-     "id": "w28|dormir",
-     "img": "img/om_1F634.png"
     },
     {
      "w": "en gris",
@@ -1218,16 +1005,6 @@
      "img": "img/om_1F6CF.png"
     },
     {
-     "w": "træt",
-     "id": "w31|cansado",
-     "img": "img/om_1F62B.png"
-    },
-    {
-     "w": "at tælle",
-     "id": "w29|contar",
-     "img": "img/om_1F522.png"
-    },
-    {
      "w": "et får",
      "id": "animales|Oveja",
      "img": "img/f1dcc1b9cc.png"
@@ -1243,11 +1020,6 @@
      "img": "img/om_1F4A1.png"
     },
     {
-     "w": "varm",
-     "id": "w31|caliente, caluroso",
-     "img": "img/om_1F975.png"
-    },
-    {
      "w": "en mælk",
      "id": "w03|leche",
      "img": "img/om_1F95B.png"
@@ -1255,16 +1027,6 @@
     {
      "w": "en historie",
      "id": "w10|historia"
-    },
-    {
-     "w": "at drikke",
-     "id": "w28|beber",
-     "img": "img/om_1F964.png"
-    },
-    {
-     "w": "at læse",
-     "id": "w28|leer",
-     "img": "img/om_1F4D6.png"
     }
    ],
    "pages": 9

@@ -698,6 +698,7 @@ def test_tap_word_says_it_slowly_with_ipa_bubble():
                 if i is None:
                     continue
                 u = st["units"][i]
+                page.wait_for_timeout(500)   # la página entra (≤ 300 ms) y empieza a leerse sola (360 ms): el toque la corta
                 page.evaluate("() => { window.__spoken.length = 0; window.__played.length = 0; }")
                 page.locator(f"#st-txt .st-u[data-u='{i}']").click()
                 page.wait_for_selector("#st-bub", timeout=3000)

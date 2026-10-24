@@ -12,7 +12,8 @@
      datos de la pantalla, con la de antes aún a la vista) y vocabNavMotion.run(kind, render): render() pinta la ruta
      de una vez (los datos ya están) y run lo hace dentro de la transición. Si al final el modo foco no es el previsto
      (una lección que no existe y vuelve al camino, un juego que es un enlace), la transición se salta sin animar.
-   · Título grande que se encoge (html[data-tcol]): en la raíz de una pestaña, cuando el título de 36 px pasa por
+   · Título grande que se encoge (html[data-tcol]): en la raíz de una pestaña (y en las pantallas de dentro, con su
+     <h1>, entre la cápsula de volver y las monedas, con puntos suspensivos si no cabe), cuando el título pasa por
      debajo de la barra de arriba, sale en ella en una línea de 17 px centrada (span.tb-title, aria-hidden: el <h1>
      sigue siendo el título) y aparece el fondo de vidrio de la barra; al subir, vuelve. Scroll pasivo + rAF, sin
      mover nada de sitio (Hoy, sin scroll, nunca se encoge; la granja no tiene título).
@@ -127,6 +128,7 @@ function focusTo(h){
   }
   if(s === "juegos" && p[1]){ try{ return !!(W.vocabGames && typeof vocabGames.meta === "function" && vocabGames.meta(p[1])); }catch(e){ return false; } }
   if(s === "cuento") return true;   /* un cuento del zorro (js/stories.js) */
+  if(s === "cazador") return true;  /* el cazador de cosas (js/hunter-boot.js) */
   return false;
 }
 /* la pantalla de la que cuelga (la de la cápsula de volver; si no, la raíz de su pestaña); null en una raíz */
@@ -297,9 +299,17 @@ function place(t, txt){
   const x = Math.max(L, Math.min(innerWidth / 2 - w / 2, R - w));
   t.style.left = `${Math.round(x - tbr.left)}px`; t.style.maxWidth = `${Math.max(0, Math.floor(R - L))}px`;
 }
+/* el título grande de la pantalla: el de la raíz de la pestaña (#tabhead) o, en una pantalla de dentro (con la cápsula
+   de volver: html[data-back]), su primer <h1> a la vista («Cuentos del zorro», «Animales», «Mi casa»…) */
+function titleEl(){
+  const head = D.getElementById("tabhead");
+  const t = head && !head.hidden ? head.querySelector(".th-t") : null;
+  if(t || !ROOT.hasAttribute("data-back")) return t;
+  const app = D.getElementById("app");
+  return app ? [...app.querySelectorAll("h1")].find(shownEl) || null : null;
+}
 function collapse(){
-  const tb = D.getElementById("topbar"), head = D.getElementById("tabhead");
-  const h1 = head && !head.hidden ? head.querySelector(".th-t") : null;
+  const tb = D.getElementById("topbar"), h1 = titleEl();
   let on = false;
   if(h1 && tb && !ROOT.hasAttribute("data-focus") && shownEl(tb) && shownEl(h1)){
     const rt = tb.querySelector(".tb-right"), lim = shownEl(rt) ? rt.getBoundingClientRect().bottom : tb.getBoundingClientRect().bottom;

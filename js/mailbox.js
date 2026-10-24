@@ -43,7 +43,7 @@
      IndexedDB "vocab-media-user" (versión 1, almacén "media", keyPath "id", índice "kind"): solo de este aparato,
        nunca se exporta ni se sube. Cada cosa = {id, kind ("mail"; F6: "parrot", "capsule", "photo"…), t (ms), type
        (MIME), dur (ms), buf (ArrayBuffer: Safari guarda mal los Blob), tpl?, lang?, sent?}. Del Buzón se quedan las 5
-       últimas. Se pide navigator.storage.persist() al guardar la primera.
+       últimas. Se pide navigator.storage.persist() al guardar la primera (sin avisos: no si ya lo está, ni en Firefox).
    Para otros módulos y pruebas:
      window.vocabMedia = {DB, VER, STORE, ok(), put(cosa), get(id), list(kind?) (la más nueva primero), del(id),
        count(kind?), stats() → {n, audio, photo, kinds}, keep(kind, n) (borra las más viejas), clear() (cierra y borra
@@ -164,10 +164,17 @@ const Media = (() => {
       r.onsuccess = () => res(true); r.onerror = () => rej(r.error || new Error("No se pudo borrar"));
     }));
   }
-  /* que el navegador no borre lo grabado cuando le falte sitio (se pide una vez por sesión) */
+  /* que el navegador no borre lo grabado cuando le falte sitio (se pide una vez por sesión). Sin avisos delante del
+     niño: si ya lo está, no se pide; Firefox lo pregunta con un aviso, así que ahí no se pide (lo pide js/save.js). */
   function persist(){
     if(asked) return Promise.resolve(null); asked = true;
-    try{ if(navigator.storage && typeof navigator.storage.persist === "function") return navigator.storage.persist().catch(() => false); }catch(e){}
+    try{
+      const S = navigator.storage;
+      if(!S || typeof S.persist !== "function") return Promise.resolve(false);
+      if(/\bFirefox\//.test(navigator.userAgent || "")) return Promise.resolve(false);
+      const was = typeof S.persisted === "function" ? S.persisted().catch(() => false) : Promise.resolve(false);
+      return was.then(p => p ? true : S.persist().catch(() => false));
+    }catch(e){}
     return Promise.resolve(false);
   }
   return Object.freeze({DB, VER, STORE, ok, put, get, del, list, count, stats, keep, clear, persist});

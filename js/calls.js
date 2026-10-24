@@ -13,13 +13,16 @@
      tira el dado (CHANCE); si sale, suena RING_DELAY después (si sigue tranquila; si no, en la siguiente pantalla
      tranquila de esos 3 minutos).
    · Pantalla tranquila: Hoy o la raíz de Juegos, Álbum, Granja, Camino, Palabras, Gramática, Premios o Mi zorro, a la
-     vista, sin modo foco (lección, repaso, cuento), sin partida (html[data-gm-play]), sin hoja ni dialog abiertos, sin
-     el menú de idioma y sin un toque en el último segundo.
+     vista, sin modo foco (lección, repaso, cuento), sin partida (html[data-gm-play]), sin hoja, menú ni dialog abiertos,
+     sin el menú de idioma, sin nada a medias en la granja (BUSY: «¿Dónde está…?», su globo, la bandeja, la regadera,
+     un animal levantado; o html[data-busy]), sin un dedo en la pantalla y sin un toque en el último segundo.
+   · La primera llamada de su vida lleva debajo del nombre «Es un juego de la app: Zorro quiere hablar contigo…».
+   · Solo vibra al deslizar «Contestar» hasta el final (nunca al tocar un botón).
    · El navegador tiene una voz de ese idioma (pickVoice; sin internet, una del aparato) y la llamada y sus palabras se
      cargaron antes (data/calls y los data/<doc>.json de sus palabras). Siempre en el idioma que se aprende.
    La llamada entrante: un <dialog> a pantalla completa, oscuro como el del iPhone y en silencio (iOS no deja sonar nada
    antes de un toque): la foto del zorro (img/pj/zorro.png) grande, «Zorro · Londres», «Contestar» (se desliza el botón
-   verde o se toca; Enter) y «Ahora no» (Esc). Llama la atención 3 veces como mucho y, con «Reducir movimiento», nada se
+   verde o se toca; Enter) y «Ahora no» (Esc). Solo el retrato llama la atención (3 pulsos) y, con «Reducir movimiento», nada se
    mueve. A los RING_MS sin contestar, al dejar de verse la app o con «Ahora no», es una llamada perdida: Hoy enseña la
    fila «1 llamada perdida» (HOME_SLOTS id "call") durante MISS_DAYS días en ese idioma, y al tocarla se le devuelve la
    llamada (empieza ya hablando). Prioridad en Hoy (homeSlots de index.html): carta > refugio > llamada > temporada >
@@ -250,14 +253,24 @@ function blocked(){
   if(!voiceOk()) return "voices";
   return "";
 }
+/* un dedo (o el ratón pulsado) en la pantalla: nunca suena debajo de él, aunque lleve más de un segundo arrastrando */
 let lastIn = 0;
-["pointerdown", "keydown", "wheel", "touchstart"].forEach(e => addEventListener(e, () => { lastIn = Date.now(); }, {capture: true, passive: true}));
+const DOWN = new Map();
+["pointerdown", "keydown", "wheel", "touchstart", "touchmove"].forEach(e => addEventListener(e, () => { lastIn = Date.now(); }, {capture: true, passive: true}));
+addEventListener("pointerdown", e => { DOWN.set(e.pointerId, Date.now()); }, {capture: true, passive: true});
+addEventListener("pointermove", e => { if(e.buttons || e.pointerType !== "mouse"){ lastIn = Date.now(); if(DOWN.has(e.pointerId)) DOWN.set(e.pointerId, lastIn); } }, {capture: true, passive: true});
+["pointerup", "pointercancel"].forEach(t => addEventListener(t, e => { DOWN.delete(e.pointerId); lastIn = Date.now(); }, {capture: true, passive: true}));
+addEventListener("blur", () => DOWN.clear());
+const pressing = () => { const t = Date.now(); for(const [k, v] of DOWN) if(t - v > 20000) DOWN.delete(k); return DOWN.size > 0; };
+/* algo a medias que no es una hoja: el juego «¿Dónde está…?» de la granja, su globo («¿Cómo me llamo?», regalos…), la
+   bandeja de comida, la regadera o un animal levantado; html[data-busy] lo puede poner cualquier módulo */
+const BUSY = ".fm-stage.finding, .fm-stage.watering, .fm-pop:not([hidden]), .fm-tray:not([hidden]), .fm-it.lift, .vm";
 function calm(){
   if(D.visibilityState !== "visible") return false;
   const hp = hashPath();
   if(!CALM.has(secOf(hp)) || !isRootPath(hp)) return false;
-  for(const a of ["data-focus", "data-gm-play", "data-sheet", "data-menu"]) if(ROOT.hasAttribute(a)) return false;
-  if(D.querySelector("dialog[open]")) return false;
+  for(const a of ["data-focus", "data-gm-play", "data-sheet", "data-menu", "data-cmenu", "data-busy"]) if(ROOT.hasAttribute(a)) return false;
+  if(D.querySelector("dialog[open]") || D.querySelector(BUSY) || pressing()) return false;
   return true;
 }
 
@@ -333,10 +346,11 @@ function onClick(e){
 }
 
 /* ---------- suena ---------- */
-function ringHtml(c){
+function ringHtml(c, first){
   return `<div class="cl-ring">
     <div class="cl-who"><p class="cl-kick">Llamada en ${h(LANGS[c.lang].name)}…</p>
-      <h2 class="cl-name" id="cl-name" tabindex="-1" autofocus>Zorro · ${h(c.city)}</h2></div>
+      <h2 class="cl-name" id="cl-name" tabindex="-1" autofocus>Zorro · ${h(c.city)}</h2>
+      ${first ? `<p class="cl-hi">Es un juego de la app: Zorro quiere hablar contigo en ${h(LANGS[c.lang].name)}.</p>` : ""}</div>
     <div class="cl-pic" aria-hidden="true"><img src="${IMG}" alt="" width="256" height="224" draggable="false"></div>
     <div class="cl-acts">
       <button type="button" class="cl-no" id="cl-no">Ahora no</button>
@@ -346,14 +360,14 @@ function ringHtml(c){
 }
 function ringCall(c){
   if(CUR) return false;
-  const s = load(), t = tKey();
+  const s = load(), t = tKey(), first = !s.d && !Object.keys(s.h).length;   /* la primera de su vida: lo explica */
   s.d = t; s.h[c.id] = t; s.miss = {id: c.id, d: t};    /* perdida hasta que se conteste (aunque se cierre la app) */
   save(s);
   preload(c);
   const C = CUR = {call: c, mode: "ring", tok: 0};
   const d = dlg();
   d.classList.toggle("ringing", !rm());
-  d.innerHTML = ringHtml(c);
+  d.innerHTML = ringHtml(c, first);
   wireSlide(C, d);
   const n = $id("cl-name"); if(n) try{ n.focus({preventScroll: true}); }catch(e){}
   C.ringT = setTimeout(() => missed(C), RING_MS);
@@ -367,7 +381,7 @@ function wireSlide(C, d){
   const pos = x => { kn.style.translate = x ? `${x}px 0` : ""; };
   C.offSwipe = G.swipe(tr, {threshold: .45, touchAction: "none",
     onMove: ({dx}) => { max = Math.max(0, tr.clientWidth - kn.offsetWidth - 16); tr.classList.add("drag"); pos(Math.max(0, Math.min(max, dx))); },
-    onRight: () => { tr.classList.remove("drag"); pos(max); answer(); },
+    onRight: () => { tr.classList.remove("drag"); pos(max); haptic("selection"); answer(); },
     onCancel: () => { tr.classList.remove("drag"); pos(0); }});
 }
 function missed(C){
@@ -375,7 +389,7 @@ function missed(C){
   closeDlg(C);
   if(onHoy() && typeof route === "function") route();   /* sale «1 llamada perdida» */
 }
-function notNow(){ const C = CUR; if(C && C.mode === "ring"){ haptic("selection"); missed(C); } }
+function notNow(){ const C = CUR; if(C && C.mode === "ring") missed(C); }
 
 /* ---------- hablando ---------- */
 function talkHtml(c){
@@ -409,7 +423,6 @@ function talk(c){
 }
 function answer(){
   const C = CUR; if(!C || C.mode !== "ring") return;
-  haptic("selection");
   talk(C.call);
 }
 const alive = (C, tok) => CUR === C && C.tok === tok && C.mode === "talk";
@@ -669,7 +682,7 @@ function end(){
     if(hadRow && onHoy() && typeof route === "function") route();
   }, rm() ? 700 : END_MS);
 }
-function hangUp(){ const C = CUR; if(!C) return; if(C.mode === "ring") return notNow(); haptic("selection"); end(); }
+function hangUp(){ const C = CUR; if(!C) return; if(C.mode === "ring") return notNow(); end(); }
 /* monedas: una vez por llamada y día, PAID_MAX llamadas pagadas al día como mucho */
 function pay(c){
   const s = load(), t = tKey();
@@ -710,7 +723,7 @@ function adultHtml(){
   const on = !load().off;
   return `<section class="st-sec" aria-labelledby="aj-cl-h"><h3 class="st-h" id="aj-cl-h">Llamadas</h3><div class="st-g ics">
       <label class="st-r" for="aj-cl-on"><span class="st-ic ok" aria-hidden="true">${IC("phone", "bold", 18)}</span>
-        <span class="st-l">Llamadas del zorro<small>A veces llama para hablar en el idioma. Una al día como mucho, sin sonido hasta contestar.</small></span>
+        <span class="st-l">Llamadas del zorro<small>A veces llama para hablar en el idioma. Como mucho una cada dos días, sin sonido hasta contestar.</small></span>
         <input type="checkbox" role="switch" class="st-sw" id="aj-cl-on" ${on ? "checked" : ""}></label></div></section>`;
 }
 let DIRTY = false;
@@ -718,7 +731,7 @@ bus.on("settings", d => {
   if(d && d.page === null){ if(DIRTY){ DIRTY = false; if(onHoy() && typeof route === "function") route(); } return; }
   if(!d || d.page !== "mayores" || !d.el) return;
   const sw = d.el.querySelector("#aj-cl-on");
-  if(sw) sw.onchange = () => { setOff(!sw.checked); DIRTY = true; haptic("selection"); };
+  if(sw) sw.onchange = () => { setOff(!sw.checked); DIRTY = true; };
 });
 
 /* ---------- avisos ---------- */
@@ -782,6 +795,7 @@ const CSS = `
 .cl-who{display:flex;flex-direction:column;align-items:center;gap:6px}
 .cl-kick{margin:0;font:500 var(--fs-sub)/1.3 var(--f-text);color:rgba(235,235,245,.78)}
 .cl-name{margin:0;font:700 min(calc(2.125rem*var(--k)),40px)/1.15 var(--f-round);letter-spacing:-.01em;color:#fff}
+.cl-hi{max-width:320px;margin:4px 0 0;font:500 var(--fs-note)/1.35 var(--f-text);color:rgba(235,235,245,.85);text-wrap:balance}
 .cl-pic{position:relative;display:grid;place-items:center;width:min(66vw,280px,38vh);aspect-ratio:1;border-radius:50%;background:#fff;box-shadow:0 18px 50px rgba(0,0,0,.35)}
 .cl-pic img{position:relative;z-index:1;width:84%;height:auto;translate:0 3%;-webkit-user-drag:none}
 .cl-pic::before,.cl-pic::after{content:"";position:absolute;inset:-4px;border-radius:50%;border:3px solid rgba(255,255,255,.55);opacity:0;pointer-events:none}
@@ -797,9 +811,6 @@ const CSS = `
   box-shadow:0 6px 16px rgba(0,0,0,.3);transition:translate .3s cubic-bezier(.3,1.25,.5,1)}
 .cl-slide.drag .cl-knob{transition:none}
 .cl-sl-t{position:absolute;inset:0;display:grid;place-items:center;padding-left:60px;font:700 min(calc(1.375rem*var(--k)),28px)/1 var(--f-round);pointer-events:none}
-.cl-dlg.ringing .cl-sl-t span{background:linear-gradient(90deg,rgba(255,255,255,.6) 0%,#fff 50%,rgba(255,255,255,.6) 100%) 0 0/200% 100%;
-  -webkit-background-clip:text;background-clip:text;color:transparent;animation:cl-shine 2.2s linear 3}
-@keyframes cl-shine{from{background-position:100% 0}to{background-position:-100% 0}}
 .cl-talk{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;box-sizing:border-box;width:100%;max-width:640px;margin:0 auto;overflow-y:auto;
   padding:calc(var(--safe-t) + 14px) calc(var(--safe-r) + 12px) calc(var(--safe-b) + 14px) calc(var(--safe-l) + 12px)}
 .cl-head{display:flex;align-items:center;gap:12px;padding:0 4px}
@@ -842,7 +853,7 @@ const CSS = `
 :root[data-theme=dark] .cl-a.is-miss .ipa{color:rgba(235,235,245,.6)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .cl-a.is-miss{background:#48484A;color:rgba(235,235,245,.8)}
   :root:not([data-theme=light]) .cl-a.is-miss .ipa{color:rgba(235,235,245,.6)}}
-.cl-a.is-dim{opacity:.5}
+.cl-a.is-dim{opacity:.6;filter:grayscale(1)}
 .cl-mk{position:absolute;left:8px;top:8px;z-index:1;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;color:#fff;box-shadow:0 0 0 2px #fff}
 .cl-mk.ok{background:#008932}.cl-mk.miss{background:#8E8E93}.cl-mk.pick{background:var(--brand-fill)}
 .cl-mk .chk{width:18px;height:18px}
@@ -869,18 +880,16 @@ const CSS = `
 /* la fila de Hoy */
 .cl-ric{background:#fff;overflow:hidden;box-shadow:inset 0 0 0 1px var(--fill)}
 .cl-ric img{width:30px;height:auto;translate:0 2px}
-.cl-cb{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:#008932;color:#fff}
+.cl-cb{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:50%;background:var(--ok-soft);color:var(--ok-ink)}
 @media (prefers-reduced-motion:reduce){
   .cl-dlg[open]{animation:cl-fade .14s ease}
-  .cl-dlg.ringing .cl-pic::before,.cl-dlg.ringing .cl-pic::after,.cl-dlg.ringing .cl-sl-t span{animation:none}
-  .cl-dlg.ringing .cl-sl-t span{color:#fff;background:none}
+  .cl-dlg.ringing .cl-pic::before,.cl-dlg.ringing .cl-pic::after{animation:none}
   .cl-knob{transition:translate .12s ease}.cl-es,.cl-k{transition-duration:.12s}
   .cl-dlg.talking .cl-wave i{animation:none;height:14px}
 }
 :root[data-motion=calm] .cl-dlg.talking .cl-wave i{animation:none;height:14px}
 :root[data-motion=calm] .cl-dlg[open]{animation:cl-fade .14s ease}
-:root[data-motion=calm] .cl-dlg.ringing .cl-pic::before,:root[data-motion=calm] .cl-dlg.ringing .cl-pic::after,:root[data-motion=calm] .cl-dlg.ringing .cl-sl-t span{animation:none}
-:root[data-motion=calm] .cl-dlg.ringing .cl-sl-t span{color:#fff;background:none}
+:root[data-motion=calm] .cl-dlg.ringing .cl-pic::before,:root[data-motion=calm] .cl-dlg.ringing .cl-pic::after{animation:none}
 :root[data-motion=calm] .cl-knob{transition:translate .12s ease}
 :root[data-motion=calm] .cl-es,:root[data-motion=calm] .cl-k{transition-duration:.12s}
 @media (forced-colors:active){.cl-k{border:1px solid CanvasText}.cl-a.is-ok,.cl-a.is-pick{outline:3px solid Highlight}}
