@@ -31,6 +31,7 @@ const SHELL = [
   "js/mailbox.js", "img/games/buzon.png",
   "js/phrases.js", "data/phrases.json", "img/games/frases.png",
   "js/navmotion.js",
+  "js/parrot.js",
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */

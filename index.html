@@ -1582,6 +1582,7 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "js/mailbox.js", "img/games/buzon.png",
   "js/phrases.js", "data/phrases.json", "img/games/frases.png",
   "js/navmotion.js",
+  "js/parrot.js",
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
@@ -1823,6 +1824,7 @@ function rootOf(h){
   if(a === "temporada") return "";   /* la temporada (js/season.js) es una pantalla de Hoy */
   if(a === "buzon" || a === "carta") return "juegos";   /* el Buzón y sus cartas (js/mailbox.js) se abren desde Juegos */
   if(a === "frases") return "juegos";   /* Frases mágicas y la frase de la cena (js/phrases.js) son de Juegos */
+  if(a === "loro") return "granja";   /* el loro eco y su cápsula (js/parrot.js) se abren desde la granja */
   return String(h || "");
 }
 const isRootPath = h => rootOf(h) === h;
@@ -1867,7 +1869,7 @@ function paintSegBadges(){
 }
 /* la cápsula de volver de la barra de arriba (#dv-back): adónde y con qué nombre */
 const backOf = h => secOf(h) === "doc" ? {h: "#/palabras", t: "Palabras"} : /^album\/./.test(h) ? {h: "#/album", t: "Álbum"}
-  : secOf(h) === "temporada" ? {h: "#/", t: "Hoy"}
+  : secOf(h) === "temporada" ? {h: "#/", t: "Hoy"} : secOf(h) === "loro" ? {h: "#/granja", t: "Granja"}
   : secOf(h) === "frases" ? (window.vocabPhrases ? vocabPhrases.back() : {h: "#/juegos", t: "Juegos"})   /* a Hoy si se entró desde Hoy */
   : secOf(h) === "carta" || h === "buzon/responder" ? {h: "#/buzon", t: "Buzón"} : secOf(h) === "buzon" ? {h: "#/juegos", t: "Juegos"} : null;
 /* lo que se ve de la barra: pestaña marcada, adónde lleva cada una, vidrio ligero en la granja y en las partidas */
@@ -2714,6 +2716,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/shortcuts.js?v=22"></script>
 <script src="js/mailbox.js?v=22"></script>
 <script src="js/phrases.js?v=22"></script>
+<script src="js/parrot.js?v=22"></script>
 <script src="js/navmotion.js?v=22"></script>
 </body>
 </html>

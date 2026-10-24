@@ -155,10 +155,13 @@ async function premios(){
     ${wordsHtml()}
     ${levelsHtml()}
     ${nextHtml(list)}
+    <div id="rw-voz" hidden></div>
     <section class="rw-all" aria-labelledby="rw-m-h"><h2 class="rw-h2 rw-mh" id="rw-m-h">Medallas <small class="t-num">${got} de ${list.length}</small></h2>
       <div class="rw-meds">${list.map(medalBtn).join("")}</div></section>
   </div>`;
   const app = $("#rw");
+  /* «Tu voz en el tiempo» (la cápsula del loro, js/parrot.js): se pinta sola en su hueco si hay algo grabado */
+  if(W.vocabParrot && typeof vocabParrot.paintCapsule === "function") vocabParrot.paintCapsule($("#rw-voz"));
   app.addEventListener("click", e => {
     const b = e.target.closest("[data-ach]"); if(!b || !app.contains(b)) return;
     openMedal(b.dataset.ach, b);
