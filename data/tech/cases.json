@@ -1,0 +1,510 @@
+{
+  "format": 1,
+  "reviewed": "2026-10-24",
+  "notes": [
+    "The three model cases are invented and anonymous: 'a retail company' and its recruitment agencies are not real organisations, and the numbers in Outcome are illustrative.",
+    "Product facts were checked on 2026-10-24 against the sources listed in each case. Anything that could not be confirmed is listed in that case's notes and left out of the text."
+  ],
+  "cases": [
+    {
+      "id": "recruiting-events",
+      "title": "SuccessFactors Recruiting to GCP with events",
+      "summary": "Candidate and offer changes flow as events through Pub/Sub to a Spring Boot service on Cloud Run, with idempotency, an outbox and one correlation ID from end to end.",
+      "fields": {
+        "context": "A retail company hires about 6,000 store staff a year with SAP SuccessFactors Recruiting. IT accounts, payroll and the onboarding portal received new hires from a nightly file export.\nNew starters often had no accounts on their first day, and every failed night meant a manual re-run the next morning.",
+        "requirements": "A hire or an accepted offer reaches IT, payroll and onboarding within five minutes.\nNo hire is lost and none is created twice, even when a system is down for hours.\nEach consuming system is released and scaled by its own team.\nEvery change can be followed from end to end with one correlation ID.\nPersonal data in events and logs is kept to a minimum.\nConstraints: Google Cloud is the target platform, and the team knows Java and Spring Boot.",
+        "options": "1. Keep the nightly export, or run it every hour.\n2. A synchronous integration that calls the three systems one after another for each change.\n3. Events: SuccessFactors notifies a receiver for each change, the receiver publishes a small event to Pub/Sub, and each consuming system has its own subscription.",
+        "decision": "Option 3. SuccessFactors Recruiting raises Intelligent Services events, such as Update of Job Application and Approval of Offer Detail, and an external event notification sends each one to a small receiver on Cloud Run.\nThe receiver publishes a thin event (entity, ID, change and time, no personal data) to the topic recruiting-events, with the application ID as the ordering key.\nA Spring Boot service on Cloud Run, the hire processor, has a push subscription. It records the event ID in a processed-events table with a unique key, reads the current data through the Recruiting OData API and, for a hire, writes the new starter and an outbox row in the same database transaction.\nA relay publishes the outbox rows to the topic new-starters, with one subscription each for IT accounts, payroll and onboarding.\nFailed deliveries are retried with exponential backoff and end in a dead-letter topic with an alert. A correlation ID and the W3C traceparent header travel with every message, call and log line.",
+        "tradeoffs": "More moving parts than a file: topics, subscriptions, a relay and a dead-letter topic to operate.\nDelivery is at least once, so every consumer must be idempotent; push subscriptions don't support exactly-once delivery.\nOrdering per application costs some throughput, and a message that keeps failing holds back the later ones for the same application.\nThin events mean one extra OData call per event; we accepted it to keep personal data out of Pub/Sub.\nMitigations: an alert on the dead-letter topic, a runbook to replay messages, and a nightly reconciliation that catches anything that was missed.",
+        "outcome": "Hires reach IT, payroll and onboarding in about two minutes instead of up to a day.\nFirst-day access tickets fell by about 80 per cent in the first quarter.\nIn six months, 14 messages went to the dead-letter topic; all were replayed after a data fix, and none was lost or duplicated.\nEvery incident could be traced from the SuccessFactors event to the payroll call with one correlation ID."
+      },
+      "questions": [
+        {
+          "id": "recruiting-events-q1",
+          "q": "Why did you choose events instead of calling each system synchronously?",
+          "seconds": 120,
+          "src": "s3",
+          "model": "Nobody is waiting for the result, and three systems need the same information, so it's a classic case for events. With synchronous calls, the Recruiting integration would depend on all three systems being up at the same moment, and their response times would add up. One slow payroll call could fail the whole hire. With Pub/Sub, we publish one event and each system has its own subscription, so it gets its own copy and works at its own pace. If a system is down, its messages wait in its subscription and are delivered when it comes back. We can also add a new consumer later without touching the publisher. The price is eventual consistency and more things to operate, but a delay of a minute or two was perfectly acceptable for onboarding.",
+          "keypoints": [
+            {"text": "Nobody waits for the result, so asynchronous fits", "kw": ["waiting", "waits", "nobody", "asynchronous", "async"]},
+            {"text": "Synchronous calls couple availability and add up latency", "kw": ["availability", "available", "down", "coupled", "coupling", "latency", "response times", "add up"]},
+            {"text": "One subscription per system, each with its own copy", "kw": ["subscription", "subscriptions", "own copy", "fan-out", "fan out"]},
+            {"text": "Messages wait while a consumer is down", "kw": ["wait", "buffer", "comes back", "recovers", "backlog"]},
+            {"text": "The trade-off: eventual consistency", "kw": ["eventual consistency", "eventually consistent", "trade-off", "tradeoff", "price"]}
+          ]
+        },
+        {
+          "id": "recruiting-events-q2",
+          "q": "What happens if Pub/Sub delivers the same event twice?",
+          "seconds": 120,
+          "src": "s3",
+          "model": "Pub/Sub delivers at least once, so duplicates are normal, not an error. Exactly-once delivery wouldn't solve it for us: it only works with pull subscriptions, and it doesn't remove duplicates caused by publisher retries. So the consumer is idempotent. Every event carries a unique event ID from the source. Before the service does anything, it inserts that ID into a processed-events table with a unique constraint, in the same transaction as the business change. If the insert fails because the ID is already there, it's a duplicate: the service acknowledges the message and stops. I don't use the Pub/Sub message ID as the key, because a message that a retrying client publishes twice gets two different message IDs. The calls to payroll and IT also carry an idempotency key, so a retry after a timeout can't create a second employee.",
+          "keypoints": [
+            {"text": "Delivery is at least once, so duplicates are expected", "kw": ["at least once", "at-least-once", "duplicate", "duplicates", "twice", "more than once"]},
+            {"text": "An idempotent consumer", "kw": ["idempotent", "idempotency", "idempotence"]},
+            {"text": "A unique event ID stored with a unique constraint", "kw": ["event id", "unique", "constraint", "processed"]},
+            {"text": "In the same transaction as the business change", "kw": ["transaction", "atomic", "commit"]},
+            {"text": "Not the Pub/Sub message ID: publisher retries change it", "kw": ["message id", "publisher retries", "different id", "different ids"]}
+          ]
+        },
+        {
+          "id": "recruiting-events-q3",
+          "q": "Why do you need an outbox? Why not publish to Pub/Sub straight after the database commit?",
+          "seconds": 120,
+          "src": "s8",
+          "model": "Because that's a dual write: one write to the database and one to Pub/Sub, with no transaction across both. If the service commits the new starter and then crashes, or Pub/Sub is briefly unavailable, payroll never hears about the hire. If we publish first and the commit fails, payroll hears about a hire that doesn't exist. With the transactional outbox, the service writes the new starter and an outbox row in the same database transaction, so either both exist or neither does. A separate relay reads the outbox, publishes to Pub/Sub, and marks the row as sent once Pub/Sub confirms. The relay can send a row twice if it crashes at the wrong moment, so the consumers stay idempotent. We chose polling over change data capture, because the volume is low and polling is simpler to run.",
+          "keypoints": [
+            {"text": "A dual write with no shared transaction", "kw": ["dual write", "two writes", "two systems", "no transaction", "not atomic"]},
+            {"text": "A crash between commit and publish loses the event", "kw": ["crash", "crashes", "lost", "lose", "never hears"]},
+            {"text": "The outbox row is written in the same transaction", "kw": ["outbox", "same transaction", "outbox table"]},
+            {"text": "A relay publishes and marks rows as sent", "kw": ["relay", "polling", "poll", "change data capture", "cdc", "marks"]},
+            {"text": "The relay can duplicate, so consumers stay idempotent", "kw": ["idempotent", "duplicate", "twice", "at least once"]}
+          ]
+        },
+        {
+          "id": "recruiting-events-q4",
+          "q": "How do you keep the events for one candidate in the right order?",
+          "seconds": 120,
+          "src": "s4",
+          "model": "Order matters per application, not globally. For example, an offer approval must not be processed before the application it belongs to. So the publisher sets the application ID as the Pub/Sub ordering key, and message ordering is enabled on each subscription. Pub/Sub then delivers messages with the same key in the order they were published, as long as the publisher publishes them in the same region. I accept two costs. Publishing on one key is limited to 1 MBps, which is far more than one candidate ever needs. And with a push subscription there's only one outstanding message per key, so a message that keeps failing holds back the later ones for that candidate. That's why the dead-letter settings matter. The consumer also compares the event time with the stored version, so an old update can never overwrite a newer one.",
+          "keypoints": [
+            {"text": "Order per application, not globally", "kw": ["per application", "per candidate", "same candidate", "globally", "global order"]},
+            {"text": "The application ID as the ordering key", "kw": ["ordering key", "application id"]},
+            {"text": "Ordering enabled on the subscription, published in one region", "kw": ["enabled", "enable", "region", "same region"]},
+            {"text": "Costs: throughput per key and one outstanding message", "kw": ["1 mbps", "throughput", "holds back", "blocks", "outstanding"]},
+            {"text": "Compare versions so an old update can't win", "kw": ["timestamp", "version", "older", "newer", "stale", "overwrite"]}
+          ]
+        },
+        {
+          "id": "recruiting-events-q5",
+          "q": "What happens when the payroll system is down for three hours?",
+          "seconds": 120,
+          "src": "s6",
+          "model": "Nothing is lost, and nobody has to re-run anything. Payroll has its own subscription, so IT and onboarding carry on as normal. The payroll adapter returns an error or times out, Pub/Sub treats that as a negative acknowledgement and sends the message again later. The subscription uses the exponential backoff retry policy, with a minimum of 10 seconds and a maximum of 600 seconds, so we don't hammer payroll while it recovers, and Pub/Sub also slows down push deliveries by itself after failures. We set the maximum delivery attempts to 100 for this subscription, so messages keep retrying for hours before they're dead-lettered. In the adapter, a circuit breaker in front of the payroll API fails fast instead of holding threads. Anything that still fails ends in the dead-letter topic, which has its own subscription and an alert, and we replay it after the fix.",
+          "keypoints": [
+            {"text": "Other systems are not affected", "kw": ["own subscription", "carry on", "not affected", "isolated", "independent"]},
+            {"text": "A negative acknowledgement means redelivery", "kw": ["negative acknowledgement", "nack", "redeliver", "redelivered", "again later", "redelivery"]},
+            {"text": "Exponential backoff on the subscription", "kw": ["exponential", "backoff", "back off", "retry policy"]},
+            {"text": "A circuit breaker protects the adapter", "kw": ["circuit breaker", "breaker", "fail fast", "fails fast"]},
+            {"text": "Dead-letter topic with an alert, then replay", "kw": ["dead-letter", "dead letter", "dlq", "replay", "alert"]}
+          ]
+        },
+        {
+          "id": "recruiting-events-q6",
+          "q": "How would you trace one hire from SuccessFactors to payroll?",
+          "seconds": 120,
+          "src": "s9",
+          "model": "Every SuccessFactors event gets a correlation ID at the receiver, and we simply use the event ID. It travels as a Pub/Sub message attribute, and every service writes it into each structured log line, together with the application ID, but never the candidate's name. For the HTTP calls we also use W3C Trace Context: each service sends the traceparent header, so the trace ID stays the same from the receiver to the payroll call, and we can see every step as a span in one trace. When someone asks why a new starter has no account, I search the logs for the application ID, find the correlation ID and follow it: received, processed, published to new-starters, delivered to IT, and the answer IT gave. If the message is in the dead-letter topic, the same ID tells me exactly which message to replay.",
+          "keypoints": [
+            {"text": "A correlation ID from the very first step", "kw": ["correlation id", "correlation", "event id"]},
+            {"text": "Passed in message attributes and headers", "kw": ["attribute", "attributes", "header", "headers", "propagate", "propagates", "propagated"]},
+            {"text": "W3C traceparent keeps one trace ID", "kw": ["traceparent", "trace context", "trace id", "w3c", "span", "spans"]},
+            {"text": "Structured logs with IDs and no personal data", "kw": ["structured", "log line", "logs", "logging"]},
+            {"text": "Follow the ID to find and replay the message", "kw": ["search", "follow", "replay", "dead-letter", "dead letter"]}
+          ]
+        },
+        {
+          "id": "recruiting-events-q7",
+          "q": "Why do your events carry only IDs and not the candidate's data?",
+          "seconds": 120,
+          "src": "s2",
+          "model": "For two reasons: personal data and freshness. An event with the candidate's name, address and salary would copy personal data into every subscription, every dead-letter topic and every log that prints a message. With a thin event, Pub/Sub only carries the entity type, the ID, the kind of change and the time. The consumer then reads the current data through the Recruiting OData API, with its own credentials and only the fields it needs. That also means it always works with the latest state, even if it processes the event late or twice. The cost is one extra API call per event and a dependency on SuccessFactors being available, so that call has a timeout, a few retries with backoff and a circuit breaker. At our volume, a few thousand events a day, the extra calls are not a problem.",
+          "keypoints": [
+            {"text": "Keeps personal data out of Pub/Sub and logs", "kw": ["personal data", "pii", "privacy", "gdpr", "sensitive"]},
+            {"text": "The event carries only IDs", "kw": ["id", "ids", "identifier", "thin", "notification"]},
+            {"text": "The consumer reads the current data through OData", "kw": ["odata", "api", "call back", "reads", "fetch", "fetches"]},
+            {"text": "Always the latest state", "kw": ["latest", "current", "fresh", "freshness", "up to date"]},
+            {"text": "Cost: an extra call, protected by timeouts and a breaker", "kw": ["extra call", "cost", "timeout", "circuit breaker", "backoff"]}
+          ]
+        }
+      ],
+      "sources": [
+        {"id": "s1", "title": "Applying Intelligent Services and Events - SAP Learning", "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-administration/applying-intelligent-services-and-events", "official": true},
+        {"id": "s2", "title": "Describing OData and APIs in Recruiting - SAP Learning", "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-administration/describing-odata-and-apis-in-recruiting", "official": true},
+        {"id": "s3", "title": "Exactly-once delivery - Pub/Sub, Google Cloud Documentation", "url": "https://docs.cloud.google.com/pubsub/docs/exactly-once-delivery", "official": true},
+        {"id": "s4", "title": "Order messages - Pub/Sub, Google Cloud Documentation", "url": "https://docs.cloud.google.com/pubsub/docs/ordering", "official": true},
+        {"id": "s5", "title": "Push subscriptions - Pub/Sub, Google Cloud Documentation", "url": "https://docs.cloud.google.com/pubsub/docs/push", "official": true},
+        {"id": "s6", "title": "Subscription retry policy - Pub/Sub, Google Cloud Documentation", "url": "https://docs.cloud.google.com/pubsub/docs/subscription-retry-policy", "official": true},
+        {"id": "s7", "title": "Dead-letter topics - Pub/Sub, Google Cloud Documentation", "url": "https://docs.cloud.google.com/pubsub/docs/dead-letter-topics", "official": true},
+        {"id": "s8", "title": "Transactional outbox pattern - AWS Prescriptive Guidance", "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html", "official": true},
+        {"id": "s9", "title": "Trace Context - W3C Recommendation", "url": "https://www.w3.org/TR/trace-context/", "official": true},
+        {"id": "s10", "title": "CircuitBreaker - Resilience4j documentation", "url": "https://resilience4j.readme.io/docs/circuitbreaker", "official": true}
+      ],
+      "notes": [
+        "unconfirmed: the transport and the retry behaviour of SuccessFactors external event notifications. The case does not depend on them: a nightly reconciliation catches any event that never arrives.",
+        "unconfirmed: the exact OData entity and property names for applications and offers in a given release. SAP Learning calls them the Application and JobOffer entities; check the SAP Help Portal OData reference before naming properties in an interview."
+      ]
+    },
+    {
+      "id": "nightly-batch",
+      "title": "Nightly batch sync with Cloud Scheduler, Workflows and OData paging",
+      "summary": "Every night a workflow copies the day's Recruiting changes into Cloud Storage and BigQuery, with server-side paging, careful retries, a dead-letter folder and a reconciliation of totals.",
+      "fields": {
+        "context": "The same retail company needs a reporting copy of its recruiting data: requisitions, applications and offers. HR analysts use it in BigQuery every morning.\nThe old job was a script on a virtual machine that read every record with $skip and $top. It took four hours, sometimes missed or duplicated records, and nobody noticed when it failed.",
+        "requirements": "Fresh data by 6:00 every morning, with all changes up to the start of the run.\nEvery record changed in SuccessFactors appears exactly once in the reporting tables.\nA failed night is detected, and it can be re-run safely without duplicates.\nFollow SAP's guidance for the OData API: no very frequent queries, and careful retries.\nNo servers to patch, and a low running cost.",
+        "options": "1. Keep the script and fix its paging.\n2. A scheduled Integration Center job that produces flat files, loaded by another job.\n3. A serverless pipeline: Cloud Scheduler starts a workflow every night, a Cloud Run job reads only the records changed since the last successful run with server-side pagination, and BigQuery loads the files.",
+        "decision": "Option 3. At 01:00, Cloud Scheduler starts a Workflows execution. The workflow reads the watermark, the start time of the last successful run, and starts one Cloud Run job per entity.\nThe job queries the Recruiting OData API with a filter on the last-modified time and snapshot server-side pagination (paging=snapshot), and writes each page to Cloud Storage as a newline-delimited JSON file named by run and page number. Records that fail validation go to a dead-letter folder with the reason.\nThe workflow polls until the jobs have finished, loads the files into staging tables in BigQuery and merges them into the reporting tables by record ID.\nFinally it reconciles the totals: records read must equal records loaded plus records dead-lettered. Only then does the watermark move forward.",
+        "tradeoffs": "The data is up to a day old; anything urgent uses the event flow instead.\nA snapshot is lost if more than 15 minutes pass between two page requests, so the job writes pages straight away and, if the snapshot is lost, starts again from the first page.\nTwo services to operate (Workflows and a Cloud Run job) instead of one script, but no servers.\nRetries follow SAP's guidance: wait one to five minutes, at most five attempts, and never retry 400, 401, 404 or 500.\nRe-running a night is safe because the files are named by run and the merge is by record ID.",
+        "outcome": "The sync finishes in about 25 minutes instead of four hours.\nThe totals have matched every night since go-live; two nights were re-run after a SuccessFactors maintenance window.\nAnalysts get a short summary with the totals every morning.\nThe running cost is a few pounds a month."
+      },
+      "questions": [
+        {
+          "id": "nightly-batch-q1",
+          "q": "Why did you use server-side pagination instead of $skip and $top?",
+          "seconds": 120,
+          "src": "s1",
+          "model": "Because client-side paging with $skip and $top can miss or duplicate records when the data changes while you page through it. Imagine an application is updated while I'm on page three: the offsets shift, and a record can move into a page I've already read. SAP recommends server pagination for integrations: it's faster and it doesn't lose or duplicate data. My query has a filter on the last-modified time, so I use the snapshot type: I add paging=snapshot to the request and follow the skip token to each next page until there isn't one. A page has at most 1000 records. Snapshots have one catch: if more than 15 minutes pass between two page requests, the snapshot is lost. So the job writes each page straight to Cloud Storage, and if the snapshot is lost, it starts again from the first page.",
+          "keypoints": [
+            {"text": "Client-side paging can miss or duplicate records", "kw": ["miss", "missed", "duplicate", "duplicates", "offset", "offsets", "shift"]},
+            {"text": "SAP recommends server-side pagination", "kw": ["server-side", "server side", "server pagination", "recommends"]},
+            {"text": "Snapshot pagination, following the skip token", "kw": ["snapshot", "skip token", "skiptoken", "cursor"]},
+            {"text": "At most 1000 records per page", "kw": ["1000", "thousand", "page size", "per page"]},
+            {"text": "Lost after 15 minutes between pages: start again", "kw": ["15 minutes", "fifteen minutes", "start again", "first page", "restart"]}
+          ]
+        },
+        {
+          "id": "nightly-batch-q2",
+          "q": "What happens if the job fails halfway through the night?",
+          "seconds": 120,
+          "src": "s9",
+          "model": "Nothing breaks, because every step can run twice. The watermark, the start time of the last successful run, only moves forward at the very end, after the totals match. So if the job fails at page 40, the next attempt reads the same window again. The files are named by run ID and page number, so a second attempt overwrites them instead of adding copies. BigQuery loads them into a staging table, and the merge into the reporting table is by record ID: if a record is already there, it's updated, not inserted again. The workflow retries the failed step a few times with a growing wait. If it still fails, the run stops, the analysts get a message saying that yesterday's data isn't complete, and we run it again with one command once the cause is fixed.",
+          "keypoints": [
+            {"text": "Every step is safe to run twice", "kw": ["idempotent", "run twice", "re-run", "rerun", "run it again", "safe"]},
+            {"text": "The watermark moves only after success", "kw": ["watermark", "checkpoint", "last successful", "only moves"]},
+            {"text": "Files named by run and page are overwritten", "kw": ["named", "overwrite", "overwrites", "run id", "page number"]},
+            {"text": "Merge by record ID, so no duplicates", "kw": ["merge", "upsert", "record id", "updated"]},
+            {"text": "Tell the users and re-run after the fix", "kw": ["alert", "message", "notify", "analysts", "one command"]}
+          ]
+        },
+        {
+          "id": "nightly-batch-q3",
+          "q": "Which errors do you retry, and how?",
+          "seconds": 120,
+          "src": "s2",
+          "model": "I follow SAP's guidance for the OData API, because retrying the wrong error only adds load. We retry 5xx errors other than 500, connection resets with no response, and timeouts, but only when our client timeout matches the five minutes SuccessFactors itself allows. A 500 usually means a problem with our query, so we don't retry it, and we never retry 400, 401 or 404, because they won't succeed the second time. Between attempts we wait one to five minutes, and we give up after five attempts. In the workflow, the step that runs the job has a retry policy with exponential backoff, so the waits grow. A 503 can also mean a maintenance window, so the schedule avoids SAP's published maintenance periods, and a night that still fails is simply run again later.",
+          "keypoints": [
+            {"text": "Retry 5xx except 500, resets and timeouts", "kw": ["5xx", "503", "502", "connection reset", "timeout", "timeouts"]},
+            {"text": "Never retry 400, 401, 404 or 500", "kw": ["400", "401", "404", "500", "never retry", "don't retry"]},
+            {"text": "Wait one to five minutes, at most five attempts", "kw": ["five minutes", "5 minutes", "one to five", "five attempts", "5 attempts", "five times"]},
+            {"text": "Exponential backoff in the workflow", "kw": ["backoff", "exponential", "retry policy"]},
+            {"text": "Avoid maintenance windows", "kw": ["maintenance", "window", "windows"]}
+          ]
+        },
+        {
+          "id": "nightly-batch-q4",
+          "q": "Why use Workflows at all? Why not do everything in one Cloud Run job?",
+          "seconds": 120,
+          "src": "s6",
+          "model": "Workflows is good at orchestration, not at moving data. It runs the steps in order, keeps the state of each run, retries a step with backoff and can wait for a job to finish. But its limits make it the wrong place for the records themselves: all the variables of one execution can use at most 512 KB of memory, and an HTTP response can be at most 2 MB. One night of applications is much bigger than that. So the heavy work, calling OData page by page and writing files, is in a Cloud Run job, and the workflow only passes small values: the run ID, the time window and the totals. Google's own guidance says the same: put work that is too complex for Workflows into a service. I could do it all in one job, but then I'd write the retries, the waiting and the run history myself.",
+          "keypoints": [
+            {"text": "Workflows for orchestration and state", "kw": ["orchestration", "orchestrate", "orchestrates", "state", "steps"]},
+            {"text": "Limits: 512 KB of variables, 2 MB per response", "kw": ["512", "2 mb", "limit", "limits", "memory"]},
+            {"text": "The heavy work runs in a Cloud Run job", "kw": ["cloud run", "job", "service"]},
+            {"text": "Only small values pass through the workflow", "kw": ["small", "run id", "window", "totals", "metadata"]},
+            {"text": "Built-in retries and history instead of custom code", "kw": ["built-in", "built in", "history", "retries", "custom code"]}
+          ]
+        },
+        {
+          "id": "nightly-batch-q5",
+          "q": "How do you know the data is complete?",
+          "seconds": 120,
+          "src": "s8",
+          "model": "I reconcile the totals on every run, and the watermark only moves when they match. The job counts the records it reads from SuccessFactors for each entity and writes that number into a small manifest file next to the pages. After the load, the workflow counts the rows in the staging table and the records in the dead-letter folder. Records read must equal records loaded plus records dead-lettered. If they don't match, the run is marked as failed, the analysts are told, and the watermark stays where it was, so the next run reads the same window again. Every morning the analysts also get a short summary: how many requisitions, applications and offers changed, and how many were rejected and why. Each rejected record keeps its ID and the reason, so someone can fix it in SuccessFactors and it comes back the next night.",
+          "keypoints": [
+            {"text": "Reconcile the totals on every run", "kw": ["reconcile", "reconciliation", "totals", "count", "counts"]},
+            {"text": "Read equals loaded plus dead-lettered", "kw": ["loaded", "dead-lettered", "dead letter", "equal", "match"]},
+            {"text": "A mismatch fails the run and keeps the watermark", "kw": ["mismatch", "don't match", "failed", "watermark"]},
+            {"text": "A daily summary for the business", "kw": ["summary", "report", "analysts", "every morning"]},
+            {"text": "Rejected records keep their ID and the reason", "kw": ["reason", "rejected", "fix", "fixed"]}
+          ]
+        },
+        {
+          "id": "nightly-batch-q6",
+          "q": "How do you read only the changes since the last run without missing any?",
+          "seconds": 120,
+          "src": "s2",
+          "model": "I keep a watermark: the start time of the last successful run, stored in Cloud Storage. Each run asks only for the records modified since then, which is what SAP recommends for integrations instead of reading everything. To avoid gaps at the edge, the window starts a little earlier, for example ten minutes before the old watermark, so a record that was being saved while the last run started is read again. That overlap creates some duplicates on purpose, and the merge by record ID makes them harmless. The new watermark is the time this run started, not the time it finished, because records can change while the run is going on. Once a month I also run a full reload, as a safety net for things a last-modified filter can never return, such as records deleted in SuccessFactors.",
+          "keypoints": [
+            {"text": "A watermark from the last successful run", "kw": ["watermark", "checkpoint", "last successful run", "last run"]},
+            {"text": "Ask only for records modified since then", "kw": ["modified", "last modified", "changed since", "delta", "filter"]},
+            {"text": "An overlapping window avoids gaps", "kw": ["overlap", "earlier", "gap", "gaps", "edge"]},
+            {"text": "Duplicates from the overlap are harmless after the merge", "kw": ["merge", "harmless", "record id", "idempotent"]},
+            {"text": "Start time as the new watermark, plus a full reload", "kw": ["start time", "started", "full reload", "full load", "deleted", "deletes"]}
+          ]
+        },
+        {
+          "id": "nightly-batch-q7",
+          "q": "When would you choose events instead of a nightly batch?",
+          "seconds": 120,
+          "src": "s10",
+          "model": "I look at three things: how fresh the data must be, how much data there is, and who needs it. For reporting, a copy that's a few hours old is fine, and the volume is large: thousands of changes a day plus a full reload every month. A nightly batch is cheap, simple to reconcile and easy to run again. SAP also warns against repeating queries much more often than once an hour, so polling every few minutes for freshness would be the wrong answer. When someone is waiting for a change, like IT creating accounts for a new hire, events are better: SuccessFactors Intelligent Services events tell us about the change within minutes. In practice we use both: events for the few things that are urgent, and the nightly batch for the full reporting copy, which is also a safety net if an event is ever missed.",
+          "keypoints": [
+            {"text": "Freshness, volume and who needs the data", "kw": ["fresh", "freshness", "latency", "volume", "how much"]},
+            {"text": "A batch is cheap and easy to reconcile and re-run", "kw": ["cheap", "cost", "simple", "reconcile", "run again"]},
+            {"text": "Don't poll much more often than hourly", "kw": ["polling", "poll", "once an hour", "hourly", "throttled"]},
+            {"text": "Events when someone waits for the change", "kw": ["events", "event", "waiting", "within minutes", "real time", "real-time"]},
+            {"text": "Both: events for urgent things, the batch as a safety net", "kw": ["both", "safety net", "combine", "hybrid"]}
+          ]
+        }
+      ],
+      "sources": [
+        {"id": "s1", "title": "SAP Knowledge Base Article 2723468: pagination with the SuccessFactors OData API", "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2723468", "official": true},
+        {"id": "s2", "title": "SAP Knowledge Base Article 2735876: SuccessFactors OData API recommended usage and best practices", "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2735876", "official": true},
+        {"id": "s3", "title": "SAP Knowledge Base Article 2990434: snapshot lost for a pagination query", "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2990434", "official": true},
+        {"id": "s4", "title": "Describing OData and APIs in Recruiting - SAP Learning", "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-administration/describing-odata-and-apis-in-recruiting", "official": true},
+        {"id": "s5", "title": "Workflows overview - Google Cloud Documentation", "url": "https://docs.cloud.google.com/workflows/docs/overview", "official": true},
+        {"id": "s6", "title": "Quotas and limits - Workflows, Google Cloud Documentation", "url": "https://docs.cloud.google.com/workflows/quotas", "official": true},
+        {"id": "s7", "title": "Execute Cloud Run jobs using Workflows - Google Cloud Documentation", "url": "https://docs.cloud.google.com/workflows/docs/tutorials/execute-cloud-run-jobs", "official": true},
+        {"id": "s8", "title": "Loading JSON data from Cloud Storage - BigQuery, Google Cloud Documentation", "url": "https://docs.cloud.google.com/bigquery/docs/loading-data-cloud-storage-json", "official": true},
+        {"id": "s9", "title": "Transform data with data manipulation language (DML) - BigQuery, Google Cloud Documentation", "url": "https://docs.cloud.google.com/bigquery/docs/data-manipulation-language", "official": true},
+        {"id": "s10", "title": "Applying Intelligent Services and Events - SAP Learning", "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-administration/applying-intelligent-services-and-events", "official": true}
+      ],
+      "notes": [
+        "unconfirmed: the request parameters of cursor-based pagination. The case uses snapshot pagination (paging=snapshot), which KBA 2723468 documents.",
+        "unconfirmed: the default settings of Workflows' built-in HTTP retry policies. Their reference pages could not be read in full for this review, so the case only says that a step can retry with exponential backoff (Workflows overview).",
+        "unconfirmed: whether the Cloud Run Admin API connector waits for a job execution to finish. The case says the workflow polls until the jobs are done."
+      ]
+    },
+    {
+      "id": "partner-api",
+      "title": "Partner API with Apigee, OAuth and a circuit breaker",
+      "summary": "Recruitment agencies submit candidates through an API behind Apigee, with OAuth client credentials, quotas that answer 429 with Retry-After, versioning and a circuit breaker towards a slow system.",
+      "fields": {
+        "context": "The retail company works with about 30 recruitment agencies. They e-mailed CVs and spreadsheets, and recruiters typed the candidates into SuccessFactors Recruiting by hand.\nThe company wanted a partner API so that agencies can submit candidates and check their status. Behind it sits a legacy assessment system that is slow and sometimes unavailable.",
+        "requirements": "Only registered agencies can call the API, and each one only sees its own candidates.\nOne agency's faulty client must not slow down the others.\nAgencies get clear errors, including when to try again.\nChanges must not break the agencies' integrations; a breaking change needs a new version and notice.\nA slow assessment system must not take the API down with it.\nStatus checks answer in under half a second for most calls.",
+        "options": "1. Give each agency direct access to the SuccessFactors APIs.\n2. Build the API on Cloud Run and write authentication, quotas and keys ourselves.\n3. Put Apigee in front of Spring Boot services on Cloud Run: Apigee handles OAuth, quotas, spike arrest, analytics and the developer apps, and the services handle the business logic.",
+        "decision": "Option 3. Each agency is a developer app in Apigee with its own client ID and secret. It gets an access token from the token endpoint with the OAuth 2.0 client credentials grant, and every call is checked with an OAuthV2 VerifyAccessToken policy.\nA Spike Arrest policy smooths bursts, and a Quota policy per app limits the calls per hour. When either limit is reached, a fault rule answers 429 Too Many Requests with a Retry-After header.\nApigee calls the Cloud Run services with a Google-signed ID token, and only its service account has the Cloud Run Invoker role.\nThe major version is in the path (/v1/candidates). Submissions accept an Idempotency-Key header.\nThe service calls the assessment system with a two-second timeout through a Resilience4j circuit breaker. When the breaker is open, new submissions are still accepted and the assessment is requested later from a queue.",
+        "tradeoffs": "Apigee adds cost and a product to learn, but it saves building security, quotas and analytics ourselves.\nClient credentials identify the agency, not a person, so each change is logged with the agency's app.\nQuotas protect the platform but can block a busy agency, so the limits are agreed per agency and reviewed every month.\nPath versioning is simple and visible, but every major version must be run and supported until its sunset date.\nWith the breaker open, assessment results arrive later; the status says so instead of failing.",
+        "outcome": "22 agencies moved to the API in the first three months, and manual typing of candidates fell by about 70 per cent.\nDuring two outages of the assessment system, the API stayed up and queued 1,400 assessments.\nOne agency's retry loop was stopped by its quota without affecting the others.\nv2 went live with a six-month sunset for v1, announced with Deprecation and Sunset headers."
+      },
+      "questions": [
+        {
+          "id": "partner-api-q1",
+          "q": "Why did you choose client credentials, and not API keys or the authorisation code flow?",
+          "seconds": 120,
+          "src": "s1",
+          "model": "Client credentials fits because the caller is a system, the agency's software, not a person signing in. The agency is a confidential client: it can keep a secret on its own server, and that's the only kind of client this grant is meant for. It sends its client ID and secret to the token endpoint and gets a short-lived access token, one hour in our case, and there's no refresh token: when the token expires, it simply asks for a new one. An API key alone would also identify the agency, but it's a long-lived secret sent with every call, and it doesn't expire by itself. The authorisation code flow is for when a user grants access to their own data, which isn't our case. In Apigee each agency is a developer app, so the token also tells us exactly which agency is calling.",
+          "keypoints": [
+            {"text": "The caller is a system, not a user", "kw": ["system", "machine", "machine-to-machine", "no user", "not a person", "server to server"]},
+            {"text": "A confidential client that keeps its secret", "kw": ["confidential", "secret", "client secret", "client id"]},
+            {"text": "A short-lived token and no refresh token", "kw": ["short-lived", "short lived", "expires", "one hour", "refresh token", "no refresh"]},
+            {"text": "API keys are long-lived; the code flow is for users", "kw": ["api key", "long-lived", "authorisation code", "authorization code", "user"]},
+            {"text": "The developer app identifies the agency", "kw": ["developer app", "app", "identifies", "which agency"]}
+          ]
+        },
+        {
+          "id": "partner-api-q2",
+          "q": "How do you stop one agency from overloading the API?",
+          "seconds": 120,
+          "src": "s3",
+          "model": "There are two different problems, and Apigee has a policy for each. Spike Arrest smooths short bursts: if a faulty client fires a hundred calls in one second, most of them are rejected before they reach Cloud Run. Quota limits the total number of calls over a longer period, per hour in our case, and the counter is per app, so one agency using up its quota doesn't affect any other agency. The Apigee documentation is clear that Quota isn't the tool against traffic spikes; that's what Spike Arrest is for. When either limit is hit, we make sure the answer is 429 Too Many Requests, the status code RFC 6585 defines for this, with a Retry-After header so the client knows when to try again. We also alert when an agency gets close to its quota, so we can talk to them before they're blocked.",
+          "keypoints": [
+            {"text": "Spike Arrest for short bursts", "kw": ["spike arrest", "spike", "spikes", "burst", "bursts"]},
+            {"text": "Quota for the total per period, counted per app", "kw": ["quota", "per hour", "per app", "per agency", "counter"]},
+            {"text": "One agency doesn't affect the others", "kw": ["other agency", "others", "isolation", "isolated", "affect"]},
+            {"text": "Answer 429 Too Many Requests", "kw": ["429", "too many requests"]},
+            {"text": "Retry-After tells the client when to try again", "kw": ["retry-after", "retry after", "try again"]}
+          ]
+        },
+        {
+          "id": "partner-api-q3",
+          "q": "What should an agency's client do when it gets a 429?",
+          "seconds": 120,
+          "src": "s5",
+          "model": "First, it should not retry straight away, because that just keeps it over the limit. The response carries a Retry-After header, and HTTP allows two formats for it: a number of seconds or a date. A good client reads both formats and waits at least that long. If there's no Retry-After, it should back off exponentially, with jitter, so that many clients don't all come back in the same second. It should also cap the number of retries and give up cleanly, for example by keeping the submission in its own queue and trying later. And it helps to slow down before reaching the limit: our partner guide gives each agency its quota, so a bulk upload can pace itself. The guide includes a short example in Java, and agencies can test their client against a sandbox that returns 429.",
+          "keypoints": [
+            {"text": "Don't retry straight away", "kw": ["straight away", "immediately", "right away", "don't retry"]},
+            {"text": "Honour Retry-After: seconds or a date", "kw": ["retry-after", "retry after", "seconds", "date"]},
+            {"text": "Exponential backoff with jitter", "kw": ["backoff", "back off", "exponential", "jitter"]},
+            {"text": "Cap the retries and give up cleanly", "kw": ["cap", "maximum", "give up", "max retries", "queue"]},
+            {"text": "Pace the calls below the quota", "kw": ["pace", "throttle", "slow down", "rate", "below the limit"]}
+          ]
+        },
+        {
+          "id": "partner-api-q4",
+          "q": "How does your circuit breaker work, and what does an agency see when it's open?",
+          "seconds": 120,
+          "src": "s7",
+          "model": "The assessment system gets slow when it struggles, and slow is worse than down, because every waiting call holds a thread. So the call has a two-second timeout and goes through a Resilience4j circuit breaker. Normally it's closed. If at least half of the recent calls fail, or too many are slower than our threshold, it opens: for a while, calls fail immediately with a CallNotPermittedException instead of waiting. After the wait time it goes half-open and lets a few trial calls through; if they succeed, it closes again. The agency doesn't see an error. When the breaker is open, we still accept the submission, return 202 Accepted with a link to its status, and put the assessment request on a queue. The status says 'assessment pending' until the system recovers and the queue drains.",
+          "keypoints": [
+            {"text": "Slow calls hold threads, so use a timeout", "kw": ["timeout", "slow", "threads", "thread"]},
+            {"text": "Closed, open and half-open", "kw": ["closed", "open", "half-open", "half open", "states"]},
+            {"text": "It opens on the failure rate or on slow calls", "kw": ["failure rate", "threshold", "slow calls", "half of"]},
+            {"text": "Fail fast while it's open", "kw": ["fail fast", "immediately", "callnotpermittedexception", "rejects"]},
+            {"text": "Fallback: 202 Accepted and a queue", "kw": ["202", "accepted", "queue", "fallback", "pending"]}
+          ]
+        },
+        {
+          "id": "partner-api-q5",
+          "q": "How do you version the API, and how do you retire an old version?",
+          "seconds": 120,
+          "src": "s8",
+          "model": "We put the major version in the path, /v1/candidates, because agencies find it easy to see and to test, and Apigee can route each version on its own. Most changes don't need a new version: adding an optional field or a new endpoint is backwards compatible, and we ask agencies to ignore fields they don't know. A new major version is only for breaking changes, such as removing a field or changing what it means. When v2 went live, v1 kept working. Every v1 response carried a Deprecation header and a Sunset header with the date it would stop, and we e-mailed each agency with the same date and a migration guide. Apigee analytics showed us which agencies still called v1, so we contacted them personally well before the sunset date.",
+          "keypoints": [
+            {"text": "The major version in the path", "kw": ["path", "v1", "major version", "uri", "url"]},
+            {"text": "Additive changes don't need a new version", "kw": ["additive", "optional field", "backwards compatible", "backward compatible", "non-breaking"]},
+            {"text": "A new version only for breaking changes", "kw": ["breaking", "breaking change", "breaking changes", "removing"]},
+            {"text": "Deprecation and Sunset headers", "kw": ["deprecation", "sunset"]},
+            {"text": "Notice, a migration guide and usage data", "kw": ["notice", "e-mailed", "email", "analytics", "migration guide", "contacted"]}
+          ]
+        },
+        {
+          "id": "partner-api-q6",
+          "q": "How do you make sure an agency only sees its own candidates?",
+          "seconds": 120,
+          "src": "s10",
+          "model": "The identity comes from the token, never from the request. When Apigee verifies the access token, it knows the developer app, and it passes the agency's ID to the service in a header that Apigee sets itself, overwriting any value a client sends. In the service, every query for candidates includes that agency ID. So if agency A asks for a candidate that agency B submitted, the database finds nothing and we return 404, not 403, so we don't even confirm that the ID exists. We never trust an agency ID in the URL or the body. We have automated tests for this: one agency's token used against another agency's candidate must always return 404. And the Cloud Run services only accept calls from Apigee's service account, so nobody can skip these checks by calling them directly.",
+          "keypoints": [
+            {"text": "The identity comes from the verified token", "kw": ["token", "verified", "verifies", "developer app", "identity"]},
+            {"text": "Apigee sets the agency header itself", "kw": ["header", "overwrite", "overwriting", "sets"]},
+            {"text": "Every query is filtered by agency", "kw": ["every query", "filter", "filtered", "agency id"]},
+            {"text": "404 for another agency's data", "kw": ["404", "not found", "403"]},
+            {"text": "Only Apigee can call the services, and it's tested", "kw": ["invoker", "service account", "directly", "tests", "tested"]}
+          ]
+        },
+        {
+          "id": "partner-api-q7",
+          "q": "What happens if an agency submits the same candidate twice after a timeout?",
+          "seconds": 120,
+          "src": "s11",
+          "model": "That's the classic case for an idempotency key. The agency's client sends an Idempotency-Key header with a unique value for each submission, and it reuses the same value when it retries that submission. The header is still an IETF draft, not a final standard, but the idea is well established. The service stores the key together with the agency ID and the response it gave, for 24 hours. If the same key arrives again with the same body, we return the stored response instead of creating a second candidate. If the same key arrives with a different body, that's a client error, and we explain it with a problem details response. As a second line of defence, we also look for an existing application from the same agency for the same e-mail address and job, because not every agency sends the key.",
+          "keypoints": [
+            {"text": "An idempotency key in a header", "kw": ["idempotency key", "idempotency-key", "idempotency", "idempotent"]},
+            {"text": "The same key is reused on retries", "kw": ["reuse", "reuses", "same key", "same value", "retries"]},
+            {"text": "Store the key and the response, and return it again", "kw": ["store", "stores", "stored", "same response", "stored response"]},
+            {"text": "Same key with a different body is an error", "kw": ["different body", "different payload", "client error", "problem details", "422"]},
+            {"text": "A business duplicate check as a safety net", "kw": ["existing", "duplicate check", "same e-mail", "email", "second line"]}
+          ]
+        }
+      ],
+      "sources": [
+        {"id": "s1", "title": "RFC 6749: The OAuth 2.0 Authorization Framework", "url": "https://www.rfc-editor.org/rfc/rfc6749.html", "official": true},
+        {"id": "s2", "title": "Implementing the client credentials grant type - Apigee documentation", "url": "https://docs.apigee.com/api-platform/security/oauth/oauth-20-client-credentials-grant-type", "official": true},
+        {"id": "s3", "title": "Quota policy - Apigee documentation", "url": "https://docs.apigee.com/api-platform/reference/policies/quota-policy", "official": true},
+        {"id": "s4", "title": "RFC 6585: Additional HTTP Status Codes", "url": "https://www.rfc-editor.org/rfc/rfc6585.html", "official": true},
+        {"id": "s5", "title": "RFC 9110: HTTP Semantics", "url": "https://www.rfc-editor.org/rfc/rfc9110.html", "official": true},
+        {"id": "s6", "title": "Timeouts, retries and backoff with jitter - Amazon Builders' Library", "url": "https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/", "official": true},
+        {"id": "s7", "title": "CircuitBreaker - Resilience4j documentation", "url": "https://resilience4j.readme.io/docs/circuitbreaker", "official": true},
+        {"id": "s8", "title": "RFC 9745: The Deprecation HTTP Response Header Field", "url": "https://www.rfc-editor.org/rfc/rfc9745.html", "official": true},
+        {"id": "s9", "title": "RFC 8594: The Sunset HTTP Header Field", "url": "https://www.rfc-editor.org/rfc/rfc8594.html", "official": true},
+        {"id": "s10", "title": "Authenticating service-to-service - Cloud Run, Google Cloud Documentation", "url": "https://docs.cloud.google.com/run/docs/authenticating/service-to-service", "official": true},
+        {"id": "s11", "title": "The Idempotency-Key HTTP Header Field - IETF Internet-Draft", "url": "https://datatracker.ietf.org/doc/draft-ietf-httpapi-idempotency-key-header/", "official": true},
+        {"id": "s12", "title": "RFC 9457: Problem Details for HTTP APIs", "url": "https://www.rfc-editor.org/rfc/rfc9457.html", "official": true}
+      ],
+      "notes": [
+        "unconfirmed: the default status code of a quota violation in Apigee X. The Apigee Edge Quota policy reference says Edge returns 500 unless a feature flag is set, so the case sets 429 explicitly in a fault rule.",
+        "unconfirmed: the exact Apigee X configuration for calling Cloud Run with a Google-signed ID token. The 'Using Google authentication' page could not be read for this review; the Cloud Run side (ID token, Cloud Run Invoker role) is confirmed.",
+        "Idempotency-Key header: draft-ietf-httpapi-idempotency-key-header-08 is an Internet-Draft, not an RFC, and it may still change."
+      ]
+    }
+  ],
+  "generic": [
+    {
+      "id": "g-walkthrough",
+      "q": "Walk me through the architecture of this integration.",
+      "seconds": 150,
+      "covers": ["The business problem and who uses the result", "The main components and how the data flows between them", "Synchronous or asynchronous, and why", "How failures are handled", "One trade-off you accepted"]
+    },
+    {
+      "id": "g-why",
+      "q": "Why did you choose this design over the alternatives?",
+      "seconds": 120,
+      "covers": ["The two or three options you compared, including keeping things as they are", "The criteria you agreed with the stakeholders", "The evidence: data, a proof of concept or past incidents", "What you gave up, and why that was acceptable"]
+    },
+    {
+      "id": "g-down",
+      "q": "What happens when a system you depend on is down?",
+      "seconds": 120,
+      "covers": ["Timeouts, and which errors you retry", "Backoff with jitter and a limit on retries", "A circuit breaker or a queue that protects your own service", "Dead-letter handling and how you replay", "What users or partners see in the meantime"]
+    },
+    {
+      "id": "g-duplicates",
+      "q": "How do you deal with duplicate or out-of-order messages?",
+      "seconds": 120,
+      "covers": ["Why delivery is usually at least once", "Idempotent processing with a unique key", "Where order matters, and how you keep it: keys, versions or timestamps", "How you test it"]
+    },
+    {
+      "id": "g-security",
+      "q": "How is it secured?",
+      "seconds": 120,
+      "covers": ["How callers authenticate: the OAuth flow, certificates or keys", "How you authorise: who can see or change what", "Where the secrets live and how they are rotated", "Personal data: minimised, masked in logs, encrypted", "Least privilege for service accounts"]
+    },
+    {
+      "id": "g-observe",
+      "q": "How do you know it's working in production?",
+      "seconds": 120,
+      "covers": ["Metrics and SLOs that matter to the business", "Structured logs with a correlation ID", "Traces across services", "Alerts on symptoms, each with a runbook", "Reconciliation or business checks"]
+    },
+    {
+      "id": "g-scale",
+      "q": "How does it scale, and where is the bottleneck?",
+      "seconds": 120,
+      "covers": ["Normal and peak volumes, with numbers", "The part that limits throughput: API limits, the database or a slow system", "How you scale it: instances, partitions or batching", "How you protect the systems downstream"]
+    },
+    {
+      "id": "g-testing",
+      "q": "How did you test it before it went live?",
+      "seconds": 120,
+      "covers": ["Unit tests for the logic", "Contract tests with the other teams", "Integration tests with stubs of the external systems", "Failure tests: timeouts, duplicates and outages", "A pilot or a gradual rollout"]
+    },
+    {
+      "id": "g-change",
+      "q": "How do you change it without breaking the systems that use it?",
+      "seconds": 120,
+      "covers": ["Backwards-compatible changes first", "A new version only for breaking changes", "A deprecation notice and a sunset date", "Contract tests and talking to the consumers", "Deployments with a safe rollback"]
+    },
+    {
+      "id": "g-again",
+      "q": "What would you do differently if you started again?",
+      "seconds": 120,
+      "covers": ["One honest weakness of the design", "What you learned from incidents or metrics", "What you would change, and why", "How you would decide, with today's constraints"]
+    }
+  ],
+  "guides": [
+    {
+      "id": "conflict",
+      "title": "A technical conflict",
+      "prompt": "Tell me about a time you disagreed with a colleague about a technical decision.",
+      "looksFor": ["You disagree with respect and stay focused on the problem", "You use data and agreed criteria, not opinions", "You listen, and you can change your mind", "The working relationship is fine afterwards"],
+      "tips": ["Choose a real disagreement that ended in a clear decision", "Show what you did to understand the other point of view", "Explain how you reached the decision: criteria, a spike, a decision record", "End with the result and what you would do the same way again"],
+      "pitfalls": ["Making the other person look foolish", "A story where you were simply right and nothing else happened", "A conflict about personalities instead of the design", "No clear outcome"],
+      "opener": "On my last project, a senior developer and I disagreed about whether new hires should travel as events or stay in the nightly batch."
+    },
+    {
+      "id": "failure",
+      "title": "A failure",
+      "prompt": "Tell me about a time something you were responsible for went wrong.",
+      "looksFor": ["You take ownership without blaming others", "You act quickly to limit the impact", "You find the root cause", "You change something so that it doesn't happen again"],
+      "tips": ["Pick a real failure with real impact, not a success in disguise", "Spend most of the time on what you did and what you learned", "Give numbers: how long it lasted and how many people it affected", "Name the lasting change: a test, an alert or a new step in the process"],
+      "pitfalls": ["A failure that was really someone else's fault", "Hiding or shrinking the impact", "Lots of technical detail and no lesson", "A lesson that is only 'work harder'"],
+      "opener": "A release I approved stopped new hires from reaching payroll for half a day, and it taught me to test the failure paths, not just the happy path."
+    },
+    {
+      "id": "influence",
+      "title": "Influencing without authority",
+      "prompt": "Tell me about a time you persuaded people who didn't report to you.",
+      "looksFor": ["You understand what the other team cares about", "You build support step by step", "You use evidence and small experiments", "You share the credit"],
+      "tips": ["Name the stakeholders and what each one wanted", "Show how you made it easy to say yes, for example with a pilot or a proof of concept", "Explain how you handled the objections", "Finish with the decision and its impact"],
+      "pitfalls": ["Escalating to a manager as the main tactic", "Describing the other team as the obstacle", "No sign that you listened", "Taking all the credit"],
+      "opener": "I needed three teams to change the way they received new-hire data, and none of them reported to me."
+    },
+    {
+      "id": "decision",
+      "title": "A hard decision",
+      "prompt": "Tell me about a difficult decision you made without all the information.",
+      "looksFor": ["You frame the options and the criteria", "You decide on time, even without all the facts", "You make the risk visible and keep the decision reversible where you can", "You review the decision later"],
+      "tips": ["Say why it was hard: trade-offs, deadlines or people", "Explain what you did to reduce the uncertainty quickly", "Mention how you recorded it, for example in an architecture decision record", "Say what happened, and whether you would decide the same way today"],
+      "pitfalls": ["A decision that wasn't really yours", "No alternatives considered", "Hindsight: pretending you knew the result", "No reflection at the end"],
+      "opener": "Two weeks before go-live, we had to choose between delaying the launch and going live without the retry queue."
+    },
+    {
+      "id": "risk",
+      "title": "A risk you anticipated",
+      "prompt": "Tell me about a time you saw a risk before others did.",
+      "looksFor": ["You notice the early signals", "You estimate the impact and the likelihood", "You propose a mitigation that fits the size of the risk", "You get the team to act on it"],
+      "tips": ["Explain the signal you noticed and why it mattered", "Put a number on the possible impact", "Describe the mitigation and what it cost", "Show the result: the risk avoided, or the impact reduced"],
+      "pitfalls": ["A risk that never really mattered", "Saying 'I told them so' without having acted", "A long list of risks with no priorities", "No result"],
+      "opener": "In a design review I noticed that our new partner API had no limit per partner, so one faulty client could take it down for everyone."
+    }
+  ]
+}
