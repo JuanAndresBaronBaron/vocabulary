@@ -42,6 +42,7 @@ const SHELL = [
   "data/stories/fr/play.json", "data/stories/fr/colours.json", "data/stories/fr/cake.json", "data/stories/fr/night.json",
   "data/stories/da/play.json", "data/stories/da/colours.json", "data/stories/da/cake.json", "data/stories/da/night.json",
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
+  "js/army.js", "data/army/en.json", "data/army/fr.json", "data/army/da.json", "img/games/soldados.png",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */
 const MEDIA_RE = /\.(png|jpe?g|gif|webp|svg|mp3|m4a|ogg|wav)$/i;

@@ -104,7 +104,7 @@ function img(x){
   if(IMG.has(it.id)) return `<img class="pj shp-im" src="img/shop/${it.id}.png" alt="" draggable="false" decoding="async" data-e="${esc(it.e || "")}">`;
   return `<span class="pj-fb">${esc(it.e || "")}</span>`;
 }
-const imgSrc = it => (typeof pjHas === "function" && pjHas(it.id)) ? `img/pj/${it.id}.png` : IMG.has(it.id) ? `img/shop/${it.id}.png` : "";
+const imgSrc = it => (typeof pjHas === "function" && pjHas(it.id)) ? (typeof pjSrc === "function" ? pjSrc(it) : `img/pj/${it.id}.png`) : IMG.has(it.id) ? `img/shop/${it.id}.png` : "";
 const images = () => list().filter(it => IMG.has(it.id) && !(typeof pjHas === "function" && pjHas(it.id))).map(it => `img/shop/${it.id}.png`);
 
 /* ---------- la pieza ---------- */

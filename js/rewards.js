@@ -255,6 +255,7 @@ function paintHero(jumpIt){
   f.setAttribute("aria-label", wornLabel());
   const n = $("#mz-name"); if(n) n.textContent = heroName();
   const w = $("#mz-worn"); if(w) w.innerHTML = wornHtml();
+  if(W.vocabArmy) try{ vocabArmy.decorate(f.closest(".mz-hero")); }catch(e){}   /* el soldado: su rango (js/army.js) */
   if(!jumpIt) return;
   jump(f);
   /* si el personaje no se ve (se bajó hasta las piezas), un aviso con su miniatura */
