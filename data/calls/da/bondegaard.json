@@ -1,0 +1,178 @@
+{
+ "v": 1,
+ "id": "da-bondegaard",
+ "lang": "dansk",
+ "city": "Copenhague",
+ "t": "En la granja",
+ "lines": [
+  {
+   "say": "Hej! Det er Ræven! I dag er jeg på en bondegård uden for København.",
+   "es": "¡Hola! ¡Soy Zorro! Hoy estoy en una granja a las afueras de Copenhague.",
+   "k": [
+    {
+     "t": "Hej",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "Her er der mange dyr. Et dyr er sort og hvidt og siger muh.",
+   "es": "Aquí hay muchos animales. Un animal es blanco y negro y hace muu.",
+   "k": [
+    {
+     "t": "dyr",
+     "r": "w09|animal"
+    },
+    {
+     "t": "sort",
+     "r": "colores|Negro"
+    },
+    {
+     "t": "hvidt",
+     "r": "colores|Blanco"
+    }
+   ]
+  },
+  {
+   "say": "Hvilket dyr er det?",
+   "es": "¿Qué animal es?",
+   "a": [
+    {
+     "r": "animales|Vaca"
+    },
+    {
+     "r": "animales|Cerdo"
+    },
+    {
+     "r": "animales|Gallina"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, en ko! Muh!",
+    "es": "¡Sí, una vaca! ¡Muu!"
+   },
+   "no": {
+    "say": "Det er en ko! Muh!",
+    "es": "¡Es una vaca! ¡Muu!"
+   }
+  },
+  {
+   "say": "Hønen har lagt et æg. Det er hvidt og rundt.",
+   "es": "La gallina ha puesto un huevo. Es blanco y redondo.",
+   "k": [
+    {
+     "t": "Hønen",
+     "r": "animales|Gallina"
+    },
+    {
+     "t": "æg",
+     "r": "w03|huevo"
+    },
+    {
+     "t": "rundt",
+     "r": "w31|redondo"
+    }
+   ]
+  },
+  {
+   "say": "Hvad har hønen lagt?",
+   "es": "¿Qué ha puesto la gallina?",
+   "a": [
+    {
+     "r": "w03|huevo"
+    },
+    {
+     "r": "w03|manzana"
+    },
+    {
+     "r": "w13|pelota, balón"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, et æg!",
+    "es": "¡Sí, un huevo!"
+   },
+   "no": {
+    "say": "Hun har lagt et æg!",
+    "es": "¡Ha puesto un huevo!"
+   }
+  },
+  {
+   "say": "Grisen siger øf øf. Den spiser en gulerod.",
+   "es": "El cerdo hace oink, oink. Se come una zanahoria.",
+   "k": [
+    {
+     "t": "Grisen",
+     "r": "animales|Cerdo"
+    },
+    {
+     "t": "gulerod",
+     "r": "w03|zanahoria"
+    }
+   ]
+  },
+  {
+   "say": "Hvad spiser grisen?",
+   "es": "¿Qué come el cerdo?",
+   "a": [
+    {
+     "r": "w03|zanahoria"
+    },
+    {
+     "r": "w03|pastel, tarta"
+    },
+    {
+     "r": "w03|chocolate"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, en gulerod! Øf øf!",
+    "es": "¡Sí, una zanahoria! ¡Oink, oink!"
+   },
+   "no": {
+    "say": "Den spiser en gulerod! Øf øf!",
+    "es": "¡Se come una zanahoria! ¡Oink, oink!"
+   }
+  },
+  {
+   "say": "Og du? Hvilket dyr kan du bedst lide?",
+   "es": "¿Y tú? ¿Qué animal te gusta más?",
+   "a": [
+    {
+     "r": "animales|Caballo",
+     "re": {
+      "say": "En hest! Heste er så flotte!",
+      "es": "¡Un caballo! ¡Los caballos son muy bonitos!"
+     }
+    },
+    {
+     "r": "animales|Vaca",
+     "re": {
+      "say": "En ko! Køer giver mælk!",
+      "es": "¡Una vaca! ¡Las vacas dan leche!"
+     }
+    },
+    {
+     "r": "animales|Cerdo",
+     "re": {
+      "say": "En gris! Grise er sjove!",
+      "es": "¡Un cerdo! ¡Los cerdos son divertidos!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Nu skal jeg hjem. Hej hej! Vi ses!",
+   "es": "Ahora me voy a casa. ¡Adiós! ¡Nos vemos!",
+   "k": [
+    {
+     "t": "Hej hej",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

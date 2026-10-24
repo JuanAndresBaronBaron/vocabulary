@@ -1,0 +1,170 @@
+{
+ "v": 1,
+ "id": "fr-matin",
+ "lang": "français",
+ "city": "París",
+ "t": "Buenos días, París",
+ "lines": [
+  {
+   "say": "Bonjour ! C'est Renard, à Paris.",
+   "es": "¡Buenos días! Soy Zorro, desde París.",
+   "k": [
+    {
+     "t": "Bonjour",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "Ce matin, je vais à la boulangerie. Je veux du pain.",
+   "es": "Esta mañana voy a la panadería. Quiero pan.",
+   "k": [
+    {
+     "t": "matin",
+     "r": "w08|mañana"
+    },
+    {
+     "t": "pain",
+     "r": "w03|pan"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce que je veux ?",
+   "es": "¿Qué quiero?",
+   "a": [
+    {
+     "r": "w03|pan"
+    },
+    {
+     "r": "animales|Pez"
+    },
+    {
+     "r": "w03|sopa"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, du pain ! Une baguette !",
+    "es": "¡Sí, pan! ¡Una baguette!"
+   },
+   "no": {
+    "say": "Je veux du pain ! Une baguette !",
+    "es": "¡Quiero pan! ¡Una baguette!"
+   }
+  },
+  {
+   "say": "Dans la rue, il y a un animal. Il fait « miaou ».",
+   "es": "En la calle hay un animal. Hace «miau».",
+   "k": [
+    {
+     "t": "rue",
+     "r": "w06|calle"
+    },
+    {
+     "t": "animal",
+     "r": "w09|animal"
+    }
+   ]
+  },
+  {
+   "say": "Quel animal est-ce ?",
+   "es": "¿Qué animal es?",
+   "a": [
+    {
+     "r": "animales|Gato"
+    },
+    {
+     "r": "animales|Perro"
+    },
+    {
+     "r": "animales|Caballo"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, c'est un chat !",
+    "es": "¡Sí, es un gato!"
+   },
+   "no": {
+    "say": "C'est un chat ! Miaou !",
+    "es": "¡Es un gato! ¡Miau!"
+   }
+  },
+  {
+   "say": "Le chat est tout noir. Il est très mignon.",
+   "es": "El gato es todo negro. Es muy mono.",
+   "k": [
+    {
+     "t": "chat",
+     "r": "animales|Gato"
+    },
+    {
+     "t": "noir",
+     "r": "colores|Negro"
+    }
+   ]
+  },
+  {
+   "say": "De quelle couleur est le chat ?",
+   "es": "¿De qué color es el gato?",
+   "a": [
+    {
+     "r": "colores|Negro"
+    },
+    {
+     "r": "colores|Blanco"
+    },
+    {
+     "r": "colores|Verde"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, il est noir !",
+    "es": "¡Sí, es negro!"
+   },
+   "no": {
+    "say": "Il est noir, tout noir !",
+    "es": "¡Es negro, todo negro!"
+   }
+  },
+  {
+   "say": "Et toi, qu'est-ce que tu bois le matin ?",
+   "es": "Y tú, ¿qué bebes por la mañana?",
+   "a": [
+    {
+     "r": "w03|leche",
+     "re": {
+      "say": "Du lait ! C'est très bon.",
+      "es": "¡Leche! Está muy rica."
+     }
+    },
+    {
+     "r": "w03|zumo, jugo",
+     "re": {
+      "say": "Du jus ! Moi aussi, j'adore le jus.",
+      "es": "¡Zumo! A mí también me encanta el zumo."
+     }
+    },
+    {
+     "r": "w03|chocolate",
+     "re": {
+      "say": "Du chocolat chaud ! Miam !",
+      "es": "¡Chocolate caliente! ¡Ñam!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Bonne journée ! Au revoir !",
+   "es": "¡Que pases un buen día! ¡Adiós!",
+   "k": [
+    {
+     "t": "Au revoir",
+     "r": "w43|adiós|1"
+    }
+   ]
+  }
+ ]
+}

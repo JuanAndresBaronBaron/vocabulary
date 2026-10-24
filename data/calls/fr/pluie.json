@@ -1,0 +1,172 @@
+{
+ "v": 1,
+ "id": "fr-pluie",
+ "lang": "français",
+ "city": "París",
+ "t": "Llueve en París",
+ "lines": [
+  {
+   "say": "Allô ! C'est Renard. Aujourd'hui, il pleut à Paris !",
+   "es": "¡Hola! Soy Zorro. ¡Hoy llueve en París!"
+  },
+  {
+   "say": "J'ai un parapluie. Il est jaune, comme une banane.",
+   "es": "Tengo un paraguas. Es amarillo, como un plátano.",
+   "k": [
+    {
+     "t": "parapluie",
+     "r": "w05|paraguas"
+    },
+    {
+     "t": "jaune",
+     "r": "colores|Amarillo"
+    },
+    {
+     "t": "banane",
+     "r": "w03|plátano"
+    }
+   ]
+  },
+  {
+   "say": "De quelle couleur est mon parapluie ?",
+   "es": "¿De qué color es mi paraguas?",
+   "a": [
+    {
+     "r": "colores|Amarillo"
+    },
+    {
+     "r": "colores|Rojo"
+    },
+    {
+     "r": "colores|Azul"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, il est jaune !",
+    "es": "¡Sí, es amarillo!"
+   },
+   "no": {
+    "say": "Il est jaune, comme une banane !",
+    "es": "¡Es amarillo, como un plátano!"
+   }
+  },
+  {
+   "say": "Dans le parc, un animal adore la pluie. Il fait « coin-coin ».",
+   "es": "En el parque, a un animal le encanta la lluvia. Hace «cuac, cuac».",
+   "k": [
+    {
+     "t": "parc",
+     "r": "w06|parque"
+    },
+    {
+     "t": "animal",
+     "r": "w09|animal"
+    },
+    {
+     "t": "pluie",
+     "r": "w09|lluvia"
+    }
+   ]
+  },
+  {
+   "say": "Quel animal adore la pluie ?",
+   "es": "¿Qué animal adora la lluvia?",
+   "a": [
+    {
+     "r": "animales|Pato"
+    },
+    {
+     "r": "animales|Gato"
+    },
+    {
+     "r": "animales|Vaca"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, le canard ! Coin-coin !",
+    "es": "¡Sí, el pato! ¡Cuac, cuac!"
+   },
+   "no": {
+    "say": "C'est le canard ! Coin-coin !",
+    "es": "¡Es el pato! ¡Cuac, cuac!"
+   }
+  },
+  {
+   "say": "Oh ! La pluie s'arrête. Dans le ciel, il y a quelque chose de jaune.",
+   "es": "¡Oh! Para de llover. En el cielo hay algo amarillo.",
+   "k": [
+    {
+     "t": "ciel",
+     "r": "w09|cielo"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce que c'est ?",
+   "es": "¿Qué es?",
+   "a": [
+    {
+     "r": "w09|sol"
+    },
+    {
+     "r": "w09|luna"
+    },
+    {
+     "r": "w09|nieve"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, le soleil ! Bonjour, soleil !",
+    "es": "¡Sí, el sol! ¡Hola, sol!"
+   },
+   "no": {
+    "say": "C'est le soleil ! Bonjour, soleil !",
+    "es": "¡Es el sol! ¡Hola, sol!"
+   }
+  },
+  {
+   "say": "Et toi, tu préfères la pluie, le soleil ou la neige ?",
+   "es": "Y tú, ¿qué prefieres: la lluvia, el sol o la nieve?",
+   "a": [
+    {
+     "r": "w09|lluvia",
+     "re": {
+      "say": "La pluie ! Avec des bottes, c'est rigolo !",
+      "es": "¡La lluvia! ¡Con botas es divertido!"
+     }
+    },
+    {
+     "r": "w09|sol",
+     "re": {
+      "say": "Le soleil ! Moi aussi !",
+      "es": "¡El sol! ¡A mí también!"
+     }
+    },
+    {
+     "r": "w09|nieve",
+     "re": {
+      "say": "La neige ! Brr ! Il fait froid !",
+      "es": "¡La nieve! ¡Brr! ¡Hace frío!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Je rentre à la maison. Au revoir ! À bientôt !",
+   "es": "Me vuelvo a casa. ¡Adiós! ¡Hasta pronto!",
+   "k": [
+    {
+     "t": "maison",
+     "r": "w04|casa"
+    },
+    {
+     "t": "Au revoir",
+     "r": "w43|adiós|1"
+    }
+   ]
+  }
+ ]
+}

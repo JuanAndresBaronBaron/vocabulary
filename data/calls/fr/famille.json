@@ -1,0 +1,172 @@
+{
+ "v": 1,
+ "id": "fr-famille",
+ "lang": "français",
+ "city": "París",
+ "t": "La familia de Zorro",
+ "lines": [
+  {
+   "say": "Allô ! C'est Renard ! Je suis chez ma grand-mère, à Paris.",
+   "es": "¡Hola! ¡Soy Zorro! Estoy en casa de mi abuela, en París.",
+   "k": [
+    {
+     "t": "grand-mère",
+     "r": "familia|Abuela"
+    }
+   ]
+  },
+  {
+   "say": "Ma grand-mère a un lapin. Il s'appelle Pompon.",
+   "es": "Mi abuela tiene un conejo. Se llama Pompón.",
+   "k": [
+    {
+     "t": "lapin",
+     "r": "animales|Conejo"
+    }
+   ]
+  },
+  {
+   "say": "Quel animal a ma grand-mère ?",
+   "es": "¿Qué animal tiene mi abuela?",
+   "a": [
+    {
+     "r": "animales|Conejo"
+    },
+    {
+     "r": "animales|Perro"
+    },
+    {
+     "r": "animales|Pez"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, un lapin ! Il est tout blanc.",
+    "es": "¡Sí, un conejo! Es todo blanco."
+   },
+   "no": {
+    "say": "C'est un lapin ! Il s'appelle Pompon.",
+    "es": "¡Es un conejo! Se llama Pompón."
+   }
+  },
+  {
+   "say": "Mon grand-père lit un livre dans le jardin.",
+   "es": "Mi abuelo lee un libro en el jardín.",
+   "k": [
+    {
+     "t": "grand-père",
+     "r": "familia|Abuelo"
+    },
+    {
+     "t": "livre",
+     "r": "w10|libro"
+    },
+    {
+     "t": "jardin",
+     "r": "w04|jardín"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce que mon grand-père lit ?",
+   "es": "¿Qué lee mi abuelo?",
+   "a": [
+    {
+     "r": "w10|libro"
+    },
+    {
+     "r": "w13|pelota, balón"
+    },
+    {
+     "r": "w07|coche"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, un livre ! Un livre sur les renards !",
+    "es": "¡Sí, un libro! ¡Un libro sobre zorros!"
+   },
+   "no": {
+    "say": "Il lit un livre ! Un livre sur les renards !",
+    "es": "¡Lee un libro! ¡Un libro sobre zorros!"
+   }
+  },
+  {
+   "say": "Et voici le bébé de la famille. Chut… il dort !",
+   "es": "Y aquí está el bebé de la familia. Chis… ¡está durmiendo!",
+   "k": [
+    {
+     "t": "bébé",
+     "r": "familia|Bebé"
+    }
+   ]
+  },
+  {
+   "say": "Qui dort ?",
+   "es": "¿Quién duerme?",
+   "a": [
+    {
+     "r": "familia|Bebé",
+     "img": "img/om_1F476.png"
+    },
+    {
+     "r": "familia|Abuelo",
+     "img": "img/calls/abuelo.png"
+    },
+    {
+     "r": "familia|Abuela",
+     "img": "img/calls/abuela.png"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, le bébé. Chut !",
+    "es": "Sí, el bebé. ¡Chis!"
+   },
+   "no": {
+    "say": "C'est le bébé qui dort. Chut !",
+    "es": "Es el bebé el que duerme. ¡Chis!"
+   }
+  },
+  {
+   "say": "Et toi, qui est avec toi aujourd'hui ?",
+   "es": "Y tú, ¿quién está contigo hoy?",
+   "a": [
+    {
+     "r": "w01|mamá",
+     "img": "img/om_1F469.png",
+     "re": {
+      "say": "Ta maman ! Dis bonjour à ta maman de ma part !",
+      "es": "¡Tu mamá! ¡Saluda a tu mamá de mi parte!"
+     }
+    },
+    {
+     "r": "w01|papá",
+     "img": "img/om_1F468.png",
+     "re": {
+      "say": "Ton papa ! Dis bonjour à ton papa de ma part !",
+      "es": "¡Tu papá! ¡Saluda a tu papá de mi parte!"
+     }
+    },
+    {
+     "r": "familia|Abuela",
+     "img": "img/calls/abuela.png",
+     "re": {
+      "say": "Ta grand-mère ! Dis-lui bonjour de ma part !",
+      "es": "¡Tu abuela! ¡Salúdala de mi parte!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Au revoir ! Gros bisous !",
+   "es": "¡Adiós! ¡Muchos besos!",
+   "k": [
+    {
+     "t": "Au revoir",
+     "r": "w43|adiós|1"
+    }
+   ]
+  }
+ ]
+}

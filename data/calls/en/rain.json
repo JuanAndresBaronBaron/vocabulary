@@ -1,0 +1,180 @@
+{
+ "v": 1,
+ "id": "en-rain",
+ "lang": "english",
+ "city": "Londres",
+ "t": "Lluvia en Londres",
+ "lines": [
+  {
+   "say": "Hello! It's Fox. I'm in London today.",
+   "es": "¡Hola! Soy Zorro. Hoy estoy en Londres.",
+   "k": [
+    {
+     "t": "Hello",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "It's a grey day, and there's lots of rain.",
+   "es": "Es un día gris y llueve mucho.",
+   "k": [
+    {
+     "t": "grey",
+     "r": "colores|Gris"
+    },
+    {
+     "t": "rain",
+     "r": "w09|lluvia"
+    }
+   ]
+  },
+  {
+   "say": "I've got my umbrella. It's red, like a tomato.",
+   "es": "Llevo mi paraguas. Es rojo, como un tomate.",
+   "k": [
+    {
+     "t": "umbrella",
+     "r": "w05|paraguas"
+    },
+    {
+     "t": "tomato",
+     "r": "w03|tomate"
+    }
+   ]
+  },
+  {
+   "say": "What colour is my umbrella?",
+   "es": "¿De qué color es mi paraguas?",
+   "a": [
+    {
+     "r": "colores|Rojo"
+    },
+    {
+     "r": "colores|Azul"
+    },
+    {
+     "r": "colores|Amarillo"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes! It's red!",
+    "es": "¡Sí! ¡Es rojo!"
+   },
+   "no": {
+    "say": "It's red, like a tomato!",
+    "es": "¡Es rojo, como un tomate!"
+   }
+  },
+  {
+   "say": "Now I'm going to the park on a big red bus.",
+   "es": "Ahora voy al parque en un gran autobús rojo.",
+   "k": [
+    {
+     "t": "park",
+     "r": "w06|parque"
+    },
+    {
+     "t": "bus",
+     "r": "w07|autobús"
+    }
+   ]
+  },
+  {
+   "say": "How am I going to the park?",
+   "es": "¿Cómo voy al parque?",
+   "a": [
+    {
+     "r": "w07|autobús"
+    },
+    {
+     "r": "w07|barco"
+    },
+    {
+     "r": "w07|tren"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, on the bus! Ding ding!",
+    "es": "¡Sí, en autobús! ¡Tilín, tilín!"
+   },
+   "no": {
+    "say": "I'm on the bus! Ding ding!",
+    "es": "¡Voy en autobús! ¡Tilín, tilín!"
+   }
+  },
+  {
+   "say": "Oh, look! The rain is stopping. There's something yellow in the sky.",
+   "es": "¡Oh, mira! Está dejando de llover. Hay algo amarillo en el cielo.",
+   "k": [
+    {
+     "t": "sky",
+     "r": "w09|cielo"
+    }
+   ]
+  },
+  {
+   "say": "What is it?",
+   "es": "¿Qué es?",
+   "a": [
+    {
+     "r": "w09|sol"
+    },
+    {
+     "r": "w09|luna"
+    },
+    {
+     "r": "w09|estrella"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes! It's the sun! Hooray!",
+    "es": "¡Sí! ¡Es el sol! ¡Hurra!"
+   },
+   "no": {
+    "say": "It's the sun! Hooray!",
+    "es": "¡Es el sol! ¡Hurra!"
+   }
+  },
+  {
+   "say": "What do you like best: rain, sun or snow?",
+   "es": "¿Qué te gusta más: la lluvia, el sol o la nieve?",
+   "a": [
+    {
+     "r": "w09|lluvia",
+     "re": {
+      "say": "Rain! Splash, splash!",
+      "es": "¡La lluvia! ¡Chof, chof!"
+     }
+    },
+    {
+     "r": "w09|sol",
+     "re": {
+      "say": "The sun! Me too! It's nice and warm.",
+      "es": "¡El sol! ¡A mí también! Se está calentito."
+     }
+    },
+    {
+     "r": "w09|nieve",
+     "re": {
+      "say": "Snow! Brrr! It's white and cold.",
+      "es": "¡La nieve! ¡Brrr! Es blanca y fría."
+     }
+    }
+   ]
+  },
+  {
+   "say": "I have to go now. Bye! See you soon!",
+   "es": "Ahora me tengo que ir. ¡Adiós! ¡Hasta pronto!",
+   "k": [
+    {
+     "t": "Bye",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

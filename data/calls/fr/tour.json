@@ -1,0 +1,169 @@
+{
+ "v": 1,
+ "id": "fr-tour",
+ "lang": "français",
+ "city": "París",
+ "t": "La torre Eiffel",
+ "lines": [
+  {
+   "say": "Allô ! C'est moi, Renard ! Je t'appelle de Paris.",
+   "es": "¡Hola! ¡Soy yo, Zorro! Te llamo desde París."
+  },
+  {
+   "say": "Aujourd'hui, je visite une tour très, très grande.",
+   "es": "Hoy visito una torre muy, muy grande.",
+   "k": [
+    {
+     "t": "tour",
+     "r": "w06|torre"
+    },
+    {
+     "t": "grande",
+     "r": "w31|grande"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce que je visite ?",
+   "es": "¿Qué visito?",
+   "a": [
+    {
+     "r": "w06|torre"
+    },
+    {
+     "r": "w06|castillo"
+    },
+    {
+     "r": "w04|casa"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui ! C'est la tour Eiffel !",
+    "es": "¡Sí! ¡Es la torre Eiffel!"
+   },
+   "no": {
+    "say": "C'est une tour : la tour Eiffel !",
+    "es": "¡Es una torre: la torre Eiffel!"
+   }
+  },
+  {
+   "say": "Je suis en haut de la tour. Paris est très beau !",
+   "es": "Estoy arriba del todo de la torre. ¡París es precioso!"
+  },
+  {
+   "say": "Oh ! Un oiseau est sur mon chapeau !",
+   "es": "¡Oh! ¡Hay un pájaro en mi sombrero!",
+   "k": [
+    {
+     "t": "oiseau",
+     "r": "animales|Pájaro"
+    },
+    {
+     "t": "chapeau",
+     "r": "w05|sombrero"
+    }
+   ]
+  },
+  {
+   "say": "Où est l'oiseau ?",
+   "es": "¿Dónde está el pájaro?",
+   "a": [
+    {
+     "r": "w05|sombrero"
+    },
+    {
+     "r": "w05|zapato"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, sur mon chapeau ! Bonjour, petit oiseau !",
+    "es": "¡Sí, en mi sombrero! ¡Hola, pajarito!"
+   },
+   "no": {
+    "say": "Il est sur mon chapeau ! Bonjour, petit oiseau !",
+    "es": "¡Está en mi sombrero! ¡Hola, pajarito!"
+   }
+  },
+  {
+   "say": "J'ai faim. Je mange un fruit rouge et rond.",
+   "es": "Tengo hambre. Me como una fruta roja y redonda.",
+   "k": [
+    {
+     "t": "fruit",
+     "r": "w03|fruta"
+    },
+    {
+     "t": "rouge",
+     "r": "colores|Rojo"
+    },
+    {
+     "t": "rond",
+     "r": "w31|redondo"
+    }
+   ]
+  },
+  {
+   "say": "C'est quel fruit ?",
+   "es": "¿Qué fruta es?",
+   "a": [
+    {
+     "r": "w03|manzana"
+    },
+    {
+     "r": "w03|plátano"
+    },
+    {
+     "r": "w03|limón"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, une pomme ! Miam !",
+    "es": "¡Sí, una manzana! ¡Ñam!"
+   },
+   "no": {
+    "say": "C'est une pomme ! Miam !",
+    "es": "¡Es una manzana! ¡Ñam!"
+   }
+  },
+  {
+   "say": "Et toi, tu préfères le bateau, le bus ou le train ?",
+   "es": "Y tú, ¿qué prefieres: el barco, el autobús o el tren?",
+   "a": [
+    {
+     "r": "w07|barco",
+     "re": {
+      "say": "Le bateau ! Sur la Seine, c'est super !",
+      "es": "¡El barco! ¡Por el Sena es genial!"
+     }
+    },
+    {
+     "r": "w07|autobús",
+     "re": {
+      "say": "Le bus ! Pour voir toute la ville !",
+      "es": "¡El autobús! ¡Para ver toda la ciudad!"
+     }
+    },
+    {
+     "r": "w07|tren",
+     "re": {
+      "say": "Le train ! Tchou tchou !",
+      "es": "¡El tren! ¡Chu, chu!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Au revoir ! À bientôt !",
+   "es": "¡Adiós! ¡Hasta pronto!",
+   "k": [
+    {
+     "t": "Au revoir",
+     "r": "w43|adiós|1"
+    }
+   ]
+  }
+ ]
+}

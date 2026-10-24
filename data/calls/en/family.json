@@ -1,0 +1,187 @@
+{
+ "v": 1,
+ "id": "en-family",
+ "lang": "english",
+ "city": "Londres",
+ "t": "La familia de Zorro",
+ "lines": [
+  {
+   "say": "Hello! It's Fox. I'm at my grandmother's house in London.",
+   "es": "¡Hola! Soy Zorro. Estoy en casa de mi abuela, en Londres.",
+   "k": [
+    {
+     "t": "Hello",
+     "r": "w43|hola"
+    },
+    {
+     "t": "grandmother",
+     "r": "familia|Abuela"
+    },
+    {
+     "t": "house",
+     "r": "w04|casa"
+    }
+   ]
+  },
+  {
+   "say": "My grandmother has got a little dog. His name is Biscuit.",
+   "es": "Mi abuela tiene un perrito. Se llama Biscuit (Galleta).",
+   "k": [
+    {
+     "t": "dog",
+     "r": "animales|Perro"
+    },
+    {
+     "t": "Biscuit",
+     "r": "w03|galleta"
+    }
+   ]
+  },
+  {
+   "say": "Who has got a dog?",
+   "es": "¿Quién tiene un perro?",
+   "a": [
+    {
+     "r": "familia|Abuela",
+     "img": "img/calls/abuela.png"
+    },
+    {
+     "r": "familia|Abuelo",
+     "img": "img/calls/abuelo.png"
+    },
+    {
+     "r": "familia|Bebé",
+     "img": "img/om_1F476.png"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, my grandmother!",
+    "es": "¡Sí, mi abuela!"
+   },
+   "no": {
+    "say": "It's my grandmother! Biscuit is her dog.",
+    "es": "¡Es mi abuela! Biscuit es su perro."
+   }
+  },
+  {
+   "say": "My grandfather plays the piano every day.",
+   "es": "Mi abuelo toca el piano todos los días.",
+   "k": [
+    {
+     "t": "grandfather",
+     "r": "familia|Abuelo"
+    },
+    {
+     "t": "piano",
+     "r": "w13|piano"
+    }
+   ]
+  },
+  {
+   "say": "What does my grandfather play?",
+   "es": "¿Qué toca mi abuelo?",
+   "a": [
+    {
+     "r": "w13|piano"
+    },
+    {
+     "r": "w13|fútbol"
+    },
+    {
+     "r": "w13|tenis"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, the piano! La la la!",
+    "es": "¡Sí, el piano! ¡La, la, la!"
+   },
+   "no": {
+    "say": "He plays the piano! La la la!",
+    "es": "¡Toca el piano! ¡La, la, la!"
+   }
+  },
+  {
+   "say": "My baby cousin is here too. She's very small.",
+   "es": "Mi primita bebé también está aquí. Es muy pequeña.",
+   "k": [
+    {
+     "t": "baby",
+     "r": "familia|Bebé"
+    },
+    {
+     "t": "small",
+     "r": "w31|pequeño"
+    }
+   ]
+  },
+  {
+   "say": "Who is very small?",
+   "es": "¿Quién es muy pequeño?",
+   "a": [
+    {
+     "r": "familia|Bebé",
+     "img": "img/om_1F476.png"
+    },
+    {
+     "r": "w01|papá",
+     "img": "img/om_1F468.png"
+    },
+    {
+     "r": "w01|mamá",
+     "img": "img/om_1F469.png"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, the baby!",
+    "es": "¡Sí, el bebé!"
+   },
+   "no": {
+    "say": "It's the baby! She's very small.",
+    "es": "¡Es el bebé! Es muy pequeña."
+   }
+  },
+  {
+   "say": "Who is at home with you today?",
+   "es": "¿Quién está hoy en casa contigo?",
+   "a": [
+    {
+     "r": "w01|mamá",
+     "img": "img/om_1F469.png",
+     "re": {
+      "say": "Your mum! Say hello to your mum from me!",
+      "es": "¡Tu mamá! ¡Saluda a tu mamá de mi parte!"
+     }
+    },
+    {
+     "r": "w01|papá",
+     "img": "img/om_1F468.png",
+     "re": {
+      "say": "Your dad! Say hello to your dad from me!",
+      "es": "¡Tu papá! ¡Saluda a tu papá de mi parte!"
+     }
+    },
+    {
+     "r": "familia|Abuela",
+     "img": "img/calls/abuela.png",
+     "re": {
+      "say": "Your grandmother! Say hello to her from me!",
+      "es": "¡Tu abuela! ¡Salúdala de mi parte!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Biscuit wants to go for a walk now. Bye! See you soon!",
+   "es": "Biscuit quiere salir a pasear. ¡Adiós! ¡Hasta pronto!",
+   "k": [
+    {
+     "t": "Bye",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

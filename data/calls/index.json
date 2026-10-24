@@ -1,0 +1,93 @@
+{
+ "v": 1,
+ "english": {
+  "city": "Londres",
+  "calls": [
+   {
+    "id": "en-zoo",
+    "f": "en/zoo.json",
+    "t": "En el zoo"
+   },
+   {
+    "id": "en-rain",
+    "f": "en/rain.json",
+    "t": "Lluvia en Londres"
+   },
+   {
+    "id": "en-breakfast",
+    "f": "en/breakfast.json",
+    "t": "El desayuno"
+   },
+   {
+    "id": "en-family",
+    "f": "en/family.json",
+    "t": "La familia de Zorro"
+   },
+   {
+    "id": "en-birthday",
+    "f": "en/birthday.json",
+    "t": "¡Un cumpleaños!"
+   }
+  ]
+ },
+ "français": {
+  "city": "París",
+  "calls": [
+   {
+    "id": "fr-tour",
+    "f": "fr/tour.json",
+    "t": "La torre Eiffel"
+   },
+   {
+    "id": "fr-matin",
+    "f": "fr/matin.json",
+    "t": "Buenos días, París"
+   },
+   {
+    "id": "fr-pluie",
+    "f": "fr/pluie.json",
+    "t": "Llueve en París"
+   },
+   {
+    "id": "fr-famille",
+    "f": "fr/famille.json",
+    "t": "La familia de Zorro"
+   },
+   {
+    "id": "fr-anniversaire",
+    "f": "fr/anniversaire.json",
+    "t": "¡El cumpleaños de Zorro!"
+   }
+  ]
+ },
+ "dansk": {
+  "city": "Copenhague",
+  "calls": [
+   {
+    "id": "da-cykel",
+    "f": "da/cykel.json",
+    "t": "En bici por Copenhague"
+   },
+   {
+    "id": "da-havn",
+    "f": "da/havn.json",
+    "t": "En el puerto"
+   },
+   {
+    "id": "da-bondegaard",
+    "f": "da/bondegaard.json",
+    "t": "En la granja"
+   },
+   {
+    "id": "da-sne",
+    "f": "da/sne.json",
+    "t": "Nieve en Copenhague"
+   },
+   {
+    "id": "da-familie",
+    "f": "da/familie.json",
+    "t": "La familia de Zorro"
+   }
+  ]
+ }
+}
