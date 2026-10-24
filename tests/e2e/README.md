@@ -263,6 +263,21 @@ compartida no responde).
   con la misma versión de la base, la IPA de serie para Lucía y apagada para Leo hasta que se enciende, los cuentos, el
   loro y el cazador abren, y el siguiente toque en una pestaña pide el permiso dentro del toque y sube la partida de la
   v22 tal cual; sin conexión, la app nueva. Capturas en `capturas/v23`.
+- `test_update_v23.py` (la actualización desde main 4185280 con sw `vocab-shell-v23` a esta, la v24; `VOCAB_BASE23=<copia
+  de ese commit>` o `git archive`): lo mismo que `test_update_v22.py` un paso después (`?v=24`, `vocab-shell-v24`, sin
+  claves nuevas) y, además, el botón de Google de la barra de arriba sale para Leo (sin Google) y no para Lucía.
+  Capturas en `capturas/arreglos-v24/actualizar`.
+- `test_arreglos_v24.py` (lo que vio el dueño en los aparatos de su sobrino): la voz del navegador en Android con un
+  `speechSynthesis` de mentira que imita sus fallos (lang «en_GB», el speak justo tras cancel() que se pierde, en pausa,
+  una voz que no acepta, un motor que nunca suena): se oye lo que se toca mientras otra cosa suena, sin cancel() de más,
+  el « » de desbloquear no llega al motor de Android, resume() en pausa, el reintento sin voz a los ~2 s, `vocab:tts` (solo del aparato) con un aviso una vez, «¿No se oye la
+  voz?» en Voz y velocidad con los pasos de Android y el enlace a «Servicios de voz de Google» por la Puerta, y «Probar
+  voz» con lo que ve el aparato; la nube del hambre de la granja (grande y pequeña) y el animal abren «¿Qué le das…?»,
+  también con una pista de gestos encima de la nube;
+  el botón de Google arriba (cabe a 360 px con texto grande, Puerta, permiso dentro del toque, se va al conectar, nunca
+  con `html[data-tech]`); y el cazador: tres rondas seguidas con la cámara falsa de Chromium (un `.y4m` con los 4
+  colores) y dos con un vídeo «de iPhone» (al sonar algo se para y `play()` no contesta tras `pause()`). Capturas en
+  `capturas/arreglos-v24`.
 - `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en
   Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso, «Escucha y elige» de la lección y
   «Elige el dibujo» de Truco o trato, en 360×740 y 390×844 (Globos también en 320, 375, 430 y 844×390) contra un mínimo;

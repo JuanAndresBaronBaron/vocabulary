@@ -28,7 +28,9 @@ _SPEECH = r"""
   try {
     const ss = window.speechSynthesis;
     if (ss) Object.defineProperty(ss, 'speak', {configurable: true, writable: true,
-      value: u => { window.__spoken.push({text: String((u && u.text) || ''), lang: String((u && u.lang) || '')}); }});
+      value: u => { window.__spoken.push({text: String((u && u.text) || ''), lang: String((u && u.lang) || '')});
+        /* una voz que funciona: acaba (si nunca dijera nada, index.html lo probaría otra vez sin voz y apuntaría que no suena) */
+        setTimeout(() => { try { if (u && u.onend) u.onend({}); } catch (e) {} }, 60); }});
   } catch (e) {}
 })();
 """
