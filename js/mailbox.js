@@ -1475,7 +1475,7 @@ if(typeof HOME_SLOTS !== "undefined") HOME_SLOTS.push(lockSlot);
 function cardLine(){
   const n = unread().length; if(n) return n === 1 ? "¡1 carta nueva!" : `¡${n} cartas nuevas!`;
   const k = box().l.filter(L => !L.o).length; if(k) return k === 1 ? "1 carta con candado" : `${k} cartas con candado`;
-  const r = MEDIA.audio || 0; if(r) return r === 1 ? "1 grabación" : `${r} grabaciones`;
+  const r = (MEDIA.kinds ? MEDIA.kinds.mail : MEDIA.audio) || 0; if(r) return r === 1 ? "1 grabación" : `${r} grabaciones`;   /* solo las del Buzón (no la cápsula del loro) */
   return "Graba tu voz";
 }
 try{

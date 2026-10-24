@@ -34,9 +34,10 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
      medias por si se cierra la pestaña, de js/lesson.js; caduca a las 72 horas) · vocab:sc (lo que más se usa, para
      los atajos de Hoy, de js/shortcuts.js; sin horas) · phrase:day (la frase de la cena elegida hoy en cada idioma,
      de js/phrases.js) · vocab:voice (la voz elegida para cada idioma, {english, français, dansk: nombre}: cada aparato
-     trae voces distintas; voice:<lang> queda de respaldo).
-     Fuera de localStorage, y nunca en la partida: la base IndexedDB "vocab-media-user" (grabaciones del Buzón y, más
-     adelante, fotos; js/mailbox.js, window.vocabMedia).
+     trae voces distintas; voice:<lang> queda de respaldo) · parrot:st (el loro eco: el mes en que se propuso la cápsula
+     en cada idioma, las monedas de hoy y las últimas palabras; js/parrot.js).
+     Fuera de localStorage, y nunca en la partida: la base IndexedDB "vocab-media-user" (grabaciones del Buzón, la
+     cápsula del tiempo del loro con kind "capsule" y, más adelante, fotos; js/mailbox.js, window.vocabMedia).
    Propias de este módulo (no se exportan ni se restauran desde un archivo):
      save:last (fecha de la última vez que se cargó una partida) · save:first (primer día de uso) ·
      save:snooze («Ahora no» del aviso de Google de la portada, que ya no existe: sin uso) · save:undo (copia para
@@ -53,7 +54,7 @@ const EXACT = {
   "phrase:stamps": "o",
 };
 const PER_LANG = {"srs:": "o", "map:": "o", "voice:": "*", "album:seen:": "*", "album:done:": "*", "album:uniq:": "*", "album:orph:": "*"};
-const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft", "vocab:sc", "phrase:day", "vocab:voice"];
+const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft", "vocab:sc", "phrase:day", "vocab:voice", "parrot:st"];
 const META = {last: "save:last", first: "save:first", snooze: "save:snooze", undo: "save:undo", sync: "save:sync", tok: "save:tok"};
 const langs = () => { try{ return Object.keys(LANGS); }catch(e){ return ["english", "français", "dansk"]; } };
 /* tipo de una clave de la app, o null si no es nuestra */
