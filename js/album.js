@@ -839,6 +839,7 @@ function dlg(){
   if(DLG && DLG.isConnected) return DLG;
   css();
   DLG = document.createElement("dialog"); DLG.className = "al-dlg"; DLG.setAttribute("aria-label", "Pegatina");
+  DLG.setAttribute("data-no-renew", "");   /* suena al abrirla y al pasar de una a otra: la ventanita de Google no (js/sync.js) */
   document.body.appendChild(DLG);
   DLG.addEventListener("click", e => {
     /* el clic que sigue justo a un deslizamiento no cuenta como toque */

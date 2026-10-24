@@ -794,7 +794,8 @@ def test_no_renew_when_starting_or_mid_question():
     piden los toques que empiezan algo (la ventanita taparía su primer sonido): «Empezar» de Hoy, una lección del
     camino, una tarjeta de Juegos, «Empezar» de Palabras › Practicar. Tampoco los de mitad de una pregunta fuera del
     modo foco ni lo que suena o escucha: en la granja, «Dilo» y una respuesta de «¿Cómo me llamo?», un animal y una
-    respuesta de «¿Dónde está…?»; el altavoz de la hoja de una puerta de la temporada antes de contestar; el micrófono
+    respuesta de «¿Dónde está…?»; el altavoz de la hoja de una puerta de la temporada antes de contestar; en el álbum,
+    una pegatina conseguida (abre su ficha y dice la palabra) y las flechas ‹ › de la ficha (también la dicen); el micrófono
     de Palabras › Practicar › Hablar y «Seguir» entre preguntas de Palabras › Preguntas; en Palabras › Tarjetas, tocar
     la tarjeta (al girarla dice la palabra) y «Automático» (empieza a decirlas una tras otra). Luego, un toque en una
     pestaña sí lo pide (dentro del toque)."""
@@ -916,6 +917,44 @@ def test_no_renew_when_starting_or_mid_question():
         due(page, "temporada")
         page.locator("dialog#ss-q #ss-q-spk").click()
         check(page, "temporada: el altavoz de la hoja", n0)
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+
+    # el álbum: tocar una pegatina conseguida (abre su ficha y dice la palabra) y las flechas ‹ › de la ficha (pasan a
+    # otra pegatina y la dicen)
+    page = C.new_page("phone")
+    log = []
+    page.context.add_init_script(_GIS)
+    _drive(page, log)
+    try:
+        k = _armed_keys(C.seed_keys())
+        k["vocab:ui"] = json.dumps({"hints": {"al-swipe": 1000}})
+        C.seed(page, k)
+        C.goto(page, f"#/album/{R.ALBUM_DONE}")
+        st = "#al-page .al-st.got:not(.new)"
+        page.wait_for_selector(st, timeout=6000)
+        page.wait_for_timeout(400)
+        page.evaluate("""() => { window.__said = []; const o = window.say;
+          window.say = function(...a) { window.__said.push(a[0]); return o.apply(this, a); }; }""")
+        n0, ok = _arm(page)
+        due(page, "álbum")
+        page.locator(st).first.click()
+        page.wait_for_selector("dialog.al-dlg[open]", timeout=3000)
+        check(page, "álbum: tocar una pegatina", n0)
+        page.wait_for_timeout(300)
+        for k_, what in (("next", "la flecha › de la ficha"), ("prev", "la flecha ‹ de la ficha")):
+            n_said = page.evaluate("window.__said.length")
+            page.locator(f"dialog.al-dlg [data-al={k_}]").click()
+            check(page, f"álbum: {what}", n0)
+            if page.evaluate("window.__said.length") <= n_said:
+                probs.append(f"álbum: {what} no dice la palabra (la prueba no vale)")
+        if not page.evaluate("document.querySelector('dialog.al-dlg').hasAttribute('data-no-renew')"):
+            probs.append("álbum: la ficha de la pegatina no lleva data-no-renew")
+        page.keyboard.press("Escape")
+        page.wait_for_function("() => !document.querySelector('dialog.al-dlg[open]')", timeout=3000)
+        page.wait_for_timeout(300)
+        control(page, "álbum")
         probs += C.errors(page)
     finally:
         page.context.close()

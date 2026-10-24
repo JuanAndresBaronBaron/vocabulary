@@ -88,6 +88,8 @@ add("juegos-carta", f"#/carta?d={CARTA_D}", "Jugar › Buzón › Una carta que 
 # F5d: Frases mágicas y la frase de la cena (js/phrases.js)
 add("juegos-frases", "#/frases", "Jugar › Frases mágicas (una plantilla con el hueco y 4 dibujos)")
 add("juegos-frases-cena", "#/frases/cena", "Jugar › La frase de la cena (la de hoy, con el sello)")
+# F6h: el loro eco de la granja (js/parrot.js); en la partida sembrada (marzo, sin "parrot:st") propone la cápsula del mes
+add("granja-loro", "#/loro", "Granja › Loro eco (una palabra para repetir; la primera vez del mes, la cápsula del tiempo)")
 # F6i: los Cuentos del zorro (js/stories.js): la estantería y un cuento (el primero, siempre abierto) en modo foco
 add("juegos-cuentos", "#/cuentos", "Jugar › Cuentos del zorro (la estantería: el primero libre, los demás con candado)")
 add("juegos-cuento", "#/cuento/en-play", "Jugar › Cuentos › The Fox Wants to Play (la portada, en modo foco)")

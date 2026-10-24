@@ -53,7 +53,7 @@ def _expect_tab(name):
         return "aprender"
     if name.startswith(("juego", "album")):
         return "jugar"
-    if name == "granja":
+    if name == "granja" or name.startswith("granja-"):   # F6h: el loro eco (#/loro) es una pantalla de la granja
         return "granja"
     if name in ("progreso", "mizorro"):
         return "premios"

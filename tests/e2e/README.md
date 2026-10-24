@@ -239,6 +239,30 @@ compartida no responde).
   subir a Google», nada pide el permiso fuera de un toque y el siguiente toque seguro (la pestaña Hoy) lo pide dentro del
   toque y sube a Drive la partida de la v21 tal cual (Para mayores pasa a «Copia al día»); sin conexión, la app nueva
   (con sus módulos) y el repaso con la IPA. Sin errores. Capturas en `capturas/v22`.
+- `test_f6_int.py` (F6 entero; voz de los cuentos, micrófono del loro y cámara de lienzo del cazador simulados a la vez):
+  `sw.js` VERSION 23 = `OFF_SHELL` = el `?v=` de cada `<script>` de `index.html` y `privacy.html`; cada `js/*.js`, cada
+  guion de llamada y cada cuento en `SHELL` y en `OFF_APP`; el orden de carga (`window.vocabMedia` de `js/mailbox.js`
+  antes que el loro y el cazador, `js/navmotion.js` el último, `js/hunter.js` solo al entrar y con `?v=23`); los dibujos
+  de llamadas, cuentos y cazador en «Descargar todo»; `cuentos` y `calls` en la partida y `parrot:st` y `hunt:st` solo
+  del aparato. `#/loro`, `#/loro/capsula`, `#/cuentos`, `#/cuento/<id>`, `#/cazador` y `#/album/casa` por enlace directo
+  y al recargar en los tres idiomas. Hoy con todo a la vez en marzo con `?season=halloween` (llamada perdida, carta,
+  hambre y refugio, frase de la cena y atajos) en 390×844 claro y oscuro y en tableta, en el orden de `HOME_SLOTS` y sin
+  scroll al irse uno tras otro. La llamada no suena encima de la Puerta, de Ajustes ni de un menú de mantener pulsado (y
+  suena al cerrarlos). Ningún toque a mitad de un cuento, una llamada, el loro grabando o el cazador con cámara pide el
+  permiso de Google (y luego una pestaña sí). Un recorrido en inglés, francés y danés (Hoy, una transición dentro de la
+  pestaña, el título que se pliega, el menú de una palabra con su IPA, el loro, un cuento entero, una llamada contestada
+  y otra perdida, el cazador con la cámara de mentira) con la IPA a la vista y la partida exportada como la base más lo
+  nuevo; y las capturas `capturas/F6/F6-*.png` (móvil 390×844).
+- `test_update_v22.py` (la actualización desde lo publicado ahora, main 9bf09a9 con sw `vocab-shell-v22`, a esta versión
+  en el mismo origen; `VOCAB_BASE22=<copia de ese commit>` o sacada con `git archive`): sin caché HTTP y con la de GitHub
+  Pages. Lucía (Google conectado, permiso caducado, cambios sin subir, un mensaje del Buzón grabado en IndexedDB) usa la
+  v22 por enlaces; Leo (sin Google) tiene la IPA apagada por un mayor. Tras publicar: la primera carga ya es la app nueva
+  entera (cada módulo, también los de F6, con el texto de esta versión y `?v=23`), el sw nuevo se instala y controla
+  (`vocab-shell-v23` con todo `SHELL`, sin `vocab-shell-v22`, `vocab-media` entera), cada clave de `localStorage` y la
+  exportación como en la v22, la granja con los mismos animales y el mismo hambre, el mensaje grabado sigue en IndexedDB
+  con la misma versión de la base, la IPA de serie para Lucía y apagada para Leo hasta que se enciende, los cuentos, el
+  loro y el cazador abren, y el siguiente toque en una pestaña pide el permiso dentro del toque y sube la partida de la
+  v22 tal cual; sin conexión, la app nueva. Capturas en `capturas/v23`.
 - `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en
   Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso, «Escucha y elige» de la lección y
   «Elige el dibujo» de Truco o trato, en 360×740 y 390×844 (Globos también en 320, 375, 430 y 844×390) contra un mínimo;
