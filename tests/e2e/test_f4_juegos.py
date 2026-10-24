@@ -269,7 +269,7 @@ def test_menu_cards_and_topic_sheet():
             pill: document.getElementById('gm-tpill').textContent.replace(/\\s+/g, ' ').trim()}; }""")
         if m["fox"] or m["inicio"] or m["prueba"] or m["tpanel"]:
             probs.append(f"quedan piezas viejas en el menú: {m}")
-        if [c["g"] for c in m["cards"]] != GAMES:
+        if [c["g"] for c in m["cards"] if c["g"] in GAMES] != GAMES:   # los juegos de otros módulos (soldados, js/army.js) van aparte
             probs.append(f"tarjetas: {[c['g'] for c in m['cards']]}")
         best = page.evaluate(_BEST)
         for c in m["cards"]:

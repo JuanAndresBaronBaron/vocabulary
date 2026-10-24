@@ -31,6 +31,7 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
      cuentos (los Cuentos del zorro leídos: finales vistos, veces y si ya pagó, y los pagados hoy; js/stories.js)
    Por idioma (<lang> = una clave de LANGS: english, français, dansk):
      srs:<lang> (repaso) · map:<lang> (lecciones del camino) · voice:<lang> · album:seen|done|uniq|orph:<lang>
+     army:<lang> (el último rango del soldado ya celebrado en ese idioma, 0-12; js/army.js)
    Prácticas por documento: pr:<docId>:<lang>
    Solo de este aparato (no se exporta ni se restaura): offline (si ya descargó la web para usarla sin internet) ·
      vocab:ui (pistas de gestos vistas, de js/gestures.js, y ajustes de accesibilidad) · vocab:lsdraft (la lección a
@@ -60,7 +61,8 @@ const EXACT = {
   calls: "o",
   cuentos: "o",
 };
-const PER_LANG = {"srs:": "o", "map:": "o", "voice:": "*", "album:seen:": "*", "album:done:": "*", "album:uniq:": "*", "album:orph:": "*"};
+const PER_LANG = {"srs:": "o", "map:": "o", "voice:": "*", "album:seen:": "*", "album:done:": "*", "album:uniq:": "*", "album:orph:": "*",
+  "army:": "*"};
 const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft", "vocab:sc", "phrase:day", "vocab:voice", "parrot:st", "hunt:st"];
 const META = {last: "save:last", first: "save:first", snooze: "save:snooze", undo: "save:undo", sync: "save:sync", tok: "save:tok"};
 const langs = () => { try{ return Object.keys(LANGS); }catch(e){ return ["english", "français", "dansk"]; } };

@@ -1563,7 +1563,8 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "data/stories/en/play.json", "data/stories/en/colours.json", "data/stories/en/cake.json", "data/stories/en/night.json",
   "data/stories/fr/play.json", "data/stories/fr/colours.json", "data/stories/fr/cake.json", "data/stories/fr/night.json",
   "data/stories/da/play.json", "data/stories/da/colours.json", "data/stories/da/cake.json", "data/stories/da/night.json",
-  "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png"];
+  "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
+  "js/army.js", "data/army/en.json", "data/army/fr.json", "data/army/da.json", "img/games/soldados.png"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
 const OFF_IMG_MB = 8, OFF_IMG_N = 996;            /* dibujos y personajes, con img/fam2 (los que ya están no se vuelven a pedir) */
@@ -2446,10 +2447,14 @@ async function getShop(){
 }
 /* un personaje o animal de cuerpo entero; sin dibujo (o si no carga) se queda su emoji */
 const pjHas = id => !!(SPR && SPR[id]);
+/* el dibujo de un personaje: img/pj/<id>.png, o el que dé un módulo con PJ_SRC[id](it) → URL (el soldado de js/army.js
+   cambia con el idioma y el rango) */
+const PJ_SRC = {};
+function pjSrc(it){ try{ const f = PJ_SRC[it.id], s = typeof f === "function" && f(it); if(s) return s; }catch(e){} return `img/pj/${it.id}.png`; }
 function pjImg(it, cls){
   if(!it) return "";
   if(!pjHas(it.id)) return it.e || "";
-  return `<img class="pj${cls ? " " + cls : ""}" src="img/pj/${it.id}.png" alt="" draggable="false" data-e="${it.e || ""}">`;
+  return `<img class="pj${cls ? " " + cls : ""}" src="${pjSrc(it)}" alt="" draggable="false" data-e="${it.e || ""}">`;
 }
 document.addEventListener("error", e => {
   const im = e.target; if(!im || im.tagName !== "IMG" || !im.classList.contains("pj")) return;
@@ -2695,6 +2700,7 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/buddy.js?v=23"></script>
 <script src="js/album.js?v=23"></script>
 <script src="js/rewards.js?v=23"></script>
+<script src="js/army.js?v=23"></script>
 <script src="js/save.js?v=23"></script>
 <script src="js/sync.js?v=23"></script>
 <script src="js/gate.js?v=23"></script>
