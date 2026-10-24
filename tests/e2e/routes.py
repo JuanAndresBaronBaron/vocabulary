@@ -75,6 +75,10 @@ def all_routes(only=None):
 add("palabras", "#/palabras", "Aprender › Palabras (temas, las 3000 y avanzado)")
 # F4a: Oído de lince (js/lince.js), el juego nuevo de Juegos
 add("juego-lince", "#/juegos/lince", "Juego Oído de lince (inicio de partida)")
+# Juegos en grupo (js/party.js): El impostor (elegir modo; en grupo, los nombres) y Ordenar por grupo
+add("juego-impostor", "#/juegos/impostor", "Juego El impostor (elegir: en grupo o solo)")
+add("juego-impostor-grupo", "#/juegos/impostor?m=grupo", "Juego El impostor en grupo (los nombres)")
+add("juego-ordenar", "#/juegos/ordenar", "Juego Ordenar por grupo (inicio de partida)")
 # F4c: Premios › Mi zorro (js/rewards.js): el personaje y sus trajes
 add("mizorro", "#/mizorro", "Premios › Mi zorro (personaje y trajes)")
 # F5c: el Buzón del tío (js/mailbox.js): grabar, contestar (tras la Puerta de mayores) y una carta que llega por enlace

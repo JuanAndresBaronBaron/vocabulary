@@ -293,6 +293,14 @@ compartida no responde).
   propia `dialog#cfg`, sin internet las del aparato y el reintento (también del ▶), códigos de otros idiomas (`es-ES`),
   Chrome en Android (`u.lang`, un acento por fila) y el teclado. Con `VOCES_SHOTS=1` guarda capturas en
   `/mnt/project-files/rediseno/capturas/voces/`.
+- `test_juegos_grupo.py` (`js/party.js` y `data/party.json`; `say`/`sayP` espiados): los datos sacados del vocabulario
+  (misma palabra e IPA que en `data/<d>.json`, dibujos, temas de Juegos), las dos tarjetas tras «Oído de lince»; El
+  impostor en grupo (nombres que se guardan solos en `"party:st"`, fuera de la exportación; un impostor; el papel no suena
+  solo; «Tapar y pasar»; 3 rondas sin que empiece el impostor; votar; última oportunidad entre 4 dibujos; ★★★ o ★★ y
+  monedas), solo (el zorro y sus amigos con palabras e IPA, una opción buena de 3, el impostor de la app con palabras
+  de otra cosa de su familia; con `Math.random` fijo, también el niño de impostor que adivina la palabra) y Ordenar
+  (cestas con nombre, IPA, dibujo y altavoz; tocar y arrastrar; gris con ✗ y la buena iluminada al segundo fallo;
+  estrellas, récord «N a la primera» y monedas), en francés y danés, y capturas en `capturas/juegos-grupo`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

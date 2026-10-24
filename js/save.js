@@ -39,7 +39,8 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
      de js/phrases.js) · vocab:voice (la voz elegida para cada idioma, {english, français, dansk: nombre}: cada aparato
      trae voces distintas; voice:<lang> queda de respaldo) · parrot:st (el loro eco: el mes en que se propuso la cápsula
      en cada idioma, las monedas de hoy y las últimas palabras; js/parrot.js) · hunt:st (el Cazador de cosas: las
-     monedas de hoy y cuántos colores lleva cazados; js/hunter.js).
+     monedas de hoy y cuántos colores lleva cazados; js/hunter.js) · party:st (El impostor y Ordenar por grupo: los
+     últimos nombres de los jugadores y los últimos casos y grupos, para no repetir; js/party.js).
      Fuera de localStorage, y nunca en la partida: la base IndexedDB "vocab-media-user" (grabaciones del Buzón, la
      cápsula del tiempo del loro con kind "capsule" y los recortes de «Mi casa» del Cazador con kind "photo" y src
      "hunt"; js/mailbox.js, window.vocabMedia).
@@ -61,7 +62,7 @@ const EXACT = {
   cuentos: "o",
 };
 const PER_LANG = {"srs:": "o", "map:": "o", "voice:": "*", "album:seen:": "*", "album:done:": "*", "album:uniq:": "*", "album:orph:": "*"};
-const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft", "vocab:sc", "phrase:day", "vocab:voice", "parrot:st", "hunt:st"];
+const DEVICE_ONLY = ["offline", "vocab:ui", "vocab:lsdraft", "vocab:sc", "phrase:day", "vocab:voice", "parrot:st", "hunt:st", "party:st"];
 const META = {last: "save:last", first: "save:first", snooze: "save:snooze", undo: "save:undo", sync: "save:sync", tok: "save:tok"};
 const langs = () => { try{ return Object.keys(LANGS); }catch(e){ return ["english", "français", "dansk"]; } };
 /* tipo de una clave de la app, o null si no es nuestra */
