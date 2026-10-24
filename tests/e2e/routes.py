@@ -91,6 +91,9 @@ add("juegos-frases-cena", "#/frases/cena", "Jugar › La frase de la cena (la de
 # F6i: los Cuentos del zorro (js/stories.js): la estantería y un cuento (el primero, siempre abierto) en modo foco
 add("juegos-cuentos", "#/cuentos", "Jugar › Cuentos del zorro (la estantería: el primero libre, los demás con candado)")
 add("juegos-cuento", "#/cuento/en-play", "Jugar › Cuentos › The Fox Wants to Play (la portada, en modo foco)")
+# F6k: el Cazador de cosas (js/hunter-boot.js, js/hunter.js): la frase de antes de la cámara (modo foco) y «Mi casa» del álbum
+add("juegos-cazador", "#/cazador", "Jugar › Cazador de cosas (antes de la cámara: una frase y un botón; modo foco)")
+add("album-casa", "#/album/casa", "Jugar › Álbum › Mi casa (las fotos del Cazador; vacía en la partida sembrada)")
 # F4d: las temporadas (js/season.js). La partida sembrada es de marzo (sin temporada): ?season=halloween la fuerza en
 # esta sesión, así que van las últimas (lo que venga detrás en la misma página ve Halloween)
 add("temporada", "#/temporada?season=halloween", "Hoy › Truco o trato (Halloween forzado)")

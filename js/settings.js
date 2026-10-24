@@ -437,6 +437,7 @@ function adultHtml(){
         <input type="checkbox" role="switch" class="st-sw" id="aj-ipa" ${ipa ? "checked" : ""}></label><div id="aj-vh">${voiceHelp()}</div></div></section>
     ${window.vocabMailbox && typeof vocabMailbox.adultHtml === "function" ? vocabMailbox.adultHtml() : ""}
     ${window.vocabCalls && typeof vocabCalls.adultHtml === "function" ? vocabCalls.adultHtml() : ""}
+    ${window.vocabHunter && typeof vocabHunter.adultHtml === "function" ? vocabHunter.adultHtml() : ""}
     ${window.vocabMailbox && typeof vocabMailbox.mediaHtml === "function" ? vocabMailbox.mediaHtml() : ""}
     <section class="st-sec" aria-labelledby="aj-c-h"><h3 class="st-h" id="aj-c-h">Créditos</h3><div class="st-g ics">
       <p class="st-cred">${credits()}</p>
