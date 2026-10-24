@@ -15,23 +15,9 @@
    "img": "img/om_1F303.png"
   },
   {
-   "w": "moon",
-   "id": "w09|luna",
-   "img": "img/om_1F319.png"
-  },
-  {
-   "w": "sky",
-   "id": "w09|cielo"
-  },
-  {
    "w": "cow",
    "id": "animales|Vaca",
    "img": "img/9d5456806f.png"
-  },
-  {
-   "w": "sleep",
-   "id": "w28|dormir",
-   "img": "img/om_1F634.png"
   },
   {
    "w": "pig",
@@ -49,16 +35,6 @@
    "img": "img/om_1F6CF.png"
   },
   {
-   "w": "tired",
-   "id": "w31|cansado",
-   "img": "img/om_1F62B.png"
-  },
-  {
-   "w": "count",
-   "id": "w29|contar",
-   "img": "img/om_1F522.png"
-  },
-  {
    "w": "sheep",
    "id": "animales|Oveja",
    "img": "img/f1dcc1b9cc.png"
@@ -74,10 +50,6 @@
    "img": "img/om_1F4A1.png"
   },
   {
-   "w": "warm",
-   "id": "w31|cálido, templado"
-  },
-  {
    "w": "milk",
    "id": "w03|leche",
    "img": "img/om_1F95B.png"
@@ -86,21 +58,6 @@
    "w": "story",
    "id": "w13|historia, cuento",
    "img": "img/om_1F4D6.png"
-  },
-  {
-   "w": "drink",
-   "id": "w28|beber",
-   "img": "img/om_1F964.png"
-  },
-  {
-   "w": "read",
-   "id": "w28|leer",
-   "img": "img/om_1F4D6.png"
-  },
-  {
-   "w": "good",
-   "id": "w33|bueno",
-   "img": "img/om_1F44D.png"
   }
  ],
  "gloss": {
@@ -329,6 +286,10 @@
    "es": "caliente",
    "id": "w31|cálido, templado",
    "ipa": "/wɔːm/"
+  },
+  "tastes": {
+   "es": "sabe (a)",
+   "ipa": "/teɪsts/"
   }
  },
  "pages": [
@@ -397,8 +358,8 @@
       "also": [
        "img/om_1F95B.png"
       ],
-      "t": "The fox drinks warm milk. It is very good.",
-      "es": "El zorro bebe leche caliente. Está muy rica."
+      "t": "The fox drinks warm milk. It tastes very good.",
+      "es": "El zorro bebe leche caliente. Sabe muy rica."
      },
      {
       "img": "img/pj/zorro.png",

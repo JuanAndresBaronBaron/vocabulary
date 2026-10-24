@@ -129,31 +129,28 @@
    }
   },
   {
-   "say": "Et toi, qui est avec toi aujourd'hui ?",
-   "es": "Y tú, ¿quién está contigo hoy?",
+   "say": "Et toi, tu préfères jouer avec un chat, un chien ou un lapin ?",
+   "es": "Y tú, ¿con qué prefieres jugar: con un gato, un perro o un conejo?",
    "a": [
     {
-     "r": "w01|mamá",
-     "img": "img/om_1F469.png",
+     "r": "animales|Gato",
      "re": {
-      "say": "Ta maman ! Dis bonjour à ta maman de ma part !",
-      "es": "¡Tu mamá! ¡Saluda a tu mamá de mi parte!"
+      "say": "Un chat ! Les chats sont tout doux.",
+      "es": "¡Un gato! Los gatos son muy suaves."
      }
     },
     {
-     "r": "w01|papá",
-     "img": "img/om_1F468.png",
+     "r": "animales|Perro",
      "re": {
-      "say": "Ton papa ! Dis bonjour à ton papa de ma part !",
-      "es": "¡Tu papá! ¡Saluda a tu papá de mi parte!"
+      "say": "Un chien ! Ouaf, ouaf !",
+      "es": "¡Un perro! ¡Guau, guau!"
      }
     },
     {
-     "r": "familia|Abuela",
-     "img": "img/calls/abuela.png",
+     "r": "animales|Conejo",
      "re": {
-      "say": "Ta grand-mère ! Dis-lui bonjour de ma part !",
-      "es": "¡Tu abuela! ¡Salúdala de mi parte!"
+      "say": "Un lapin ! Comme Pompon !",
+      "es": "¡Un conejo! ¡Como Pompón!"
      }
     }
    ]

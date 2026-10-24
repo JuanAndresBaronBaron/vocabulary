@@ -16,7 +16,8 @@
    - G.hint(el, {id, text, gesture:"swipe"|"left"|"right"|"hold"|"drag"|"tap", max:3, delay, side}) → {close()} | null:
        globo sólido pegado a el (encima; con side:"bottom", debajo si cabe sobre la barra de pestañas), con una mano
        que hace el gesto (3 veces) y ≤5 palabras, y ✕. Una pista por pantalla y
-       sesión; nunca con html[data-gm-play], dentro de [data-no-hint] ni en una hoja abierta. Cuenta las veces en
+       sesión; nunca con html[data-gm-play], con un menú abierto (html[data-cmenu]; G.hideHint() quita la que se ve),
+       dentro de [data-no-hint] ni en una hoja abierta. Cuenta las veces en
        localStorage "vocab:ui" → {hints: {id: n}} (sin tocar lo demás). G.learned(id) la retira para siempre; lo hacen
        solos la ✕ y usar el gesto en ese elemento.
    - G.swallowClick(ms = 350, x, y): se traga el clic fantasma que llega justo después de un gesto, donde acabó (x, y);
@@ -350,7 +351,7 @@ const SAY = {swipe: "Desliza para seguir", left: "Desliza a la izquierda", right
 const HAND = `<svg viewBox="0 0 256 256" aria-hidden="true"><path fill="currentColor" d="M224,104v50.93c0,46.2-36.85,84.55-83,85.06A83.71,83.71,0,0,1,80.6,215.4C58.79,192.33,34.15,136,34.15,136a16,16,0,0,1,6.53-22.23c7.66-4,17.1-.84,21.4,6.62l21,36.44a6.09,6.09,0,0,0,6,3.09l.12,0A8.19,8.19,0,0,0,96,151.74V32a16,16,0,0,1,16.77-16c8.61.4,15.23,7.82,15.23,16.43V104a8,8,0,0,0,8.53,8,8.17,8.17,0,0,0,7.47-8.25V88a16,16,0,0,1,16.77-16c8.61.4,15.23,7.82,15.23,16.43V112a8,8,0,0,0,8.53,8,8.17,8.17,0,0,0,7.47-8.25v-7.28c0-8.61,6.62-16,15.23-16.43A16,16,0,0,1,224,104Z"/></svg>`;
 const XMARK = `<svg viewBox="0 0 256 256" aria-hidden="true"><path fill="currentColor" d="M208.49,191.51a12,12,0,0,1-17,17L128,145,64.49,208.49a12,12,0,0,1-17-17L111,128,47.51,64.49a12,12,0,0,1,17-17L128,111l63.51-63.52a12,12,0,0,1,17,17L145,128Z"/></svg>`;
 let CUR = null;
-const banned = el => ROOT.hasAttribute("data-gm-play") || !el.isConnected || !!el.closest("[data-no-hint]") || !!el.closest("dialog[open]");
+const banned = el => ROOT.hasAttribute("data-gm-play") || ROOT.hasAttribute("data-cmenu") || !el.isConnected || !!el.closest("[data-no-hint]") || !!el.closest("dialog[open]");
 function visibleRect(el){
   const r = el.getBoundingClientRect();
   return r.width > 0 && r.height > 0 && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth ? r : null;
@@ -428,6 +429,8 @@ function hint(el, o = {}){
   H.timers.push(setTimeout(show, o.delay >= 0 ? o.delay : 500));
   return {close: () => close(false), get shown(){ return !!H.node && !H.closed; }};
 }
+/* la pista que se ve se va (sin darla por aprendida): la llama js/ctxmenu.js al abrir un menú */
+function hideHint(){ if(CUR) try{ CUR.close(false); }catch(e){} }
 function learned(id){
   if(!id) return;
   hintSet(String(id), LEARNED);
@@ -446,6 +449,6 @@ function learnOn(el){
   }catch(e){}
 }
 
-window.G = {swipe, hold, drag, haptic, hint, learned, swallowClick,
+window.G = {swipe, hold, drag, haptic, hint, hideHint, learned, swallowClick,
   get T(){ return {edge: EDGE, axis: AXIS, trigger: TRIG, velocity: VTRIG, hold: HOLD_MS, tolerance: TOL, ghost: GHOST_MS}; }};
 })();

@@ -9,10 +9,13 @@
      se mantiene pulsado y se suelta (8 s como mucho). MediaRecorder con los mismos tipos y el mismo trato del permiso
      que js/mailbox.js (audio/mp4 en Safari, webm en Chrome). Las pistas del micrófono se paran al acabar y al salir.
    · El loro lo repite con voz aguda (Web Audio: AudioBufferSourceNode con playbackRate ECHO_RATE sobre el trozo con
-     voz) y luego suena el audio nativo. Dos ondas en <canvas>, «Tu voz» y «Así se dice», con la misma escala de tiempo.
+     voz) y luego suena el audio nativo. Dos ondas en <canvas>, «Tu voz» y «Así se dice», con la misma escala de tiempo;
+     mientras graba, «Tu voz» pinta en vivo las barras que avanzan (drawLive, con esa escala) y, tras 1 s sin oír
+     nada, sale en gris «Habla un poco más fuerte» (sin cortar la grabación).
    · De 1 a 3 estrellas comparando la duración y el volumen (y la forma de la onda) con el nativo, sin red y sin
-     reconocimiento de voz; nunca menos de 1. Monedas con award(): lo que suben las estrellas de esa palabra ese día,
-     DAY_CAP al día como mucho, y solo si se le oyó (un silencio no paga).
+     reconocimiento de voz; nunca menos de 1. Los textos lo dicen así («¡Te he oído! Suena muy parecido», «¡Casi
+     igual!»): no corrigen la pronunciación. Monedas con award(): PAY por grabar cada palabra (una vez al día por
+     palabra, no por estrellas), DAY_CAP al día como mucho, y solo si se le oyó (un silencio no paga).
    · Sin micrófono o sin permiso: el loro dice la palabra, el niño la repite en voz alta y sigue («¡Ya la dije!»).
    · Safari: el AudioContext se crea o se reanuda dentro del toque (pointerup, click, keydown, touchend); para decodificar
      sin él, OfflineAudioContext; los URL.createObjectURL se liberan siempre.
@@ -20,14 +23,15 @@
    fijas (CAP); #/loro/capsula la abre directamente. Cada palabra oída se guarda en IndexedDB con window.vocabMedia (de
    js/mailbox.js, base "vocab-media-user", sin tocar su versión) como {id: "cap-<ab>-<AAAA-MM>-<i>", kind: "capsule", t,
    type, dur, buf (ArrayBuffer), lang, month, i, ref, w} (grabar otra vez la misma la cambia) y al guardar se pide
-   navigator.storage.persist(). En Premios (js/rewards.js, hueco #rw-voz) la tarjeta «Tu voz en el tiempo» deja oír
+   vocabMedia.persist() (no pregunta nada: si ya está guardado para siempre, o en Firefox, que lo pregunta con un aviso,
+   no se pide). En Premios (js/rewards.js, hueco #rw-voz) la tarjeta «Tu voz en el tiempo» deja oír
    el mes más antiguo frente al más nuevo («Tú en octubre» · «Tú en enero») y cada palabra antes y ahora. «Borrar
    grabaciones y fotos» de Para mayores (js/mailbox.js) borra la base entera, con la cápsula.
    Guardado: localStorage "parrot:st", solo de este aparato (DEVICE_ONLY en js/save.js; nunca va en la partida):
      {v: 1, cap: {en|fr|da: "AAAA-MM" del último mes en que se propuso}, day: {d: "AAAA-MM-DD", c: monedas de hoy,
-     w: {ref: estrellas ya pagadas hoy}}, last: [refs de las últimas palabras]}. Lo que se graba para practicar se queda
+     w: {ref: estrellas de la vez que se pagó hoy (≥ 1 = ya pagada)}}, last: [refs de las últimas palabras]}. Lo que se graba para practicar se queda
      en memoria y se olvida al cambiar de palabra.
-   API: window.vocabParrot = {state, CAP, KEY, DAY_CAP, ECHO_RATE, month(), analyze(AudioBuffer), stats(frames, paso),
+   API: window.vocabParrot = {state, CAP, KEY, DAY_CAP, PAY, ECHO_RATE, month(), analyze(AudioBuffer), stats(frames, paso),
      score(yo, nativo), capRecs(ab?), paintCapsule(el), offer(), next()}. */
 (() => {
 "use strict";
@@ -304,7 +308,7 @@ async function sayNative(w, tok){
 /* st: idle | ask (esperando al micrófono) | rec | wait (leyendo lo grabado) | echo | native | done
    mic: "" (se puede grabar) | none (el aparato no graba) | denied | nodev | fail */
 const S = {st: "idle", mic: "", w: null, list: [], tok: 0, me: null, nat: null, res: null, mode: "free", capW: [], capI: 0, capM: "", capHave: new Set(), said: false, cheer: false};
-const R = {tok: 0, mr: null, stream: null, chunks: [], type: "", t0: 0, dur: 0, timer: 0, guard: 0, raf: 0, hold: false, up: false, an: null, src: null, sink: null, buf: null, lv: [], voiced: false, lastV: 0};
+const R = {tok: 0, mr: null, stream: null, chunks: [], type: "", t0: 0, dur: 0, timer: 0, guard: 0, raf: 0, hold: false, up: false, an: null, src: null, sink: null, buf: null, lv: [], voiced: false, lastV: 0, bars: [], bstep: 0, low: false};
 let PERM = "";
 
 /* ---------- grabar (como js/mailbox.js) ---------- */
@@ -360,13 +364,17 @@ async function startRec(hold){
   try{ mr.start(250); }catch(e){ stopStream(stream); R.mr = null; R.stream = null; session("auto"); S.mic = "fail"; S.st = "idle"; paintAll(); return; }
   if(R.up) R.hold = false;   /* soltó mientras esperaba al micrófono: ahora se para tocando (o solo, al callar) */
   R.t0 = now(); R.lv = []; R.voiced = false; R.lastV = 0;
-  meter(stream);
   set("rec"); live("Te escucho");
+  meter(stream);   /* (después de "rec": tick() solo mide grabando) */
   R.timer = setTimeout(stopRec, R.hold ? HOLD_MAX : TAP_MAX);
 }
 /* el nivel del micrófono: el aro del botón y parar solo al callar */
 function meter(stream){
-  R.an = null;
+  R.an = null; R.bars = []; R.low = false;
+  /* las barras en vivo de «Tu voz», con la escala de tiempo del resultado (la del nativo; 0,4 s como mínimo, × 1,1) */
+  const cv = $id("lr-cv-me");
+  if(cv){ const {w, dpr} = fit(cv), nat = S.nat && S.nat.an && S.nat.an.heard ? S.nat.an : null;
+    R.bstep = 5 * dpr / (w / (Math.max(nat ? nat.dur : 0, .4) * 1.1)); }   /* segundos por barra (3 px + 2 de hueco) */
   const c = AC || actx();
   if(c) try{
     const src = c.createMediaStreamSource(stream), an = c.createAnalyser(), g = c.createGain();
@@ -379,7 +387,7 @@ function meter(stream){
 function unmeter(){
   cancelAnimationFrame(R.raf);
   for(const n of [R.src, R.an, R.sink]) if(n) try{ n.disconnect(); }catch(e){}
-  R.src = R.an = R.sink = null;
+  R.src = R.an = R.sink = null; R.bstep = 0; R.bars = []; R.low = false;
   const rb = $id("lr-rb"); if(rb) rb.style.removeProperty("--lv");
 }
 function tick(){
@@ -394,6 +402,10 @@ function tick(){
   R.lv.push([t, v]);
   if(v >= VOICE){ R.voiced = true; R.lastV = t; }
   const rb = $id("lr-rb"); if(rb) rb.style.setProperty("--lv", Math.min(1, v * 6).toFixed(3));
+  if(R.bstep > 0){ const i = Math.floor(t / 1000 / R.bstep); if(!(R.bars[i] >= v)) R.bars[i] = v; drawLive(); }
+  /* 1 s sin oír nada: «Habla un poco más fuerte», en gris, sin cortar la grabación */
+  const low = t - (R.voiced ? R.lastV : 0) > 1000;
+  if(low !== R.low){ R.low = low; paintCtl(); if(low) live("Habla un poco más fuerte"); }
   if(!R.hold && R.voiced && t - R.lastV > SIL_MS && t > 600){ stopRec(); return; }
   R.raf = requestAnimationFrame(tick);
 }
@@ -450,12 +462,15 @@ function halt(){
 }
 
 /* ---------- estrellas y monedas ---------- */
-const MSG = ["", "¡Bien hecho!", "¡Muy bien!", "¡Genial! Lo dices muy bien."];
+/* sinceros: las estrellas comparan duración, volumen y forma con el audio (no corrigen la pronunciación) */
+const MSG = ["", "¡Bien hecho!", "¡Casi igual!", "¡Te he oído! Suena muy parecido"];
+const PAY = 2;                      /* monedas por grabar una palabra (una vez al día por palabra) */
 function pay(stars, from){
   const s = load(), d = dayKey(new Date()), ref = S.w.ref;
   if(s.day.d !== d) s.day = {d, c: 0, w: {}};
-  const had = s.day.w[ref] || 0, add = Math.max(0, Math.min(stars - had, DAY_CAP - s.day.c));
-  if(stars > had) s.day.w[ref] = stars;
+  /* paga por grabar (si se le oyó), no por las estrellas: una vez por palabra y día, con el tope de DAY_CAP al día */
+  const had = s.day.w[ref] || 0, add = had ? 0 : Math.max(0, Math.min(PAY, DAY_CAP - s.day.c));
+  if(!had) s.day.w[ref] = Math.max(1, Math.min(3, stars | 0));
   s.day.c += add; save(s);
   if(add > 0) award(add, "", false, from || null);
   return add;
@@ -671,7 +686,8 @@ function paintCtl(){
   if(bz && st !== "rec") rb.setAttribute("aria-disabled", "true"); else rb.removeAttribute("aria-disabled");
   const icon = st === "rec" ? IC("stop", "fill", 38) : st === "echo" || st === "native" ? IC("speaker-high", "fill", 38) : IC("microphone", "fill", 40);
   const inn = $id("lr-rb-in"); if(inn && inn.dataset.ic !== (st === "rec" ? "s" : st === "echo" || st === "native" ? "p" : "m")){ inn.innerHTML = icon; inn.dataset.ic = st === "rec" ? "s" : st === "echo" || st === "native" ? "p" : "m"; }
-  rl.textContent = st === "ask" ? "Esperando al micrófono…" : st === "rec" ? (R.hold ? "Te escucho… suelta al acabar" : "Te escucho… toca para parar")
+  rl.classList.toggle("is-low", st === "rec" && R.low);
+  rl.textContent = st === "ask" ? "Esperando al micrófono…" : st === "rec" ? (R.low ? "Habla un poco más fuerte" : R.hold ? "Te escucho… suelta al acabar" : "Te escucho… toca para parar")
     : st === "wait" ? "Un momento…" : st === "echo" ? "El loro lo repite…" : st === "native" ? "Así se dice…" : done ? "Otra vez" : "Toca y dilo";
   note.hidden = nm || PERM === "granted" || !(st === "idle" || st === "ask");
   /* un solo botón principal: grabar; con el resultado (o sin micrófono), seguir */
@@ -708,6 +724,8 @@ function fit(cv){
 }
 function drawWaves(){
   const a = $id("lr-cv-me"), b = $id("lr-cv-nat"); if(!a || !b) return;
+  if(S.st === "rec" && R.bstep) return;   /* grabando: las barras en vivo (drawLive) */
+  delete a.dataset.live;
   const me = S.me && S.me.an && S.me.an.heard ? S.me.an : null, nat = S.nat && S.nat.an && S.nat.an.heard ? S.nat.an : null;
   const T = Math.max(me ? me.dur : 0, nat ? nat.dur : 0, .4) * 1.1;   /* la misma escala para las dos */
   drawOne(a, me, T, PROG.me);
@@ -738,6 +756,22 @@ function drawOne(cv, an, T, p){
   }
   g.globalAlpha = 1;
   cv.dataset.bars = String(k);
+}
+/* mientras graba: las barras que avanzan (como Notas de voz); si no caben, se ven las últimas */
+function drawLive(){
+  const cv = $id("lr-cv-me"); if(!cv || !R.bstep) return;
+  const {w, h, dpr} = fit(cv), g = cv.getContext("2d"); if(!g) return;
+  g.clearRect(0, 0, w, h);
+  g.fillStyle = getComputedStyle(cv).color;
+  const bw = 3 * dpr, gap = 2 * dpr, mid = h / 2, n = R.bars.length, fitN = Math.max(1, Math.floor((w + gap) / (bw + gap))), first = Math.max(0, n - fitN);
+  let k = 0;
+  for(let i = first; i < n; i++){
+    const v = R.bars[i] || 0, hh = Math.max(2 * dpr, Math.pow(Math.min(1, v * 5), .7) * (h - 4 * dpr));
+    g.globalAlpha = v >= VOICE ? 1 : .35;
+    rr(g, (i - first) * (bw + gap), mid - hh / 2, bw, hh, bw / 2); k++;
+  }
+  g.globalAlpha = 1;
+  cv.dataset.bars = String(k); cv.dataset.live = "1";
 }
 function rr(g, x, y, w, h, r){
   r = Math.min(r, w / 2, h / 2);
@@ -1003,6 +1037,7 @@ ${DARK(".lr-wl.me", "color:#7DBBFF")}
 .lr-rb:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 .lr-rl{margin:0;min-height:1.3em;font:600 var(--fs-sub)/1.3 var(--f-text);color:var(--label)}
 .lr-rl[hidden]{display:none}
+.lr-rl.is-low{color:var(--label2)}
 .lr-info{display:flex;align-items:flex-start;gap:8px;width:100%;box-sizing:border-box;margin:0;padding:12px 16px;border-radius:var(--r-md);background:var(--fill2);color:var(--label);font:400 var(--fs-sub)/1.4 var(--f-text);text-align:left}
 .lr-info[hidden]{display:none}
 .lr-info>.ico{flex:none;margin-top:2px;color:var(--label2)}
@@ -1082,6 +1117,6 @@ W.vocabParrot = Object.freeze({
   get state(){ return {st: S.st, mic: S.mic, mode: S.mode, word: S.w ? S.w.word : "", ref: S.w ? S.w.ref : "", stars: S.res ? S.res.stars : 0,
     heard: !!(S.res && S.res.heard), paid: S.res ? S.res.paid || 0 : 0, capI: S.capI, capM: S.capM, capHave: [...S.capHave].sort(), perm: PERM,
     me: S.me && S.me.an ? {dur: S.me.an.dur, db: S.me.an.db, heard: S.me.an.heard} : null, nat: S.nat && S.nat.an ? {dur: S.nat.an.dur, db: S.nat.an.db} : null}; },
-  CAP, KEY, DAY_CAP, ECHO_RATE, month, analyze, stats, score, capRecs, paintCapsule, offer, next,
+  CAP, KEY, DAY_CAP, PAY, ECHO_RATE, month, analyze, stats, score, capRecs, paintCapsule, offer, next,
 });
 })();

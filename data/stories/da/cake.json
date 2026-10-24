@@ -15,11 +15,6 @@
    "img": "img/d98dc83bdf.png"
   },
   {
-   "w": "at bage",
-   "id": "w28|hornear",
-   "img": "img/om_1F956.png"
-  },
-  {
    "w": "en kage",
    "id": "w03|pastel, tarta",
    "img": "img/om_1F382.png"
@@ -35,10 +30,6 @@
    "img": "img/f501d7335c.png"
   },
   {
-   "w": "at give",
-   "id": "w24|dar"
-  },
-  {
    "w": "et æg",
    "id": "w03|huevo",
    "img": "img/om_1F95A.png"
@@ -52,15 +43,6 @@
    "w": "en mælk",
    "id": "w03|leche",
    "img": "img/om_1F95B.png"
-  },
-  {
-   "w": "en skål",
-   "id": "w03|cuenco, bol",
-   "img": "img/om_1F963.png"
-  },
-  {
-   "w": "at blande",
-   "id": "w28|mezclar"
   },
   {
    "w": "et æble",
@@ -86,21 +68,6 @@
    "w": "en gris",
    "id": "animales|Cerdo",
    "img": "img/98b47c184e.png"
-  },
-  {
-   "w": "at spise",
-   "id": "w28|comer",
-   "img": "img/om_1F374.png"
-  },
-  {
-   "w": "sammen",
-   "id": "w38|juntos",
-   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
-  },
-  {
-   "w": "glad",
-   "id": "w32|feliz",
-   "img": "img/om_1F600.png"
   }
  ],
  "gloss": {
@@ -116,10 +83,10 @@
    "ipa": "/ˈbæːjɐ/",
    "img": "img/om_1F956.png"
   },
-  "blander": {
-   "es": "mezcla",
-   "id": "w28|mezclar",
-   "ipa": "/ˈblanɐ/"
+  "rører": {
+   "es": "remueve",
+   "id": "a70|remover, agitar",
+   "ipa": "/ˈʁœːɐ/"
   },
   "chokolade": {
    "es": "chocolate",
@@ -381,8 +348,8 @@
    "also": [
     "img/om_1F963.png"
    ],
-   "t": "Han blander og blander.",
-   "es": "Mezcla y mezcla."
+   "t": "Han rører og rører.",
+   "es": "Remueve y remueve."
   }
  ],
  "choice": {

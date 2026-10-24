@@ -15,10 +15,6 @@
    "img": "img/d98dc83bdf.png"
   },
   {
-   "w": "faire",
-   "id": "w24|hacer, fabricar"
-  },
-  {
    "w": "le gâteau",
    "id": "w03|pastel, tarta",
    "img": "img/om_1F382.png"
@@ -34,10 +30,6 @@
    "img": "img/f501d7335c.png"
   },
   {
-   "w": "donner",
-   "id": "w24|dar"
-  },
-  {
    "w": "l'œuf",
    "id": "w03|huevo",
    "img": "img/om_1F95A.png"
@@ -51,19 +43,6 @@
    "w": "le lait",
    "id": "w03|leche",
    "img": "img/om_1F95B.png"
-  },
-  {
-   "w": "mettre",
-   "id": "w24|poner"
-  },
-  {
-   "w": "le bol",
-   "id": "w03|cuenco, bol",
-   "img": "img/om_1F963.png"
-  },
-  {
-   "w": "mélanger",
-   "id": "w28|mezclar"
   },
   {
    "w": "la pomme",
@@ -89,25 +68,6 @@
    "w": "le cochon",
    "id": "animales|Cerdo",
    "img": "img/98b47c184e.png"
-  },
-  {
-   "w": "prêt, prête",
-   "id": "w35|listo, preparado"
-  },
-  {
-   "w": "manger",
-   "id": "w28|comer",
-   "img": "img/om_1F374.png"
-  },
-  {
-   "w": "ensemble",
-   "id": "w38|juntos",
-   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
-  },
-  {
-   "w": "content, contente",
-   "id": "w32|contento",
-   "img": "img/om_1F642.png"
   }
  ],
  "gloss": {
