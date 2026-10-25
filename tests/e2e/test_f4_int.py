@@ -342,7 +342,7 @@ def _mz_ids(page):
 def test_farm_sells_farm_things_and_mizorro_outfits():
     """La pastilla de monedas abre la hoja de la tienda de la granja desde Hoy, Juegos, Álbum, Medallas y la temporada (va
     a #/granja y la abre) y en la granja la abre sin moverse; en Mi zorro no navega: baja hasta las piezas. La hoja tiene las 29 cosas de la granja y la
-    comida, ningún traje; Mi zorro, las 35 piezas de personajes, sombreros, gafas, juguetes y mascotas, ninguna de la
+    comida, ningún traje; Mi zorro, las 36 piezas de personajes (con el soldado), sombreros, gafas, juguetes y mascotas, ninguna de la
     granja. Comprar un animal en la hoja resta su precio una vez y sale en la escena sin volver a montarla; comprar un
     sombrero en Mi zorro resta una vez, se lo pone (arriba con saltito) y el personaje de la granja lo lleva. Sin errores."""
     probs = []
@@ -391,8 +391,8 @@ def test_farm_sells_farm_things_and_mizorro_outfits():
         sheet = page.evaluate(_SHEET_IDS)
         farm = page.evaluate("() => vocabShop.items('farm').map(x => x.id)")
         zorro = page.evaluate("() => vocabShop.items('zorro').map(x => x.id)")
-        if len(farm) != 29 or len(zorro) != 35:
-            probs.append(f"vocabShop: {len(farm)} cosas de la granja y {len(zorro)} trajes (se esperaban 29 y 35)")
+        if len(farm) != 29 or len(zorro) != 36:
+            probs.append(f"vocabShop: {len(farm)} cosas de la granja y {len(zorro)} trajes (se esperaban 29 y 36)")
         if sorted(sheet) != sorted(farm):
             probs.append(f"la hoja de la granja no tiene justo las cosas de la granja: sobran {sorted(set(sheet) - set(farm))}, faltan {sorted(set(farm) - set(sheet))}")
         if not page.locator("#fm-shop [data-fbuy]").count():
