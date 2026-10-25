@@ -1,0 +1,1319 @@
+{
+  "format": 1,
+  "id": "u11",
+  "n": 11,
+  "block": "successfactors",
+  "title": "Integration Center and Integration Suite",
+  "summary": "After this unit you can decide when SuccessFactors Integration Center is enough and when you need SAP Integration Suite, configure the SuccessFactors adapter for paging and retries, design exception handling, and explain how you monitor iFlows and alert on failures.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Checked on 2026-10-25. The SAP Help Portal blocks automated reading, so the SAP Integration Suite and Cloud Integration pages were read in SAP-docs/btp-integration-suite on GitHub, the source of those Help Portal pages (latest commit 22 October 2026, generated from the SAP documentation system). Sources link to the Help Portal page where its address was confirmed, and to the GitHub file otherwise.",
+    "The Integration Center guide on the SAP Help Portal could not be read. Integration Center facts come from SAP KBAs 2590261, 2742107, 2798716, 3087950, 3063887, 2670200 and 2701195, two SAP Learning lessons and the Feature Scope Description for SAP SuccessFactors Foundation.",
+    "Integration Center limits on 2026-10-25: KBA 2742107 says customers can schedule up to 100 daily jobs (50 before 2H 2025; SAP no longer accepts increase requests), jobs stop after 8 hours, CSV inbound up to 500 columns, SFTP port 22 only since 2H 2023, OData V2 API only. KBA 2798716: Multiple Executions Per Day every 1 or 2 hours, 3 to 12 runs, at most 5 such jobs. KBA 3063887: fewer than 500 events per hour for event-based jobs, REST endpoint within 30 seconds. KBA 3087950: do not copy an integration to run it at different frequencies, because this may lead to data inconsistency.",
+    "Event-triggered Integration Center jobs use the Intelligent Services wording of KBAs 2590261 and 3063887. unconfirmed: whether SAP Cloud Application Event Hub now replaces Intelligent Services Center for these triggers; none of the sources read for this unit says so.",
+    "SuccessFactors OData V2 receiver adapter as documented on 2026-10-25: default pagination Server Snapshot-Based, default page size 1000, Retry on Failure on by default (query: 429, 502, 503, 504 every 3 minutes, up to 5 times; create, update, delete: 412 and 429 once after 1 minute; upsert: 412 inner error with HTTP 200, and 429, once after 1 minute; read and batch: 429 every 3 minutes, up to 5 times). New options need the latest adapter version (Update Version).",
+    "SAP pages differ on the status after a caught exception: Define Exception Subprocess says the message processing log stays in an error state, while the Handle Exceptions design guideline says an exception subprocess that ends with an End Message event sets Completed (Error End: Failed; Escalation End: Escalated). The unit follows the design guideline, which describes each end event.",
+    "unconfirmed: the overall HTTP status code of an upsert in which some records fail. The scenario relies on the adapter page, which says an upsert can return the 412 inner error with HTTP 200, and on SAP's guideline for errors inside successful responses.",
+    "unconfirmed: an end date for Basic authentication on SuccessFactors APIs. The adapter pages still offer Basic and OAuth2 SAML Bearer Assertion, and the unit gives no date.",
+    "Log levels: Setting Log Levels recommends Debug only in a development or test environment and gives no such recommendation for Trace, so the unit says only that Trace switches back after 10 minutes and keeps the content for 1 hour by default.",
+    "JMS queues for the retry pattern are available in all SAP Integration Suite editions except the basic edition (SAP Note 2903776, as cited by the documentation).",
+    "Integration Center and Intelligent Services Center keep SAP's spelling of Center."
+  ],
+  "terms": [
+    {
+      "id": "t-integration-center",
+      "term": "Integration Center",
+      "ipa": "/ˌɪntɪˈɡreɪʃn ˈsentə/",
+      "say": "integration center",
+      "def": "A guided tool inside SuccessFactors that lets administrators build, run, schedule and monitor simple integrations. It sends SuccessFactors data to SFTP, REST or SOAP destinations, and it can load CSV files into SuccessFactors.",
+      "example": "An HR administrator builds a nightly Integration Center job that sends all open job requisitions as a CSV file to a job board's SFTP server.",
+      "src": "s8"
+    },
+    {
+      "id": "t-cloud-integration",
+      "term": "Cloud Integration (SAP Integration Suite)",
+      "ipa": "/ˌklaʊd ˌɪntɪˈɡreɪʃn/",
+      "say": "cloud integration",
+      "def": "The capability of SAP Integration Suite that runs integration flows on a tenant. It connects senders and receivers through adapters and processes each message with steps such as mapping and routing.",
+      "example": "The team uses Cloud Integration because each hire must reach payroll over SOAP and an IT account service on Cloud Run over REST.",
+      "src": "s30"
+    },
+    {
+      "id": "t-iflow",
+      "term": "Integration flow (iFlow)",
+      "ipa": "/ˌɪntɪˈɡreɪʃn fləʊ/",
+      "say": "integration flow, eye flow",
+      "def": "The model that defines how Cloud Integration processes a message: the senders and receivers, the adapters that connect them to the tenant, and the processing steps in between.",
+      "example": "The iFlow starts with a Timer, queries JobApplication through the SuccessFactors adapter, maps the data and calls the payroll system.",
+      "src": "s30"
+    },
+    {
+      "id": "t-sf-adapter",
+      "term": "SuccessFactors adapter",
+      "ipa": "/səkˈses ˌfæktəz əˈdæptə/",
+      "say": "SuccessFactors adapter",
+      "def": "The Cloud Integration adapter for SuccessFactors. It offers OData V2 (receiver only), SOAP (sender and receiver), and REST and OData V4 options, which support only Learning (LMS) OData V4 entities.",
+      "example": "The receiver channel uses the SuccessFactors adapter with OData V2 to upsert JobApplication records in Recruiting.",
+      "src": "s11"
+    },
+    {
+      "id": "t-compound-employee",
+      "term": "CompoundEmployee",
+      "ipa": "/ˈkɒmpaʊnd ɪmˈplɔɪiː/",
+      "say": "compound employee",
+      "def": "An entity of the SuccessFactors SOAP API that Cloud Integration reaches with the SuccessFactors SOAP adapter at /sfapi/v1/soap. Integration Center cannot use it, because Integration Center supports only the OData V2 API.",
+      "example": "The payroll extract needs CompoundEmployee, so the team builds it as an iFlow with the SOAP adapter, not in Integration Center.",
+      "src": "s13"
+    },
+    {
+      "id": "t-process-in-pages",
+      "term": "Process in Pages",
+      "ipa": "/ˈprəʊses ɪn ˈpeɪdʒɪz/",
+      "say": "process in pages",
+      "def": "An option of the SuccessFactors OData V2 and SOAP receivers that hands the query result to the flow one page at a time, using the page size you set. The adapter must sit in a local integration process that a Looping Process Call repeats while more records exist.",
+      "example": "With Process in Pages and a page size of 500, the iFlow maps and sends 500 job applications at a time instead of one huge message.",
+      "src": "s12"
+    },
+    {
+      "id": "t-looping-process-call",
+      "term": "Looping Process Call",
+      "ipa": "/ˈluːpɪŋ ˈprəʊses kɔːl/",
+      "say": "looping process call",
+      "def": "A step that runs a local integration process again and again while a condition is true, up to a maximum number of iterations. It is a do-until loop: it runs the process first and checks the condition afterwards.",
+      "example": "The Looping Process Call repeats the page read while the hasMoreRecords property contains true, with at most 999 iterations.",
+      "src": "s17"
+    },
+    {
+      "id": "t-http-session-reuse",
+      "term": "HTTP Session Reuse",
+      "ipa": "/ˌeɪtʃ tiː tiː ˈpiː ˈseʃn ˌriːˈjuːs/",
+      "say": "H T T P session reuse",
+      "def": "A runtime setting of an integration flow: None, On Exchange (one session per message) or On Integration Flow (one session for the whole flow). The SuccessFactors SOAP adapter and OData V2 pagination need On Exchange or On Integration Flow.",
+      "example": "Before the developer switches on snapshot paging, she sets HTTP Session Reuse to On Exchange in the runtime configuration.",
+      "src": "s16"
+    },
+    {
+      "id": "t-message-mapping",
+      "term": "Message mapping",
+      "ipa": "/ˈmesɪdʒ ˈmæpɪŋ/",
+      "say": "message mapping",
+      "def": "A graphical transformation that maps fields from a source message structure to a target structure, with standard functions such as arithmetic, Boolean, conversion and date functions, or custom script functions. You test it with Simulate and Display Queue.",
+      "example": "The mapping turns the date of birth from YYYY-MM-DD into the DD-MM-YYYY format that the payroll system expects.",
+      "src": "s27"
+    },
+    {
+      "id": "t-exception-subprocess",
+      "term": "Exception subprocess",
+      "ipa": "/ɪkˈsepʃn ˈsʌbˌprəʊses/",
+      "say": "exception subprocess",
+      "def": "A part of an integration process that catches the exceptions thrown in it and handles them. It always starts with an Error Start event, and its end event (End Message, Error End or Escalation End) decides the status you see in the monitor.",
+      "example": "When the SuccessFactors upsert fails, the exception subprocess logs the status code and the error body and ends with an Error End event, so the message is Failed.",
+      "src": "s18"
+    },
+    {
+      "id": "t-mpl",
+      "term": "Message processing log (MPL)",
+      "ipa": "/ˈmesɪdʒ ˈprəʊsesɪŋ lɒɡ/",
+      "say": "message processing log, M P L",
+      "def": "The record that Cloud Integration keeps for each processed message, with its status, IDs, run steps and optional attachments. The log level (None, Info, Error, Debug or Trace) decides how much detail it keeps.",
+      "example": "Support opens the message processing log of the failed hire, reads the SuccessFactors error in the attachment and sees the application ID in the custom header properties.",
+      "src": "s24"
+    },
+    {
+      "id": "t-jms-retry",
+      "term": "JMS retry pattern",
+      "ipa": "/ˌdʒeɪ em ˈes ˈriːtraɪ ˈpætn/",
+      "say": "J M S retry pattern",
+      "def": "A design in which one iFlow first stores the message in a JMS queue and a second iFlow reads and processes it. If a call fails, the message stays in the queue and the JMS sender adapter retries it, by default with exponential backoff.",
+      "example": "The hire waits in the JMS queue while payroll is offline and is processed as soon as payroll is back.",
+      "src": "s22"
+    },
+    {
+      "id": "t-cloud-alm",
+      "term": "SAP Cloud ALM",
+      "ipa": "/ˌes eɪ ˈpiː ˌklaʊd ˌeɪ ˌel ˈem/",
+      "say": "S A P cloud A L M",
+      "def": "SAP's cloud tool for application lifecycle management. For integrations it offers central integration and exception monitoring, and it can alert people by email, chat or a ticket.",
+      "example": "Cloud ALM opens a ticket for the support team when the nightly payroll iFlow ends in Failed.",
+      "src": "s26"
+    },
+    {
+      "id": "t-execution-manager",
+      "term": "Execution Manager",
+      "ipa": "/ˌeksɪˈkjuːʃn ˈmænɪdʒə/",
+      "say": "execution manager",
+      "def": "The SuccessFactors feature that shows the execution logs of Integration Center jobs.",
+      "example": "The administrator opens Execution Manager to see why last night's requisition export never reached the SFTP server.",
+      "src": "s2"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u11-l1",
+      "kind": "concepts",
+      "title": "Integration Center, Cloud Integration and the adapter",
+      "items": [
+        {
+          "id": "u11-l1-i1",
+          "type": "card",
+          "term": "t-integration-center",
+          "src": "s8"
+        },
+        {
+          "id": "u11-l1-i2",
+          "type": "pick",
+          "src": "s10",
+          "q": "Which statement best describes SuccessFactors Integration Center?",
+          "options": [
+            "A guided tool inside SuccessFactors to build, schedule and monitor simple integrations",
+            "A service that runs integration flows with many adapters, mapping and routing steps",
+            "The SuccessFactors SOAP API that the SOAP adapter calls at /sfapi/v1/soap",
+            "SAP's central tool for alerts across cloud and on-premise systems"
+          ],
+          "answer": 0,
+          "why": "SAP describes Integration Center as a guided workflow for simple integrations, built into SuccessFactors. The other options describe Cloud Integration, the SuccessFactors SOAP API and SAP Cloud ALM."
+        },
+        {
+          "id": "u11-l1-i3",
+          "type": "card",
+          "term": "t-cloud-integration",
+          "src": "s30"
+        },
+        {
+          "id": "u11-l1-i4",
+          "type": "card",
+          "term": "t-sf-adapter",
+          "src": "s11"
+        },
+        {
+          "id": "u11-l1-i5",
+          "type": "match",
+          "src": "s13",
+          "q": "Match each option of the SuccessFactors adapter in Cloud Integration with what it can do.",
+          "pairs": [
+            [
+              "OData V2 receiver",
+              "Query, Create, Update, Read, Delete and Upsert at /odata/v2"
+            ],
+            [
+              "SOAP receiver",
+              "Query, Insert, Update, Upsert and Delete on entities such as CompoundEmployee"
+            ],
+            [
+              "SOAP sender",
+              "A query only, started by the adapter's own scheduler"
+            ],
+            [
+              "REST sender or receiver",
+              "Learning (LMS) OData V4 entities only, with OAuth2 client credentials"
+            ]
+          ]
+        },
+        {
+          "id": "u11-l1-i6",
+          "type": "tf",
+          "src": "s2",
+          "statement": "Integration Center can read the CompoundEmployee API.",
+          "answer": false,
+          "why": "Integration Center supports only the OData V2 API, so CompoundEmployee is not supported. For CompoundEmployee you use the SuccessFactors SOAP adapter in Cloud Integration."
+        },
+        {
+          "id": "u11-l1-i7",
+          "type": "card",
+          "term": "t-process-in-pages",
+          "src": "s12"
+        },
+        {
+          "id": "u11-l1-i8",
+          "type": "tf",
+          "src": "s12",
+          "statement": "In the SuccessFactors OData V2 receiver, Server Snapshot-Based pagination is the default, and SAP recommends it for integration scenarios.",
+          "answer": true,
+          "why": "The other options are Client, meant for UI-based applications, and Server Cursor-Based. The adapter also needs HTTP Session Reuse set to On Exchange or On Integration Flow."
+        },
+        {
+          "id": "u11-l1-i9",
+          "type": "card",
+          "term": "t-exception-subprocess",
+          "src": "s18"
+        },
+        {
+          "id": "u11-l1-i10",
+          "type": "match",
+          "src": "s23",
+          "q": "Match what happened to a message with the status you see in the Cloud Integration message monitor.",
+          "pairs": [
+            [
+              "The exception subprocess ended with an End Message event",
+              "Completed"
+            ],
+            [
+              "The exception subprocess ended with an Error End event",
+              "Failed"
+            ],
+            [
+              "The exception subprocess ended with an Escalation End event",
+              "Escalated"
+            ],
+            [
+              "An error occurred and the JMS sender will try again",
+              "Retry"
+            ],
+            [
+              "A worker node saw the Timer, but another node ran the flow",
+              "Discarded"
+            ],
+            [
+              "The flow was redeployed while the message was in process",
+              "Abandoned"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u11-l2",
+      "kind": "practice",
+      "title": "Build it the right way",
+      "items": [
+        {
+          "id": "u11-l2-i1",
+          "type": "scenario",
+          "src": "s1",
+          "q": "Every night, a job board needs a CSV file with all open job requisitions from SuccessFactors Recruiting on its SFTP server. There is one source, one destination and only field mapping.",
+          "options": [
+            {
+              "text": "Build a scheduled outbound integration in Integration Center with an SFTP destination and the CSV format.",
+              "ok": true,
+              "why": "This is the simple, scheduled, file-based case that Integration Center is built for, and an HR administrator can run and monitor it."
+            },
+            {
+              "text": "Build an iFlow in Integration Suite with a JMS queue and an exception subprocess.",
+              "ok": false,
+              "why": "It would work, but it adds a platform to build and run for a need that Integration Center already covers."
+            },
+            {
+              "text": "Write a Spring Boot job on Cloud Run that reads OData and writes the file to the SFTP server.",
+              "ok": false,
+              "why": "This is custom code to build, secure and maintain for a standard export that Integration Center supports out of the box."
+            },
+            {
+              "text": "Trigger an Integration Center job from an event on every requisition change.",
+              "ok": false,
+              "why": "The job board wants one file a night, and SAP says event-based Integration Center jobs are not meant for heavy load."
+            }
+          ]
+        },
+        {
+          "id": "u11-l2-i2",
+          "type": "scenario",
+          "src": "s3",
+          "q": "A hiring team wants new job applications sent to an assessment vendor's SFTP server several times a day, not only at night. The Integration Center job already filters on records modified since the last run.",
+          "options": [
+            {
+              "text": "Set the schedule to Multiple Executions Per Day and run the job every 2 hours.",
+              "ok": true,
+              "why": "It needs time-based filters, runs every 1 or 2 hours, 3 to 12 times a day, and an instance can have only five jobs with this schedule."
+            },
+            {
+              "text": "Copy the integration four times and schedule each copy at a different time.",
+              "ok": false,
+              "why": "SAP does not recommend copying an integration to run it at different frequencies, because this may lead to data inconsistency."
+            },
+            {
+              "text": "Choose Multiple Executions Per Day and run the job every 15 minutes.",
+              "ok": false,
+              "why": "The only intervals for this schedule are every 1 hour and every 2 hours."
+            }
+          ]
+        },
+        {
+          "id": "u11-l2-i3",
+          "type": "scenario",
+          "src": "s22",
+          "q": "When an application reaches Hired in Recruiting, the hire must go to payroll over SOAP and to an IT account service on Cloud Run over REST, each in its own format. Payroll is offline one night a week, and support wants an alert for every final failure.",
+          "options": [
+            {
+              "text": "Build an iFlow in Cloud Integration: map the data for each receiver, hold messages in a JMS queue so they are retried, and end errors in an exception subprocess that raises an alert.",
+              "ok": true,
+              "why": "Several receivers, a mapping for each, retries and alerting are what Integration Suite adds. The JMS queue keeps each hire and retries it, so the weekly payroll outage loses nothing."
+            },
+            {
+              "text": "Subscribe three Integration Center jobs to the same Intelligent Services event.",
+              "ok": false,
+              "why": "SAP advises one job per event, two at most, because more can cause performance problems and data loss."
+            },
+            {
+              "text": "Use Multiple Executions Per Day in Integration Center, every hour, to send the hires to payroll.",
+              "ok": false,
+              "why": "One hour is the shortest interval, and this does not solve the weekly payroll outage, the second receiver or the alerts."
+            }
+          ]
+        },
+        {
+          "id": "u11-l2-i4",
+          "type": "order",
+          "src": "s17",
+          "q": "An iFlow reads all job applications page by page with Process in Pages. Put one run in order.",
+          "steps": [
+            "The Timer start event starts the integration flow",
+            "The Looping Process Call calls the local integration process",
+            "The SuccessFactors OData V2 receiver fetches the next page of records",
+            "A message mapping converts the page into the target format",
+            "The page is sent to the receiver",
+            "The loop checks hasMoreRecords and stops when it is no longer true"
+          ]
+        },
+        {
+          "id": "u11-l2-i5",
+          "type": "code",
+          "src": "s12",
+          "lang": "text",
+          "q": "Complete the configuration. The receiver is called SuccessFactors and its OData V2 channel is called JobApplications. The flow must read pages until no records are left, with the pagination SAP recommends for integrations.",
+          "code": "Integration Process\n  Looping Process Call \"Read all applications\"\n    Local Integration Process: Read one page\n    Expression Type: [[1]]\n    Condition Expression: ${property.[[2]]} contains 'true'\n    Max. Number of Iterations: 999\n\nLocal Integration Process \"Read one page\"\n  Request Reply -> SuccessFactors (OData V2), channel JobApplications\n    Operation Details: Query (GET)\n    Resource Path: JobApplication\n    Pagination: [[3]]\n    Page Size: 500\n    [[4]]: selected\n\nRuntime Configuration\n  HTTP Session Reuse: On Exchange",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "Non-XML",
+              "decoys": [
+                "XML",
+                "XPath"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "SuccessFactors.JobApplications.hasMoreRecords",
+              "decoys": [
+                "SAP_SuccessFactorsHasMoreRecords.SuccessFactors",
+                "CamelLoopIndex"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "Server Snapshot-Based",
+              "decoys": [
+                "Client",
+                "Server Cursor-Based"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "Process in Pages",
+              "decoys": [
+                "Enable Batch Processing",
+                "Reuse Connection"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u11-l2-i6",
+          "type": "diagram",
+          "src": "s18",
+          "layout": "flow",
+          "q": "Complete the iFlow. The main flow reads applications and sends them to payroll. The exception subprocess logs the error and marks the message as Failed.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Timer start event",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Request Reply: SuccessFactors OData V2 query",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Message mapping to the payroll format",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Request Reply: payroll SOAP receiver",
+              "slot": false
+            },
+            {
+              "id": "n5",
+              "label": "End event",
+              "slot": false
+            },
+            {
+              "id": "n6",
+              "label": "Error Start event",
+              "slot": true
+            },
+            {
+              "id": "n7",
+              "label": "Script: write the status code and error body to the log",
+              "slot": false
+            },
+            {
+              "id": "n8",
+              "label": "Error End event",
+              "slot": true
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "starts on schedule"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "job applications"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "payroll message"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "done"
+            },
+            {
+              "from": "n6",
+              "to": "n7",
+              "label": "exception caught"
+            },
+            {
+              "from": "n7",
+              "to": "n8",
+              "label": "status Failed"
+            }
+          ],
+          "decoys": [
+            "Start Message event",
+            "Splitter",
+            "A second exception subprocess"
+          ]
+        },
+        {
+          "id": "u11-l2-i7",
+          "type": "scenario",
+          "src": "s20",
+          "q": "An iFlow upserts 200 JobApplication records with the OData V2 receiver. The call returns HTTP 200, so the monitor shows Completed, but the response body reports errors for three records.",
+          "options": [
+            {
+              "text": "Parse the response, send records with an error status down an error route, log them and end that route with an Error End event.",
+              "ok": true,
+              "why": "A receiver can return HTTP 200 with an error in the payload, so the flow must read the payload. The Error End event then marks the message as Failed."
+            },
+            {
+              "text": "Rely on Retry on Failure in the adapter.",
+              "ok": false,
+              "why": "For an upsert it retries only the 412 inner error and HTTP 429, once after one minute; it does not check each record."
+            },
+            {
+              "text": "Set the log level to Trace in production so you can read every response.",
+              "ok": false,
+              "why": "Trace switches back after 10 minutes by default and only records more detail; it does not change the status."
+            },
+            {
+              "text": "Add an exception subprocess that ends with an End Message event.",
+              "ok": false,
+              "why": "An HTTP 200 response raises no exception, so the exception subprocess never runs."
+            }
+          ]
+        },
+        {
+          "id": "u11-l2-i8",
+          "type": "code",
+          "src": "s21",
+          "lang": "java",
+          "q": "This Groovy script runs in the exception subprocess after the OData V2 receiver fails. Complete it so that support can search for the failed message by application ID and read the SuccessFactors error.",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\n\ndef Message processData(Message message) {\n    def messageLog = [[1]].getMessageLog(message)\n    def status = message.getHeaders().get(\"[[2]]\")\n    def applicationId = message.getProperty(\"applicationId\")\n    if (messageLog != null) {\n        messageLog.[[3]](\"applicationId\", applicationId)\n        messageLog.[[4]](\"SuccessFactors error\", message.getBody(String), \"text/plain\")\n    }\n    message.setProperty(\"http.statusCode\", String.valueOf(status))\n    return message\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "messageLogFactory",
+              "decoys": [
+                "LoggerFactory",
+                "message"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "CamelHttpResponseCode",
+              "decoys": [
+                "Content-Type",
+                "SAP_ApplicationID"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "addCustomHeaderProperty",
+              "decoys": [
+                "setProperty",
+                "setHeader"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "addAttachmentAsString",
+              "decoys": [
+                "setBody",
+                "println"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u11-l2-i9",
+          "type": "scenario",
+          "src": "s22",
+          "q": "An Integration Center event job sends each hire to an iFlow over HTTPS, and the iFlow calls payroll. Payroll is offline for about two hours every Sunday, and hires sent in that window are lost.",
+          "options": [
+            {
+              "text": "Store each message in a JMS queue first, and process it in a second iFlow whose JMS sender retries with exponential backoff.",
+              "ok": true,
+              "why": "The sender gets HTTP 202 at once, and failed messages stay in the queue and are retried until payroll is back. JMS is not in the basic edition, so check the edition first."
+            },
+            {
+              "text": "Add an exception subprocess that ends with an End Message event.",
+              "ok": false,
+              "why": "The monitor then shows Completed and the hire is still lost, because nothing sends it again."
+            },
+            {
+              "text": "Make the iFlow wait longer for the payroll response.",
+              "ok": false,
+              "why": "A longer wait does not help when payroll is offline for two hours; the message must be stored and retried later."
+            },
+            {
+              "text": "Set the log level to Debug on Sundays.",
+              "ok": false,
+              "why": "Debug records more detail, but it does not store or resend any message."
+            }
+          ]
+        },
+        {
+          "id": "u11-l2-i10",
+          "type": "scenario",
+          "src": "s28",
+          "q": "A delta iFlow runs every 15 minutes and asks for the job applications changed in the last 15 minutes, counted from the current time. After a weekend of tenant maintenance, some changes never reached the target system.",
+          "options": [
+            {
+              "text": "Store the time of the last successful run in a variable and ask for everything changed since then, so the next run catches up after a skipped trigger.",
+              "ok": true,
+              "why": "SAP says timers are best effort and a trigger can be skipped. A window based on stored state processes every outstanding interval."
+            },
+            {
+              "text": "Run the Timer every 5 minutes so that a missed run matters less.",
+              "ok": false,
+              "why": "This only shrinks the risk: after a long outage the window is still based on the current time, so changes from the outage are never read."
+            },
+            {
+              "text": "Use Run Once after each maintenance weekend to load the missing data.",
+              "ok": false,
+              "why": "SAP says Run Once is intended for testing only and can behave unpredictably in production."
+            },
+            {
+              "text": "Catch the skipped runs in an exception subprocess.",
+              "ok": false,
+              "why": "A skipped trigger raises no exception, so there is nothing to catch."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u11-l3",
+      "kind": "interview",
+      "title": "Talk about the choice",
+      "items": [
+        {
+          "id": "u11-l3-i1",
+          "type": "say",
+          "src": "s8",
+          "text": "For a simple scheduled file to an SFTP server, I use Integration Center. When I need several receivers, retries or alerting, I build an iFlow in Integration Suite."
+        },
+        {
+          "id": "u11-l3-i2",
+          "type": "tf",
+          "src": "s2",
+          "statement": "Integration Center can schedule as many daily jobs as you need, as long as you ask SAP for a higher limit.",
+          "answer": false,
+          "why": "SAP lets you schedule up to 100 daily jobs, double the old limit of 50, and it no longer accepts requests to raise this limit."
+        },
+        {
+          "id": "u11-l3-i3",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 120,
+          "q": "When is SuccessFactors Integration Center enough, and when do you need SAP Integration Suite?",
+          "model": "I start with the simplest tool that meets the requirement. Integration Center is a guided tool inside SuccessFactors for simple integrations. It is enough when data goes from one source to one destination on a schedule, for example a nightly CSV file of open job requisitions to a job board's SFTP server, or a REST or SOAP call to one vendor's API. An HR administrator can build and monitor it without any middleware. But it has clear limits. It supports only the OData V2 API, so there is no CompoundEmployee. You can schedule up to 100 daily jobs, and SAP says event-based jobs should stay below 500 events per hour. When I need several receivers, real mapping and routing, retries with a queue, or central alerting, I move to SAP Integration Suite. There I build an iFlow with the SuccessFactors adapter, an exception subprocess and JMS retries. The trade-off is a platform that the team must build and run.",
+          "keypoints": [
+            {
+              "text": "Integration Center fits simple, scheduled, one-to-one integrations",
+              "kw": [
+                "simple",
+                "scheduled",
+                "schedule",
+                "guided",
+                "one destination",
+                "nightly",
+                "sftp",
+                "csv"
+              ]
+            },
+            {
+              "text": "Administrators build and monitor it without middleware",
+              "kw": [
+                "administrator",
+                "admin",
+                "analyst",
+                "without middleware",
+                "no middleware",
+                "inside successfactors",
+                "no code"
+              ]
+            },
+            {
+              "text": "Known limits: OData V2 only, 100 daily jobs, 500 events per hour",
+              "kw": [
+                "odata v2",
+                "compoundemployee",
+                "compound employee",
+                "100",
+                "500",
+                "limit",
+                "limits"
+              ]
+            },
+            {
+              "text": "Integration Suite for several receivers, mapping and routing",
+              "kw": [
+                "integration suite",
+                "cloud integration",
+                "iflow",
+                "routing",
+                "mapping",
+                "several receivers",
+                "multiple receivers",
+                "orchestration"
+              ]
+            },
+            {
+              "text": "Retries, error handling and alerting",
+              "kw": [
+                "retry",
+                "retries",
+                "exception subprocess",
+                "jms",
+                "queue",
+                "alert",
+                "alerting",
+                "error handling"
+              ]
+            },
+            {
+              "text": "The trade-off: more to build and run",
+              "kw": [
+                "trade-off",
+                "cost",
+                "operate",
+                "build and run",
+                "maintain",
+                "skills",
+                "platform"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u11-l3-i4",
+          "type": "scenario",
+          "src": "s5",
+          "q": "An interviewer says: every Recruiting status change must reach a Spring Boot service on Cloud Run within 15 minutes, and in peak season there are about 2,000 changes per hour. What do you propose?",
+          "options": [
+            {
+              "text": "An iFlow with a Timer every five minutes that reads the job applications changed since the last successful run, with snapshot paging, and calls the service.",
+              "ok": true,
+              "why": "A delta poll in pages copes with the volume and meets the 15 minutes. Storing the last successful run means a skipped trigger is caught up by the next run."
+            },
+            {
+              "text": "An Integration Center job triggered by an Intelligent Services event for each change.",
+              "ok": false,
+              "why": "SAP advises fewer than 500 events per hour for event-based Integration Center jobs and says they are not meant for heavy load."
+            },
+            {
+              "text": "An Integration Center job with Multiple Executions Per Day.",
+              "ok": false,
+              "why": "The shortest interval is one hour, so changes could wait much longer than 15 minutes."
+            },
+            {
+              "text": "Four copies of the same Integration Center job, each scheduled at a different time.",
+              "ok": false,
+              "why": "SAP does not recommend copying an integration to run it at different frequencies, because it can cause data inconsistency."
+            }
+          ]
+        },
+        {
+          "id": "u11-l3-i5",
+          "type": "explain",
+          "src": "s12",
+          "seconds": 150,
+          "q": "How would you read a large volume of data from SuccessFactors in an iFlow without timeouts or memory problems?",
+          "model": "First, I read only what changed. The iFlow stores the time of the last successful run in a variable and asks SuccessFactors only for records changed since then. I never start the window at the current time, because SAP says timers are best effort, and a skipped run would silently lose data. Second, I page. In the SuccessFactors OData V2 receiver I keep the default Server Snapshot-Based pagination, which SAP recommends for integrations, and I set a page size; if I leave it empty, a page has 1000 records. Then I select Process in Pages and call the adapter from a Looping Process Call, with a condition on the hasMoreRecords property and at most 999 iterations. Each page is mapped and sent on its own, so the message stays small. The adapter also needs HTTP Session Reuse. Finally, the adapter retries throttling for me: a query retries HTTP 429 and 502 to 504 every three minutes, up to five times.",
+          "keypoints": [
+            {
+              "text": "Delta: only changes since the last successful run, kept in a variable",
+              "kw": [
+                "delta",
+                "changed since",
+                "last run",
+                "last successful run",
+                "variable",
+                "timestamp",
+                "lastmodifieddatetime"
+              ]
+            },
+            {
+              "text": "Snapshot pagination and a page size",
+              "kw": [
+                "snapshot",
+                "pagination",
+                "paging",
+                "page size",
+                "1000",
+                "thousand"
+              ]
+            },
+            {
+              "text": "Process in Pages with a Looping Process Call",
+              "kw": [
+                "process in pages",
+                "looping process call",
+                "loop",
+                "hasmorerecords",
+                "999"
+              ]
+            },
+            {
+              "text": "HTTP Session Reuse",
+              "kw": [
+                "session reuse",
+                "http session",
+                "session"
+              ]
+            },
+            {
+              "text": "Adapter retries for throttling and server errors",
+              "kw": [
+                "429",
+                "retry",
+                "retries",
+                "throttling",
+                "502",
+                "503",
+                "504",
+                "rate limit"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u11-l3-i6",
+          "type": "say",
+          "src": "s12",
+          "text": "The adapter already retries throttling errors such as HTTP 429, but I still add an exception subprocess, so every final failure is logged and raises an alert."
+        },
+        {
+          "id": "u11-l3-i7",
+          "type": "scenario",
+          "src": "s27",
+          "q": "An interviewer asks: payroll needs the date of birth as DD-MM-YYYY, but SuccessFactors sends YYYY-MM-DD. How do you build this, and how do you check it before you deploy?",
+          "options": [
+            {
+              "text": "Use a standard Date function in the message mapping, and test it with Simulate for the whole mapping or Display Queue for one field.",
+              "ok": true,
+              "why": "The mapping editor has standard Date functions for this kind of change. Simulate and Display Queue test the mapping before you deploy it."
+            },
+            {
+              "text": "Write a custom Groovy function for every field, so all the logic is in code.",
+              "ok": false,
+              "why": "Custom script functions are for transformations that the standard functions cannot do. A date format change is SAP's own example for a standard function."
+            },
+            {
+              "text": "Deploy the iFlow and wait for the first real hire to see if the date is right.",
+              "ok": false,
+              "why": "This finds the error in production, after real data is already wrong. Simulate and Display Queue find it before you deploy."
+            },
+            {
+              "text": "Ask the payroll team to change their interface so that it accepts YYYY-MM-DD.",
+              "ok": false,
+              "why": "Translating between two formats is the job of the message mapping, so the receiver does not need to change."
+            }
+          ]
+        },
+        {
+          "id": "u11-l3-i8",
+          "type": "explain",
+          "src": "s32",
+          "seconds": 150,
+          "q": "How do you design error handling in an iFlow that writes to SuccessFactors?",
+          "model": "I separate temporary errors from permanent ones. For temporary errors, the SuccessFactors adapter already retries some cases, such as HTTP 429. When a receiver can be down for longer, I put the message in a JMS queue first, and the JMS sender retries it with exponential backoff, so nothing is lost. For everything else, I add an exception subprocess. It starts with an Error Start event, and I choose the end event on purpose. Error End marks the message as Failed, Escalation End marks it as Escalated, and an End Message event sends a custom error back to the sender but shows Completed, so I use it with care. Inside the subprocess, a script writes the HTTP status code, the SuccessFactors error body and the application ID to the message processing log. I also check responses that return HTTP 200 with an error inside, which an upsert can do. Finally, every failed message raises an alert in SAP Cloud ALM.",
+          "keypoints": [
+            {
+              "text": "Temporary and permanent errors are handled differently",
+              "kw": [
+                "temporary",
+                "transient",
+                "permanent",
+                "business error",
+                "technical error"
+              ]
+            },
+            {
+              "text": "Retries: adapter retries and a JMS queue with backoff",
+              "kw": [
+                "jms",
+                "queue",
+                "backoff",
+                "exponential",
+                "retry",
+                "retries"
+              ]
+            },
+            {
+              "text": "Exception subprocess with the right end event",
+              "kw": [
+                "exception subprocess",
+                "error start",
+                "error end",
+                "escalation",
+                "escalated",
+                "failed",
+                "end message"
+              ]
+            },
+            {
+              "text": "Log the context: status code, error body, business key",
+              "kw": [
+                "status code",
+                "error body",
+                "application id",
+                "message processing log",
+                "mpl",
+                "custom header",
+                "attachment",
+                "log"
+              ]
+            },
+            {
+              "text": "Errors inside HTTP 200 responses",
+              "kw": [
+                "200",
+                "successful response",
+                "upsert",
+                "parse",
+                "payload",
+                "router"
+              ]
+            },
+            {
+              "text": "Alerting",
+              "kw": [
+                "alert",
+                "alerting",
+                "cloud alm",
+                "email",
+                "ticket",
+                "notify"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u11-l3-i9",
+          "type": "scenario",
+          "src": "s26",
+          "q": "A nightly iFlow that loads new hires into payroll failed at 02:00, and nobody noticed until HR complained at 10:00. The interviewer asks what you would change.",
+          "options": [
+            {
+              "text": "End the exception subprocess with an Error End event so the message is Failed, and set up alerts on failed messages in SAP Cloud ALM.",
+              "ok": true,
+              "why": "Cloud ALM is SAP's central tool for alerts on integration errors and can notify people by email, chat or a ticket. A clear Failed status gives it something to alert on."
+            },
+            {
+              "text": "Set the log level of every iFlow to Trace, so the payloads are always available.",
+              "ok": false,
+              "why": "Trace switches back after 10 minutes by default, and it helps analysis, not alerting."
+            },
+            {
+              "text": "End the exception subprocess with an End Message event, so the flow always completes.",
+              "ok": false,
+              "why": "The monitor then shows Completed, so the failure becomes even harder to see."
+            },
+            {
+              "text": "Ask an administrator to check the message monitor every morning.",
+              "ok": false,
+              "why": "This is still hours late and depends on one person; an alert should reach the team when the error happens."
+            }
+          ]
+        },
+        {
+          "id": "u11-l3-i10",
+          "type": "explain",
+          "src": "s25",
+          "seconds": 120,
+          "q": "How do you monitor iFlows in production, and how does support find one failed message quickly?",
+          "model": "I use the message monitor in Integration Suite for the details and SAP Cloud ALM for central alerts. Every run writes a message processing log with a status, such as Completed, Retry, Escalated or Failed, and Failed is final. In production I keep the log level at Info. SAP recommends Debug only for development or test, and Trace switches back after ten minutes by default anyway. To find one message quickly, I put a business key into the log. A Content Modifier sets the SAP_ApplicationID header to the job application ID, and a script can add more custom header properties. Support can then search by that value in the monitor or through the OData API. The OData adapter also sends the log ID to SuccessFactors in the X-Correlation-Id header, so both sides of a call can be matched. Cloud ALM correlates messages end to end and sends alerts by email, chat or ticket.",
+          "keypoints": [
+            {
+              "text": "Message monitor and statuses",
+              "kw": [
+                "monitor",
+                "status",
+                "completed",
+                "failed",
+                "retry",
+                "escalated",
+                "message processing log",
+                "mpl"
+              ]
+            },
+            {
+              "text": "Info in production; Debug and Trace only for short analysis",
+              "kw": [
+                "info",
+                "debug",
+                "trace",
+                "log level",
+                "ten minutes",
+                "10 minutes"
+              ]
+            },
+            {
+              "text": "A business key in the log for search",
+              "kw": [
+                "application id",
+                "sap_applicationid",
+                "custom header",
+                "business key",
+                "search",
+                "job application"
+              ]
+            },
+            {
+              "text": "Correlation with SuccessFactors",
+              "kw": [
+                "correlation",
+                "x-correlation-id",
+                "correlation id",
+                "message id",
+                "log id"
+              ]
+            },
+            {
+              "text": "Central alerting with Cloud ALM",
+              "kw": [
+                "cloud alm",
+                "alert",
+                "alerts",
+                "alerting",
+                "email",
+                "ticket",
+                "chat"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Integration Center: when it is enough",
+        "points": [
+          "A guided tool inside SuccessFactors to build, run, schedule and monitor simple integrations.",
+          "Triggers: Scheduled (used for most integrations), Intelligent Services events, Application/UI.",
+          "Sources: SuccessFactors or SFTP. Destinations: SFTP, REST, SOAP or SuccessFactors.",
+          "Formats include CSV, simple delimited, fixed width, EDI/Stacked, XML, JSON and OData v2.",
+          "Inbound: a scheduled CSV file from SFTP, upserted into SuccessFactors.",
+          "SuccessFactors to SuccessFactors: source and destination SuccessFactors, format OData v2.",
+          "Scheduling: once, daily, weekly or monthly. Execution logs: Execution Manager."
+        ]
+      },
+      {
+        "h": "Integration Center limits to quote",
+        "points": [
+          "OData V2 API only: no CompoundEmployee and no Learning APIs.",
+          "You can schedule up to 100 daily jobs (50 before 2H 2025); SAP no longer accepts increase requests.",
+          "Jobs are stopped after 8 hours.",
+          "Multiple Executions Per Day: every 1 or 2 hours, 3 to 12 runs, needs a time-based filter, at most 5 such jobs.",
+          "Do not copy a job to run it at other times: it may lead to inconsistent data.",
+          "Event-based jobs: fewer than 500 events per hour, the REST endpoint answers within 30 seconds, ideally one job per event.",
+          "Inbound CSV: up to 500 columns. SFTP: port 22 only since 2H 2023."
+        ]
+      },
+      {
+        "h": "When you need Integration Suite",
+        "points": [
+          "Several receivers, a mapping for each, or routing.",
+          "Message mapping: standard functions first (such as Date); custom script functions only when they cannot do it; test with Simulate or Display Queue.",
+          "SOAP API entities such as CompoundEmployee, through the SuccessFactors SOAP adapter.",
+          "Retries with a JMS queue, exception handling and central alerting.",
+          "More events than event-based Integration Center should carry.",
+          "Trade-off: a platform that the team must build and run."
+        ]
+      },
+      {
+        "h": "The SuccessFactors adapter",
+        "points": [
+          "OData V2: receiver only, /odata/v2; Query, Create, Update, Read, Delete, Upsert.",
+          "SOAP: sender (a scheduled query) and receiver; /sfapi/v1/soap; entities such as CompoundEmployee and JobPosting.",
+          "REST and OData V4: Learning (LMS) OData V4 entities only.",
+          "Authentication: OData V2 and SOAP offer Basic or OAuth2 SAML Bearer Assertion; REST allows OAuth2 client credentials only.",
+          "OData V2: no $format, no navigation entities in the resource path, $batch only for upsert.",
+          "The OData adapter sends the message processing log ID in X-Correlation-Id; the SOAP adapter uses X-SF-Correlation-Id."
+        ]
+      },
+      {
+        "h": "Paging and API limits",
+        "points": [
+          "Default pagination: Server Snapshot-Based, recommended for integrations. Client is for UI applications; Server Cursor-Based is also offered.",
+          "An empty page size means 1000 records per page.",
+          "Process in Pages: a local integration process plus a Looping Process Call, condition on hasMoreRecords, at most 999 iterations; OData V2 Query only, not in a Content Enricher.",
+          "HTTP Session Reuse: On Exchange or On Integration Flow.",
+          "Retry on Failure (on by default): a query retries 429, 502, 503 and 504 every 3 minutes, up to 5 times.",
+          "Create, update and delete retry 412 and 429 once after 1 minute; upsert retries the 412 inner error and 429 once.",
+          "Delta: keep the last successful run in a variable; never start the window at the current time."
+        ]
+      },
+      {
+        "h": "Exception handling",
+        "points": [
+          "Exception subprocess: starts with an Error Start event; not connected to the main flow.",
+          "End Message: Completed, with a custom reply. Error End: Failed. Escalation End: Escalated.",
+          "Not allowed inside: another exception subprocess, Splitter, Router, Aggregator, Timer Start, Start Message.",
+          "The main process does not catch exceptions of a local integration process: add the subprocess there too.",
+          "Use ${exception.message} for details; the OData error body is in the message body.",
+          "HTTP 200 can still carry an error: parse the payload.",
+          "JMS retry: the sender gets 202; exponential backoff is on by default; maximum retry interval 60 minutes by default; not in the basic edition."
+        ]
+      },
+      {
+        "h": "Monitoring and alerting",
+        "points": [
+          "Statuses: Completed, Processing, Retry, Escalated, Failed (final), Cancelled, Discarded, Abandoned.",
+          "Discarded entries for timer flows are normal on a cluster with several worker nodes.",
+          "Log levels: Info in production. Debug expires after 24 hours, Trace after 10 minutes by default.",
+          "Business key: SAP_ApplicationID header or custom header properties, searchable in the monitor and the OData API.",
+          "Central alerts: SAP Cloud ALM, by email, chat or ticket."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "SAP KBA 2590261: Integration Center outbound integrations - trigger, source and destination types, and formats",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2590261",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "SAP KBA 2742107: Integration Center: Frequently Asked Questions",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2742107",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "SAP KBA 2798716: How to set up the multiple executions per day feature in outbound integrations - Integration Center",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2798716",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "SAP KBA 3087950: Best Practices for Integration Center job schedule (outbound integrations)",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3087950",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "SAP KBA 3063887: Best Practices for creating Event Based Integration via Intelligent Services Center (ISC) and Integration Center (IC)",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3063887",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "SAP KBA 2670200: You want to create an Inbound Integration using Integration Center",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2670200",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "SAP KBA 2701195: SuccessFactors to SuccessFactors integration - Integration Center",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2701195",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Explore the Integration Center - SAP Learning (SAP SuccessFactors Platform academy)",
+      "url": "https://learning.sap.com/courses/sap-successfactors-platform-advanced-and-talent-intelligence-hub-academy/explore-the-integration-center",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Exploring Integration Center Data Entities for Recruiting - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-advanced-academy/exploring-integration-center-data-entities-for-recruiting",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Feature Scope Description for SAP SuccessFactors Foundation (2H 2025 edition, PDF)",
+      "url": "https://assets.cdn.sap.com/agreements/product-policy/css/service-specifications/feature-scope-description-sap-successfactors-foundation-2h-2025-english-v11-2025.pdf",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "SuccessFactors OData V2 Adapter - SAP Cloud Integration (SAP Help Portal)",
+      "url": "https://help.sap.com/docs/r/368c481cd6954bdfa5d0435479fd4eaf/Cloud/en-US/b27829c720db4773a147b8bb2b61c2ba.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Configure the SuccessFactors OData V2 Receiver Adapter - SAP Cloud Integration (SAP Help Portal)",
+      "url": "https://help.sap.com/docs/cloud-integration/sap-cloud-integration/configure-successfactors-odata-v2-receiver-adapter",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Configure the SuccessFactors SOAP Receiver Adapter - SAP Cloud Integration (SAP Help Portal)",
+      "url": "https://help.sap.com/docs/CLOUD_INTEGRATION/368c481cd6954bdfa5d0435479fd4eaf/360ef42b1d4e4b86a6867b6f0adce4ce.html",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Configure the SuccessFactors REST Receiver Adapter - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/configure-the-successfactors-rest-receiver-adapter-9cff562.md",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Configure the SuccessFactors (SOAP) Sender Adapter - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/configure-the-successfactors-soap-sender-adapter-874e4b1.md",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Specify the Runtime Configuration - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/specify-the-runtime-configuration-0c1c96e.md",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Define Looping Process Call - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-looping-process-call-f58c2ba.md",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Define Exception Subprocess - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-exception-subprocess-690e078.md",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Handle Exceptions (integration flow design guidelines) - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/handle-exceptions-ca95c61.md",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Handle Errors in Successful Responses - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/handle-errors-in-successful-responses-f066020.md",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Script Example for Exception Handling in OData V2 Receiver Adapter - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/script-example-for-exception-handling-in-odata-v2-receiver-adapter-361c5e8.md",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Apply the Retry Pattern with JMS Queue - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/apply-the-retry-pattern-with-jms-queue-da17d2d.md",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Message Status - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/message-status-733a57b.md",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "Setting Log Levels - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/setting-log-levels-4e6d3fc.md",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "Use Custom Header Properties to Search for Message Processing Logs - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/use-custom-header-properties-to-search-for-message-processing-logs-d4b5839.md",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "Central Monitoring and Alerting Solutions - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/central-monitoring-and-alerting-solutions-605fc6e.md",
+      "official": true
+    },
+    {
+      "id": "s27",
+      "title": "Message Mapping - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/message-mapping-459ccdf.md",
+      "official": true
+    },
+    {
+      "id": "s28",
+      "title": "Timer and Schedule based Integration Flows - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/timer-and-schedule-based-integration-flows-41a5b13.md",
+      "official": true
+    },
+    {
+      "id": "s29",
+      "title": "Delta Synchronization - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/delta-synchronization-012be7e.md",
+      "official": true
+    },
+    {
+      "id": "s30",
+      "title": "Elements of an Integration Flow - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/elements-of-an-integration-flow-e49dbee.md",
+      "official": true
+    },
+    {
+      "id": "s31",
+      "title": "SuccessFactors OData Adapter (request headers sent to SuccessFactors) - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/successfactors-odata-adapter-d50e062.md",
+      "official": true
+    },
+    {
+      "id": "s32",
+      "title": "Handle Errors Gracefully (integration flow design guidelines) - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/handle-errors-gracefully-42c95f7.md",
+      "official": true
+    },
+    {
+      "id": "s33",
+      "title": "SuccessFactors OData V4 Receiver Adapter - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/successfactors-odata-v4-receiver-adapter-cd091fc.md",
+      "official": true
+    },
+    {
+      "id": "s34",
+      "title": "Configure the SuccessFactors REST Sender Adapter - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/configure-the-successfactors-rest-sender-adapter-9f0646b.md",
+      "official": true
+    }
+  ]
+}

@@ -1,0 +1,683 @@
+{
+  "format": 1,
+  "id": "u26",
+  "n": 26,
+  "block": "java",
+  "title": "Resilience",
+  "summary": "After this unit you can choose between the retry and concurrency limits now built into Spring Framework 7 and the five Resilience4j modules, configure them in Spring Boot, combine a retry with a circuit breaker safely, and explain why retries need idempotent operations.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Spring Framework 7.0.10 reference and API docs (checked 2026-10-25; 7.1.0-RC1 is in preview): the core resilience features are new in 7.0. @Retryable, @ConcurrencyLimit and @EnableResilientMethods are in org.springframework.resilience.annotation; RetryTemplate and RetryPolicy are in org.springframework.core.retry. The @Retryable timeout attribute needs 7.0.2 or later, and the @ConcurrencyLimit policy attribute (BLOCK or REJECT) needs 7.0.3 or later.",
+    "Spring Retry: the GitHub repository says it is no longer maintained, was superseded by Spring Framework 7 and was archived on 27 July 2026. The Spring Boot 4.0 migration guide says Spring Boot no longer manages its version and suggests moving to the Spring Framework retry support. The same guide renames spring-boot-starter-aop to spring-boot-starter-aspectj.",
+    "Resilience4j: the reference on resilience4j.readme.io is labelled v2.2.0 and documents only the Spring Boot 2 and 3 modules (Resilience4j 2 requires Java 17). Maven Central lists io.github.resilience4j:resilience4j-spring-boot4 2.4.0, published on 14 March 2026. Unconfirmed: the exact dependencies of the Spring Boot 4 module; the unit assumes it keeps the application.yml properties and annotations documented for the Spring Boot 3 module.",
+    "Unconfirmed: the TimeLimiter defaults (timeoutDuration, cancelRunningFuture) and the exception a full Bulkhead throws, because the Resilience4j pages read do not state them; the unit does not use them. Unconfirmed: whether Spring Boot 4 auto-configures @EnableResilientMethods; the examples always declare it."
+  ],
+  "terms": [
+    {
+      "id": "t-resilience4j",
+      "term": "Resilience4j",
+      "ipa": "/rɪˈzɪliəns fɔː ˈdʒeɪ/",
+      "say": "resilience four J",
+      "def": "A lightweight fault-tolerance library for Java. Each pattern, such as Retry, CircuitBreaker, RateLimiter, Bulkhead and TimeLimiter, is a separate module that decorates a call, and you can stack several on the same call.",
+      "example": "The SuccessFactors adapter adds a Resilience4j retry and circuit breaker to every OData call with two annotations.",
+      "src": "s16"
+    },
+    {
+      "id": "t-r4j-retry",
+      "term": "Retry (Resilience4j)",
+      "ipa": "/ˈriːtraɪ/",
+      "say": "retry",
+      "def": "Calls the operation again after a failure. In Resilience4j, maxAttempts counts the first call too, so the default of 3 means one call and up to two retries, with 500 milliseconds between attempts.",
+      "example": "The retry instance sfRecruiting tries a failed OData request three times in total and then gives up.",
+      "src": "s9"
+    },
+    {
+      "id": "t-circuit-breaker",
+      "term": "CircuitBreaker (Resilience4j)",
+      "ipa": "/ˈsɜːkɪt ˌbreɪkə/",
+      "say": "circuit breaker",
+      "def": "Records the result of each call in a sliding window. When the failure rate or the slow-call rate reaches its threshold, it opens and rejects calls at once with a CallNotPermittedException.",
+      "example": "When the SuccessFactors API keeps failing, the breaker opens and the adapter stops sending requests for a while.",
+      "src": "s8"
+    },
+    {
+      "id": "t-rate-limiter",
+      "term": "RateLimiter",
+      "ipa": "/ˈreɪt ˌlɪmɪtə/",
+      "say": "rate limiter",
+      "def": "Allows at most limitForPeriod calls to start in each refresh period, and a caller waits up to timeoutDuration for a permission. The Resilience4j defaults are 50 calls per 500 nanoseconds and a 5-second wait.",
+      "example": "A rate limiter of 20 calls per second keeps a bulk import of job applications within the rate agreed with the SuccessFactors team.",
+      "src": "s10"
+    },
+    {
+      "id": "t-bulkhead",
+      "term": "Bulkhead",
+      "ipa": "/ˈbʌlkhed/",
+      "say": "bulkhead",
+      "def": "Limits how many calls to a dependency run at the same time, so one slow dependency cannot use all the threads. Resilience4j has a semaphore bulkhead (25 concurrent calls by default) and a thread-pool bulkhead with a fixed pool and a bounded queue.",
+      "example": "A bulkhead of 10 concurrent calls for the background-check vendor stops its slow responses from blocking the calls to SuccessFactors.",
+      "src": "s11"
+    },
+    {
+      "id": "t-time-limiter",
+      "term": "TimeLimiter",
+      "ipa": "/ˈtaɪm ˌlɪmɪtə/",
+      "say": "time limiter",
+      "def": "Puts a time limit on an asynchronous call. In Resilience4j it decorates a CompletionStage or a Future, so it is for asynchronous calls, for example a method that returns a CompletableFuture.",
+      "example": "The time limiter gives up on the CompletableFuture that waits for the assessment vendor after two seconds.",
+      "src": "s12"
+    },
+    {
+      "id": "t-aspect-order",
+      "term": "Aspect order",
+      "ipa": "/ˈæspekt ˌɔːdə/",
+      "say": "aspect order",
+      "def": "The order in which Spring applies the Resilience4j annotations on one method. By default Retry is the outermost layer, then CircuitBreaker, RateLimiter, TimeLimiter and Bulkhead, with the method innermost.",
+      "example": "Because Retry is outside CircuitBreaker by default, the breaker records every retry attempt as a separate call.",
+      "src": "s7"
+    },
+    {
+      "id": "t-fallback-method",
+      "term": "Fallback method",
+      "ipa": "/ˈfɔːlbæk ˌmeθəd/",
+      "say": "fallback method",
+      "def": "A method that Resilience4j calls when the protected call fails. It must be in the same class and have the same signature plus one extra exception parameter; if there are several, the closest exception type wins.",
+      "example": "When the breaker is open, the fallback returns the cached job requisition and logs a warning.",
+      "src": "s7"
+    },
+    {
+      "id": "t-retryable",
+      "term": "@Retryable (Spring Framework 7)",
+      "ipa": "/ˌriːˈtraɪəbl/",
+      "say": "at retryable",
+      "def": "A core Spring Framework 7 annotation, in org.springframework.resilience.annotation, that retries a method called through a Spring proxy. By default it retries any exception up to 3 times after the first failure, with a 1-second delay.",
+      "example": "@Retryable(includes = ResourceAccessException.class, maxRetries = 4, delay = 200, multiplier = 2) retries a SuccessFactors call on I/O errors with exponential backoff.",
+      "src": "s1"
+    },
+    {
+      "id": "t-concurrency-limit",
+      "term": "@ConcurrencyLimit",
+      "ipa": "/kənˈkʌrənsi ˌlɪmɪt/",
+      "say": "at concurrency limit",
+      "def": "A Spring Framework 7 annotation that limits how many threads can run a method at the same time. Extra callers block by default; since 7.0.3, policy = REJECT makes them fail with an InvocationRejectedException instead.",
+      "example": "With virtual threads there is no pool limit, so @ConcurrencyLimit(10) protects a legacy SOAP endpoint from thousands of parallel calls.",
+      "src": "s3"
+    },
+    {
+      "id": "t-retry-template",
+      "term": "RetryTemplate",
+      "ipa": "/ˈriːtraɪ ˌtempleɪt/",
+      "say": "retry template",
+      "def": "The programmatic retry API of Spring Framework 7, in org.springframework.core.retry. It runs a callback according to a RetryPolicy: invoke() rethrows the last original exception, and execute() throws a checked RetryException.",
+      "example": "new RetryTemplate(RetryPolicy.withMaxRetries(4)).invoke(() -> publisher.publish(event)) retries one block of code without an annotation.",
+      "src": "s5"
+    },
+    {
+      "id": "t-enable-resilient-methods",
+      "term": "@EnableResilientMethods",
+      "ipa": "/ɪˌneɪbl rɪˈzɪliənt ˈmeθədz/",
+      "say": "at enable resilient methods",
+      "def": "Turns on the processing of @Retryable and @ConcurrencyLimit; you declare it on a @Configuration class. The two annotations are only metadata until their processing is enabled, by this annotation or by the matching bean post-processors.",
+      "example": "In a plain Spring Framework application, the retries in the Pub/Sub publisher only started to work after the team added @EnableResilientMethods.",
+      "src": "s4"
+    },
+    {
+      "id": "t-advice-chain",
+      "term": "Advice chain",
+      "ipa": "/ədˈvaɪs ˌtʃeɪn/",
+      "say": "advice chain",
+      "def": "The order of the Spring AOP interceptors around a proxied method. Retry advice runs outside @Transactional and @Cacheable, so each attempt gets a fresh transaction, and inside @Async, so all attempts run on the async thread.",
+      "example": "Because of the advice chain, a deadlock rolls back the first transaction, and the retry starts a new one.",
+      "src": "s1"
+    },
+    {
+      "id": "t-idempotent-operation",
+      "term": "Idempotent operation",
+      "ipa": "/ˌaɪdɛmˈpəʊtənt ˌɒpəˈreɪʃn/",
+      "say": "idempotent operation",
+      "def": "An operation that has the same effect whether it runs once or several times. It is safe to retry; other operations can repeat a side effect when a retry follows a lost response.",
+      "example": "Setting an application's status to Hired is idempotent, but creating a candidate is not, so a retry after a lost response can create a duplicate.",
+      "src": "s14"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u26-l1",
+      "kind": "concepts",
+      "title": "Two toolkits for resilience",
+      "items": [
+        {
+          "id": "u26-l1-i1",
+          "type": "card",
+          "term": "t-resilience4j",
+          "src": "s16"
+        },
+        {
+          "id": "u26-l1-i2",
+          "type": "card",
+          "term": "t-r4j-retry",
+          "src": "s9"
+        },
+        {
+          "id": "u26-l1-i3",
+          "type": "tf",
+          "src": "s9",
+          "statement": "In Resilience4j, maxAttempts: 3 means the first call plus three retries.",
+          "answer": false,
+          "why": "maxAttempts includes the initial call as the first attempt. So 3 means one call and up to two retries."
+        },
+        {
+          "id": "u26-l1-i4",
+          "type": "card",
+          "term": "t-bulkhead",
+          "src": "s11"
+        },
+        {
+          "id": "u26-l1-i5",
+          "type": "pick",
+          "src": "s10",
+          "q": "Your team agreed with the SuccessFactors administrators to send no more than 20 requests per second. Which Resilience4j module enforces that?",
+          "options": [
+            "RateLimiter",
+            "Bulkhead",
+            "TimeLimiter",
+            "CircuitBreaker"
+          ],
+          "answer": 0,
+          "why": "A rate limiter caps the calls that start in each refresh period. A bulkhead caps the calls running at the same time, a time limiter caps how long one call takes, and a circuit breaker reacts to failures."
+        },
+        {
+          "id": "u26-l1-i6",
+          "type": "card",
+          "term": "t-aspect-order",
+          "src": "s7",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              { "id": "re", "label": "Retry" },
+              { "id": "cb", "label": "CircuitBreaker" },
+              { "id": "rl", "label": "RateLimiter" },
+              { "id": "tl", "label": "TimeLimiter" },
+              { "id": "bh", "label": "Bulkhead" },
+              { "id": "fn", "label": "Your method" }
+            ],
+            "edges": [
+              { "from": "re", "to": "cb", "label": "wraps" },
+              { "from": "cb", "to": "rl", "label": "wraps" },
+              { "from": "rl", "to": "tl", "label": "wraps" },
+              { "from": "tl", "to": "bh", "label": "wraps" },
+              { "from": "bh", "to": "fn", "label": "calls" }
+            ]
+          }
+        },
+        {
+          "id": "u26-l1-i7",
+          "type": "card",
+          "term": "t-retryable",
+          "src": "s1"
+        },
+        {
+          "id": "u26-l1-i8",
+          "type": "tf",
+          "src": "s2",
+          "statement": "With @Retryable(maxRetries = 3) in Spring Framework 7, the method can be invoked up to four times.",
+          "answer": true,
+          "why": "Total attempts are one initial call plus maxRetries. Note the difference from Resilience4j, where maxAttempts includes the first call."
+        },
+        {
+          "id": "u26-l1-i9",
+          "type": "pick",
+          "src": "s2",
+          "q": "Which package contains the @Retryable annotation that is built into Spring Framework 7?",
+          "options": [
+            "org.springframework.resilience.annotation",
+            "org.springframework.retry.annotation",
+            "org.springframework.core.retry",
+            "io.github.resilience4j.retry.annotation"
+          ],
+          "answer": 0,
+          "why": "The core annotations @Retryable, @ConcurrencyLimit and @EnableResilientMethods are in org.springframework.resilience.annotation. The second package belongs to the archived Spring Retry project, the third holds RetryTemplate and RetryPolicy, and the fourth holds the Resilience4j @Retry annotation."
+        },
+        {
+          "id": "u26-l1-i10",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each name with what it does.",
+          "pairs": [
+            ["@ConcurrencyLimit", "Spring Framework 7: caps the threads in a method; extra callers block by default"],
+            ["RetryTemplate", "Spring Framework 7: retries a block of code according to a RetryPolicy"],
+            ["@EnableResilientMethods", "Spring Framework 7: turns on processing of @Retryable and @ConcurrencyLimit"],
+            ["CircuitBreaker", "Resilience4j: rejects calls while a dependency keeps failing"],
+            ["RateLimiter", "Resilience4j: caps the calls that start in each refresh period"],
+            ["TimeLimiter", "Resilience4j: limits how long an asynchronous call can take"]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u26-l2",
+      "kind": "practice",
+      "title": "Configure and combine",
+      "items": [
+        {
+          "id": "u26-l2-i1",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each need with the tool you would choose.",
+          "pairs": [
+            ["Retry a method on a transient error, with no extra library", "@Retryable (Spring Framework 7)"],
+            ["Retry one block of code inside a method", "RetryTemplate"],
+            ["Stop calling SuccessFactors for a while after many failures", "Resilience4j CircuitBreaker"],
+            ["Start at most 20 requests per second to an API", "Resilience4j RateLimiter"],
+            ["Allow at most 10 virtual threads in a method at once", "@ConcurrencyLimit"],
+            ["Give up on a CompletableFuture after two seconds", "Resilience4j TimeLimiter"]
+          ]
+        },
+        {
+          "id": "u26-l2-i2",
+          "type": "order",
+          "src": "s7",
+          "q": "With the Resilience4j Spring Boot annotations and the default aspect order, put the layers in order from the outside (the first to see the call) to the inside.",
+          "steps": [
+            "Retry",
+            "CircuitBreaker",
+            "RateLimiter",
+            "TimeLimiter",
+            "Bulkhead",
+            "Your method"
+          ]
+        },
+        {
+          "id": "u26-l2-i3",
+          "type": "scenario",
+          "src": "s6",
+          "q": "A small Spring Boot 4 service publishes CandidateHired events and only needs to retry a publish that fails with a transient error. A colleague wants to add Spring Retry, as in older projects.",
+          "options": [
+            {
+              "text": "Use @Retryable from Spring Framework 7 and declare @EnableResilientMethods; no extra library is needed.",
+              "ok": true,
+              "why": "Retry is part of the Spring Framework core since 7.0, and the Spring Boot 4 migration guide suggests moving from Spring Retry to it."
+            },
+            {
+              "text": "Add Spring Retry and let Spring Boot choose its version.",
+              "ok": false,
+              "why": "Spring Boot 4 no longer manages the Spring Retry version, and the project is archived and no longer maintained."
+            },
+            {
+              "text": "Add a Resilience4j CircuitBreaker, because it also retries failed calls.",
+              "ok": false,
+              "why": "A circuit breaker does not retry: it records results and rejects calls while it is open."
+            },
+            {
+              "text": "Write a loop with Thread.sleep() around the publish call.",
+              "ok": false,
+              "why": "It is hard to configure and test, and it repeats what @Retryable already gives you, including backoff and jitter."
+            }
+          ]
+        },
+        {
+          "id": "u26-l2-i4",
+          "type": "code",
+          "src": "s7",
+          "lang": "yaml",
+          "q": "Complete the Resilience4j configuration for the SuccessFactors client. The retry makes 3 calls in total and stops when the breaker is open, at most 20 calls start per second, and at most 10 run at the same time.",
+          "code": "resilience4j:\n  retry:\n    instances:\n      sfRecruiting:\n        [[1]]: 3\n        waitDuration: 500ms\n        enableExponentialBackoff: true\n        exponentialBackoffMultiplier: 2\n        ignoreExceptions:\n          - [[2]]\n  circuitbreaker:\n    instances:\n      sfRecruiting:\n        slidingWindowSize: 20\n        minimumNumberOfCalls: 10\n        failureRateThreshold: 50\n        waitDurationInOpenState: 30s\n  ratelimiter:\n    instances:\n      sfRecruiting:\n        [[3]]: 20\n        limitRefreshPeriod: 1s\n        timeoutDuration: 0\n  bulkhead:\n    instances:\n      sfRecruiting:\n        [[4]]: 10\n        maxWaitDuration: 0",
+          "gaps": [
+            { "n": 1, "answer": "maxAttempts", "decoys": ["maxRetries", "retryAttempts"] },
+            { "n": 2, "answer": "io.github.resilience4j.circuitbreaker.CallNotPermittedException", "decoys": ["java.io.IOException", "org.springframework.web.client.HttpServerErrorException"] },
+            { "n": 3, "answer": "limitForPeriod", "decoys": ["maxConcurrentCalls", "limitRefreshPeriod"] },
+            { "n": 4, "answer": "maxConcurrentCalls", "decoys": ["limitForPeriod", "maxThreadPoolSize"] }
+          ]
+        },
+        {
+          "id": "u26-l2-i5",
+          "type": "scenario",
+          "src": "s15",
+          "q": "A Spring Boot service on Cloud Run reads job applications from SuccessFactors with the Resilience4j @Retry and @CircuitBreaker annotations in the default order. During an outage the breaker opens, but every request still waits through all its retry delays before it fails.",
+          "options": [
+            {
+              "text": "Add CallNotPermittedException to the retry's ignoreExceptions, so the retry stops when the breaker is open.",
+              "ok": true,
+              "why": "By default the retry retries every exception, including the breaker's rejection. The retry logic should stop when the breaker says the fault is not transient."
+            },
+            {
+              "text": "Raise maxAttempts so that a later attempt arrives after the breaker closes.",
+              "ok": false,
+              "why": "The breaker stays open for the whole wait duration (60 seconds by default), so more attempts only add load and delay."
+            },
+            {
+              "text": "Set failureRateThreshold to 100 so that the breaker opens less often.",
+              "ok": false,
+              "why": "Then the breaker opens only when every call in the window fails, and you lose most of its protection."
+            },
+            {
+              "text": "Remove the circuit breaker and keep only the retry.",
+              "ok": false,
+              "why": "Retries keep sending requests to a service that is down; the breaker is there to fail fast during a long outage."
+            }
+          ]
+        },
+        {
+          "id": "u26-l2-i6",
+          "type": "diagram",
+          "src": "s1",
+          "layout": "flow",
+          "q": "Complete the default advice chain in Spring Framework 7 for a method that has @Async, @Retryable and @Transactional.",
+          "nodes": [
+            { "id": "n1", "label": "Caller", "slot": false },
+            { "id": "n2", "label": "Async interceptor", "slot": true },
+            { "id": "n3", "label": "Retry interceptor", "slot": true },
+            { "id": "n4", "label": "Transaction interceptor", "slot": true },
+            { "id": "n5", "label": "Target method updateStatus()", "slot": false }
+          ],
+          "edges": [
+            { "from": "n1", "to": "n2", "label": "gets a CompletableFuture at once" },
+            { "from": "n2", "to": "n3", "label": "submitted once to the executor" },
+            { "from": "n3", "to": "n4", "label": "one call per attempt" },
+            { "from": "n4", "to": "n5", "label": "a fresh transaction per attempt" }
+          ],
+          "decoys": ["Circuit breaker aspect", "Rate limiter aspect", "Message relay"]
+        },
+        {
+          "id": "u26-l2-i7",
+          "type": "order",
+          "src": "s1",
+          "q": "A method has @Transactional and @Retryable(TransientDataAccessException.class). The first attempt hits a database deadlock, and the second attempt works. Put what happens in order.",
+          "steps": [
+            "The retry interceptor calls the transaction interceptor",
+            "A first transaction starts and the method runs",
+            "The method throws a TransientDataAccessException",
+            "The first transaction rolls back",
+            "The retry interceptor receives the exception and waits for the delay",
+            "A new transaction starts and the method succeeds",
+            "The new transaction commits and the result goes back to the caller"
+          ]
+        },
+        {
+          "id": "u26-l2-i8",
+          "type": "scenario",
+          "src": "s14",
+          "q": "An integration creates candidates in SuccessFactors with a POST and has @Retryable on the call. After a day of network problems, recruiters find duplicate candidates: the first POST worked, but its response was lost, and the retry created the candidate again.",
+          "options": [
+            {
+              "text": "Make the create safe to repeat first, for example by looking up the candidate by the source system's ID before creating it; until then, do not retry this POST.",
+              "ok": true,
+              "why": "Only an idempotent operation is safe to retry. Here the service processed the request, but the response was lost."
+            },
+            {
+              "text": "Increase maxRetries so that the call succeeds sooner.",
+              "ok": false,
+              "why": "More retries create more duplicates, because the operation itself is not idempotent."
+            },
+            {
+              "text": "Add @Transactional so that the retry rolls back the first create.",
+              "ok": false,
+              "why": "A local transaction cannot undo a write that SuccessFactors has already committed."
+            },
+            {
+              "text": "Add jitter to the retry delay.",
+              "ok": false,
+              "why": "Jitter spreads retries over time, but each retry still creates a new candidate."
+            }
+          ]
+        },
+        {
+          "id": "u26-l2-i9",
+          "type": "scenario",
+          "src": "s3",
+          "q": "A Spring Boot 4 service runs on virtual threads. A nightly export starts thousands of tasks, and each one calls a legacy SOAP service that can handle only 10 parallel requests. The SOAP service falls over every night.",
+          "options": [
+            {
+              "text": "Put @ConcurrencyLimit(10) on the client method, so that extra callers wait for a free slot.",
+              "ok": true,
+              "why": "With virtual threads there is generally no thread pool limit, and @ConcurrencyLimit blocks extra calls by default, like a pool size limit."
+            },
+            {
+              "text": "Add @Retryable so that failed SOAP calls are tried again.",
+              "ok": false,
+              "why": "Retries send even more calls to a service that is already overloaded; they do not limit concurrency."
+            },
+            {
+              "text": "Add a rate limiter of 10 calls per second.",
+              "ok": false,
+              "why": "A rate limiter controls how many calls start per period, not how many run at once, so slow calls can still pile up."
+            },
+            {
+              "text": "Add a TimeLimiter of one second to the SOAP call.",
+              "ok": false,
+              "why": "A time limiter limits how long one call takes, not how many run at the same time, and it needs an asynchronous result."
+            }
+          ]
+        },
+        {
+          "id": "u26-l2-i10",
+          "type": "code",
+          "src": "s1",
+          "lang": "java",
+          "q": "Complete the Spring Framework 7 code. The GET is safe to repeat, so it is retried on I/O errors with exponential backoff, and at most 10 threads may call it at once.",
+          "code": "@Configuration\n[[1]]\nclass ResilienceConfig {\n}\n\n@Component\nclass SfApplicationClient {\n\n    private final RestClient restClient;\n\n    SfApplicationClient(RestClient sfRestClient) {\n        this.restClient = sfRestClient;\n    }\n\n    [[2]](includes = ResourceAccessException.class,\n            maxRetries = 4, delay = 200, multiplier = 2, maxDelay = 2000, jitter = 50)\n    [[3]](10)\n    public String fetchApplications(String jobReqId) {\n        return restClient.get()\n                .uri(\"/odata/v2/JobApplication?$filter=jobReqId eq {id}\", jobReqId)\n                .retrieve()\n                .body(String.class);\n    }\n}",
+          "gaps": [
+            { "n": 1, "answer": "@EnableResilientMethods", "decoys": ["@EnableRetry", "@EnableAsync"] },
+            { "n": 2, "answer": "@Retryable", "decoys": ["@Retry", "@Recover"] },
+            { "n": 3, "answer": "@ConcurrencyLimit", "decoys": ["@Bulkhead", "@RateLimiter"] }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u26-l3",
+      "kind": "interview",
+      "title": "Talk about resilience",
+      "items": [
+        {
+          "id": "u26-l3-i1",
+          "type": "say",
+          "src": "s15",
+          "text": "I put the retry outside the circuit breaker, and I never retry when the breaker is open. Then the caller fails fast instead of waiting."
+        },
+        {
+          "id": "u26-l3-i2",
+          "type": "tf",
+          "src": "s1",
+          "statement": "Spring Framework 7 includes a circuit breaker annotation in its core, so you no longer need Resilience4j for that.",
+          "answer": false,
+          "why": "The core resilience features are @Retryable, @ConcurrencyLimit and RetryTemplate. For a circuit breaker, a rate limiter or a time limiter, you still use a library such as Resilience4j."
+        },
+        {
+          "id": "u26-l3-i3",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "When would you use the retry support in Spring Framework, and when Resilience4j?",
+          "model": "Since Spring Framework 7, retry is part of the core framework, so for simple cases I do not add a library. If a method only needs to retry a transient failure, I use @Retryable, with includes for the exceptions that are really transient, and exponential backoff with a multiplier, a maximum delay and some jitter. If I need to retry a block of code inside a method, I use RetryTemplate. The core also has @ConcurrencyLimit, which is useful with virtual threads, because there is no thread pool to limit the calls. But the core has no circuit breaker, no rate limiter and no time limiter. When I call an external system like SuccessFactors, I usually need those, so I use Resilience4j. It gives me all five patterns, configuration per instance in application.yml, and metrics through Actuator. I try not to put both retry mechanisms on the same call, because the retries would multiply.",
+          "keypoints": [
+            { "text": "Retry is in the Spring Framework 7 core", "kw": ["spring framework 7", "core", "no library", "no extra library", "built in", "built-in"] },
+            { "text": "@Retryable or RetryTemplate for simple retries, with backoff", "kw": ["retryable", "retrytemplate", "retry template", "backoff", "multiplier", "jitter"] },
+            { "text": "@ConcurrencyLimit, useful with virtual threads", "kw": ["concurrencylimit", "concurrency limit", "virtual threads", "concurrent"] },
+            { "text": "Resilience4j for a circuit breaker, rate limiter or time limiter", "kw": ["resilience4j", "circuit breaker", "rate limiter", "time limiter", "bulkhead"] },
+            { "text": "Do not stack two retry layers on one call", "kw": ["multiply", "both", "two layers", "nested", "stack", "one layer"] }
+          ]
+        },
+        {
+          "id": "u26-l3-i4",
+          "type": "scenario",
+          "src": "s1",
+          "q": "The interviewer asks: a method has both @Transactional and @Retryable, and the first attempt fails with a deadlock. What happens on the retry?",
+          "options": [
+            {
+              "text": "The retry runs in a new transaction, because the retry advice is outside the transaction and the first transaction has already rolled back.",
+              "ok": true,
+              "why": "In Spring Framework 7 the chain is retry, then transaction, then the method, so each attempt starts a fresh transaction."
+            },
+            {
+              "text": "The retry runs inside the same transaction, which is still open.",
+              "ok": false,
+              "why": "The transaction interceptor is inside the retry interceptor, so it has rolled back before the retry decides what to do."
+            },
+            {
+              "text": "It depends on which annotation is written first in the source code.",
+              "ok": false,
+              "why": "The order comes from the advisors, not from the order of the annotations, and retry is always applied outside @Transactional."
+            },
+            {
+              "text": "You must set the order attribute on @EnableTransactionManagement to make the retry work.",
+              "ok": false,
+              "why": "That attribute does not change this order, and no change is needed: each attempt already gets its own transaction."
+            }
+          ]
+        },
+        {
+          "id": "u26-l3-i5",
+          "type": "say",
+          "src": "s14",
+          "text": "A retry is only safe when the operation is idempotent. Otherwise one lost response can create a second candidate in SuccessFactors."
+        },
+        {
+          "id": "u26-l3-i6",
+          "type": "explain",
+          "src": "s15",
+          "seconds": 150,
+          "q": "How do you combine a retry with a circuit breaker?",
+          "model": "They solve different problems, so I usually use both. The retry handles short, transient failures, like a single timeout. The circuit breaker handles longer outages: when the failure rate in its sliding window reaches the threshold, it opens and rejects calls at once, so we stop sending load to a service that is already in trouble. With the Resilience4j annotations in Spring Boot, the default aspect order puts Retry outside CircuitBreaker. That means every attempt goes through the breaker and is recorded. The important detail is what happens when the breaker is open. The call fails with a CallNotPermittedException, and by default Retry retries every exception, so I add CallNotPermittedException to the retry's ignoreExceptions. Then the caller gets a fast failure, and a fallback can, for example, put the request on a Pub/Sub topic for later. I also keep the number of attempts small, use exponential backoff, and only retry operations that are idempotent.",
+          "keypoints": [
+            { "text": "Different jobs: transient failures and longer outages", "kw": ["transient", "short", "outage", "outages", "longer", "different problems"] },
+            { "text": "Retry outside the circuit breaker (default aspect order)", "kw": ["outside", "aspect order", "outer", "wraps", "default order"] },
+            { "text": "An open breaker rejects calls with CallNotPermittedException", "kw": ["callnotpermittedexception", "call not permitted", "fail fast", "rejects", "open"] },
+            { "text": "Stop retrying when the breaker is open", "kw": ["ignoreexceptions", "ignore exceptions", "ignore", "stop retrying", "do not retry"] },
+            { "text": "A fallback for the failure", "kw": ["fallback", "queue", "pub/sub", "topic", "cached"] },
+            { "text": "Few attempts, backoff, idempotent operations", "kw": ["backoff", "idempotent", "idempotency", "few attempts", "small"] }
+          ]
+        },
+        {
+          "id": "u26-l3-i7",
+          "type": "tf",
+          "src": "s7",
+          "statement": "A Resilience4j fallback method can live in any Spring bean, as long as its name matches the fallbackMethod attribute.",
+          "answer": false,
+          "why": "The fallback must be in the same class as the protected method. It has the same signature plus one extra exception parameter."
+        },
+        {
+          "id": "u26-l3-i8",
+          "type": "explain",
+          "src": "s10",
+          "seconds": 120,
+          "q": "What is the difference between a rate limiter, a bulkhead and a time limiter?",
+          "model": "All three limit something, but they limit different things. A rate limiter limits how many calls start in a period of time. In Resilience4j, you set limitForPeriod and limitRefreshPeriod, for example 20 calls per second, and a caller waits up to timeoutDuration for a permission. I use it to respect a limit that another system sets, like an agreed request rate for an API. A bulkhead limits how many calls run at the same time. If one dependency becomes slow, its calls stay inside their own compartment, so they cannot block all the threads that other calls need. Resilience4j has a semaphore bulkhead and a thread-pool bulkhead. A time limiter limits how long one call can take. In Resilience4j, it works on a CompletableFuture or another Future, so I use it with asynchronous calls. For a synchronous HTTP call, I set connect and read timeouts on the client instead.",
+          "keypoints": [
+            { "text": "Rate limiter: calls that start per period", "kw": ["per second", "per period", "rate", "limitforperiod", "period"] },
+            { "text": "Bulkhead: calls running at the same time", "kw": ["at the same time", "concurrent", "concurrency", "parallel", "at once"] },
+            { "text": "A slow dependency stays isolated", "kw": ["slow", "compartment", "isolate", "isolated", "isolation", "threads"] },
+            { "text": "Time limiter: how long one asynchronous call takes", "kw": ["how long", "duration", "completablefuture", "future", "asynchronous", "async"] },
+            { "text": "Client timeouts for synchronous calls", "kw": ["read timeout", "connect timeout", "timeouts", "client"] }
+          ]
+        },
+        {
+          "id": "u26-l3-i9",
+          "type": "tf",
+          "src": "s3",
+          "statement": "@ConcurrencyLimit rejects extra calls with an exception by default.",
+          "answer": false,
+          "why": "By default, extra calls block until a slot is free. Since Spring Framework 7.0.3 you can set policy = REJECT, and then they fail with an InvocationRejectedException."
+        },
+        {
+          "id": "u26-l3-i10",
+          "type": "explain",
+          "src": "s6",
+          "seconds": 150,
+          "q": "You are moving a Spring Boot 3 service that uses Spring Retry and Resilience4j to Spring Boot 4. What do you check?",
+          "model": "I start with the retry code. Spring Boot 4 removed the dependency management for Spring Retry, and the project itself is now archived, so I move to the retry support in Spring Framework 7. I replace the old annotations with @Retryable from org.springframework.resilience.annotation, and I make sure @EnableResilientMethods is declared on a configuration class, because the annotations do nothing until their processing is enabled. I check the numbers carefully. Spring's maxRetries counts only the retries, so maxRetries = 3 means up to four calls, while Resilience4j's maxAttempts includes the first call. Next, Resilience4j. The resilience4j-spring-boot3 module is for Spring Boot 3, and there is a separate resilience4j-spring-boot4 module, since version 2.4.0. The Spring Boot AOP starter was also renamed to spring-boot-starter-aspectj, and the Resilience4j aspects need AspectJ, so I check that it is there. Finally, I run the tests that simulate failures, for example with WireMock, to prove that the retries, the breaker and the fallbacks still behave as before.",
+          "keypoints": [
+            { "text": "Spring Boot 4 no longer manages Spring Retry, which is archived", "kw": ["spring retry", "dependency management", "archived", "removed", "explicit version"] },
+            { "text": "Move to @Retryable and enable it with @EnableResilientMethods", "kw": ["retryable", "enableresilientmethods", "enable resilient methods", "spring framework 7", "framework"] },
+            { "text": "maxRetries counts retries; maxAttempts includes the first call", "kw": ["maxretries", "max retries", "maxattempts", "max attempts", "first call", "four calls"] },
+            { "text": "Switch to the resilience4j-spring-boot4 module", "kw": ["boot4", "spring boot 4 module", "resilience4j-spring-boot4", "module", "2.4.0"] },
+            { "text": "The AOP starter is now spring-boot-starter-aspectj", "kw": ["aspectj", "starter", "aop"] },
+            { "text": "Run failure tests", "kw": ["tests", "test", "wiremock", "simulate"] }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Resilience4j modules",
+        "points": [
+          "Retry: calls again after a failure; maxAttempts includes the first call (default 3, 500 ms apart).",
+          "CircuitBreaker: opens when the failure or slow-call rate reaches the threshold (default 50% over the last 100 calls) and rejects calls with CallNotPermittedException.",
+          "RateLimiter: limitForPeriod calls per limitRefreshPeriod; a caller waits up to timeoutDuration (defaults 50, 500 ns, 5 s).",
+          "Bulkhead: maxConcurrentCalls at once (default 25); the thread-pool bulkhead uses a fixed pool and a bounded queue.",
+          "TimeLimiter: limits the time of a CompletionStage or Future, so the method must be asynchronous.",
+          "Every pattern is a decorator, and you can stack several on one call."
+        ]
+      },
+      {
+        "h": "Resilience4j in Spring Boot",
+        "points": [
+          "Spring Boot 3: resilience4j-spring-boot3, with spring-boot-starter-aop and spring-boot-starter-actuator at runtime.",
+          "Spring Boot 4: resilience4j-spring-boot4 (version 2.4.0 or later); the AOP starter is now spring-boot-starter-aspectj.",
+          "Instances under resilience4j.<module>.instances.<name>; shared settings under configs, inherited with baseConfig.",
+          "Annotations name the instance: @Retry(name = \"sfRecruiting\", fallbackMethod = \"fromCache\").",
+          "Metrics on /actuator/metrics; the CircuitBreaker and RateLimiter health indicators are off by default."
+        ]
+      },
+      {
+        "h": "Aspect order and fallbacks",
+        "points": [
+          "Default: Retry ( CircuitBreaker ( RateLimiter ( TimeLimiter ( Bulkhead ( method ) ) ) ) ).",
+          "Change it with retryAspectOrder, circuitBreakerAspectOrder and the other aspect-order properties, or chain decorators in code.",
+          "Fallback: same class, same signature plus one exception parameter; the closest exception type wins."
+        ]
+      },
+      {
+        "h": "Spring Framework 7 core",
+        "points": [
+          "@Retryable (org.springframework.resilience.annotation): any exception, 3 retries after the first call, 1 s delay.",
+          "Tune it with includes, excludes, maxRetries, delay, multiplier, maxDelay and jitter; timeout needs 7.0.2.",
+          "@ConcurrencyLimit(n): extra callers block; policy = REJECT (7.0.3) throws InvocationRejectedException.",
+          "RetryTemplate and RetryPolicy (org.springframework.core.retry): invoke() rethrows the last exception, execute() throws RetryException.",
+          "Turn the annotations on with @EnableResilientMethods on a @Configuration class.",
+          "No circuit breaker, rate limiter or time limiter in the core."
+        ]
+      },
+      {
+        "h": "Advice chain",
+        "points": [
+          "Retry is outside @Transactional and @Cacheable: each attempt gets a fresh transaction and checks the cache.",
+          "Retry is inside @Async: all attempts run on the executor thread, and the caller never waits for the delays.",
+          "Only the order relative to @Async can change (order on @EnableResilientMethods and @EnableAsync)."
+        ]
+      },
+      {
+        "h": "Combining and choosing",
+        "points": [
+          "Retry for short transient faults; circuit breaker for longer outages.",
+          "Stop retrying when the breaker is open: ignore CallNotPermittedException in the retry.",
+          "Retry only idempotent operations: a lost response plus a retry repeats the side effect.",
+          "Retry in one layer only; nested retries add long delays.",
+          "Simple retry or concurrency limit: Spring core. Breaker, rate limiter or time limiter: Resilience4j.",
+          "Spring Retry is archived, and Spring Boot 4 no longer manages its version."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    { "id": "s1", "title": "Resilience Features - Spring Framework 7.0.10 reference", "url": "https://docs.spring.io/spring-framework/reference/core/resilience.html", "official": true },
+    { "id": "s2", "title": "Retryable (Spring Framework 7.0 API)", "url": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/resilience/annotation/Retryable.html", "official": true },
+    { "id": "s3", "title": "ConcurrencyLimit (Spring Framework 7.0 API)", "url": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/resilience/annotation/ConcurrencyLimit.html", "official": true },
+    { "id": "s4", "title": "EnableResilientMethods (Spring Framework 7.0 API)", "url": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/resilience/annotation/EnableResilientMethods.html", "official": true },
+    { "id": "s5", "title": "RetryTemplate (Spring Framework 7.0 API)", "url": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/core/retry/RetryTemplate.html", "official": true },
+    { "id": "s6", "title": "Spring Boot 4.0 Migration Guide - spring-projects/spring-boot wiki", "url": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide", "official": true },
+    { "id": "s7", "title": "Getting started with Spring Boot 2 and 3 - Resilience4j documentation (v2.2.0)", "url": "https://resilience4j.readme.io/docs/getting-started-3", "official": true },
+    { "id": "s8", "title": "CircuitBreaker - Resilience4j documentation", "url": "https://resilience4j.readme.io/docs/circuitbreaker", "official": true },
+    { "id": "s9", "title": "Retry - Resilience4j documentation", "url": "https://resilience4j.readme.io/docs/retry", "official": true },
+    { "id": "s10", "title": "RateLimiter - Resilience4j documentation", "url": "https://resilience4j.readme.io/docs/ratelimiter", "official": true },
+    { "id": "s11", "title": "Bulkhead - Resilience4j documentation", "url": "https://resilience4j.readme.io/docs/bulkhead", "official": true },
+    { "id": "s12", "title": "TimeLimiter - Resilience4j documentation", "url": "https://resilience4j.readme.io/docs/timeout", "official": true },
+    { "id": "s13", "title": "io.github.resilience4j:resilience4j-spring-boot4 - Maven Central", "url": "https://repo1.maven.org/maven2/io/github/resilience4j/resilience4j-spring-boot4/", "official": true },
+    { "id": "s14", "title": "Retry pattern - Azure Architecture Center", "url": "https://learn.microsoft.com/azure/architecture/patterns/retry", "official": true },
+    { "id": "s15", "title": "Circuit Breaker pattern - Azure Architecture Center", "url": "https://learn.microsoft.com/azure/architecture/patterns/circuit-breaker", "official": true },
+    { "id": "s16", "title": "Introduction - Resilience4j documentation", "url": "https://resilience4j.readme.io/docs/getting-started", "official": true },
+    { "id": "s17", "title": "spring-projects/spring-retry (archived repository) - GitHub", "url": "https://github.com/spring-projects/spring-retry", "official": true }
+  ]
+}

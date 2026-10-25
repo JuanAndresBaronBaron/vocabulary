@@ -1,0 +1,1162 @@
+{
+  "format": 1,
+  "id": "u25",
+  "n": 25,
+  "block": "java",
+  "title": "HTTP clients",
+  "summary": "After this unit you can choose between RestClient, WebClient and HTTP service interfaces, explain the RestTemplate deprecation plan, set connect and read timeouts, handle error statuses with onStatus and a default status handler, and keep trace and correlation headers on every outbound call.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Checked on 2026-10-25 against the Spring Framework 7.0.10 reference (the current release), the 7.1.0-RC1 reference and the Spring Boot 4.1.2 reference.",
+    "RestTemplate: the 7.0.10 and 7.1.0-RC1 references both say that, as of Spring Framework 7.0, RestTemplate is deprecated in favour of RestClient and will be removed in a future version. The Spring blog of 30 September 2025 gives the plan: intent announced in 7.0 (November 2025), formal deprecation in 7.1 (provisional, November 2026), removal in 8.0 (date to be decided), and open-source support until at least 2029. The 7.1.0-RC1 Javadoc has @Deprecated(since=\"7.1\", forRemoval=true) and says it is deprecated as of 7.1 in favour of RestClient, for removal in 8.0. On 2026-10-25 the default reference on docs.spring.io still shows 7.0.10, so 7.1 is not yet generally available.",
+    "HTTP Service Registry, @ImportHttpServices (attributes group, types, basePackages, clientType), AbstractHttpServiceRegistrar and RestClientHttpServiceGroupConfigurer are new in Spring Framework 7.0 (Spring blog, 23 September 2025). Spring Boot 4.1.2: spring.http.serviceclient.<group>.base-url, connect-timeout and read-timeout; the default group is named default.",
+    "Spring Boot 4.1.2: global HTTP client settings are spring.http.clients.connect-timeout, read-timeout, redirects, cookie-handling, imperative.factory and reactive.connector. Detection order for RestClient and RestTemplate: Apache HttpClient, Jetty, Reactor Netty, JDK HttpClient, HttpURLConnection.",
+    "Spring Framework 7.0.10 observability: the client observations have a low-cardinality key error; the older key exception is deprecated, duplicates error and might be removed."
+  ],
+  "terms": [
+    {
+      "id": "t-restclient",
+      "term": "RestClient",
+      "ipa": "/ˈrest ˌklaɪənt/",
+      "say": "rest client",
+      "def": "Spring's synchronous HTTP client with a fluent API. It converts request and response bodies to and from Java objects, and once it is built it is safe to use from many threads.",
+      "example": "The adapter builds one RestClient with the SuccessFactors API server as its base URL and reuses it for every OData call.",
+      "src": "s1"
+    },
+    {
+      "id": "t-webclient",
+      "term": "WebClient",
+      "ipa": "/ˈweb ˌklaɪənt/",
+      "say": "web client",
+      "def": "Spring's non-blocking, reactive HTTP client, introduced in Spring Framework 5.0. It suits reactive applications, streaming, and high concurrency with fewer hardware resources.",
+      "example": "A Spring WebFlux gateway uses WebClient to call three HR systems at the same time and combine the results.",
+      "src": "s1"
+    },
+    {
+      "id": "t-resttemplate",
+      "term": "RestTemplate",
+      "ipa": "/ˈrest ˌtempleɪt/",
+      "say": "rest template",
+      "def": "The classic template-style synchronous client. The Spring Framework 7 reference says it is deprecated in favour of RestClient, and the 7.1 release candidate marks it @Deprecated for removal in 8.0.",
+      "example": "The team wraps its old RestTemplate with RestClient.create(restTemplate) and moves the calls across one component at a time.",
+      "src": "s8"
+    },
+    {
+      "id": "t-http-service-client",
+      "term": "HTTP service client",
+      "ipa": "/ˌeɪtʃ tiː tiː ˈpiː ˈsɜːvɪs ˌklaɪənt/",
+      "say": "H T T P service client",
+      "def": "A Java interface whose methods are annotated with @HttpExchange or a variant such as @GetExchange or @PostExchange. Spring creates a proxy that sends the requests through RestClient, WebClient or RestTemplate.",
+      "example": "The HrApi interface declares a method with @GetExchange(\"/employees/{id}\"), so the onboarding code calls hrApi.find(id) and never builds a URL by hand.",
+      "src": "s1"
+    },
+    {
+      "id": "t-import-http-services",
+      "term": "@ImportHttpServices",
+      "ipa": "/ɪmˈpɔːt ˌeɪtʃ tiː tiː ˈpiː ˈsɜːvɪsɪz/",
+      "say": "import H T T P services",
+      "def": "A Spring Framework 7 annotation that registers HTTP service interfaces as beans, in a named group. All the interfaces in one group share one HTTP client configuration.",
+      "example": "@ImportHttpServices(group = \"hr\", types = HrApi.class) creates the HrApi proxy, and Spring Boot reads its base URL from spring.http.serviceclient.hr.base-url.",
+      "src": "s3"
+    },
+    {
+      "id": "t-request-factory",
+      "term": "Client request factory",
+      "ipa": "/ˈklaɪənt rɪˈkwest ˌfæktəri/",
+      "say": "client request factory",
+      "def": "A ClientHttpRequestFactory adapts RestClient and RestTemplate to an HTTP library: the JDK HttpClient, Apache HttpComponents, Jetty, Reactor Netty or the simple HttpURLConnection. Settings such as the read timeout can be set on it.",
+      "example": "With Apache HttpClient on the classpath, Spring Boot gives every RestClient built from its auto-configured builder the HttpComponents request factory.",
+      "src": "s1"
+    },
+    {
+      "id": "t-connect-timeout",
+      "term": "Connect timeout",
+      "ipa": "/kəˈnekt ˈtaɪmaʊt/",
+      "say": "connect timeout",
+      "def": "The longest time the client waits to open a connection to the server. It makes a call fail fast when the host is down or cannot be reached.",
+      "example": "With spring.http.clients.connect-timeout set to 2s, the adapter gives up after two seconds when the HR API's address does not answer.",
+      "src": "s4"
+    },
+    {
+      "id": "t-read-timeout",
+      "term": "Read timeout",
+      "ipa": "/ˈriːd ˈtaɪmaʊt/",
+      "say": "read timeout",
+      "def": "The longest time the client waits for data after the connection is open. It stops a slow server from holding the caller's threads.",
+      "example": "A 10-second read timeout ends an OData query that would otherwise keep a Cloud Run request waiting for minutes.",
+      "src": "s4"
+    },
+    {
+      "id": "t-status-handler",
+      "term": "Status handler",
+      "ipa": "/ˈsteɪtəs ˌhændlə/",
+      "say": "status handler",
+      "def": "Code that decides what happens for a response status. onStatus applies to one request, and defaultStatusHandler on the builder applies to every request of the client. Without one, RestClient throws a subclass of RestClientException for 4xx and 5xx responses.",
+      "example": "A default status handler turns every 404 from the HR API into an EmployeeNotFoundException.",
+      "src": "s1"
+    },
+    {
+      "id": "t-interceptor",
+      "term": "Request interceptor",
+      "ipa": "/rɪˈkwest ˌɪntəˈseptə/",
+      "say": "request interceptor",
+      "def": "A ClientHttpRequestInterceptor, registered on a RestClient or RestTemplate, can change the outgoing request and the incoming response. It passes the request on with execution.execute(request, body), or blocks it.",
+      "example": "An interceptor copies the correlation ID from the logging context into an X-Correlation-ID header on every call to SuccessFactors.",
+      "src": "s11"
+    },
+    {
+      "id": "t-observation",
+      "term": "Observation",
+      "ipa": "/ˌɒbzəˈveɪʃn/",
+      "say": "observation",
+      "def": "A Micrometer measurement of one operation. Spring's HTTP clients create an http.client.requests observation for each exchange, from opening the connection to reading the body, but only when the client has an ObservationRegistry.",
+      "example": "The dashboard shows http.client.requests for the uri /odata/v2/JobApplication with status 503, so the team sees when SuccessFactors starts failing.",
+      "src": "s5"
+    },
+    {
+      "id": "t-uri-template",
+      "term": "URI template",
+      "ipa": "/ˌjuː ɑːr ˈaɪ ˌtempleɪt/",
+      "say": "U R I template",
+      "def": "A URI with variables in braces, such as /employees/{id}. The client observation records the template, not the final URI, as its low-cardinality uri key.",
+      "example": "uri(\"/employees/{id}\", id) gives one uri value for all employees, while a URL built by string concatenation has a different value for every employee.",
+      "src": "s5"
+    },
+    {
+      "id": "t-baggage",
+      "term": "Baggage",
+      "ipa": "/ˈbæɡɪdʒ/",
+      "say": "baggage",
+      "def": "Key-value data that travels with the trace context. In Spring Boot, a field listed in management.tracing.baggage.remote-fields goes out as an HTTP header on outgoing calls.",
+      "example": "The webhook handler puts a correlation-id field into baggage, and because the field is listed in remote-fields, every call to the HR API carries a correlation-id header.",
+      "src": "s6"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u25-l1",
+      "kind": "concepts",
+      "title": "Spring's HTTP clients",
+      "items": [
+        {
+          "id": "u25-l1-i1",
+          "type": "card",
+          "term": "t-restclient",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "svc",
+                "label": "Adapter on Cloud Run"
+              },
+              {
+                "id": "rc",
+                "label": "RestClient"
+              },
+              {
+                "id": "rf",
+                "label": "Request factory (JDK HttpClient)"
+              },
+              {
+                "id": "api",
+                "label": "SuccessFactors OData API"
+              }
+            ],
+            "edges": [
+              {
+                "from": "svc",
+                "to": "rc",
+                "label": "get().uri(...).retrieve().body(...)"
+              },
+              {
+                "from": "rc",
+                "to": "rf",
+                "label": "creates the HTTP request"
+              },
+              {
+                "from": "rf",
+                "to": "api",
+                "label": "sends it over the network"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u25-l1-i2",
+          "type": "card",
+          "term": "t-webclient",
+          "src": "s1"
+        },
+        {
+          "id": "u25-l1-i3",
+          "type": "pick",
+          "src": "s4",
+          "q": "A blocking Spring MVC service on Spring Boot 4 calls the SuccessFactors OData API. Which client does the Spring Boot documentation point you to?",
+          "options": [
+            "RestClient, built from the auto-configured RestClient.Builder",
+            "WebClient, because it is the only HTTP client that Spring still maintains",
+            "RestTemplate, because Spring Boot auto-configures a RestTemplate bean",
+            "A new HttpURLConnection for each call, to avoid any framework code"
+          ],
+          "answer": 0,
+          "why": "Spring Boot says that if you are not writing a reactive WebFlux application you can use RestClient, and it advises injecting the auto-configured builder. Spring maintains both RestClient and WebClient, and Spring Boot auto-configures a RestTemplateBuilder, not a RestTemplate bean."
+        },
+        {
+          "id": "u25-l1-i4",
+          "type": "card",
+          "term": "t-resttemplate",
+          "src": "s8"
+        },
+        {
+          "id": "u25-l1-i5",
+          "type": "tf",
+          "src": "s2",
+          "statement": "The Spring team plans to remove RestTemplate in Spring Framework 7.1.",
+          "answer": false,
+          "why": "In the published plan, 7.1 formally marks RestTemplate as deprecated for removal, and the removal itself is planned for Spring Framework 8.0. The team expects open-source support to last until at least 2029."
+        },
+        {
+          "id": "u25-l1-i6",
+          "type": "card",
+          "term": "t-http-service-client",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "code",
+                "label": "Onboarding code calls hrApi.find(id)"
+              },
+              {
+                "id": "proxy",
+                "label": "Proxy from HttpServiceProxyFactory"
+              },
+              {
+                "id": "adapter",
+                "label": "RestClientAdapter"
+              },
+              {
+                "id": "rc",
+                "label": "RestClient"
+              },
+              {
+                "id": "api",
+                "label": "HR API"
+              }
+            ],
+            "edges": [
+              {
+                "from": "code",
+                "to": "proxy",
+                "label": "a normal method call"
+              },
+              {
+                "from": "proxy",
+                "to": "adapter",
+                "label": "turns @GetExchange into a request"
+              },
+              {
+                "from": "adapter",
+                "to": "rc",
+                "label": "executes it"
+              },
+              {
+                "from": "rc",
+                "to": "api",
+                "label": "GET /employees/48213"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u25-l1-i7",
+          "type": "card",
+          "term": "t-import-http-services",
+          "src": "s3"
+        },
+        {
+          "id": "u25-l1-i8",
+          "type": "tf",
+          "src": "s1",
+          "statement": "Calling retrieve() on a RestClient request sends it, even if you never call body() or another method after it.",
+          "answer": false,
+          "why": "retrieve() on its own does nothing and returns a ResponseSpec. A terminal operation such as body(), toEntity() or toBodilessEntity() is what sends the request."
+        },
+        {
+          "id": "u25-l1-i9",
+          "type": "card",
+          "term": "t-status-handler",
+          "src": "s1"
+        },
+        {
+          "id": "u25-l1-i10",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each RestClient method with its job.",
+          "pairs": [
+            [
+              "requestFactory(...)",
+              "Chooses the HTTP library that sends the requests"
+            ],
+            [
+              "requestInterceptor(...)",
+              "Runs code around every request, for example to add a header"
+            ],
+            [
+              "defaultStatusHandler(...)",
+              "Handles an error status the same way on every request of the client"
+            ],
+            [
+              "onStatus(...)",
+              "Handles an error status on one request only"
+            ],
+            [
+              "toBodilessEntity()",
+              "Sends the request and returns the status and headers, without a body"
+            ],
+            [
+              "exchange(...)",
+              "Gives full access to the response, and no status handlers are applied"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u25-l2",
+      "kind": "practice",
+      "title": "Build a robust client",
+      "items": [
+        {
+          "id": "u25-l2-i1",
+          "type": "scenario",
+          "src": "s1",
+          "q": "A Spring Boot 3 adapter makes 40 different calls through one RestTemplate, with a custom interceptor and an Apache HttpComponents request factory. The team is moving to Spring Boot 4 and wants to leave RestTemplate without a big rewrite.",
+          "options": [
+            {
+              "text": "Create a RestClient from the existing instance with RestClient.create(restTemplate), move the calls component by component, then rebuild the setup with RestClient.Builder and the same factory and interceptor.",
+              "ok": true,
+              "why": "This is the migration path in the Spring reference. The two clients share the same infrastructure, so the factory and the interceptor carry over."
+            },
+            {
+              "text": "Rewrite all 40 calls with WebClient and call block() on every result.",
+              "ok": false,
+              "why": "The Spring team positions WebClient for reactive and streaming needs. For blocking code, RestClient is the direct successor."
+            },
+            {
+              "text": "Change nothing, because there is no plan to remove RestTemplate.",
+              "ok": false,
+              "why": "There is a plan: formal deprecation in 7.1 and removal in 8.0. New work should not build on it."
+            },
+            {
+              "text": "Drop the interceptor, because RestClient cannot run ClientHttpRequestInterceptor code.",
+              "ok": false,
+              "why": "RestClient.Builder has requestInterceptor(...), and the reference says you can reuse your interceptors."
+            }
+          ]
+        },
+        {
+          "id": "u25-l2-i2",
+          "type": "order",
+          "src": "s1",
+          "q": "Put the migration from RestTemplate to RestClient in order, as the Spring reference describes it.",
+          "steps": [
+            "Create a RestClient from the existing RestTemplate with RestClient.create(restTemplate)",
+            "Move the requests to that RestClient, one component at a time",
+            "Check that every request now goes through RestClient",
+            "Rebuild the client setup with RestClient.Builder",
+            "Reuse the custom request factory and interceptors in the new builder",
+            "Remove the RestTemplate bean"
+          ]
+        },
+        {
+          "id": "u25-l2-i3",
+          "type": "code",
+          "src": "s1",
+          "lang": "java",
+          "q": "Complete the Spring Boot configuration. The client must come from the auto-configured builder, add a correlation header to every request, turn every 4xx into SfClientException, and read the response into a Java object.",
+          "code": "@Configuration\npublic class SfClientConfig {\n\n    @Bean\n    RestClient sfClient([[1]] builder, SfProperties props) {\n        return builder\n            .baseUrl(props.apiServer())\n            .[[2]](new CorrelationIdInterceptor())\n            .[[3]](HttpStatusCode::is4xxClientError, (request, response) -> {\n                throw new SfClientException(response.getStatusCode());\n            })\n            .build();\n    }\n}\n\n// Later, in the service:\nJobApplications page = sfClient.get()\n    .uri(\"/odata/v2/JobApplication?$top={top}\", 100)\n    .retrieve()\n    .[[4]](JobApplications.class);",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "RestClient.Builder",
+              "decoys": [
+                "RestTemplateBuilder",
+                "WebClient.Builder"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "requestInterceptor",
+              "decoys": [
+                "filter",
+                "defaultHeader"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "defaultStatusHandler",
+              "decoys": [
+                "onStatus",
+                "setErrorHandler"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "body",
+              "decoys": [
+                "toBodilessEntity",
+                "exchange"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u25-l2-i4",
+          "type": "code",
+          "src": "s4",
+          "lang": "yaml",
+          "q": "Complete the Spring Boot 4 configuration. Every HTTP client gets a 2-second connect timeout and a 10-second read timeout. The HTTP service group hr gets its own base URL and a 5-second read timeout.",
+          "code": "spring:\n  http:\n    [[1]]:\n      connect-timeout: 2s\n      read-timeout: 10s\n    [[2]]:\n      hr:\n        base-url: https://hr-api.internal.example.com\n        [[3]]: 5s",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "clients",
+              "decoys": [
+                "client",
+                "restclient"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "serviceclient",
+              "decoys": [
+                "services",
+                "httpservices"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "read-timeout",
+              "decoys": [
+                "response-timeout",
+                "socket-timeout"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u25-l2-i5",
+          "type": "scenario",
+          "src": "s4",
+          "q": "An adapter on Cloud Run reads job applications from SuccessFactors with a RestClient that has no timeouts. During a slow period at the API, calls wait for minutes, and the adapter runs out of threads.",
+          "options": [
+            {
+              "text": "Set a short connect timeout and a read timeout based on the API's normal latency, and treat a timeout as a retryable failure with backoff.",
+              "ok": true,
+              "why": "The timeouts free the threads quickly, and a limited retry with backoff copes with the slow period."
+            },
+            {
+              "text": "Raise the Cloud Run request timeout to 60 minutes so that the calls have time to finish.",
+              "ok": false,
+              "why": "This lets each stuck call hold its thread even longer. The limit belongs on the outgoing call."
+            },
+            {
+              "text": "Set only a connect timeout, because a server that accepts the connection always answers quickly.",
+              "ok": false,
+              "why": "A server can accept the connection and then answer very slowly. Only a read timeout catches that."
+            },
+            {
+              "text": "Switch to WebClient, because a reactive client never needs a timeout.",
+              "ok": false,
+              "why": "A reactive client does not make a slow server faster, so it needs timeouts too, set on its underlying HTTP client."
+            }
+          ]
+        },
+        {
+          "id": "u25-l2-i6",
+          "type": "diagram",
+          "src": "s3",
+          "layout": "flow",
+          "q": "Complete the path of one call through an HTTP service client in the hr group.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "OnboardingService calls hrApi.find(id)",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "HrApi proxy from the HTTP Service Registry",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "RestClient of the hr group",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Interceptor adds X-Correlation-ID",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "Request factory with the timeouts",
+              "slot": false
+            },
+            {
+              "id": "n6",
+              "label": "HR API on Cloud Run",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "a normal method call"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "through RestClientAdapter"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "runs the interceptors"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "passes the request on"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "GET /employees/48213"
+            }
+          ],
+          "decoys": [
+            "MockRestServiceServer",
+            "Pub/Sub push subscription",
+            "RestTemplateBuilder"
+          ]
+        },
+        {
+          "id": "u25-l2-i7",
+          "type": "scenario",
+          "src": "s1",
+          "q": "Your team calls the HR API through an HTTP service interface. When an employee does not exist, the API returns 404, and the team wants every method to throw EmployeeNotFoundException.",
+          "options": [
+            {
+              "text": "Register a default status handler for 404 on the RestClient of the hr group, for example in a RestClientHttpServiceGroupConfigurer bean.",
+              "ok": true,
+              "why": "The Spring reference says you customise error handling for HTTP service proxies on the underlying client. A group configurer applies it to every client in the group."
+            },
+            {
+              "text": "Add .onStatus(...) to each method of the interface.",
+              "ok": false,
+              "why": "Interface methods have no request chain to call onStatus on. Status handling belongs to the underlying client."
+            },
+            {
+              "text": "Catch the generic exception in every caller and convert it there.",
+              "ok": false,
+              "why": "It works, but every caller repeats the same code, and a new caller can easily forget it."
+            },
+            {
+              "text": "Return ResponseEntity<Employee> from every method and check for 404 in the caller.",
+              "ok": false,
+              "why": "By default the client raises an exception for 4xx and 5xx statuses, so the caller never receives a 404 response to check."
+            }
+          ]
+        },
+        {
+          "id": "u25-l2-i8",
+          "type": "code",
+          "src": "s3",
+          "lang": "java",
+          "q": "Complete the HTTP service interface and its registration. The group is called hr, and its RestClient turns every 404 into EmployeeNotFoundException.",
+          "code": "public interface HrApi {\n\n    [[1]](\"/employees/{id}\")\n    Employee find([[2]] String id);\n}\n\n@Configuration\n[[3]](group = \"hr\", types = HrApi.class)\nclass HrClientConfig {\n\n    @Bean\n    RestClientHttpServiceGroupConfigurer hrErrors() {\n        return groups -> groups.filterByName(\"hr\").forEachClient((group, builder) ->\n            builder.defaultStatusHandler(\n                status -> status.value() == 404,\n                (request, response) -> { throw new EmployeeNotFoundException(); }));\n    }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "@GetExchange",
+              "decoys": [
+                "@GetMapping",
+                "@RequestLine"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "@PathVariable",
+              "decoys": [
+                "@RequestBody",
+                "@RequestHeader"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "@ImportHttpServices",
+              "decoys": [
+                "@EnableFeignClients",
+                "@ComponentScan"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u25-l2-i9",
+          "type": "scenario",
+          "src": "s9",
+          "q": "The http.client.requests metric shows calls from the hr client, but none from a second client that a developer created with RestClient.builder() in a utility class. The second client's calls also start new traces.",
+          "options": [
+            {
+              "text": "Inject the auto-configured RestClient.Builder, which Spring Boot sets up for observations, and build the second client from it.",
+              "ok": true,
+              "why": "Spring Boot Actuator instruments RestClient only through the auto-configured builder, and without an ObservationRegistry the observations are no-ops. Automatic trace propagation also needs that builder."
+            },
+            {
+              "text": "Add a metrics registry dependency, such as the Prometheus one.",
+              "ok": false,
+              "why": "A registry only exports metrics that exist. This client creates none, because it has no ObservationRegistry."
+            },
+            {
+              "text": "Add an interceptor that writes a new random traceparent header on every call.",
+              "ok": false,
+              "why": "A random value breaks the link to the current trace. The observation creates the correct child span for you."
+            },
+            {
+              "text": "Switch the second client to RestTemplate, because RestTemplate is always instrumented.",
+              "ok": false,
+              "why": "RestTemplate also needs an ObservationRegistry. Spring Boot sets it only on the RestTemplateBuilder it auto-configures."
+            }
+          ]
+        },
+        {
+          "id": "u25-l2-i10",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each problem with the setting or tool that solves it.",
+          "pairs": [
+            [
+              "The HR API host does not answer at all",
+              "Connect timeout"
+            ],
+            [
+              "The server accepts the connection but answers very slowly",
+              "Read timeout"
+            ],
+            [
+              "Every 404 from one API must become EmployeeNotFoundException",
+              "Default status handler"
+            ],
+            [
+              "One call must turn 409 into DuplicateCandidateException",
+              "onStatus on that request"
+            ],
+            [
+              "A partner needs an X-Correlation-ID header on every call",
+              "Request interceptor"
+            ],
+            [
+              "You need latency per endpoint and status",
+              "The http.client.requests observation"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u25-l3",
+      "kind": "interview",
+      "title": "Talk about HTTP clients",
+      "items": [
+        {
+          "id": "u25-l3-i1",
+          "type": "say",
+          "src": "s2",
+          "text": "For new blocking code I use RestClient. The Spring team plans to deprecate RestTemplate formally in Framework 7.1 and remove it in 8.0."
+        },
+        {
+          "id": "u25-l3-i2",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 120,
+          "q": "RestTemplate, RestClient or WebClient: which one do you choose, and why?",
+          "model": "For a blocking Spring MVC service, my default is RestClient. It has a fluent API, it is thread-safe, and it uses the same infrastructure as RestTemplate, so request factories and interceptors carry over. RestTemplate still works, but the Spring Framework 7 reference says it is deprecated in favour of RestClient. The plan is formal deprecation in 7.1 and removal in 8.0, so I don't start new code with it. For existing code, I wrap the RestTemplate with RestClient.create and migrate one component at a time. I choose WebClient when the application is reactive, or when I need streaming, or a lot of concurrency with fewer resources. On top of either client, I like HTTP service interfaces. I declare the API as a Java interface with @GetExchange methods, Spring creates the proxy, and the calling code stays clean.",
+          "keypoints": [
+            {
+              "text": "RestClient is the default for blocking code",
+              "kw": [
+                "restclient",
+                "rest client",
+                "fluent",
+                "blocking",
+                "synchronous"
+              ]
+            },
+            {
+              "text": "RestTemplate is deprecated and will be removed",
+              "kw": [
+                "resttemplate",
+                "rest template",
+                "deprecated",
+                "deprecation",
+                "removed",
+                "removal",
+                "8.0",
+                "7.1"
+              ]
+            },
+            {
+              "text": "Migrate existing code step by step",
+              "kw": [
+                "migrate",
+                "migration",
+                "restclient.create",
+                "one component",
+                "step by step",
+                "gradually",
+                "wrap"
+              ]
+            },
+            {
+              "text": "WebClient for reactive code or streaming",
+              "kw": [
+                "webclient",
+                "web client",
+                "reactive",
+                "streaming",
+                "non-blocking",
+                "webflux"
+              ]
+            },
+            {
+              "text": "HTTP service interfaces on top of the client",
+              "kw": [
+                "interface",
+                "interfaces",
+                "httpexchange",
+                "getexchange",
+                "proxy",
+                "declarative"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u25-l3-i3",
+          "type": "tf",
+          "src": "s1",
+          "statement": "If no other HTTP library is on the classpath, RestTemplate and RestClient send their requests with the same underlying library.",
+          "answer": false,
+          "why": "RestClient then uses the JDK HttpClient through JdkClientHttpRequestFactory, while RestTemplate uses HttpURLConnection through SimpleClientHttpRequestFactory. The Spring reference warns that this can explain subtle differences after a migration."
+        },
+        {
+          "id": "u25-l3-i4",
+          "type": "scenario",
+          "src": "s1",
+          "q": "The interviewer asks: a 503 and a 400 from SuccessFactors both reach your code as exceptions. How do you treat them?",
+          "options": [
+            {
+              "text": "I map them to different exceptions in a status handler: the 503 becomes a retryable error that goes to the retry logic with backoff, and the 400 is logged and sent for review without a retry.",
+              "ok": true,
+              "why": "A 503 is often temporary, so a retry with backoff can succeed. A 400 means the request is wrong, so it will fail again."
+            },
+            {
+              "text": "I retry both five times, because any error might be temporary.",
+              "ok": false,
+              "why": "Retrying a 400 sends the same wrong request again and only adds load."
+            },
+            {
+              "text": "I catch RestClientException and ignore it, because the next scheduled run will try again.",
+              "ok": false,
+              "why": "Silent errors hide data problems, and a 400 will never succeed on the next run either."
+            },
+            {
+              "text": "I use exchange() on every call, so that status handlers never run.",
+              "ok": false,
+              "why": "This moves the same error handling into every call, which spreads it across the code."
+            }
+          ]
+        },
+        {
+          "id": "u25-l3-i5",
+          "type": "explain",
+          "src": "s4",
+          "seconds": 150,
+          "q": "How do you set timeouts for outbound HTTP calls, and how do you choose the values?",
+          "model": "Every outbound call gets two timeouts. The connect timeout limits how long we wait to open a connection, so a host that is down fails in a second or two. The read timeout limits how long we wait for data once the connection is open, so a slow server cannot hold our threads. I set them on the HTTP client, not in the business code. In Spring Boot 4, I use spring.http.clients.connect-timeout and read-timeout as defaults for every client. For an HTTP service group, such as the SuccessFactors group, I override them under spring.http.serviceclient with the group name. I choose the read timeout from the latency we measure for that API, with some headroom. I also check the whole chain: my timeout plus any retries must fit inside the caller's own limit, such as the Cloud Run request timeout. Finally, a timeout means the result is unknown, so I only retry calls that are idempotent.",
+          "keypoints": [
+            {
+              "text": "Connect timeout: opening the connection",
+              "kw": [
+                "connect timeout",
+                "connection timeout",
+                "connect",
+                "connection"
+              ]
+            },
+            {
+              "text": "Read timeout: waiting for data from a slow server",
+              "kw": [
+                "read timeout",
+                "read",
+                "slow",
+                "data"
+              ]
+            },
+            {
+              "text": "Configured on the client, for example with Spring Boot properties",
+              "kw": [
+                "spring.http.clients",
+                "serviceclient",
+                "properties",
+                "property",
+                "request factory",
+                "http client",
+                "configuration"
+              ]
+            },
+            {
+              "text": "Values come from measured latency",
+              "kw": [
+                "latency",
+                "measure",
+                "measured",
+                "percentile",
+                "p99",
+                "headroom"
+              ]
+            },
+            {
+              "text": "Timeouts and retries fit inside the caller's limit",
+              "kw": [
+                "retry",
+                "retries",
+                "caller",
+                "chain",
+                "budget",
+                "cloud run"
+              ]
+            },
+            {
+              "text": "A timeout is an unknown result, so retries need idempotency",
+              "kw": [
+                "idempotent",
+                "idempotency",
+                "unknown",
+                "duplicate"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u25-l3-i6",
+          "type": "tf",
+          "src": "s5",
+          "statement": "If a RestClient.Builder has no ObservationRegistry, the client's http.client.requests observations are no-ops.",
+          "answer": true,
+          "why": "The Spring Framework reference says the registry is the only required step, and without it observations do nothing. In Spring Boot, building the client from the auto-configured builder solves this."
+        },
+        {
+          "id": "u25-l3-i7",
+          "type": "say",
+          "src": "s6",
+          "text": "In Spring Boot, I don't build clients with RestClient.create(). I inject the auto-configured builder, so every call gets metrics and trace propagation."
+        },
+        {
+          "id": "u25-l3-i8",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "What are HTTP service interfaces in Spring, and when would you use them instead of calling RestClient directly?",
+          "model": "An HTTP service interface is a Java interface that describes a remote API. Each method has @HttpExchange or a variant, such as @GetExchange or @PostExchange, and the parameters use annotations like @PathVariable or @RequestParam. Spring creates a proxy that sends the requests through RestClient or WebClient. Spring Framework 7 adds an HTTP Service Registry. I list the interfaces with @ImportHttpServices and a group name, and Spring registers the proxies as beans. All the interfaces in a group share one client configuration, and in Spring Boot 4 I set the base URL and the timeouts per group with spring.http.serviceclient properties. I use them when an API has many endpoints, because the contract is in one place and the calling code reads like a normal method call. Error handling and interceptors still live on the underlying client. For a call that needs full control of the response, I use RestClient directly with exchange.",
+          "keypoints": [
+            {
+              "text": "A Java interface with @HttpExchange or @GetExchange methods",
+              "kw": [
+                "interface",
+                "httpexchange",
+                "getexchange",
+                "postexchange",
+                "annotation",
+                "annotations"
+              ]
+            },
+            {
+              "text": "Spring creates a proxy over RestClient or WebClient",
+              "kw": [
+                "proxy",
+                "httpserviceproxyfactory",
+                "restclient",
+                "webclient",
+                "adapter"
+              ]
+            },
+            {
+              "text": "@ImportHttpServices and groups in Spring Framework 7",
+              "kw": [
+                "importhttpservices",
+                "group",
+                "groups",
+                "registry",
+                "beans"
+              ]
+            },
+            {
+              "text": "Per-group settings in Spring Boot",
+              "kw": [
+                "base url",
+                "base-url",
+                "serviceclient",
+                "properties",
+                "timeout",
+                "timeouts"
+              ]
+            },
+            {
+              "text": "When to use them: many endpoints and one clear contract",
+              "kw": [
+                "many endpoints",
+                "contract",
+                "clean",
+                "readable",
+                "boilerplate",
+                "one place"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u25-l3-i9",
+          "type": "scenario",
+          "src": "s2",
+          "q": "The interviewer asks: 'Why not keep RestTemplate? It works.' Which answer is the strongest?",
+          "options": [
+            {
+              "text": "It does work, and support will continue for some years. But the Spring team plans formal deprecation in 7.1 and removal in 8.0, so new code uses RestClient and we migrate the old code step by step.",
+              "ok": true,
+              "why": "It is honest about the timeline and offers a low-risk plan instead of a rewrite."
+            },
+            {
+              "text": "RestTemplate has already been removed from Spring Boot 4.",
+              "ok": false,
+              "why": "Wrong: RestTemplate is still in Spring Framework 7, and Spring Boot 4 still auto-configures a RestTemplateBuilder."
+            },
+            {
+              "text": "RestTemplate cannot set timeouts.",
+              "ok": false,
+              "why": "Wrong: the Spring Boot documentation shows connectTimeout and readTimeout on the RestTemplate builder."
+            },
+            {
+              "text": "We should rewrite everything with WebClient now.",
+              "ok": false,
+              "why": "WebClient is for reactive and streaming needs. For blocking code RestClient is the successor, and a big rewrite adds risk."
+            }
+          ]
+        },
+        {
+          "id": "u25-l3-i10",
+          "type": "explain",
+          "src": "s5",
+          "seconds": 150,
+          "q": "How do you keep trace and correlation IDs across your outbound HTTP calls?",
+          "model": "I rely on Micrometer observations first. RestClient, WebClient and RestTemplate create an http.client.requests observation for every exchange, but only when the client has an ObservationRegistry. In Spring Boot, the auto-configured builders already have it, so I always build clients from them. Spring Boot says that automatic trace propagation only works that way. With tracing on, the next service receives the trace context, so it joins the same trace. The same observation gives me a timer with the method, the URI template, the status and the outcome, so I can see latency and errors per endpoint. If a partner needs its own header, such as X-Correlation-ID, I either list a baggage field in the remote-fields property, or I add a ClientHttpRequestInterceptor that copies the ID from the logging context. I also pass URI variables instead of joining strings, because the uri key should be the template, not a different value for every call.",
+          "keypoints": [
+            {
+              "text": "An http.client.requests observation for every exchange",
+              "kw": [
+                "observation",
+                "observations",
+                "http.client.requests",
+                "micrometer"
+              ]
+            },
+            {
+              "text": "It needs an ObservationRegistry, so use the auto-configured builder",
+              "kw": [
+                "observationregistry",
+                "registry",
+                "auto-configured",
+                "builder"
+              ]
+            },
+            {
+              "text": "The trace context goes to the next service",
+              "kw": [
+                "propagation",
+                "propagate",
+                "trace context",
+                "traceparent",
+                "trace",
+                "span"
+              ]
+            },
+            {
+              "text": "A custom correlation header through baggage or an interceptor",
+              "kw": [
+                "baggage",
+                "remote-fields",
+                "interceptor",
+                "clienthttprequestinterceptor",
+                "x-correlation-id",
+                "correlation"
+              ]
+            },
+            {
+              "text": "URI templates keep the uri key low in cardinality",
+              "kw": [
+                "uri template",
+                "template",
+                "uri variables",
+                "cardinality"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Which client",
+        "points": [
+          "RestClient: synchronous, fluent, thread-safe; the default for blocking Spring MVC code.",
+          "WebClient: non-blocking and reactive; for WebFlux, streaming or many concurrent calls.",
+          "HTTP service interfaces: declare the API with @GetExchange, @PostExchange and so on; Spring creates the proxy.",
+          "Spring Boot: inject the auto-configured RestClient.Builder or WebClient.Builder. RestClient.create() skips auto-configuration and customisers.",
+          "The builder is stateful: use builder.clone() before you change it for a second client."
+        ]
+      },
+      {
+        "h": "RestTemplate status (checked 2026-10-25)",
+        "points": [
+          "Spring Framework 7 reference: deprecated in favour of RestClient, to be removed in a future version.",
+          "Spring team plan: intent announced in 7.0 (November 2025), formal deprecation in 7.1 (planned for November 2026), removal in 8.0.",
+          "7.1.0-RC1 Javadoc: @Deprecated(since = \"7.1\", forRemoval = true), \"for removal in 8.0\". 7.1 is not yet generally available on 2026-10-25; the current release is 7.0.10.",
+          "Reasons: a crowded template API with many overloads, no room for new features such as API versioning, and a poor fit for streaming.",
+          "Migrate: RestClient.create(restTemplate), move calls component by component, then rebuild with RestClient.Builder and reuse factories and interceptors.",
+          "Watch out: with no extra library, RestClient uses the JDK HttpClient and RestTemplate uses HttpURLConnection."
+        ]
+      },
+      {
+        "h": "HTTP service registry (Spring Framework 7)",
+        "points": [
+          "@ImportHttpServices(group = \"hr\", types = HrApi.class), or basePackages to scan; it is repeatable.",
+          "Without a group name, interfaces go into the group called default.",
+          "All the interfaces in a group share one client configuration.",
+          "Spring Boot: spring.http.serviceclient.<group>.base-url, connect-timeout and read-timeout.",
+          "In code: RestClientHttpServiceGroupConfigurer or WebClientHttpServiceGroupConfigurer; AbstractHttpServiceRegistrar for programmatic registration.",
+          "Return types with RestClient: void, HttpHeaders, T, ResponseEntity<Void>, ResponseEntity<T>."
+        ]
+      },
+      {
+        "h": "Timeouts",
+        "points": [
+          "Connect timeout: time to open the connection. Read timeout: time to wait for data.",
+          "Spring Boot defaults for every client: spring.http.clients.connect-timeout and spring.http.clients.read-timeout.",
+          "In code with Spring Boot: ClientHttpRequestFactoryBuilder.detect().build(settings), with HttpClientSettings such as withReadTimeout(...).",
+          "Plain Spring Framework: new JdkClientHttpRequestFactory(httpClient) with setReadTimeout(Duration); the connect timeout goes on the JDK HttpClient builder.",
+          "RestTemplateBuilder: connectTimeout(...) and readTimeout(...).",
+          "HTTP service interfaces over WebClient: for synchronous return values, Spring recommends the HTTP client's own timeouts over the adapter's blockTimeout.",
+          "A timeout means the result is unknown: retry only idempotent calls, and fit the retries inside the caller's limit."
+        ]
+      },
+      {
+        "h": "Error handling",
+        "points": [
+          "Default: RestClient throws a subclass of RestClientException for 4xx and 5xx.",
+          "onStatus(predicate, handler): one request. defaultStatusHandler(predicate, handler): every request of the client.",
+          "exchange(): full access to the response; status handlers are not applied.",
+          "HTTP service proxies: configure error handling on the underlying RestClient or WebClient."
+        ]
+      },
+      {
+        "h": "Correlation, traces and metrics",
+        "points": [
+          "Observation name: http.client.requests; it covers the whole exchange, from connecting to reading the body.",
+          "It needs an ObservationRegistry on the client; otherwise observations are no-ops.",
+          "Low-cardinality keys: method, uri (the URI template), client.name, status, outcome, error. High-cardinality key: http.url.",
+          "Use URI variables, not string concatenation, so that the uri key stays a template.",
+          "Spring Boot: metrics and automatic trace propagation work only with the auto-configured builders (or with ObservationRestClientCustomizer, ObservationWebClientCustomizer or ObservationRestTemplateCustomizer applied by hand).",
+          "Rename the metric with management.observations.http.client.requests.name; change the tags with a ClientRequestObservationConvention bean.",
+          "Custom headers: a ClientHttpRequestInterceptor, or a baggage field in management.tracing.baggage.remote-fields.",
+          "Interceptor shape: intercept(request, body, execution) changes the request, then returns execution.execute(request, body)."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "REST Clients - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "The state of HTTP clients in Spring - Spring blog (30 September 2025)",
+      "url": "https://spring.io/blog/2025/09/30/the-state-of-http-clients-in-spring",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "HTTP Service Client Enhancements - Spring blog (23 September 2025)",
+      "url": "https://spring.io/blog/2025/09/23/http-service-client-enhancements/",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Calling REST Services - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/reference/io/rest-client.html",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Observability Support - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/integration/observability.html",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Tracing - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/reference/actuator/tracing.html",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "REST Clients - Spring Framework 7.1.0-RC1 reference",
+      "url": "https://docs.spring.io/spring/reference/7.1/integration/rest-clients.html",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "RestTemplate - Spring Framework 7.1.0-RC1 Javadoc",
+      "url": "https://docs.spring.io/spring-framework/docs/7.1.0-RC1/javadoc-api/org/springframework/web/client/RestTemplate.html",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Metrics - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/reference/actuator/metrics.html",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "JdkClientHttpRequestFactory - Spring Framework 7.0.10 Javadoc",
+      "url": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/JdkClientHttpRequestFactory.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "ClientHttpRequestInterceptor - Spring Framework 7.0.10 Javadoc",
+      "url": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestInterceptor.html",
+      "official": true
+    }
+  ]
+}

@@ -868,7 +868,7 @@ def _expected_ready(uids, ls_done, srs):
 def test_interview_ready_and_medals():
     """«Interview ready» por bloque y por unidad (40 % lecciones, 30 % fichas al día en caja ≥ 2, 30 % «Explain it»
     con «Nailed it») coincide con la fórmula y sale en Today. La medalla de un bloque llega al terminar todas sus
-    lecciones (aviso «Medal earned: Integration!», en Today); Leadership solo tiene la unidad 7: nunca se gana aún."""
+    lecciones (aviso «Medal earned: Integration!», en Today); Leadership (unidades 7, 13 y 23) no llega con solo la 7."""
     integ = [u["id"] for u in TC.units() if u["block"] == "integration"]
     ls_done = ["u01-l1", "u01-l2", "u01-l3", "u02-l1"]
     srs = {}
@@ -892,7 +892,7 @@ def test_interview_ready_and_medals():
           return {pct: r.querySelector('.tp-pct').textContent, sub: r.querySelector('small').textContent, label: r.getAttribute('aria-label')}; }""")
         assert row["pct"] == f"{want_b}%" and row["sub"] == "4 of 18 lessons" and row["label"].startswith(f"Integration: {want_b}% interview ready"), row
         lead = page.evaluate("document.querySelector('.tp-rd[data-block=leadership] small').textContent")
-        assert lead == "0 of 3 lessons so far", lead
+        assert lead == "0 of 9 lessons", lead
         # todas las de Integration menos una, y la última con lessonDone: medalla
         all_ls = [l["id"] for uid in integ for l in TC.unit(uid)["lessons"]]
         r = page.evaluate("""ids => { for (const id of ids.slice(0, -1)) vocabTech.put('ls', id, {best: 5, total: 9, done: Date.now()});
@@ -902,12 +902,12 @@ def test_interview_ready_and_medals():
             best: vocabTech.get('ls', ids[ids.length - 1]).best, medal: !!vocabTech.get('medal', 'integration'),
             m: vocabTech.medals().map(m => [m.id, m.got, m.sub])}; }""", all_ls)
         assert r["a"] == ["integration"] and r["first"] is True and r["b"] == 0 and r["again"] is False and r["best"] == 9 and r["medal"], r
-        assert r["m"] == [["integration", True, "Medal earned"], ["leadership", False, "0 of 3 lessons so far"]], r["m"]
+        assert r["m"][:2] == [["integration", True, "Medal earned"], ["leadership", False, "0 of 9 lessons"]] and len(r["m"]) == 7, r["m"]
         page.wait_for_timeout(200)
         assert "Medal earned: Integration!" in _toasts(page), _toasts(page)
         r = page.evaluate("""() => { for (const id of ['u07-l1', 'u07-l2', 'u07-l3']) vocabTech.progress.lessonDone(id, {score: 5, total: 6});
           return vocabTech.medals().map(m => [m.id, m.got, m.sub]); }""")
-        assert r == [["integration", True, "Medal earned"], ["leadership", False, "3 of 3 lessons so far"]], r
+        assert r[:2] == [["integration", True, "Medal earned"], ["leadership", False, "3 of 9 lessons"]], r
         TC.goto(page, "#/techpath")
         TC.goto(page, "#/tech")
         assert page.locator(".tp-rd[data-block=integration] .tp-medal").count() == 1
@@ -919,19 +919,19 @@ def test_interview_ready_and_medals():
 
 # ---------------------------------------------------------------- datos
 def test_data_files_validate():
-    """data/tech/index.json (33 unidades, 7 bloques, disponibles = las que tienen fichero) y data/tech/u01-u07.json
+    """data/tech/index.json (33 unidades, 7 bloques, disponibles = las que tienen fichero) y data/tech/u01-u33.json
     pasan las reglas de tools/validate.py (tech_validate.py) y son copias exactas de la carpeta compartida. Nada de Tech
     Prep en data/index.json ni en el shell de sw.js (se pide al usarlo)."""
     bad = TV.check_all()
     assert not bad, json.dumps(bad, indent=1)[:3000]
     files = sorted(p.name for p in TC.DATA.glob("u*.json"))
-    assert files == [f"u{i:02d}.json" for i in range(1, 8)], files
+    assert files == [f"u{i:02d}.json" for i in range(1, 34)], files
     shared = C.Path("/mnt/project-files/tech-prep/content")
     if shared.exists():
         diff = [f for f in files if (shared / f).exists() and (shared / f).read_bytes() != (TC.DATA / f).read_bytes()]
         assert not diff, f"no son copias exactas de la carpeta compartida: {diff}"
     ix = TC.index()
-    assert [u["id"] for u in ix["units"] if u["available"]] == [f"u{i:02d}" for i in range(1, 8)]
+    assert [u["id"] for u in ix["units"] if u["available"]] == [f"u{i:02d}" for i in range(1, 34)]
     kid = (C.REPO / "data" / "index.json").read_text(encoding="utf-8")
     assert "tech" not in kid.lower(), "data/index.json menciona Tech Prep"
     sw = (C.REPO / "sw.js").read_text(encoding="utf-8")

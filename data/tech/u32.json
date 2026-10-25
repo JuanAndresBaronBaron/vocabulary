@@ -1,0 +1,1315 @@
+{
+  "format": 1,
+  "id": "u32",
+  "n": 32,
+  "block": "final",
+  "title": "Capstone case",
+  "summary": "After this unit you can answer a system design question with a clear method, from requirements and rough estimates to a diagram, a deep dive and trade-offs, and present an end-to-end integration from SuccessFactors Recruiting to Google Cloud.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Checked on 2026-10-25. The SAP Help Portal blocks automated reading, so the SuccessFactors facts come from SAP Learning, SAP Knowledge Base Articles and SAP Developers tutorials.",
+    "SAP Cloud Application Event Hub: the SAP Developers setup tutorial for SuccessFactors (last updated 12 January 2026) says SAP SuccessFactors is adopting Event Hub as the central platform for publishing events; that tutorial does not mention CloudEvents, which comes from the basic concepts tutorial, as in unit 12. The SuccessFactors release information lists a topic called 'Replacement of Intelligent Service Center with SAP Cloud Application Event Hub'; unconfirmed: its dates and what it changes for Integration Center and external event notifications, because the SAP Help page could not be read.",
+    "unconfirmed: whether Event Hub can deliver SuccessFactors events directly to a non-SAP endpoint such as Cloud Run. The tutorials checked describe only SAP cloud applications in a formation, so the unit keeps Intelligent Services events and external event notifications as the event source.",
+    "unconfirmed: the transport, payload and retry behaviour of SuccessFactors external event notifications. Unit 12 notes, from an older SAP blog, that they are sent as SOAP messages described by a WSDL. The design does not depend on them: an hourly delta query and a weekly reconciliation catch missed events.",
+    "Recruiting event names: SAP Learning (Recruiter Experience Administration) says Update of Job Application fires when an application is edited while the applicant is still in the applied state, so the case uses Update of Job Application Status (SAP KBA 2951051, as in units 8 and 12) for status changes such as the move to the hirable status.",
+    "SAP Learning (Configuring SAP SuccessFactors Platform: Advanced Topics): third-party endpoint URL subscriptions are added in Event Subscription Manager, with at most 6 subscriptions per event. SAP KBA 2818468: Recruiting's Approval of Offer Detail cannot trigger an Integration Center integration. Integration Center, Intelligent Services Center and Event Center keep SAP's spelling of Center.",
+    "SAP KBA 3063887 (event-based integrations through Intelligent Services Center and Integration Center): keep the events under 500 per hour, process each event at the REST endpoint within 30 seconds, configure ideally only one integration job per event, and use scheduled jobs for heavy load.",
+    "SAP KBA 3239495: the deprecation of /oauth/idp was announced in the 2H 2022 release, new customers cannot use it, and the KBA names SAP IAS, the SAP offline tool or another IdP as secure ways to create SAML assertions; the deletion date for existing use is not given. Signing the assertion in your own service follows RFC 7522 and unit 4. unconfirmed: the end date of Basic Authentication on SuccessFactors APIs, and the token endpoint path and parameters, which the unit does not name.",
+    "SAP KBA 2735876: query only the records modified since your last execution; repeating queries in much less than one hour consumes too much API resource and may be throttled in the future. The hourly safety-net query and the weekly reconciliation are design recommendations of this unit, not SAP features.",
+    "Pub/Sub pages checked on 2026-10-25 (last updated 2026-10-22): exactly-once delivery only for pull subscriptions in one region, and it does not remove publisher duplicates; push acknowledges with 102, 200, 201, 202 or 204; dead-lettered messages are acknowledged in the source subscription and need a separate subscription on the dead-letter topic; seeking to a past time needs topic retention or retained acknowledged messages; snapshots last at most 7 days; a message storage policy can enforce in transit (requests from other regions fail with FAILED_PRECONDITION); the monitoring page recommends subscription/oldest_unacked_message_age_by_region and subscription/dead_letter_message_count, with an alert that fires before the message retention duration lapses.",
+    "gcloud flags checked against Google Cloud SDK 570.0.0 (gcloud pubsub subscriptions create --help): --max-delivery-attempts 5 to 100, default 5, needs --dead-letter-topic; --min-retry-delay default 10 s and --max-retry-delay default 600 s, each 0 to 600 s; --push-auth-service-account sets the identity of the OIDC token.",
+    "Google Cloud Well-Architected Framework (last updated 2026-10-13): six pillars (operational excellence; security, privacy, and compliance; reliability; cost optimization; performance optimization; sustainability). The cheat sheet uses them, in British spelling, as a checklist for non-functional requirements.",
+    "The seven-step interview method (clarify, non-functional requirements, estimate, simplest design, deep dive, trade-offs, wrap-up) is a teaching structure built on the iterative method in Google's SRE workbook chapter on non-abstract large system design. No single source prescribes these steps or how long each should take.",
+    "The case numbers (150,000 applications a year, about eight status changes each) are invented for practice, not benchmarks.",
+    "The ICO says its data minimisation guidance is under review after the Data (Use and Access) Act. The EU GDPR has the same principle in the same article (Regulation (EU) 2016/679, Article 5(1)(c))."
+  ],
+  "terms": [
+    {
+      "id": "t-functional-req",
+      "term": "Functional requirement",
+      "ipa": "/ˈfʌŋkʃənl rɪˈkwaɪəmənt/",
+      "say": "functional requirement",
+      "def": "What the system must do: its inputs, its outputs and the behaviour that users can see. In an integration, it says which changes travel, to which systems, and what each system does with them.",
+      "example": "When a recruiter moves an application to the hirable status, IT, payroll and onboarding each receive the new starter.",
+      "src": "s1"
+    },
+    {
+      "id": "t-nfr",
+      "term": "Non-functional requirement",
+      "ipa": "/ˌnɒn ˈfʌŋkʃənl rɪˈkwaɪəmənt/",
+      "say": "non-functional requirement",
+      "def": "How well the system must work: volume, latency, availability, security, privacy and cost; also called a quality requirement. Where you can, state it as a measurable target, such as an SLO.",
+      "example": "99.9 per cent of hires reach payroll within five minutes, and no candidate names travel in the events.",
+      "src": "s1"
+    },
+    {
+      "id": "t-estimate",
+      "term": "Back-of-the-envelope estimate",
+      "ipa": "/ˌbæk əv ði ˈenvələʊp ˈestɪmət/",
+      "say": "back of the envelope estimate",
+      "def": "A quick calculation with rounded numbers that shows whether a design is possible and where the bottleneck is. Reasonable assumptions and clear reasoning matter more than an exact result.",
+      "example": "150,000 applications a year with about eight status changes each is about 1.2 million events a year, or roughly 3,300 a day.",
+      "src": "s1"
+    },
+    {
+      "id": "t-deep-dive",
+      "term": "Deep dive",
+      "ipa": "/ˌdiːp ˈdaɪv/",
+      "say": "deep dive",
+      "def": "The part of a design interview where you take one component and explain it in detail: its data, how it fails and how you would test it. You usually choose the riskiest part, or the one the interviewer asks about.",
+      "example": "For the deep dive, the candidate explained how the hire processor makes a duplicate event harmless.",
+      "src": "s1"
+    },
+    {
+      "id": "t-is-event",
+      "term": "Intelligent Services event",
+      "ipa": "/ɪnˈtelɪdʒənt ˈsɜːvɪsɪz ɪˈvent/",
+      "say": "intelligent services event",
+      "def": "An event that a SuccessFactors module publishes when something changes, such as Update of Job Application Status in Recruiting. SAP or third-party products that subscribe to it are notified, and administrators monitor events in the Event Center dashboard.",
+      "example": "When a recruiter changes an application's status, Recruiting publishes Update of Job Application Status, and an external event notification sends it to a receiver on Cloud Run.",
+      "src": "s3"
+    },
+    {
+      "id": "t-event-hub",
+      "term": "SAP Cloud Application Event Hub",
+      "ipa": "/ˌes eɪ ˈpiː klaʊd ˌæplɪˈkeɪʃn ɪˈvent hʌb/",
+      "say": "S A P Cloud Application Event Hub",
+      "def": "An SAP BTP service that distributes business events between SAP cloud applications; the events follow the CloudEvents specification. SAP says SuccessFactors is adopting it as the central platform for publishing events.",
+      "example": "The architect keeps the event source behind one receiver, so a move from Intelligent Services to Event Hub changes only that component.",
+      "src": "s7"
+    },
+    {
+      "id": "t-watermark",
+      "term": "Watermark (delta load)",
+      "ipa": "/ˈwɔːtəmɑːk/",
+      "say": "watermark",
+      "def": "The stored point from which the next delta load starts, usually the start time of the last successful run. You move it forward only after a run succeeds.",
+      "example": "The hourly job starts its window five minutes before the watermark and merges the results by application ID, so a late change is not missed.",
+      "src": "s11"
+    },
+    {
+      "id": "t-reconciliation",
+      "term": "Reconciliation",
+      "ipa": "/ˌrekənsɪliˈeɪʃn/",
+      "say": "reconciliation",
+      "def": "A regular comparison of the source system with the target systems, to find records that are missing, extra or different, and to fix them. It catches what events and delta loads miss, such as deleted records.",
+      "example": "Every Sunday a job compares the open applications in SuccessFactors with the hire processor's table and replays the differences.",
+      "src": "s11"
+    },
+    {
+      "id": "t-thin-event",
+      "term": "Thin event",
+      "ipa": "/ˌθɪn ɪˈvent/",
+      "say": "thin event",
+      "def": "An event that carries only identifiers, the kind of change and the time, not the business data. Consumers ask the source for the details they need, so personal data is copied to fewer places.",
+      "example": "The event says application 3020 was updated at 10:42, with no name, email address or salary.",
+      "src": "s19"
+    },
+    {
+      "id": "t-replay",
+      "term": "Replay",
+      "ipa": "/ˈriːpleɪ/",
+      "say": "replay",
+      "def": "Processing messages again, usually after a fix. In Pub/Sub you can seek a subscription to an earlier time or to a snapshot, or republish messages from a dead-letter topic; some messages then arrive twice, so consumers must be idempotent.",
+      "example": "After the bug fix, the team replayed the 400 dead-lettered messages at a controlled rate.",
+      "src": "s14"
+    },
+    {
+      "id": "t-data-minimisation",
+      "term": "Data minimisation",
+      "ipa": "/ˈdeɪtə ˌmɪnɪmaɪˈzeɪʃn/",
+      "say": "data minimisation",
+      "def": "A GDPR principle, Article 5(1)(c) in both the UK GDPR and the EU GDPR: personal data must be adequate, relevant and limited to what is necessary for the purpose. You should not hold more than you need.",
+      "example": "The payroll adapter reads only the fields payroll needs, with $select, instead of the whole candidate profile.",
+      "src": "s19"
+    },
+    {
+      "id": "t-storage-policy",
+      "term": "Message storage policy (Pub/Sub)",
+      "ipa": "/ˈmesɪdʒ ˈstɔːrɪdʒ ˈpɒləsi/",
+      "say": "message storage policy",
+      "def": "A Pub/Sub topic setting that lists the Google Cloud regions where Pub/Sub may store and process the topic's messages. With enforce in transit, requests from other regions are rejected.",
+      "example": "The recruiting topics allow only two EU regions, so candidate events are stored and processed only there.",
+      "src": "s15"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u32-l1",
+      "kind": "concepts",
+      "title": "A method for design interviews",
+      "items": [
+        {
+          "id": "u32-l1-i1",
+          "type": "card",
+          "term": "t-functional-req",
+          "src": "s1"
+        },
+        {
+          "id": "u32-l1-i2",
+          "type": "card",
+          "term": "t-nfr",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "q",
+                "label": "The question: send new hires to Google Cloud"
+              },
+              {
+                "id": "f",
+                "label": "Functional: which changes, to which systems"
+              },
+              {
+                "id": "n",
+                "label": "Non-functional: volume, latency, availability, security, privacy"
+              },
+              {
+                "id": "d",
+                "label": "A design you can check against targets"
+              }
+            ],
+            "edges": [
+              {
+                "from": "q",
+                "to": "f",
+                "label": "what must it do?"
+              },
+              {
+                "from": "f",
+                "to": "n",
+                "label": "how well?"
+              },
+              {
+                "from": "n",
+                "to": "d",
+                "label": "state as SLOs"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u32-l1-i3",
+          "type": "pick",
+          "src": "s1",
+          "q": "The interviewer says: design an integration that sends new hires from SuccessFactors Recruiting to payroll. Which of these is a non-functional requirement?",
+          "options": [
+            "99.9 per cent of hires reach payroll within five minutes",
+            "Payroll receives the new starter's start date and job title",
+            "A hire is sent when the application reaches the hirable status",
+            "Payroll answers with the new employee number"
+          ],
+          "answer": 0,
+          "why": "It says how well the system must work, as a measurable target. The other three say what the system does, so they are functional requirements."
+        },
+        {
+          "id": "u32-l1-i4",
+          "type": "card",
+          "term": "t-estimate",
+          "src": "s1"
+        },
+        {
+          "id": "u32-l1-i5",
+          "type": "pick",
+          "src": "s1",
+          "q": "A retail company has about 150,000 applications a year, and each application changes status about eight times. Roughly how many status-change events is that on an average day?",
+          "options": [
+            "About 3,300",
+            "About 33,000",
+            "About 330",
+            "About 1.2 million"
+          ],
+          "answer": 0,
+          "why": "150,000 x 8 is 1.2 million a year, and 1.2 million divided by about 365 days is roughly 3,300. 1.2 million is the yearly total, and the other two are off by a factor of ten."
+        },
+        {
+          "id": "u32-l1-i6",
+          "type": "tf",
+          "src": "s1",
+          "statement": "In Google's non-abstract large system design method, you start with the simplest design that could work, check it against the requirements, and improve it step by step.",
+          "answer": true,
+          "why": "The SRE workbook starts its example with the whole application on a single computer. The basic design asks whether it is possible and whether we can do better, and scaling it up asks whether it is feasible and resilient."
+        },
+        {
+          "id": "u32-l1-i7",
+          "type": "tf",
+          "src": "s6",
+          "statement": "SAP recommends event-based integrations through Intelligent Services and Integration Center for heavy loads, such as tens of thousands of events an hour.",
+          "answer": false,
+          "why": "SAP KBA 3063887 says to keep them under 500 events an hour, because event-based integration is not meant for heavy load. Scheduled jobs are more flexible for high volumes."
+        },
+        {
+          "id": "u32-l1-i8",
+          "type": "card",
+          "term": "t-is-event",
+          "src": "s4",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "r",
+                "label": "Recruiter changes an application's status"
+              },
+              {
+                "id": "e",
+                "label": "Update of Job Application Status event"
+              },
+              {
+                "id": "n",
+                "label": "External event notification or Integration Center"
+              },
+              {
+                "id": "c",
+                "label": "Receiver on Cloud Run"
+              }
+            ],
+            "edges": [
+              {
+                "from": "r",
+                "to": "e",
+                "label": "Recruiting publishes"
+              },
+              {
+                "from": "e",
+                "to": "n",
+                "label": "subscribers are notified"
+              },
+              {
+                "from": "n",
+                "to": "c",
+                "label": "sends the change"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u32-l1-i9",
+          "type": "pick",
+          "src": "s17",
+          "q": "The hire processor commits the new starter to Cloud SQL and then publishes a message to Pub/Sub in a separate call. The container stops between the two steps. What happens?",
+          "options": [
+            "The new starter is saved, but IT, payroll and onboarding never hear about it",
+            "Cloud SQL rolls back the new starter, because the publish never happened",
+            "Pub/Sub publishes the message later, when a new instance starts",
+            "Nothing is lost, because Pub/Sub delivers every message at least once"
+          ],
+          "answer": 0,
+          "why": "The commit and the publish are two separate writes, nothing undoes the commit, and Pub/Sub never received the message, so at-least-once delivery cannot help. This is the dual-write problem: write an outbox row in the same transaction, and let a relay publish it."
+        },
+        {
+          "id": "u32-l1-i10",
+          "type": "match",
+          "src": "s14",
+          "q": "Match each term from the capstone case with its meaning.",
+          "pairs": [
+            [
+              "Thin event",
+              "Carries IDs and the kind of change, not the data"
+            ],
+            [
+              "Watermark",
+              "Where the next delta load starts"
+            ],
+            [
+              "Reconciliation",
+              "Compares source and target and fixes the gaps"
+            ],
+            [
+              "Replay",
+              "Processes messages again after a fix"
+            ],
+            [
+              "Message storage policy",
+              "Limits the regions where a topic's messages are stored"
+            ],
+            [
+              "SAP Cloud Application Event Hub",
+              "The SAP event platform that SuccessFactors is adopting"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u32-l2",
+      "kind": "practice",
+      "title": "Build the capstone case",
+      "items": [
+        {
+          "id": "u32-l2-i1",
+          "type": "order",
+          "src": "s1",
+          "q": "Put the steps of a system design answer in order.",
+          "steps": [
+            "Clarify the functional requirements",
+            "Agree the non-functional requirements: volume, latency, availability, security and privacy",
+            "Make a rough estimate with rounded numbers",
+            "Draw the simplest high-level design that meets the targets",
+            "Deep dive into the riskiest part",
+            "Discuss the trade-offs and the alternatives",
+            "Wrap up: a short summary, the risks and the next steps"
+          ]
+        },
+        {
+          "id": "u32-l2-i2",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each question you ask the interviewer with the design decision it drives.",
+          "pairs": [
+            [
+              "How fresh must the data be in payroll?",
+              "Events, or a scheduled batch"
+            ],
+            [
+              "How many changes a day, and at the peak?",
+              "Whether Pub/Sub or the SuccessFactors API is the bottleneck"
+            ],
+            [
+              "What if a target system is down for hours?",
+              "Retention, retries with backoff and a dead-letter topic"
+            ],
+            [
+              "Which personal data may leave SuccessFactors?",
+              "Thin events and $select on the OData reads"
+            ],
+            [
+              "Where may the data be stored?",
+              "A message storage policy on the topics"
+            ],
+            [
+              "How will we know that a hire is stuck?",
+              "Alerts on the oldest unacknowledged message and on dead-lettered messages"
+            ]
+          ]
+        },
+        {
+          "id": "u32-l2-i3",
+          "type": "scenario",
+          "src": "s11",
+          "q": "The business wants new hires in the IT account system within five minutes, and says that no hire may ever be lost. How do you get the changes out of SuccessFactors Recruiting?",
+          "options": [
+            {
+              "text": "Use Intelligent Services events for speed, and add an hourly delta query on lastModifiedDateTime as a safety net, with an idempotent processor.",
+              "ok": true,
+              "why": "Events meet the five-minute target, and the delta query catches any event that never arrived. Duplicates from the two paths are harmless."
+            },
+            {
+              "text": "Poll the OData API every minute for changed applications.",
+              "ok": false,
+              "why": "SAP warns that repeating queries in much less than one hour uses too much API resource and may be throttled."
+            },
+            {
+              "text": "Use events only, because they arrive in real time.",
+              "ok": false,
+              "why": "There is no safety net: an event that is never delivered means a hire that is never processed."
+            },
+            {
+              "text": "Keep the nightly file export, because it is the most reliable.",
+              "ok": false,
+              "why": "A nightly run cannot meet a five-minute target, and a failed night still needs a manual re-run."
+            }
+          ]
+        },
+        {
+          "id": "u32-l2-i4",
+          "type": "diagram",
+          "src": "s3",
+          "layout": "flow",
+          "q": "Complete the high-level design of the capstone case.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "SuccessFactors Recruiting",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Receiver on Cloud Run",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Pub/Sub topic recruiting-events",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Hire processor (Spring Boot on Cloud Run)",
+              "slot": false
+            },
+            {
+              "id": "n5",
+              "label": "Cloud SQL: new starters, processed events and outbox",
+              "slot": true
+            },
+            {
+              "id": "n6",
+              "label": "Pub/Sub topic new-starters: IT, payroll, onboarding",
+              "slot": false
+            },
+            {
+              "id": "n7",
+              "label": "Dead-letter topic with an alert",
+              "slot": true
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "Update of Job Application Status event"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "thin event, ordering key = application ID"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "push subscription with an OIDC token"
+            },
+            {
+              "from": "n4",
+              "to": "n1",
+              "label": "reads the details through OData"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "one local transaction"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "relay publishes the outbox rows"
+            },
+            {
+              "from": "n3",
+              "to": "n7",
+              "label": "after the maximum delivery attempts"
+            }
+          ],
+          "decoys": [
+            "Nightly CSV export to an SFTP server",
+            "Database shared by SuccessFactors and payroll",
+            "Basic Auth password in the container image"
+          ]
+        },
+        {
+          "id": "u32-l2-i5",
+          "type": "order",
+          "src": "s17",
+          "q": "Pub/Sub pushes a thin event to the hire processor, and the application has just reached the hirable status. Put the processor's steps in order.",
+          "steps": [
+            "Cloud Run checks the OIDC token that Pub/Sub created for the push service account",
+            "Look up the event ID; if it was already processed, return 204 at once",
+            "Read the current application through the OData API, with $select",
+            "In one transaction, insert the event ID, the new starter and an outbox row",
+            "Commit the transaction",
+            "Return 204, so Pub/Sub treats the message as acknowledged"
+          ]
+        },
+        {
+          "id": "u32-l2-i6",
+          "type": "code",
+          "src": "s12",
+          "lang": "yaml",
+          "q": "Complete the thin event that the receiver publishes to Pub/Sub (data shown decoded). It carries no personal data, it can be followed through the logs, and events for one application stay in order.",
+          "code": "orderingKey: \"[[1]]\"\nattributes:\n  eventId: \"7d4f0c2e-5b1a-4e8e-9a51-2f6c3b8d9e10\"\n  eventType: \"application.updated\"\n  [[2]]: \"b81e6a4d-0f3c-4d27-8c55-91a2e7f0c4b3\"\ndata:\n  [[3]]: \"3020\"\n  occurredAt: \"2026-10-25T09:42:13Z\"",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "3020",
+              "decoys": [
+                "recruiting-events",
+                "7d4f0c2e-5b1a-4e8e-9a51-2f6c3b8d9e10"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "correlationId",
+              "decoys": [
+                "accessToken",
+                "candidateEmail"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "applicationId",
+              "decoys": [
+                "candidateName",
+                "salary"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u32-l2-i7",
+          "type": "scenario",
+          "src": "s9",
+          "q": "The hire processor must call the SuccessFactors OData API with OAuth and a SAML 2.0 bearer assertion. A colleague found an old guide that sends the private key to the /oauth/idp API to get the assertion.",
+          "options": [
+            {
+              "text": "Generate and sign the assertion in the service, or with SAP IAS, and keep the private key in Secret Manager, readable only by the processor's service account.",
+              "ok": true,
+              "why": "The key never travels in an API call, and only one identity can read it. SAP lists SAP IAS, the SAP offline tool or another IdP as safe ways to create assertions."
+            },
+            {
+              "text": "Follow the guide: /oauth/idp is the simplest way to get an assertion.",
+              "ok": false,
+              "why": "SAP announced its deprecation in the 2H 2022 release, new customers cannot use it, and SAP calls it unsafe because the private key passes through an API call."
+            },
+            {
+              "text": "Use Basic Auth with a technical user and keep the password in an environment variable.",
+              "ok": false,
+              "why": "A password is a shared secret that can leak and be reused. With a signed assertion, SuccessFactors keeps only the certificate, not a secret."
+            },
+            {
+              "text": "Copy the private key into the container image, so the service always has it.",
+              "ok": false,
+              "why": "Anyone who can pull the image can read the key, and you cannot rotate it without a new build."
+            }
+          ]
+        },
+        {
+          "id": "u32-l2-i8",
+          "type": "code",
+          "src": "s16",
+          "lang": "text",
+          "q": "Complete the push subscription for the hire processor: events for one application stay in order, failures retry with backoff from 10 to 600 seconds, and a message goes to a dead-letter topic after 20 attempts.",
+          "code": "gcloud pubsub subscriptions create hire-processor \\\n    --topic=recruiting-events \\\n    --push-endpoint=https://HIRE_PROCESSOR_URL/events \\\n    --push-auth-service-account=pubsub-push@acme-hr-prod.iam.gserviceaccount.com \\\n    --[[1]] \\\n    --dead-letter-topic=[[2]] \\\n    --[[3]]=20 \\\n    --min-retry-delay=10s \\\n    --[[4]]=600s",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "enable-message-ordering",
+              "decoys": [
+                "enable-exactly-once-delivery",
+                "retain-acked-messages"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "recruiting-events-dlq",
+              "decoys": [
+                "recruiting-events",
+                "new-starters"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "max-delivery-attempts",
+              "decoys": [
+                "ack-deadline",
+                "message-retention-duration"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "max-retry-delay",
+              "decoys": [
+                "expiration-period",
+                "ack-deadline"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u32-l2-i9",
+          "type": "scenario",
+          "src": "s13",
+          "q": "A faulty release made the hire processor reject valid messages for two hours, and 400 of them are now in the dead-letter topic. The fix is deployed and tested.",
+          "options": [
+            {
+              "text": "Check a few dead-lettered messages against the fix, then republish them to the original topic at a controlled rate.",
+              "ok": true,
+              "why": "The messages are processed again without overloading SuccessFactors, and the processor's event ID check makes any duplicate harmless."
+            },
+            {
+              "text": "Wait: Pub/Sub sends dead-lettered messages back to the subscription once the processor is healthy.",
+              "ok": false,
+              "why": "Pub/Sub acknowledges forwarded messages in the original subscription, so they are not delivered there again. A subscription on the dead-letter topic has to handle them."
+            },
+            {
+              "text": "Republish all 400 at once, as fast as possible, to catch up.",
+              "ok": false,
+              "why": "Each message causes an OData call, and SAP warns that very frequent queries use too much API resource and may be throttled."
+            },
+            {
+              "text": "Delete the dead-lettered messages and ask recruiters to save each application again.",
+              "ok": false,
+              "why": "It is manual and error-prone, and it creates status changes that never happened."
+            }
+          ]
+        },
+        {
+          "id": "u32-l2-i10",
+          "type": "scenario",
+          "src": "s19",
+          "q": "In a design review, a colleague finds candidate names and email addresses in the Pub/Sub messages and in the processor's logs.",
+          "options": [
+            {
+              "text": "Make the events thin, read the details through OData with $select, log only IDs and the correlation ID, and set a retention period on every copy.",
+              "ok": true,
+              "why": "Each component then holds only the personal data it needs, for as long as it needs it, which is data minimisation."
+            },
+            {
+              "text": "Keep the data, but encrypt the log bucket with a customer-managed key.",
+              "ok": false,
+              "why": "Encryption protects the data, but you still hold more personal data than the purpose needs."
+            },
+            {
+              "text": "Keep the data, but limit access to the logs to the platform team.",
+              "ok": false,
+              "why": "Fewer readers help, but the copies are still unnecessary and must still be found when a candidate asks for erasure."
+            },
+            {
+              "text": "Move the topics and logs to an EU region.",
+              "ok": false,
+              "why": "Location matters for transfers, but it does not reduce how much personal data you copy."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u32-l3",
+      "kind": "interview",
+      "title": "Present the capstone case",
+      "items": [
+        {
+          "id": "u32-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "Before I draw anything, I'd like to clarify the requirements: who uses the result, how many changes we expect, and how fresh the data needs to be."
+        },
+        {
+          "id": "u32-l3-i2",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 180,
+          "q": "Design an integration that sends new hires and application changes from SuccessFactors Recruiting to systems on Google Cloud. How would you approach it?",
+          "model": "First, I'd clarify the functional requirements: which changes matter, such as a hire or a status change, and who uses the result, for example IT, payroll and onboarding. Then the non-functional ones: the volume, how fresh the data must be, the availability we need, and how we protect candidate data. I'd write them as targets, like 99.9 per cent of hires in payroll within five minutes. Next, a rough estimate. With about 150,000 applications a year and eight status changes each, that's around 3,300 events a day, so volume is small, and the real limit is the SuccessFactors API. Then I'd draw the simplest design that meets the targets: SuccessFactors events to a receiver on Cloud Run, a thin event on Pub/Sub, and a processor that reads the details through OData. After that, I'd go deep on the risky parts, such as duplicates, lost events and outages, and I'd finish with the trade-offs and what I'd monitor.",
+          "keypoints": [
+            {
+              "text": "Clarify the functional requirements: which changes, who uses them",
+              "kw": [
+                "clarify",
+                "functional",
+                "requirements",
+                "who uses",
+                "which changes"
+              ]
+            },
+            {
+              "text": "Agree the non-functional requirements as targets",
+              "kw": [
+                "non-functional",
+                "volume",
+                "latency",
+                "fresh",
+                "availability",
+                "privacy",
+                "security",
+                "slo",
+                "target"
+              ]
+            },
+            {
+              "text": "A rough estimate that finds the bottleneck",
+              "kw": [
+                "estimate",
+                "per day",
+                "a day",
+                "rough",
+                "bottleneck",
+                "limit"
+              ]
+            },
+            {
+              "text": "The simplest high-level design first",
+              "kw": [
+                "simplest",
+                "simple",
+                "high-level",
+                "diagram",
+                "draw",
+                "pub/sub",
+                "cloud run"
+              ]
+            },
+            {
+              "text": "A deep dive into the risky parts",
+              "kw": [
+                "deep",
+                "deep dive",
+                "risky",
+                "duplicates",
+                "failures",
+                "outages",
+                "lost"
+              ]
+            },
+            {
+              "text": "Finish with trade-offs and monitoring",
+              "kw": [
+                "trade-offs",
+                "trade-off",
+                "tradeoffs",
+                "monitor",
+                "monitoring",
+                "wrap up",
+                "summary"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u32-l3-i3",
+          "type": "say",
+          "src": "s1",
+          "text": "Let me do a quick estimate: about three thousand events a day, so Pub/Sub isn't the problem. The real limit is how often we call SuccessFactors."
+        },
+        {
+          "id": "u32-l3-i4",
+          "type": "explain",
+          "src": "s11",
+          "seconds": 150,
+          "q": "Would you use SuccessFactors events or poll the OData API for changes? How do you make sure that no change is missed?",
+          "model": "I'd use both, for different jobs. Events give us speed. SuccessFactors Recruiting publishes Intelligent Services events, such as Update of Job Application Status, and a receiver on Cloud Run turns each one into a small event on Pub/Sub. But I don't treat events as the only source of truth, because a notification can fail, and I can't control how SuccessFactors retries it. So I add a delta job as a safety net. Every hour, Cloud Scheduler starts a Cloud Run job that queries JobApplication with a filter on lastModifiedDateTime and snapshot paging. It starts a little before the last watermark and merges by application ID. Polling every minute is not an option, because SAP warns that repeating queries in much less than an hour uses too much API resource. A last-modified filter can't see deleted records, so a weekly reconciliation compares everything. Because the same change can arrive by both paths, the processor is idempotent.",
+          "keypoints": [
+            {
+              "text": "Events for speed",
+              "kw": [
+                "events",
+                "intelligent services",
+                "job application status",
+                "real time",
+                "speed"
+              ]
+            },
+            {
+              "text": "Events can be missed, so add a safety net",
+              "kw": [
+                "missed",
+                "lost",
+                "fail",
+                "safety net",
+                "source of truth"
+              ]
+            },
+            {
+              "text": "A delta query on lastModifiedDateTime from a watermark",
+              "kw": [
+                "delta",
+                "lastmodifieddatetime",
+                "last modified",
+                "watermark",
+                "filter"
+              ]
+            },
+            {
+              "text": "Not too often: about once an hour, as SAP advises",
+              "kw": [
+                "hour",
+                "hourly",
+                "once an hour",
+                "throttled",
+                "api resource"
+              ]
+            },
+            {
+              "text": "Reconciliation for deleted records",
+              "kw": [
+                "reconciliation",
+                "reconcile",
+                "deleted",
+                "full load",
+                "compare"
+              ]
+            },
+            {
+              "text": "An idempotent processor, because changes can arrive twice",
+              "kw": [
+                "idempotent",
+                "duplicate",
+                "twice",
+                "both paths"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u32-l3-i5",
+          "type": "tf",
+          "src": "s18",
+          "statement": "If you turn on exactly-once delivery for the push subscription to Cloud Run, the hire processor no longer needs to be idempotent.",
+          "answer": false,
+          "why": "Exactly-once delivery works only with pull subscriptions, within one region. It also does not remove duplicates that a publisher creates by retrying, so the processor stays idempotent."
+        },
+        {
+          "id": "u32-l3-i6",
+          "type": "explain",
+          "src": "s13",
+          "seconds": 150,
+          "q": "A bug in the processor sent 400 messages to the dead-letter topic overnight. How do you recover?",
+          "model": "First I limit the damage. The alert on dead-lettered messages tells me something is wrong, so I look at a few of the messages and follow their correlation ID through the logs to find the cause. If the bug is still in production, I roll back to the previous Cloud Run revision. Then I fix it and add a test that reproduces it. Only after that do I replay. A small job reads the dead-letter subscription and republishes each message to the original topic, with its attributes, at a controlled rate, so we don't flood the SuccessFactors API. If messages were acknowledged by mistake instead of dead-lettered, I can seek the subscription to a snapshot or to a time before the release, as long as the retention covers it. Either way, some messages will arrive twice, which is safe because the processor checks every event ID. Finally, I check that the counts match and tell the business.",
+          "keypoints": [
+            {
+              "text": "An alert, then find the cause with the correlation ID",
+              "kw": [
+                "alert",
+                "correlation id",
+                "logs",
+                "cause",
+                "trace"
+              ]
+            },
+            {
+              "text": "Stop the damage: roll back the release",
+              "kw": [
+                "roll back",
+                "rollback",
+                "previous revision",
+                "revision",
+                "stop"
+              ]
+            },
+            {
+              "text": "Fix and test before replaying",
+              "kw": [
+                "fix",
+                "fixed",
+                "test",
+                "reproduce",
+                "reproduces"
+              ]
+            },
+            {
+              "text": "Republish from the dead-letter subscription at a controlled rate",
+              "kw": [
+                "republish",
+                "replay",
+                "dead-letter",
+                "controlled rate",
+                "rate",
+                "slowly"
+              ]
+            },
+            {
+              "text": "Seek to a snapshot or a time when messages were acknowledged by mistake",
+              "kw": [
+                "seek",
+                "snapshot",
+                "retention",
+                "timestamp"
+              ]
+            },
+            {
+              "text": "Duplicates are safe because the processor is idempotent",
+              "kw": [
+                "idempotent",
+                "duplicates",
+                "twice",
+                "event id"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u32-l3-i7",
+          "type": "scenario",
+          "src": "s6",
+          "q": "The interviewer asks: what changes if the volume grows a hundred times, to about 330,000 events a day?",
+          "options": [
+            {
+              "text": "Redo the estimate: about 14,000 events an hour is far above SAP's guideline for event-based Integration Center jobs, so move the bulk to scheduled delta loads that read changes in batches, and keep events for urgent changes such as hires.",
+              "ok": true,
+              "why": "SAP says event-based integration is not meant for heavy load and suggests scheduled jobs, and batch reads avoid one OData call per event."
+            },
+            {
+              "text": "Keep the design as it is: Pub/Sub and Cloud Run scale automatically.",
+              "ok": false,
+              "why": "They do, but about four events a second is not their limit. SuccessFactors is: SAP recommends fewer than 500 events an hour for event-based Integration Center jobs."
+            },
+            {
+              "text": "Raise the maximum number of Cloud Run instances, so more events are processed in parallel.",
+              "ok": false,
+              "why": "More instances make more OData calls at the same time, so the load simply moves to SuccessFactors."
+            },
+            {
+              "text": "Replace Pub/Sub with Kafka, because Pub/Sub cannot handle that volume.",
+              "ok": false,
+              "why": "Four events a second is a very small load for Pub/Sub, so this adds a cluster to operate without fixing the real limit."
+            }
+          ]
+        },
+        {
+          "id": "u32-l3-i8",
+          "type": "explain",
+          "src": "s19",
+          "seconds": 150,
+          "q": "How do you protect candidates' personal data in this design?",
+          "model": "I start with data minimisation: every component gets only the data it needs. The events on Pub/Sub are thin. They carry the entity, the ID, the kind of change and the time, but no names, email addresses or salaries. The processor reads the details through the OData API, with $select, so it asks only for the fields it uses. Logs carry IDs and the correlation ID, never personal data or tokens. For location, I set a message storage policy on the topics, so Pub/Sub stores and processes the messages only in the regions we allow, for example EU regions. The private key that signs the SAML assertion for SuccessFactors lives in Secret Manager, and only the processor's service account can read it. Every copy has a retention period, so subscriptions, tables and logs keep data only as long as needed. Finally, when SuccessFactors purges a candidate, a reconciliation job deletes our copies too.",
+          "keypoints": [
+            {
+              "text": "Data minimisation: only the data each part needs",
+              "kw": [
+                "minimisation",
+                "minimization",
+                "minimum",
+                "only the data",
+                "only the fields",
+                "what it needs"
+              ]
+            },
+            {
+              "text": "Thin events with IDs, not personal data",
+              "kw": [
+                "thin",
+                "ids",
+                "no names",
+                "identifiers",
+                "only the id"
+              ]
+            },
+            {
+              "text": "No personal data or tokens in logs",
+              "kw": [
+                "logs",
+                "log",
+                "correlation id",
+                "tokens"
+              ]
+            },
+            {
+              "text": "Location: a message storage policy or allowed regions",
+              "kw": [
+                "storage policy",
+                "region",
+                "regions",
+                "eu",
+                "location"
+              ]
+            },
+            {
+              "text": "Keys in Secret Manager with least privilege",
+              "kw": [
+                "secret manager",
+                "service account",
+                "private key",
+                "least privilege"
+              ]
+            },
+            {
+              "text": "Retention and erasure across every copy",
+              "kw": [
+                "retention",
+                "purge",
+                "delete",
+                "deletes",
+                "erasure",
+                "as long as"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u32-l3-i9",
+          "type": "say",
+          "src": "s1",
+          "text": "The main trade-off is eventual consistency: payroll sees a hire a few minutes later. The business agreed that delay, and we monitor it."
+        },
+        {
+          "id": "u32-l3-i10",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "We have a few minutes left. Can you summarise your design and tell me what you would do next?",
+          "model": "To summarise: SuccessFactors Recruiting raises events, a receiver on Cloud Run publishes thin events to Pub/Sub, and a Spring Boot processor reads the details through OData. It writes the new starter and an outbox row in one transaction, and a relay publishes them to one topic, with a subscription for each target system. Duplicates are harmless because every consumer is idempotent. Nothing is lost, because failures retry with backoff and end in a dead-letter topic with an alert and a replay runbook, and an hourly delta job catches any missed event. The main trade-offs are more components to run and eventual consistency. As next steps, I'd agree the SLOs with the business, run a load and failure test against a test instance, and keep the event source behind the receiver, so a later move to SAP Cloud Application Event Hub changes only that part.",
+          "keypoints": [
+            {
+              "text": "A short summary of the flow",
+              "kw": [
+                "summarise",
+                "summarize",
+                "summary",
+                "receiver",
+                "pub/sub",
+                "processor"
+              ]
+            },
+            {
+              "text": "How duplicates and failures are handled",
+              "kw": [
+                "idempotent",
+                "duplicates",
+                "dead-letter",
+                "backoff",
+                "retry",
+                "outbox"
+              ]
+            },
+            {
+              "text": "A safety net for missed events",
+              "kw": [
+                "delta",
+                "hourly",
+                "reconciliation",
+                "missed"
+              ]
+            },
+            {
+              "text": "The trade-offs, said openly",
+              "kw": [
+                "trade-offs",
+                "trade-off",
+                "eventual consistency",
+                "components",
+                "complexity"
+              ]
+            },
+            {
+              "text": "Concrete next steps",
+              "kw": [
+                "next steps",
+                "next step",
+                "slo",
+                "slos",
+                "load test",
+                "failure test",
+                "event hub"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "The method in seven steps",
+        "points": [
+          "1. Clarify the functional requirements: which changes, which systems, who uses the result.",
+          "2. Agree the non-functional requirements: volume, latency, availability, security, privacy, cost.",
+          "3. Estimate with rounded numbers: per year, per day, per second, at the peak.",
+          "4. Draw the simplest design that meets the targets, then improve it.",
+          "5. Deep dive into the riskiest part, or the one the interviewer chooses.",
+          "6. Trade-offs: what you gave up, why it is acceptable, how you reduce the risk.",
+          "7. Wrap up: a one-minute summary, the open risks and the next steps."
+        ]
+      },
+      {
+        "h": "Questions to ask first",
+        "points": [
+          "Who uses the result, and is anyone waiting for it?",
+          "How many changes a day, and how big is the peak?",
+          "How fresh must the data be? Write it as a target, such as 99.9% within five minutes.",
+          "What happens if a target system is down for hours?",
+          "Which personal data may leave the source, and in which regions may it be stored?",
+          "Checklist: the Well-Architected pillars (operational excellence; security, privacy and compliance; reliability; cost optimisation; performance optimisation; sustainability)."
+        ]
+      },
+      {
+        "h": "Estimates for the case",
+        "points": [
+          "150,000 applications a year x 8 status changes = 1.2 million events a year.",
+          "1.2 million / 365 = about 3,300 a day; / 24 = about 140 an hour; / 86,400 s = about 0.04 a second.",
+          "SAP KBA 3063887: keep event-based Intelligent Services and Integration Center jobs under 500 events an hour.",
+          "100 times more is about 14,000 an hour, or 4 a second: small for Pub/Sub and Cloud Run, far too much for event-based Integration Center jobs.",
+          "Check the peak, not only the average: a busy hour can be several times the average, so compare the peak with the 500-an-hour guideline.",
+          "The real limit: calls to SuccessFactors. Read changed records in batches, not one call per event.",
+          "Good assumptions and clear reasoning matter more than exact numbers."
+        ]
+      },
+      {
+        "h": "The capstone design",
+        "points": [
+          "Source: Intelligent Services events such as Update of Job Application Status, through an external event notification or Integration Center.",
+          "Not every event can trigger an Integration Center integration (KBA 2818468: Approval of Offer Detail cannot).",
+          "The receiver only checks, publishes to Pub/Sub and answers: SAP asks the REST endpoint of an event-based job to finish within 30 seconds.",
+          "Receiver on Cloud Run: a thin event to Pub/Sub, ordering key = application ID.",
+          "Hire processor: push subscription with an OIDC token; reads the details through OData with $select.",
+          "One transaction: event ID (unique key), new starter, outbox row, so a crash cannot lose the message (no dual write). A relay publishes to new-starters.",
+          "Safety net: an hourly Cloud Run job, delta query on lastModifiedDateTime, snapshot paging; weekly reconciliation.",
+          "SAP says SuccessFactors is adopting SAP Cloud Application Event Hub (CloudEvents): keep the source behind the receiver."
+        ]
+      },
+      {
+        "h": "Failures and replay",
+        "points": [
+          "Delivery is at least once; exactly-once is pull only, so every consumer is idempotent.",
+          "Retry with exponential backoff (10 to 600 s); dead-letter topic after N attempts (5 to 100).",
+          "Attach a subscription to the dead-letter topic, and alert on subscription/dead_letter_message_count.",
+          "Replay: fix first, then republish dead-lettered messages at a controlled rate.",
+          "Seek to a snapshot or a past time when messages were acknowledged by mistake; expect duplicates.",
+          "Alert on the age of the oldest unacknowledged message (subscription/oldest_unacked_message_age_by_region) well before the retention runs out, not only on errors."
+        ]
+      },
+      {
+        "h": "Security and privacy",
+        "points": [
+          "OAuth with a SAML 2.0 bearer assertion (RFC 7522), signed with the key of an X.509 certificate.",
+          "Do not use /oauth/idp: its deprecation was announced in the 2H 2022 release, and SAP calls it unsafe because the private key passes through an API call.",
+          "Create assertions in your own code, with SAP IAS, or with the SAP offline tool.",
+          "The private key in Secret Manager; only the processor's service account can read it.",
+          "Thin events, $select, no personal data or tokens in logs, a retention period on every copy.",
+          "Message storage policy: Pub/Sub stores and processes messages only in the allowed regions."
+        ]
+      },
+      {
+        "h": "Useful phrases",
+        "points": [
+          "Before I draw anything, I'd like to clarify the requirements.",
+          "Let me do a quick estimate.",
+          "I'll start with the simplest design and improve it.",
+          "The riskiest part is... so let me go deeper there.",
+          "The main trade-off is... and we accepted it because...",
+          "To wrap up: ... As next steps, I'd..."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Non-Abstract Large System Design - The Site Reliability Workbook (Google)",
+      "url": "https://sre.google/workbook/non-abstract-design/",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Google Cloud Well-Architected Framework - Cloud Architecture Center",
+      "url": "https://docs.cloud.google.com/architecture/framework",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Applying Intelligent Services and Events - SAP Learning (SAP SuccessFactors Recruiting: Recruiter Experience Administration)",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-administration/applying-intelligent-services-and-events",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Describing Intelligent Services - SAP Learning (Configuring SAP SuccessFactors Platform: Advanced Topics)",
+      "url": "https://learning.sap.com/learning-journeys/configuring-sap-successfactors-platform-advanced-topics/describing-intelligent-services",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "SAP KBA 2818468 - Option to add/create Integration is not available in some ISC events - SuccessFactors Intelligent Services Center",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2818468",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "SAP KBA 3063887 - Best Practices for creating Event Based Integration via Intelligent Services Center (ISC) and Integration Center (IC)",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3063887",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Set Up SAP SuccessFactors for SAP Cloud Application Event Hub - SAP Developers tutorial",
+      "url": "https://developers.sap.com/tutorials/eh-setup-success-factors.html",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "SAP Cloud Application Event Hub: basic concepts - SAP Developers tutorial",
+      "url": "https://developers.sap.com/tutorials/eh-basic-concepts.html",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "SAP KBA 3239495 - 2H 2022: Deprecation of OAuth IdP API /oauth/idp",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3239495",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "RFC 7522: Security Assertion Markup Language (SAML) 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants",
+      "url": "https://www.rfc-editor.org/rfc/rfc7522.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "SAP KBA 2735876 - SuccessFactors OData API Best Practices [Query Modified Records, Pagination, Batch Size, Timeout, etc.]",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2735876",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Push subscriptions - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/push",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Dead-letter topics - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/dead-letter-topics",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Replay and purge messages (seek) - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/replay-overview",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Restrict Pub/Sub resource locations - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/resource-location-restriction",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "gcloud pubsub subscriptions create - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/pubsub/subscriptions/create",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Transactional outbox pattern - AWS Prescriptive Guidance",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/cloud-design-patterns/transactional-outbox.html",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Exactly-once delivery - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/exactly-once-delivery",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Principle (c): Data minimisation - ICO (UK GDPR guidance)",
+      "url": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/data-protection-principles/a-guide-to-the-data-protection-principles/data-minimisation/",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Monitor Pub/Sub in Cloud Monitoring - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/monitoring",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Configure secrets for services - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/services/secrets",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "SAP KBA 2951051 - Unable to create multiple flows on a Recruiting type event on Intelligent Services Center",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2951051",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Regulation (EU) 2016/679 (General Data Protection Regulation) - EUR-Lex",
+      "url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
+      "official": true
+    }
+  ]
+}

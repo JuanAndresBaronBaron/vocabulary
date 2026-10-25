@@ -1,0 +1,1525 @@
+{
+  "format": 1,
+  "id": "u22",
+  "n": 22,
+  "block": "gcp",
+  "title": "AWS equivalents",
+  "summary": "After this unit you can map each Google Cloud service in this course to its AWS counterpart, explain where they are not the same, and translate an AWS design into Google Cloud.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Google's 'Compare AWS and Azure services to Google Cloud' page (checked 2026-10-25, footer 'Last updated 2026-10-22 UTC'): Pub/Sub messaging lists Amazon Kinesis Data Streams and Amazon MQ; Cloud Tasks lists SQS, SNS and EventBridge; Cloud Scheduler lists Amazon EventBridge; Cloud Run lists App Runner, Fargate and Lambda; GKE Autopilot lists AWS Fargate with Amazon EKS; Eventarc lists AWS EventBridge; Apigee and API Gateway both list Amazon API Gateway.",
+    "AWS App Runner (checked 2026-10-25): no longer open to new customers; existing customers can still create services; AWS recommends Amazon ECS Express Mode. The page gives no date for the change.",
+    "AWS Lambda (checked 2026-10-25): Lambda Web Functions were announced on 12 October 2026 (Node.js only, five Regions) and serve many requests per execution environment, with a request timeout of 30 s by default (3 to 900 s); the original type is now called Lambda Event Functions (one request per environment, 15-minute timeout; up to 90 minutes for some invocations on Lambda Managed Instances).",
+    "Cloud Run (checked 2026-10-25): concurrency default 80 in the console (80 per vCPU with the CLI or Terraform), maximum 1,000; request timeout default 5 minutes, maximum 60 minutes. Cloud Run functions: HTTP up to 60 minutes; event-driven functions created with the Cloud Functions v2 API up to 9 minutes.",
+    "Pub/Sub subscription properties (checked 2026-10-25): retention default 7 days, maximum 31 days; acknowledgement deadline default 10 s, maximum 600 s; dead-letter delivery attempts 5 to 100; the deadline can be extended per message; message data up to 10 MB. Cloud Tasks (checked 2026-10-25): 500 dispatches per second per queue, tasks up to 1 MiB, scheduled up to 30 days ahead, retained up to 31 days. Amazon SQS (checked 2026-10-25): retention default 4 days (1 minute to 14 days), visibility timeout default 30 s (maximum 12 hours), maximum message size 1 MiB.",
+    "Amazon EventBridge (checked 2026-10-25): the user guide now describes a 'Custom Event Bus' and a 'Custom Event Bus - Classic' that uses rules and targets; this unit uses only the general event bus and event pattern ideas.",
+    "Google API Gateway (checked 2026-10-25): the overview page says an API is defined as an OpenAPI 2.0 spec, and the documentation menu also lists OpenAPI 3.x pages. Unconfirmed: the current status of OpenAPI 3.x support, so the unit does not name a version.",
+    "Workflows callbacks (checked 2026-10-25): http_callback_method defaults to POST, events.await_callback waits 43200 s by default, and a text or JSON body is decoded. Unconfirmed: the exact shape of GET query parameters, so the code item reads a decoded JSON body instead.",
+    "Unconfirmed: whether Cloud Scheduler supports one-time (non-recurring) jobs; the Google pages read describe only recurring unix-cron schedules, so the unit makes no claim about it."
+  ],
+  "terms": [
+    {
+      "id": "t-fan-out",
+      "term": "Fan-out",
+      "ipa": "/ˈfæn aʊt/",
+      "say": "fan out",
+      "def": "One published message is copied to several independent consumers, and each one processes its own copy. On AWS you usually build it with one SNS topic and one SQS queue per consumer; on Google Cloud, with one Pub/Sub topic and one subscription per consumer.",
+      "example": "The hiring service publishes CandidateHired once, and payroll, IT and the badge system each receive their own copy.",
+      "src": "s17"
+    },
+    {
+      "id": "t-subscription",
+      "term": "Subscription (Pub/Sub)",
+      "ipa": "/səbˈskrɪpʃn/",
+      "say": "subscription",
+      "def": "A named resource on a Pub/Sub topic that receives the messages published after it was created and keeps the unacknowledged ones for its consumer. It delivers by pull, by push as HTTP POST requests, or by export to BigQuery or Cloud Storage.",
+      "example": "The payroll-sub subscription keeps CandidateHired messages for 7 days by default, so payroll can catch up after an outage.",
+      "src": "s14"
+    },
+    {
+      "id": "t-visibility-timeout",
+      "term": "Visibility timeout (SQS)",
+      "ipa": "/ˌvɪzəˈbɪləti ˈtaɪmaʊt/",
+      "say": "visibility timeout",
+      "def": "The time an SQS message stays hidden from other consumers after one consumer receives it. If the consumer does not delete the message before the timeout ends, it can be received again; the closest Pub/Sub setting is the acknowledgement deadline.",
+      "example": "The payroll worker needs about 40 seconds per message, so the queue had a 60-second visibility timeout, and the new Pub/Sub subscription gets a 60-second acknowledgement deadline.",
+      "src": "s19"
+    },
+    {
+      "id": "t-event-bus",
+      "term": "Event bus (EventBridge)",
+      "ipa": "/ɪˈvent bʌs/",
+      "say": "event bus",
+      "def": "An Amazon EventBridge router that receives events and delivers them to zero or more targets. Event patterns decide which events go where, and they can match the source, the metadata or values in the event body; Google's comparison table maps EventBridge to Eventarc.",
+      "example": "An event pattern on the bus sends only events whose detail has the status Hired to the onboarding target.",
+      "src": "s22"
+    },
+    {
+      "id": "t-explicit-invocation",
+      "term": "Explicit invocation",
+      "ipa": "/ɪkˈsplɪsɪt ˌɪnvəˈkeɪʃn/",
+      "say": "explicit invocation",
+      "def": "The publisher decides where each message goes and keeps control of its execution, as with Cloud Tasks, where every task names its endpoint and the queue controls the rate. Pub/Sub is implicit invocation: the publisher only publishes an event, and the subscribers react.",
+      "example": "The offer-letter service creates one Cloud Tasks task per letter, addressed to the document worker's URL, and the queue dispatches at most 10 per second.",
+      "src": "s16"
+    },
+    {
+      "id": "t-concurrency",
+      "term": "Concurrency (per instance)",
+      "ipa": "/kənˈkʌrənsi/",
+      "say": "concurrency",
+      "def": "The number of requests that one instance can process at the same time. A Cloud Run instance can serve up to 1,000 requests at once (the console default is 80), while a Lambda Event Function execution environment serves one request at a time.",
+      "example": "With a concurrency of 80, ten Cloud Run instances can serve 800 webhook calls at the same moment; on Lambda Event Functions the same load needs 800 execution environments.",
+      "src": "s9"
+    },
+    {
+      "id": "t-scale-to-zero",
+      "term": "Scale to zero",
+      "ipa": "/ˌskeɪl tə ˈzɪərəʊ/",
+      "say": "scale to zero",
+      "def": "When a service receives no requests, the platform removes even the last instance, so with request-based billing an idle service costs nothing. The next request has to start a new instance, which can make that first response slower.",
+      "example": "The interview-scheduling API on Cloud Run is idle at night and scales to zero; setting a minimum of one instance would avoid the slow first call in the morning.",
+      "src": "s11"
+    },
+    {
+      "id": "t-fargate",
+      "term": "Fargate (AWS)",
+      "ipa": "/ˈfɑːɡeɪt/",
+      "say": "Fargate",
+      "def": "Serverless compute for containers on AWS, used with Amazon ECS or Amazon EKS. You set the CPU, memory, networking and IAM policies, and AWS runs each task in its own isolation boundary, with no EC2 instances for you to manage.",
+      "example": "On AWS, the Spring Boot recruiting adapter ran as an ECS service on Fargate behind a load balancer; on Google Cloud it became a Cloud Run service.",
+      "src": "s32"
+    },
+    {
+      "id": "t-autopilot",
+      "term": "GKE Autopilot",
+      "ipa": "/ˌdʒiː keɪ ˈiː ˈɔːtəʊpaɪlət/",
+      "say": "G K E Autopilot",
+      "def": "A managed mode of GKE in which Google manages the worker nodes, their scaling and a hardened security configuration, and general-purpose Pods use a Pod-based billing model instead of paying for whole nodes. Google's table maps it to AWS Fargate with Amazon EKS; EKS Auto Mode is another AWS option in which AWS manages the nodes.",
+      "example": "The team chose GKE Autopilot for its Kubernetes workloads, so nobody has to size, patch or upgrade node pools.",
+      "src": "s33"
+    },
+    {
+      "id": "t-api-proxy",
+      "term": "API proxy (Apigee)",
+      "ipa": "/ˌeɪ piː ˈaɪ ˈprɒksi/",
+      "say": "A P I proxy",
+      "def": "An Apigee proxy maps a public HTTP endpoint to a backend service, so clients call the proxy and never the backend directly. Policies on the proxy add security, rate limiting, quotas and analytics without changes to the backend.",
+      "example": "Partners call the candidate API through an Apigee proxy that checks their API key and applies a quota, so the Cloud Run backend can change without breaking them.",
+      "src": "s39"
+    },
+    {
+      "id": "t-state-machine",
+      "term": "State machine (Step Functions)",
+      "ipa": "/ˈsteɪt məˌʃiːn/",
+      "say": "state machine",
+      "def": "An AWS Step Functions workflow, defined in JSON with the Amazon States Language, in which the execution moves from one state to the next. Google Cloud Workflows uses imperative steps and variables, written in YAML or JSON.",
+      "example": "The onboarding state machine had Choice, Wait and Parallel states; in Workflows they became a switch block, a call to sys.sleep and a parallel step.",
+      "src": "s3"
+    },
+    {
+      "id": "t-staging-label",
+      "term": "Staging label (AWS Secrets Manager)",
+      "ipa": "/ˈsteɪdʒɪŋ ˈleɪbl/",
+      "say": "staging label",
+      "def": "A label on a secret version in AWS Secrets Manager. AWSCURRENT marks the version clients use, AWSPENDING the version that becomes current when rotation completes, and AWSPREVIOUS the last known good version; Google Secret Manager uses version numbers and aliases instead.",
+      "example": "The new database password stays AWSPENDING until the rotation completes, and then it becomes AWSCURRENT.",
+      "src": "s45"
+    },
+    {
+      "id": "t-iam-role-aws",
+      "term": "IAM role (AWS)",
+      "ipa": "/ˌaɪ eɪ ˈem rəʊl/",
+      "say": "I A M role",
+      "def": "In AWS, an identity with specific permissions that a user, an application or a service assumes to get temporary credentials; its trust policy says who may assume it. In Google Cloud, a role is only a set of permissions, and the identity of a workload is a service account.",
+      "example": "The Lambda execution role trusts lambda.amazonaws.com; on Cloud Run, a user-managed service account with only the roles it needs does the same job.",
+      "src": "s53"
+    },
+    {
+      "id": "t-storage-class",
+      "term": "Storage class",
+      "ipa": "/ˈstɔːrɪdʒ klɑːs/",
+      "say": "storage class",
+      "def": "A setting on an object or bucket that trades the storage price against access costs and minimum storage time. Every Cloud Storage class, Archive included, is readable in milliseconds through the same API, but S3 Glacier Flexible Retrieval and S3 Glacier Deep Archive objects must be restored before you can read them.",
+      "example": "Old candidate CVs kept for legal reasons move to the Archive class, which has a 365-day minimum storage duration and retrieval fees.",
+      "src": "s46"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u22-l1",
+      "kind": "concepts",
+      "title": "Map the services",
+      "items": [
+        {
+          "id": "u22-l1-i1",
+          "type": "card",
+          "term": "t-fan-out",
+          "src": "s17",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "pub",
+                "label": "Hiring service"
+              },
+              {
+                "id": "sns",
+                "label": "SNS topic"
+              },
+              {
+                "id": "q1",
+                "label": "SQS queue: payroll"
+              },
+              {
+                "id": "q2",
+                "label": "SQS queue: IT"
+              }
+            ],
+            "edges": [
+              {
+                "from": "pub",
+                "to": "sns",
+                "label": "publish once"
+              },
+              {
+                "from": "sns",
+                "to": "q1",
+                "label": "copy"
+              },
+              {
+                "from": "sns",
+                "to": "q2",
+                "label": "copy"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u22-l1-i2",
+          "type": "card",
+          "term": "t-subscription",
+          "src": "s13",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "pub",
+                "label": "Hiring service"
+              },
+              {
+                "id": "topic",
+                "label": "Pub/Sub topic"
+              },
+              {
+                "id": "s1",
+                "label": "Subscription: payroll"
+              },
+              {
+                "id": "s2",
+                "label": "Subscription: IT"
+              },
+              {
+                "id": "c1",
+                "label": "Payroll service"
+              },
+              {
+                "id": "c2",
+                "label": "IT service on Cloud Run"
+              }
+            ],
+            "edges": [
+              {
+                "from": "pub",
+                "to": "topic",
+                "label": "publish once"
+              },
+              {
+                "from": "topic",
+                "to": "s1",
+                "label": "every message"
+              },
+              {
+                "from": "topic",
+                "to": "s2",
+                "label": "every message"
+              },
+              {
+                "from": "s1",
+                "to": "c1",
+                "label": "pull"
+              },
+              {
+                "from": "s2",
+                "to": "c2",
+                "label": "push (HTTP POST)"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u22-l1-i3",
+          "type": "pick",
+          "src": "s1",
+          "q": "An interviewer says that Pub/Sub is just SNS plus SQS. Which AWS services does Google's own comparison table list for Pub/Sub messaging?",
+          "options": [
+            "Amazon Kinesis Data Streams and Amazon MQ",
+            "Amazon SNS and Amazon SQS",
+            "Amazon EventBridge and EventBridge Scheduler",
+            "AWS Step Functions"
+          ],
+          "answer": 0,
+          "why": "Google maps Pub/Sub to Kinesis Data Streams and Amazon MQ, and lists SQS, SNS and EventBridge on the Cloud Tasks row instead. The table only lists comparable services, so check the behaviour before you call two services the same."
+        },
+        {
+          "id": "u22-l1-i4",
+          "type": "match",
+          "src": "s2",
+          "q": "Match each AWS messaging feature with the closest Google Cloud feature.",
+          "pairs": [
+            [
+              "SNS topic",
+              "Pub/Sub topic"
+            ],
+            [
+              "One SQS queue per consumer",
+              "One Pub/Sub subscription per consumer"
+            ],
+            [
+              "SQS visibility timeout",
+              "Acknowledgement deadline"
+            ],
+            [
+              "SQS dead-letter queue",
+              "Pub/Sub dead-letter topic"
+            ],
+            [
+              "EventBridge event bus",
+              "Eventarc"
+            ],
+            [
+              "SQS FIFO message group",
+              "Pub/Sub ordering key"
+            ]
+          ]
+        },
+        {
+          "id": "u22-l1-i5",
+          "type": "tf",
+          "src": "s15",
+          "statement": "With the default settings, a Pub/Sub subscription still holds unacknowledged messages for a consumer that was offline for two days.",
+          "answer": true,
+          "why": "Subscription retention is 7 days by default and up to 31 days. SNS has no backlog to read later: it pushes, retries and then discards the message unless a dead-letter queue is attached."
+        },
+        {
+          "id": "u22-l1-i6",
+          "type": "card",
+          "term": "t-concurrency",
+          "src": "s9"
+        },
+        {
+          "id": "u22-l1-i7",
+          "type": "pick",
+          "src": "s4",
+          "q": "A colleague wants to run a new containerised API on AWS App Runner in a brand-new AWS account. What do you tell them?",
+          "options": [
+            "App Runner is no longer open to new customers; AWS recommends Amazon ECS Express Mode.",
+            "App Runner is the service AWS now recommends for every new web application.",
+            "App Runner has been shut down, so existing services have already stopped.",
+            "App Runner is the new name for Lambda Web Functions."
+          ],
+          "answer": 0,
+          "why": "AWS says App Runner is no longer open to new customers, and existing customers can still use it but get no new features. Lambda Web Functions are a separate Lambda type announced in October 2026."
+        },
+        {
+          "id": "u22-l1-i8",
+          "type": "card",
+          "term": "t-iam-role-aws",
+          "src": "s53"
+        },
+        {
+          "id": "u22-l1-i9",
+          "type": "tf",
+          "src": "s56",
+          "statement": "In Google Cloud, a role is an identity that a workload assumes to get temporary credentials, just as in AWS.",
+          "answer": false,
+          "why": "In Google Cloud, a role is a set of permissions that you grant to principals such as users, groups and service accounts. The identity of a workload is its service account."
+        },
+        {
+          "id": "u22-l1-i10",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each Google Cloud service with the AWS service that Google's comparison table lists for it.",
+          "pairs": [
+            [
+              "Cloud Run functions",
+              "AWS Lambda"
+            ],
+            [
+              "Google Kubernetes Engine (GKE)",
+              "Amazon EKS"
+            ],
+            [
+              "Workflows",
+              "AWS Step Functions"
+            ],
+            [
+              "Cloud Storage",
+              "Amazon S3"
+            ],
+            [
+              "Cloud SQL",
+              "Amazon RDS and Amazon Aurora"
+            ],
+            [
+              "Secret Manager",
+              "AWS Secrets Manager and Systems Manager Parameter Store"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u22-l2",
+      "kind": "practice",
+      "title": "Translate an AWS design",
+      "items": [
+        {
+          "id": "u22-l2-i1",
+          "type": "match",
+          "src": "s2",
+          "q": "Your team moves AWS Lambda Event Functions to Cloud Run. Match each Lambda feature with the Cloud Run feature that Google's migration guide maps it to.",
+          "pairs": [
+            [
+              "Provisioned concurrency",
+              "Minimum instances"
+            ],
+            [
+              "Reserved concurrency",
+              "Maximum instances per service"
+            ],
+            [
+              "Lambda SnapStart",
+              "Startup CPU boost"
+            ],
+            [
+              "Qualifiers (versions and aliases)",
+              "Revisions"
+            ],
+            [
+              "Function URL",
+              "HTTPS invocation with an auto-assigned URL"
+            ],
+            [
+              "A function that runs on a schedule",
+              "A Cloud Run job started by Cloud Scheduler"
+            ]
+          ]
+        },
+        {
+          "id": "u22-l2-i2",
+          "type": "scenario",
+          "src": "s13",
+          "q": "On AWS, a hiring service publishes CandidateHired to an SNS topic, and payroll and IT each read from their own SQS queue subscribed to it. You are moving this design to Google Cloud. What do you build?",
+          "options": [
+            {
+              "text": "One Pub/Sub topic with one subscription for payroll and one for IT, each with its own acknowledgement deadline and dead-letter topic.",
+              "ok": true,
+              "why": "Pub/Sub delivers each message to every attached subscription and keeps a backlog per subscription, so one service replaces the topic and the queues."
+            },
+            {
+              "text": "Two Pub/Sub topics, and the hiring service publishes every event to both of them.",
+              "ok": false,
+              "why": "Now the publisher must know every consumer, which is exactly what fan-out avoids."
+            },
+            {
+              "text": "One Cloud Tasks queue, with one task for each consumer for every event.",
+              "ok": false,
+              "why": "Cloud Tasks is explicit invocation: the publisher names each endpoint, so every new consumer means a change in the publisher."
+            },
+            {
+              "text": "Keep SNS and SQS on AWS and let the Cloud Run services poll the queues across clouds.",
+              "ok": false,
+              "why": "This keeps a cross-cloud dependency and AWS credentials inside Google Cloud, with nothing gained over Pub/Sub."
+            }
+          ]
+        },
+        {
+          "id": "u22-l2-i3",
+          "type": "code",
+          "src": "s29",
+          "lang": "text",
+          "q": "Translate the payroll SQS queue into a Pub/Sub subscription. The queue had a 60-second visibility timeout, a 4-day retention period and a redrive policy to a dead-letter queue after 5 receives.",
+          "code": "gcloud pubsub topics create hr-events\ngcloud pubsub topics create hr-events-dead-letter\n\ngcloud pubsub subscriptions create payroll-sub \\\n  [[1]]=hr-events \\\n  [[2]]=60 \\\n  --message-retention-duration=[[3]] \\\n  [[4]]=hr-events-dead-letter \\\n  --max-delivery-attempts=5",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "--topic",
+              "decoys": [
+                "--queue",
+                "--topic-arn"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "--ack-deadline",
+              "decoys": [
+                "--visibility-timeout",
+                "--delay-seconds"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "4d",
+              "decoys": [
+                "4w",
+                "14d"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "--dead-letter-topic",
+              "decoys": [
+                "--redrive-policy",
+                "--dead-letter-queue"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u22-l2-i4",
+          "type": "diagram",
+          "src": "s1",
+          "layout": "flow",
+          "q": "On AWS, this webhook flow used Amazon API Gateway, an ECS service on Fargate, an SNS topic and one SQS queue per consumer. Complete the Google Cloud version.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Webhook from the recruiting system",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "API Gateway or Apigee",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Cloud Run service (Spring Boot)",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Pub/Sub topic",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "One subscription per consumer",
+              "slot": true
+            },
+            {
+              "id": "n6",
+              "label": "Payroll and IT services",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "HTTPS POST"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "checks the caller, forwards"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "publishes CandidateHired"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "every message to each subscription"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "pull or push"
+            }
+          ],
+          "decoys": [
+            "Amazon SQS queue",
+            "Cloud Scheduler job",
+            "AWS App Runner service"
+          ]
+        },
+        {
+          "id": "u22-l2-i5",
+          "type": "scenario",
+          "src": "s16",
+          "q": "On AWS, a Spring service puts status-update jobs on an SQS queue, and a worker polls the queue and calls the SuccessFactors Recruiting OData API. The agreed limit is 10 calls per second. Which Google Cloud design fits best?",
+          "options": [
+            {
+              "text": "A Cloud Tasks queue with a maximum of 10 dispatches per second, which sends each task as an HTTP request to the worker on Cloud Run.",
+              "ok": true,
+              "why": "Cloud Tasks has explicit rate controls per queue and pushes each task to the endpoint, so the worker no longer polls."
+            },
+            {
+              "text": "A Pub/Sub push subscription to the worker, with its rate limit set to 10 per second.",
+              "ok": false,
+              "why": "Pub/Sub has no explicit rate controls; only pull subscriber clients can apply flow control."
+            },
+            {
+              "text": "A Cloud Scheduler job that calls the worker every second.",
+              "ok": false,
+              "why": "Cloud Scheduler uses a five-field unix-cron schedule, so its smallest unit is a minute, and it keeps no queue of jobs."
+            },
+            {
+              "text": "Pub/Sub, because it removes duplicate messages when they are created.",
+              "ok": false,
+              "why": "Deduplication at creation, by a unique task name, is a Cloud Tasks feature; Pub/Sub does not offer it."
+            }
+          ]
+        },
+        {
+          "id": "u22-l2-i6",
+          "type": "match",
+          "src": "s15",
+          "q": "The services look alike, but the limits differ. Match each AWS limit with the Google Cloud limit of the closest feature.",
+          "pairs": [
+            [
+              "SQS visibility timeout: up to 12 hours",
+              "Pub/Sub acknowledgement deadline: up to 600 seconds"
+            ],
+            [
+              "SQS retention: up to 14 days",
+              "Pub/Sub subscription retention: up to 31 days"
+            ],
+            [
+              "SQS message size: up to 1 MiB",
+              "Pub/Sub message size: up to 10 MB"
+            ],
+            [
+              "Lambda Event Function timeout: 15 minutes",
+              "Cloud Run request timeout: up to 60 minutes"
+            ],
+            [
+              "S3 Glacier Deep Archive: restore before reading",
+              "Cloud Storage Archive: readable in milliseconds"
+            ],
+            [
+              "Step Functions Express: up to five minutes",
+              "Workflows: can wait for up to a year"
+            ]
+          ]
+        },
+        {
+          "id": "u22-l2-i7",
+          "type": "scenario",
+          "src": "s10",
+          "q": "On AWS, a Spring Boot recruiting adapter runs as an ECS service on Fargate. Traffic is high in office hours and close to zero at night, and one report endpoint can take 20 minutes. What is the closest Google Cloud fit with the least to operate?",
+          "options": [
+            {
+              "text": "A Cloud Run service: it runs the same container, scales to zero at night and allows request timeouts of up to 60 minutes.",
+              "ok": true,
+              "why": "It keeps the container and the 20-minute endpoint, and when the service scales to zero at night, you pay for no instances."
+            },
+            {
+              "text": "Rewrite the adapter as event-driven Cloud Run functions, one per endpoint.",
+              "ok": false,
+              "why": "It is a rewrite with no benefit, and event-driven functions created with the Cloud Functions v2 API stop after 9 minutes."
+            },
+            {
+              "text": "A GKE Standard cluster, because ECS is also a container orchestrator.",
+              "ok": false,
+              "why": "It works, but you would size, patch and upgrade node pools for one service, which is more to operate than Fargate was."
+            },
+            {
+              "text": "Compute Engine VMs behind a load balancer.",
+              "ok": false,
+              "why": "You would manage servers again, which Fargate had already removed."
+            }
+          ]
+        },
+        {
+          "id": "u22-l2-i8",
+          "type": "match",
+          "src": "s3",
+          "q": "Match each AWS piece of the onboarding orchestration with what it becomes on Google Cloud.",
+          "pairs": [
+            [
+              "Map state",
+              "for loop"
+            ],
+            [
+              "Parallel state",
+              "parallel step"
+            ],
+            [
+              "Fail state",
+              "raise"
+            ],
+            [
+              "Succeed state",
+              "return"
+            ],
+            [
+              "Task state",
+              "HTTP call or connector"
+            ],
+            [
+              "EventBridge Scheduler schedule",
+              "Cloud Scheduler job"
+            ]
+          ]
+        },
+        {
+          "id": "u22-l2-i9",
+          "type": "order",
+          "src": "s43",
+          "q": "The client secret for the SuccessFactors API is in Secret Manager with a rotation schedule. Put the rotation in order.",
+          "steps": [
+            "Set a rotation period, the next rotation time and a Pub/Sub topic on the secret",
+            "At the next rotation time, Secret Manager sends a SECRET_ROTATE message to the topic",
+            "Your subscriber, for example a Cloud Run function, receives the message",
+            "The subscriber creates a new credential in the target system",
+            "The subscriber adds the new credential as a new secret version",
+            "Applications that read the latest version start using the new value"
+          ]
+        },
+        {
+          "id": "u22-l2-i10",
+          "type": "code",
+          "src": "s3",
+          "lang": "yaml",
+          "q": "Translate the approval part of the Step Functions state machine to Workflows. Fill in the call that waits for the callback, the block that replaces the Choice state, and the call that replaces the Wait state.",
+          "code": "main:\n  steps:\n    - createApprovalCallback:\n        call: events.create_callback_endpoint\n        args:\n          http_callback_method: \"POST\"\n        result: callback_details\n    - sendApprovalRequest:\n        call: http.post\n        args:\n          url: https://approvals.example.com/requests\n          body:\n            approveUrl: ${callback_details.url}\n    - awaitApproval:\n        call: [[1]]\n        args:\n          callback: ${callback_details}\n          timeout: 259200\n        result: approvalResponse\n    - checkDecision:\n        [[2]]:\n          - condition: ${approvalResponse.http_request.body.decision == \"yes\"}\n            next: coolingOff\n          - condition: true\n            next: rejectHire\n    - coolingOff:\n        call: [[3]]\n        args:\n          seconds: 3600\n    - approved:\n        return: \"approved\"\n    - rejectHire:\n        return: \"rejected\"",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "events.await_callback",
+              "decoys": [
+                "waitForTaskToken",
+                "events.create_callback_endpoint"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "switch",
+              "decoys": [
+                "Choice",
+                "if"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "sys.sleep",
+              "decoys": [
+                "Wait",
+                "time.sleep"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u22-l3",
+      "kind": "interview",
+      "title": "Talk about AWS and Google Cloud",
+      "items": [
+        {
+          "id": "u22-l3-i1",
+          "type": "say",
+          "src": "s13",
+          "text": "Pub/Sub is not just SNS plus SQS. One topic with a subscription for each consumer gives me fan-out and a stored backlog in a single service."
+        },
+        {
+          "id": "u22-l3-i2",
+          "type": "explain",
+          "src": "s15",
+          "seconds": 150,
+          "q": "You have mostly worked on AWS. How would you move an SNS and SQS design to Google Cloud, and what changes?",
+          "model": "I would map the SNS topic to one Pub/Sub topic, and each SQS queue to its own subscription on that topic. Pub/Sub delivers every message to every subscription and keeps a backlog for each one, so one service does what SNS and SQS did together. Then I translate the settings, and that is where the details differ. The visibility timeout becomes the acknowledgement deadline, but that is at most 600 seconds, while SQS allows 12 hours. For longer work, the subscriber extends the deadline per message, and the client libraries can do that for me. Retention can go up to 31 days instead of 14, and a redrive policy becomes a dead-letter topic with 5 to 100 delivery attempts. If a queue was FIFO, I use ordering keys, which keep the order per key within a region. Subscription filters work on attributes only, not on the message data. Finally, delivery is still at least once by default, so I keep the consumers idempotent.",
+          "keypoints": [
+            {
+              "text": "The SNS topic becomes one Pub/Sub topic, and each SQS queue a subscription",
+              "kw": [
+                "subscription",
+                "subscriptions",
+                "topic"
+              ]
+            },
+            {
+              "text": "Fan-out and a backlog in one service",
+              "kw": [
+                "fan-out",
+                "fan out",
+                "backlog",
+                "every subscription",
+                "one service",
+                "single service"
+              ]
+            },
+            {
+              "text": "The visibility timeout becomes the acknowledgement deadline, at most 600 seconds, extended per message for longer work",
+              "kw": [
+                "acknowledgement deadline",
+                "acknowledgment deadline",
+                "ack deadline",
+                "visibility timeout",
+                "600 seconds",
+                "ten minutes",
+                "extend",
+                "extends"
+              ]
+            },
+            {
+              "text": "The redrive policy becomes a dead-letter topic",
+              "kw": [
+                "dead-letter",
+                "dead letter",
+                "redrive",
+                "delivery attempts"
+              ]
+            },
+            {
+              "text": "FIFO becomes ordering keys",
+              "kw": [
+                "ordering key",
+                "ordering keys",
+                "fifo",
+                "order"
+              ]
+            },
+            {
+              "text": "Still at least once, so the consumers stay idempotent",
+              "kw": [
+                "at least once",
+                "at-least-once",
+                "idempotent",
+                "duplicate",
+                "duplicates"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u22-l3-i3",
+          "type": "scenario",
+          "src": "s16",
+          "q": "The interviewer says: Cloud Tasks is basically SQS, so we can move our SQS workers one to one. What is the best reply?",
+          "options": [
+            {
+              "text": "Both are queues, but Cloud Tasks pushes each task to an HTTP endpoint at a rate the queue controls, and it can schedule tasks. With SQS the worker polls and deletes, so I would turn the worker into an HTTP handler.",
+              "ok": true,
+              "why": "It names the real difference, push with explicit control against polling, and what changes in the code."
+            },
+            {
+              "text": "Yes, they are the same, so we only change the client library.",
+              "ok": false,
+              "why": "SQS consumers poll and delete messages, while Cloud Tasks calls your endpoint, so the worker's design changes."
+            },
+            {
+              "text": "No, Cloud Tasks is a cron service, like EventBridge Scheduler.",
+              "ok": false,
+              "why": "Cloud Scheduler is the cron service; Cloud Tasks queues individual tasks for explicit delivery."
+            },
+            {
+              "text": "No, the SQS equivalent is always Pub/Sub, never Cloud Tasks.",
+              "ok": false,
+              "why": "Google's own table lists SQS on the Cloud Tasks row, and for rate-limited calls to one endpoint Cloud Tasks is often the better fit."
+            }
+          ]
+        },
+        {
+          "id": "u22-l3-i4",
+          "type": "explain",
+          "src": "s53",
+          "seconds": 120,
+          "q": "What is the difference between an IAM role in AWS and a role in Google Cloud? How would you give a Cloud Run service the access that a Lambda execution role gave?",
+          "model": "The word is the same, but the meaning is different. In AWS, an IAM role is an identity. It has a permissions policy, and a trust policy that says who may assume it. When a Lambda function runs, Lambda assumes its execution role, and the code gets temporary credentials. In Google Cloud, a role is only a set of permissions. You grant roles to principals, such as users, groups or service accounts, and the identity of a workload is a service account. So for Cloud Run, I create a user-managed service account for each service, grant it only the roles it needs, for example access to one secret in Secret Manager, and deploy the service with it. The client libraries then get tokens automatically, so there are no keys to manage. The closest thing to the trust policy is the allow policy on the service account, which says who may use it.",
+          "keypoints": [
+            {
+              "text": "An AWS role is an identity that is assumed",
+              "kw": [
+                "assume",
+                "assumes",
+                "assumed",
+                "identity",
+                "temporary credentials"
+              ]
+            },
+            {
+              "text": "A trust policy says who may assume it",
+              "kw": [
+                "trust policy",
+                "trust",
+                "who may assume"
+              ]
+            },
+            {
+              "text": "A Google Cloud role is a set of permissions granted to principals",
+              "kw": [
+                "set of permissions",
+                "collection of permissions",
+                "permissions",
+                "grant",
+                "principals"
+              ]
+            },
+            {
+              "text": "The workload's identity is a service account",
+              "kw": [
+                "service account",
+                "service accounts"
+              ]
+            },
+            {
+              "text": "One user-managed service account per service, least privilege, no keys",
+              "kw": [
+                "least privilege",
+                "only the roles",
+                "user-managed",
+                "no keys",
+                "each service",
+                "per service"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u22-l3-i5",
+          "type": "scenario",
+          "src": "s39",
+          "q": "On AWS, partners call the candidate API through an Amazon API Gateway REST API, with API keys and a usage plan for each partner. The company now also wants a developer portal and usage analytics. Which Google Cloud product do you propose?",
+          "options": [
+            {
+              "text": "Apigee: an API proxy in front of the Cloud Run backend, with API products for the partner tiers, quotas, a developer portal and analytics.",
+              "ok": true,
+              "why": "Apigee is the full API management platform, so keys, quotas, portals and analytics come from one product. The backend on Cloud Run does not change."
+            },
+            {
+              "text": "Google API Gateway, because Google's table maps it to Amazon API Gateway.",
+              "ok": false,
+              "why": "The table maps Apigee to Amazon API Gateway too. API Gateway is the simpler gateway; API products, developer portals and analytics are Apigee features."
+            },
+            {
+              "text": "No gateway: every Cloud Run service already has an HTTPS URL.",
+              "ok": false,
+              "why": "A URL gives no API keys, partner quotas or analytics, so the backend team would have to build them."
+            },
+            {
+              "text": "Keep Amazon API Gateway in front and call Cloud Run across clouds.",
+              "ok": false,
+              "why": "It keeps a second cloud in every request and two platforms to run, with nothing gained."
+            }
+          ]
+        },
+        {
+          "id": "u22-l3-i6",
+          "type": "scenario",
+          "src": "s43",
+          "q": "On AWS, the recruiting adapter's database password is rotated by Secrets Manager with a rotation Lambda function. After the move, a colleague adds a rotation schedule in Secret Manager and expects the same result. What do you say?",
+          "options": [
+            {
+              "text": "Secret Manager only sends a SECRET_ROTATE message to Pub/Sub on schedule. We must write the subscriber that changes the password and adds a new secret version.",
+              "ok": true,
+              "why": "The rotation schedule is a notification; Secret Manager does not create or replace the value itself."
+            },
+            {
+              "text": "It will work: Secret Manager changes the Cloud SQL password automatically.",
+              "ok": false,
+              "why": "Secret Manager has no built-in rotation of the value; you act on the SECRET_ROTATE message yourself."
+            },
+            {
+              "text": "Add the AWSPENDING label to the new version until it is tested.",
+              "ok": false,
+              "why": "Staging labels are an AWS Secrets Manager concept; Secret Manager uses version numbers and aliases."
+            },
+            {
+              "text": "Set the rotation period to five minutes to be safe.",
+              "ok": false,
+              "why": "The rotation period cannot be shorter than one hour, and frequent messages do not replace the missing subscriber."
+            }
+          ]
+        },
+        {
+          "id": "u22-l3-i7",
+          "type": "explain",
+          "src": "s4",
+          "seconds": 150,
+          "q": "How does Cloud Run compare with the AWS options: ECS on Fargate, App Runner and Lambda?",
+          "model": "Google's own table lists all three, because Cloud Run sits between them. Like ECS on Fargate, it runs any container, and I don't manage servers. But Cloud Run also gives me the URL, the autoscaling and scale to zero without extra setup, while on Fargate I add a load balancer and scaling policies myself. That simple experience was the idea of App Runner, but App Runner is no longer open to new customers. AWS now recommends ECS Express Mode, which creates the Fargate service, the load balancer and the scaling for you. Lambda is the closest in billing and events, but the model is different. A classic Lambda function, now called a Lambda Event Function, handles one request per execution environment and runs for at most 15 minutes. A Cloud Run instance can handle up to 1,000 requests at the same time, and a request can run for up to 60 minutes. So for a containerised Spring Boot API, Cloud Run is my default.",
+          "keypoints": [
+            {
+              "text": "Like Fargate, Cloud Run runs any container with no servers to manage",
+              "kw": [
+                "container",
+                "containers",
+                "fargate",
+                "servers",
+                "serverless"
+              ]
+            },
+            {
+              "text": "URL, autoscaling and scale to zero are built in",
+              "kw": [
+                "scale to zero",
+                "autoscaling",
+                "url",
+                "load balancer"
+              ]
+            },
+            {
+              "text": "App Runner is closed to new customers; AWS recommends ECS Express Mode",
+              "kw": [
+                "app runner",
+                "new customers",
+                "express mode"
+              ]
+            },
+            {
+              "text": "Lambda Event Functions: one request per environment, 15 minutes at most",
+              "kw": [
+                "one request",
+                "15 minutes",
+                "fifteen minutes",
+                "execution environment",
+                "event function"
+              ]
+            },
+            {
+              "text": "Cloud Run: up to 1,000 concurrent requests and a 60-minute timeout",
+              "kw": [
+                "concurrency",
+                "concurrent",
+                "1,000",
+                "1000",
+                "60 minutes",
+                "sixty minutes",
+                "an hour"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u22-l3-i8",
+          "type": "tf",
+          "src": "s18",
+          "statement": "When Amazon SNS cannot deliver a message to an HTTPS endpoint and its delivery policy is exhausted, SNS keeps the message until the endpoint is back.",
+          "answer": false,
+          "why": "SNS stops retrying and discards the message, unless a dead-letter queue is attached to the subscription. A Pub/Sub subscription, by contrast, keeps unacknowledged messages for its retention period."
+        },
+        {
+          "id": "u22-l3-i9",
+          "type": "explain",
+          "src": "s3",
+          "seconds": 120,
+          "q": "You are moving an orchestration from AWS Step Functions to Google Cloud Workflows. What changes?",
+          "model": "The idea stays the same: a managed service that calls other services in order, with retries and error handling, and both use IAM for authentication. What changes is how you write it. Step Functions uses the Amazon States Language in JSON, and the execution moves from state to state. Workflows uses YAML or JSON with imperative steps and variables. So I translate state by state. A Choice state becomes a switch block, Map becomes a for loop, Parallel becomes a parallel step, and Wait becomes a call to sys.sleep. A Task becomes an HTTP call or a connector. If the state machine waits for a person with a task token, I use a callback endpoint and events.await_callback. I also check the workflow type. A Standard workflow can run for up to a year with exactly-once execution, and a workflow in Workflows can also wait for up to a year, so that maps well. Google's guide leaves out Express workflows, which last at most five minutes, so I review those one by one.",
+          "keypoints": [
+            {
+              "text": "Same idea, different language: Amazon States Language in JSON against YAML steps",
+              "kw": [
+                "states language",
+                "json",
+                "yaml",
+                "steps"
+              ]
+            },
+            {
+              "text": "Choice becomes switch, Map becomes for, Parallel becomes parallel",
+              "kw": [
+                "switch",
+                "for loop",
+                "parallel",
+                "choice",
+                "map"
+              ]
+            },
+            {
+              "text": "Wait becomes sys.sleep; a Task becomes an HTTP call or a connector",
+              "kw": [
+                "sleep",
+                "http call",
+                "http",
+                "connector",
+                "connectors"
+              ]
+            },
+            {
+              "text": "Task tokens become callbacks",
+              "kw": [
+                "callback",
+                "callbacks",
+                "task token",
+                "await"
+              ]
+            },
+            {
+              "text": "Standard maps well (up to a year); Express needs a review",
+              "kw": [
+                "standard",
+                "express",
+                "one year",
+                "a year",
+                "five minutes",
+                "exactly-once",
+                "exactly once"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u22-l3-i10",
+          "type": "say",
+          "src": "s1",
+          "text": "A mapping table is a starting point, not an answer. Before I call two services equivalent, I check delivery, ordering, limits and identity."
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Messaging: Pub/Sub against SNS, SQS and EventBridge",
+        "points": [
+          "Google's table maps Pub/Sub to Kinesis Data Streams and Amazon MQ, and puts SQS, SNS and EventBridge on the Cloud Tasks row.",
+          "AWS fan-out: one SNS topic plus one SQS queue per consumer. Pub/Sub: one topic plus one subscription per consumer.",
+          "SNS pushes and retries, then discards unless a dead-letter queue is attached. A Pub/Sub subscription keeps a backlog: 7 days by default, up to 31.",
+          "SQS visibility timeout (30 s default, up to 12 hours) maps to the acknowledgement deadline (10 s default, up to 600 s, extendable per message).",
+          "SQS FIFO keeps order within a message group; Pub/Sub keeps order per ordering key within a region.",
+          "EventBridge event patterns can match the event body; a Pub/Sub subscription filter matches only attributes, not the message data. For event routing, Google lists Eventarc.",
+          "Pub/Sub is global: one topic can store messages in many regions. An SNS topic belongs to one AWS Region."
+        ]
+      },
+      {
+        "h": "Queues and schedules",
+        "points": [
+          "Cloud Tasks: explicit invocation. The queue pushes each task to an HTTP endpoint, with rate limits (up to 500 per second per queue), scheduled delivery and deduplication by task name.",
+          "SQS: the consumer polls, processes and deletes. A Lambda event source mapping polls for you.",
+          "Cloud Scheduler: five-field unix-cron schedules, tz database time zones, UTC by default.",
+          "EventBridge Scheduler: cron, rate and one-time schedules, flexible time windows, more than 270 AWS services as targets.",
+          "Cloud Tasks, Cloud Scheduler, EventBridge Scheduler and SQS standard queues all deliver at least once: make the targets idempotent."
+        ]
+      },
+      {
+        "h": "Compute",
+        "points": [
+          "Cloud Run: any container, scale to zero, up to 1,000 concurrent requests per instance, request timeout up to 60 minutes.",
+          "ECS on Fargate: serverless containers, but you add the load balancer and scaling. ECS Express Mode sets them up for you.",
+          "App Runner: no longer open to new customers; existing customers can keep using it.",
+          "Lambda Event Functions: one request per execution environment, 15-minute timeout. Lambda Web Functions (October 2026, Node.js only) serve many requests per environment.",
+          "Cloud Run functions: functions deployed as Cloud Run services; HTTP functions up to 60 minutes, event-driven ones (v2 API) up to 9 minutes.",
+          "GKE and EKS: both managed Kubernetes. GKE Autopilot (Google manages the nodes) compares with EKS on Fargate or EKS Auto Mode."
+        ]
+      },
+      {
+        "h": "APIs and orchestration",
+        "points": [
+          "Google's table maps both Apigee and API Gateway to Amazon API Gateway.",
+          "Apigee: full API management with proxies, policies (security, rate limiting, quotas), API products, developer portals and analytics.",
+          "Google API Gateway: a simpler managed gateway with authentication, API keys and monitoring for backends such as Cloud Run, Cloud Run functions and App Engine, defined with an OpenAPI spec.",
+          "Amazon API Gateway: REST, HTTP and WebSocket APIs. REST APIs have API keys, per-client throttling, caching and AWS WAF; HTTP APIs have fewer features and cost less.",
+          "Workflows: YAML or JSON steps. Step Functions: Amazon States Language. Choice to switch, Map to for, Wait to sys.sleep, task token to callback.",
+          "Step Functions Standard: up to one year, exactly once. Express: up to five minutes."
+        ]
+      },
+      {
+        "h": "Storage and databases",
+        "points": [
+          "Cloud Storage and S3 both give strong read-after-write consistency.",
+          "Cloud Storage bucket locations: region, dual-region or multi-region. An S3 bucket lives in one Region you choose.",
+          "Cloud Storage Archive is readable in milliseconds (365-day minimum, retrieval fees). S3 Glacier Flexible Retrieval and Deep Archive need a restore first.",
+          "Cloud SQL: MySQL, PostgreSQL and SQL Server. RDS adds MariaDB, Oracle and IBM Db2; Google also lists Aurora for Cloud SQL.",
+          "High availability: Cloud SQL keeps a standby in another zone; RDS Multi-AZ keeps a standby in another Availability Zone."
+        ]
+      },
+      {
+        "h": "Identity and secrets",
+        "points": [
+          "AWS IAM role: an identity that is assumed for temporary credentials; a trust policy says who may assume it.",
+          "Google Cloud role: a set of permissions granted to a principal. The workload's identity is a service account.",
+          "A Lambda execution role becomes a user-managed service account attached to the Cloud Run service.",
+          "AWS Secrets Manager: staging labels AWSCURRENT, AWSPENDING and AWSPREVIOUS; managed rotation or rotation by a Lambda function.",
+          "Secret Manager: versions and aliases; global secrets with automatic or user-managed replication, or regional secrets kept in one location; a rotation schedule only sends SECRET_ROTATE to Pub/Sub."
+        ]
+      },
+      {
+        "h": "Say it well",
+        "points": [
+          "Name the closest service first, then the difference that matters for the design.",
+          "Check delivery, ordering, limits and identity before you say two services are the same.",
+          "Watch the false friends: role, function, queue and scheduler mean different things on each cloud."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Compare AWS and Azure services to Google Cloud - Get started, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/docs/get-started/aws-azure-gcp-service-comparison",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Migrate from AWS to Google Cloud: Migrate from AWS Lambda to Cloud Run - Cloud Architecture Center, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/architecture/migrate-aws-lambda-to-cloudrun",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Migrate from AWS Step Functions to Workflows - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/migrate-from-step-functions",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "AWS App Runner availability change - AWS App Runner Developer Guide",
+      "url": "https://docs.aws.amazon.com/apprunner/latest/dg/apprunner-availability-change.html",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Lambda quotas - AWS Lambda Developer Guide",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/gettingstarted-limits.html",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Understanding Lambda function scaling - AWS Lambda Developer Guide",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "AWS Lambda Web Functions - AWS Lambda Developer Guide",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/web-functions.html",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "AWS Lambda announces Lambda Web Functions - What's New with AWS (12 October 2026)",
+      "url": "https://aws.amazon.com/about-aws/whats-new/2026/10/aws-lambda-web-functions/",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "About instance concurrency - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/about-concurrency",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Configure request timeout for services - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/request-timeout",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "What is Cloud Run - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/overview/what-is-cloud-run",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Compare Cloud Run functions - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/functions/comparison",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Architectural overview of Pub/Sub - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/architecture",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Subscription overview - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-overview",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Subscription properties - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-properties",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Choose Pub/Sub or Cloud Tasks - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/choosing-pubsub-or-cloud-tasks",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Common Amazon SNS scenarios - Amazon SNS Developer Guide",
+      "url": "https://docs.aws.amazon.com/sns/latest/dg/sns-common-scenarios.html",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Amazon SNS message delivery retries - Amazon SNS Developer Guide",
+      "url": "https://docs.aws.amazon.com/sns/latest/dg/sns-message-delivery-retries.html",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Basic Amazon SQS architecture - Amazon SQS Developer Guide",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-basic-architecture.html",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Amazon SQS queue types - Amazon SQS Developer Guide",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-queue-types.html",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Amazon SQS message quotas - Amazon SQS Developer Guide",
+      "url": "https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/quotas-messages.html",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "What is Amazon EventBridge? - Amazon EventBridge User Guide",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-what-is.html",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Creating Amazon EventBridge event patterns - Amazon EventBridge User Guide",
+      "url": "https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-event-patterns.html",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "What is Amazon EventBridge Scheduler? - EventBridge Scheduler User Guide",
+      "url": "https://docs.aws.amazon.com/scheduler/latest/UserGuide/what-is-scheduler.html",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "Cloud Scheduler overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/scheduler/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "Cron job format and time zone - Cloud Scheduler, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/scheduler/docs/configuring/cron-job-schedules",
+      "official": true
+    },
+    {
+      "id": "s27",
+      "title": "Cloud Tasks overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/tasks/docs/dual-overview",
+      "official": true
+    },
+    {
+      "id": "s28",
+      "title": "gcloud tasks queues create - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/tasks/queues/create",
+      "official": true
+    },
+    {
+      "id": "s29",
+      "title": "gcloud pubsub subscriptions create - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/pubsub/subscriptions/create",
+      "official": true
+    },
+    {
+      "id": "s30",
+      "title": "Using Lambda with Amazon SQS - AWS Lambda Developer Guide",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/with-sqs.html",
+      "official": true
+    },
+    {
+      "id": "s31",
+      "title": "Amazon ECS Express Mode - Amazon ECS Developer Guide",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/express-service-overview.html",
+      "official": true
+    },
+    {
+      "id": "s32",
+      "title": "AWS Fargate for Amazon ECS - Amazon ECS Developer Guide",
+      "url": "https://docs.aws.amazon.com/AmazonECS/latest/developerguide/AWS_Fargate.html",
+      "official": true
+    },
+    {
+      "id": "s33",
+      "title": "Autopilot overview - GKE, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview",
+      "official": true
+    },
+    {
+      "id": "s34",
+      "title": "Automate cluster infrastructure with EKS Auto Mode - Amazon EKS User Guide",
+      "url": "https://docs.aws.amazon.com/eks/latest/userguide/automode.html",
+      "official": true
+    },
+    {
+      "id": "s35",
+      "title": "What is Amazon API Gateway? - Amazon API Gateway Developer Guide",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/welcome.html",
+      "official": true
+    },
+    {
+      "id": "s36",
+      "title": "Choose between REST APIs and HTTP APIs - Amazon API Gateway Developer Guide",
+      "url": "https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api-vs-rest.html",
+      "official": true
+    },
+    {
+      "id": "s38",
+      "title": "About API Gateway - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/about-api-gateway",
+      "official": true
+    },
+    {
+      "id": "s39",
+      "title": "What is Apigee? - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/get-started/what-apigee-old",
+      "official": true
+    },
+    {
+      "id": "s40",
+      "title": "Choosing workflow type in Step Functions - AWS Step Functions Developer Guide",
+      "url": "https://docs.aws.amazon.com/step-functions/latest/dg/choosing-workflow-type.html",
+      "official": true
+    },
+    {
+      "id": "s41",
+      "title": "Workflows overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s42",
+      "title": "Secret Manager overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s43",
+      "title": "Create rotation schedules in Secret Manager - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/secret-rotation",
+      "official": true
+    },
+    {
+      "id": "s44",
+      "title": "Rotate AWS Secrets Manager secrets - AWS Secrets Manager User Guide",
+      "url": "https://docs.aws.amazon.com/secretsmanager/latest/userguide/rotating-secrets.html",
+      "official": true
+    },
+    {
+      "id": "s45",
+      "title": "Secrets Manager concepts - AWS Secrets Manager User Guide",
+      "url": "https://docs.aws.amazon.com/secretsmanager/latest/userguide/getting-started.html",
+      "official": true
+    },
+    {
+      "id": "s46",
+      "title": "Storage classes - Cloud Storage, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/storage-classes",
+      "official": true
+    },
+    {
+      "id": "s47",
+      "title": "Bucket locations - Cloud Storage, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/locations",
+      "official": true
+    },
+    {
+      "id": "s48",
+      "title": "Cloud Storage consistency - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/consistency",
+      "official": true
+    },
+    {
+      "id": "s49",
+      "title": "What is Amazon S3? - Amazon S3 User Guide",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/Welcome.html",
+      "official": true
+    },
+    {
+      "id": "s50",
+      "title": "Understanding and managing Amazon S3 storage classes - Amazon S3 User Guide",
+      "url": "https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage-class-intro.html",
+      "official": true
+    },
+    {
+      "id": "s51",
+      "title": "Cloud SQL overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sql/docs/introduction",
+      "official": true
+    },
+    {
+      "id": "s52",
+      "title": "What is Amazon Relational Database Service (Amazon RDS)? - Amazon RDS User Guide",
+      "url": "https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html",
+      "official": true
+    },
+    {
+      "id": "s53",
+      "title": "IAM roles - AWS Identity and Access Management User Guide",
+      "url": "https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles.html",
+      "official": true
+    },
+    {
+      "id": "s54",
+      "title": "Defining Lambda function permissions with an execution role - AWS Lambda Developer Guide",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html",
+      "official": true
+    },
+    {
+      "id": "s55",
+      "title": "Service accounts overview - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/service-account-overview",
+      "official": true
+    },
+    {
+      "id": "s56",
+      "title": "Roles overview - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/roles-overview",
+      "official": true
+    },
+    {
+      "id": "s57",
+      "title": "AWS Lambda Event Functions (formerly Lambda functions) - AWS Lambda Developer Guide",
+      "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-functions-chapter.html",
+      "official": true
+    },
+    {
+      "id": "s58",
+      "title": "Introduction to service identity - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/securing/service-identity",
+      "official": true
+    },
+    {
+      "id": "s59",
+      "title": "Pub/Sub quotas and limits - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/quotas",
+      "official": true
+    },
+    {
+      "id": "s60",
+      "title": "Quotas and limits - Cloud Tasks, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/tasks/docs/quotas",
+      "official": true
+    },
+    {
+      "id": "s61",
+      "title": "Wait using callbacks - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/creating-callback-endpoints",
+      "official": true
+    }
+  ]
+}

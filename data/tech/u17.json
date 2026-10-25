@@ -1,0 +1,1288 @@
+{
+  "format": 1,
+  "id": "u17",
+  "n": 17,
+  "block": "gcp",
+  "title": "Orchestration",
+  "summary": "After this unit you can build a workflow with HTTP calls, connectors, retries, error handling, parallel steps and callbacks, schedule it safely with Cloud Scheduler, and explain when to orchestrate and when to use choreography.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Workflows limits checked on 2026-10-25 (quotas page): 100,000 steps per execution, 512 KB for all variables of an execution, 2 MB per HTTP response, 1 year per execution, 10 branches per parallel step, 20 concurrent branches and iterations, parallel nesting depth 2, call stack depth 20, 10,000 concurrent executions per region (adjustable) and 90 days of execution history.",
+    "Cloud Scheduler checked on 2026-10-25: retry count 0 by default (0 to 5), minimum backoff 5s, maximum backoff 3600s, 5 doublings; HTTP attempt deadline 3 minutes by default (15 seconds to 30 minutes), ignored for Pub/Sub targets; time zone UTC by default (the gcloud reference writes Etc/UTC).",
+    "On 2026-10-25 the Workflows comparison page calls the Airflow product Managed Service for Apache Airflow (Managed Airflow); its navigation link still says Cloud Composer.",
+    "unconfirmed: the exact status codes, error tags and backoff values of http.default_retry and http.default_retry_non_idempotent. The reference pages could not be read for this review, so the unit only uses their documented syntax and the split between idempotent and non-idempotent calls.",
+    "unconfirmed: exactly how Cloud Scheduler behaves in the hour that is skipped or repeated at a daylight saving change; the documentation only says that jobs may run or not run unexpectedly and recommends UTC.",
+    "unconfirmed: whether try, except and raise blocks are billed as separate steps; the pricing page (checked on 2026-10-25) only says that successful, failed and retried steps count, and that each retry attempt counts as a step."
+  ],
+  "terms": [
+    {
+      "id": "t-workflows",
+      "term": "Workflows (Google Cloud)",
+      "ipa": "/ˈwɜːkfləʊz/",
+      "say": "workflows",
+      "def": "A fully managed, serverless orchestration service. You define the order of the steps in YAML or JSON, and it calls Cloud Run, Google Cloud APIs and any HTTP API in that order, keeping state, retrying and waiting when needed.",
+      "example": "Every night a workflow calls the Cloud Run sync service, waits for the result and then publishes a short summary to Pub/Sub.",
+      "src": "s1"
+    },
+    {
+      "id": "t-execution",
+      "term": "Execution",
+      "ipa": "/ˌeksɪˈkjuːʃn/",
+      "say": "execution",
+      "def": "One independent run of a workflow, with its own runtime arguments, variables and result. Its history and result are kept for a limited time after it ends.",
+      "example": "Cloud Scheduler creates one execution each night and passes the sync mode as a runtime argument in JSON.",
+      "src": "s15"
+    },
+    {
+      "id": "t-step",
+      "term": "Step",
+      "ipa": "/step/",
+      "say": "step",
+      "def": "One named unit of work in a workflow, such as assign, call, switch, parallel, raise or return. Steps run in the order you write them, unless a next field or a switch sends the execution to another step.",
+      "example": "The step callSync calls http.post and stores the response in a variable called syncResult.",
+      "src": "s13"
+    },
+    {
+      "id": "t-connector",
+      "term": "Connector",
+      "ipa": "/kəˈnektə/",
+      "say": "connector",
+      "def": "A built-in way for a workflow to call a Google Cloud API. It formats the request, authenticates as the workflow's service account, retries, and waits for long-running operations to finish.",
+      "example": "The step calls googleapis.pubsub.v1.projects.topics.publish to send the sync summary, so nobody writes the Pub/Sub REST call by hand.",
+      "src": "s5"
+    },
+    {
+      "id": "t-retry-policy",
+      "term": "Retry policy",
+      "ipa": "/ˈriːtraɪ ˈpɒləsi/",
+      "say": "retry policy",
+      "def": "The rules in a try and retry block that decide which errors to retry, how many times, and how long to wait between attempts. You can use a default policy such as http.default_retry, or set predicate, max_retries and backoff yourself.",
+      "example": "The call to the sync service retries up to five times; the first wait is 2 seconds and each wait is twice as long as the last, up to 60 seconds.",
+      "src": "s9"
+    },
+    {
+      "id": "t-backoff",
+      "term": "Exponential backoff",
+      "ipa": "/ˌekspəˈnenʃl ˈbækɒf/",
+      "say": "exponential backoff",
+      "def": "The wait between retries grows after each failed attempt, up to a maximum. It gives a struggling service time to recover instead of calling it again at once.",
+      "example": "With a retry count of 5, a minimum backoff of 10 seconds, a maximum of 300 seconds and 3 doublings, Cloud Scheduler retries after 10, 20, 40, 80 and 160 seconds.",
+      "src": "s23"
+    },
+    {
+      "id": "t-subworkflow",
+      "term": "Subworkflow",
+      "ipa": "/ˈsʌbwɜːkfləʊ/",
+      "say": "subworkflow",
+      "def": "A named block of steps with parameters and a return value, defined next to main in the same workflow, like a function. Other workflows cannot reuse it; for that, you run a separate child workflow.",
+      "example": "The subworkflow callSync takes a URL and a date, calls the service with an OIDC token and returns the number of records.",
+      "src": "s8"
+    },
+    {
+      "id": "t-parallel-step",
+      "term": "Parallel step",
+      "ipa": "/ˈpærəlel step/",
+      "say": "parallel step",
+      "def": "A step whose branches, or loop iterations, can run at the same time. A branch can only change a variable from outside the step if it is listed as shared, and branches can finish in any order.",
+      "example": "One parallel step updates the HR system, the learning platform and the badge system at the same time instead of one after another.",
+      "src": "s10"
+    },
+    {
+      "id": "t-callback",
+      "term": "Callback endpoint",
+      "ipa": "/ˈkɔːlbæk ˈendpɔɪnt/",
+      "say": "callback endpoint",
+      "def": "A URL that a workflow creates so that another service can resume it. The execution waits at events.await_callback, without polling, until a request arrives or the timeout ends; the default timeout is 12 hours.",
+      "example": "The workflow sends the callback URL to the approval app and pauses until a hiring manager approves the offer.",
+      "src": "s11"
+    },
+    {
+      "id": "t-cron",
+      "term": "Cron job (Cloud Scheduler)",
+      "ipa": "/ˈkrɒn dʒɒb/",
+      "say": "cron job",
+      "def": "A Cloud Scheduler job that sends a request to a target on a schedule in unix-cron format: minute, hour, day of the month, month and day of the week, read in the job's time zone.",
+      "example": "The schedule 0 2 * * * with the time zone Europe/London starts the sync at 02:00 London time every day.",
+      "src": "s22"
+    },
+    {
+      "id": "t-attempt-deadline",
+      "term": "Attempt deadline",
+      "ipa": "/əˈtempt ˈdedlaɪn/",
+      "say": "attempt deadline",
+      "def": "How long Cloud Scheduler waits for an HTTP target to respond before it cancels the attempt and marks it as failed. For HTTP targets the default is 3 minutes and the maximum is 30 minutes; Pub/Sub targets ignore it.",
+      "example": "A sync that answers only after 40 minutes can never meet a 30-minute attempt deadline, so the job starts a workflow instead.",
+      "src": "s27"
+    },
+    {
+      "id": "t-oidc-token",
+      "term": "OIDC token (ID token)",
+      "ipa": "/ˌəʊ aɪ diː ˈsiː ˈtəʊkən/",
+      "say": "O I D C token",
+      "def": "A signed token that proves which service account is calling. Cloud Scheduler and Workflows send it to Cloud Run; Google APIs on googleapis.com expect an OAuth access token instead.",
+      "example": "The scheduler job uses an OIDC token to call the Cloud Run service, but an OAuth token to start a workflow through workflowexecutions.googleapis.com.",
+      "src": "s24"
+    },
+    {
+      "id": "t-orchestration",
+      "term": "Orchestration",
+      "ipa": "/ˌɔːkɪˈstreɪʃn/",
+      "say": "orchestration",
+      "def": "One central component, such as a workflow, decides which service to call next and keeps the state of the process. It avoids tight coupling between the services and is easy to monitor, but it is less flexible.",
+      "example": "The onboarding workflow calls HR, IT and payroll in order and records which step failed.",
+      "src": "s8"
+    },
+    {
+      "id": "t-choreography",
+      "term": "Choreography",
+      "ipa": "/ˌkɒriˈɒɡrəfi/",
+      "say": "choreography",
+      "def": "There is no central controller: each service reacts to events and publishes its own events. The services stay loosely coupled, but the whole flow is harder to monitor and debug.",
+      "example": "The HR service publishes EmployeeCreated to Pub/Sub, and the IT and badge services each react to it on their own.",
+      "src": "s8"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u17-l1",
+      "kind": "concepts",
+      "title": "The vocabulary of orchestration",
+      "items": [
+        {
+          "id": "u17-l1-i1",
+          "type": "card",
+          "term": "t-workflows",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "sch",
+                "label": "Cloud Scheduler"
+              },
+              {
+                "id": "wf",
+                "label": "Workflows"
+              },
+              {
+                "id": "run",
+                "label": "Cloud Run sync service"
+              },
+              {
+                "id": "ps",
+                "label": "Pub/Sub topic"
+              }
+            ],
+            "edges": [
+              {
+                "from": "sch",
+                "to": "wf",
+                "label": "starts an execution at 02:00"
+              },
+              {
+                "from": "wf",
+                "to": "run",
+                "label": "http.post with an OIDC token"
+              },
+              {
+                "from": "wf",
+                "to": "ps",
+                "label": "connector publishes a summary"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u17-l1-i2",
+          "type": "card",
+          "term": "t-step",
+          "src": "s13",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "init",
+                "label": "init (assign)"
+              },
+              {
+                "id": "call",
+                "label": "callSync (call http.post)"
+              },
+              {
+                "id": "sw",
+                "label": "checkResult (switch)"
+              },
+              {
+                "id": "pub",
+                "label": "publish (connector)"
+              },
+              {
+                "id": "end",
+                "label": "done (return)"
+              }
+            ],
+            "edges": [
+              {
+                "from": "init",
+                "to": "call",
+                "label": "then"
+              },
+              {
+                "from": "call",
+                "to": "sw",
+                "label": "then"
+              },
+              {
+                "from": "sw",
+                "to": "pub",
+                "label": "if records were synced"
+              },
+              {
+                "from": "sw",
+                "to": "end",
+                "label": "if nothing changed"
+              },
+              {
+                "from": "pub",
+                "to": "end",
+                "label": "then"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u17-l1-i3",
+          "type": "card",
+          "term": "t-connector",
+          "src": "s5"
+        },
+        {
+          "id": "u17-l1-i4",
+          "type": "tf",
+          "src": "s17",
+          "statement": "When a workflow calls a private Cloud Run service with http.post, Workflows adds an identity token automatically, so no auth block is needed.",
+          "answer": false,
+          "why": "Requests from a workflow carry no identity token by default. Add auth with type OIDC, and give the workflow's service account the Cloud Run Invoker role."
+        },
+        {
+          "id": "u17-l1-i5",
+          "type": "card",
+          "term": "t-retry-policy",
+          "src": "s9"
+        },
+        {
+          "id": "u17-l1-i6",
+          "type": "pick",
+          "src": "s10",
+          "q": "Two parallel branches must both write their results to the variable summary, which is assigned before the parallel step. What do you need?",
+          "options": [
+            "List summary under shared in the parallel step",
+            "Set concurrency_limit to 1",
+            "Wrap each branch in try and except",
+            "Set exception_policy to continueAll"
+          ],
+          "answer": 0,
+          "why": "A variable assigned before the parallel step can only be changed inside a branch if it is listed under shared. concurrency_limit only limits how many branches run at once, and try/except and exception_policy deal with errors, not with variables."
+        },
+        {
+          "id": "u17-l1-i7",
+          "type": "card",
+          "term": "t-callback",
+          "src": "s11",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "wf",
+                "label": "Workflow execution"
+              },
+              {
+                "id": "app",
+                "label": "Approval app"
+              },
+              {
+                "id": "mgr",
+                "label": "Hiring manager"
+              }
+            ],
+            "edges": [
+              {
+                "from": "wf",
+                "to": "app",
+                "label": "1. sends the callback URL, then waits"
+              },
+              {
+                "from": "app",
+                "to": "mgr",
+                "label": "2. asks for approval"
+              },
+              {
+                "from": "mgr",
+                "to": "app",
+                "label": "3. approves the offer"
+              },
+              {
+                "from": "app",
+                "to": "wf",
+                "label": "4. POST to the callback URL with an OAuth token"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u17-l1-i8",
+          "type": "card",
+          "term": "t-cron",
+          "src": "s22"
+        },
+        {
+          "id": "u17-l1-i9",
+          "type": "tf",
+          "src": "s23",
+          "statement": "If you create a Cloud Scheduler job and leave the retry settings empty, a failed attempt is retried up to five times.",
+          "answer": false,
+          "why": "The default retry count is 0, so a failed attempt is not retried and the job simply runs again at its next scheduled time. You can set up to 5 retries."
+        },
+        {
+          "id": "u17-l1-i10",
+          "type": "match",
+          "src": "s8",
+          "q": "Match each term with its meaning.",
+          "pairs": [
+            [
+              "Subworkflow",
+              "A named block of steps with parameters, like a function inside one workflow"
+            ],
+            [
+              "Parallel step",
+              "Branches or loop iterations that can run at the same time"
+            ],
+            [
+              "Attempt deadline",
+              "How long Cloud Scheduler waits for an HTTP target to respond"
+            ],
+            [
+              "OIDC token",
+              "An ID token that Cloud Run checks before it accepts the request"
+            ],
+            [
+              "Orchestration",
+              "A central component decides the next call and keeps the state"
+            ],
+            [
+              "Choreography",
+              "Services react to each other's events, with no central controller"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u17-l2",
+      "kind": "practice",
+      "title": "Build a nightly sync",
+      "items": [
+        {
+          "id": "u17-l2-i1",
+          "type": "order",
+          "src": "s18",
+          "q": "A nightly job syncs changed job applications from SuccessFactors Recruiting to the HR system. Put what happens at run time in order.",
+          "steps": [
+            "At 02:00, Cloud Scheduler sends a POST to the Workflow Executions API with an OAuth token",
+            "Workflows creates an execution, and the scheduler attempt ends with a 2xx response",
+            "The workflow calls the Cloud Run sync service with an OIDC token",
+            "The sync service reads the changed applications from SuccessFactors and writes them to the HR system",
+            "The workflow publishes a summary to Pub/Sub with the connector",
+            "The execution ends as SUCCEEDED, with the summary as its result"
+          ]
+        },
+        {
+          "id": "u17-l2-i2",
+          "type": "diagram",
+          "src": "s18",
+          "layout": "flow",
+          "q": "Complete the architecture of the nightly sync. The workflow is the orchestrator, and the heavy work runs in Cloud Run.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Cloud Scheduler job: 0 2 * * *, Europe/London",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Workflows execution",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Cloud Run sync service",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "SuccessFactors Recruiting OData API",
+              "slot": false
+            },
+            {
+              "id": "n5",
+              "label": "Pub/Sub topic sync-summary",
+              "slot": true
+            },
+            {
+              "id": "n6",
+              "label": "Reporting subscriber",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "OAuth token to the Workflow Executions API"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "http.post with an OIDC token"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "reads changed applications page by page"
+            },
+            {
+              "from": "n2",
+              "to": "n5",
+              "label": "Pub/Sub connector publishes the summary"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "delivers the message"
+            }
+          ],
+          "decoys": [
+            "Managed Airflow DAG with backfills",
+            "Two-phase commit coordinator",
+            "Shared database for all services"
+          ]
+        },
+        {
+          "id": "u17-l2-i3",
+          "type": "match",
+          "src": "s24",
+          "q": "Match each call with the credential it needs.",
+          "pairs": [
+            [
+              "Cloud Scheduler calls a private Cloud Run service",
+              "OIDC token; the service account needs the Cloud Run Invoker role"
+            ],
+            [
+              "Cloud Scheduler starts a workflow",
+              "OAuth token; the service account needs the Workflows Invoker role"
+            ],
+            [
+              "Cloud Scheduler sends to a Pub/Sub topic",
+              "No token to set: it publishes as a Google APIs service account"
+            ],
+            [
+              "A workflow calls a Cloud Run service",
+              "auth with type OIDC in the http.post arguments"
+            ],
+            [
+              "A workflow publishes with the Pub/Sub connector",
+              "Built-in authentication; the workflow's service account needs the Pub/Sub Publisher role"
+            ]
+          ]
+        },
+        {
+          "id": "u17-l2-i4",
+          "type": "code",
+          "src": "s28",
+          "lang": "text",
+          "q": "Complete the command. The job starts the recruiting-sync workflow every day at 02:00 London time. The target is a Google API on googleapis.com.",
+          "code": "gcloud scheduler jobs create http nightly-recruiting-sync \\\n  --location=europe-west1 \\\n  --schedule=\"[[1]]\" \\\n  --time-zone=\"[[2]]\" \\\n  --uri=\"https://workflowexecutions.googleapis.com/v1/projects/acme-hr/locations/europe-west1/workflows/recruiting-sync/[[3]]\" \\\n  --message-body='{\"argument\": \"{\\\"mode\\\": \\\"delta\\\"}\"}' \\\n  --[[4]]=scheduler-sync@acme-hr.iam.gserviceaccount.com",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "0 2 * * *",
+              "decoys": [
+                "2 0 * * *",
+                "* 2 * * *"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "Europe/London",
+              "decoys": [
+                "BST",
+                "London"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "executions",
+              "decoys": [
+                "callbacks",
+                "start"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "oauth-service-account-email",
+              "decoys": [
+                "oidc-service-account-email",
+                "service-account-key-file"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u17-l2-i5",
+          "type": "code",
+          "src": "s9",
+          "lang": "yaml",
+          "q": "Complete the workflow. The sync endpoint is idempotent, so retrying the POST is safe. The summary goes to Pub/Sub through the connector.",
+          "code": "main:\n  params: [input]\n  steps:\n    - callSync:\n        try:\n          call: http.post\n          args:\n            url: ${input.syncUrl}\n            auth:\n              type: [[1]]\n            timeout: 1800\n          result: syncResult\n        [[2]]:\n          predicate: ${http.default_retry_predicate}\n          max_retries: 5\n          [[3]]:\n            initial_delay: 2\n            max_delay: 60\n            multiplier: 2\n    - publishSummary:\n        call: [[4]]\n        args:\n          topic: '${\"projects/\" + input.projectId + \"/topics/sync-summary\"}'\n          body:\n            messages:\n              - data: '${base64.encode(json.encode(syncResult.body))}'\n    - done:\n        return: ${syncResult.body}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "OIDC",
+              "decoys": [
+                "OAuth2",
+                "Basic"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "retry",
+              "decoys": [
+                "except",
+                "next"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "backoff",
+              "decoys": [
+                "timeout",
+                "polling_policy"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "googleapis.pubsub.v1.projects.topics.publish",
+              "decoys": [
+                "http.post",
+                "events.create_callback_endpoint"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u17-l2-i6",
+          "type": "code",
+          "src": "s3",
+          "lang": "yaml",
+          "q": "Complete the error handling. The sync service answers 409 when another sync is still running; then the workflow stops quietly. Any other error, such as a connection error, must fail the execution.",
+          "code": "    - callSync:\n        try:\n          call: http.post\n          args:\n            url: ${input.syncUrl}\n            auth:\n              type: OIDC\n          result: syncResult\n        except:\n          [[1]]: e\n          steps:\n            - checkError:\n                switch:\n                  - condition: ${not(\"HttpError\" in e.tags)}\n                    next: failExecution\n                  - condition: ${e.[[2]] == 409}\n                    return: \"skipped: a sync is already running\"\n            - failExecution:\n                [[3]]: ${e}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "as",
+              "decoys": [
+                "result",
+                "catch"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "code",
+              "decoys": [
+                "status",
+                "message"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "raise",
+              "decoys": [
+                "return",
+                "next"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u17-l2-i7",
+          "type": "scenario",
+          "src": "s2",
+          "q": "Your first version of the workflow calls the SuccessFactors Recruiting API itself and keeps every changed application in a variable before it maps them. On busy days the execution fails with a memory error.",
+          "options": [
+            {
+              "text": "Move the paging and mapping into the Cloud Run sync service, and let the workflow keep only a short summary.",
+              "ok": true,
+              "why": "All variables in one execution share a fixed 512 KB limit, and Google advises keeping only what you need and moving complex work into a service."
+            },
+            {
+              "text": "Ask Google to raise the memory limit for variables.",
+              "ok": false,
+              "why": "The 512 KB data size is a fixed resource limit, not a quota you can increase."
+            },
+            {
+              "text": "Fetch the pages in a parallel step, so that each branch holds less data.",
+              "ok": false,
+              "why": "The limit covers all the variables of the execution, so splitting the work into branches does not reduce the total."
+            },
+            {
+              "text": "Increase the HTTP timeout to 1800 seconds.",
+              "ok": false,
+              "why": "A timeout controls how long a request can run; it does not change how much data the execution can hold."
+            }
+          ]
+        },
+        {
+          "id": "u17-l2-i8",
+          "type": "scenario",
+          "src": "s27",
+          "q": "A Cloud Scheduler job calls a Cloud Run endpoint that runs the whole sync and only answers at the end. The sync now takes 40 minutes, and Cloud Scheduler marks every run as failed.",
+          "options": [
+            {
+              "text": "Let the job start a workflow; the workflow starts the sync without waiting for the result, then checks its status with sys.sleep until it ends.",
+              "ok": true,
+              "why": "Creating an execution answers at once, and a workflow can keep polling for hours, while a scheduler attempt is capped at 30 minutes. The workflow must not wait on one long request either, because a single HTTP call is capped at 1800 seconds."
+            },
+            {
+              "text": "Set the attempt deadline to 60 minutes.",
+              "ok": false,
+              "why": "For HTTP targets the attempt deadline must be between 15 seconds and 30 minutes."
+            },
+            {
+              "text": "Set the retry count to 5, so that a later attempt succeeds.",
+              "ok": false,
+              "why": "Every attempt meets the same deadline, and each retry sends a new request that starts the long sync again."
+            },
+            {
+              "text": "Move the job to a region closer to the Cloud Run service.",
+              "ok": false,
+              "why": "Network distance is not the problem; the sync itself takes longer than the maximum deadline."
+            }
+          ]
+        },
+        {
+          "id": "u17-l2-i9",
+          "type": "scenario",
+          "src": "s21",
+          "q": "A Cloud Scheduler job calls a Cloud Run service that sends the day's signed offer letters to an archive. Very rarely, the archive receives the same day's letters twice.",
+          "options": [
+            {
+              "text": "Make the service idempotent, and use the job name plus the X-CloudScheduler-ScheduleTime header as the key of each run.",
+              "ok": true,
+              "why": "Cloud Scheduler delivers at least once, and the schedule time header stays the same across the retries of one scheduled run."
+            },
+            {
+              "text": "Set the retry count to 0, so that the job can never run twice.",
+              "ok": false,
+              "why": "Duplicates can happen without any retries, because a job can rarely run more than once for one scheduled time."
+            },
+            {
+              "text": "Use the time on the service's own clock as the key of each run.",
+              "ok": false,
+              "why": "A duplicate arrives at a different time, so the key changes and the duplicate is not detected."
+            },
+            {
+              "text": "Switch the job to a Pub/Sub target, because Pub/Sub targets run exactly once.",
+              "ok": false,
+              "why": "At-least-once delivery is how Cloud Scheduler works for its jobs, so a Pub/Sub target does not remove the need for an idempotent consumer."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u17-l3",
+      "kind": "interview",
+      "title": "Talk about orchestration",
+      "items": [
+        {
+          "id": "u17-l3-i1",
+          "type": "say",
+          "src": "s18",
+          "text": "For a nightly batch, Cloud Scheduler starts a workflow, the workflow calls small services, and every step is safe to retry."
+        },
+        {
+          "id": "u17-l3-i2",
+          "type": "tf",
+          "src": "s24",
+          "statement": "To start a workflow from Cloud Scheduler, you give the job an OIDC token, because the target is an HTTPS URL.",
+          "answer": false,
+          "why": "The Workflow Executions API is on googleapis.com, and Google APIs expect an OAuth access token. OIDC tokens are for targets such as Cloud Run."
+        },
+        {
+          "id": "u17-l3-i3",
+          "type": "explain",
+          "src": "s8",
+          "seconds": 120,
+          "q": "Orchestration or choreography: how do you choose on Google Cloud?",
+          "model": "I start from how much control and visibility the process needs. With choreography, services publish and react to events, for example through Pub/Sub or Eventarc, and no single service is in charge. The services stay loosely coupled, and I can add a new consumer without touching the others. The cost is that the flow is spread across many services, so monitoring and debugging are harder. With orchestration, a central workflow decides what to call next and keeps the state. On Google Cloud, I use Workflows for that. It gives me retries, error handling and one place to see where each run stopped, but it is less flexible, because every change goes through the workflow. I often combine both. For example, a new hire event triggers a workflow that orchestrates HR, IT and payroll, and at the end the workflow publishes an event that other teams can react to.",
+          "keypoints": [
+            {
+              "text": "Choreography: events, no central controller, loose coupling",
+              "kw": [
+                "choreography",
+                "events",
+                "event",
+                "pub/sub",
+                "pubsub",
+                "eventarc",
+                "loosely coupled",
+                "loose coupling",
+                "no central"
+              ]
+            },
+            {
+              "text": "Choreography is harder to monitor and debug",
+              "kw": [
+                "monitor",
+                "monitoring",
+                "debug",
+                "debugging",
+                "hard to follow",
+                "harder",
+                "troubleshoot",
+                "visibility"
+              ]
+            },
+            {
+              "text": "Orchestration: a central workflow that keeps the state",
+              "kw": [
+                "orchestration",
+                "orchestrator",
+                "central",
+                "workflows",
+                "workflow",
+                "state"
+              ]
+            },
+            {
+              "text": "The trade-off of orchestration: less flexibility",
+              "kw": [
+                "flexible",
+                "flexibility",
+                "less flexible",
+                "trade-off",
+                "coupling"
+              ]
+            },
+            {
+              "text": "Combine them: an event starts a workflow, and the workflow publishes events",
+              "kw": [
+                "combine",
+                "both",
+                "mix",
+                "triggers",
+                "publishes an event",
+                "hybrid"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u17-l3-i4",
+          "type": "scenario",
+          "src": "s11",
+          "q": "An offer must be approved by a hiring manager before the workflow creates the contract. The approval can take up to two days. How should the workflow wait?",
+          "options": [
+            {
+              "text": "Create a callback endpoint, send its URL to the approval app, and wait with events.await_callback and a timeout of a few days.",
+              "ok": true,
+              "why": "The execution pauses without polling and can last up to a year. The default timeout is 12 hours, which is too short here, so you set your own."
+            },
+            {
+              "text": "Call the approval app every minute with http.get and sys.sleep until the answer is yes.",
+              "ok": false,
+              "why": "It works, but over two days it runs thousands of billed steps; a callback waits without polling."
+            },
+            {
+              "text": "Keep one HTTP request to the approval app open until the manager answers.",
+              "ok": false,
+              "why": "An HTTP call from a workflow can run for at most 1800 seconds, so it cannot wait for two days."
+            },
+            {
+              "text": "Let Cloud Scheduler start a new execution every hour to check for approvals.",
+              "ok": false,
+              "why": "Each execution starts from nothing, so you lose the state of the process that the workflow should keep."
+            }
+          ]
+        },
+        {
+          "id": "u17-l3-i5",
+          "type": "tf",
+          "src": "s2",
+          "statement": "Workflows is a good place to map and transform a large export of candidates, because an execution can hold state for up to a year.",
+          "answer": false,
+          "why": "All variables in one execution share a 512 KB limit, and an HTTP response can be at most 2 MB. Google advises putting complex work in a service and keeping only what you need."
+        },
+        {
+          "id": "u17-l3-i6",
+          "type": "explain",
+          "src": "s18",
+          "seconds": 150,
+          "q": "Walk me through how you would build a nightly batch sync from SuccessFactors Recruiting to an HR system on Google Cloud.",
+          "model": "I would split it into a scheduler, an orchestrator and a worker. Cloud Scheduler runs a cron job at two in the morning, in an explicit time zone, and starts a workflow through the Workflow Executions API with an OAuth token. Its service account only has the Workflows Invoker role. The workflow calls a Cloud Run sync service with an OIDC token. That service does the heavy work: it reads the job applications that changed since the last successful run, page by page, maps them and writes them to the HR system. It only moves that watermark when a run succeeds, so after a failed night the next run catches up. The workflow itself only keeps a short summary, because all its variables share a 512 kilobyte limit. I add a retry policy with exponential backoff on the call, and I make the sync idempotent, so a retry or a duplicate run does not create duplicate records. At the end, the workflow publishes the summary to Pub/Sub with the connector, and I alert on failed executions.",
+          "keypoints": [
+            {
+              "text": "Cloud Scheduler with a cron schedule and an explicit time zone",
+              "kw": [
+                "cloud scheduler",
+                "scheduler",
+                "cron",
+                "time zone",
+                "timezone",
+                "schedule"
+              ]
+            },
+            {
+              "text": "The scheduler starts the workflow with an OAuth token and the Workflows Invoker role",
+              "kw": [
+                "oauth",
+                "executions api",
+                "workflows invoker",
+                "invoker",
+                "access token"
+              ]
+            },
+            {
+              "text": "Heavy work in a Cloud Run service; the workflow keeps only a summary",
+              "kw": [
+                "cloud run",
+                "service",
+                "summary",
+                "512",
+                "memory",
+                "heavy work",
+                "page by page"
+              ]
+            },
+            {
+              "text": "An OIDC token from the workflow to Cloud Run",
+              "kw": [
+                "oidc",
+                "id token",
+                "identity token",
+                "run invoker"
+              ]
+            },
+            {
+              "text": "Retries with backoff, an idempotent sync, and a watermark that only moves on success",
+              "kw": [
+                "retry",
+                "retries",
+                "backoff",
+                "idempotent",
+                "duplicate",
+                "duplicates",
+                "watermark",
+                "last successful",
+                "catches up"
+              ]
+            },
+            {
+              "text": "Publish the result and alert on failures",
+              "kw": [
+                "pub/sub",
+                "pubsub",
+                "publish",
+                "connector",
+                "alert",
+                "monitoring"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u17-l3-i7",
+          "type": "scenario",
+          "src": "s19",
+          "q": "A data team wants to orchestrate nightly ETL jobs written in Python, with backfills and re-runs of past days. A colleague suggests Workflows. What do you say?",
+          "options": [
+            {
+              "text": "Managed Airflow (Cloud Composer) fits better: it is built for data pipelines written as Python DAGs and supports backfills.",
+              "ok": true,
+              "why": "Google positions Workflows for service orchestration and Managed Airflow for data-driven ETL and ELT pipelines with backfills and re-runs."
+            },
+            {
+              "text": "Workflows, because its latency is lower, and latency matters most in a nightly ETL.",
+              "ok": false,
+              "why": "Workflows does react in milliseconds, but a nightly batch can accept seconds between tasks; backfills matter more here."
+            },
+            {
+              "text": "Workflows, because it can run the team's Python code inside its steps.",
+              "ok": false,
+              "why": "A workflow has no bundled code or libraries; its steps are YAML or JSON that call services."
+            },
+            {
+              "text": "Cloud Scheduler alone, because a list of cron jobs is enough for a pipeline.",
+              "ok": false,
+              "why": "Each cron job only sends one request on a schedule; it does not track dependencies, state or backfills."
+            }
+          ]
+        },
+        {
+          "id": "u17-l3-i8",
+          "type": "say",
+          "src": "s21",
+          "text": "Cloud Scheduler delivers at least once, so I make the target idempotent and use the schedule time header as the key of each run."
+        },
+        {
+          "id": "u17-l3-i9",
+          "type": "scenario",
+          "src": "s22",
+          "q": "A colleague schedules the sync at 02:30 in the Europe/Madrid time zone. The business asks whether the changes to and from summer time can affect it.",
+          "options": [
+            {
+              "text": "Yes: the schedule follows the local time of the job's time zone, so around a change the job may run or not run unexpectedly. I would schedule it in UTC and keep the sync idempotent.",
+              "ok": true,
+              "why": "Google's documentation warns about daylight saving time in some time zones and recommends UTC, which does not observe it."
+            },
+            {
+              "text": "No: Cloud Scheduler converts the schedule to UTC once, when you create the job.",
+              "ok": false,
+              "why": "The schedule is read in the job's time zone every time, which is why daylight saving can affect it."
+            },
+            {
+              "text": "No, because a cron job in Cloud Scheduler always runs in UTC.",
+              "ok": false,
+              "why": "Every job has its own time zone, set in the console or with --time-zone; UTC is only the default."
+            },
+            {
+              "text": "Yes, so you must add the offset, such as +01:00, inside the cron string.",
+              "ok": false,
+              "why": "The cron string has only five fields; the time zone is a separate setting that takes a tz database name."
+            }
+          ]
+        },
+        {
+          "id": "u17-l3-i10",
+          "type": "explain",
+          "src": "s8",
+          "seconds": 150,
+          "q": "How do you handle errors and retries in a workflow?",
+          "model": "I think about it in layers. First, for temporary failures I add a retry policy to the step: a predicate that decides which errors to retry, a maximum number of retries, and exponential backoff with an initial delay, a multiplier and a maximum delay. I only retry calls that are safe to repeat, so for a POST I make the service idempotent, or I use http.default_retry_non_idempotent, which is meant for calls that are not. Second, I wrap calls in try and except. In the except block I look at the error map, for example the HTTP code or the tags, handle the cases I expect, and raise everything else so that the execution fails visibly. Third, for business processes with several steps, I add compensation steps, as in a saga, to undo the earlier steps. I also remember that each retry attempt is billed as a step, and I avoid retrying the same failure in two layers, for example in Cloud Scheduler and in the workflow.",
+          "keypoints": [
+            {
+              "text": "A retry policy: predicate, maximum retries and backoff",
+              "kw": [
+                "retry",
+                "retries",
+                "predicate",
+                "max_retries",
+                "maximum",
+                "backoff",
+                "exponential"
+              ]
+            },
+            {
+              "text": "Only retry what is safe to repeat: idempotent calls",
+              "kw": [
+                "idempotent",
+                "non-idempotent",
+                "safe to repeat",
+                "post",
+                "duplicate"
+              ]
+            },
+            {
+              "text": "try and except, with the error map: code, tags, message",
+              "kw": [
+                "try",
+                "except",
+                "catch",
+                "error map",
+                "code",
+                "tags",
+                "message"
+              ]
+            },
+            {
+              "text": "Raise unexpected errors so that the execution fails",
+              "kw": [
+                "raise",
+                "re-raise",
+                "fail",
+                "fails",
+                "visibly"
+              ]
+            },
+            {
+              "text": "Compensation steps for multi-step processes, as in a saga",
+              "kw": [
+                "saga",
+                "compensation",
+                "compensate",
+                "undo"
+              ]
+            },
+            {
+              "text": "Cost: every retry attempt is a billed step",
+              "kw": [
+                "billed",
+                "cost",
+                "step",
+                "steps",
+                "price"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Workflows basics",
+        "points": [
+          "Fully managed and serverless; you write the steps in YAML or JSON.",
+          "Billed per step executed; nothing to pay while idle.",
+          "Steps run in order; next jumps; a switch has up to 50 conditions; return ends the workflow.",
+          "An execution takes runtime arguments, returns a result and can last up to 1 year; history is kept for 90 days.",
+          "Keep logic simple: put complex work in a Cloud Run service and let the workflow call and decide."
+        ]
+      },
+      {
+        "h": "Calls and authentication",
+        "points": [
+          "http.get, http.post, or http.request with a method; the result has body, code and headers.",
+          "A JSON response becomes a map automatically; an HTTP call can run up to 1800 seconds; responses up to 2 MB.",
+          "Cloud Run: auth type OIDC (the audience defaults to the URL); the workflow's service account needs Cloud Run Invoker.",
+          "googleapis.com: auth type OAuth2 (default scope cloud-platform), or better, a connector.",
+          "Connectors: built-in authentication, retries and waiting for long-running operations; default timeout 30 minutes.",
+          "Call run.app URLs, not custom domains: they count as cheaper internal steps."
+        ]
+      },
+      {
+        "h": "Retries and errors",
+        "points": [
+          "try plus retry: predicate, max_retries, backoff (initial_delay, max_delay, multiplier).",
+          "Shortcut: retry: ${http.default_retry}.",
+          "GET is safe to retry; for POST, make the service idempotent or use http.default_retry_non_idempotent.",
+          "try plus except: as e; check e.code, e.tags or e.message; raise what you do not expect.",
+          "Each retry attempt is billed as a step, and so is a step that fails."
+        ]
+      },
+      {
+        "h": "Structure and waiting",
+        "points": [
+          "Subworkflows: params, steps, return; local to one workflow; call stack depth up to 20.",
+          "To reuse logic across workflows, run a child workflow with the Workflow Executions connector.",
+          "Parallel: up to 10 branches, 20 running at once, nesting depth 2; to change an outside variable, list it under shared.",
+          "Callbacks: events.create_callback_endpoint, then events.await_callback; default timeout 12 hours.",
+          "Polling: sys.sleep in a loop, when the other side cannot call back.",
+          "Memory: 512 KB for all variables of one execution; assign null to free a large variable."
+        ]
+      },
+      {
+        "h": "Cloud Scheduler",
+        "points": [
+          "Targets: HTTP, Pub/Sub and App Engine HTTP; 5,000 jobs per region by default.",
+          "Cron fields: minute, hour, day of the month, month, day of the week; 0 2 * * * is 02:00 every day.",
+          "Time zone: a tz database name, default UTC; daylight saving can make a job run or not run unexpectedly, so UTC is safest.",
+          "Success means a 2xx response; HTTP attempt deadline 3 minutes by default, from 15 seconds to 30 minutes.",
+          "No retries by default; up to 5; backoff from 5 seconds to 1 hour, doubling up to 5 times.",
+          "At least once: make targets idempotent; use the job name plus X-CloudScheduler-ScheduleTime as the run key."
+        ]
+      },
+      {
+        "h": "Tokens and roles",
+        "points": [
+          "Cloud Run or Cloud Run functions: OIDC token; grant roles/run.invoker.",
+          "Start a workflow: OAuth token to workflowexecutions.googleapis.com; grant roles/workflows.invoker.",
+          "Pub/Sub target: the topic must be in the job's project; Cloud Scheduler publishes as a Google APIs service account.",
+          "Do not remove the role of the Cloud Scheduler service agent, or authenticated calls fail with 403.",
+          "Callbacks need an OAuth token from a caller with workflows.callbacks.send (in Workflows Invoker)."
+        ]
+      },
+      {
+        "h": "Orchestration or choreography",
+        "points": [
+          "Direct service calls: simple, but tightly coupled.",
+          "Choreography with Pub/Sub or Eventarc: loose coupling, but harder to monitor and debug.",
+          "Orchestration with Workflows: central state and visibility, but less flexible.",
+          "Combine them: an event starts a workflow, and a workflow publishes an event.",
+          "Workflows for service orchestration; Managed Airflow (Cloud Composer) for Python ETL with backfills."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Workflows overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Quotas and limits - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/quotas",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Make an HTTP request - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/http-requests",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Make authenticated requests from a workflow - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/authenticate-from-workflow",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Understand connectors - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/connectors",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Invoke a Google Cloud service using a connector - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/invoke-connector-to-gcp-service",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Publish a message to a Pub/Sub topic - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/publish-pubsub-message",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Best practices for Workflows - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/best-practice",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Load data from Cloud Storage to BigQuery (tutorial) - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/tutorials/load-data-from-cloud-storage-to-bigquery-using-workflows",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Execute parallel steps - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/execute-parallel-steps",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Wait using callbacks - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/creating-callback-endpoints",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Wait using polling - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/sleeping",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Control the order of steps - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/controlling-execution-order",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Migrate from AWS Step Functions - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/migrate-from-step-functions",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Execute a workflow - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/executing-workflow",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Execute child workflows - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/tutorials/execute-workflows-from-workflow",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Invoke Cloud Run functions or Cloud Run - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/calling-run-functions",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Schedule a workflow - Workflows, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/schedule-workflow",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Choose Workflows or Managed Airflow for service orchestration - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/workflows/docs/choose-orchestration",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Workflows pricing - Google Cloud",
+      "url": "https://cloud.google.com/workflows/pricing",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Cloud Scheduler overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/scheduler/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Cron job format and time zone - Cloud Scheduler, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/scheduler/docs/configuring/cron-job-schedules",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Retry jobs - Cloud Scheduler, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/scheduler/docs/configuring/retry-jobs",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "Use authentication with HTTP targets - Cloud Scheduler, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/scheduler/docs/http-target-auth",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "Create and configure cron jobs - Cloud Scheduler, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/scheduler/docs/creating",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "Quotas and limits - Cloud Scheduler, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/scheduler/quotas",
+      "official": true
+    },
+    {
+      "id": "s27",
+      "title": "REST Resource: projects.locations.jobs - Cloud Scheduler API reference",
+      "url": "https://docs.cloud.google.com/scheduler/docs/reference/rest/v1/projects.locations.jobs",
+      "official": true
+    },
+    {
+      "id": "s28",
+      "title": "gcloud scheduler jobs create http - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/scheduler/jobs/create/http",
+      "official": true
+    }
+  ]
+}

@@ -1,0 +1,1217 @@
+{
+  "format": 1,
+  "id": "u10",
+  "n": 10,
+  "block": "successfactors",
+  "title": "Authentication",
+  "summary": "After this unit you can set up the OAuth 2.0 SAML bearer flow for the SuccessFactors OData API, explain why /oauth/idp and Basic Authentication are going away, describe the OpenID Connect option with IAS, and choose between a technical user and principal propagation.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Checked on 2026-10-25 against SAP Knowledge Base Articles, SAP Learning and RFC 7522. The SAP Help Portal (OData API developer guide, API reference guide and release information) could not be opened from the research environment (help.sap.com refuses automated reading, checked again on 2026-10-25), and several KBAs show only a preview, so the unit uses only details that a readable SAP page states. unconfirmed against the SAP Help Portal: the token request parameters client_id, company_id, grant_type and assertion come from an SAP Community member blog with a Postman collection, because the SAP Help page on requesting an access token could not be opened; new_token comes from KBA 2872019.",
+    "/oauth/idp: KBA 3239495 says the deprecation was announced in the 2H 2022 release, new customers cannot use it, and existing usage stops on the deletion date. unconfirmed: the deletion date. A SailPoint community article of 21 April 2026 says the endpoint has been removed for all tenants, but no SAP page that could be read confirms this.",
+    "Basic Authentication: KBA 3043111 says the sunset was announced in 2H 2020 for SFAPI and the OData API, and an SAP blog says the 2H 2022 decommissioning was postponed until further notice. unconfirmed: the current end date. An Oracle Integration blog of 1 June 2026 gives 20 November 2026, but Oracle's adapter documentation, which links to the same SAP page (Deprecation of Basic Authentication for APIs), gives no SAP date. Check SAP's release information before you quote a date.",
+    "Token lifetime: KBA 2872019 says new_token=true forces a new token valid for 24 hours, and a repeat request with the same unexpired assertion returns the same token. The KBA calls the remaining-time field expire_in; check a real response for the exact field name.",
+    "OpenID Connect: the steps come from Microsoft's Entra guide for SuccessFactors provisioning (updated 2026-10-01): IAS is the authentication service for SuccessFactors, an IAS OpenID Connect application has a dependency on the API sf_technical_access, the resource value is urn:sap:identity:application:provider:name: plus the dependency name, and Security Center, Manage OIDC OAuth Client Application maps the IAS client ID to an API user. KBA 3782071 shows the IAS token calls for the SOAP Compound Employee API (a password grant, then a jwt-bearer exchange with a resource parameter), not for OData. unconfirmed: the IAS grant type for OData calls, the release that introduced OIDC for SuccessFactors OData APIs (a SailPoint article says 2H 2024), and SAP's own step-by-step guide on the SAP Help Portal.",
+    "SAP offline SAML assertion tool (KBA 3031657): since 2H 2022, expireInMinutes (default 10) replaced expireInDays, and userId takes precedence over userName. SAP describes the tool as a developer reference."
+  ],
+  "terms": [
+    {
+      "id": "t-saml-bearer",
+      "term": "SAML bearer assertion flow",
+      "ipa": "/ˈsæml ˈbeərə əˈsɜːʃn fləʊ/",
+      "say": "sammel bearer assertion flow",
+      "def": "An OAuth 2.0 grant defined in RFC 7522. The client sends a signed SAML assertion to the token endpoint and gets an access token back, so no password is sent.",
+      "example": "The Spring Boot service on Cloud Run signs an assertion for its API user and posts it to /oauth/token with grant_type urn:ietf:params:oauth:grant-type:saml2-bearer.",
+      "src": "s1"
+    },
+    {
+      "id": "t-saml-assertion",
+      "term": "SAML assertion",
+      "ipa": "/ˈsæml əˈsɜːʃn/",
+      "say": "sammel assertion",
+      "def": "A signed XML statement about a subject, here the API user. It has an issuer, an audience, a recipient and an expiry time, and the token endpoint checks all of them and the signature.",
+      "example": "The assertion names the API user of the Recruiting export, is valid for 10 minutes and is signed with the private key that matches the registered certificate.",
+      "src": "s1"
+    },
+    {
+      "id": "t-oauth-client",
+      "term": "OAuth2 client application (SuccessFactors)",
+      "ipa": "/ˈəʊɔːθ tuː ˈklaɪənt ˌæplɪˈkeɪʃn/",
+      "say": "O auth two client application",
+      "def": "A registration in SuccessFactors, under Manage OAuth2 Client Applications, that stores the public X.509 certificate of an integration. After registration, SuccessFactors shows its API key, which is the client ID.",
+      "example": "An administrator registers the client application 'Recruiting export' and pastes the public certificate that the integration team created.",
+      "src": "s2"
+    },
+    {
+      "id": "t-x509",
+      "term": "X.509 certificate",
+      "ipa": "/ˌeks ˌfaɪv əʊ ˈnaɪn səˈtɪfɪkət/",
+      "say": "X five oh nine certificate",
+      "def": "A certificate that holds a public key. SuccessFactors keeps the public certificate, and the client keeps the matching private key to sign its assertions.",
+      "example": "If you use the Generate button in SuccessFactors, you must download the private key before you finish, because it cannot be retrieved later.",
+      "src": "s2"
+    },
+    {
+      "id": "t-api-key",
+      "term": "API key (client ID)",
+      "ipa": "/ˌeɪ piː ˈaɪ kiː/",
+      "say": "A P I key",
+      "def": "The identifier that SuccessFactors creates when you register an OAuth2 client application. You send it as client_id when you request a token.",
+      "example": "The token request carries the API key as client_id and the tenant's company ID as company_id.",
+      "src": "s2"
+    },
+    {
+      "id": "t-access-token",
+      "term": "Access token",
+      "ipa": "/ˈækses ˈtəʊkən/",
+      "say": "access token",
+      "def": "The bearer token that /oauth/token returns. You send it in the Authorization header of each OData call; a new token is valid for 24 hours.",
+      "example": "The service caches the token and asks for a new one a few minutes before it expires, instead of calling /oauth/token for every request.",
+      "src": "s5"
+    },
+    {
+      "id": "t-oauth-idp",
+      "term": "OAuth IdP API (/oauth/idp)",
+      "ipa": "/ˈəʊɔːθ ˌaɪ diː ˈpiː/",
+      "say": "O auth I D P",
+      "def": "A deprecated SuccessFactors endpoint that generated a SAML assertion for you. It needs the private key in the API call, which SAP considers unsafe, so new customers cannot use it.",
+      "example": "An old integration posts its private key to /oauth/idp; the migration moves assertion signing into the integration itself or to IAS.",
+      "src": "s3"
+    },
+    {
+      "id": "t-ias",
+      "term": "SAP Cloud Identity Services - Identity Authentication (IAS)",
+      "ipa": "/ˌaɪ eɪ ˈes/",
+      "say": "I A S",
+      "def": "SAP's cloud identity service. It can be the identity provider itself or a proxy in front of a corporate identity provider, and for SuccessFactors APIs it can generate SAML assertions or issue OpenID Connect tokens.",
+      "example": "Instead of signing assertions itself, the integration gets a token from IAS and uses it to call the SuccessFactors OData API.",
+      "src": "s8"
+    },
+    {
+      "id": "t-oidc",
+      "term": "OpenID Connect (OIDC)",
+      "ipa": "/ˈəʊpən ˌaɪ ˈdiː kəˈnekt/",
+      "say": "Open I D Connect",
+      "def": "An identity layer on top of OAuth 2.0. For SuccessFactors APIs, the client gets a token from IAS, and SuccessFactors trusts it through an OIDC OAuth client application registered in Security Center.",
+      "example": "The administrator registers the IAS client under Manage OIDC OAuth Client Application and maps it to the API user that the integration acts as.",
+      "src": "s15"
+    },
+    {
+      "id": "t-basic-auth",
+      "term": "Basic Authentication",
+      "ipa": "/ˈbeɪsɪk ɔːˌθentɪˈkeɪʃn/",
+      "say": "basic authentication",
+      "def": "Sending a user name and password with each API call. SAP announced its sunset for SFAPI and the OData API in 2H 2020 and recommends OAuth instead.",
+      "example": "An old Recruiting export still sends the API user's password in every request, so it is first on the migration list.",
+      "src": "s6"
+    },
+    {
+      "id": "t-technical-user",
+      "term": "Technical user (API user)",
+      "ipa": "/ˈteknɪkl ˈjuːzə/",
+      "say": "technical user",
+      "def": "A dedicated, non-personal SuccessFactors user that an integration acts as. Its permission role decides which entities and fields the integration can read or write.",
+      "example": "The nightly export of job applications to BigQuery runs as an API user whose role allows only the Recruiting entities it needs.",
+      "src": "s14"
+    },
+    {
+      "id": "t-principal-propagation",
+      "term": "Principal propagation",
+      "ipa": "/ˈprɪnsəpl ˌprɒpəˈɡeɪʃn/",
+      "say": "principal propagation",
+      "def": "Forwarding the identity of the real end user from one system to the next, so the target system applies that user's own permissions. The token is issued for the person, not for a technical user.",
+      "example": "A recruiter opens a Cloud Run app, the app gets a token for that recruiter, and the OData API returns only the applications the recruiter may see.",
+      "src": "s12"
+    },
+    {
+      "id": "t-audience-recipient",
+      "term": "Audience and Recipient (SAML)",
+      "ipa": "/ˈɔːdiəns ənd rɪˈsɪpiənt/",
+      "say": "audience and recipient",
+      "def": "Audience says which server the assertion is for, and Recipient says where it may be delivered. RFC 7522 requires the server to reject an assertion without its own identity as audience, and the Recipient must match the token endpoint URL.",
+      "example": "In SAP Cloud Integration, the OAuth2 SAML Bearer Assertion credential for SuccessFactors uses the audience www.successfactors.com.",
+      "src": "s1"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u10-l1",
+      "kind": "concepts",
+      "title": "The vocabulary of API authentication",
+      "items": [
+        {
+          "id": "u10-l1-i1",
+          "type": "card",
+          "term": "t-saml-bearer",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "key",
+                "label": "Private key (your side)"
+              },
+              {
+                "id": "app",
+                "label": "Integration"
+              },
+              {
+                "id": "tok",
+                "label": "SuccessFactors /oauth/token"
+              },
+              {
+                "id": "api",
+                "label": "OData API"
+              }
+            ],
+            "edges": [
+              {
+                "from": "key",
+                "to": "app",
+                "label": "signs the assertion"
+              },
+              {
+                "from": "app",
+                "to": "tok",
+                "label": "assertion, client_id, company_id"
+              },
+              {
+                "from": "tok",
+                "to": "app",
+                "label": "access token"
+              },
+              {
+                "from": "app",
+                "to": "api",
+                "label": "Authorization: Bearer"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u10-l1-i2",
+          "type": "card",
+          "term": "t-saml-assertion",
+          "src": "s1"
+        },
+        {
+          "id": "u10-l1-i3",
+          "type": "pick",
+          "src": "s1",
+          "q": "Which grant_type value does the token request use in the SAML bearer flow?",
+          "options": [
+            "urn:ietf:params:oauth:grant-type:saml2-bearer",
+            "client_credentials",
+            "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "password"
+          ],
+          "answer": 0,
+          "why": "RFC 7522 defines urn:ietf:params:oauth:grant-type:saml2-bearer for a SAML assertion used as a grant. client_credentials and password carry no assertion, and jwt-bearer is for JSON Web Tokens, as in some IAS token exchanges."
+        },
+        {
+          "id": "u10-l1-i4",
+          "type": "card",
+          "term": "t-oauth-client",
+          "src": "s2"
+        },
+        {
+          "id": "u10-l1-i5",
+          "type": "tf",
+          "src": "s2",
+          "statement": "SAP recommends creating the key pair with the Generate button in SuccessFactors, so that the certificate always matches.",
+          "answer": false,
+          "why": "SAP advises against it, because downloading the private key from SuccessFactors increases the risk of exposure. Create the key pair on your side, for example with OpenSSL, and register only the public certificate."
+        },
+        {
+          "id": "u10-l1-i6",
+          "type": "pick",
+          "src": "s1",
+          "q": "RFC 7522 lists checks the authorisation server must make. Which value must the Recipient attribute of the bearer confirmation match?",
+          "options": [
+            "The token endpoint URL",
+            "The OData service root URL",
+            "The client's own host name",
+            "The company ID"
+          ],
+          "answer": 0,
+          "why": "The server must verify that Recipient matches the token endpoint URL, because that is where the assertion is delivered. The OData URL, the client's host and the company ID are not where the assertion is sent."
+        },
+        {
+          "id": "u10-l1-i7",
+          "type": "card",
+          "term": "t-oauth-idp",
+          "src": "s3"
+        },
+        {
+          "id": "u10-l1-i8",
+          "type": "card",
+          "term": "t-ias",
+          "src": "s15",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "app",
+                "label": "Integration"
+              },
+              {
+                "id": "ias",
+                "label": "IAS token endpoint"
+              },
+              {
+                "id": "sf",
+                "label": "SuccessFactors OData API"
+              },
+              {
+                "id": "sc",
+                "label": "Security Center: OIDC client mapped to an API user"
+              }
+            ],
+            "edges": [
+              {
+                "from": "app",
+                "to": "ias",
+                "label": "authenticates, names the resource"
+              },
+              {
+                "from": "ias",
+                "to": "app",
+                "label": "access token"
+              },
+              {
+                "from": "app",
+                "to": "sf",
+                "label": "Authorization: Bearer"
+              },
+              {
+                "from": "sf",
+                "to": "sc",
+                "label": "finds the API user"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u10-l1-i9",
+          "type": "tf",
+          "src": "s7",
+          "statement": "SAP switched off Basic Authentication for all SuccessFactors APIs in the 2H 2022 release.",
+          "answer": false,
+          "why": "SAP planned the decommissioning for 2H 2022 but postponed it until further notice. Check SAP's release information for the current date before you quote one."
+        },
+        {
+          "id": "u10-l1-i10",
+          "type": "match",
+          "src": "s2",
+          "q": "Match each term with its meaning.",
+          "pairs": [
+            [
+              "API key",
+              "The client ID you send when you request a token"
+            ],
+            [
+              "X.509 certificate",
+              "The public key SuccessFactors uses to check your signature"
+            ],
+            [
+              "/oauth/idp",
+              "A deprecated endpoint that signed assertions for you"
+            ],
+            [
+              "IAS",
+              "SAP's identity service that can issue tokens for SuccessFactors APIs"
+            ],
+            [
+              "Technical user",
+              "A non-personal user whose role limits what an integration can do"
+            ],
+            [
+              "Principal propagation",
+              "The call runs with the real end user's permissions"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u10-l2",
+      "kind": "practice",
+      "title": "Build token handling for a Recruiting integration",
+      "items": [
+        {
+          "id": "u10-l2-i1",
+          "type": "match",
+          "src": "s18",
+          "q": "Match each parameter of the SuccessFactors token request with what you put in it.",
+          "pairs": [
+            [
+              "client_id",
+              "The API key of your OAuth2 client application"
+            ],
+            [
+              "company_id",
+              "The company ID of the SuccessFactors tenant"
+            ],
+            [
+              "grant_type",
+              "urn:ietf:params:oauth:grant-type:saml2-bearer"
+            ],
+            [
+              "assertion",
+              "The signed SAML assertion"
+            ],
+            [
+              "new_token",
+              "true, to force a new token instead of the current one"
+            ]
+          ]
+        },
+        {
+          "id": "u10-l2-i2",
+          "type": "order",
+          "src": "s2",
+          "q": "Put the steps of setting up the SAML bearer flow for a new integration in order.",
+          "steps": [
+            "Create a key pair and keep the private key in a secret store",
+            "Register an OAuth2 client application with the public X.509 certificate",
+            "Copy the API key (client ID) that SuccessFactors shows",
+            "Build a short-lived SAML assertion for the API user and sign it with the private key",
+            "Post the assertion to /oauth/token with client_id and company_id",
+            "Call the OData API with the access token as a bearer token"
+          ]
+        },
+        {
+          "id": "u10-l2-i3",
+          "type": "code",
+          "src": "s18",
+          "lang": "http",
+          "q": "Complete the two requests: first get an access token, then read job requisitions with it.",
+          "code": "POST /oauth/token HTTP/1.1\nHost: <your API server>\nContent-Type: [[1]]\n\nclient_id=[[2]]&company_id=ACMECORP&grant_type=[[3]]&assertion=PHNhbWw6QXNzZXJ0aW9u...\n\nGET /odata/v2/JobRequisition?$top=50 HTTP/1.1\nHost: <your API server>\nAuthorization: [[4]] <access token from the first response>",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "application/x-www-form-urlencoded",
+              "decoys": [
+                "application/json",
+                "text/xml"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "<API key of the OAuth2 client>",
+              "decoys": [
+                "<private key>",
+                "<API user password>"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "urn:ietf:params:oauth:grant-type:saml2-bearer",
+              "decoys": [
+                "client_credentials",
+                "urn:ietf:params:oauth:grant-type:jwt-bearer"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "Bearer",
+              "decoys": [
+                "Basic",
+                "SAML"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u10-l2-i4",
+          "type": "diagram",
+          "src": "s2",
+          "layout": "flow",
+          "q": "Complete the SAML bearer flow for a Spring Boot service on Cloud Run that reads job applications.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Spring Boot service on Cloud Run",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Secret Manager: private key",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "SuccessFactors /oauth/token",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "OAuth2 client application: public X.509 certificate",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "OData API: /odata/v2/JobApplication",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "reads the key to sign the assertion"
+            },
+            {
+              "from": "n1",
+              "to": "n3",
+              "label": "signed assertion, client_id, company_id"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "checks the signature"
+            },
+            {
+              "from": "n3",
+              "to": "n1",
+              "label": "access token"
+            },
+            {
+              "from": "n1",
+              "to": "n5",
+              "label": "Authorization: Bearer"
+            }
+          ],
+          "decoys": [
+            "/oauth/idp endpoint",
+            "API user password",
+            "IP allowlist for Basic Authentication"
+          ]
+        },
+        {
+          "id": "u10-l2-i5",
+          "type": "scenario",
+          "src": "s3",
+          "q": "A Recruiting integration on Cloud Run sends the client ID, the user ID and the private key to /oauth/idp to get a SAML assertion, and then calls /oauth/token. A security review flags it.",
+          "options": [
+            {
+              "text": "Sign the assertion inside the integration with the private key from Secret Manager, or get it from IAS, and stop calling /oauth/idp.",
+              "ok": true,
+              "why": "The private key no longer travels in an API call. SAP lists IAS, its offline tool and third-party identity providers as replacements."
+            },
+            {
+              "text": "Keep /oauth/idp, because the call already uses HTTPS.",
+              "ok": false,
+              "why": "SAP deprecated the endpoint because the private key must be sent in the call, and existing usage stops on the deletion date."
+            },
+            {
+              "text": "Move the integration to Basic Authentication until SAP publishes the deletion date.",
+              "ok": false,
+              "why": "SAP has announced the sunset of Basic Authentication too, and a long-lived password is weaker than a short-lived assertion."
+            },
+            {
+              "text": "Generate one assertion that is valid for a year and store it in the configuration.",
+              "ok": false,
+              "why": "Anyone who copies a long-lived bearer assertion can use it. RFC 7522 expects an expiry that limits the time window."
+            }
+          ]
+        },
+        {
+          "id": "u10-l2-i6",
+          "type": "code",
+          "src": "s5",
+          "lang": "java",
+          "q": "Complete the Spring token provider. It must reuse the token, refresh it five minutes before it expires, sign a new short-lived assertion for each token request, and send new_token=true so that a refresh never gets the old token back. The RestClient has the SuccessFactors API server as its base URL.",
+          "code": "@Component\npublic class SfTokenProvider {\n\n    private final RestClient restClient;\n    private final AssertionSigner signer;   // our class: signs with the key from Secret Manager\n    private final SfProperties props;\n    private CachedToken cached;\n\n    // constructor omitted\n\n    public synchronized String token() {\n        Instant refreshAt = (cached == null)\n            ? Instant.MIN\n            : cached.expiresAt().minus(Duration.ofMinutes(5));\n        if (Instant.now().[[1]](refreshAt)) {\n            String assertion = signer.sign(props.apiUserId(), [[2]]);\n            MultiValueMap<String, String> form = new LinkedMultiValueMap<>();\n            form.add(\"client_id\", props.apiKey());\n            form.add(\"company_id\", props.companyId());\n            form.add(\"grant_type\", \"urn:ietf:params:oauth:grant-type:saml2-bearer\");\n            form.add(\"assertion\", assertion);\n            form.add(\"new_token\", \"true\");\n            TokenResponse response = restClient.post()\n                .uri(\"[[3]]\")\n                .contentType(MediaType.APPLICATION_FORM_URLENCODED)\n                .body(form)\n                .retrieve()\n                .body(TokenResponse.class);\n            cached = CachedToken.from(response, Instant.now());\n        }\n        return cached.value();\n    }\n\n    public String authorizationHeader() {\n        return \"[[4]] \" + token();\n    }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "isAfter",
+              "decoys": [
+                "isBefore",
+                "equals"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "Duration.ofMinutes(10)",
+              "decoys": [
+                "Duration.ofDays(30)",
+                "Duration.ofDays(365)"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "/oauth/token",
+              "decoys": [
+                "/oauth/idp",
+                "/odata/v2/$metadata"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "Bearer",
+              "decoys": [
+                "Basic",
+                "SAML"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u10-l2-i7",
+          "type": "scenario",
+          "src": "s5",
+          "q": "A batch job gets a token at 01:00 and then runs for many hours. Late in the run, OData calls start to fail with LGN0022: the access token is either rejected or expired.",
+          "options": [
+            {
+              "text": "Cache the token with its expiry time, refresh it before it expires, and on this error get a new token and retry the call once.",
+              "ok": true,
+              "why": "SAP's fix for LGN0022 is a new token before the call, or less time between creating the token and using it."
+            },
+            {
+              "text": "Make the SAML assertion valid for 48 hours.",
+              "ok": false,
+              "why": "The assertion's lifetime does not extend the access token. It only makes a stolen assertion useful for longer."
+            },
+            {
+              "text": "Request a new token before every single OData call.",
+              "ok": false,
+              "why": "It adds a signing step and a token request to every call for no benefit. A cached token with a refresh margin does the same job."
+            },
+            {
+              "text": "Switch the job back to Basic Authentication, which has no token to expire.",
+              "ok": false,
+              "why": "SAP has announced the sunset of Basic Authentication, and a password that never expires is a bigger risk."
+            }
+          ]
+        },
+        {
+          "id": "u10-l2-i8",
+          "type": "scenario",
+          "src": "s5",
+          "q": "A legacy refresher reuses one SAML assertion that is valid for 30 days. Shortly before the token expires, it asks for a token again, but it gets the same token back with only a few minutes left.",
+          "options": [
+            {
+              "text": "Send new_token=true when the refresher asks for a token, and sign a new short-lived assertion for each request instead of reusing the 30-day one.",
+              "ok": true,
+              "why": "With the same unexpired assertion, SuccessFactors returns the same token by default, and new_token=true forces a new token valid for 24 hours. A short-lived assertion is also less useful to anyone who copies it."
+            },
+            {
+              "text": "Retry the same request in a loop until a new token arrives.",
+              "ok": false,
+              "why": "The server keeps returning the same token while it is still valid, so the loop only adds load."
+            },
+            {
+              "text": "Wait until the token has expired and only then ask for a new one.",
+              "ok": false,
+              "why": "Calls fail between the expiry and the new token, and you lose the safety margin."
+            },
+            {
+              "text": "Ask SAP to make tokens last longer.",
+              "ok": false,
+              "why": "The lifetime is not the problem: the refresher must ask for a new token with new_token=true."
+            }
+          ]
+        },
+        {
+          "id": "u10-l2-i9",
+          "type": "scenario",
+          "src": "s12",
+          "q": "Recruiters will use a new Angular app on Cloud Run to see candidates. Each recruiter must see only the job applications that their own SuccessFactors permissions allow.",
+          "options": [
+            {
+              "text": "Use principal propagation: get the token for the signed-in recruiter, so SuccessFactors applies that recruiter's role-based permissions.",
+              "ok": true,
+              "why": "The target system checks the real user's rights, so you do not rebuild SuccessFactors permissions in your own code."
+            },
+            {
+              "text": "Use one technical user with admin rights and filter the results in the app.",
+              "ok": false,
+              "why": "Every call can see all the data, so one bug in your filter shows candidates the recruiter must not see."
+            },
+            {
+              "text": "Give every recruiter the password of the API user.",
+              "ok": false,
+              "why": "A shared password removes accountability, and it means Basic Authentication, which SAP is retiring."
+            },
+            {
+              "text": "Register one OAuth2 client application per recruiter.",
+              "ok": false,
+              "why": "A client application identifies an integration, not a person. The user goes in the subject of the assertion."
+            }
+          ]
+        },
+        {
+          "id": "u10-l2-i10",
+          "type": "order",
+          "src": "s15",
+          "q": "Put the steps for calling the SuccessFactors OData API with an OpenID Connect token from IAS in order.",
+          "steps": [
+            "Connect the SuccessFactors tenant to IAS, so IAS has a SuccessFactors application",
+            "In IAS, create an OpenID Connect application and add a dependency on the SuccessFactors API sf_technical_access",
+            "In SuccessFactors Security Center, map the new IAS client ID to an API user",
+            "Request a token from the IAS token endpoint, naming the dependency in the resource parameter",
+            "Call the OData API with the IAS token in the Authorization header"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u10-l3",
+      "kind": "interview",
+      "title": "Talk about SuccessFactors authentication",
+      "items": [
+        {
+          "id": "u10-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "For SuccessFactors, I use the SAML bearer flow. The integration signs a short-lived assertion, exchanges it for an access token, and reuses the token until it nearly expires."
+        },
+        {
+          "id": "u10-l3-i2",
+          "type": "tf",
+          "src": "s1",
+          "statement": "RFC 7522 requires the authorisation server to reject every assertion it has seen before.",
+          "answer": false,
+          "why": "The server may track used assertion IDs, but the RFC does not require replay protection. That is why short expiry times and TLS matter."
+        },
+        {
+          "id": "u10-l3-i3",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 150,
+          "q": "Walk me through how a backend integration authenticates to the SuccessFactors OData API.",
+          "model": "I use the OAuth 2.0 SAML bearer assertion flow. First, we create a key pair and keep the private key in a secret store, for example Secret Manager. An administrator registers an OAuth2 client application in SuccessFactors with our public X.509 certificate, and SuccessFactors gives us an API key, which is the client ID. At runtime, the integration builds a SAML assertion for its API user, with a short expiry, and signs it with the private key. It posts the assertion to /oauth/token with the SAML 2 bearer grant type, the client ID and the company ID. SuccessFactors checks the signature against the registered certificate and returns an access token. We send that token as a bearer token on each OData call and reuse it until shortly before it expires. I don't use the /oauth/idp endpoint, because it needs the private key in the request, and SAP has deprecated it.",
+          "keypoints": [
+            {
+              "text": "Key pair: private key kept secret, public certificate registered",
+              "kw": [
+                "private key",
+                "certificate",
+                "x.509",
+                "key pair",
+                "public key",
+                "secret manager"
+              ]
+            },
+            {
+              "text": "OAuth2 client application gives the API key (client ID)",
+              "kw": [
+                "api key",
+                "client id",
+                "client application",
+                "register",
+                "registers",
+                "registration"
+              ]
+            },
+            {
+              "text": "A signed, short-lived SAML assertion for the API user",
+              "kw": [
+                "assertion",
+                "saml",
+                "signs",
+                "signed",
+                "short expiry",
+                "short-lived"
+              ]
+            },
+            {
+              "text": "POST to /oauth/token with the grant type, client ID and company ID",
+              "kw": [
+                "oauth/token",
+                "token endpoint",
+                "grant type",
+                "company id",
+                "saml2-bearer",
+                "saml 2 bearer"
+              ]
+            },
+            {
+              "text": "Bearer token on each call, reused until it expires",
+              "kw": [
+                "bearer",
+                "reuse",
+                "cache",
+                "expires",
+                "expiry"
+              ]
+            },
+            {
+              "text": "Not /oauth/idp: deprecated because it needs the private key",
+              "kw": [
+                "oauth/idp",
+                "idp",
+                "deprecated"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u10-l3-i4",
+          "type": "say",
+          "src": "s2",
+          "text": "The private key never leaves our side. SuccessFactors only holds the public certificate, so it can check our signature but can never sign for us."
+        },
+        {
+          "id": "u10-l3-i5",
+          "type": "scenario",
+          "src": "s7",
+          "q": "The interviewer asks: when exactly does Basic Authentication stop working for SuccessFactors APIs? You are not sure of the current date.",
+          "options": [
+            {
+              "text": "Say that SAP announced the sunset in 2H 2020 and postponed the 2H 2022 date, that you would confirm the current date in SAP's release information, and that you would migrate now anyway.",
+              "ok": true,
+              "why": "It is honest, it shows you know the history, and your plan does not depend on the exact date."
+            },
+            {
+              "text": "Say that it was switched off in 2H 2022.",
+              "ok": false,
+              "why": "SAP postponed that decommissioning until further notice, so this answer is wrong."
+            },
+            {
+              "text": "Say that SAP postponed it, so there is no need to migrate.",
+              "ok": false,
+              "why": "SAP still recommends OAuth and has announced the sunset; a postponement is not a cancellation."
+            },
+            {
+              "text": "Quote a date from a partner's blog as if it came from SAP.",
+              "ok": false,
+              "why": "Partner pages can disagree with each other, so an architect confirms dates with the vendor."
+            }
+          ]
+        },
+        {
+          "id": "u10-l3-i6",
+          "type": "explain",
+          "src": "s6",
+          "seconds": 150,
+          "q": "A customer still uses Basic Authentication for its SuccessFactors integrations. What is your migration plan?",
+          "model": "First, I make the risk clear. SAP announced the sunset of Basic Authentication for SFAPI and the OData API back in 2H 2020. The decommissioning date has already moved once, so I check the current SAP release information instead of quoting a date from memory. Then I build an inventory: every integration, its owner, the API user it uses and the entities it calls. For each custom integration, I choose the target. That is either the SAML bearer flow with assertions we sign ourselves, or OpenID Connect through IAS if the customer already runs SAP Cloud Identity Services. For SAP's standard integrations, SAP moves them to OAuth in an updated package, so I plan for that update. I migrate in waves, starting with low-risk integrations, and I test each one in the test instance first. When a wave is done, I remove the old passwords and the permission for OData access through Basic Authentication.",
+          "keypoints": [
+            {
+              "text": "The sunset is announced; confirm SAP's current date",
+              "kw": [
+                "sunset",
+                "announced",
+                "2020",
+                "release information",
+                "postponed",
+                "retirement"
+              ]
+            },
+            {
+              "text": "Inventory of integrations, owners and API users",
+              "kw": [
+                "inventory",
+                "every integration",
+                "owner",
+                "owners",
+                "api user"
+              ]
+            },
+            {
+              "text": "Target: SAML bearer flow or OpenID Connect with IAS",
+              "kw": [
+                "saml",
+                "bearer",
+                "oauth",
+                "openid",
+                "oidc",
+                "ias"
+              ]
+            },
+            {
+              "text": "SAP standard integrations get OAuth in a package update",
+              "kw": [
+                "standard",
+                "package",
+                "updated package",
+                "standard integrations"
+              ]
+            },
+            {
+              "text": "Migrate in waves, test, then remove passwords and permissions",
+              "kw": [
+                "waves",
+                "wave",
+                "test",
+                "test instance",
+                "remove",
+                "passwords",
+                "permission"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u10-l3-i7",
+          "type": "scenario",
+          "src": "s2",
+          "q": "The interviewer asks: a developer has found the private key of a production SuccessFactors integration in a Git repository. What do you do?",
+          "options": [
+            {
+              "text": "Create a new key pair, register a new OAuth2 client application with the new certificate, move the integration to the new API key, and then remove the old client application.",
+              "ok": true,
+              "why": "Anyone with the old key can sign valid assertions until SuccessFactors stops trusting its certificate. SAP says the private key must be kept secure under all circumstances, and a lost key means a new registration."
+            },
+            {
+              "text": "Delete the file from the repository and keep using the key.",
+              "ok": false,
+              "why": "The key is still in the Git history and in every clone, so anyone who copied it can still sign assertions."
+            },
+            {
+              "text": "Shorten the assertion lifetime to one minute.",
+              "ok": false,
+              "why": "Someone who has the key can sign a new assertion at any time, so a short lifetime does not help."
+            },
+            {
+              "text": "Change the password of the API user.",
+              "ok": false,
+              "why": "The SAML bearer flow does not use the password, so the leaked key still works."
+            }
+          ]
+        },
+        {
+          "id": "u10-l3-i8",
+          "type": "explain",
+          "src": "s12",
+          "seconds": 150,
+          "q": "Technical user or principal propagation: how do you choose for a SuccessFactors integration?",
+          "model": "It depends on whose permissions the call should use. For system-to-system work, like a nightly export of job applications to BigQuery, I use a technical user. It is a dedicated API user with a permission role that allows only the entities the integration needs. The assertion names that user, so every call runs with its permissions. It is simple to operate, but all callers share one identity, so if people see the data, my own code must decide what each person may see. When a person uses an app and the data must follow their own rights, I use principal propagation. For example, a recruiter opens a Cloud Run app, and the app gets a token for that recruiter, so SuccessFactors applies the recruiter's role-based permissions. That needs a trusted identity flow, such as IAS or SAP Cloud Integration, and the user must exist in SuccessFactors. The logs then show the real person, not a shared account.",
+          "keypoints": [
+            {
+              "text": "Choose by whose permissions the call should use",
+              "kw": [
+                "permissions",
+                "whose",
+                "rights",
+                "role"
+              ]
+            },
+            {
+              "text": "Technical user for system-to-system or batch work",
+              "kw": [
+                "technical user",
+                "api user",
+                "system-to-system",
+                "batch",
+                "nightly",
+                "dedicated"
+              ]
+            },
+            {
+              "text": "A role that allows only what the integration needs",
+              "kw": [
+                "only the entities",
+                "least privilege",
+                "smallest",
+                "limited",
+                "restrict",
+                "restricted"
+              ]
+            },
+            {
+              "text": "Principal propagation when a person's own rights must apply",
+              "kw": [
+                "principal propagation",
+                "end user",
+                "recruiter",
+                "on behalf"
+              ]
+            },
+            {
+              "text": "Needs a trusted identity flow and a matching SuccessFactors user",
+              "kw": [
+                "trusted",
+                "ias",
+                "cloud integration",
+                "must exist",
+                "identity provider"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u10-l3-i9",
+          "type": "say",
+          "src": "s14",
+          "text": "I give each integration its own API user, with a permission role that allows only the entities it needs, so one leaked key cannot read the whole tenant."
+        },
+        {
+          "id": "u10-l3-i10",
+          "type": "explain",
+          "src": "s5",
+          "seconds": 120,
+          "q": "How do you handle the SuccessFactors access token in a high-volume integration?",
+          "model": "I treat the token as something to cache, not to request for every call. A new SuccessFactors access token is valid for 24 hours, so the integration keeps it in memory and refreshes it a few minutes before it expires. On Cloud Run, each instance keeps its own cached token. One detail matters here: if you send the same SAML assertion again while the token is still valid, SuccessFactors returns the same token with the time that is left. So when I refresh, I sign a new short-lived assertion and I add new_token=true, which forces a fresh token. I also handle the error case. If a call fails because the token is rejected or expired, the client gets a new token once and retries the call. If that also fails, it stops and raises an alert, because the cause is probably configuration, such as an expired certificate or a changed API user.",
+          "keypoints": [
+            {
+              "text": "Cache and reuse the token",
+              "kw": [
+                "cache",
+                "cached",
+                "reuse",
+                "in memory"
+              ]
+            },
+            {
+              "text": "Valid for 24 hours; refresh before it expires",
+              "kw": [
+                "24 hours",
+                "expire",
+                "expires",
+                "refresh",
+                "refreshes"
+              ]
+            },
+            {
+              "text": "The same assertion returns the same token",
+              "kw": [
+                "same token",
+                "same assertion",
+                "new assertion",
+                "new_token"
+              ]
+            },
+            {
+              "text": "Rejected or expired token: get a new one and retry once",
+              "kw": [
+                "retry",
+                "retries",
+                "once",
+                "rejected",
+                "lgn0022",
+                "401"
+              ]
+            },
+            {
+              "text": "Alert when it still fails",
+              "kw": [
+                "alert",
+                "stops",
+                "configuration",
+                "certificate"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "SAML bearer flow",
+        "points": [
+          "Grant type: urn:ietf:params:oauth:grant-type:saml2-bearer (RFC 7522).",
+          "Register an OAuth2 client application with your public X.509 certificate; SuccessFactors then shows the API key (client ID).",
+          "Create the key pair on your side. If SuccessFactors generates it, download the private key before you finish: it cannot be retrieved later.",
+          "Sign a short-lived assertion for the API user and POST it to /oauth/token.",
+          "Send the token as Authorization: Bearer on every OData call."
+        ]
+      },
+      {
+        "h": "The token request",
+        "points": [
+          "POST https://<API server>/oauth/token, form-encoded.",
+          "client_id = API key; company_id = company ID; grant_type = the saml2-bearer URN; assertion = the signed assertion.",
+          "Optional: new_token=true forces a new token.",
+          "SAP Cloud Integration: security material of type OAuth2 SAML Bearer Assertion, audience www.successfactors.com, with the API key as client key and the company ID."
+        ]
+      },
+      {
+        "h": "Token lifetime and reuse",
+        "points": [
+          "A new access token is valid for 24 hours.",
+          "Same unexpired assertion: SuccessFactors returns the same token with the time left.",
+          "Cache the token and refresh it a few minutes before it expires, with new_token=true.",
+          "LGN0022 (token rejected or expired): get a new token, retry once, then alert.",
+          "SAP offline tool: expireInMinutes, default 10 minutes."
+        ]
+      },
+      {
+        "h": "/oauth/idp is deprecated",
+        "points": [
+          "Announced in the 2H 2022 release; new customers cannot use it; existing use stops on the deletion date.",
+          "Reason: it needs the private key in an API call.",
+          "Replacements: IAS, the SAP offline tool, or a third-party identity provider such as Microsoft Entra ID.",
+          "The offline tool is a developer reference: you own the security of assertions you make with it in production."
+        ]
+      },
+      {
+        "h": "OpenID Connect with IAS",
+        "points": [
+          "Prerequisite: IAS is the authentication service for SuccessFactors.",
+          "In IAS: an OpenID Connect application with a dependency on the SuccessFactors API sf_technical_access.",
+          "IAS token endpoint: https://<tenant>.accounts.ondemand.com/oauth2/token.",
+          "resource = urn:sap:identity:application:provider:name: followed by the dependency name.",
+          "SuccessFactors: Security Center, Manage OIDC OAuth Client Application, mapped to an API user.",
+          "Then call the OData API with the IAS token as a bearer token."
+        ]
+      },
+      {
+        "h": "Basic Authentication",
+        "points": [
+          "Sunset announced in 2H 2020 for SFAPI and the OData API.",
+          "The 2H 2022 decommissioning was postponed until further notice; check SAP's release information for the current date.",
+          "API Center: IP allowlisting applies when Basic Authentication is used.",
+          "SAP moves its own standard integrations to OAuth in package updates."
+        ]
+      },
+      {
+        "h": "Technical user or principal propagation",
+        "points": [
+          "Technical user: a dedicated API user for system-to-system work, such as replication or a nightly export.",
+          "Its permission role limits the entities and fields it can read or write.",
+          "Principal propagation: the token is for the real user, so SuccessFactors applies that user's permissions.",
+          "It needs a trusted flow (for example IAS or SAP Cloud Integration) and a matching SuccessFactors user."
+        ]
+      },
+      {
+        "h": "RFC 7522 checks",
+        "points": [
+          "Issuer, Subject, Audience (the server itself), an expiry time and a signature.",
+          "Recipient must match the token endpoint URL.",
+          "A bad assertion gets the error invalid_grant.",
+          "Replay protection is optional, so keep assertions short-lived and use TLS."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "RFC 7522: Security Assertion Markup Language (SAML) 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants",
+      "url": "https://www.rfc-editor.org/rfc/rfc7522.html",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "SAP KBA 2850646: registering and configuring an OAuth 2.0 client application for the SuccessFactors OData API",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2850646",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "SAP KBA 3239495: 2H 2022 Deprecation of OAuth IdP API /oauth/idp",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3239495",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "SAP KBA 3031657: How to generate SAML assertion using SAP-provided offline tool",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3031657",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "SAP KBA 2872019: [LGN0022] The access token is either rejected or expired - SuccessFactors HXM Suite",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2872019",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "SAP KBA 3043111: SFAPI OAuth 2.0 Support and Basic Authentication Sunset",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3043111",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "2H 2020 Announcement: Planned Retirement of HTTP Basic Authentication for SAP SuccessFactors APIs - SAP Community blog by SAP",
+      "url": "https://groups.community.sap.com/t5/human-capital-management-blogs-by-sap/2h-2020-announcement-planned-retirement-of-http-basic-authentication-sfapi/ba-p/13472919",
+      "official": false
+    },
+    {
+      "id": "s8",
+      "title": "SAP KBA 3429585: How to generate SAML assertion for SuccessFactors using IAS",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3429585",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "SAP KBA 3782071: How to Make API Calls to Compound Employee (CE) Using OIDC Authentication with Client Credentials in SAP SuccessFactors",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3782071",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Implementing Security Features in SAP SuccessFactors - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-platform-advanced-and-talent-intelligence-hub-academy/implementing-security-features-in-sap-successfactors_bff2d96d-1610-4d87-9c33-9769353a327a",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Describing OData API and the API Center - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-platform-advanced-and-talent-intelligence-hub-academy/describing-odata-api-and-the-api-center_ba254084-6574-4551-8b89-56a2ff5cae04",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Explaining Authentication Reference Architecture - SAP Learning",
+      "url": "https://learning.sap.com/courses/architecting-security-for-sap-business-technology-platform/explaining-authentication-reference-architecture",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Exploring API Technology (Employee Central OData API) - SAP Learning",
+      "url": "https://learning.sap.com/courses/exploring-sap-successfactors-employee-central-odata-api/exploring-api-technology_eeb27576-497b-491d-8f83-9b3bfc2436db",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "SAP KBA 2316798: How to restrict API access to specific Employee Central Entities and Fields",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2316798",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Configure workload identity for SAP SuccessFactors provisioning - Microsoft Learn (updated 2026-10-01)",
+      "url": "https://learn.microsoft.com/en-us/entra/identity/app-provisioning/configure-workload-identity-sap-successfactors-provisioning",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Principal propagation in SAP Integration Suite from an external system to SuccessFactors - SAP blog (April 2022)",
+      "url": "https://blogs.sap.com/2022/04/20/principal-propagation-in-sap-integration-suite-from-external-system-to-successfactors/",
+      "official": false
+    },
+    {
+      "id": "s17",
+      "title": "SAP integration guide (2024): SAP S/4HANA for EHS Workplace Safety with SAP SuccessFactors Learning through SAP Cloud Integration - SAP Business Accelerator Hub",
+      "url": "https://api.sap.com/odata/1.0/catalog.svc/Files('040ccbaa81b64b7babc373e7bb41436b')/$value",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "SuccessFactors API + OAuth 2.0 + Postman API Client = Perfect Friend - SAP Community member blog",
+      "url": "https://blogs.sap.com/t5/human-capital-management-blogs-by-members/postman-to-call-successfactors-api-using-oauth-authentication-method-via/ba-p/13572003",
+      "official": false
+    },
+    {
+      "id": "s20",
+      "title": "Action Required: Retirement of SAP SuccessFactors Basic Authentication, Employee Central SFAPIs, and Legacy People Profile APIs - Oracle Integration blog (1 June 2026)",
+      "url": "https://blogs.oracle.com/integration/action-required-retirement-of-sap-successfactors-basic-authentication-employee-central-sfapis-and-legacy-people-profile-apis",
+      "official": false
+    },
+    {
+      "id": "s21",
+      "title": "Retirement of SAP SuccessFactors Basic Authentication, Employee Central SFAPIs and Legacy People Profile Configuration APIs - Oracle Integration documentation",
+      "url": "https://docs.oracle.com/en/cloud/paas/application-integration/successfactors-adapter/retirement-sap-successfactors-basic-authentication-employee-central-sfapis-except-compoundemployee-legacy-people-profile-configuration-api.html",
+      "official": false
+    },
+    {
+      "id": "s22",
+      "title": "SAP KBA 3301583: SAP SuccessFactors SAML Assertion format demonstration using MS Azure",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3301583",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Migrating SuccessFactors API Authentication in SailPoint ISC: From SF OAuth/IDP to SAP Cloud Identity Services with OIDC - SailPoint Developer Community (April 2026)",
+      "url": "https://developer.sailpoint.com/discuss/t/migrating-successfactors-api-authentication-in-sailpoint-isc-from-sf-oauth-idp-to-sap-cloud-identity-services-with-oidc/204883",
+      "official": false
+    }
+  ]
+}

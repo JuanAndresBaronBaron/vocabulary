@@ -1,0 +1,1241 @@
+{
+  "format": 1,
+  "id": "u09",
+  "n": 9,
+  "block": "successfactors",
+  "title": "OData API",
+  "summary": "After this unit you can query SuccessFactors Recruiting through OData V2 with the right query options, page through large results safely, build a delta load, check upsert and $batch results, and explain the good-citizen rules.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Checked on 2026-10-25 against SAP Knowledge Base Articles, SAP Learning and the OData V2 specification on odata.org. The SAP Help Portal guides (OData API developer guide and API reference guide) could not be opened from the research environment, so only details that a KBA or SAP Learning repeats are used.",
+    "Review pass on 2026-10-25 re-read KBAs 2735876, 3063733, 2723468, 3084369 (preview only), 2990434, 2749091, 2614934, 3159263, 2936182, 2668887, 2974994 and 2920680, and the SAP Learning lesson on EC OData API performance. KBA 3792944 is blocked for automated reading. Not re-read in that pass because the web budget ran out: KBAs 2489065, 2882860, 2171588, 2918571, 2972887, 2658508, 3308165 and the two SAP Learning lessons on Recruiting and the API Center; the facts taken only from them (the upsert status value OK, the jobsApplied navigation property, draft and saved applications, the metadata refresh tool) are as the author checked them earlier the same day.",
+    "Paging: paging=snapshot and paging=cursor come from SAP Learning and KBAs 2723468, 3308165 and 3084369; customPageSize comes from KBA 2489065, KBA 2723468 and an SAP blog on the Cloud Integration adapter (default 1000). unconfirmed: which Recruiting entities support each paging type; KBA 3308165 says snapshot paging works for non-MDF entities.",
+    "Snapshot lost: KBA 2990434 says the error comes as HTTP 500 (COE_GENERAL_SERVER_FAILURE with COE0019), and that changes delivered with the 2H 2023 major upgrade are meant to stop the cache from evicting snapshots; a gap of more than 15 minutes or a second request for the last page still ends a snapshot. The same KBA suggests cursor paging for simple queries without $filter or $orderby.",
+    "Rate limits: KBA 3159263 says the rate limiting announced for 2H 2022 was postponed indefinitely, and recommends waiting 300 seconds after HTTP 429. unconfirmed: SAP has newer pages on API rate limits (KBA 3792944 and a Rate Limits topic in the API reference guide) that could not be read, so the current limits and their start date are not stated.",
+    "Timeouts differ between SAP sources (KBA 2735876: up to 10 minutes and a 5-minute infrastructure timeout; SAP Learning: up to 7 minutes; KBA 3063733: a 7-minute proxy timeout), so the unit gives no single number except the 5-minute rule for retrying timeouts.",
+    "unconfirmed: the overall HTTP status code of an upsert in which some records fail. The unit only relies on the result per record (status, message, index), which KBAs 2974994 and 2658508 show."
+  ],
+  "terms": [
+    {
+      "id": "t-odata-v2",
+      "term": "OData V2",
+      "ipa": "/əʊ ˈdeɪtə ˌviː ˈtuː/",
+      "say": "O data V 2",
+      "def": "Version 2 of the OData protocol, which the SuccessFactors API for Recruiting is built on. You read and write entities such as JobApplication over HTTP, with URLs under /odata/v2/.",
+      "example": "GET /odata/v2/JobApplication?$select=applicationId,status returns job applications as JSON or XML.",
+      "src": "s17"
+    },
+    {
+      "id": "t-metadata",
+      "term": "$metadata",
+      "ipa": "/ˈdɒlə ˈmetədeɪtə/",
+      "say": "dollar metadata",
+      "def": "The service metadata document. It describes the entities, their properties and their relationships, in an XML format called EDMX.",
+      "example": "Before mapping fields, the team reads /odata/v2/JobApplication,Candidate/$metadata to check the property names and types.",
+      "src": "s15"
+    },
+    {
+      "id": "t-filter",
+      "term": "$filter",
+      "ipa": "/ˈdɒlə ˈfɪltə/",
+      "say": "dollar filter",
+      "def": "A query option that returns only the entries that match a condition. The server does the filtering, so less data travels.",
+      "example": "$filter=lastModifiedDateTime gt datetimeoffset'2026-10-24T01:00:00Z' returns only the applications changed since the last run.",
+      "src": "s9"
+    },
+    {
+      "id": "t-select",
+      "term": "$select",
+      "ipa": "/ˈdɒlə sɪˈlekt/",
+      "say": "dollar select",
+      "def": "A query option that returns only the properties you list. SAP recommends selecting only the fields you actually use.",
+      "example": "$select=applicationId,candidateId,jobReqId,status keeps every record in the nightly extract small.",
+      "src": "s3"
+    },
+    {
+      "id": "t-expand",
+      "term": "$expand",
+      "ipa": "/ˈdɒlər ɪkˈspænd/",
+      "say": "dollar expand",
+      "def": "A query option that adds related entries to the same response, through a navigation property. SAP recommends keeping expands small.",
+      "example": "Candidate?$expand=jobsApplied returns each candidate together with the applications they made.",
+      "src": "s17"
+    },
+    {
+      "id": "t-client-paging",
+      "term": "Client-side pagination",
+      "ipa": "/ˌklaɪənt saɪd ˌpædʒɪˈneɪʃn/",
+      "say": "client-side pagination",
+      "def": "The client chooses each page with $top (how many records) and $skip (how many to jump over). If the data changes while you page, records can be missed or read twice.",
+      "example": "$skip=2000&$top=500 returns the fifth page of 500 records, which is fine for a screen but risky for an integration.",
+      "src": "s3"
+    },
+    {
+      "id": "t-server-paging",
+      "term": "Server-side pagination",
+      "ipa": "/ˌsɜːvə saɪd ˌpædʒɪˈneɪʃn/",
+      "say": "server-side pagination",
+      "def": "The server decides the pages. Each page has at most 1000 records and ends with a __next link that contains a $skiptoken; you call that link until a page has none.",
+      "example": "The extract adds paging=snapshot to its first request and then simply follows each __next link.",
+      "src": "s1"
+    },
+    {
+      "id": "t-snapshot",
+      "term": "Snapshot-based pagination",
+      "ipa": "/ˈsnæpʃɒt beɪst ˌpædʒɪˈneɪʃn/",
+      "say": "snapshot-based pagination",
+      "def": "Server-side paging in which the server stores the list of business keys of the whole result at the first request. You turn it on with paging=snapshot, and SAP recommends it for integrations.",
+      "example": "Because the nightly extract uses paging=snapshot, an application edited during the run is not lost or read twice.",
+      "src": "s3"
+    },
+    {
+      "id": "t-cursor",
+      "term": "Cursor-based pagination",
+      "ipa": "/ˈkɜːsə beɪst ˌpædʒɪˈneɪʃn/",
+      "say": "cursor-based pagination",
+      "def": "Server-side paging in which the server keeps a database cursor open. You turn it on with paging=cursor; SAP suggests it for simple queries without $filter or $orderby.",
+      "example": "A full export of one entity, with no filter and no sort order, can use paging=cursor.",
+      "src": "s4"
+    },
+    {
+      "id": "t-skiptoken",
+      "term": "$skiptoken",
+      "ipa": "/ˈdɒlə ˈskɪp ˌtəʊkən/",
+      "say": "dollar skip token",
+      "def": "A value created by the server inside the __next link. It tells the server which page comes next, so you call the __next URL as it is and never build the token yourself.",
+      "example": "The response for page 1 ends with a __next link like /odata/v2/User?$skiptoken=eyJzdGFydFJvdyI6MTAwMCwiZW5kUm93IjoyMDAwfQ==.",
+      "src": "s8"
+    },
+    {
+      "id": "t-delta",
+      "term": "Delta load",
+      "ipa": "/ˈdeltə ləʊd/",
+      "say": "delta load",
+      "def": "A load that reads only the records changed since the last successful run, instead of reading everything again. With SuccessFactors you usually filter on lastModifiedDateTime.",
+      "example": "Each night the job reads only the applications with a lastModifiedDateTime after the start of the previous successful run.",
+      "src": "s2"
+    },
+    {
+      "id": "t-upsert",
+      "term": "Upsert",
+      "ipa": "/ˈʌpsɜːt/",
+      "say": "upsert",
+      "def": "An operation that updates a record if it exists and inserts it if it does not. In SuccessFactors you POST records to /odata/v2/upsert, and the response has one result for each record.",
+      "example": "An assessment adapter upserts a custom score field on JobApplication records and checks every result for OK or ERROR.",
+      "src": "s12"
+    },
+    {
+      "id": "t-batch",
+      "term": "$batch",
+      "ipa": "/ˈdɒlə ˈbætʃ/",
+      "say": "dollar batch",
+      "def": "One HTTP POST that carries many operations in a multipart/mixed body. SuccessFactors accepts at most 180 requests in one batch, and each request inside a changeset counts.",
+      "example": "Instead of 150 separate calls, the adapter sends one $batch request with 150 operations and one login session.",
+      "src": "s10"
+    },
+    {
+      "id": "t-throttling",
+      "term": "Throttling",
+      "ipa": "/ˈθrɒtlɪŋ/",
+      "say": "throttling",
+      "def": "When a server limits clients that send too many requests, usually with HTTP 429 Too Many Requests. SAP asks clients to retry a 429 only after a delay, and suggests 300 seconds.",
+      "example": "When the nightly job receives a 429, it waits five minutes before it sends the same request again.",
+      "src": "s14"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u09-l1",
+      "kind": "concepts",
+      "title": "OData V2 in SuccessFactors",
+      "items": [
+        {
+          "id": "u09-l1-i1",
+          "type": "card",
+          "term": "t-odata-v2",
+          "src": "s17",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "job",
+                "label": "Spring Boot job on Cloud Run"
+              },
+              {
+                "id": "api",
+                "label": "SuccessFactors OData API (/odata/v2)"
+              }
+            ],
+            "edges": [
+              {
+                "from": "job",
+                "to": "api",
+                "label": "GET JobApplication with $select and $filter"
+              },
+              {
+                "from": "api",
+                "to": "job",
+                "label": "at most 1000 records, plus a __next link if there are more"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u09-l1-i2",
+          "type": "pick",
+          "src": "s3",
+          "q": "A Cloud Run job needs only the application ID, the status and the last-modified time of each job application. Which query option keeps the response small?",
+          "options": [
+            "$select=applicationId,status,lastModifiedDateTime",
+            "$expand=applicationId,status,lastModifiedDateTime",
+            "$filter=applicationId,status,lastModifiedDateTime",
+            "$orderby=applicationId,status,lastModifiedDateTime"
+          ],
+          "answer": 0,
+          "why": "$select returns only the listed properties, and SAP recommends selecting only the fields you use. $expand adds related entries, $filter chooses rows rather than fields, and $orderby only sorts."
+        },
+        {
+          "id": "u09-l1-i3",
+          "type": "card",
+          "term": "t-metadata",
+          "src": "s22"
+        },
+        {
+          "id": "u09-l1-i4",
+          "type": "pick",
+          "src": "s15",
+          "q": "You want the metadata of only the JobApplication and Candidate entities, not of the whole service. Which URL do you call?",
+          "options": [
+            "/odata/v2/JobApplication,Candidate/$metadata",
+            "/odata/v2/$metadata?$filter=JobApplication,Candidate",
+            "/odata/v2/JobApplication?$format=metadata",
+            "/odata/v2/$metadata/JobApplication,Candidate"
+          ],
+          "answer": 0,
+          "why": "You list the entity names before /$metadata, as in SAP's example /odata/v2/User,Photo/$metadata. The whole service is /odata/v2/$metadata, and the other forms are not the documented syntax."
+        },
+        {
+          "id": "u09-l1-i5",
+          "type": "card",
+          "term": "t-server-paging",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "a",
+                "label": "First request with paging=snapshot"
+              },
+              {
+                "id": "b",
+                "label": "Page 1: up to 1000 records and __next"
+              },
+              {
+                "id": "c",
+                "label": "GET the __next URL (it holds the $skiptoken)"
+              },
+              {
+                "id": "d",
+                "label": "Next page and a new __next"
+              },
+              {
+                "id": "e",
+                "label": "Last page: no __next, so stop"
+              }
+            ],
+            "edges": [
+              {
+                "from": "a",
+                "to": "b",
+                "label": "returns"
+              },
+              {
+                "from": "b",
+                "to": "c",
+                "label": "follow"
+              },
+              {
+                "from": "c",
+                "to": "d",
+                "label": "returns"
+              },
+              {
+                "from": "d",
+                "to": "e",
+                "label": "repeat until"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u09-l1-i6",
+          "type": "tf",
+          "src": "s1",
+          "statement": "Client-side paging with $top and $skip is a safe choice for a nightly integration that reads thousands of applications while recruiters keep working.",
+          "answer": false,
+          "why": "If records change while you page, the offsets move, so records can be missed or read twice. SAP recommends server-side paging for integrations."
+        },
+        {
+          "id": "u09-l1-i7",
+          "type": "card",
+          "term": "t-snapshot",
+          "src": "s3"
+        },
+        {
+          "id": "u09-l1-i8",
+          "type": "tf",
+          "src": "s4",
+          "statement": "With snapshot paging, if more than 15 minutes pass between two page requests, the snapshot can be lost and you must start again from the first page.",
+          "answer": true,
+          "why": "SAP lists a gap of more than 15 minutes and a second request for the last page as causes of the snapshot-lost error. The fix is to relaunch the query from page 1, ideally in a new session."
+        },
+        {
+          "id": "u09-l1-i9",
+          "type": "card",
+          "term": "t-upsert",
+          "src": "s11",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "ad",
+                "label": "Assessment adapter"
+              },
+              {
+                "id": "sf",
+                "label": "SuccessFactors OData API"
+              }
+            ],
+            "edges": [
+              {
+                "from": "ad",
+                "to": "sf",
+                "label": "POST /odata/v2/upsert with 3 JobApplication records"
+              },
+              {
+                "from": "sf",
+                "to": "ad",
+                "label": "3 results: OK, OK, ERROR (index 2, with a message)"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u09-l1-i10",
+          "type": "match",
+          "src": "s19",
+          "q": "Match each query option with what it does.",
+          "pairs": [
+            [
+              "$filter",
+              "Returns only the entries that match a condition"
+            ],
+            [
+              "$select",
+              "Returns only the properties you list"
+            ],
+            [
+              "$expand",
+              "Adds related entries through a navigation property"
+            ],
+            [
+              "$orderby",
+              "Sorts the entries"
+            ],
+            [
+              "$top and $skip",
+              "Choose a page on the client side"
+            ],
+            [
+              "$metadata",
+              "Describes the entities, properties and relationships"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u09-l2",
+      "kind": "practice",
+      "title": "Build a safe Recruiting extract",
+      "items": [
+        {
+          "id": "u09-l2-i1",
+          "type": "match",
+          "src": "s2",
+          "q": "Match each problem with the fix that SAP recommends.",
+          "pairs": [
+            [
+              "Records go missing while paging with $skip",
+              "Use server-side paging, for example paging=snapshot"
+            ],
+            [
+              "Hundreds of GET calls, one per application ID",
+              "Use the in operator in $filter, or $batch"
+            ],
+            [
+              "A new custom field is missing from the API",
+              "Refresh the metadata in OData API Metadata Refresh and Export"
+            ],
+            [
+              "The job queries every minute to look real time",
+              "Query far less often; SAP warns about intervals well under an hour"
+            ],
+            [
+              "400 Bad Request for one record",
+              "Fix the request or the data; do not retry"
+            ],
+            [
+              "429 Too Many Requests",
+              "Wait, then retry; SAP suggests 300 seconds"
+            ]
+          ]
+        },
+        {
+          "id": "u09-l2-i2",
+          "type": "code",
+          "src": "s5",
+          "lang": "http",
+          "q": "Complete the first request of a nightly delta load. It must return only the applications changed since the last run, use snapshot paging on the server, and then follow the pages. (Spaces are shown for readability; send them as %20.)",
+          "code": "GET /odata/v2/JobApplication?$select=applicationId,candidateId,jobReqId,status,lastModifiedDateTime\n    &$filter=[[1]] gt [[2]]'2026-10-24T01:00:00Z'\n    &[[3]]=snapshot\n    &$format=json\n\nHTTP/1.1 200 OK\n{ \"d\": {\n    \"results\": [ ... at most 1000 applications ... ],\n    \"[[4]]\": \"https://<api-server>/odata/v2/JobApplication?...&$skiptoken=eyJ...\"\n} }",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "lastModifiedDateTime",
+              "decoys": [
+                "applicationId",
+                "$skiptoken"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "datetimeoffset",
+              "decoys": [
+                "date",
+                "timestamp"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "paging",
+              "decoys": [
+                "$top",
+                "customPageSize"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "__next",
+              "decoys": [
+                "__metadata",
+                "__count"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u09-l2-i3",
+          "type": "order",
+          "src": "s2",
+          "q": "Put the steps of a nightly delta load with snapshot paging in order.",
+          "steps": [
+            "Read the watermark: the start time of the last successful run",
+            "Record the start time of this run",
+            "Request the changed applications with a lastModifiedDateTime filter and paging=snapshot",
+            "Write the page to Cloud Storage straight away",
+            "Call the __next link for each next page, until a response has no __next",
+            "Reconcile the totals, then save this run's start time as the new watermark"
+          ]
+        },
+        {
+          "id": "u09-l2-i4",
+          "type": "scenario",
+          "src": "s4",
+          "q": "A Spring Boot job on Cloud Run reads changed applications with paging=snapshot. After each page it calls a slow scoring service before it asks for the next page. On busy nights it fails at page 40 with 'Snapshot lost for current pagination query'.",
+          "options": [
+            {
+              "text": "Write each page to Cloud Storage and request the next page at once; do the slow work later, and restart from page 1 if the snapshot is lost.",
+              "ok": true,
+              "why": "The snapshot is lost when more than 15 minutes pass between two page requests, so the page loop must stay fast. The recovery SAP describes is to start again from the first page."
+            },
+            {
+              "text": "Retry the same $skiptoken until it works.",
+              "ok": false,
+              "why": "Once the snapshot is gone, that token cannot return the page. SAP says to relaunch the query from the first page."
+            },
+            {
+              "text": "Switch to $top and $skip, so there is no snapshot to lose.",
+              "ok": false,
+              "why": "Client-side paging can miss or duplicate records when the data changes during the run, which is worse for an integration."
+            },
+            {
+              "text": "Add customPageSize=5000, so there are fewer pages.",
+              "ok": false,
+              "why": "A page holds at most 1000 records, so a bigger value cannot help. The real problem is the gap between page requests, not the number of pages."
+            }
+          ]
+        },
+        {
+          "id": "u09-l2-i5",
+          "type": "diagram",
+          "src": "s2",
+          "layout": "flow",
+          "q": "Complete the nightly extract. It must not miss records, it must recover from a lost snapshot, and it must be safe to run again.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "SuccessFactors OData API: JobApplication with paging=snapshot",
+              "slot": true
+            },
+            {
+              "id": "n2",
+              "label": "Cloud Run job (Spring Boot)",
+              "slot": false
+            },
+            {
+              "id": "n3",
+              "label": "Cloud Storage: one file per page",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "BigQuery staging table",
+              "slot": false
+            },
+            {
+              "id": "n5",
+              "label": "BigQuery reporting table: merge by applicationId",
+              "slot": true
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "pages of at most 1000 records, each with a __next link"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "writes each page at once"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "loads the files"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "merges, so a record read twice is harmless"
+            }
+          ],
+          "decoys": [
+            "SuccessFactors OData API: JobApplication with $top and $skip",
+            "Job memory: keep every page until the end",
+            "BigQuery reporting table: append every row"
+          ]
+        },
+        {
+          "id": "u09-l2-i6",
+          "type": "code",
+          "src": "s11",
+          "lang": "java",
+          "q": "Complete the Spring code. After an upsert, every record that failed must go to the dead-letter store with its error message.",
+          "code": "// Our own client class: POST /odata/v2/upsert with a list of JobApplication updates\nList<UpsertResult> results = sfClient.upsert(applications);\n\nfor (UpsertResult r : results) {\n    if (!\"[[1]]\".equals(r.status())) {\n        // the key can be empty for a failed record, so use its position in the request\n        JobApplicationUpdate failed = applications.get(r.[[2]]());\n        deadLetter.save(failed, r.[[3]]());\n    }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "OK",
+              "decoys": [
+                "UPSERTED",
+                "200"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "index",
+              "decoys": [
+                "key",
+                "httpCode"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "message",
+              "decoys": [
+                "editStatus",
+                "status"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u09-l2-i7",
+          "type": "scenario",
+          "src": "s10",
+          "q": "A partner adapter sends one $batch request with 250 operations to update job applications. SuccessFactors rejects it: 'The request count exceeds the maximum request count allowed : 180'.",
+          "options": [
+            {
+              "text": "Split the work into batches of at most 180 requests, counting every request inside a changeset.",
+              "ok": true,
+              "why": "The limit counts each request in the batch, including each one inside a changeset."
+            },
+            {
+              "text": "Put all 250 operations in a single changeset, so they count as one request.",
+              "ok": false,
+              "why": "Each request inside a changeset still counts towards the 180."
+            },
+            {
+              "text": "Send the 250 updates as separate calls, with a new login for each one.",
+              "ok": false,
+              "why": "Each new login session is costly, and SAP asks you to reuse sessions and batch the work."
+            },
+            {
+              "text": "Add customPageSize=250 to the $batch URL.",
+              "ok": false,
+              "why": "customPageSize sets the page size of server-side paging for queries. It does not change the batch limit."
+            }
+          ]
+        },
+        {
+          "id": "u09-l2-i8",
+          "type": "scenario",
+          "src": "s3",
+          "q": "A product owner wants recruiters' status changes in a Cloud SQL copy 'in real time', and asks you to query JobApplication every minute.",
+          "options": [
+            {
+              "text": "Explain that SAP warns against repeating queries much more often than once an hour; use an event-driven flow for the few urgent changes and a delta load for the rest.",
+              "ok": true,
+              "why": "Very frequent queries use too much API resource and may be throttled. Events report urgent changes without polling."
+            },
+            {
+              "text": "Query every minute, but with 20 threads so that each run finishes faster.",
+              "ok": false,
+              "why": "SAP also warns against excessive multithreading. It adds load and does not fix the frequency."
+            },
+            {
+              "text": "Query every minute without a filter, so that nothing is missed.",
+              "ok": false,
+              "why": "Reading everything every minute is the heaviest option. SAP recommends reading only the modified records."
+            },
+            {
+              "text": "Query every minute, and open a new session for every page to avoid timeouts.",
+              "ok": false,
+              "why": "SAP asks you to reuse the login session; a new login for each page is expensive."
+            }
+          ]
+        },
+        {
+          "id": "u09-l2-i9",
+          "type": "scenario",
+          "src": "s2",
+          "q": "Your nightly job logs three errors: a 503 on page 12, a 400 for one upsert record, and a 401 because the API user has been locked. Which retry policy follows SAP's guidance?",
+          "options": [
+            {
+              "text": "Retry the 503 after waiting 1 to 5 minutes, at most 5 times; do not retry the 400 or the 401, and raise an alert for them.",
+              "ok": true,
+              "why": "SAP lists 5xx errors other than 500 as retryable. A 400, 401 or 404 will not succeed on a retry."
+            },
+            {
+              "text": "Retry all three at once, up to 10 times.",
+              "ok": false,
+              "why": "SAP says to wait 1 to 5 minutes and stop after 5 attempts, and the 400 and 401 will fail again anyway."
+            },
+            {
+              "text": "Retry only the 400, because someone may fix the data in the meantime.",
+              "ok": false,
+              "why": "A 400 means the request itself is wrong, so SAP says not to retry it."
+            },
+            {
+              "text": "Retry the whole upsert, including the records that succeeded.",
+              "ok": false,
+              "why": "SAP says to retry only the failed records. Repeating a create or upsert with an auto-increment key can create duplicates."
+            }
+          ]
+        },
+        {
+          "id": "u09-l2-i10",
+          "type": "scenario",
+          "src": "s3",
+          "q": "An Angular recruiting dashboard lists open requisitions. Its back end calls JobRequisition and expands all applications and attachments of every requisition, and the call often times out.",
+          "options": [
+            {
+              "text": "Load the requisition list with only the fields the page shows, and load the applications of one requisition when the recruiter opens it.",
+              "ok": true,
+              "why": "SAP warns against large expands and gives this case, all requisitions with all their applications and attachments, as its example. Loading the details only when they are needed keeps each call small."
+            },
+            {
+              "text": "Raise the client timeout to 30 minutes.",
+              "ok": false,
+              "why": "The query is still far too heavy. A longer wait does not fix the design and keeps the server busy."
+            },
+            {
+              "text": "Add $top=5000, so everything comes back in one page.",
+              "ok": false,
+              "why": "A page holds at most 1000 records, and a bigger page makes each call slower, not faster."
+            },
+            {
+              "text": "Call JobApplication once for each application ID instead.",
+              "ok": false,
+              "why": "SAP warns against pulling records one at a time by key, because every call has a cost on the server."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u09-l3",
+      "kind": "interview",
+      "title": "Talk about the OData API",
+      "items": [
+        {
+          "id": "u09-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "For integrations, I never page with skip and top. I use server-side paging, follow each next link, and keep the page requests quick."
+        },
+        {
+          "id": "u09-l3-i2",
+          "type": "tf",
+          "src": "s4",
+          "statement": "SAP suggests cursor-based paging for a query that filters on lastModifiedDateTime and sorts by applicationId.",
+          "answer": false,
+          "why": "SAP describes cursor-based paging as the choice for simple queries without $filter or $orderby. For a filtered delta query, use snapshot paging."
+        },
+        {
+          "id": "u09-l3-i3",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "How do you read a large data set, such as all job applications, from the SuccessFactors OData API?",
+          "model": "In short, I keep each request small and I let the server do the paging. First, I select only the fields I need, filter on the server, and avoid large expands. Then I think about paging. A page has at most 1000 records, so a large result always comes in several pages. For an integration, I don't use client-side paging with top and skip, because if recruiters change records while I read, the offsets move and I can miss or duplicate records. Instead I use server-side paging. With snapshot paging, I add paging equals snapshot to the first request, and the server keeps the list of keys for the whole result. Each page ends with a next link that holds a skip token, and I call it until there isn't one. The risk is that the snapshot is lost if more than fifteen minutes pass between two pages. So I write each page straight to storage, and if the snapshot is lost, I start again from page one.",
+          "keypoints": [
+            {
+              "text": "Keep the request small: $select, $filter, small expands",
+              "kw": [
+                "select",
+                "only the fields",
+                "filter",
+                "expand",
+                "expands"
+              ]
+            },
+            {
+              "text": "At most 1000 records per page",
+              "kw": [
+                "1000",
+                "1,000",
+                "thousand",
+                "page size"
+              ]
+            },
+            {
+              "text": "Client-side paging can miss or duplicate records",
+              "kw": [
+                "top and skip",
+                "skip",
+                "miss",
+                "duplicate",
+                "duplicates",
+                "offsets"
+              ]
+            },
+            {
+              "text": "Server-side paging: paging=snapshot, then follow __next with the $skiptoken",
+              "kw": [
+                "server-side",
+                "server side",
+                "snapshot",
+                "next link",
+                "skip token",
+                "skiptoken"
+              ]
+            },
+            {
+              "text": "A snapshot is lost after a 15-minute gap: write pages quickly and restart from page 1",
+              "kw": [
+                "15 minutes",
+                "fifteen minutes",
+                "lost",
+                "restart",
+                "start again",
+                "page one"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u09-l3-i4",
+          "type": "say",
+          "src": "s3",
+          "text": "I select only the fields I need and keep expands small. A big expand across every requisition is slow, and it can time out."
+        },
+        {
+          "id": "u09-l3-i5",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 150,
+          "q": "How would you design a delta load of job applications from SuccessFactors Recruiting?",
+          "model": "I read only what changed since the last successful run, which is also what SAP recommends for integrations. I keep a watermark, the start time of the last good run, and I filter on lastModifiedDateTime with a datetimeoffset value in UTC. I use the start time, not the end time, because records can change while the run is going on, and I start the window a few minutes early. That overlap creates some duplicates on purpose, so the load merges by applicationId, and a record read twice is harmless. I page with snapshot paging and write each page to Cloud Storage. Two details matter for Recruiting. A plain query on JobApplication also returns draft and saved applications, so I filter on the status. And a last-modified filter can't return records that were deleted, so I run a full reconciliation from time to time. The watermark only moves forward when the totals match.",
+          "keypoints": [
+            {
+              "text": "A watermark from the last successful run",
+              "kw": [
+                "watermark",
+                "last successful run",
+                "last good run",
+                "since the last"
+              ]
+            },
+            {
+              "text": "Filter on lastModifiedDateTime",
+              "kw": [
+                "lastmodifieddatetime",
+                "last modified",
+                "modified",
+                "datetimeoffset",
+                "utc"
+              ]
+            },
+            {
+              "text": "An overlap, and an idempotent merge by key",
+              "kw": [
+                "overlap",
+                "merge",
+                "merges",
+                "duplicates",
+                "idempotent",
+                "applicationid"
+              ]
+            },
+            {
+              "text": "Draft and saved applications: filter on status",
+              "kw": [
+                "draft",
+                "drafts",
+                "saved",
+                "status"
+              ]
+            },
+            {
+              "text": "Deleted records need a full reconciliation",
+              "kw": [
+                "deleted",
+                "deletes",
+                "reconciliation",
+                "reconcile",
+                "full load",
+                "full reload"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u09-l3-i6",
+          "type": "tf",
+          "src": "s16",
+          "statement": "After an admin adds a custom field to the application template, the OData metadata always shows it at once, so a metadata refresh is never needed.",
+          "answer": false,
+          "why": "The metadata is cached and can fall out of sync after data model changes. SAP recommends a manual refresh in OData API Metadata Refresh and Export."
+        },
+        {
+          "id": "u09-l3-i7",
+          "type": "scenario",
+          "src": "s6",
+          "q": "Two integrations share one API user. Both start at 01:00 and use snapshot paging, and sometimes the user is blocked for 30 minutes with COE_SNAPSHOT_BAD_REQUEST. What do you change?",
+          "options": [
+            {
+              "text": "Give each integration its own API user, and make sure each one follows the __next links instead of asking for the first page again.",
+              "ok": true,
+              "why": "SAP blocks snapshot paging for 30 minutes after too many consecutive requests that never fetch the next pages. It recommends different users for different integrations."
+            },
+            {
+              "text": "Request the first page again every few seconds until the block ends.",
+              "ok": false,
+              "why": "Repeating the first page is exactly what triggers the block, so the user stays blocked."
+            },
+            {
+              "text": "Switch both integrations to $top and $skip.",
+              "ok": false,
+              "why": "That avoids the block, but it brings back missed and duplicate records when the data changes."
+            },
+            {
+              "text": "Run both integrations with more threads, so they finish before a block can start.",
+              "ok": false,
+              "why": "More parallel requests add load, and SAP warns against excessive multithreading."
+            }
+          ]
+        },
+        {
+          "id": "u09-l3-i8",
+          "type": "say",
+          "src": "s11",
+          "text": "An upsert returns a result for every record, so I check each status and send the failed records, with their messages, to a dead-letter store."
+        },
+        {
+          "id": "u09-l3-i9",
+          "type": "explain",
+          "src": "s12",
+          "seconds": 150,
+          "q": "How do you write data back to SuccessFactors Recruiting safely through the API?",
+          "model": "In short, I check what I may write, I test it, and I check every result. I start with the OData API Data Dictionary, to see which JobApplication fields are updatable and upsertable, and I check the API user's Recruiting permissions. Then I test the payload in a preview instance with a few records, because an upsert can change a lot of data very quickly. The upsert response has one result per record, with a status of OK or ERROR, a message and an index, which is the record's position in my request. The key can be empty when a record fails, so I use the index to find it. Failed records go to a dead-letter store with their messages, and I retry only those, never the whole set. For many operations in one call, I use dollar batch, with 180 requests or fewer. And I never blindly retry a create on an object with an auto-increment key, because that can create duplicates.",
+          "keypoints": [
+            {
+              "text": "Check the Data Dictionary and the permissions",
+              "kw": [
+                "data dictionary",
+                "dictionary",
+                "updatable",
+                "upsertable",
+                "permission",
+                "permissions"
+              ]
+            },
+            {
+              "text": "Test in a preview instance first",
+              "kw": [
+                "preview",
+                "test",
+                "few records"
+              ]
+            },
+            {
+              "text": "One result per record: status, message and index",
+              "kw": [
+                "each record",
+                "every record",
+                "per record",
+                "index",
+                "message",
+                "status"
+              ]
+            },
+            {
+              "text": "Retry only the failed records; no blind retries",
+              "kw": [
+                "only the failed",
+                "failed records",
+                "dead letter",
+                "dead-letter",
+                "duplicates",
+                "auto-increment"
+              ]
+            },
+            {
+              "text": "$batch has a limit of 180 requests",
+              "kw": [
+                "batch",
+                "180"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u09-l3-i10",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 120,
+          "q": "What does it mean to be a good API citizen with SuccessFactors?",
+          "model": "For me it means four things. First, I don't ask too often. SAP warns that repeating queries much more often than once an hour uses too much API resource, so I use delta loads, and events when something is really urgent. Second, I ask for less. I select only the fields I use, keep expands small, and use server-side paging. Instead of many single calls by key, I use a filter with the in operator, or a batch. Third, I'm careful with connections. I reuse the login session instead of logging in for every page, and I avoid running lots of threads in parallel. Fourth, I retry carefully. I wait one to five minutes, try at most five times, and only retry errors that can succeed, like a 503. I never retry a 400, 401, 404 or 500. If I get a 429, I wait before I try again; SAP suggests five minutes.",
+          "keypoints": [
+            {
+              "text": "Not too often: delta loads, not every minute",
+              "kw": [
+                "often",
+                "hour",
+                "delta",
+                "frequency",
+                "every minute"
+              ]
+            },
+            {
+              "text": "Ask for less: $select, small expands, server-side paging",
+              "kw": [
+                "select",
+                "expand",
+                "expands",
+                "fields",
+                "paging"
+              ]
+            },
+            {
+              "text": "Fewer calls: the in operator or $batch, and reused sessions",
+              "kw": [
+                "batch",
+                "in operator",
+                "reuse",
+                "session",
+                "sessions"
+              ]
+            },
+            {
+              "text": "Limit parallel threads",
+              "kw": [
+                "threads",
+                "parallel",
+                "multithreading"
+              ]
+            },
+            {
+              "text": "Careful retries: wait 1 to 5 minutes, at most 5 times, never 400, 401, 404 or 500; wait after a 429",
+              "kw": [
+                "retry",
+                "retries",
+                "wait",
+                "429",
+                "backoff",
+                "five minutes"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "OData V2 basics",
+        "points": [
+          "Recruiting is exposed through the SuccessFactors OData V2 API under /odata/v2/, for example /odata/v2/JobApplication.",
+          "$select: only the properties you use. $filter: only the rows you need. $expand: related entries, kept small. $orderby: sort.",
+          "Entity and property names are case-sensitive; check them in the OData API Data Dictionary.",
+          "Many records by key: use the in operator in $filter, or $batch, not one call per key.",
+          "A plain GET on JobApplication also returns draft and saved applications; filter on status."
+        ]
+      },
+      {
+        "h": "Metadata",
+        "points": [
+          "/odata/v2/$metadata: the whole service, as an EDMX document.",
+          "/odata/v2/JobApplication,Candidate/$metadata: only those entities, but without navigation properties.",
+          "Navigation properties: SAP's KBA uses /odata/v2/Entity('User')?$format=JSON.",
+          "The metadata is cached. After data model changes, refresh it in Admin Center: OData API Metadata Refresh and Export."
+        ]
+      },
+      {
+        "h": "Paging",
+        "points": [
+          "At most 1000 records per page.",
+          "Client-side: $top and $skip. SAP's method for UI screens; in an integration it can miss or duplicate records.",
+          "Server-side: every page ends with a __next link that holds a $skiptoken; call it until there is no __next.",
+          "paging=snapshot: the server stores the keys of the whole result; SAP's choice for integrations.",
+          "paging=cursor: the server keeps a database cursor; for simple queries without $filter or $orderby.",
+          "customPageSize: a smaller page with server-side paging (the default is 1000)."
+        ]
+      },
+      {
+        "h": "When a snapshot fails",
+        "points": [
+          "Snapshot lost (COE0019, sent as HTTP 500): more than 15 minutes between two pages, or the last page requested twice. Do not retry the same page; restart from page 1.",
+          "Keep the page loop fast: write each page to storage and transform it later.",
+          "COE_SNAPSHOT_BAD_REQUEST: too many first-page requests without following __next (10 in a row for an API user, 5 for one entity, within 30 minutes); snapshot paging is then blocked for 30 minutes.",
+          "Use different API users for different integrations, or do not run them at the same time."
+        ]
+      },
+      {
+        "h": "Delta loads",
+        "points": [
+          "$filter=lastModifiedDateTime gt datetimeoffset'2026-10-24T01:00:00Z'",
+          "Watermark: the start time of the last successful run. Start the window a little earlier and merge by key.",
+          "A last-modified filter cannot return deleted records, so reconcile with a full load from time to time.",
+          "Effective-dated entities such as EmpJob: the filter checks every time slice, but by default you get today's slice, so check the dates again in the middleware (KBA 2920680).",
+          "Time zones: SAP Learning says lastModifiedDateTime is in UTC and lastModifiedOn is in the server time zone. Send UTC values that end in Z, and test what your tenant returns."
+        ]
+      },
+      {
+        "h": "Writing: upsert and $batch",
+        "points": [
+          "POST /odata/v2/upsert: insert or update, with one result per record.",
+          "Each result: status (OK or ERROR), editStatus, message, index (position in the request), httpCode and key (which can be empty on failure).",
+          "Check every result and log the full error; retry only the failed records.",
+          "strictTransactionIsolate=true: one failing record does not affect the others (KBA 2936182).",
+          "$batch: one POST with a multipart/mixed body, at most 180 requests, counting each one inside a changeset.",
+          "In OData V2, a changeset is all or nothing, and queries go outside changesets."
+        ]
+      },
+      {
+        "h": "Good citizen and retries",
+        "points": [
+          "Do not repeat queries much more often than once an hour; read only modified records.",
+          "Reuse the login session (the JSESSIONID cookie) instead of logging in for each page, and avoid excessive multithreading.",
+          "Retry: 5xx other than 500, 412 once, connection resets, and timeouts if your client waits as long as the 5-minute infrastructure timeout.",
+          "Wait 1 to 5 minutes between attempts, and stop after 5.",
+          "Never retry 400, 401, 404 or 500, or a create or upsert on an object with an auto-increment key.",
+          "429 Too Many Requests: wait, then retry; SAP suggests 300 seconds."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "SAP KBA 2723468: missing or duplicate data when paging with the SuccessFactors OData API",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2723468",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "SAP KBA 2735876: SuccessFactors OData API Best Practices [Query Modified Records, Pagination, Batch Size, Timeout, etc.]",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2735876",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Analyzing EC OData API Performance - SAP Learning",
+      "url": "https://learning.sap.com/courses/exploring-sap-successfactors-employee-central-odata-api/analyzing-ec-odata-api-performance",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "SAP KBA 2990434: [COE0019][SNP] Snapshot lost for current pagination query",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2990434",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "SAP KBA 3308165: How to use snapshot pagination to query an OData entity using a REST tool (Postman)",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3308165",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "SAP KBA 2749091: protection for snapshot pagination (COE_SNAPSHOT_BAD_REQUEST)",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2749091",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "SAP KBA 3084369: How to use the OData Cursor-based Pagination in the Boomi SuccessFactors Partner Connector",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3084369",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "SAP KBA 2489065: records missing from OData API results because of pagination",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2489065",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "SAP KBA 2920680: Using lastModifiedDateTime Range Filtering - SuccessFactors OData API",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2920680",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "SAP KBA 2614934: Batch operation returns error: The request count exceeds the maximum request count allowed : 180 - OData API",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2614934",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "SAP KBA 2974994: No key value is shown in an Upsert error message - Integration Center",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2974994",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "SAP KBA 2882860: How to edit Job Application data via ODATA API - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2882860",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "SAP KBA 2936182: Upserting isolated records in the same API call - OData API",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2936182",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "SAP KBA 3159263: Rate Limiting on SAP SuccessFactors APIs - FAQ on API Throttling",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3159263",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "SAP KBA 2668887: retrieving OData API metadata for all entities or for specific entities",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2668887",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "SAP KBA 2171588: OData API Metadata Refresh and Export in SuccessFactors Cloud",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2171588",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Describing OData and APIs in Recruiting - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-administration/describing-odata-and-apis-in-recruiting",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "SAP KBA 2918571: a GET on the JobApplication entity also returns Draft and Saved applications",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2918571",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "URI Conventions (OData Version 2.0) - odata.org",
+      "url": "https://www.odata.org/documentation/odata-version-2-0/uri-conventions/",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Batch Processing (OData Version 2.0) - odata.org",
+      "url": "https://www.odata.org/documentation/odata-version-2-0/batch-processing/",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "JSON Format (OData Version 2.0) - odata.org",
+      "url": "https://www.odata.org/documentation/odata-version-2-0/json-format/",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Overview (OData Version 2.0) - odata.org",
+      "url": "https://www.odata.org/documentation/odata-version-2-0/overview/",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "SAP KBA 2658508: OData upsert fails with Illegal JSON string-value format",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2658508",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "SAP KBA 2341070: SFAPI and OData API services for Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2341070",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "SAP KBA 2972887: lastModifiedDateTime on the JobApplication entity and time zones",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2972887",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "Describing OData API and the API Center - SAP Learning",
+      "url": "https://learning.sap.com/learning-journeys/configuring-sap-successfactors-platform-advanced-topics/describing-odata-api-api-center-integration-center-and-security-center",
+      "official": true
+    },
+    {
+      "id": "s27",
+      "title": "SAP KBA 3063733: SAP SuccessFactors ODATA API Query operation: Recommended Performance tuning Guidelines",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3063733",
+      "official": true
+    },
+    {
+      "id": "s28",
+      "title": "SAP Cloud Platform Integration: enhanced pagination in the SuccessFactors OData V2 outbound connector - SAP blog (January 2019)",
+      "url": "https://blogs.sap.com/2019/01/16/sap-cloud-platform-integration-enhanced-pagination-in-successfactors-odata-v2-outbound-connector/",
+      "official": false
+    }
+  ]
+}

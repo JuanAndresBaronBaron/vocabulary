@@ -1,0 +1,1364 @@
+{
+  "format": 1,
+  "id": "u30",
+  "n": 30,
+  "block": "extras",
+  "title": "Angular basics",
+  "summary": "After this unit you can explain modern Angular, from standalone components, built-in control flow and signals to httpResource, lazy routes, zoneless change detection and Signal Forms, and say what changed in Angular 21 and 22.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Angular 22 is the current major (v22.0 released 2026-06-03; the angular.dev docs build was v22.2.3 on 2026-10-25). v21 was released 2025-11-19 and is in LTS until 2027-06; v20 LTS ends 2026-11-28.",
+    "Stable since v22.0 according to the API reference: form() (Signal Forms), httpResource and HttpResourceRef. The v22 announcement also lists resource and Angular Aria as production-ready.",
+    "The v21 announcement shows Signal Forms bound with a [field] directive; the current v22 guides use the FormField directive with [formField].",
+    "Zoneless: experimental in v18, developer preview in v20, stable in v20.2, default for new applications in v21 (Angular v21 announcement). The current zoneless guide says zoneless is the default in v21+, NgZone.onStable and onMicrotaskEmpty never emit, and afterNextRender or afterEveryRender replace them.",
+    "OnPush as the default for new applications and the rename of ChangeDetectionStrategy.Default to Eager come from the v22 announcement; the change detection guides were not re-read.",
+    "Exhaustive @switch checks with @default never; and several @case blocks sharing one output were announced in v22.",
+    "HttpClient injectable by default from v21, and fetch as the default backend (withXhr() to switch), come from the current HTTP setup guide.",
+    "unconfirmed: the stability label of the @Service decorator and of injectAsync, both new in v22; the v22 post says @Injectable remains available for deeper configuration or constructor injection.",
+    "unconfirmed: whether ng update to v21 keeps existing applications on zone.js; the v21 post only says new applications use zoneless and links to the migration guide."
+  ],
+  "terms": [
+    {
+      "id": "t-standalone",
+      "term": "Standalone component",
+      "ipa": "/ˈstændəˌləʊn kəmˈpəʊnənt/",
+      "say": "standalone component",
+      "def": "A component that lists the components, directives and pipes its template uses in its own imports array, with no NgModule. Components are standalone by default since Angular 19.",
+      "example": "The JobList component adds JobCard to its imports array, so it can use <app-job-card> in its template.",
+      "src": "s1"
+    },
+    {
+      "id": "t-control-flow",
+      "term": "Built-in control flow",
+      "ipa": "/ˌbɪlt ˈɪn kənˈtrəʊl fləʊ/",
+      "say": "built-in control flow",
+      "def": "Template blocks such as @if, @for and @switch that are part of Angular's template syntax. They replace structural directives such as NgIf, which is deprecated since Angular 20.",
+      "example": "@if (jobs().length > 0) shows the requisition list, and @else shows the message No open requisitions.",
+      "src": "s2"
+    },
+    {
+      "id": "t-track",
+      "term": "Track expression",
+      "ipa": "/træk ɪkˈsprɛʃn/",
+      "say": "track expression",
+      "def": "The key that @for uses to identify each item, so Angular can match data to DOM nodes and make only the DOM changes it needs. Choose a property that uniquely identifies each item.",
+      "example": "@for (app of applications(); track app.applicationId) keeps each row in place when the list is refreshed from SuccessFactors.",
+      "src": "s2"
+    },
+    {
+      "id": "t-defer",
+      "term": "@defer block",
+      "ipa": "/dɪˈfɜː blɒk/",
+      "say": "defer block",
+      "def": "A template block whose dependencies are split into a separate JavaScript file and loaded only when a trigger fires, such as on viewport or on interaction. It can show @placeholder, @loading and @error content.",
+      "example": "The candidate page loads the CV viewer with @defer (on interaction) when the recruiter clicks Show CV.",
+      "src": "s3"
+    },
+    {
+      "id": "t-signal",
+      "term": "Signal",
+      "ipa": "/ˈsɪɡnəl/",
+      "say": "signal",
+      "def": "A wrapper around a value that notifies interested consumers when the value changes. You read it by calling it, and you change a writable signal with set() or update().",
+      "example": "After status.set('Interview'), every template that reads status() shows the new stage.",
+      "src": "s4"
+    },
+    {
+      "id": "t-computed",
+      "term": "Computed signal",
+      "ipa": "/kəmˈpjuːtɪd ˈsɪɡnəl/",
+      "say": "computed signal",
+      "def": "A read-only signal derived from other signals. It is lazy and memoised: the derivation runs on the first read, and the result is cached until a signal it read changes.",
+      "example": "openCount = computed(() => this.jobs().filter(j => j.status === 'Open').length) gives the dashboard its counter.",
+      "src": "s4"
+    },
+    {
+      "id": "t-effect",
+      "term": "Effect",
+      "ipa": "/ɪˈfɛkt/",
+      "say": "effect",
+      "def": "An operation that runs whenever the signals it reads change. It always runs at least once, runs asynchronously during change detection, and is best for syncing signal state to non-signal APIs.",
+      "example": "An effect saves the draft interview feedback to local storage each time the feedback signal changes.",
+      "src": "s5"
+    },
+    {
+      "id": "t-signal-input",
+      "term": "Signal input",
+      "ipa": "/ˈsɪɡnəl ˈɪnpʊt/",
+      "say": "signal input",
+      "def": "An input declared with input() or input.required(). The parent sets the value, and the component reads it as a read-only signal.",
+      "example": "With jobId = input.required<string>(), the build fails if a template uses <app-job-detail> without [jobId].",
+      "src": "s6"
+    },
+    {
+      "id": "t-model-input",
+      "term": "Model input",
+      "ipa": "/ˈmɒdl ˈɪnpʊt/",
+      "say": "model input",
+      "def": "An input declared with model() that the component can also write. When the component calls set() or update(), the new value goes back to the parent through two-way binding, written [(name)].",
+      "example": "<app-shortlist-toggle [(checked)]=\"isShortlisted\" /> keeps the parent's signal in step with the toggle.",
+      "src": "s6"
+    },
+    {
+      "id": "t-injection-context",
+      "term": "Injection context",
+      "ipa": "/ɪnˈdʒɛkʃn ˈkɒntɛkst/",
+      "say": "injection context",
+      "def": "A place in the code where inject() can be called, such as a field initialiser or the constructor of a component, directive or service. inject() returns the dependency from Angular's injector.",
+      "example": "private http = inject(HttpClient); as a field initialiser gives the requisition service its HTTP client.",
+      "src": "s8"
+    },
+    {
+      "id": "t-http-resource",
+      "term": "httpResource",
+      "ipa": "/ˌeɪtʃ tiː tiː ˈpiː rɪˈzɔːs/",
+      "say": "H T T P resource",
+      "def": "A function for reactive HTTP reads: you return a URL from a function, and it requests again when the signals in that function change. It exposes the response and the request status as signals, and it is stable since Angular 22.",
+      "example": "requisition = httpResource(() => '/api/requisitions/' + this.jobId()) loads again when the recruiter picks another job.",
+      "src": "s10"
+    },
+    {
+      "id": "t-lazy",
+      "term": "Lazy loading",
+      "ipa": "/ˌleɪzi ˈləʊdɪŋ/",
+      "say": "lazy loading",
+      "def": "Loading a route's code only when the user visits it. With loadComponent or loadChildren, the code compiles into a separate JavaScript chunk, so less JavaScript is in the initial page load.",
+      "example": "The admin pages use loadChildren, so recruiters who never open them never download that code.",
+      "src": "s14"
+    },
+    {
+      "id": "t-zoneless",
+      "term": "Zoneless change detection",
+      "ipa": "/ˈzəʊnləs ˈtʃeɪndʒ dɪˌtɛkʃn/",
+      "say": "zoneless change detection",
+      "def": "Change detection without zone.js. Angular refreshes views only after a notification, such as an update to a signal that a template reads, a template listener or markForCheck(). It is the default from Angular 21.",
+      "example": "After the upgrade, the team removed zone.js from the polyfills and moved the dashboard counters to signals.",
+      "src": "s15"
+    },
+    {
+      "id": "t-signal-forms",
+      "term": "Signal Forms",
+      "ipa": "/ˈsɪɡnəl fɔːmz/",
+      "say": "signal forms",
+      "def": "Angular's forms API built on signals: form() turns a signal model into a tree of fields, and the [formField] directive binds a field to an input. It was experimental in Angular 21 and is stable since Angular 22.",
+      "example": "feedbackForm = form(this.feedbackModel) and <textarea [formField]=\"feedbackForm.comments\"></textarea> bind the hiring manager's comments.",
+      "src": "s17"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u30-l1",
+      "kind": "concepts",
+      "title": "The building blocks of modern Angular",
+      "items": [
+        {
+          "id": "u30-l1-i1",
+          "type": "card",
+          "term": "t-standalone",
+          "src": "s1"
+        },
+        {
+          "id": "u30-l1-i2",
+          "type": "card",
+          "term": "t-signal",
+          "src": "s4",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "s",
+                "label": "signal: status"
+              },
+              {
+                "id": "c",
+                "label": "computed: stageLabel"
+              },
+              {
+                "id": "t",
+                "label": "Template"
+              },
+              {
+                "id": "e",
+                "label": "effect: saves a draft"
+              }
+            ],
+            "edges": [
+              {
+                "from": "s",
+                "to": "c",
+                "label": "read by"
+              },
+              {
+                "from": "c",
+                "to": "t",
+                "label": "read by"
+              },
+              {
+                "from": "s",
+                "to": "e",
+                "label": "read by"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u30-l1-i3",
+          "type": "tf",
+          "src": "s4",
+          "statement": "A computed signal runs its derivation again every time a template reads it.",
+          "answer": false,
+          "why": "Computed signals are lazy and memoised. The derivation runs on the first read, and the cached result is used until a signal it read changes."
+        },
+        {
+          "id": "u30-l1-i4",
+          "type": "pick",
+          "src": "s2",
+          "q": "In @for (job of jobs(); track job.jobReqId), what does the track expression do?",
+          "options": [
+            "It gives each item a unique key, so Angular can map items to DOM nodes and make only the DOM changes it needs",
+            "It sorts the list by jobReqId before the loop renders it",
+            "It subscribes to the list, so changes appear without change detection",
+            "It skips any item that has no jobReqId"
+          ],
+          "answer": 0,
+          "why": "Angular uses the track key to match data to existing DOM nodes and do the minimum DOM work. It does not sort, subscribe or filter."
+        },
+        {
+          "id": "u30-l1-i5",
+          "type": "card",
+          "term": "t-model-input",
+          "src": "s6",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "p",
+                "label": "Parent: isShortlisted = signal(false)"
+              },
+              {
+                "id": "c",
+                "label": "Child: checked = model(false)"
+              }
+            ],
+            "edges": [
+              {
+                "from": "p",
+                "to": "c",
+                "label": "[(checked)] passes the value down"
+              },
+              {
+                "from": "c",
+                "to": "p",
+                "label": "set() or update() sends the new value back"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u30-l1-i6",
+          "type": "pick",
+          "src": "s6",
+          "q": "A CandidateCard component gets a candidate from its parent. The card must not change it, and the parent must always set it. Which declaration fits?",
+          "options": [
+            "candidate = input.required<Candidate>()",
+            "candidate = model<Candidate>()",
+            "candidate = output<Candidate>()",
+            "candidate = signal<Candidate | null>(null)"
+          ],
+          "answer": 0,
+          "why": "input.required() gives a read-only signal, and the build fails if a template leaves it out. model() is writable and two-way, output() sends events up, and a plain signal field is local state that the parent cannot bind."
+        },
+        {
+          "id": "u30-l1-i7",
+          "type": "card",
+          "term": "t-defer",
+          "src": "s3",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "p",
+                "label": "@placeholder is shown"
+              },
+              {
+                "id": "tr",
+                "label": "Trigger fires, e.g. on viewport"
+              },
+              {
+                "id": "l",
+                "label": "@loading while the chunk downloads"
+              },
+              {
+                "id": "c",
+                "label": "Deferred content"
+              },
+              {
+                "id": "er",
+                "label": "@error content"
+              }
+            ],
+            "edges": [
+              {
+                "from": "p",
+                "to": "tr",
+                "label": "waits"
+              },
+              {
+                "from": "tr",
+                "to": "l",
+                "label": "starts loading"
+              },
+              {
+                "from": "l",
+                "to": "c",
+                "label": "success"
+              },
+              {
+                "from": "l",
+                "to": "er",
+                "label": "failure"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u30-l1-i8",
+          "type": "card",
+          "term": "t-http-resource",
+          "src": "s10",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "f",
+                "label": "URL function reads jobId()"
+              },
+              {
+                "id": "r",
+                "label": "httpResource"
+              },
+              {
+                "id": "h",
+                "label": "HttpClient and interceptors"
+              },
+              {
+                "id": "b",
+                "label": "Spring Boot API"
+              },
+              {
+                "id": "s",
+                "label": "Signals: value, status, error, isLoading"
+              }
+            ],
+            "edges": [
+              {
+                "from": "f",
+                "to": "r",
+                "label": "jobId changes"
+              },
+              {
+                "from": "r",
+                "to": "h",
+                "label": "new request"
+              },
+              {
+                "from": "h",
+                "to": "b",
+                "label": "GET"
+              },
+              {
+                "from": "r",
+                "to": "s",
+                "label": "exposes"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u30-l1-i9",
+          "type": "card",
+          "term": "t-zoneless",
+          "src": "s15",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "n",
+                "label": "Notification: signal update, template listener, markForCheck, setInput"
+              },
+              {
+                "id": "a",
+                "label": "Angular schedules change detection"
+              },
+              {
+                "id": "v",
+                "label": "Views are refreshed"
+              }
+            ],
+            "edges": [
+              {
+                "from": "n",
+                "to": "a",
+                "label": "tells Angular"
+              },
+              {
+                "from": "a",
+                "to": "v",
+                "label": "runs"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u30-l1-i10",
+          "type": "match",
+          "src": "s4",
+          "q": "Match each function with what it creates.",
+          "pairs": [
+            [
+              "signal()",
+              "A writable value that notifies readers when it changes"
+            ],
+            [
+              "computed()",
+              "A read-only value derived from other signals"
+            ],
+            [
+              "effect()",
+              "A side effect that runs when the signals it reads change"
+            ],
+            [
+              "input()",
+              "A read-only signal that the parent component sets"
+            ],
+            [
+              "model()",
+              "A writable input that supports two-way binding"
+            ],
+            [
+              "output()",
+              "An event that the component emits to its parent"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u30-l2",
+      "kind": "practice",
+      "title": "Build a recruiter dashboard",
+      "items": [
+        {
+          "id": "u30-l2-i1",
+          "type": "match",
+          "src": "s2",
+          "q": "Match each template block with what it does.",
+          "pairs": [
+            [
+              "@if (user(); as u)",
+              "Shows content when the value is truthy and stores it in u"
+            ],
+            [
+              "@for (c of list(); track c.id)",
+              "Repeats content and uses c.id to match items to DOM nodes"
+            ],
+            [
+              "@empty",
+              "Shows content when the @for collection has no items"
+            ],
+            [
+              "@default never;",
+              "Makes the type checker report a union value with no @case"
+            ],
+            [
+              "@defer (on viewport)",
+              "Loads its content when the placeholder enters the viewport"
+            ],
+            [
+              "@placeholder (minimum 500ms)",
+              "Shows content before the trigger fires, for at least 500 ms"
+            ]
+          ]
+        },
+        {
+          "id": "u30-l2-i2",
+          "type": "code",
+          "src": "s2",
+          "lang": "ts",
+          "q": "Complete the component. It reads open requisitions from a Spring Boot API and shows a loading message, an error, the list, or a message when the list is empty.",
+          "code": "@Component({\n  selector: 'app-job-list',\n  template: `\n    @if (jobs.isLoading()) {\n      <p>Loading requisitions...</p>\n    } @else if (jobs.error()) {\n      <p>Could not load the requisitions.</p>\n    } @else if (jobs.hasValue()) {\n      <ul>\n        @for (job of jobs.value(); [[1]] job.jobReqId) {\n          <li>{{ $index + 1 }}. {{ job.title }}</li>\n        } [[2]] {\n          <li>No open requisitions.</li>\n        }\n      </ul>\n    }\n  `,\n})\nexport class JobList {\n  readonly jobs = [[3]]<JobRequisition[]>(() => '/api/requisitions?status=open');\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "track",
+              "decoys": [
+                "trackBy",
+                "let"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "@empty",
+              "decoys": [
+                "@else",
+                "@default"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "httpResource",
+              "decoys": [
+                "computed",
+                "inject"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u30-l2-i3",
+          "type": "scenario",
+          "src": "s2",
+          "q": "A recruiter dashboard polls a Spring Boot API every 30 seconds and lists candidates with @for (c of candidates(); track c). After each poll every row is rebuilt, and recruiters lose the note they were typing, although the data rarely changes.",
+          "options": [
+            {
+              "text": "Track by a stable unique key: track c.applicationId.",
+              "ok": true,
+              "why": "Each poll creates new objects, so tracking by the object itself treats every row as new. A unique ID lets Angular keep the existing DOM nodes."
+            },
+            {
+              "text": "Track by $index.",
+              "ok": false,
+              "why": "The index says where a row is, not which candidate it is. The docs mention $index as a key for static collections, and this list changes."
+            },
+            {
+              "text": "Wrap the list in @defer (on idle).",
+              "ok": false,
+              "why": "@defer only delays the first load of the block. It does not change how @for updates the rows."
+            },
+            {
+              "text": "Copy the response into a second signal with effect() before rendering.",
+              "ok": false,
+              "why": "The copy still holds new objects, so the rows are still rebuilt. Effects are also not meant for copying state."
+            }
+          ]
+        },
+        {
+          "id": "u30-l2-i4",
+          "type": "order",
+          "src": "s15",
+          "q": "In a zoneless Angular 22 application, put in order what happens when a recruiter clicks Shortlist.",
+          "steps": [
+            "The recruiter clicks the Shortlist button",
+            "The template listener calls shortlist() in the component",
+            "shortlist() sets the status signal to Shortlisted",
+            "Angular is notified and schedules change detection",
+            "Angular refreshes the view that reads the status signal"
+          ]
+        },
+        {
+          "id": "u30-l2-i5",
+          "type": "diagram",
+          "src": "s10",
+          "layout": "flow",
+          "q": "Complete the data flow of a recruiter dashboard. The browser never holds SuccessFactors credentials.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "JobList component with httpResource",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "HttpClient with a functional interceptor",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Spring Boot back end on Cloud Run",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "SuccessFactors Recruiting OData API",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "GET /api/requisitions when the URL signal changes"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "adds the user's session token"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "calls the API with its own OAuth token"
+            }
+          ],
+          "decoys": [
+            "zone.js polyfill",
+            "effect() that copies the response",
+            "SuccessFactors API key in the Angular bundle"
+          ]
+        },
+        {
+          "id": "u30-l2-i6",
+          "type": "code",
+          "src": "s6",
+          "lang": "ts",
+          "q": "Complete the CandidateCard component. The card never changes the candidate, and the parent must always pass it. The parent uses it like this: <app-candidate-card [candidate]=\"c\" [(shortlisted)]=\"isShortlisted\" (reject)=\"onReject($event)\" />",
+          "code": "@Component({\n  selector: 'app-candidate-card',\n  template: `\n    <h3>{{ candidate().name }}</h3>\n    <p>{{ stageLabel() }}</p>\n    <button (click)=\"toggle()\">{{ shortlisted() ? 'Remove from shortlist' : 'Shortlist' }}</button>\n    <button (click)=\"reject.emit(candidate().applicationId)\">Reject</button>\n  `,\n})\nexport class CandidateCard {\n  readonly candidate = [[1]]<Candidate>();\n  readonly shortlisted = [[2]](false);\n  readonly reject = [[3]]<string>();\n  readonly stageLabel = [[4]](() => `Stage: ${this.candidate().stage}`);\n\n  toggle() {\n    this.shortlisted.update((value) => !value);\n  }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "input.required",
+              "decoys": [
+                "model",
+                "signal"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "model",
+              "decoys": [
+                "input",
+                "computed"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "output",
+              "decoys": [
+                "input",
+                "effect"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "computed",
+              "decoys": [
+                "effect",
+                "signal"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u30-l2-i7",
+          "type": "scenario",
+          "src": "s5",
+          "q": "A requisition page has a signal called requisition. A developer adds an effect that sets a second signal, locationLabel, to the city and country each time requisition changes. A reviewer asks for a simpler design.",
+          "options": [
+            {
+              "text": "Replace the effect and the second signal with locationLabel = computed(() => ...).",
+              "ok": true,
+              "why": "The label is derived state, and computed models state that depends on other state. The docs say effects should be the last API you reach for."
+            },
+            {
+              "text": "Keep the effect, but read requisition inside untracked().",
+              "ok": false,
+              "why": "The effect then no longer depends on requisition, so the label stops updating."
+            },
+            {
+              "text": "Move the effect into a service.",
+              "ok": false,
+              "why": "It is still an effect that copies state; only its location changes."
+            },
+            {
+              "text": "Set locationLabel inside a setTimeout in the effect.",
+              "ok": false,
+              "why": "This only delays the copy and adds a moment when the label is out of date."
+            }
+          ]
+        },
+        {
+          "id": "u30-l2-i8",
+          "type": "scenario",
+          "src": "s10",
+          "q": "A hiring manager clicks Save to send interview feedback to the Spring Boot back end with a POST. A developer wants to use httpResource for it, because the page already reads data with httpResource.",
+          "options": [
+            {
+              "text": "Call HttpClient.post() from the click handler, and keep httpResource for reads.",
+              "ok": true,
+              "why": "The docs say to avoid httpResource for mutations such as POST or PUT and to use the HttpClient APIs for them."
+            },
+            {
+              "text": "Use httpResource with method POST and start it by setting a signal on click.",
+              "ok": false,
+              "why": "This is the mutation case the docs warn against: the request is tied to signal changes, not to one user action."
+            },
+            {
+              "text": "Send the POST from an effect that watches the feedback signal.",
+              "ok": false,
+              "why": "The effect would send a request on every change to the feedback, not once on Save."
+            },
+            {
+              "text": "Call reload() on the existing read resource to send the feedback.",
+              "ok": false,
+              "why": "reload() repeats the read request; it does not send any data."
+            }
+          ]
+        },
+        {
+          "id": "u30-l2-i9",
+          "type": "code",
+          "src": "s14",
+          "lang": "ts",
+          "q": "Complete the routing setup. The dashboard is the landing page and loads eagerly. The requisition page and the admin area are lazy loaded, and both files use a default export.",
+          "code": "export const routes: Routes = [\n  { path: '', component: Dashboard },\n  { path: 'requisitions/:id', [[1]]: () => import('./requisitions/requisition-detail') },\n  { path: 'admin', loadChildren: () => [[2]]('./admin/admin.routes') },\n  { path: '**', component: NotFound },\n];\n\nexport const appConfig: ApplicationConfig = {\n  providers: [\n    [[3]](routes),\n  ],\n};",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "loadComponent",
+              "decoys": [
+                "component",
+                "loadChildren"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "import",
+              "decoys": [
+                "require",
+                "inject"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "provideRouter",
+              "decoys": [
+                "provideHttpClient",
+                "RouterModule"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u30-l2-i10",
+          "type": "order",
+          "src": "s14",
+          "q": "Put in order what happens the first time a user opens /requisitions/42, a lazy-loaded route.",
+          "steps": [
+            "The user opens /requisitions/42",
+            "The router matches the path requisitions/:id",
+            "The router runs loadComponent in the route's injection context",
+            "The browser downloads the separate JavaScript chunk",
+            "The router renders RequisitionDetail in the router outlet"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u30-l3",
+      "kind": "interview",
+      "title": "Talk about Angular",
+      "items": [
+        {
+          "id": "u30-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "In new Angular projects, I use standalone components, signals for state and the built-in control flow, and I lazy load every route except the landing page."
+        },
+        {
+          "id": "u30-l3-i2",
+          "type": "tf",
+          "src": "s3",
+          "statement": "If a component is used inside a @defer block but the same file also references it elsewhere, for example in a ViewChild query, Angular still loads it eagerly.",
+          "answer": true,
+          "why": "Deferred dependencies must be standalone and must not be referenced outside @defer blocks in the same file. Otherwise they are loaded eagerly."
+        },
+        {
+          "id": "u30-l3-i3",
+          "type": "explain",
+          "src": "s4",
+          "seconds": 120,
+          "q": "What are signals in Angular, and when would you use computed and when effect?",
+          "model": "A signal is a wrapper around a value that tells Angular when the value changes. I read it by calling it, like status(), and I change a writable signal with set or update. Angular tracks which signals a template or a computed signal reads, so it knows exactly what to refresh. A computed signal derives a read-only value from other signals. It is lazy and memoised: it runs on the first read and caches the result until a dependency changes. An effect runs a side effect when the signals it reads change. It always runs at least once, and it runs asynchronously during change detection. I use computed for any state that depends on other state, for example the filtered list of candidates. I keep effects for syncing with non-signal APIs, such as saving a draft to local storage. The Angular docs say effects should be the last API you reach for, so an effect that copies state is a warning sign.",
+          "keypoints": [
+            {
+              "text": "A signal wraps a value and notifies readers; read it by calling it",
+              "kw": [
+                "wrapper",
+                "wraps",
+                "notifies",
+                "notify",
+                "calling",
+                "set",
+                "update"
+              ]
+            },
+            {
+              "text": "Angular tracks which signals are read",
+              "kw": [
+                "track",
+                "tracks",
+                "dependency",
+                "dependencies",
+                "reads"
+              ]
+            },
+            {
+              "text": "computed is read-only, lazy and memoised",
+              "kw": [
+                "computed",
+                "derived",
+                "derives",
+                "read-only",
+                "lazy",
+                "memoised",
+                "memoized",
+                "cached",
+                "caches"
+              ]
+            },
+            {
+              "text": "effect is for side effects and non-signal APIs",
+              "kw": [
+                "effect",
+                "side effect",
+                "local storage",
+                "non-signal",
+                "imperative",
+                "logging"
+              ]
+            },
+            {
+              "text": "Effects are the last resort; do not copy state with them",
+              "kw": [
+                "last",
+                "avoid",
+                "copy",
+                "copies",
+                "copying",
+                "warning"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u30-l3-i4",
+          "type": "scenario",
+          "src": "s15",
+          "q": "A team removes zone.js from a recruiter dashboard, so it runs zoneless, like new apps since Angular 21. The Last synced time stops updating. The component sets a plain class field inside a setInterval callback every minute.",
+          "options": [
+            {
+              "text": "Store the time in a signal and set it in the callback.",
+              "ok": true,
+              "why": "Updating a signal that a template reads notifies Angular, so the view is refreshed without zone.js."
+            },
+            {
+              "text": "Subscribe to NgZone.onStable and update the field there.",
+              "ok": false,
+              "why": "Without zone.js, onStable never emits, so the code would never run."
+            },
+            {
+              "text": "Call fixture.detectChanges() after each update.",
+              "ok": false,
+              "why": "fixture is a TestBed testing object; it does not exist in the running application."
+            },
+            {
+              "text": "Wrap the time in a @defer (on timer(60s)) block.",
+              "ok": false,
+              "why": "@defer loads its content once when the trigger fires; it does not refresh it every minute."
+            }
+          ]
+        },
+        {
+          "id": "u30-l3-i5",
+          "type": "explain",
+          "src": "s15",
+          "seconds": 120,
+          "q": "What does zoneless change detection mean, and how would you move an existing application to it?",
+          "model": "Zoneless means Angular no longer uses zone.js to find out when something might have changed. Instead, Angular runs change detection when it gets a notification: a signal that a template reads is updated, a template or host listener runs, markForCheck is called, for example by the async pipe, or setInput is called on a component reference. Zoneless became stable in Angular 20.2, and it is the default for new applications from Angular 21. The benefits are a smaller bundle and better performance. The trade-off is that a plain field changed in a timer or a third-party callback no longer refreshes the view. To migrate, I first move UI state to signals, or make sure the code calls markForCheck. Then I replace code that waits for NgZone.onStable or onMicrotaskEmpty with afterNextRender, because those observables never emit without zone.js. After that, I remove zone.js from the polyfills of the build and test targets and uninstall the package. In tests, I use await fixture.whenStable().",
+          "keypoints": [
+            {
+              "text": "No zone.js; Angular waits for a notification",
+              "kw": [
+                "zone.js",
+                "zonejs",
+                "notification",
+                "notified",
+                "notify"
+              ]
+            },
+            {
+              "text": "What notifies Angular: signals, listeners, markForCheck, setInput",
+              "kw": [
+                "signal",
+                "signals",
+                "listener",
+                "listeners",
+                "markforcheck",
+                "async pipe",
+                "setinput"
+              ]
+            },
+            {
+              "text": "Stable in 20.2, default from 21",
+              "kw": [
+                "default",
+                "stable",
+                "21",
+                "20.2"
+              ]
+            },
+            {
+              "text": "Replace NgZone.onStable with afterNextRender",
+              "kw": [
+                "onstable",
+                "onmicrotaskempty",
+                "ngzone",
+                "afternextrender",
+                "aftereveryrender",
+                "never emit"
+              ]
+            },
+            {
+              "text": "Remove zone.js from the polyfills and uninstall it",
+              "kw": [
+                "polyfills",
+                "polyfill",
+                "uninstall",
+                "bundle"
+              ]
+            },
+            {
+              "text": "Trade-off: plain fields changed in timers or callbacks do not refresh the view",
+              "kw": [
+                "trade-off",
+                "timer",
+                "timers",
+                "setinterval",
+                "settimeout",
+                "callback",
+                "callbacks",
+                "plain field"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u30-l3-i6",
+          "type": "say",
+          "src": "s10",
+          "text": "I read data with httpResource, so loading, error and value are signals, and I use HttpClient directly for writes like POST and PUT."
+        },
+        {
+          "id": "u30-l3-i7",
+          "type": "explain",
+          "src": "s14",
+          "seconds": 120,
+          "q": "How do you keep the initial load of a large Angular application fast?",
+          "model": "I start with the router. I load the landing page eagerly, and I lazy load the other routes with loadComponent, or with loadChildren for a group of routes. Each lazy route compiles into a separate JavaScript chunk, which the browser downloads only when the user visits that route. Inside a page, I use @defer for large parts that are not needed straight away, such as a chart or a CV viewer. I choose a trigger, like on viewport or on interaction, and I show a placeholder and, if needed, a loading block. I can also prefetch, for example on idle, so the code is ready before the user clicks. Two details matter. Deferred dependencies must be standalone, and the same file must not reference them outside the @defer block, or they are loaded eagerly anyway. Finally, I remember the trade-off: lazy loading adds requests later, so I do not lazy load the first screen.",
+          "keypoints": [
+            {
+              "text": "Lazy routes with loadComponent or loadChildren",
+              "kw": [
+                "lazy",
+                "loadcomponent",
+                "loadchildren",
+                "route",
+                "routes"
+              ]
+            },
+            {
+              "text": "Each lazy route is a separate chunk",
+              "kw": [
+                "chunk",
+                "chunks",
+                "separate",
+                "bundle"
+              ]
+            },
+            {
+              "text": "@defer with a trigger",
+              "kw": [
+                "defer",
+                "trigger",
+                "viewport",
+                "interaction",
+                "idle",
+                "hover",
+                "timer"
+              ]
+            },
+            {
+              "text": "Placeholder, loading and prefetch",
+              "kw": [
+                "placeholder",
+                "loading",
+                "prefetch"
+              ]
+            },
+            {
+              "text": "Standalone, not referenced elsewhere, or it loads eagerly",
+              "kw": [
+                "standalone",
+                "reference",
+                "referenced",
+                "eager",
+                "eagerly"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u30-l3-i8",
+          "type": "tf",
+          "src": "s18",
+          "statement": "In Angular 22, Signal Forms are still an experimental API, so you should not use them in production.",
+          "answer": false,
+          "why": "Signal Forms were experimental in Angular 21. The form() API has been stable since v22.0, and the v22 announcement calls Signal Forms ready for production."
+        },
+        {
+          "id": "u30-l3-i9",
+          "type": "explain",
+          "src": "s10",
+          "seconds": 120,
+          "q": "When would you use httpResource, and when would you call HttpClient directly?",
+          "model": "I use httpResource to read data that depends on signals. I give it a function that returns the URL, for example the requisition list for the country the recruiter has selected. When a signal in that function changes, it sends a new request. If the old request is still pending, it cancels it first, so a slow old response cannot replace the new data. It gives me the result as signals: value, status, error and isLoading, plus hasValue and the status code. So the template can show a loading message, an error or the data, and I write no manual subscriptions. It is built on HttpClient, so my interceptors still run, for example the one that adds the session token for our Spring Boot back end. httpResource has been stable since Angular 22. For writes, such as a POST that saves interview feedback, I call HttpClient directly from the click handler. The docs say to avoid httpResource for mutations. A write should happen once, when the user asks for it, not whenever a signal changes.",
+          "keypoints": [
+            {
+              "text": "Reactive reads driven by signals",
+              "kw": [
+                "signal",
+                "signals",
+                "reactive",
+                "url",
+                "read",
+                "reads"
+              ]
+            },
+            {
+              "text": "A new URL cancels the pending request",
+              "kw": [
+                "cancel",
+                "cancels",
+                "cancelled",
+                "abort",
+                "aborts",
+                "pending",
+                "race",
+                "stale"
+              ]
+            },
+            {
+              "text": "Result as signals: value, status, error, isLoading",
+              "kw": [
+                "value",
+                "status",
+                "error",
+                "isloading",
+                "hasvalue",
+                "loading"
+              ]
+            },
+            {
+              "text": "Built on HttpClient, so interceptors run",
+              "kw": [
+                "interceptor",
+                "interceptors",
+                "httpclient",
+                "built on"
+              ]
+            },
+            {
+              "text": "HttpClient directly for POST, PUT and other mutations",
+              "kw": [
+                "post",
+                "put",
+                "mutation",
+                "mutations",
+                "write",
+                "writes"
+              ]
+            },
+            {
+              "text": "Stable since Angular 22",
+              "kw": [
+                "stable",
+                "22",
+                "production"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u30-l3-i10",
+          "type": "explain",
+          "src": "s22",
+          "seconds": 150,
+          "q": "What is new in Angular 21 and 22, and what would it change for a team starting a new application?",
+          "model": "Angular 21 came out in November 2025. The big change is that new applications are zoneless by default, so zone.js is no longer included, and change detection is driven by signals and events. Vitest also became the default test runner for new projects, HttpClient became available for injection without extra setup, and Signal Forms arrived as an experimental API. Angular 22 came out in June 2026 and made several of those features stable: Signal Forms, resource and httpResource, and Angular Aria, the library of headless, accessible components. OnPush is now the default for new applications, and the old Default strategy is renamed Eager. There is also a new @Service decorator for app-wide singleton services. In most cases, it replaces Injectable with providedIn root. For a new team, this means one consistent model: standalone components, signals for state, the built-in control flow, httpResource for reads and Signal Forms for forms. I would still read the release notes for anything we depend on, such as the Webpack builders, which are now deprecated.",
+          "keypoints": [
+            {
+              "text": "Zoneless by default in 21",
+              "kw": [
+                "zoneless",
+                "zone.js",
+                "21"
+              ]
+            },
+            {
+              "text": "Signal Forms stable in 22",
+              "kw": [
+                "signal forms",
+                "forms"
+              ]
+            },
+            {
+              "text": "resource and httpResource stable",
+              "kw": [
+                "httpresource",
+                "resource",
+                "stable"
+              ]
+            },
+            {
+              "text": "OnPush default; Default renamed Eager",
+              "kw": [
+                "onpush",
+                "eager"
+              ]
+            },
+            {
+              "text": "Tooling: Vitest, Aria, Webpack deprecated",
+              "kw": [
+                "vitest",
+                "aria",
+                "webpack",
+                "test runner"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Components and templates",
+        "points": [
+          "Components are standalone by default (since v19): list what the template uses in imports.",
+          "@if, @else if, @else; keep the value with as: @if (user(); as u).",
+          "@for (c of list(); track c.id) with @empty; implicit $index, $count, $first, $last, $even, $odd.",
+          "Track by a unique ID; $index works for static lists; tracking the object itself can slow updates.",
+          "@switch compares with ===, has no fallthrough; @default never; gives an exhaustive check.",
+          "NgIf is deprecated since v20: use @if."
+        ]
+      },
+      {
+        "h": "@defer",
+        "points": [
+          "Splits its dependencies into a separate file, loaded when a trigger fires.",
+          "Triggers: on idle (default), viewport, interaction, hover, immediate, timer; or when a condition is true.",
+          "Sub-blocks: @placeholder (minimum), @loading (after, minimum), @error.",
+          "prefetch on idle downloads the code before the content is shown.",
+          "Dependencies must be standalone and not referenced outside @defer in the same file.",
+          "During SSR the placeholder is rendered, unless incremental hydration is configured."
+        ]
+      },
+      {
+        "h": "Signals",
+        "points": [
+          "signal(): read with status(), change with set() or update().",
+          "computed(): read-only, lazy, memoised; only the signals actually read are dependencies.",
+          "effect(): runs at least once, asynchronously during change detection; needs an injection context; onCleanup for timers.",
+          "Effects are the last API to reach for: use computed for derived state.",
+          "untracked() reads a signal without making it a dependency."
+        ]
+      },
+      {
+        "h": "Inputs, outputs and services",
+        "points": [
+          "input() and input.required(): read-only signals set by the parent; options alias and transform.",
+          "model(): writable input for two-way binding [(name)]; it also creates a nameChange output.",
+          "output(): returns an OutputEmitterRef; call emit(); the parent binds (event)=\"handler($event)\".",
+          "inject() works in a field initialiser or a constructor (an injection context).",
+          "v22: @Service() is a new decorator for app-wide singleton services; in most cases it replaces @Injectable({ providedIn: 'root' })."
+        ]
+      },
+      {
+        "h": "HttpClient and httpResource",
+        "points": [
+          "HttpClient is injectable by default from v21; use provideHttpClient() to add features such as withInterceptors().",
+          "The default backend is fetch; withXhr() switches to XMLHttpRequest.",
+          "httpResource(() => url): reactive reads; stable since v22.",
+          "Signals: value, status, error, isLoading, plus hasValue(), headers, statusCode and reload().",
+          "Status: idle, loading, reloading, resolved, error, local; value() throws in the error state.",
+          "Built on HttpClient, so interceptors run; avoid it for POST or PUT.",
+          "When the URL changes, it cancels the pending request; the parse option validates the response, for example with Zod."
+        ]
+      },
+      {
+        "h": "Routing",
+        "points": [
+          "provideRouter(routes) in the application providers.",
+          "Parameters with ':id'; the wildcard '**' goes last; redirectTo for old links.",
+          "loadComponent: () => import('./page') for a default export, or .then(m => m.Page).",
+          "loadChildren lazy loads a group of child routes.",
+          "Lazy routes become separate chunks; keep the landing page eager."
+        ]
+      },
+      {
+        "h": "New in Angular 21 and 22",
+        "points": [
+          "v21 (19 Nov 2025): zoneless by default, no zone.js in new apps; Vitest default; Signal Forms experimental; Angular CLI MCP server stable.",
+          "Zoneless notifications: signal read in a template, template or host listener, markForCheck (async pipe), setInput.",
+          "Zoneless: NgZone.onStable and onMicrotaskEmpty never emit, so use afterNextRender; remove zone.js from polyfills; tests use await fixture.whenStable().",
+          "provideZoneChangeDetection() overrides the zoneless default and keeps zone-based change detection.",
+          "v22 (3 Jun 2026): Signal Forms, resource, httpResource and Angular Aria are stable.",
+          "Signal Forms: form(model) and [formField], from @angular/forms/signals; reactive forms stay a solid choice for existing apps.",
+          "v22: OnPush is the default for new apps; ChangeDetectionStrategy.Default is renamed Eager; Webpack builders are deprecated.",
+          "Support: v22 active; v21 LTS until June 2027; v20 LTS ends 28 Nov 2026."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Anatomy of components - Angular guide (angular.dev)",
+      "url": "https://angular.dev/guide/components",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Control flow - Angular templates guide (angular.dev)",
+      "url": "https://angular.dev/guide/templates/control-flow",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Deferred loading with @defer - Angular templates guide (angular.dev)",
+      "url": "https://angular.dev/guide/templates/defer",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Signals overview - Angular guide (angular.dev)",
+      "url": "https://angular.dev/guide/signals",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Side effects for non-reactive APIs: effect - Angular guide (angular.dev)",
+      "url": "https://angular.dev/guide/signals/effect",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Accepting data with input properties - Angular guide (angular.dev)",
+      "url": "https://angular.dev/guide/components/inputs",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Custom events with outputs - Angular guide (angular.dev)",
+      "url": "https://angular.dev/guide/components/outputs",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Dependency injection overview - Angular guide (angular.dev)",
+      "url": "https://angular.dev/guide/di",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Setting up HttpClient - Angular guide (angular.dev)",
+      "url": "https://angular.dev/guide/http/setup",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Reactive data fetching with httpResource - Angular guide (angular.dev)",
+      "url": "https://angular.dev/guide/http/http-resource",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Async reactivity with resources - Angular guide (angular.dev)",
+      "url": "https://angular.dev/guide/signals/resource",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "HttpResourceRef - Angular API reference (angular.dev)",
+      "url": "https://angular.dev/api/common/http/HttpResourceRef",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Define routes - Angular routing guide (angular.dev)",
+      "url": "https://angular.dev/guide/routing/define-routes",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Route loading strategies - Angular routing guide (angular.dev)",
+      "url": "https://angular.dev/guide/routing/loading-strategies",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Angular without ZoneJS (Zoneless) - Angular guide (angular.dev)",
+      "url": "https://angular.dev/guide/zoneless",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Signal Forms overview - Angular forms guide (angular.dev)",
+      "url": "https://angular.dev/guide/forms/signals/overview",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Signal Forms models - Angular forms guide (angular.dev)",
+      "url": "https://angular.dev/guide/forms/signals/models",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "form - Angular API reference, @angular/forms/signals (angular.dev)",
+      "url": "https://angular.dev/api/forms/signals/form",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "httpResource - Angular API reference (angular.dev)",
+      "url": "https://angular.dev/api/common/http/httpResource",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "NgIf - Angular API reference (angular.dev)",
+      "url": "https://angular.dev/api/common/NgIf",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Announcing Angular v21 - Angular Blog (19 November 2025)",
+      "url": "https://blog.angular.dev/announcing-angular-v21-57946c34f14b",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Announcing Angular v22 - Angular Blog (3 June 2026)",
+      "url": "https://blog.angular.dev/announcing-angular-v22-c52bb83a4664",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Angular versioning and releases (angular.dev)",
+      "url": "https://angular.dev/reference/releases",
+      "official": true
+    }
+  ]
+}

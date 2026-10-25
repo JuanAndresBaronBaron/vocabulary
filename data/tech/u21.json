@@ -1,0 +1,1354 @@
+{
+  "format": 1,
+  "id": "u21",
+  "n": 21,
+  "block": "gcp",
+  "title": "Observability on GCP",
+  "summary": "After this unit you can write Cloud Run logs that link to traces, route and keep logs with sinks and buckets, send OpenTelemetry traces to Cloud Trace, and alert with log-based metrics, uptime checks and SLO burn rates.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Checked against docs.cloud.google.com on 2026-10-25. The LogEntry reference and the Link log entries with traces page prefer a bare trace ID in the trace field; the Trace page calls projects/PROJECT_ID/traces/TRACE_ID the legacy format, and the Cloud Run logging samples still use it.",
+    "The full table of special JSON fields (including logging.googleapis.com/spanId and logging.googleapis.com/trace_sampled) is on the legacy Logging agent configuration page; the Cloud Run logging page confirms severity, message and logging.googleapis.com/trace, and its sample output shows logging.googleapis.com/labels and logging.googleapis.com/trace_sampled.",
+    "Cloud Run trace sampling: at most 0.1 requests per second per instance, not configurable; traces that Cloud Run generates automatically are not charged.",
+    "Burn-rate guidance from the Cloud Monitoring SLO docs: fast burn 10x with a 1 or 2 hour lookback, slow burn 2x with a 24-hour lookback, and no burn-rate alerts for a period over 24 hours. Unit 5 uses the SRE workbook values (14.4, 6 and 1), which is a different scheme.",
+    "SQL-based alerting policies are in Public Preview (2026-10-25).",
+    "Spring Boot 4.1.2: built-in structured logging formats are ECS, GELF and Logstash (logging.structured.format.console).",
+    "Cloud Logging pricing: no charge for routing, for logs in the _Required bucket, or for entries that no bucket stores; prices are left out because they change.",
+    "The Configure log buckets page (2026-10-25) calls the SQL upgrade for log buckets Observability Analytics; its link to that feature still uses a log-analytics URL.",
+    "unconfirmed: the launch stage of Cloud Run container dependencies; the collector sidecar sample service.yaml sets run.googleapis.com/launch-stage to ALPHA."
+  ],
+  "terms": [
+    {
+      "id": "t-special-fields",
+      "term": "Special JSON fields",
+      "ipa": "/ˈspeʃl ˈdʒeɪsn ˈfiːldz/",
+      "say": "special JSON fields",
+      "def": "Keys in a JSON log line that Cloud Logging treats in a special way. severity sets the level of the entry, message is the display text, and keys such as logging.googleapis.com/trace become fields of the LogEntry; all other keys stay in jsonPayload.",
+      "example": "The payroll adapter prints one JSON line with severity ERROR, a message and the trace field, so the error appears under the right request in Logs Explorer.",
+      "src": "s1"
+    },
+    {
+      "id": "t-severity",
+      "term": "Severity",
+      "ipa": "/sɪˈverəti/",
+      "say": "severity",
+      "def": "The level of a log entry. Cloud Logging uses DEFAULT, DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT and EMERGENCY, and the LogEntry default is DEFAULT.",
+      "example": "The filter severity>=ERROR shows only the failed calls to SuccessFactors, not the routine INFO lines.",
+      "src": "s3"
+    },
+    {
+      "id": "t-log-router",
+      "term": "Log Router",
+      "ipa": "/ˈlɒɡ ˌruːtə/",
+      "say": "log router",
+      "def": "The part of Cloud Logging that receives the log entries of a project, folder, organisation or billing account and passes them through its sinks. Every sink checks every entry on its own, so one entry can go to several places.",
+      "example": "The Log Router stores the adapter's error logs in the _Default bucket and, through a second sink, also sends them to a Pub/Sub topic for the security team.",
+      "src": "s5"
+    },
+    {
+      "id": "t-sink",
+      "term": "Sink (log sink)",
+      "ipa": "/sɪŋk/",
+      "say": "sink",
+      "def": "A routing rule with one inclusion filter, optional exclusion filters and a destination: a log bucket, a BigQuery dataset, a Cloud Storage bucket, a Pub/Sub topic or another Google Cloud project. A sink only routes entries that arrive after it was created.",
+      "example": "A sink with the filter severity>=ERROR sends the integration errors to a BigQuery dataset for the monthly report.",
+      "src": "s5"
+    },
+    {
+      "id": "t-log-bucket",
+      "term": "Log bucket",
+      "ipa": "/ˈlɒɡ ˌbʌkɪt/",
+      "say": "log bucket",
+      "def": "A storage container for log entries in Cloud Logging, with its own region and retention period. Every project has a _Required and a _Default bucket, and you can create your own buckets.",
+      "example": "The team creates a bucket in europe-west1 for the recruiting integration logs, because a bucket's region cannot be changed later.",
+      "src": "s6"
+    },
+    {
+      "id": "t-retention",
+      "term": "Retention period",
+      "ipa": "/rɪˈtenʃn ˌpɪəriəd/",
+      "say": "retention period",
+      "def": "How long a log bucket keeps its entries. The _Required bucket keeps them for 400 days and you cannot change that; the _Default bucket and new buckets keep them for 30 days unless you set a value from 1 to 3,650 days.",
+      "example": "Audit asks for one year of integration logs, so we set the retention of a user-defined bucket to 365 days.",
+      "src": "s7"
+    },
+    {
+      "id": "t-exclusion-filter",
+      "term": "Exclusion filter",
+      "ipa": "/ɪkˈskluːʒn ˌfɪltə/",
+      "say": "exclusion filter",
+      "def": "A filter on a sink. If an entry matches the sink's inclusion filter and at least one of its exclusion filters, that sink does not route the entry.",
+      "example": "An exclusion filter on the _Default sink drops the DEBUG lines from health checks, which nobody reads.",
+      "src": "s5"
+    },
+    {
+      "id": "t-log-based-metric",
+      "term": "Log-based metric",
+      "ipa": "/ˌlɒɡ beɪst ˈmetrɪk/",
+      "say": "log-based metric",
+      "def": "A Cloud Monitoring metric built from the log entries that match a filter. A counter counts matching entries, a distribution collects a numeric value into histogram buckets, and a boolean records whether an entry matched.",
+      "example": "A counter metric on the line 'SuccessFactors returned 429' lets the team chart throttling per minute and alert on it.",
+      "src": "s9"
+    },
+    {
+      "id": "t-otlp",
+      "term": "OTLP (OpenTelemetry Protocol)",
+      "ipa": "/ˌəʊ tiː ˌel ˈpiː/",
+      "say": "O T L P",
+      "def": "The protocol that OpenTelemetry uses to send traces, metrics and logs. Google Cloud receives OTLP through the Telemetry API at telemetry.googleapis.com.",
+      "example": "The collector sends the adapter's spans by OTLP to telemetry.googleapis.com, and they appear in Trace Explorer.",
+      "src": "s16"
+    },
+    {
+      "id": "t-collector",
+      "term": "OpenTelemetry Collector",
+      "ipa": "/ˌəʊpən təˈlemətri kəˈlektə/",
+      "say": "OpenTelemetry collector",
+      "def": "A separate process that receives telemetry from applications, processes it and exports it. On Cloud Run, Google documents running its Google-Built OpenTelemetry Collector as a sidecar container in the same service.",
+      "example": "The Spring Boot container sends OTLP to the collector sidecar on localhost port 4317, and the collector forwards it to the Telemetry API.",
+      "src": "s17"
+    },
+    {
+      "id": "t-alerting-policy",
+      "term": "Alerting policy",
+      "ipa": "/əˈlɜːtɪŋ ˌpɒləsi/",
+      "say": "alerting policy",
+      "def": "A Cloud Monitoring rule with a condition (when to act), notification channels (who to tell) and documentation (what to do). When the condition is met, Monitoring creates an alert and sends notifications.",
+      "example": "An alerting policy on the age of the oldest unacknowledged message in the payroll subscription emails the on-call engineer and posts to Slack.",
+      "src": "s19"
+    },
+    {
+      "id": "t-uptime-check",
+      "term": "Uptime check",
+      "ipa": "/ˈʌptaɪm ˌtʃek/",
+      "say": "uptime check",
+      "def": "A test that Cloud Monitoring runs from several locations, sending HTTP, HTTPS or TCP requests to a URL or resource to see if it answers. A check needs at least three checkers.",
+      "example": "An uptime check calls the adapter's public health URL, and its alerting policy notifies the team when at least two regions report failures.",
+      "src": "s20"
+    },
+    {
+      "id": "t-request-based-sli",
+      "term": "Request-based SLI",
+      "ipa": "/rɪˈkwest beɪst ˌes ˌel ˈaɪ/",
+      "say": "request-based S L I",
+      "def": "An SLI that counts good requests against all requests. A windows-based SLI instead counts good time windows against all windows.",
+      "example": "For the Cloud Run adapter, a good request is a 1xx or 2xx response, and 4xx responses are left out of the total.",
+      "src": "s21"
+    },
+    {
+      "id": "t-lookback",
+      "term": "Lookback period",
+      "ipa": "/ˈlʊkbæk ˌpɪəriəd/",
+      "say": "lookback period",
+      "def": "In a Cloud Monitoring burn-rate alert, the time window over which the burn rate is measured. A short lookback notices sudden problems quickly; a longer one smooths out short spikes.",
+      "example": "The fast-burn policy uses select_slo_burn_rate with a 60m lookback and a threshold of 10.",
+      "src": "s22"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u21-l1",
+      "kind": "concepts",
+      "title": "Logs, traces and alerts on Google Cloud",
+      "items": [
+        {
+          "id": "u21-l1-i1",
+          "type": "card",
+          "term": "t-special-fields",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "app",
+                "label": "Spring Boot app on Cloud Run"
+              },
+              {
+                "id": "out",
+                "label": "One JSON line on stdout"
+              },
+              {
+                "id": "cl",
+                "label": "Cloud Logging"
+              },
+              {
+                "id": "le",
+                "label": "LogEntry: severity, trace, spanId"
+              },
+              {
+                "id": "jp",
+                "label": "jsonPayload: all other keys"
+              }
+            ],
+            "edges": [
+              {
+                "from": "app",
+                "to": "out",
+                "label": "prints"
+              },
+              {
+                "from": "out",
+                "to": "cl",
+                "label": "collected with no agent"
+              },
+              {
+                "from": "cl",
+                "to": "le",
+                "label": "special fields"
+              },
+              {
+                "from": "cl",
+                "to": "jp",
+                "label": "other keys"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u21-l1-i2",
+          "type": "card",
+          "term": "t-severity",
+          "src": "s3"
+        },
+        {
+          "id": "u21-l1-i3",
+          "type": "pick",
+          "src": "s1",
+          "q": "A Spring Boot service on Cloud Run prints JSON logs to stdout. Which key links a log line to its trace in Cloud Trace?",
+          "options": [
+            "logging.googleapis.com/trace",
+            "traceparent",
+            "X-Cloud-Trace-Context",
+            "trace.id"
+          ],
+          "answer": 0,
+          "why": "Cloud Logging moves logging.googleapis.com/trace into the trace field of the LogEntry, which is the link between logs and traces. traceparent and X-Cloud-Trace-Context are HTTP headers you read the trace ID from, and trace.id is an ordinary key that stays in jsonPayload."
+        },
+        {
+          "id": "u21-l1-i4",
+          "type": "card",
+          "term": "t-log-router",
+          "src": "s5",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "e",
+                "label": "Log entry from Cloud Run"
+              },
+              {
+                "id": "r",
+                "label": "Log Router"
+              },
+              {
+                "id": "req",
+                "label": "_Required bucket (400 days)"
+              },
+              {
+                "id": "def",
+                "label": "_Default bucket (30 days by default)"
+              },
+              {
+                "id": "bq",
+                "label": "BigQuery dataset"
+              }
+            ],
+            "edges": [
+              {
+                "from": "e",
+                "to": "r",
+                "label": "arrives"
+              },
+              {
+                "from": "r",
+                "to": "req",
+                "label": "_Required sink: some audit logs"
+              },
+              {
+                "from": "r",
+                "to": "def",
+                "label": "_Default sink: the rest"
+              },
+              {
+                "from": "r",
+                "to": "bq",
+                "label": "your own sink"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u21-l1-i5",
+          "type": "tf",
+          "src": "s5",
+          "statement": "When you create a new sink, it also routes the log entries that were stored before it existed.",
+          "answer": false,
+          "why": "Sinks cannot route log entries retroactively. A new sink only routes entries that arrive after it is created."
+        },
+        {
+          "id": "u21-l1-i6",
+          "type": "card",
+          "term": "t-log-based-metric",
+          "src": "s9"
+        },
+        {
+          "id": "u21-l1-i7",
+          "type": "tf",
+          "src": "s9",
+          "statement": "By default, a user-defined log-based metric still counts log entries that an exclusion filter keeps out of storage.",
+          "answer": true,
+          "why": "User-defined log-based metrics are calculated from all logs that the Logging API receives for the project, included or excluded. System log-based metrics count included logs only."
+        },
+        {
+          "id": "u21-l1-i8",
+          "type": "card",
+          "term": "t-collector",
+          "src": "s17",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "app",
+                "label": "App container"
+              },
+              {
+                "id": "col",
+                "label": "Collector sidecar"
+              },
+              {
+                "id": "api",
+                "label": "Telemetry API"
+              },
+              {
+                "id": "tr",
+                "label": "Trace Explorer"
+              }
+            ],
+            "edges": [
+              {
+                "from": "app",
+                "to": "col",
+                "label": "OTLP to localhost:4317"
+              },
+              {
+                "from": "col",
+                "to": "api",
+                "label": "OTLP to telemetry.googleapis.com"
+              },
+              {
+                "from": "api",
+                "to": "tr",
+                "label": "spans"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u21-l1-i9",
+          "type": "pick",
+          "src": "s12",
+          "q": "The recruiting adapter logs 'SuccessFactors returned 429' every time it is throttled. You want a chart of throttling per minute and an alert above 20 per minute. What do you use?",
+          "options": [
+            "A counter log-based metric, with a metric-threshold alerting policy on it",
+            "A log-based alerting policy on the 429 message",
+            "An uptime check on the SuccessFactors API",
+            "A sink that routes the 429 lines to Cloud Storage"
+          ],
+          "answer": 0,
+          "why": "A counter metric counts the matching entries per period, so a threshold policy can alert on it. A log-based alerting policy cannot derive counts, an uptime check does not read your logs, and a Cloud Storage sink only stores them."
+        },
+        {
+          "id": "u21-l1-i10",
+          "type": "match",
+          "src": "s5",
+          "q": "Match each Cloud Logging or Cloud Monitoring feature with what it does.",
+          "pairs": [
+            [
+              "Sink",
+              "Sends matching log entries to a destination"
+            ],
+            [
+              "Log bucket",
+              "Stores log entries for a retention period"
+            ],
+            [
+              "Exclusion filter",
+              "Stops a sink from routing matching entries"
+            ],
+            [
+              "Uptime check",
+              "Tests from several locations whether a URL answers"
+            ],
+            [
+              "Alerting policy",
+              "Notifies people when a condition is met"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u21-l2",
+      "kind": "practice",
+      "title": "Instrument an integration on Cloud Run",
+      "items": [
+        {
+          "id": "u21-l2-i1",
+          "type": "match",
+          "src": "s8",
+          "q": "Match each requirement of the recruiting integration with the Google Cloud feature that meets it.",
+          "pairs": [
+            [
+              "Send every ERROR entry to the security team's SIEM",
+              "A sink to a Pub/Sub topic"
+            ],
+            [
+              "Analyse a year of integration logs with SQL",
+              "A sink to a BigQuery dataset"
+            ],
+            [
+              "Stop storing DEBUG lines from health checks",
+              "An exclusion filter on the _Default sink"
+            ],
+            [
+              "Chart the latency value written in each JSON log line",
+              "A distribution log-based metric"
+            ],
+            [
+              "Know quickly when the public endpoint stops answering",
+              "An uptime check with an alerting policy"
+            ]
+          ]
+        },
+        {
+          "id": "u21-l2-i2",
+          "type": "code",
+          "src": "s2",
+          "lang": "json",
+          "q": "Complete the log line that the payroll adapter on Cloud Run prints to stdout (shown on several lines here; the service prints it as one line). Cloud Logging must show it as an error with the right display text, linked to its trace and span.",
+          "code": "{\n  \"[[1]]\": \"ERROR\",\n  \"[[2]]\": \"SuccessFactors returned 429 for application 48213\",\n  \"[[3]]\": \"projects/acme-hr-prod/traces/0af7651916cd43dd8448eb211c80319c\",\n  \"[[4]]\": \"b7ad6b7169203331\",\n  \"logging.googleapis.com/trace_sampled\": true,\n  \"applicationId\": \"48213\",\n  \"targetSystem\": \"successfactors\"\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "severity",
+              "decoys": [
+                "level",
+                "log.level"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "message",
+              "decoys": [
+                "msg",
+                "textPayload"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "logging.googleapis.com/trace",
+              "decoys": [
+                "traceparent",
+                "X-Cloud-Trace-Context"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "logging.googleapis.com/spanId",
+              "decoys": [
+                "span_id",
+                "parent-id"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u21-l2-i3",
+          "type": "scenario",
+          "src": "s29",
+          "q": "A Spring Boot 4.1 adapter on Cloud Run sets logging.structured.format.console=ecs. The logs arrive as JSON in jsonPayload, but the filter severity>=ERROR finds none of the errors.",
+          "options": [
+            {
+              "text": "Write the level in a top-level severity key, for example with a Cloud Logging JSON layout or a custom StructuredLogFormatter.",
+              "ok": true,
+              "why": "Cloud Run sets the entry's severity from a severity key, and the ECS format writes the level in log.level instead."
+            },
+            {
+              "text": "Write the logs to a file under /var/log instead of stdout.",
+              "ok": false,
+              "why": "Cloud Run also collects files under /var/log, so the destination is not the problem; the name of the level key is."
+            },
+            {
+              "text": "Add an exclusion filter for the entries that have no severity.",
+              "ok": false,
+              "why": "An exclusion filter only stops a sink from routing entries; it does not set their severity, and you would lose the errors."
+            },
+            {
+              "text": "Create a log-based metric that counts entries whose text contains ERROR.",
+              "ok": false,
+              "why": "That gives you one chart, but every filter and alert that uses severity still misses the errors."
+            }
+          ]
+        },
+        {
+          "id": "u21-l2-i4",
+          "type": "order",
+          "src": "s4",
+          "q": "Put in order how a log line from a Cloud Run service ends up linked to its trace.",
+          "steps": [
+            "Cloud Run receives the request and fills in the traceparent header",
+            "The service reads the trace ID of the incoming request",
+            "The service prints a JSON line with the trace and span ID fields to stdout",
+            "Cloud Logging moves the special fields into the trace and spanId fields of the LogEntry",
+            "In Trace Explorer, Show logs lists the entry next to the spans"
+          ]
+        },
+        {
+          "id": "u21-l2-i5",
+          "type": "diagram",
+          "src": "s17",
+          "layout": "flow",
+          "q": "Complete the telemetry path of a Spring Boot adapter on Cloud Run that uses the OpenTelemetry Java agent and a collector sidecar.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Spring Boot container with the OpenTelemetry Java agent",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "OpenTelemetry Collector sidecar",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Telemetry API (telemetry.googleapis.com)",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Trace Explorer",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "Logs Explorer and Metrics Explorer",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "OTLP to localhost:4317"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "OTLP on port 443"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "spans"
+            },
+            {
+              "from": "n3",
+              "to": "n5",
+              "label": "logs and metrics"
+            }
+          ],
+          "decoys": [
+            "Cloud Storage sink",
+            "X-Cloud-Trace-Context header",
+            "_Required log bucket"
+          ]
+        },
+        {
+          "id": "u21-l2-i6",
+          "type": "code",
+          "src": "s23",
+          "lang": "json",
+          "q": "Complete the fast-burn alerting policy for the payroll adapter's SLO. It must fire when the error budget burns more than ten times faster than the sustainable rate over the last hour.",
+          "code": "{\n  \"displayName\": \"payroll-adapter fast burn\",\n  \"combiner\": \"AND\",\n  \"conditions\": [\n    {\n      \"displayName\": \"Fast burn\",\n      \"conditionThreshold\": {\n        \"filter\": \"[[1]](\\\"projects/acme-hr-prod/services/payroll-adapter/serviceLevelObjectives/availability\\\", \\\"[[2]]\\\")\",\n        \"comparison\": \"[[3]]\",\n        \"thresholdValue\": [[4]]\n      }\n    }\n  ]\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "select_slo_burn_rate",
+              "decoys": [
+                "select_slo_budget_fraction",
+                "select_slo_counts"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "60m",
+              "decoys": [
+                "30d",
+                "7d"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "COMPARISON_GT",
+              "decoys": [
+                "COMPARISON_LT",
+                "COMPARISON_LE"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "10",
+              "decoys": [
+                "0.995",
+                "1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u21-l2-i7",
+          "type": "scenario",
+          "src": "s27",
+          "q": "The payroll adapter pulls new hires from a Pub/Sub subscription with 7 days of message retention. Last month it stopped consuming over a long weekend, and nobody noticed for three days.",
+          "options": [
+            {
+              "text": "Alert on subscription/oldest_unacked_message_age_by_region, with a threshold far below the 7-day retention.",
+              "ok": true,
+              "why": "A growing message age shows a stuck consumer, and the Pub/Sub docs say to alert before the retention duration lapses, or the messages are lost for good."
+            },
+            {
+              "text": "Add an uptime check on the adapter's health URL.",
+              "ok": false,
+              "why": "The adapter can answer health checks while it consumes nothing, so the backlog still grows unseen."
+            },
+            {
+              "text": "Alert on the global subscription/num_undelivered_messages metric.",
+              "ok": false,
+              "why": "The Pub/Sub docs say to use the regional by_region metrics, not the global ones, and a message count alone does not show how close the oldest message is to the retention limit."
+            },
+            {
+              "text": "Create a log-based alerting policy that fires when 'message received' appears in the logs.",
+              "ok": false,
+              "why": "It fires for messages that do arrive; it cannot tell you that messages have stopped."
+            }
+          ]
+        },
+        {
+          "id": "u21-l2-i8",
+          "type": "scenario",
+          "src": "s8",
+          "q": "You created a sink that routes Cloud Run error logs from the recruiting project to a BigQuery dataset in the central analytics project. A day later the dataset is still empty.",
+          "options": [
+            {
+              "text": "Grant the sink's writer identity the BigQuery Data Editor role on the dataset.",
+              "ok": true,
+              "why": "A sink that writes to BigQuery uses a service account, its writer identity, and that account needs BigQuery Data Editor on the destination."
+            },
+            {
+              "text": "Wait, because new sinks can take several hours before they route anything.",
+              "ok": false,
+              "why": "That delay is documented for Cloud Storage destinations, and a whole day has already passed."
+            },
+            {
+              "text": "Recreate the sink with a retention period of 365 days.",
+              "ok": false,
+              "why": "Sinks have no retention period; retention belongs to log buckets and to the destination's own settings."
+            },
+            {
+              "text": "Remove the error entries from the _Required sink so that the new sink receives them.",
+              "ok": false,
+              "why": "You cannot modify the _Required sink, and every sink evaluates each entry independently anyway."
+            }
+          ]
+        },
+        {
+          "id": "u21-l2-i9",
+          "type": "scenario",
+          "src": "s9",
+          "q": "Health checks write thousands of DEBUG lines an hour to the _Default bucket, and logging costs keep rising. The team still wants a chart of failed health checks.",
+          "options": [
+            {
+              "text": "Add an exclusion filter for the health-check DEBUG lines to the _Default sink, and create a user-defined counter metric for the failures.",
+              "ok": true,
+              "why": "Entries that no bucket stores are not charged by Cloud Logging, and a user-defined log-based metric still counts excluded logs."
+            },
+            {
+              "text": "Shorten the retention of the _Required bucket to one day.",
+              "ok": false,
+              "why": "You cannot change the retention of the _Required bucket, and Cloud Logging does not charge for the logs in it."
+            },
+            {
+              "text": "Disable the _Default sink.",
+              "ok": false,
+              "why": "Then the project stores none of its application logs, including the errors you need."
+            },
+            {
+              "text": "Keep storing the lines and add a log-based alerting policy for the failures.",
+              "ok": false,
+              "why": "The storage cost does not change, and a log-based alerting policy sends notifications; it does not give you a chart."
+            }
+          ]
+        },
+        {
+          "id": "u21-l2-i10",
+          "type": "order",
+          "src": "s30",
+          "q": "Put in order the steps to set up an SLO with burn-rate alerts for the payroll adapter on Cloud Run.",
+          "steps": [
+            "Define the payroll adapter as a custom service in Cloud Monitoring",
+            "Choose the SLI: 1xx and 2xx responses are good, and 4xx responses are left out of the total",
+            "Set the goal and the compliance period, for example 99.5% over a rolling 28 days",
+            "Create a fast-burn and a slow-burn alerting policy on select_slo_burn_rate",
+            "When an alert fires, open the traces and logs of the failed requests"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u21-l3",
+      "kind": "interview",
+      "title": "Talking about observability on Google Cloud",
+      "items": [
+        {
+          "id": "u21-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "On Cloud Run, I log one JSON line per event to standard output, with severity, message and the trace field, so every line links to its trace."
+        },
+        {
+          "id": "u21-l3-i2",
+          "type": "tf",
+          "src": "s15",
+          "statement": "Cloud Run sends a trace to Cloud Trace for every incoming request.",
+          "answer": false,
+          "why": "Cloud Run samples incoming requests at a maximum of 0.1 requests per second for each instance, and you cannot configure that rate. A trace is a sample, not a full record."
+        },
+        {
+          "id": "u21-l3-i3",
+          "type": "explain",
+          "src": "s18",
+          "seconds": 120,
+          "q": "How would you implement logging for a Spring Boot integration that runs on Cloud Run?",
+          "model": "I keep it simple. The application writes one JSON object per line to standard output, and Cloud Run sends it to Cloud Logging without an agent. A few keys are special. Severity becomes the level of the entry, so I can filter on ERROR, and message becomes the display text. I also add the trace and span ID fields, so each line links to its trace and appears under its request. In Spring Boot I use a layout that writes these keys, for example Log4j2's JsonTemplateLayout with the GcpLayout template, and the OpenTelemetry Java agent puts the trace context into the MDC. All other keys stay in jsonPayload, so I add business IDs, such as the application ID, but no tokens or personal data. I log exceptions with the full stack trace in the message, so Error Reporting picks them up. The trade-off is cost: more stored lines mean a higher bill, so I keep DEBUG off in production.",
+          "keypoints": [
+            {
+              "text": "One JSON line per event on stdout, collected without an agent",
+              "kw": [
+                "stdout",
+                "standard output",
+                "json",
+                "one line",
+                "agent"
+              ]
+            },
+            {
+              "text": "severity and message are special fields",
+              "kw": [
+                "severity",
+                "message",
+                "special",
+                "level"
+              ]
+            },
+            {
+              "text": "Trace and span IDs link each line to its trace",
+              "kw": [
+                "trace",
+                "span",
+                "spanid",
+                "correlate",
+                "link",
+                "links"
+              ]
+            },
+            {
+              "text": "A layout or the OpenTelemetry agent fills in these keys",
+              "kw": [
+                "layout",
+                "gcplayout",
+                "log4j2",
+                "logback",
+                "mdc",
+                "opentelemetry",
+                "formatter"
+              ]
+            },
+            {
+              "text": "Business IDs in jsonPayload, but no secrets or personal data",
+              "kw": [
+                "business",
+                "application id",
+                "ids",
+                "personal",
+                "tokens",
+                "secrets"
+              ]
+            },
+            {
+              "text": "Trade-off: more stored lines cost more, so DEBUG stays off in production",
+              "kw": [
+                "cost",
+                "costs",
+                "bill",
+                "price",
+                "debug",
+                "production",
+                "charged"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u21-l3-i4",
+          "type": "scenario",
+          "src": "s22",
+          "q": "The interviewer says: 'Our on-call engineers get paged at night for single failed requests, and they have started to ignore the alerts.' What do you propose?",
+          "options": [
+            {
+              "text": "Alert on the SLO burn rate, with a fast-burn policy for sudden problems and a slow-burn policy for gradual ones.",
+              "ok": true,
+              "why": "A burn-rate alert fires only when errors use the error budget faster than the SLO allows, so one failed request pages nobody."
+            },
+            {
+              "text": "Snooze all the alerting policies at night.",
+              "ok": false,
+              "why": "A snooze also hides real outages at night, so it hides the noise instead of removing it."
+            },
+            {
+              "text": "Create a log-based alerting policy for every ERROR entry.",
+              "ok": false,
+              "why": "That notifies on individual messages, so it makes the noise worse."
+            },
+            {
+              "text": "Set the same threshold of 100 errors per minute for every service.",
+              "ok": false,
+              "why": "A fixed number ignores how much traffic each service has, so it is too strict for small services and too loose for large ones."
+            }
+          ]
+        },
+        {
+          "id": "u21-l3-i5",
+          "type": "explain",
+          "src": "s5",
+          "seconds": 150,
+          "q": "How would you design log routing and retention for an integration platform on Google Cloud?",
+          "model": "I start from what the Log Router does by default. Each project has a _Required bucket, which keeps some audit logs for 400 days, and nobody can change that. Everything else goes to the _Default bucket, which keeps logs for 30 days unless we change it. Then I add a sink for each need: for example, a sink to BigQuery for reports, a sink to a Pub/Sub topic for the security team's SIEM, or a user-defined bucket with a longer retention for audit. Every sink evaluates each entry on its own, so one entry can go to several places. To control cost, I add exclusion filters for noise such as health-check DEBUG lines, because entries that no bucket stores are not charged. For many projects I use an aggregated sink at the folder or organisation level. Two warnings: sinks are not retroactive, and a bucket's region cannot be changed, so I decide these things early.",
+          "keypoints": [
+            {
+              "text": "_Required keeps some audit logs for 400 days; _Default keeps the rest for 30 days",
+              "kw": [
+                "_required",
+                "required",
+                "400",
+                "_default",
+                "default",
+                "30 days"
+              ]
+            },
+            {
+              "text": "Sinks to BigQuery, Pub/Sub, Cloud Storage or buckets",
+              "kw": [
+                "sink",
+                "sinks",
+                "bigquery",
+                "pub/sub",
+                "pubsub",
+                "cloud storage",
+                "destination"
+              ]
+            },
+            {
+              "text": "Retention is set per bucket",
+              "kw": [
+                "retention",
+                "bucket",
+                "days"
+              ]
+            },
+            {
+              "text": "Exclusion filters reduce cost",
+              "kw": [
+                "exclusion",
+                "exclude",
+                "cost",
+                "noise",
+                "charged"
+              ]
+            },
+            {
+              "text": "Aggregated sinks for many projects",
+              "kw": [
+                "aggregated",
+                "folder",
+                "organisation",
+                "organization"
+              ]
+            },
+            {
+              "text": "Sinks are not retroactive and a bucket's region is fixed",
+              "kw": [
+                "retroactive",
+                "region",
+                "early"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u21-l3-i6",
+          "type": "say",
+          "src": "s22",
+          "text": "I set up two burn-rate alerts: a fast one with a one-hour lookback for sudden problems, and a slow one with a 24-hour lookback for gradual ones."
+        },
+        {
+          "id": "u21-l3-i7",
+          "type": "scenario",
+          "src": "s7",
+          "q": "The interviewer says: 'A developer added the candidate ID as a label to a counter log-based metric. Now the metric has thousands of time series, and the Monitoring bill keeps growing.' What do you do?",
+          "options": [
+            {
+              "text": "Remove the candidate ID label and keep only labels with a few known values, such as the target system and the status code.",
+              "ok": true,
+              "why": "Each combination of label values is a separate time series, and a log-based metric can have at most 30,000 active ones. Bounded labels keep the number of time series small and the cost predictable."
+            },
+            {
+              "text": "Add an exclusion filter for the candidate logs to the _Default sink.",
+              "ok": false,
+              "why": "User-defined log-based metrics count excluded logs too, so the metric creates the same time series."
+            },
+            {
+              "text": "Shorten the retention of the _Default bucket to seven days.",
+              "ok": false,
+              "why": "Retention controls how long the logs are kept; it does not change how many time series the metric writes."
+            },
+            {
+              "text": "Replace the metric with a log-based alerting policy.",
+              "ok": false,
+              "why": "A log-based alerting policy cannot derive counts, so you lose the chart and the threshold alert."
+            }
+          ]
+        },
+        {
+          "id": "u21-l3-i8",
+          "type": "explain",
+          "src": "s14",
+          "seconds": 150,
+          "q": "How does distributed tracing work on Google Cloud, and how do you connect traces with logs?",
+          "model": "Cloud Run already creates traces for incoming requests and fills in the W3C traceparent header, but it only samples a small share of the requests. For the detail inside the service, I use OpenTelemetry, which is what Google recommends. In a Spring Boot service, the OpenTelemetry Java agent instruments common libraries without code changes. The spans go by OTLP to a collector, which on Cloud Run runs as a sidecar container, and the collector exports them to the Telemetry API at telemetry.googleapis.com. Then I can see the whole request in Trace Explorer, including the slow call to SuccessFactors. To connect the logs, every log line carries the trace ID and the span ID in the special fields. In the trace view I click Show logs, and I see the log lines of that request next to its spans. Each component makes its own sampling decision, so I use a parent-based sampler and the service follows the caller's decision.",
+          "keypoints": [
+            {
+              "text": "Cloud Run traces requests automatically, but only a sample",
+              "kw": [
+                "automatically",
+                "sample",
+                "samples",
+                "sampling",
+                "traceparent"
+              ]
+            },
+            {
+              "text": "OpenTelemetry, for example the Java agent, creates the spans",
+              "kw": [
+                "opentelemetry",
+                "agent",
+                "instrument",
+                "instruments",
+                "spans",
+                "span"
+              ]
+            },
+            {
+              "text": "OTLP through a collector sidecar to the Telemetry API",
+              "kw": [
+                "otlp",
+                "collector",
+                "sidecar",
+                "telemetry api",
+                "telemetry.googleapis.com"
+              ]
+            },
+            {
+              "text": "Logs carry the trace and span IDs, and Show logs links them",
+              "kw": [
+                "trace id",
+                "span id",
+                "show logs",
+                "logs",
+                "correlate",
+                "link"
+              ]
+            },
+            {
+              "text": "A parent-based sampler follows the caller's decision",
+              "kw": [
+                "parent",
+                "parentbased",
+                "parent-based",
+                "caller"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u21-l3-i9",
+          "type": "scenario",
+          "src": "s5",
+          "q": "The interviewer asks: 'The security team wants the audit logs of all 40 projects in our HR folder in one central place, including the projects we create next year.' What do you suggest?",
+          "options": [
+            {
+              "text": "An aggregated sink on the HR folder that routes the audit logs to a bucket in a central project.",
+              "ok": true,
+              "why": "A folder sink routes the entries of the folder and all its children, so new projects in the folder are covered too."
+            },
+            {
+              "text": "A separate sink in each of the 40 projects.",
+              "ok": false,
+              "why": "It works today, but every new project needs its own sink, and one missed project leaves a gap in the audit trail."
+            },
+            {
+              "text": "A longer retention for the _Required bucket of each project.",
+              "ok": false,
+              "why": "You cannot change the retention of the _Required bucket, and it does not bring the logs together in one place."
+            },
+            {
+              "text": "A nightly job that copies yesterday's logs with the Logging API.",
+              "ok": false,
+              "why": "You build and run something that sinks already do in real time, and a failed run leaves a gap."
+            }
+          ]
+        },
+        {
+          "id": "u21-l3-i10",
+          "type": "explain",
+          "src": "s21",
+          "seconds": 150,
+          "q": "Walk me through how you would define an SLO and alerting for an integration service on Cloud Run.",
+          "model": "First I agree with the business what good service means. For a synchronous adapter on Cloud Run, I use a request-based availability SLI from the request count metric. Responses with a 1xx or 2xx code are good, and I leave 4xx responses out of the total, because a caller's bad request is usually not a failure of our service. Then I set a goal and a compliance period, for example 99.5% over a rolling 28 days. The error budget is the other 0.5% of eligible requests. For alerting I use the burn rate, not single errors. A fast-burn policy with a one-hour lookback and a threshold of about 10 catches sudden outages, and a slow-burn policy with a 24-hour lookback and a threshold of about 2 catches slow degradation. Each policy has notification channels and documentation that says what to check first. I also add an uptime check for the public endpoint and, for the asynchronous part, an alert on the age of the oldest unacknowledged Pub/Sub message.",
+          "keypoints": [
+            {
+              "text": "Request-based availability SLI: good requests over all requests",
+              "kw": [
+                "request-based",
+                "availability",
+                "good",
+                "total",
+                "sli",
+                "request count"
+              ]
+            },
+            {
+              "text": "4xx responses left out of the total",
+              "kw": [
+                "4xx",
+                "client",
+                "leave",
+                "exclude",
+                "caller"
+              ]
+            },
+            {
+              "text": "Goal, compliance period and error budget",
+              "kw": [
+                "goal",
+                "compliance",
+                "rolling",
+                "error budget",
+                "budget",
+                "99.5"
+              ]
+            },
+            {
+              "text": "Fast-burn and slow-burn policies",
+              "kw": [
+                "burn rate",
+                "burn-rate",
+                "fast",
+                "slow",
+                "lookback"
+              ]
+            },
+            {
+              "text": "Notification channels and documentation",
+              "kw": [
+                "notification",
+                "channels",
+                "channel",
+                "documentation",
+                "runbook"
+              ]
+            },
+            {
+              "text": "Uptime check and a Pub/Sub backlog alert",
+              "kw": [
+                "uptime",
+                "pub/sub",
+                "pubsub",
+                "oldest",
+                "unacknowledged",
+                "backlog"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Structured logs on Cloud Run",
+        "points": [
+          "No agent: write to stdout or stderr. One line of JSON becomes jsonPayload; plain text becomes textPayload.",
+          "severity sets the level: DEFAULT, DEBUG, INFO, NOTICE, WARNING, ERROR, CRITICAL, ALERT, EMERGENCY.",
+          "message is the display text; put a stack trace in it so Error Reporting can read it.",
+          "logging.googleapis.com/trace links the line to its trace; logging.googleapis.com/spanId (16 hex characters) to its span; logging.googleapis.com/trace_sampled is true or false.",
+          "Trace value: the bare trace ID is preferred; the legacy form projects/PROJECT_ID/traces/TRACE_ID, used in the Cloud Run samples, still works.",
+          "All other keys stay in jsonPayload: add business IDs such as the application ID.",
+          "Java: Log4j2 JsonTemplateLayout with GcpLayout.json, or the Cloud Logging Logback appender with redirectToStdout. Spring Boot's own formats are ECS, GELF and Logstash: check that the level ends up in a severity key."
+        ]
+      },
+      {
+        "h": "Routing, buckets and retention",
+        "points": [
+          "Log Router: every sink checks every entry on its own; one entry can go to several destinations.",
+          "Sink = one inclusion filter + exclusion filters + a destination: log bucket, BigQuery, Cloud Storage, Pub/Sub or another project.",
+          "_Required: some audit logs, 400 days, cannot be changed, no storage charge.",
+          "_Default: everything else, 30 days by default; you can change or disable its sink.",
+          "Custom retention: 1 to 3,650 days. A bucket's region is fixed; locking a bucket and the upgrade to Observability Analytics cannot be undone.",
+          "Sinks are not retroactive. The writer identity needs a role on the destination: BigQuery Data Editor, Storage Object Creator or Pub/Sub Publisher.",
+          "Folder or organisation (aggregated) sinks cover all child projects.",
+          "Cost: entries that no bucket stores are not charged, and routing is free; the destination charges for its own storage."
+        ]
+      },
+      {
+        "h": "Log-based metrics and log alerts",
+        "points": [
+          "Counter: counts matching entries. Distribution: histogram of a numeric value. Boolean: matched or not.",
+          "User-defined metrics are named logging.googleapis.com/user/NAME and use only entries received after the metric was created.",
+          "User-defined metrics count excluded logs too; system metrics count included logs only.",
+          "Up to 10 labels and 30,000 active time series per metric; each combination of label values is a new time series, so keep label values bounded (no candidate or user IDs).",
+          "Log-based alerting policy: notifies when a specific message appears; cannot count; ignores excluded logs; closes after 7 days by default."
+        ]
+      },
+      {
+        "h": "Cloud Trace and OpenTelemetry",
+        "points": [
+          "Cloud Run traces incoming requests automatically, at most 0.1 requests per second per instance, and fills in traceparent.",
+          "Google recommends OpenTelemetry: SDK or Java agent, OTLP to a collector, then the Telemetry API (telemetry.googleapis.com).",
+          "Cloud Run: run the Google-Built OpenTelemetry Collector as a sidecar; the app sends OTLP to localhost:4317 and depends on the collector container.",
+          "Spans in the _Trace bucket are kept for 30 days.",
+          "Sampling: each component decides on its own; a ParentBased sampler follows the caller's sampled flag.",
+          "Trace Explorer: Show logs lists the log entries linked to a trace."
+        ]
+      },
+      {
+        "h": "Alerting policies and uptime checks",
+        "points": [
+          "Alerting policy = conditions + notification channels + documentation.",
+          "Conditions: metric threshold, metric absence (up to 24 hours), forecast (1 hour to 7 days), PromQL, log-based, SQL-based (Preview).",
+          "A metric-based alert closes when the condition is no longer met. To pause a policy for a while, create a snooze.",
+          "Uptime check: HTTP, HTTPS or TCP from at least three checkers; by default any 2xx response is a success.",
+          "Its alert notifies by default when at least two regions report failures.",
+          "Pub/Sub: alert on subscription/oldest_unacked_message_age_by_region well before the retention duration.",
+          "A time series = metric type + metric labels + monitored resource + resource labels; each new label value is a new time series."
+        ]
+      },
+      {
+        "h": "SLOs and burn-rate alerts",
+        "points": [
+          "SLI: request-based (good requests / all requests) or windows-based (good windows / all windows).",
+          "Cloud Run availability: run.googleapis.com/request_count; Google's example counts 1xx and 2xx as good and leaves 4xx out of the total.",
+          "Compliance period: a calendar period, or rolling from 1 to 30 days.",
+          "Error budget = (1 - goal) x eligible events: 99.5% of 2,000,000 requests allows 10,000 bad ones.",
+          "Burn rate above 1: if it continues, the service misses its SLO.",
+          "select_slo_burn_rate(SLO name, lookback), for example \"60m\"; units ns, us, ms, s, m, h.",
+          "Starting points: fast burn 10x with a 1 or 2 hour lookback; slow burn 2x with a 24-hour lookback.",
+          "Burn-rate alerts cannot currently use a compliance period longer than 24 hours; for these alerts, the lookback period is also the compliance period."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Logging and viewing logs in Cloud Run (Google Cloud documentation)",
+      "url": "https://docs.cloud.google.com/run/docs/logging",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Configure the Logging agent: special fields in structured payloads (Google Cloud documentation)",
+      "url": "https://docs.cloud.google.com/logging/docs/agent/logging/configuration",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "LogEntry reference (Cloud Logging API v2)",
+      "url": "https://docs.cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Link log entries with traces (Cloud Trace documentation)",
+      "url": "https://docs.cloud.google.com/trace/docs/trace-log-integration",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Routing and storage overview (Cloud Logging documentation)",
+      "url": "https://docs.cloud.google.com/logging/docs/routing/overview",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Configure log buckets (Cloud Logging documentation)",
+      "url": "https://docs.cloud.google.com/logging/docs/buckets",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Quotas and limits (Cloud Logging documentation)",
+      "url": "https://docs.cloud.google.com/logging/quotas",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Route logs to supported destinations (Cloud Logging documentation)",
+      "url": "https://docs.cloud.google.com/logging/docs/export/configure_export_v2",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Log-based metrics overview (Cloud Logging documentation)",
+      "url": "https://docs.cloud.google.com/logging/docs/logs-based-metrics",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Configure distribution metrics (Cloud Logging documentation)",
+      "url": "https://docs.cloud.google.com/logging/docs/logs-based-metrics/distribution-metrics",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Configure counter metrics (Cloud Logging documentation)",
+      "url": "https://docs.cloud.google.com/logging/docs/logs-based-metrics/counter-metrics",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Configure log-based alerting policies (Cloud Logging documentation)",
+      "url": "https://docs.cloud.google.com/logging/docs/alerting/log-based-alerts",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Cloud Trace overview (Google Cloud documentation)",
+      "url": "https://docs.cloud.google.com/trace/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Instrumentation and observability (Cloud Trace documentation)",
+      "url": "https://docs.cloud.google.com/trace/docs/setup",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Using distributed tracing (Cloud Run documentation)",
+      "url": "https://docs.cloud.google.com/run/docs/trace",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Telemetry (OTLP) API overview (Google Cloud Observability documentation)",
+      "url": "https://docs.cloud.google.com/stackdriver/docs/reference/telemetry/overview",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Deploy the Google-Built OpenTelemetry Collector on Cloud Run (Google Cloud documentation)",
+      "url": "https://docs.cloud.google.com/stackdriver/docs/instrumentation/opentelemetry-collector-cloud-run",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Java instrumentation sample (Google Cloud Observability documentation)",
+      "url": "https://docs.cloud.google.com/stackdriver/docs/instrumentation/setup/java",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Alerting overview (Cloud Monitoring documentation)",
+      "url": "https://docs.cloud.google.com/monitoring/alerts",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Create public uptime checks (Cloud Monitoring documentation)",
+      "url": "https://docs.cloud.google.com/monitoring/uptime-checks",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Concepts in service monitoring (Cloud Monitoring SLO documentation)",
+      "url": "https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Alerting on your burn rate (Cloud Monitoring SLO documentation)",
+      "url": "https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring/alerting-on-budget-burn-rate",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Creating an alerting policy with the SLO API (Cloud Monitoring documentation)",
+      "url": "https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/create-policy-api",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "Request-response services: SLI metrics (Cloud Monitoring documentation)",
+      "url": "https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring/sli-metrics/req-resp-metrics",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "Retrieving SLO data: time-series selectors (Cloud Monitoring documentation)",
+      "url": "https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/timeseries-selectors",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "Components of the metric model (Cloud Monitoring documentation)",
+      "url": "https://docs.cloud.google.com/monitoring/api/v3/metric-model",
+      "official": true
+    },
+    {
+      "id": "s27",
+      "title": "Monitor Pub/Sub in Cloud Monitoring (Google Cloud documentation)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/monitoring",
+      "official": true
+    },
+    {
+      "id": "s28",
+      "title": "Google Cloud Observability pricing",
+      "url": "https://cloud.google.com/stackdriver/pricing",
+      "official": true
+    },
+    {
+      "id": "s29",
+      "title": "Logging: structured logging (Spring Boot 4.1 reference)",
+      "url": "https://docs.spring.io/spring-boot/reference/features/logging.html",
+      "official": true
+    },
+    {
+      "id": "s30",
+      "title": "Create an SLO (Cloud Monitoring documentation)",
+      "url": "https://docs.cloud.google.com/stackdriver/docs/solutions/slo-monitoring/ui/create-slo",
+      "official": true
+    }
+  ]
+}

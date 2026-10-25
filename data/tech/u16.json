@@ -1,0 +1,1216 @@
+{
+  "format": 1,
+  "id": "u16",
+  "n": 16,
+  "block": "gcp",
+  "title": "APIs",
+  "summary": "After this unit you can choose between Apigee and API Gateway, explain the main Apigee policies (SpikeArrest, Quota, VerifyAPIKey, OAuthV2, threat protection and ResponseCache) and API products, and put a private Cloud Run service behind API Gateway with an OpenAPI spec.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "API Gateway OpenAPI support (checked 2026-10-25): the OpenAPI overview page lists OpenAPI 2.0, OpenAPI 3.0.x and OpenAPI 3.1.x. The release notes announce OpenAPI 3.0 support on 12 November 2025 and do not mention 3.1. OpenAPI 3.2 is not in the list.",
+    "API Gateway features in Preview in 2026 (release notes checked 2026-10-25): model routing (3 August 2026), remote MCP servers from an annotated OpenAPI 3.x spec (11 September 2026), streaming gateways (29 September 2026) and API key authentication for MCP tools/list (30 September 2026); the OpenAPI 3.x limitations page still says tools/list accepts only JWTs. They appear only in the cheat sheet.",
+    "API Gateway quotas: the API Gateway quota page refers to the Cloud Endpoints quota documentation, which labels the quota feature Beta (Pre-GA terms), counts requests per minute per consumer project and says the enforced limit has a 30% error margin (checked 2026-10-25).",
+    "API Gateway limits (checked 2026-10-25): 100 API configs per API, 50 gateways per region, 32 MB request size, default backend deadline 15 seconds (at most 600 seconds on non-streaming gateways). TLS 1.2 or later has been enforced since 23 July 2025.",
+    "Apigee policies were checked on the Apigee and Apigee hybrid documentation, not on the Apigee Edge documentation. The SpikeArrest page says the current status code for exceeding a Quota or SpikeArrest limit is 429; the runtime error table on the Quota policy page still lists 500 for QuotaViolation, so the items use 429 from the rate-limiting comparison page.",
+    "The positioning of Apigee, API Gateway and Cloud Endpoints comes from a Google Cloud blog post of 18 November 2022. No newer official comparison page was found on 2026-10-25.",
+    "Google product and element names keep their American spelling, for example the OAuthV2 element ExternalAuthorization and the HTTP Authorization header.",
+    "unconfirmed (the Apigee policy pages could not be re-read in full on 2026-10-25): the ResponseCache entry size limit, whether ResponseCache works in shared flows, and the delay and retention period of Apigee analytics data; these details were removed from the items and the cheat sheet."
+  ],
+  "terms": [
+    {
+      "id": "t-apigee",
+      "term": "Apigee",
+      "ipa": "/ˈæpɪdʒiː/",
+      "say": "apogee",
+      "def": "Google Cloud's native API management platform for building, managing and securing APIs. It runs API proxies with policies and adds API products, developer portals and analytics.",
+      "example": "The company uses Apigee to give 40 staffing agencies controlled access to its recruiting APIs.",
+      "src": "s1"
+    },
+    {
+      "id": "t-api-proxy",
+      "term": "API proxy",
+      "ipa": "/ˌeɪ piː ˈaɪ ˌprɒksi/",
+      "say": "A P I proxy",
+      "def": "An Apigee layer between clients and your backend services. Clients call the proxy, not the backend, and policies on the proxy add security, traffic management, mediation and caching.",
+      "example": "The agencies call the jobs proxy in Apigee, so the team can move the backend from Compute Engine to Cloud Run without breaking any client.",
+      "src": "s1"
+    },
+    {
+      "id": "t-spike-arrest",
+      "term": "SpikeArrest",
+      "ipa": "/ˈspaɪk əˌrest/",
+      "say": "spike arrest",
+      "def": "An Apigee policy that protects the backend against traffic surges. It limits the request rate per second or per minute, stores no long-term count and returns 429 when the rate is exceeded.",
+      "example": "With a rate of 5ps and smoothing, the proxy lets through about one request every 200 milliseconds.",
+      "src": "s2"
+    },
+    {
+      "id": "t-quota",
+      "term": "Quota policy",
+      "ipa": "/ˈkwəʊtə ˌpɒləsi/",
+      "say": "quota policy",
+      "def": "An Apigee policy that counts the calls a developer app or developer makes over a time period and rejects calls above the limit. Use it for business contracts, not for traffic spikes.",
+      "example": "Basic agencies get 1,000 calls a day; the Quota policy reads that limit from the API product and returns 429 to call 1,001.",
+      "src": "s4"
+    },
+    {
+      "id": "t-api-product",
+      "term": "API product",
+      "ipa": "/ˌeɪ piː ˈaɪ ˌprɒdʌkt/",
+      "say": "A P I product",
+      "def": "A bundle of API operations that you offer to app developers. Each operation names an API proxy and its resource paths, and the product can carry quota settings, OAuth scopes and an access level.",
+      "example": "The Premium Recruiting product includes the jobs and applications proxies with a higher daily quota than the Basic product.",
+      "src": "s10"
+    },
+    {
+      "id": "t-developer-app",
+      "term": "Developer app",
+      "ipa": "/dɪˈveləpər ˌæp/",
+      "say": "developer app",
+      "def": "An app that a developer registers in Apigee. It must be associated with at least one API product, and Apigee generates a consumer key (API key) for it.",
+      "example": "An agency registers its candidate-submission app, chooses the Basic product and receives a key.",
+      "src": "s10"
+    },
+    {
+      "id": "t-verify-api-key",
+      "term": "VerifyAPIKey",
+      "ipa": "/ˈverɪfaɪ ˌeɪ piː ˈaɪ ˌkiː/",
+      "say": "verify A P I key",
+      "def": "An Apigee policy that checks the API key at runtime: the key is valid and approved, the app is not revoked, the developer is active and the key's API product covers this proxy, resource and environment.",
+      "example": "VerifyAPIKey reads the key from the x-apikey header and fills flow variables with the app, developer and product quota settings.",
+      "src": "s6"
+    },
+    {
+      "id": "t-oauthv2",
+      "term": "OAuthV2 policy",
+      "ipa": "/ˈəʊ ɔːθ ˌviː ˈtuː/",
+      "say": "O auth V 2 policy",
+      "def": "The main Apigee policy for OAuth 2.0. Its operations generate, verify, refresh and invalidate access tokens, and it can check scopes.",
+      "example": "The applications proxy runs OAuthV2 with VerifyAccessToken and the scope applications.write before an agency can submit a candidate.",
+      "src": "s5"
+    },
+    {
+      "id": "t-json-threat",
+      "term": "JSON threat protection",
+      "ipa": "/ˈdʒeɪsən ˈθret prəˌtekʃn/",
+      "say": "jason threat protection",
+      "def": "An Apigee policy that rejects JSON payloads which break limits on structure, such as nesting depth, array size and string length. It protects backends from denial-of-service and parser attacks.",
+      "example": "A request whose arrays are nested 50 levels deep fails a ContainerDepth limit of 10, so it never reaches the backend.",
+      "src": "s7"
+    },
+    {
+      "id": "t-response-cache",
+      "term": "ResponseCache",
+      "ipa": "/rɪˈspɒns ˌkæʃ/",
+      "say": "response cache",
+      "def": "An Apigee policy that stores backend responses and serves them again, which reduces latency and the number of backend calls. You attach the same policy once in the request flow and once in the response flow.",
+      "example": "Job postings change only a few times an hour, so the proxy caches GET /jobs for five minutes.",
+      "src": "s9"
+    },
+    {
+      "id": "t-developer-portal",
+      "term": "Developer portal",
+      "ipa": "/dɪˈveləpə ˌpɔːtl/",
+      "say": "developer portal",
+      "def": "A website where app developers discover your APIs, read the documentation and register apps in a self-service way. Apigee offers an integrated portal, Drupal modules or a portal you build on the Apigee APIs.",
+      "example": "A new agency signs up on the portal, reads the jobs API reference and registers its app without a support ticket.",
+      "src": "s11"
+    },
+    {
+      "id": "t-api-gateway",
+      "term": "API Gateway",
+      "ipa": "/ˌeɪ piː ˈaɪ ˌɡeɪtweɪ/",
+      "say": "A P I gateway",
+      "def": "A fully managed, pay-per-use Google Cloud gateway that adds authentication, monitoring and quotas to APIs. You describe the API with an OpenAPI spec, and it is designed for serverless backends such as Cloud Run.",
+      "example": "The mobile team puts API Gateway in front of three Cloud Run services and checks API keys and JWTs there.",
+      "src": "s13"
+    },
+    {
+      "id": "t-api-config",
+      "term": "API config",
+      "ipa": "/ˌeɪ piː ˈaɪ ˌkɒnfɪɡ/",
+      "say": "A P I config",
+      "def": "The configuration that API Gateway creates when you upload an OpenAPI spec. It cannot be modified later; to change the API, you upload a new spec, which creates a new config.",
+      "example": "To add a new path, the team creates the API config v2 from the updated spec and deploys it to the gateway.",
+      "src": "s14"
+    },
+    {
+      "id": "t-x-google-backend",
+      "term": "x-google-backend",
+      "ipa": "/ˌeks ˈɡuːɡl ˈbækend/",
+      "say": "x google backend",
+      "def": "The OpenAPI extension that tells API Gateway where to send a request. In OpenAPI 3.x it names a backend defined under x-google-api-management, with an address, a deadline and a protocol.",
+      "example": "x-google-backend: status-backend sends every path to the candidate status service on Cloud Run.",
+      "src": "s16"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u16-l1",
+      "kind": "concepts",
+      "title": "Two ways to manage APIs",
+      "items": [
+        {
+          "id": "u16-l1-i1",
+          "type": "card",
+          "src": "s13",
+          "term": "t-api-gateway",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "a",
+                "label": "Mobile app"
+              },
+              {
+                "id": "b",
+                "label": "Gateway (one region)"
+              },
+              {
+                "id": "c",
+                "label": "Service Control"
+              },
+              {
+                "id": "d",
+                "label": "Private Cloud Run service"
+              }
+            ],
+            "edges": [
+              {
+                "from": "a",
+                "to": "b",
+                "label": "HTTPS with API key or JWT"
+              },
+              {
+                "from": "b",
+                "to": "c",
+                "label": "checks the key, reports logs"
+              },
+              {
+                "from": "b",
+                "to": "d",
+                "label": "ID token of the backend service account"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u16-l1-i2",
+          "type": "card",
+          "src": "s1",
+          "term": "t-apigee",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "a",
+                "label": "Partner app"
+              },
+              {
+                "id": "b",
+                "label": "API proxy with policies"
+              },
+              {
+                "id": "c",
+                "label": "Backend service"
+              },
+              {
+                "id": "d",
+                "label": "API Analytics"
+              }
+            ],
+            "edges": [
+              {
+                "from": "a",
+                "to": "b",
+                "label": "key or token"
+              },
+              {
+                "from": "b",
+                "to": "c",
+                "label": "forwards allowed calls"
+              },
+              {
+                "from": "b",
+                "to": "d",
+                "label": "traffic, latency, errors"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u16-l1-i3",
+          "type": "pick",
+          "src": "s26",
+          "q": "A company wants to open its recruiting APIs to 40 staffing agencies, with self-service sign-up, documentation, a Basic and a Premium plan, and usage reports per agency. Which product fits best?",
+          "options": [
+            "Apigee",
+            "API Gateway",
+            "Cloud Endpoints",
+            "Cloud Run with no gateway"
+          ],
+          "answer": 0,
+          "why": "Apigee has API products for plans, developer portals and analytics, and Google positions it for APIs exposed to partners. API Gateway suits consumers who need no developer portal, Endpoints means running your own proxy, and Cloud Run alone has no API management."
+        },
+        {
+          "id": "u16-l1-i4",
+          "type": "card",
+          "src": "s1",
+          "term": "t-api-proxy"
+        },
+        {
+          "id": "u16-l1-i5",
+          "type": "card",
+          "src": "s2",
+          "term": "t-spike-arrest"
+        },
+        {
+          "id": "u16-l1-i6",
+          "type": "card",
+          "src": "s4",
+          "term": "t-quota"
+        },
+        {
+          "id": "u16-l1-i7",
+          "type": "tf",
+          "src": "s2",
+          "statement": "A SpikeArrest rate of 60pm lets a client send 10 requests in the same second, because 10 is far below 60 a minute.",
+          "answer": false,
+          "why": "By default SpikeArrest smooths the rate, so 60pm allows about one request each second and rejects the others with 429. Clients should spread their calls, or you set UseEffectiveCount to true to count in a sliding window."
+        },
+        {
+          "id": "u16-l1-i8",
+          "type": "card",
+          "src": "s10",
+          "term": "t-api-product"
+        },
+        {
+          "id": "u16-l1-i9",
+          "type": "tf",
+          "src": "s14",
+          "statement": "In API Gateway, you can edit an API config in place after you create it.",
+          "answer": false,
+          "why": "An API config cannot be modified after it is created. You upload the changed spec, which creates a new API config, and a gateway serves one API config at a time."
+        },
+        {
+          "id": "u16-l1-i10",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each Apigee policy with what it does.",
+          "pairs": [
+            [
+              "SpikeArrest",
+              "Limits the request rate to protect the backend from bursts"
+            ],
+            [
+              "Quota",
+              "Counts calls per app or developer over a period"
+            ],
+            [
+              "VerifyAPIKey",
+              "Checks the key, its app and its API product"
+            ],
+            [
+              "OAuthV2",
+              "Issues and verifies OAuth access tokens"
+            ],
+            [
+              "JSONThreatProtection",
+              "Rejects JSON that is too deep, too large or too long"
+            ],
+            [
+              "ResponseCache",
+              "Serves stored backend responses to cut latency"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u16-l2",
+      "kind": "practice",
+      "title": "Design and configure the gateway",
+      "items": [
+        {
+          "id": "u16-l2-i1",
+          "type": "scenario",
+          "src": "s26",
+          "q": "A small team runs three Cloud Run services that the company's own mobile app calls. They need API keys, JWT checks for signed-in users and basic monitoring, but no developer portal and no monetisation. What do you propose?",
+          "options": [
+            {
+              "text": "API Gateway with an OpenAPI spec that routes each path to its Cloud Run service with x-google-backend.",
+              "ok": true,
+              "why": "API Gateway is a lightweight managed gateway designed for serverless backends, and these consumers do not need a portal."
+            },
+            {
+              "text": "Apigee with API products, a developer portal and monetisation.",
+              "ok": false,
+              "why": "It would work, but it is far more platform than three internal services need; Google suggests API Gateway for smaller serverless projects, with Apigee as an upgrade path."
+            },
+            {
+              "text": "Make the Cloud Run services public and check keys and tokens inside each service.",
+              "ok": false,
+              "why": "Every service repeats the same security code, and public services can be called directly by anyone; Google recommends only authenticated access to backends."
+            },
+            {
+              "text": "Cloud Endpoints with an ESPv2 proxy that the team deploys and runs.",
+              "ok": false,
+              "why": "Endpoints makes the team operate the proxy runtime itself; it fits when you need the gateway on your own runtime or private network."
+            }
+          ]
+        },
+        {
+          "id": "u16-l2-i2",
+          "type": "order",
+          "src": "s3",
+          "q": "An Apigee proxy uses API keys and product quotas. Put the request steps in the recommended order.",
+          "steps": [
+            "The agency app sends the request with its key in the x-apikey header",
+            "SpikeArrest rejects bursts at the very start of the ProxyEndpoint request PreFlow",
+            "VerifyAPIKey identifies the app and its API product",
+            "Quota counts the call against the product's limit",
+            "The request goes to the target backend"
+          ]
+        },
+        {
+          "id": "u16-l2-i3",
+          "type": "code",
+          "src": "s4",
+          "lang": "text",
+          "q": "Complete the Apigee policies (XML). VerifyAPIKey reads the key from the x-apikey header, and Quota takes its limits from the API product through VerifyAPIKey's flow variables.",
+          "code": "<VerifyAPIKey name=\"verify-api-key\">\n  <APIKey ref=\"[[1]]\"/>\n</VerifyAPIKey>\n\n<Quota name=\"CheckQuota\">\n  <Interval ref=\"[[2]].verify-api-key.apiproduct.developer.quota.interval\">1</Interval>\n  <TimeUnit ref=\"verifyapikey.verify-api-key.apiproduct.developer.quota.timeunit\">hour</TimeUnit>\n  <Allow count=\"200\" [[3]]=\"verifyapikey.verify-api-key.apiproduct.developer.quota.limit\"/>\n</Quota>",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "request.header.x-apikey",
+              "decoys": [
+                "request.queryparam.x-apikey",
+                "response.header.x-apikey"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "verifyapikey",
+              "decoys": [
+                "oauthv2",
+                "quota"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "countRef",
+              "decoys": [
+                "limitRef",
+                "valueRef"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u16-l2-i4",
+          "type": "diagram",
+          "src": "s20",
+          "layout": "flow",
+          "q": "Complete the request path of a Cloud Run service behind API Gateway. Clients must not be able to call the service directly.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Mobile app with an API key",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Gateway in europe-west1",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Service Control",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Private Cloud Run service",
+              "slot": true
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "HTTPS request to the gateway hostname"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "Check the API key; report logs and metrics"
+            },
+            {
+              "from": "n2",
+              "to": "n4",
+              "label": "ID token of a service account with roles/run.invoker"
+            }
+          ],
+          "decoys": [
+            "Apigee developer portal",
+            "Pub/Sub push subscription",
+            "Public Cloud Run URL with no authentication"
+          ]
+        },
+        {
+          "id": "u16-l2-i5",
+          "type": "scenario",
+          "src": "s3",
+          "q": "A job board sends 2,000 requests in a few seconds to your Apigee jobs proxy, and the backend that reads from SuccessFactors Recruiting slows down for every consumer. The job board is well inside its monthly contract. What do you add?",
+          "options": [
+            {
+              "text": "SpikeArrest at the start of the ProxyEndpoint request PreFlow, with a rate the backend can handle.",
+              "ok": true,
+              "why": "SpikeArrest limits the rate across all consumers to protect the backend from sudden spikes."
+            },
+            {
+              "text": "A lower Quota for the job board.",
+              "ok": false,
+              "why": "The board is inside its contract, and Quota enforces limits over a period; it is not meant to protect the backend from spikes."
+            },
+            {
+              "text": "ResponseCache with a 24-hour timeout for every request.",
+              "ok": false,
+              "why": "Caching reduces repeated reads, but it does not limit the rate, and a 24-hour timeout would serve out-of-date jobs."
+            },
+            {
+              "text": "JSONThreatProtection on the request.",
+              "ok": false,
+              "why": "It checks the structure of JSON payloads, not the number of requests per second."
+            }
+          ]
+        },
+        {
+          "id": "u16-l2-i6",
+          "type": "code",
+          "src": "s16",
+          "lang": "yaml",
+          "q": "Complete the OpenAPI 3.x spec for API Gateway. All paths go to one Cloud Run backend, and clients send an API key in the x-api-key header.",
+          "code": "openapi: 3.0.4\ninfo:\n  title: candidate-status-api\n  version: 1.0.0\n[[1]]:\n  backends:\n    status-backend:\n      address: https://candidate-status-123456789.europe-west1.run.app\n      pathTranslation: APPEND_PATH_TO_ADDRESS\n[[2]]: status-backend\npaths:\n  /candidates/{candidateId}/status:\n    get:\n      operationId: getCandidateStatus\n      parameters:\n        - name: candidateId\n          in: path\n          required: true\n          schema:\n            type: string\n      security:\n        - google_api_key: []\n      responses:\n        '200':\n          description: The status of the candidate's application\ncomponents:\n  securitySchemes:\n    google_api_key:\n      type: [[3]]\n      name: x-api-key\n      in: [[4]]",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "x-google-api-management",
+              "decoys": [
+                "x-google-management",
+                "x-google-endpoint"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "x-google-backend",
+              "decoys": [
+                "x-google-quota",
+                "x-google-auth"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "apiKey",
+              "decoys": [
+                "oauth2",
+                "openIdConnect"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "header",
+              "decoys": [
+                "query",
+                "body"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u16-l2-i7",
+          "type": "scenario",
+          "src": "s10",
+          "q": "You sell access to a recruiting API: Basic agencies get 1,000 calls a day and Premium agencies get 50,000. You set these limits on two API products, but agencies still go over them.",
+          "options": [
+            {
+              "text": "Add a Quota policy that takes the limits from the API product, after VerifyAPIKey in the request PreFlow.",
+              "ok": true,
+              "why": "Quota limits on an API product are not enforced automatically; a Quota policy enforces them, and VerifyAPIKey or OAuthV2 must run first so Apigee knows the product."
+            },
+            {
+              "text": "Add SpikeArrest with a rate of 1,000 per day.",
+              "ok": false,
+              "why": "SpikeArrest rates are per second or per minute and it keeps no count, so it cannot enforce a daily plan."
+            },
+            {
+              "text": "Set the limits in the developer portal instead.",
+              "ok": false,
+              "why": "Developers use the portal to discover APIs and register apps; it does not enforce limits at runtime."
+            },
+            {
+              "text": "Move the Quota policy before VerifyAPIKey so that it runs first.",
+              "ok": false,
+              "why": "Before VerifyAPIKey runs, Apigee does not know which product applies, so the product limits are not available."
+            }
+          ]
+        },
+        {
+          "id": "u16-l2-i8",
+          "type": "order",
+          "src": "s21",
+          "q": "Put the steps to expose a private Cloud Run service through API Gateway in order.",
+          "steps": [
+            "Write the OpenAPI spec with x-google-backend pointing to the Cloud Run URL",
+            "Create the API config from the spec, with a backend service account that has roles/run.invoker",
+            "Create the gateway in a region and give it that API config",
+            "Read the gateway's defaultHostname",
+            "Call the API path on that hostname"
+          ]
+        },
+        {
+          "id": "u16-l2-i9",
+          "type": "match",
+          "src": "s6",
+          "q": "Match each Apigee error with its most likely cause.",
+          "pairs": [
+            [
+              "429 with SpikeArrestViolation",
+              "Requests arrived faster than the configured rate"
+            ],
+            [
+              "401 with oauth.v2.InvalidApiKeyForGivenResource",
+              "The key is valid, but its API product does not cover this resource"
+            ],
+            [
+              "401 with steps.oauth.v2.access_token_expired",
+              "The OAuth access token has expired"
+            ],
+            [
+              "403 with steps.oauth.v2.InsufficientScope",
+              "The token does not carry a required scope"
+            ],
+            [
+              "500 with steps.jsonthreatprotection.ExecutionFailed",
+              "The JSON body broke a threat protection limit"
+            ]
+          ]
+        },
+        {
+          "id": "u16-l2-i10",
+          "type": "scenario",
+          "src": "s9",
+          "q": "Agencies call GET /jobs to read open job postings. The postings change a few times an hour, and the backend that reads them from SuccessFactors Recruiting is slow. How do you make the API faster?",
+          "options": [
+            {
+              "text": "Attach ResponseCache in the request and response flows, build the key from the query parameters, set TimeoutInSeconds to a few minutes and skip population for error responses.",
+              "ok": true,
+              "why": "Cached responses reduce latency and backend calls for data that changes only periodically, and a short timeout keeps the postings fresh."
+            },
+            {
+              "text": "Add SpikeArrest so that fewer requests reach the backend.",
+              "ok": false,
+              "why": "It protects the backend, but agencies get 429 errors instead of faster answers."
+            },
+            {
+              "text": "Cache the responses for 24 hours.",
+              "ok": false,
+              "why": "The postings change several times an hour, so agencies would see jobs that are already closed."
+            },
+            {
+              "text": "Cache GET /jobs with one fixed key that ignores the query parameters.",
+              "ok": false,
+              "why": "Different searches would share one cache entry, so an agency could receive the jobs of another search."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u16-l3",
+      "kind": "interview",
+      "title": "Talk about API management",
+      "items": [
+        {
+          "id": "u16-l3-i1",
+          "type": "say",
+          "src": "s26",
+          "text": "API Gateway is a lightweight managed gateway for serverless backends. Apigee is a full API management platform, with products, developer portals and analytics."
+        },
+        {
+          "id": "u16-l3-i2",
+          "type": "tf",
+          "src": "s18",
+          "statement": "In API Gateway, an API key proves who the end user is, so an API key alone is enough to protect calls that carry personal data.",
+          "answer": false,
+          "why": "An API key identifies a Google Cloud project for quota, billing and monitoring, and Google does not recommend using only API keys when calls contain sensitive data. Add a JWT-based method for users or services."
+        },
+        {
+          "id": "u16-l3-i3",
+          "type": "explain",
+          "src": "s26",
+          "seconds": 120,
+          "q": "What is the difference between Apigee and Google Cloud API Gateway, and when would you choose each?",
+          "model": "Both put a managed layer in front of backend services, but they solve different sizes of problem. API Gateway is a lightweight, fully managed, pay-per-use gateway. I describe the API in an OpenAPI spec, point each path to a backend such as Cloud Run with x-google-backend, and it gives me API keys, JWT authentication, quotas and monitoring. It fits when the consumers are our own apps and nobody needs a developer portal. Apigee is a full API management platform. Each API is a proxy with policies, so I can add SpikeArrest, Quota, OAuth, threat protection and caching. On top of that I get API products for plans, developer portals for self-service sign-up, and analytics per app and product. I choose Apigee when we expose APIs to partners or third parties, when we need monetisation or hybrid deployment, or at high scale. A small serverless project can start on API Gateway and move to Apigee later.",
+          "keypoints": [
+            {
+              "text": "API Gateway: lightweight, managed, configured with an OpenAPI spec",
+              "kw": [
+                "lightweight",
+                "openapi",
+                "spec",
+                "fully managed",
+                "pay-per-use",
+                "pay per use"
+              ]
+            },
+            {
+              "text": "API Gateway fits serverless backends and internal consumers",
+              "kw": [
+                "serverless",
+                "cloud run",
+                "own apps",
+                "internal",
+                "no portal",
+                "no developer portal"
+              ]
+            },
+            {
+              "text": "Apigee: full platform with proxies and policies",
+              "kw": [
+                "policies",
+                "policy",
+                "proxy",
+                "proxies",
+                "api management",
+                "platform"
+              ]
+            },
+            {
+              "text": "Apigee adds API products, portals and analytics",
+              "kw": [
+                "api products",
+                "product",
+                "portal",
+                "analytics",
+                "monetisation",
+                "monetization"
+              ]
+            },
+            {
+              "text": "Apigee for partners, third parties, hybrid or high scale",
+              "kw": [
+                "partners",
+                "partner",
+                "third parties",
+                "third-party",
+                "external",
+                "hybrid",
+                "high scale",
+                "scale"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u16-l3-i4",
+          "type": "scenario",
+          "src": "s6",
+          "q": "The interviewer asks: \"A partner agency says an API key is all it needs to submit candidates to our API. Is that enough?\" What do you answer?",
+          "options": [
+            {
+              "text": "The key identifies the agency's app; for candidate personal data I add OAuth 2.0 access tokens with scopes, and the key travels in a header, not in the URL.",
+              "ok": true,
+              "why": "Keys identify apps for products and quotas, while OAuthV2 with VerifyAccessToken and scopes controls what a caller may do. Keys in query parameters can end up in logs and browser history."
+            },
+            {
+              "text": "Yes, because the key is secret and HTTPS encrypts it.",
+              "ok": false,
+              "why": "HTTPS protects the key in transit, but a key is a weak credential that anyone holding it can reuse, and it carries no scopes."
+            },
+            {
+              "text": "Yes, and the key should go in the query string because that is simpler for partners.",
+              "ok": false,
+              "why": "Apigee calls this a poor practice, because query parameters can appear in browser history and network logs."
+            },
+            {
+              "text": "No key is needed at all if the partner calls from a fixed IP address.",
+              "ok": false,
+              "why": "An IP address does not identify the app or its API product, so you lose quotas, analytics per app and the ability to revoke one partner's access."
+            }
+          ]
+        },
+        {
+          "id": "u16-l3-i5",
+          "type": "explain",
+          "src": "s3",
+          "seconds": 120,
+          "q": "In Apigee, how do you protect a backend from traffic spikes and also enforce the limits in your partner contracts?",
+          "model": "I use two different policies, because they measure different things. SpikeArrest protects the backend. I set a rate per second or per minute, and it rejects traffic above that rate across all consumers, with a 429 status. It keeps no long-term count, and by default it smooths the rate, so five per second means about one request every two hundred milliseconds. Quota is for business contracts. It counts calls per app or developer over an interval, such as a day or a month, and it also returns 429. I usually take the limits from the API product, so a Basic and a Premium plan simply differ in their product settings. The order matters. SpikeArrest goes at the very start of the request PreFlow, then VerifyAPIKey or OAuthV2 identifies the app, and then Quota. For a strict count across all instances, I configure the Quota as distributed and synchronous.",
+          "keypoints": [
+            {
+              "text": "SpikeArrest protects the backend from bursts, with a rate per second or minute",
+              "kw": [
+                "spikearrest",
+                "spike arrest",
+                "spike",
+                "spikes",
+                "burst",
+                "bursts",
+                "per second",
+                "per minute"
+              ]
+            },
+            {
+              "text": "Quota counts calls per app or developer over a period, for contracts",
+              "kw": [
+                "quota",
+                "contract",
+                "contracts",
+                "per app",
+                "per developer",
+                "count",
+                "counts",
+                "interval"
+              ]
+            },
+            {
+              "text": "Both return 429 Too Many Requests",
+              "kw": [
+                "429",
+                "too many requests"
+              ]
+            },
+            {
+              "text": "Limits come from the API product",
+              "kw": [
+                "api product",
+                "product",
+                "plan",
+                "plans",
+                "basic",
+                "premium"
+              ]
+            },
+            {
+              "text": "Order: SpikeArrest first, then key or token check, then Quota",
+              "kw": [
+                "first",
+                "order",
+                "preflow",
+                "verifyapikey",
+                "verify api key",
+                "oauth",
+                "before"
+              ]
+            },
+            {
+              "text": "Distributed and synchronous counting for accuracy",
+              "kw": [
+                "distributed",
+                "synchronous",
+                "accurate",
+                "accuracy",
+                "synchronised",
+                "synchronized"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u16-l3-i6",
+          "type": "say",
+          "src": "s3",
+          "text": "SpikeArrest protects the backend from bursts. Quota enforces the business contract for each app. I put SpikeArrest first in the request PreFlow."
+        },
+        {
+          "id": "u16-l3-i7",
+          "type": "tf",
+          "src": "s24",
+          "statement": "API Gateway counts quotas per consumer Google Cloud project, so each consumer needs its own project and must send an API key.",
+          "answer": true,
+          "why": "Quotas count requests per minute for each consumer project, which the gateway identifies from the API key. The enforced limit is approximate, with a 30% margin of error."
+        },
+        {
+          "id": "u16-l3-i8",
+          "type": "explain",
+          "src": "s20",
+          "seconds": 150,
+          "q": "How would you secure an API that runs on Cloud Run behind API Gateway?",
+          "model": "I think about two sides: the caller to the gateway, and the gateway to the backend. On the backend side, the Cloud Run service stays private, which is the default, so nobody can skip the gateway. When I create the API config, I give it a dedicated backend service account that has only roles/run.invoker on that service. The gateway then calls Cloud Run with an ID token for that account. On the caller side, I authenticate users with JWTs, for example from Firebase, Auth0, Okta or Google ID tokens, and other services with service account JWTs. I also require an API key, but only to identify the consumer project for quotas, billing and monitoring, never as the only protection for personal data. I restrict every production key to our API. Finally, I define quotas and handle 429 responses with backoff, keeping in mind that API Gateway quotas are approximate.",
+          "keypoints": [
+            {
+              "text": "Keep Cloud Run private so the gateway cannot be bypassed",
+              "kw": [
+                "private",
+                "bypass",
+                "skip",
+                "authenticated",
+                "not public",
+                "default"
+              ]
+            },
+            {
+              "text": "A dedicated backend service account with roles/run.invoker and an ID token",
+              "kw": [
+                "service account",
+                "run.invoker",
+                "invoker",
+                "id token",
+                "least privilege",
+                "dedicated"
+              ]
+            },
+            {
+              "text": "Authenticate callers with JWTs",
+              "kw": [
+                "jwt",
+                "jwts",
+                "firebase",
+                "auth0",
+                "okta",
+                "google id token",
+                "token",
+                "tokens"
+              ]
+            },
+            {
+              "text": "API keys identify the project; restrict them and never rely on them alone",
+              "kw": [
+                "api key",
+                "api keys",
+                "restrict",
+                "restricted",
+                "quota",
+                "billing",
+                "project",
+                "not enough",
+                "alone"
+              ]
+            },
+            {
+              "text": "Quotas and 429 handling",
+              "kw": [
+                "quota",
+                "quotas",
+                "429",
+                "backoff",
+                "rate limit",
+                "approximate"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u16-l3-i9",
+          "type": "tf",
+          "src": "s25",
+          "statement": "API Gateway accepts only OpenAPI 2.0 (Swagger) specs, so you must convert an OpenAPI 3.0 spec before you deploy it.",
+          "answer": false,
+          "why": "API Gateway has supported OpenAPI 3.0.x since November 2025, so you can deploy a 3.0 spec without converting it. Its OpenAPI overview also lists 3.1.x, and 2.0 is still supported."
+        },
+        {
+          "id": "u16-l3-i10",
+          "type": "explain",
+          "src": "s10",
+          "seconds": 120,
+          "q": "What is an API product in Apigee, and why does it matter for partner APIs?",
+          "model": "An API product is how I package APIs for app developers. It bundles operations: each operation names an API proxy, the resource paths that can be called and, if I want, the HTTP methods and a quota. A product can also require OAuth scopes and have an access level, such as public or internal. Developers never get access to a proxy directly. They register an app, associate it with at least one product, and Apigee generates a key for the app. This matters because the product becomes the business contract. For example, a Basic product can allow a thousand calls a day and a Premium product fifty thousand, on the same proxies. I still need policies in the proxy: VerifyAPIKey or OAuthV2 to check the credential, and a Quota policy that reads the product's limits. The developer portal and the analytics then work per product and per app.",
+          "keypoints": [
+            {
+              "text": "A bundle of operations: proxy, resource paths, methods, quota",
+              "kw": [
+                "bundle",
+                "bundles",
+                "operations",
+                "operation",
+                "resource paths",
+                "paths",
+                "proxy",
+                "proxies"
+              ]
+            },
+            {
+              "text": "Scopes, access level and key approval",
+              "kw": [
+                "scopes",
+                "scope",
+                "access level",
+                "public",
+                "internal",
+                "private",
+                "approval",
+                "approve"
+              ]
+            },
+            {
+              "text": "Apps are associated with products and get a key",
+              "kw": [
+                "app",
+                "apps",
+                "register",
+                "key",
+                "consumer key",
+                "associate",
+                "associated"
+              ]
+            },
+            {
+              "text": "Products as plans or contracts, such as Basic and Premium",
+              "kw": [
+                "plan",
+                "plans",
+                "contract",
+                "tier",
+                "tiers",
+                "basic",
+                "premium"
+              ]
+            },
+            {
+              "text": "Policies still enforce it: VerifyAPIKey or OAuthV2, and Quota",
+              "kw": [
+                "verifyapikey",
+                "verify api key",
+                "oauth",
+                "oauthv2",
+                "quota policy",
+                "enforce",
+                "enforces"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Apigee or API Gateway",
+        "points": [
+          "API Gateway: fully managed, pay per use, lightweight; designed for serverless backends such as Cloud Run, Cloud Run functions and App Engine.",
+          "Apigee: full API management platform with API proxies and policies, API products, developer portals and analytics; Apigee hybrid for on-premises or hybrid environments.",
+          "Choose API Gateway when the consumers are your own apps and nobody needs a developer portal.",
+          "Choose Apigee for partners and third parties, monetisation, many policies, hybrid deployment or high scale.",
+          "Cloud Endpoints: you deploy and run the ESPv2 proxy yourself; more control, more operations.",
+          "A small serverless project can start on API Gateway and move to Apigee later."
+        ]
+      },
+      {
+        "h": "Apigee traffic policies",
+        "points": [
+          "SpikeArrest: rate in ps or pm; protects the backend across all consumers; no stored count; 429 SpikeArrestViolation.",
+          "Smoothing by default (5ps is about one request every 200 ms); UseEffectiveCount true gives a sliding-window count shared in a region.",
+          "Smoothing can reject valid requests that arrive close together; clients should spread their calls and retry with backoff.",
+          "Quota: counts calls per app or developer over Interval and TimeUnit; types calendar, rollingwindow and flexi; 429 when exceeded.",
+          "Quota with Distributed and Synchronous set to true keeps one shared, up-to-date count.",
+          "Request PreFlow order: SpikeArrest first, then VerifyAPIKey or OAuthV2, then Quota."
+        ]
+      },
+      {
+        "h": "Apigee security policies",
+        "points": [
+          "VerifyAPIKey: key valid and approved, app not revoked, developer active, product covers proxy, resource and environment; 401 on failure.",
+          "Send keys in a header such as x-apikey; query parameters end up in logs and browser history.",
+          "OAuthV2 operations include GenerateAccessToken, VerifyAccessToken, RefreshAccessToken and InvalidateToken; Bearer token in the Authorization header.",
+          "Scope element: verification passes if at least one listed scope is in the token; otherwise 403 InsufficientScope.",
+          "JSONThreatProtection: ContainerDepth, ArrayElementCount, ObjectEntryCount, ObjectEntryNameLength, StringValueLength; only for application/json; violation returns 500.",
+          "RegularExpressionProtection: patterns for SQL or JavaScript injection in the path, query, headers, form, JSON or XML; fault ThreatDetected; no regex stops every attack."
+        ]
+      },
+      {
+        "h": "Caching, products, portals and analytics",
+        "points": [
+          "ResponseCache: attach once in the request flow and once in the response flow; key from KeyFragment; TimeoutInSeconds; do not cache error responses.",
+          "API product: operations (proxy, paths, methods), quota, OAuth scopes, access level, automatic or manual key approval.",
+          "Quota values on a product are not enforced until a Quota policy reads them.",
+          "Every app is associated with at least one product; Apigee generates its consumer key.",
+          "Portals: integrated portal (hosted by Apigee), Drupal modules, or your own portal on the Apigee APIs.",
+          "Analytics: dashboards, custom reports with metrics and dimensions, DataCapture for custom data; export to BigQuery or Cloud Storage."
+        ]
+      },
+      {
+        "h": "API Gateway building blocks",
+        "points": [
+          "API, then API config (created from an OpenAPI spec, cannot be modified), then gateway (one region, one API config, scales to zero).",
+          "Several regions: deploy the API config to a gateway in each region and put a load balancer in front.",
+          "Supported specs: OpenAPI 2.0, 3.0.x and 3.1.x; 3.x uses x-google-api-management for backends, metrics and quotas.",
+          "Backend: address, deadline (15 s by default), pathTranslation, protocol (http/1.1 by default, h2 for gRPC).",
+          "Service Control checks API keys and reports logs and metrics; Service Management holds the configuration.",
+          "Limits: 100 API configs per API, 50 gateways per region, 32 MB per request.",
+          "Scopes and required parameters in the spec are accepted but not enforced; external references are rejected; x-google-allow is not supported in 3.x."
+        ]
+      },
+      {
+        "h": "API Gateway security and quotas",
+        "points": [
+          "Gateway to backend: ID token of the API config's service account; Cloud Run needs roles/run.invoker; keep the service private.",
+          "Callers: JWTs from Firebase, Auth0, Okta or Google ID tokens; service account JWTs between services.",
+          "API key: identifies a Google Cloud project for quota, billing and monitoring; restrict it; never the only protection for sensitive data.",
+          "Quotas: requests per minute per consumer project; API key required; 429 when exceeded; about 30% margin of error.",
+          "Only the metrics and limits of the newest API config are enforced, for the whole API; renaming or removing a metric can make older gateways fail with 500.",
+          "TLS 1.2 or later is enforced. In Preview in 2026: remote MCP servers, model routing and streaming gateways."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "What is Apigee? - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/get-started/what-apigee",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "SpikeArrest policy - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/reference/policies/spike-arrest-policy",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Comparing rate-limiting policies - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/develop/comparing-quota-and-spike-arrest-policies",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Quota policy - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/reference/policies/quota-policy",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "OAuthV2 policy - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/reference/policies/oauthv2-policy",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "VerifyAPIKey policy - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/reference/policies/verify-api-key-policy",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "JSONThreatProtection policy - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/reference/policies/json-threat-protection-policy",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "RegularExpressionProtection policy - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/reference/policies/regular-expression-protection",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "ResponseCache policy - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/reference/policies/response-cache-policy",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "What is an API product? - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/publish/what-api-product",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Developer portal solutions - Apigee documentation",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/publish/intro-portals",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Apigee API Analytics overview",
+      "url": "https://docs.cloud.google.com/apigee/docs/api-platform/analytics/analytics-services-overview",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "API Gateway Architecture",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/architecture-overview",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "API Gateway Deployment Model",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/deployment-model",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "OpenAPI overview - API Gateway",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/openapi-overview",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "OpenAPI 3.x Extensions in API Gateway",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/oasv3-extensions",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "OpenAPI 3.x feature limitations - API Gateway",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/openapi-v3-limitations",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Using API Keys - API Gateway",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/authenticate-api-keys",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Choosing an Authentication Method - API Gateway",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/authentication-method",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Securing backend services - API Gateway",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/securing-backend-services",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Getting started with API Gateway and Cloud Run",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/get-started-cloud-run",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Quotas and limits - API Gateway",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/quotas",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "About quotas - API Gateway",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/quotas-overview",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "About quotas - Cloud Endpoints for OpenAPI",
+      "url": "https://docs.cloud.google.com/endpoints/docs/openapi/quotas-overview",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "API Gateway release notes",
+      "url": "https://docs.cloud.google.com/api-gateway/docs/release-notes",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "Choosing between Apigee, API Gateway, and Cloud Endpoints - Google Cloud Blog (18 November 2022)",
+      "url": "https://cloud.google.com/blog/products/application-modernization/choosing-between-apigee-api-gateway-and-cloud-endpoints",
+      "official": true
+    }
+  ]
+}

@@ -1,0 +1,1358 @@
+{
+  "format": 1,
+  "id": "u28",
+  "n": 28,
+  "block": "java",
+  "title": "Modern Java",
+  "summary": "After this unit you can explain what changed from Java 17 to Java 25, model events with records, sealed types and pattern matching, decide when virtual threads help and what still pins them, and say which concurrency features are final and which are still in preview.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Java 25 (GA 16 September 2025) is the current LTS release. JDK 27 (GA 15 September 2026) is the latest feature release, and Oracle plans Java 29 as the next LTS in September 2027.",
+    "Structured concurrency is a preview API in JDK 25 (JEP 505, fifth preview), JDK 26 (JEP 525, sixth preview) and JDK 27 (JEP 533, seventh preview). The JDK 25 API is used here; in JDK 26, Joiner.anySuccessfulResultOrThrow() was renamed anySuccessfulOrThrow(), and Joiner.allSuccessfulOrThrow() returns a list of results instead of a stream of subtasks.",
+    "Scoped values are final in JDK 25 (JEP 506). The only change from the fourth preview (JEP 487, JDK 24) is that ScopedValue.orElse no longer accepts null.",
+    "JEP 491 (synchronized without pinning) was delivered in JDK 24 and removed the jdk.tracePinnedThreads system property. The Java SE 25 virtual threads guide lists native methods and foreign functions as the causes of pinning.",
+    "Spring Boot 4.1.2 (reference checked on 2026-10-25): spring.threads.virtual.enabled needs Java 21 or later, and Java 24 or later is strongly recommended; Spring Boot 4.1.2 requires Java 17 and is compatible up to Java 27.",
+    "Primitive types in patterns, instanceof and switch is still a preview feature in JDK 27 (JEP 532, fifth preview), so this unit does not cover it."
+  ],
+  "terms": [
+    {
+      "id": "t-record",
+      "term": "Record (record class)",
+      "ipa": "/ˈrekɔːd/",
+      "say": "record",
+      "def": "A class that is a shallowly immutable, transparent carrier for a fixed set of values, called components. The compiler creates private final fields, a canonical constructor, accessors with the same names as the components, and equals, hashCode and toString.",
+      "example": "record CandidateHired(String applicationId, LocalDate startDate) {} gives you applicationId() and startDate(), not getApplicationId().",
+      "src": "s2"
+    },
+    {
+      "id": "t-compact-constructor",
+      "term": "Compact canonical constructor",
+      "ipa": "/kəmˈpækt kəˌnɒnɪkl kənˈstrʌktə/",
+      "say": "compact canonical constructor",
+      "def": "A record constructor without a parameter list. Its parameters are implicit and are assigned to the fields automatically at the end, so it is the natural place to validate or normalise the values.",
+      "example": "The compact constructor of JobApplication throws IllegalArgumentException when the application ID is blank, and it replaces the tags list with List.copyOf(tags).",
+      "src": "s2"
+    },
+    {
+      "id": "t-sealed",
+      "term": "Sealed class or interface",
+      "ipa": "/ˌsiːld ˈklɑːs/",
+      "say": "sealed class",
+      "def": "A class or interface that lists, in a permits clause, the only types that may extend or implement it. Each permitted subclass must be final, sealed or non-sealed; records are implicitly final.",
+      "example": "sealed interface ApplicationEvent permits StatusChanged, Withdrawn, OfferAccepted means that no other class can implement ApplicationEvent.",
+      "src": "s3"
+    },
+    {
+      "id": "t-instanceof-pattern",
+      "term": "Pattern matching for instanceof",
+      "ipa": "/ˈpætn ˌmætʃɪŋ fər ˈɪnstəns ɒv/",
+      "say": "pattern matching for instance of",
+      "def": "instanceof tests the type and, if it matches, binds the value to a new variable of that type, so there is no separate cast. The variable is in scope only where the match is certain.",
+      "example": "if (payload instanceof String json && !json.isBlank()) reads the payload as a string without a cast.",
+      "src": "s4"
+    },
+    {
+      "id": "t-record-pattern",
+      "term": "Record pattern",
+      "ipa": "/ˈrekɔːd ˌpætn/",
+      "say": "record pattern",
+      "def": "A pattern that tests whether a value is a given record and deconstructs it into its components by calling the accessors. Record patterns can be nested and can use var for the component types.",
+      "example": "case StatusChanged(var id, var status) gives the switch the application ID and the new status in one step.",
+      "src": "s6"
+    },
+    {
+      "id": "t-exhaustive-switch",
+      "term": "Exhaustive switch",
+      "ipa": "/ɪɡˈzɔːstɪv ˈswɪtʃ/",
+      "say": "exhaustive switch",
+      "def": "A switch expression, or a switch statement that uses patterns, must cover every possible value of its selector. For a sealed type, the compiler checks the permits list, so no default is needed, and a new permitted type makes an incomplete switch fail to compile.",
+      "example": "When the team adds Withdrawn to the permits list, every switch over ApplicationEvent without a Withdrawn case stops compiling.",
+      "src": "s5"
+    },
+    {
+      "id": "t-text-block",
+      "term": "Text block",
+      "ipa": "/ˈtekst ˌblɒk/",
+      "say": "text block",
+      "def": "A multi-line string literal that starts with three double quotes and a line break. The compiler removes incidental indentation and trailing spaces, so JSON, SQL or XML can be written as it looks.",
+      "example": "A test keeps a sample OData response from SuccessFactors as a text block, instead of a long string full of escaped quotes and line breaks.",
+      "src": "s8"
+    },
+    {
+      "id": "t-sequenced",
+      "term": "Sequenced collection",
+      "ipa": "/ˈsiːkwənst kəˈlekʃn/",
+      "say": "sequenced collection",
+      "def": "An interface, added in Java 21, for collections with a defined encounter order. It gives List, Deque, LinkedHashSet and sorted sets the same methods, such as getFirst, getLast, addFirst, removeLast and reversed; SequencedMap does the same for maps.",
+      "example": "history.getLast() returns the latest status change, instead of history.get(history.size() - 1).",
+      "src": "s9"
+    },
+    {
+      "id": "t-virtual-thread",
+      "term": "Virtual thread",
+      "ipa": "/ˈvɜːtʃuəl ˈθred/",
+      "say": "virtual thread",
+      "def": "A lightweight java.lang.Thread that is not tied to one OS thread. When it blocks on I/O, the runtime unmounts it, so a few OS threads can serve many thousands of waiting tasks. Virtual threads became final in Java 21.",
+      "example": "Each Pub/Sub message gets its own virtual thread, which waits for the SuccessFactors API without holding an OS thread.",
+      "src": "s10"
+    },
+    {
+      "id": "t-carrier",
+      "term": "Carrier thread",
+      "ipa": "/ˈkæriə ˌθred/",
+      "say": "carrier thread",
+      "def": "The platform thread that a virtual thread is mounted on while it runs. When the virtual thread unmounts, usually at a blocking I/O call, the carrier is free to run another virtual thread.",
+      "example": "On a Cloud Run instance, thousands of virtual threads that wait for HTTP responses share a few carrier threads.",
+      "src": "s10"
+    },
+    {
+      "id": "t-pinning",
+      "term": "Pinning",
+      "ipa": "/ˈpɪnɪŋ/",
+      "say": "pinning",
+      "def": "A virtual thread is pinned when it cannot unmount from its carrier while it blocks, so the carrier is blocked too. From Java 21 to 23, blocking inside synchronized code pinned; since Java 24 (JEP 491), it is mainly native methods and foreign functions that pin.",
+      "example": "By default, JFR records a jdk.VirtualThreadPinned event when a virtual thread is pinned for longer than 20 milliseconds.",
+      "src": "s11"
+    },
+    {
+      "id": "t-scoped-value",
+      "term": "Scoped value",
+      "ipa": "/ˌskəʊpt ˈvæljuː/",
+      "say": "scoped value",
+      "def": "A value that a method binds for a bounded period, so that the methods it calls, in the same thread and in child threads of a StructuredTaskScope, can read it. It has no set method, and the binding ends when run or call returns. Final in Java 25 (JEP 506).",
+      "example": "The Pub/Sub listener runs ScopedValue.where(CORRELATION_ID, id).run(...), and the logging code reads CORRELATION_ID.get().",
+      "src": "s12"
+    },
+    {
+      "id": "t-structured-concurrency",
+      "term": "Structured concurrency",
+      "ipa": "/ˈstrʌktʃəd kənˈkʌrənsi/",
+      "say": "structured concurrency",
+      "def": "An API that treats a group of related subtasks in different threads as one unit of work. With StructuredTaskScope you fork subtasks and join them, and by default, if one fails, the others are cancelled. It is still a preview API in Java 25, 26 and 27.",
+      "example": "The handler forks two subtasks, one for the candidate and one for the job requisition; if one call fails, the scope cancels the other.",
+      "src": "s14"
+    },
+    {
+      "id": "t-preview",
+      "term": "Preview feature",
+      "ipa": "/ˈpriːvjuː ˈfiːtʃə/",
+      "say": "preview feature",
+      "def": "A new language, JVM or API feature that is complete but not permanent. It is disabled by default, needs --enable-preview to compile and to run, and may change or be removed in a later release.",
+      "example": "StructuredTaskScope is a preview API in Java 25, so the build needs --enable-preview, and its API changed again in JDK 26.",
+      "src": "s15"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u28-l1",
+      "kind": "concepts",
+      "title": "The vocabulary of modern Java",
+      "items": [
+        {
+          "id": "u28-l1-i1",
+          "type": "card",
+          "term": "t-record",
+          "src": "s2",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "r",
+                "label": "record CandidateHired(String applicationId, LocalDate startDate)"
+              },
+              {
+                "id": "f",
+                "label": "private final fields"
+              },
+              {
+                "id": "c",
+                "label": "canonical constructor"
+              },
+              {
+                "id": "a",
+                "label": "accessors applicationId() and startDate()"
+              },
+              {
+                "id": "e",
+                "label": "equals, hashCode and toString"
+              }
+            ],
+            "edges": [
+              {
+                "from": "r",
+                "to": "f",
+                "label": "generates"
+              },
+              {
+                "from": "r",
+                "to": "c",
+                "label": "generates"
+              },
+              {
+                "from": "r",
+                "to": "a",
+                "label": "generates"
+              },
+              {
+                "from": "r",
+                "to": "e",
+                "label": "generates"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u28-l1-i2",
+          "type": "pick",
+          "src": "s2",
+          "q": "A Spring service receives a value of record JobRequisition(String requisitionId, String title) {}. How does it read the title?",
+          "options": [
+            "requisition.title()",
+            "requisition.getTitle()",
+            "requisition.title",
+            "requisition.get(\"title\")"
+          ],
+          "answer": 0,
+          "why": "A record accessor has the same name as the component, with no get prefix. The field itself is private, and records have no generic get method."
+        },
+        {
+          "id": "u28-l1-i3",
+          "type": "card",
+          "term": "t-sealed",
+          "src": "s3",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "i",
+                "label": "sealed interface ApplicationEvent"
+              },
+              {
+                "id": "a",
+                "label": "record StatusChanged"
+              },
+              {
+                "id": "b",
+                "label": "record Withdrawn"
+              },
+              {
+                "id": "c",
+                "label": "record OfferAccepted"
+              }
+            ],
+            "edges": [
+              {
+                "from": "i",
+                "to": "a",
+                "label": "permits"
+              },
+              {
+                "from": "i",
+                "to": "b",
+                "label": "permits"
+              },
+              {
+                "from": "i",
+                "to": "c",
+                "label": "permits"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u28-l1-i4",
+          "type": "card",
+          "term": "t-record-pattern",
+          "src": "s6"
+        },
+        {
+          "id": "u28-l1-i5",
+          "type": "pick",
+          "src": "s5",
+          "q": "A switch expression over the sealed interface ApplicationEvent has one case for each of its three permitted records, and no default. What happens?",
+          "options": [
+            "It compiles, because the compiler knows from the permits list that every case is covered.",
+            "It does not compile, because a switch over an interface always needs a default.",
+            "It compiles, and a null event goes to the last case.",
+            "It compiles only if the three records are declared non-sealed."
+          ],
+          "answer": 0,
+          "why": "For a sealed type, the compiler checks coverage against the permits list, so no default is needed. Without a case null, a null selector throws NullPointerException, and records are always final, so they cannot be non-sealed."
+        },
+        {
+          "id": "u28-l1-i6",
+          "type": "card",
+          "term": "t-virtual-thread",
+          "src": "s10",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "v",
+                "label": "Thousands of virtual threads, one per task"
+              },
+              {
+                "id": "s",
+                "label": "Java runtime scheduler"
+              },
+              {
+                "id": "c",
+                "label": "A few carrier (platform) threads"
+              },
+              {
+                "id": "o",
+                "label": "OS threads"
+              }
+            ],
+            "edges": [
+              {
+                "from": "v",
+                "to": "s",
+                "label": "ready to run"
+              },
+              {
+                "from": "s",
+                "to": "c",
+                "label": "mounts them on"
+              },
+              {
+                "from": "c",
+                "to": "o",
+                "label": "each is a thin wrapper around one"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u28-l1-i7",
+          "type": "tf",
+          "src": "s10",
+          "statement": "Virtual threads make CPU-heavy work, such as parsing a large CSV export, run faster than platform threads.",
+          "answer": false,
+          "why": "Virtual threads are not faster threads: they give scale, not speed. They help with many tasks that spend most of their time waiting, not with long CPU-intensive work."
+        },
+        {
+          "id": "u28-l1-i8",
+          "type": "card",
+          "term": "t-pinning",
+          "src": "s11"
+        },
+        {
+          "id": "u28-l1-i9",
+          "type": "tf",
+          "src": "s11",
+          "statement": "Since Java 24, a virtual thread that blocks inside a synchronized block can unmount and free its carrier.",
+          "answer": true,
+          "why": "With JEP 491, virtual threads acquire, hold and release monitors independently of their carriers, so blocking in synchronized code or in Object.wait() no longer pins. Native code that calls back into Java and blocks still pins."
+        },
+        {
+          "id": "u28-l1-i10",
+          "type": "match",
+          "src": "s17",
+          "q": "Match each feature with the release in which it became final.",
+          "pairs": [
+            [
+              "Text blocks",
+              "Java 15"
+            ],
+            [
+              "Sealed classes",
+              "Java 17"
+            ],
+            [
+              "Virtual threads, record patterns and pattern matching for switch",
+              "Java 21"
+            ],
+            [
+              "Unnamed variables and patterns (_)",
+              "Java 22"
+            ],
+            [
+              "Virtual threads that do not pin in synchronized code",
+              "Java 24"
+            ],
+            [
+              "Scoped values",
+              "Java 25"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u28-l2",
+      "kind": "practice",
+      "title": "Use modern Java in an integration service",
+      "items": [
+        {
+          "id": "u28-l2-i1",
+          "type": "match",
+          "src": "s2",
+          "q": "Match each need in an integration service with the Java feature that fits it.",
+          "pairs": [
+            [
+              "Reject a JobApplication with a blank ID as soon as it is created",
+              "A compact constructor in a record"
+            ],
+            [
+              "Get the latest entry of a status history list",
+              "getLast() from SequencedCollection"
+            ],
+            [
+              "Keep a sample OData JSON response readable in a test",
+              "A text block"
+            ],
+            [
+              "Ignore a record component you do not need in a pattern",
+              "The unnamed pattern _"
+            ],
+            [
+              "Give every method in a request the same correlation ID",
+              "A scoped value"
+            ],
+            [
+              "Allow at most 10 parallel calls to one external API",
+              "A Semaphore"
+            ]
+          ]
+        },
+        {
+          "id": "u28-l2-i2",
+          "type": "code",
+          "src": "s5",
+          "lang": "java",
+          "q": "Complete the code. The service receives three kinds of SuccessFactors Recruiting events from Pub/Sub. The compiler must check that the switch covers every kind, so there is no default.",
+          "code": "[[1]] interface ApplicationEvent\n        permits StatusChanged, Withdrawn, OfferAccepted {}\n\nrecord StatusChanged(String applicationId, String status) implements ApplicationEvent {}\nrecord Withdrawn(String applicationId, String reason) implements ApplicationEvent {}\nrecord OfferAccepted(String applicationId, LocalDate startDate) implements ApplicationEvent {}\n\nString routeFor(ApplicationEvent event) {\n    return [[2]] (event) {\n        case StatusChanged(var id, var status) [[3]] \"Hired\".equals(status) -> \"onboarding\";\n        case StatusChanged s -> \"audit\";\n        case Withdrawn w -> \"close-application\";\n        case [[4]](var id, var startDate) -> \"payroll\";\n    };\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "sealed",
+              "decoys": [
+                "final",
+                "abstract"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "switch",
+              "decoys": [
+                "if",
+                "case"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "when",
+              "decoys": [
+                "if",
+                "&&"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "OfferAccepted",
+              "decoys": [
+                "ApplicationEvent",
+                "StatusChanged"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u28-l2-i3",
+          "type": "scenario",
+          "src": "s23",
+          "q": "A team models a candidate as record Candidate(String id, List<String> skills). A caller keeps the list it passed in and adds a skill later, and the Candidate in the cache now shows the new skill too.",
+          "options": [
+            {
+              "text": "Add a compact constructor that runs skills = List.copyOf(skills), so the record keeps its own unmodifiable copy.",
+              "ok": true,
+              "why": "A record is only shallowly immutable: the field is final, but the list it points to can still change. Copying in the compact constructor removes the shared list."
+            },
+            {
+              "text": "Declare the record final so that its components cannot change.",
+              "ok": false,
+              "why": "Records are already implicitly final. That stops subclassing; it does not stop changes inside the list."
+            },
+            {
+              "text": "Add a setSkills method and ask callers to use it.",
+              "ok": false,
+              "why": "The fields of a record are final, so a setter cannot assign them, and it would not stop changes to the old list."
+            },
+            {
+              "text": "Override equals so that the old and new values still compare as equal.",
+              "ok": false,
+              "why": "This hides the problem: the cached data is still wrong."
+            }
+          ]
+        },
+        {
+          "id": "u28-l2-i4",
+          "type": "match",
+          "src": "s9",
+          "q": "Match each older idiom with its modern replacement.",
+          "pairs": [
+            [
+              "list.get(list.size() - 1)",
+              "list.getLast()"
+            ],
+            [
+              "linkedHashMap.entrySet().iterator().next()",
+              "linkedHashMap.firstEntry()"
+            ],
+            [
+              "Copy a list and call Collections.reverse on the copy",
+              "list.reversed(), a reverse-ordered view"
+            ],
+            [
+              "if (o instanceof String) { String s = (String) o; }",
+              "if (o instanceof String s) { }"
+            ],
+            [
+              "A JSON string written with escaped quotes and line breaks",
+              "A text block"
+            ],
+            [
+              "catch (IOException ignored)",
+              "catch (IOException _)"
+            ]
+          ]
+        },
+        {
+          "id": "u28-l2-i5",
+          "type": "order",
+          "src": "s10",
+          "q": "A Pub/Sub message is handled on a virtual thread that calls the SuccessFactors OData API. Put the steps in order.",
+          "steps": [
+            "The executor starts a new virtual thread for the message",
+            "The scheduler mounts the virtual thread on a carrier thread",
+            "The code sends the HTTP request and blocks, waiting for the response",
+            "The runtime unmounts the virtual thread, and the carrier runs other virtual threads",
+            "The response arrives, and the virtual thread is ready to run again",
+            "The scheduler mounts it on a carrier, and the code continues after the call"
+          ]
+        },
+        {
+          "id": "u28-l2-i6",
+          "type": "scenario",
+          "src": "s11",
+          "q": "A Spring Boot service on Java 21 runs with spring.threads.virtual.enabled=true. Under load, throughput drops, and JFR shows many jdk.VirtualThreadPinned events inside a synchronized method of an old HTTP client library that blocks on the network.",
+          "options": [
+            {
+              "text": "Move the service to Java 25, where synchronized code no longer pins (JEP 491, since Java 24), and check JFR again.",
+              "ok": true,
+              "why": "Since Java 24 a virtual thread can unmount inside synchronized code, so the carriers stay free while the library waits on the network."
+            },
+            {
+              "text": "Run the virtual threads in a fixed pool of 200 to protect the carriers.",
+              "ok": false,
+              "why": "Virtual threads should never be pooled. A pool only limits the number of tasks; it does not stop pinning."
+            },
+            {
+              "text": "Set -Djdk.tracePinnedThreads=full in production to fix the pinning.",
+              "ok": false,
+              "why": "That property only printed stack traces, and JEP 491 removed it. It never fixed anything."
+            },
+            {
+              "text": "Increase the heap size, because pinning is caused by memory pressure.",
+              "ok": false,
+              "why": "Pinning comes from monitors and native frames, not from memory, so more heap changes nothing."
+            }
+          ]
+        },
+        {
+          "id": "u28-l2-i7",
+          "type": "scenario",
+          "src": "s10",
+          "q": "Your Cloud Run service now handles every request on a virtual thread. You agreed with the SuccessFactors administrators that this service sends at most 10 OData calls at the same time.",
+          "options": [
+            {
+              "text": "Guard the call with a Semaphore(10): acquire a permit before the call and release it in a finally block.",
+              "ok": true,
+              "why": "The Java virtual threads guide says to limit concurrency with a Semaphore. Only ten threads make the call at the same time, and the others wait for a permit without blocking an OS thread."
+            },
+            {
+              "text": "Create a fixed pool of 10 virtual threads for these calls.",
+              "ok": false,
+              "why": "Pools are for scarce resources, and virtual threads are not scarce, so they should never be pooled."
+            },
+            {
+              "text": "Set server.tomcat.threads.max=10.",
+              "ok": false,
+              "why": "With virtual threads enabled, thread-pool properties no longer have an effect. Even without virtual threads, this setting would limit all requests, not only the SuccessFactors calls."
+            },
+            {
+              "text": "Count the running calls in a ThreadLocal.",
+              "ok": false,
+              "why": "Each thread has its own thread-local value, so the count is never shared between requests."
+            }
+          ]
+        },
+        {
+          "id": "u28-l2-i8",
+          "type": "code",
+          "src": "s12",
+          "lang": "java",
+          "q": "Complete the code. The listener binds the correlation ID of each message while the message is handled, and a method deep in the call stack reads it for the log.",
+          "code": "static final ScopedValue<String> CORRELATION_ID = ScopedValue.[[1]]();\n\nvoid onMessage(InboundMessage message) {\n    ScopedValue.[[2]](CORRELATION_ID, message.correlationId())\n               .[[3]](() -> handle(message));\n}\n\n// called many levels below handle(message)\nvoid callSuccessFactors(String applicationId) {\n    log.info(\"Fetching {} (correlation {})\", applicationId, CORRELATION_ID.[[4]]());\n    // ...\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "newInstance",
+              "decoys": [
+                "withInitial",
+                "of"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "where",
+              "decoys": [
+                "set",
+                "bind"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "run",
+              "decoys": [
+                "start",
+                "submit"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "get",
+              "decoys": [
+                "remove",
+                "set"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u28-l2-i9",
+          "type": "diagram",
+          "src": "s13",
+          "layout": "flow",
+          "q": "Complete the flow of a request handler that uses StructuredTaskScope (a preview API in Java 25) to call two systems at the same time. If one subtask fails, join throws and the other subtask is cancelled.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Request handler (owner of the scope)",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "StructuredTaskScope.open() in try-with-resources",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Subtask: fetch the candidate from SuccessFactors",
+              "slot": false
+            },
+            {
+              "id": "n4",
+              "label": "Subtask: fetch the job requisition",
+              "slot": false
+            },
+            {
+              "id": "n5",
+              "label": "scope.join()",
+              "slot": true
+            },
+            {
+              "id": "n6",
+              "label": "Subtask.get() on each subtask, then build the response",
+              "slot": true
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "opens"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "fork"
+            },
+            {
+              "from": "n2",
+              "to": "n4",
+              "label": "fork"
+            },
+            {
+              "from": "n3",
+              "to": "n5",
+              "label": "completes or fails"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "completes or fails"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "both succeeded"
+            }
+          ],
+          "decoys": [
+            "Executors.newFixedThreadPool(200)",
+            "ThreadLocal.set()",
+            "Thread.sleep() until both finish"
+          ]
+        },
+        {
+          "id": "u28-l2-i10",
+          "type": "scenario",
+          "src": "s15",
+          "q": "A developer wants to ship a new Cloud Run service on Java 25 that uses StructuredTaskScope to call SuccessFactors and an internal API in parallel. What do you advise?",
+          "options": [
+            {
+              "text": "For now, use an ExecutorService from Executors.newVirtualThreadPerTaskExecutor() in try-with-resources, because StructuredTaskScope is still a preview API and changed again in JDK 26.",
+              "ok": true,
+              "why": "Preview APIs need --enable-preview and may change or be removed, and JEP 12 very strongly recommends not distributing programs that use them. With an executor you lose the automatic cancellation, so cancel the other Future yourself when one call fails."
+            },
+            {
+              "text": "Use it: it has been final since Java 21.",
+              "ok": false,
+              "why": "Java 21 had only the first preview. It is still a preview in JDK 25, 26 and 27."
+            },
+            {
+              "text": "Use it, because preview features are enabled by default in Java 25.",
+              "ok": false,
+              "why": "All preview features are disabled by default; you need --enable-preview for both javac and java."
+            },
+            {
+              "text": "Use a ThreadLocal instead, because it cancels the other call when one fails.",
+              "ok": false,
+              "why": "A ThreadLocal only stores data for each thread. It has nothing to do with cancelling subtasks."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u28-l3",
+      "kind": "interview",
+      "title": "Talk about modern Java",
+      "items": [
+        {
+          "id": "u28-l3-i1",
+          "type": "say",
+          "src": "s2",
+          "text": "I use records for events and DTOs. They are transparent carriers for immutable data, and I validate the values in the compact constructor."
+        },
+        {
+          "id": "u28-l3-i2",
+          "type": "tf",
+          "src": "s16",
+          "statement": "Java 25 is a long-term support release, and Oracle plans Java 29, in September 2027, as the next one.",
+          "answer": true,
+          "why": "Oracle lists 8, 11, 17, 21 and 25 as LTS releases and plans a new LTS every two years. JDK 26 and JDK 27 are non-LTS feature releases."
+        },
+        {
+          "id": "u28-l3-i3",
+          "type": "explain",
+          "src": "s16",
+          "seconds": 150,
+          "q": "Your services run on Java 17. Why would you move to Java 25, and what would you use first?",
+          "model": "Java 25 is the current long-term support release, and Oracle plans the next one, Java 29, for September 2027, so it is a stable target for the next few years. Spring Boot 4.1 supports it too. For integration code, the first thing I would use is virtual threads, which became final in Java 21. Most of our services spend their time waiting on APIs like SuccessFactors or on the database, and virtual threads let one instance handle many more of those waits. Java 24 also removed the main limitation: blocking inside synchronized code no longer pins the carrier thread. The second thing is data-oriented code. Records, sealed interfaces and pattern matching for switch let me model events precisely, and the compiler tells me when a new event type is not handled. Smaller features help too, like sequenced collections and text blocks. But I would not use preview features, such as structured concurrency, in production. The trade-off is the upgrade effort, so first I would check that our libraries support Java 25 and run the full test suite.",
+          "keypoints": [
+            {
+              "text": "Java 25 is the current LTS release",
+              "kw": [
+                "lts",
+                "long-term support",
+                "long term support",
+                "java 25",
+                "support"
+              ]
+            },
+            {
+              "text": "Virtual threads for integration work that mostly waits",
+              "kw": [
+                "virtual threads",
+                "virtual thread",
+                "waiting",
+                "blocking",
+                "throughput",
+                "scale"
+              ]
+            },
+            {
+              "text": "Since Java 24, synchronized code no longer pins",
+              "kw": [
+                "pinning",
+                "pin",
+                "pins",
+                "synchronized",
+                "jep 491",
+                "java 24",
+                "carrier"
+              ]
+            },
+            {
+              "text": "Records, sealed types and pattern matching to model events",
+              "kw": [
+                "records",
+                "record",
+                "sealed",
+                "pattern matching",
+                "switch",
+                "exhaustive"
+              ]
+            },
+            {
+              "text": "No preview features in production",
+              "kw": [
+                "preview",
+                "structured concurrency",
+                "enable-preview",
+                "production"
+              ]
+            },
+            {
+              "text": "Check libraries and run the tests before the upgrade",
+              "kw": [
+                "libraries",
+                "library",
+                "test suite",
+                "tests",
+                "compatible",
+                "compatibility",
+                "upgrade effort"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u28-l3-i4",
+          "type": "explain",
+          "src": "s5",
+          "seconds": 150,
+          "q": "How would you model the different events your service receives from SuccessFactors Recruiting in modern Java?",
+          "model": "I would model them as a sealed interface, for example ApplicationEvent, that permits only the event types we really handle, such as StatusChanged, Withdrawn and OfferAccepted. Each event is a record, so it is a transparent, shallowly immutable carrier, and I get the accessors, equals and hashCode for free. In the compact constructor I validate the input, for example a blank application ID, and I copy any list with List.copyOf. Then I route the events with a switch expression and record patterns, for example a case for StatusChanged with a guard that checks for the Hired status. Because the interface is sealed, the switch is exhaustive without a default branch. The big benefit is safety. When we add a new event type to the permits list, every switch that does not handle it stops compiling, so we find the gap at build time, not in production. The trade-off is that the hierarchy is closed. A new event type always needs a code change and a release, so unknown events go to a dead-letter topic until we support them.",
+          "keypoints": [
+            {
+              "text": "A sealed interface with a permits list",
+              "kw": [
+                "sealed",
+                "permits",
+                "sealed interface"
+              ]
+            },
+            {
+              "text": "Each event is an immutable record",
+              "kw": [
+                "record",
+                "records",
+                "immutable",
+                "accessors",
+                "carrier"
+              ]
+            },
+            {
+              "text": "Validation in the compact constructor",
+              "kw": [
+                "compact constructor",
+                "validate",
+                "validation",
+                "copyof",
+                "copy"
+              ]
+            },
+            {
+              "text": "A switch with record patterns and guards",
+              "kw": [
+                "switch",
+                "record pattern",
+                "record patterns",
+                "pattern matching",
+                "guard",
+                "when"
+              ]
+            },
+            {
+              "text": "Exhaustive without default: a new type breaks the build",
+              "kw": [
+                "exhaustive",
+                "no default",
+                "without a default",
+                "compile",
+                "compiling",
+                "compiler",
+                "build time"
+              ]
+            },
+            {
+              "text": "Trade-off: the hierarchy is closed, so unknown events need a safe path",
+              "kw": [
+                "trade-off",
+                "closed",
+                "dead-letter",
+                "dead letter",
+                "unknown",
+                "code change"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u28-l3-i5",
+          "type": "say",
+          "src": "s10",
+          "text": "Virtual threads give us scale, not speed. They help when most of the time is spent waiting, for example on calls to SuccessFactors."
+        },
+        {
+          "id": "u28-l3-i6",
+          "type": "scenario",
+          "src": "s11",
+          "q": "The interviewer says: when we moved to virtual threads on Java 21, we replaced synchronized with ReentrantLock everywhere. Now we are on Java 25. What should we do with that code?",
+          "options": [
+            {
+              "text": "There is no need to revert it, but new code can use synchronized again; use ReentrantLock or other java.util.concurrent locks when you need fairness, read-write locks, or timed or interruptible locking.",
+              "ok": true,
+              "why": "JEP 491 says migrated code need not be reverted, and it recommends synchronized where practical because it is more convenient and less error prone."
+            },
+            {
+              "text": "Revert everything to synchronized now, because ReentrantLock pins virtual threads in Java 25.",
+              "ok": false,
+              "why": "ReentrantLock did not pin virtual threads; that is why teams moved to it."
+            },
+            {
+              "text": "Keep ReentrantLock and forbid synchronized, because synchronized still pins in Java 25.",
+              "ok": false,
+              "why": "Since Java 24, virtual threads can unmount inside synchronized code."
+            },
+            {
+              "text": "Remove all the locks, because virtual threads never run at the same time.",
+              "ok": false,
+              "why": "Virtual threads run in parallel on several carrier threads, so shared mutable data still needs locks."
+            }
+          ]
+        },
+        {
+          "id": "u28-l3-i7",
+          "type": "explain",
+          "src": "s19",
+          "seconds": 150,
+          "q": "Would you switch on virtual threads in a Spring Boot service? What would you check first?",
+          "model": "Yes, for a service that mostly waits on I/O, like our SuccessFactors integration. In Spring Boot it is one property, spring.threads.virtual.enabled. Before I switch it on, I check four things. First, the Java version. Virtual threads need Java 21, but I want Java 24 or later, ideally 25, so that synchronized code no longer pins the carrier threads. Second, the limits. Thread-pool properties stop having an effect, so if a downstream system can only take ten parallel calls, I add a semaphore or rely on the connection pool. Third, thread-locals. Code that caches expensive objects in a ThreadLocal creates one for every task, because virtual threads are never reused. Fourth, scheduling. Virtual threads are daemon threads, so I set spring.main.keep-alive to keep the JVM running. Then I load test and watch the jdk.VirtualThreadPinned events in Flight Recorder.",
+          "keypoints": [
+            {
+              "text": "One Spring Boot property",
+              "kw": [
+                "spring.threads.virtual.enabled",
+                "property",
+                "one property"
+              ]
+            },
+            {
+              "text": "Java 24 or later, so synchronized does not pin",
+              "kw": [
+                "java 24",
+                "java 25",
+                "synchronized",
+                "pinning",
+                "pin",
+                "pins",
+                "jep 491"
+              ]
+            },
+            {
+              "text": "Limit downstream calls with a semaphore; pool properties stop working",
+              "kw": [
+                "semaphore",
+                "connection pool",
+                "limit",
+                "limits",
+                "thread pool",
+                "thread-pool"
+              ]
+            },
+            {
+              "text": "No expensive objects cached in ThreadLocal",
+              "kw": [
+                "threadlocal",
+                "thread-local",
+                "thread-locals",
+                "thread local",
+                "cache",
+                "caches",
+                "caching"
+              ]
+            },
+            {
+              "text": "Daemon threads: set spring.main.keep-alive",
+              "kw": [
+                "keep-alive",
+                "keep alive",
+                "daemon",
+                "scheduled",
+                "scheduling"
+              ]
+            },
+            {
+              "text": "Load test and watch pinning in JFR",
+              "kw": [
+                "jfr",
+                "flight recorder",
+                "load test",
+                "jdk.virtualthreadpinned",
+                "monitor"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u28-l3-i8",
+          "type": "scenario",
+          "src": "s10",
+          "q": "The interviewer says: our candidate-sync service uses Spring WebFlux and works well under load. Now that we are on Java 25, should we rewrite it as blocking code on virtual threads?",
+          "options": [
+            {
+              "text": "Not for that reason alone. I would keep a reactive service that works and that the team can maintain, and use virtual threads with simple blocking code for new I/O-bound services.",
+              "ok": true,
+              "why": "Virtual threads help code in the thread-per-request style, and code that does not dedicate a thread to each task gains little from them. A rewrite costs time and adds risk, so it needs a real reason, such as code that is hard to debug or maintain."
+            },
+            {
+              "text": "Yes, because virtual threads handle each request faster than reactive code.",
+              "ok": false,
+              "why": "Virtual threads give scale, not speed: they do not run code any faster. The gain is simpler code, not lower latency."
+            },
+            {
+              "text": "Keep WebFlux, and make blocking calls inside the reactive pipeline, because virtual threads make blocking cheap everywhere.",
+              "ok": false,
+              "why": "The Java virtual threads guide says to avoid mixing synchronous, blocking code with asynchronous frameworks."
+            },
+            {
+              "text": "Yes, and run the blocking code on a fixed pool of 200 virtual threads, like the old thread pool.",
+              "ok": false,
+              "why": "Virtual threads should never be pooled. If a downstream system needs a limit, use a Semaphore."
+            }
+          ]
+        },
+        {
+          "id": "u28-l3-i9",
+          "type": "explain",
+          "src": "s14",
+          "seconds": 150,
+          "q": "What are scoped values and structured concurrency, and would you use them in production on Java 25?",
+          "model": "A scoped value is a safer replacement for a ThreadLocal when you pass context, like a correlation ID or the current user, down the call stack. You bind it with ScopedValue.where and run, and the binding exists only while that call runs. There is no set method, so the data flow is easy to follow, and it is cheap even with many virtual threads. Scoped values are final in Java 25, so yes, I would use them in production. Structured concurrency is different. StructuredTaskScope treats several subtasks as one unit of work: you fork them and join them, and if one fails, the others are cancelled. But in Java 25 it is still a preview API. It changed again in JDK 26, and it is still in preview in JDK 27. Preview code needs the enable-preview flag and should not be distributed, so for now I use a virtual-thread-per-task executor.",
+          "keypoints": [
+            {
+              "text": "A scoped value passes context instead of a ThreadLocal",
+              "kw": [
+                "scoped value",
+                "scoped values",
+                "threadlocal",
+                "thread-local",
+                "thread local",
+                "context",
+                "correlation id"
+              ]
+            },
+            {
+              "text": "Immutable and bounded to the run or call",
+              "kw": [
+                "immutable",
+                "no set",
+                "cannot be changed",
+                "bounded",
+                "binding",
+                "where",
+                "run"
+              ]
+            },
+            {
+              "text": "Scoped values are final in Java 25",
+              "kw": [
+                "final",
+                "permanent",
+                "jep 506",
+                "production"
+              ]
+            },
+            {
+              "text": "StructuredTaskScope: subtasks as one unit, cancelled on failure",
+              "kw": [
+                "structuredtaskscope",
+                "unit of work",
+                "fork",
+                "join",
+                "cancel",
+                "cancelled"
+              ]
+            },
+            {
+              "text": "Structured concurrency is still a preview API",
+              "kw": [
+                "preview",
+                "enable-preview",
+                "not final",
+                "jdk 26",
+                "jdk 27",
+                "changed"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u28-l3-i10",
+          "type": "say",
+          "src": "s15",
+          "text": "Structured concurrency is still a preview API in Java 25, so I would not ship it yet. I would use a virtual-thread-per-task executor instead."
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Versions",
+        "points": [
+          "LTS releases: 8, 11, 17, 21 and 25. Java 25 (September 2025) is the current LTS.",
+          "JDK 26 (March 2026) and JDK 27 (September 2026) are non-LTS feature releases.",
+          "Oracle plans a new LTS every two years; the next is Java 29, planned for September 2027.",
+          "Final in: text blocks 15; records and instanceof patterns 16; sealed classes 17; virtual threads, record patterns, switch patterns and sequenced collections 21; unnamed _ 22; synchronized without pinning 24; scoped values 25.",
+          "Spring Boot 4.1.2 needs Java 17 or later and supports up to Java 27."
+        ]
+      },
+      {
+        "h": "Records",
+        "points": [
+          "A shallowly immutable, transparent carrier for a fixed set of values.",
+          "Generated: private final fields, canonical constructor, accessors such as id() (no get prefix), equals, hashCode and toString.",
+          "Implicitly final; no extra instance fields; can implement interfaces and declare static members and instance methods.",
+          "Compact constructor: validate and normalise; the fields are assigned at the end.",
+          "A list inside a record can still change: copy it with List.copyOf in the compact constructor."
+        ]
+      },
+      {
+        "h": "Sealed types and pattern matching",
+        "points": [
+          "sealed interface X permits A, B, C: only these types can implement X.",
+          "Each permitted subclass uses exactly one of final, sealed or non-sealed (records are already final).",
+          "instanceof String s: test and bind, no cast; s is in scope only where the match is certain.",
+          "Record pattern: case StatusChanged(var id, var status) deconstructs the record through its accessors.",
+          "Guard: case X x when condition. Order the labels: constants, then guarded patterns, then plain patterns.",
+          "An exhaustive switch over a sealed type needs no default; a new permitted type breaks the build, which is what you want.",
+          "No case null: a null selector throws NullPointerException."
+        ]
+      },
+      {
+        "h": "Text blocks and sequenced collections",
+        "points": [
+          "Text block: three double quotes, then a line break; incidental indentation and trailing spaces are removed.",
+          "The closing delimiter can control the indentation; \\s keeps a space, and a backslash at the end of a line joins it to the next.",
+          "Use .formatted(...) to insert values into a text block.",
+          "SequencedCollection: getFirst, getLast, addFirst, addLast, removeFirst, removeLast, reversed.",
+          "SequencedMap: firstEntry, lastEntry, pollFirstEntry, pollLastEntry, putFirst, putLast, sequencedKeySet.",
+          "Implemented by List, Deque, LinkedHashSet, SortedSet, LinkedHashMap and SortedMap."
+        ]
+      },
+      {
+        "h": "Virtual threads",
+        "points": [
+          "Lightweight Thread objects mounted on carrier (platform) threads; blocking I/O unmounts them.",
+          "Scale, not speed: for many tasks that mostly wait, not for CPU-heavy work.",
+          "One virtual thread per task with Executors.newVirtualThreadPerTaskExecutor(); never pool them.",
+          "Limit access to a slow or limited system with a Semaphore; a connection pool already limits database access.",
+          "Do not cache expensive objects in a ThreadLocal; share immutable objects instead.",
+          "Spring Boot: spring.threads.virtual.enabled=true; thread-pool properties stop working; consider spring.main.keep-alive=true."
+        ]
+      },
+      {
+        "h": "Pinning",
+        "points": [
+          "Pinned: the virtual thread cannot unmount while it blocks, so its carrier is blocked too.",
+          "Java 21 to 23: blocking inside synchronized code pinned.",
+          "Java 24 and later (JEP 491): virtual threads can block in synchronized code and in Object.wait() without pinning.",
+          "Still pins: native methods and foreign functions, for example native code that calls back into Java and blocks.",
+          "Detect it with the JFR event jdk.VirtualThreadPinned (on by default, 20 ms threshold); jdk.tracePinnedThreads was removed.",
+          "Code moved to ReentrantLock need not be reverted; in new code, prefer synchronized where practical."
+        ]
+      },
+      {
+        "h": "Scoped values and structured concurrency",
+        "points": [
+          "ScopedValue (final in Java 25): ScopedValue.newInstance(), ScopedValue.where(KEY, value).run(...) or .call(...), KEY.get().",
+          "No set method; the binding ends when run or call returns; child threads of a StructuredTaskScope inherit it.",
+          "StructuredTaskScope: open(), fork(...), join(), then Subtask.get(); close it with try-with-resources.",
+          "Default policy: if one subtask fails, join throws and the other subtasks are cancelled.",
+          "Preview in JDK 25 (JEP 505), JDK 26 (JEP 525) and JDK 27 (JEP 533); the API changed between previews.",
+          "Preview features are disabled by default, need --enable-preview for javac and java, may change or be removed, and should not be distributed."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "JEP 395: Records - OpenJDK",
+      "url": "https://openjdk.org/jeps/395",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Record Classes - Java Language Updates, Java SE 25",
+      "url": "https://docs.oracle.com/en/java/javase/25/language/records.html",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "JEP 409: Sealed Classes - OpenJDK",
+      "url": "https://openjdk.org/jeps/409",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "JEP 394: Pattern Matching for instanceof - OpenJDK",
+      "url": "https://openjdk.org/jeps/394",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "JEP 441: Pattern Matching for switch - OpenJDK",
+      "url": "https://openjdk.org/jeps/441",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "JEP 440: Record Patterns - OpenJDK",
+      "url": "https://openjdk.org/jeps/440",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Pattern Matching for switch - Java Language Updates, Java SE 25",
+      "url": "https://docs.oracle.com/en/java/javase/25/language/pattern-matching-switch.html",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Text Blocks - Programmer's Guide, Java SE 25",
+      "url": "https://docs.oracle.com/en/java/javase/25/text-blocks/index.html",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "JEP 431: Sequenced Collections - OpenJDK",
+      "url": "https://openjdk.org/jeps/431",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Virtual Threads - Core Libraries, Java SE 25",
+      "url": "https://docs.oracle.com/en/java/javase/25/core/virtual-threads.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "JEP 491: Synchronize Virtual Threads without Pinning - OpenJDK",
+      "url": "https://openjdk.org/jeps/491",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "JEP 506: Scoped Values - OpenJDK",
+      "url": "https://openjdk.org/jeps/506",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Structured Concurrency - Core Libraries, Java SE 25",
+      "url": "https://docs.oracle.com/en/java/javase/25/core/structured-concurrency.html",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "JEP 525: Structured Concurrency (Sixth Preview) - OpenJDK",
+      "url": "https://openjdk.org/jeps/525",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "JEP 12: Preview Features - OpenJDK",
+      "url": "https://openjdk.org/jeps/12",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Oracle Java SE Support Roadmap",
+      "url": "https://www.oracle.com/java/technologies/java-se-support-roadmap.html",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "JDK 21 - OpenJDK project page",
+      "url": "https://openjdk.org/projects/jdk/21/",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "JDK 24 - OpenJDK project page",
+      "url": "https://openjdk.org/projects/jdk/24/",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "SpringApplication: Virtual threads - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/reference/features/spring-application.html",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "System Requirements - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/system-requirements.html",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "JDK 27 Release Notes - Oracle",
+      "url": "https://www.oracle.com/java/technologies/javase/27all-relnotes.html",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "JEP 456: Unnamed Variables & Patterns - OpenJDK",
+      "url": "https://openjdk.org/jeps/456",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Record (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Record.html",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "StructuredTaskScope.Joiner (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/StructuredTaskScope.Joiner.html",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "JDK 22 - OpenJDK project page",
+      "url": "https://openjdk.org/projects/jdk/22/",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "Pattern Matching for instanceof - Java Language Updates, Java SE 25",
+      "url": "https://docs.oracle.com/en/java/javase/25/language/pattern-matching-instanceof.html",
+      "official": true
+    },
+    {
+      "id": "s27",
+      "title": "Record Patterns - Java Language Updates, Java SE 25",
+      "url": "https://docs.oracle.com/en/java/javase/25/language/record-patterns.html",
+      "official": true
+    }
+  ]
+}

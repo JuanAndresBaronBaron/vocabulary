@@ -87,10 +87,13 @@ def _flat(s):
     return re.sub(r"\s+", " ", str(s)).strip()
 
 
-def _runs():
+_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+
+
+def _runs(ix=None):
     """Las secciones del camino: tramos seguidos de un mismo bloque, por número de unidad."""
     out = []
-    for u in sorted(TC.index()["units"], key=lambda u: u["n"]):
+    for u in sorted((ix or TC.index())["units"], key=lambda u: u["n"]):
         if out and out[-1][0] == u["block"]:
             out[-1][1].append(u)
         else:
@@ -281,7 +284,9 @@ def test_path_from_data():
     título y 3 puntos; las no disponibles dicen «Coming soon», se leen y no se tocan (no son enlaces ni botones); la
     cabecera del bloque con «Interview ready» (anillo) y «Cheat sheet»; «Next» en la unidad de la lección siguiente."""
     data = TC.data({**_done("u01", 2), "srs/u02-l1-i1": TC.srs()})
-    page = TC.tech_page("phone", hash="#/techpath", data=data)
+    soon = ["u08"] + [f"u{i:02d}" for i in range(24, 34)]   # una unidad suelta y bloques enteros, como antes de publicarlas
+    ix = TC.soon_index(soon)
+    page = TC.tech_page("phone", hash="#/techpath", data=data, soon=soon)
     try:
         secs = page.evaluate("""() => [...document.querySelectorAll('#tp-path > .tp-blk')].map(s => ({b: s.dataset.block,
           title: s.querySelector('.tp-bh').firstChild.textContent, sub: s.querySelector('.tp-bh-s').textContent,
@@ -289,8 +294,8 @@ def test_path_from_data():
           units: [...s.querySelectorAll('.tp-urow')].map(r => ({id: r.dataset.unit, tag: r.tagName, href: r.getAttribute('href'), role: r.getAttribute('role'),
             tab: r.tabIndex, text: r.innerText.replace(/\\s+/g, ' '), dots: r.querySelectorAll('.tp-dots i').length, on: r.querySelectorAll('.tp-dots i.on').length,
             next: !!r.querySelector('.tp-badge.pri')}))}))""")
-        runs = _runs()
-        blocks = {b["id"]: b for b in TC.index()["blocks"]}
+        runs = _runs(ix)
+        blocks = {b["id"]: b for b in ix["blocks"]}
         assert [s["b"] for s in secs] == [b for b, _ in runs], [s["b"] for s in secs]
         for s, (bid, us) in zip(secs, runs):
             assert s["title"] == blocks[bid]["title"], s
@@ -360,7 +365,8 @@ def test_unit_pages_from_data():
             assert [s["href"] for s in r["srcs"]] == [s["url"] for s in want], u["id"]
             assert [s["off"] for s in r["srcs"]] == [bool(s["official"]) for s in want], u["id"]
             assert all(s["blank"] == "_blank" and "noopener" in s["rel"] for s in r["srcs"]), r["srcs"][:2]
-            assert "Facts checked on 24 October 2026." in r["foot"], r["foot"][:80]
+            y, m, d = map(int, u["reviewed"].split("-"))
+            assert f"Facts checked on {d} {_MONTHS[m - 1]} {y}." in r["foot"], r["foot"][:80]
             for n in u.get("versionNotes", []):
                 assert _flat(n) in _flat(r["foot"]), n[:60]
             if u["id"] == "u07":
@@ -384,7 +390,7 @@ def test_unit_pages_from_data():
         page.locator("#tp-u-go").click()
         assert _wait_hash(page, "techl/*").startswith("techl/lesson/u01-l1")
         TC.goto(page, "#/techunit/u31")
-        assert "Coming soon" in _app_text(page) and "Unit 31" in _app_text(page)
+        assert "Coming soon" not in _app_text(page) and page.locator("#tp-u-go").count() == 1
         TC.goto(page, "#/techunit/u99")
         assert "No such unit" in _app_text(page)
         assert not C.errors(page), C.errors(page)
@@ -423,7 +429,7 @@ def test_block_cheat_sheet_complete():
                 else:
                     assert a["q"] == it["prompt"] and a["dt"] == ["Situation", "Task", "Action", "Result", "Lessons learned"], a
             if bid == "leadership":
-                assert len(st) == 3 and "Unit 7 · more units coming soon" in text
+                assert len(st) >= 3 and "Units 7, 13 and 23" in text and "more units coming soon" not in text
         # saltos
         TC.goto(page, "#/techsheet/integration")
         page.locator('[data-jump="tp-sh-ans"]').click()
@@ -448,9 +454,26 @@ def test_block_cheat_sheet_complete():
         _wait_hash(page, "techsheet/integration")
         assert _back_pill(page) == {"t": "Path", "h": "#/techpath"}, _back_pill(page)
         TC.goto(page, "#/techsheet/java")
-        assert "Coming soon" in _app_text(page)
+        assert "Java cheat sheet" in _app_text(page) and "Coming soon" not in _app_text(page)
         TC.goto(page, "#/techsheet/nope")
         assert "No such cheat sheet" in _app_text(page)
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
+def test_coming_soon_pages():
+    """Una unidad que no está en esta versión, y la chuleta de un bloque sin unidades, dicen «Coming soon» con
+    «Back to Path» (ahora las 33 están publicadas: se sirve un index.json con Java y la 31 sin publicar)."""
+    soon = ["u31"] + [f"u{i:02d}" for i in range(24, 29)]
+    page = TC.tech_page("phone", hash="#/techpath", soon=soon)
+    try:
+        TC.goto(page, "#/techunit/u31")
+        assert "Coming soon" in _app_text(page) and "Unit 31" in _app_text(page)
+        TC.goto(page, "#/techsheet/java")
+        assert "Coming soon" in _app_text(page) and "Java cheat sheet" in _app_text(page)
+        TC.goto(page, "#/techsheet/final")
+        assert "Coming soon" not in _app_text(page) and "more units coming soon" in _app_text(page)
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()

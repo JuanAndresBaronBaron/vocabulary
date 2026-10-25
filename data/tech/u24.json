@@ -1,0 +1,1328 @@
+{
+  "format": 1,
+  "id": "u24",
+  "n": 24,
+  "block": "java",
+  "title": "Spring Boot and REST",
+  "summary": "After this unit you can build a REST API with Spring Boot 4: map and validate requests, return RFC 9457 problem details, version the API with Spring Framework 7, bind typed configuration with profiles, and explain the move to Jackson 3.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Spring Boot 4.1.2 (current on spring.io on 2026-10-25) and the Spring Framework 7.0.10 reference (stable; 7.1.0-RC1 is in preview). API versioning (ApiVersionConfigurer and the version attribute of @RequestMapping) is new in Spring Framework 7.0; usePathSegment(int, Predicate) needs 7.0.6 or later.",
+    "Spring Boot properties checked: spring.mvc.problemdetails.enabled (its ResponseEntityExceptionHandler has order 0), spring.mvc.apiversion.default and spring.mvc.apiversion.use.header. Other spring.mvc.apiversion.* properties were not checked and are not used.",
+    "Jackson 3.0 was released on 3 October 2025 (Java 17 baseline). In Spring Boot 4, Jackson 3 is the default and Jackson 2 is deprecated; Spring Boot 4.1.2 still manages Jackson 2.21.7 and jackson-annotations 2.21. Unconfirmed: the exact Jackson 3 version that Spring Boot 4.1.2 manages.",
+    "Jackson 3.0 changed defaults: WRITE_DATES_AS_TIMESTAMPS false, SORT_PROPERTIES_ALPHABETICALLY true, FAIL_ON_UNKNOWN_PROPERTIES false, FAIL_ON_NULL_FOR_PRIMITIVES true. Unconfirmed: which of these the auto-configured JsonMapper of Spring Boot 4 overrides, so the items only say that defaults changed.",
+    "Spring Boot 4.1.2 manages jakarta.validation-api 3.1.1. The built-in Spring MVC method validation (HandlerMethodValidationException) exists since Spring Framework 6.1."
+  ],
+  "terms": [
+    {
+      "id": "t-restcontroller",
+      "term": "@RestController",
+      "ipa": "/rest kənˈtrəʊlə/",
+      "say": "rest controller",
+      "def": "A Spring MVC controller whose methods write their return values directly to the HTTP response body. It combines @Controller and @ResponseBody, so a returned object becomes JSON instead of a view name.",
+      "example": "ApplicationController is a @RestController, so GET /api/applications/42 returns the application as JSON, with no HTML template.",
+      "src": "s2"
+    },
+    {
+      "id": "t-request-mapping",
+      "term": "Request mapping",
+      "ipa": "/rɪˈkwest ˈmæpɪŋ/",
+      "say": "request mapping",
+      "def": "The rule that connects an HTTP request to a controller method, by path, HTTP method, headers, media types and, since Spring Framework 7, API version. @GetMapping and @PostMapping are shortcuts for one HTTP method.",
+      "example": "@RequestMapping(\"/api/applications\") on the class and @PostMapping on a method send POST /api/applications to the create method.",
+      "src": "s3"
+    },
+    {
+      "id": "t-bean-validation",
+      "term": "Jakarta Bean Validation",
+      "ipa": "/dʒəˈkɑːtə ˈbiːn ˌvælɪˈdeɪʃn/",
+      "say": "Jakarta bean validation",
+      "def": "The Java standard for writing rules as annotations, such as @NotBlank, @Email or @Min, and checking them with a validation provider. Spring MVC runs it on controller arguments.",
+      "example": "The NewApplication record has @NotBlank @Email on candidateEmail, so a request with an empty email is rejected before the service runs.",
+      "src": "s4"
+    },
+    {
+      "id": "t-method-validation",
+      "term": "Method validation",
+      "ipa": "/ˈmeθəd ˌvælɪˈdeɪʃn/",
+      "say": "method validation",
+      "def": "Validation of a whole controller method. Spring MVC uses it when constraints sit directly on method parameters or on the return value, and reports errors as HandlerMethodValidationException, grouped by parameter.",
+      "example": "A GET method with @PathVariable @Min(1) long id raises HandlerMethodValidationException when a client asks for application 0.",
+      "src": "s4"
+    },
+    {
+      "id": "t-problem-detail",
+      "term": "ProblemDetail",
+      "ipa": "/ˈprɒbləm ˈdiːteɪl/",
+      "say": "problem detail",
+      "def": "Spring's class for an RFC 9457 problem details response: a body with type, title, status, detail and instance, sent as application/problem+json. Extra fields go into its properties map.",
+      "example": "A missing application returns status 404, a stable type URI and an extra field applicationId with the ID that was requested.",
+      "src": "s5"
+    },
+    {
+      "id": "t-controller-advice",
+      "term": "@ControllerAdvice",
+      "ipa": "/kənˈtrəʊlər ədˈvaɪs/",
+      "say": "controller advice",
+      "def": "A class whose @ExceptionHandler methods apply to many controllers at once. It is the usual place for the error handling of an API; @RestControllerAdvice also writes the results to the response body.",
+      "example": "RecruitingErrors is a @RestControllerAdvice that turns ApplicationNotFoundException into a 404 problem detail for every controller.",
+      "src": "s19"
+    },
+    {
+      "id": "t-reeh",
+      "term": "ResponseEntityExceptionHandler",
+      "ipa": "/rɪˈspɒns ˈentəti ɪkˈsepʃn ˈhændlə/",
+      "say": "response entity exception handler",
+      "def": "A Spring base class for a @ControllerAdvice. It handles all built-in Spring MVC exceptions and any ErrorResponseException, and renders each one as a problem detail.",
+      "example": "The team's advice extends ResponseEntityExceptionHandler, so a wrong Content-Type or an invalid body already returns a problem detail without extra code.",
+      "src": "s5"
+    },
+    {
+      "id": "t-api-versioning",
+      "term": "API versioning",
+      "ipa": "/ˌeɪ piː ˈaɪ ˈvɜːʃənɪŋ/",
+      "say": "A P I versioning",
+      "def": "Support in Spring Framework 7 for mapping one path to different controller methods by API version. The version comes from a header, a query parameter, a path segment or a media type parameter.",
+      "example": "With configurer.useRequestHeader(\"API-Version\"), a request with API-Version: 1.1 reaches the method mapped with version = \"1.1\".",
+      "src": "s7"
+    },
+    {
+      "id": "t-baseline-version",
+      "term": "Baseline version",
+      "ipa": "/ˈbeɪslaɪn ˈvɜːʃn/",
+      "say": "baseline version",
+      "def": "A version in a mapping written with a plus sign, such as \"1.2+\". It matches that version and the supported versions above it, unless a higher versioned mapping takes over.",
+      "example": "@GetMapping(version = \"1.2+\") serves 1.2, 1.3 and 1.4, while a separate method with version \"1.5\" serves 1.5.",
+      "src": "s3"
+    },
+    {
+      "id": "t-configprops",
+      "term": "@ConfigurationProperties",
+      "ipa": "/kənˌfɪɡəˈreɪʃn ˈprɒpətiz/",
+      "say": "configuration properties",
+      "def": "A Spring Boot annotation that binds all properties under a prefix to a typed object, often a record. It supports relaxed binding, validation and metadata for the IDE.",
+      "example": "@ConfigurationProperties(\"recruiting.sfsf\") binds recruiting.sfsf.base-url and recruiting.sfsf.page-size to the RecruitingProperties record.",
+      "src": "s12"
+    },
+    {
+      "id": "t-relaxed-binding",
+      "term": "Relaxed binding",
+      "ipa": "/rɪˈlækst ˈbaɪndɪŋ/",
+      "say": "relaxed binding",
+      "def": "Spring Boot's rules that accept one property in several forms: kebab case or camel case in files, and upper case with underscores in environment variables.",
+      "example": "recruiting.sfsf.page-size in application.yaml and RECRUITING_SFSF_PAGESIZE on Cloud Run bind to the same pageSize component.",
+      "src": "s12"
+    },
+    {
+      "id": "t-profile",
+      "term": "Profile",
+      "ipa": "/ˈprəʊfaɪl/",
+      "say": "profile",
+      "def": "A named part of the configuration, such as dev or prod. Beans marked with @Profile and files named application-{profile} are loaded only when that profile is active.",
+      "example": "On Cloud Run the service sets SPRING_PROFILES_ACTIVE=prod, so Spring Boot also loads application-prod.yaml.",
+      "src": "s13"
+    },
+    {
+      "id": "t-jsonmapper",
+      "term": "JsonMapper (Jackson 3)",
+      "ipa": "/ˈdʒeɪsn ˈmæpə/",
+      "say": "JSON mapper",
+      "def": "The immutable Jackson 3 object that reads and writes JSON. You create one with JsonMapper.builder(), and Spring Boot 4 auto-configures a JsonMapper bean.",
+      "example": "To change the date format, the team builds its own JsonMapper with the builder instead of changing a shared ObjectMapper at runtime.",
+      "src": "s14"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u24-l1",
+      "kind": "concepts",
+      "title": "The building blocks of a Spring REST API",
+      "items": [
+        {
+          "id": "u24-l1-i1",
+          "type": "card",
+          "term": "t-restcontroller",
+          "src": "s2",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "c",
+                "label": "Client (Angular or an integration flow)"
+              },
+              {
+                "id": "ds",
+                "label": "DispatcherServlet"
+              },
+              {
+                "id": "m",
+                "label": "@RestController method"
+              },
+              {
+                "id": "conv",
+                "label": "Message converter with Jackson"
+              },
+              {
+                "id": "r",
+                "label": "JSON response body"
+              }
+            ],
+            "edges": [
+              {
+                "from": "c",
+                "to": "ds",
+                "label": "GET /api/applications/42"
+              },
+              {
+                "from": "ds",
+                "to": "m",
+                "label": "chosen by the request mapping"
+              },
+              {
+                "from": "m",
+                "to": "conv",
+                "label": "returns ApplicationView"
+              },
+              {
+                "from": "conv",
+                "to": "r",
+                "label": "writes JSON, no view rendering"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u24-l1-i2",
+          "type": "pick",
+          "src": "s2",
+          "q": "What does @RestController add to a class, compared with @Controller alone?",
+          "options": [
+            "Every method writes its return value directly to the response body",
+            "Every method runs inside a database transaction",
+            "Every request body is validated, even without @Valid",
+            "Every method is mapped to GET unless you choose another method"
+          ],
+          "answer": 0,
+          "why": "@RestController is meta-annotated with @Controller and @ResponseBody, so methods skip view resolution. It adds no transactions or validation, and the HTTP method still comes from @GetMapping, @PostMapping and similar."
+        },
+        {
+          "id": "u24-l1-i3",
+          "type": "card",
+          "term": "t-bean-validation",
+          "src": "s4"
+        },
+        {
+          "id": "u24-l1-i4",
+          "type": "tf",
+          "src": "s4",
+          "statement": "In Spring MVC, @Valid on its own is enough to trigger method validation.",
+          "answer": false,
+          "why": "@Valid is not a constraint; it only cascades to the constraints inside an object. A constraint such as @NotNull or @Min on the parameter is what leads to method validation."
+        },
+        {
+          "id": "u24-l1-i5",
+          "type": "card",
+          "term": "t-problem-detail",
+          "src": "s5",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "m",
+                "label": "Controller method"
+              },
+              {
+                "id": "ex",
+                "label": "ApplicationNotFoundException"
+              },
+              {
+                "id": "adv",
+                "label": "@RestControllerAdvice"
+              },
+              {
+                "id": "pd",
+                "label": "ProblemDetail with status 404"
+              },
+              {
+                "id": "out",
+                "label": "application/problem+json"
+              }
+            ],
+            "edges": [
+              {
+                "from": "m",
+                "to": "ex",
+                "label": "throws"
+              },
+              {
+                "from": "ex",
+                "to": "adv",
+                "label": "matched by @ExceptionHandler"
+              },
+              {
+                "from": "adv",
+                "to": "pd",
+                "label": "returns"
+              },
+              {
+                "from": "pd",
+                "to": "out",
+                "label": "Jackson writes the body"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u24-l1-i6",
+          "type": "pick",
+          "src": "s11",
+          "q": "Which Spring Boot property turns on RFC 9457 problem details for the built-in Spring MVC exceptions?",
+          "options": [
+            "spring.mvc.problemdetails.enabled=true",
+            "server.error.include-message=always",
+            "spring.jackson.use-jackson2-defaults=true",
+            "spring.mvc.apiversion.default=1.0"
+          ],
+          "answer": 0,
+          "why": "It auto-configures a ResponseEntityExceptionHandler that renders the built-in exceptions as problem details. The other properties control the error message attribute, the Jackson defaults and the default API version."
+        },
+        {
+          "id": "u24-l1-i7",
+          "type": "card",
+          "term": "t-api-versioning",
+          "src": "s7"
+        },
+        {
+          "id": "u24-l1-i8",
+          "type": "pick",
+          "src": "s3",
+          "q": "A controller has four GET methods for the same path: one with no version, one with version \"1.1\", one with \"1.2+\" and one with \"1.5\". Which one handles a request for version 1.3, which is supported?",
+          "options": [
+            "The method with no version",
+            "The method with version \"1.1\"",
+            "The method with version \"1.2+\"",
+            "The method with version \"1.5\""
+          ],
+          "answer": 2,
+          "why": "\"1.2+\" matches 1.2 and the supported versions above it, and it is the highest match that is not above 1.3. The unversioned method has the lowest priority, \"1.1\" needs an exact match, and \"1.5\" is above the request."
+        },
+        {
+          "id": "u24-l1-i9",
+          "type": "tf",
+          "src": "s17",
+          "statement": "In Jackson 3, annotations such as @JsonProperty move to the tools.jackson package.",
+          "answer": false,
+          "why": "Jackson 3 moves its group IDs and packages from com.fasterxml.jackson to tools.jackson, with one exception: jackson-annotations keeps its package, so most DTOs do not change."
+        },
+        {
+          "id": "u24-l1-i10",
+          "type": "match",
+          "src": "s2",
+          "q": "Match each annotation with what it does.",
+          "pairs": [
+            [
+              "@RestController",
+              "Writes each method's return value to the response body"
+            ],
+            [
+              "@Valid",
+              "Cascades validation into the fields of an argument"
+            ],
+            [
+              "@ExceptionHandler",
+              "Marks a method that turns an exception into a response"
+            ],
+            [
+              "@ConfigurationProperties",
+              "Binds the properties under a prefix to a typed object"
+            ],
+            [
+              "@Profile",
+              "Registers a bean only when a given profile is active"
+            ],
+            [
+              "@JacksonComponent",
+              "Registers a custom Jackson serialiser as a Spring bean"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u24-l2",
+      "kind": "practice",
+      "title": "Validate, fail well and version",
+      "items": [
+        {
+          "id": "u24-l2-i1",
+          "type": "match",
+          "src": "s7",
+          "q": "Match each exception with the situation that raises it.",
+          "pairs": [
+            [
+              "MethodArgumentNotValidException",
+              "A @Valid request body breaks a constraint"
+            ],
+            [
+              "HandlerMethodValidationException",
+              "A path variable breaks a constraint on the parameter, such as @Min(1)"
+            ],
+            [
+              "MissingApiVersionException",
+              "Versioning is on, and the request sends no version"
+            ],
+            [
+              "InvalidApiVersionException",
+              "The request sends a version that is not supported"
+            ],
+            [
+              "NotAcceptableApiVersionException",
+              "The version is supported, but no controller method matches it"
+            ],
+            [
+              "HttpMediaTypeNotSupportedException",
+              "The request has a Content-Type the endpoint does not accept"
+            ]
+          ]
+        },
+        {
+          "id": "u24-l2-i2",
+          "type": "code",
+          "src": "s4",
+          "lang": "java",
+          "q": "Complete the controller. GET returns the application as JSON. POST validates the body and answers 201 Created with a Location header.",
+          "code": "[[1]]\n@RequestMapping(\"/api/applications\")\npublic class ApplicationController {\n\n    private final ApplicationService service;\n\n    public ApplicationController(ApplicationService service) {\n        this.service = service;\n    }\n\n    @GetMapping(\"/{id}\")\n    public ApplicationView get(@PathVariable long id) {\n        return service.find(id);\n    }\n\n    @PostMapping\n    public ResponseEntity<ApplicationView> create([[2]] @RequestBody NewApplication body) {\n        ApplicationView created = service.create(body);\n        return ResponseEntity.[[3]](URI.create(\"/api/applications/\" + created.id()))\n            .body(created);\n    }\n}\n\npublic record NewApplication(\n        [[4]] String candidateEmail,\n        @NotNull Long jobRequisitionId) {\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "@RestController",
+              "decoys": [
+                "@Controller",
+                "@Service"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "@Valid",
+              "decoys": [
+                "@NotNull",
+                "@ResponseBody"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "created",
+              "decoys": [
+                "ok",
+                "accepted"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "@NotBlank @Email",
+              "decoys": [
+                "@Valid",
+                "@Min(1)"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u24-l2-i3",
+          "type": "order",
+          "src": "s5",
+          "q": "The service sets spring.mvc.problemdetails.enabled=true. A client posts an application with an empty candidateEmail. Put what happens in order.",
+          "steps": [
+            "Spring MVC maps POST /api/applications to the create method",
+            "Jackson reads the JSON body into a NewApplication record",
+            "Bean Validation checks the @Valid argument and finds the blank email",
+            "Spring MVC raises MethodArgumentNotValidException, and create never runs",
+            "The auto-configured ResponseEntityExceptionHandler turns it into a ProblemDetail with status 400",
+            "The response is written as application/problem+json"
+          ]
+        },
+        {
+          "id": "u24-l2-i4",
+          "type": "scenario",
+          "src": "s4",
+          "q": "A controller has @Validated on the class and @PathVariable @Min(1) long id on a method. Invalid request bodies return 400 problem details, but GET /api/applications/0 returns a different kind of error.",
+          "options": [
+            {
+              "text": "Remove the class-level @Validated, so Spring MVC's built-in method validation raises HandlerMethodValidationException, which ResponseEntityExceptionHandler renders.",
+              "ok": true,
+              "why": "With a class-level @Validated, method validation goes through an AOP proxy instead of the built-in support added in Spring Framework 6.1."
+            },
+            {
+              "text": "Replace @Min(1) with @Valid on the path variable.",
+              "ok": false,
+              "why": "@Valid is not a constraint; it only cascades to nested fields, so the check would simply disappear."
+            },
+            {
+              "text": "Wrap the method body in try/catch and return a ProblemDetail from the catch block.",
+              "ok": false,
+              "why": "The proxy validates the arguments before the method body runs, so the catch block never sees the error."
+            },
+            {
+              "text": "Set spring.mvc.problemdetails.enabled=false.",
+              "ok": false,
+              "why": "That removes problem details for every built-in exception and does not change how the @Min check runs."
+            }
+          ]
+        },
+        {
+          "id": "u24-l2-i5",
+          "type": "code",
+          "src": "s10",
+          "lang": "java",
+          "q": "Complete the handler. A missing application must return a 404 problem detail with a stable type URI and the application ID as an extra field.",
+          "code": "@RestControllerAdvice\npublic class RecruitingErrors {\n\n    @ExceptionHandler(ApplicationNotFoundException.class)\n    public [[1]] notFound(ApplicationNotFoundException ex) {\n        ProblemDetail problem = ProblemDetail.[[2]](\n            HttpStatus.NOT_FOUND, \"No application with ID \" + ex.id());\n        problem.[[3]](URI.create(\"https://errors.acme.example/application-not-found\"));\n        problem.[[4]](\"applicationId\", ex.id());\n        return problem;\n    }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "ProblemDetail",
+              "decoys": [
+                "String",
+                "void"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "forStatusAndDetail",
+              "decoys": [
+                "forStatus",
+                "of"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "setType",
+              "decoys": [
+                "setInstance",
+                "setTitle"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "setProperty",
+              "decoys": [
+                "setDetail",
+                "setProperties"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u24-l2-i6",
+          "type": "scenario",
+          "src": "s5",
+          "q": "The service sets spring.mvc.problemdetails.enabled=true. A developer adds a new @ControllerAdvice with an @ExceptionHandler for MethodArgumentNotValidException, to list every field error, but the method is never called.",
+          "options": [
+            {
+              "text": "Order the new advice ahead of Spring Boot's handler, for example with @Order(Ordered.HIGHEST_PRECEDENCE).",
+              "ok": true,
+              "why": "Spring Boot's auto-configured handler has order 0 and already handles this exception, so your advice must come before it."
+            },
+            {
+              "text": "Annotate the new advice with @Order(1).",
+              "ok": false,
+              "why": "A higher number means a lower precedence, so Spring Boot's handler with order 0 still runs first."
+            },
+            {
+              "text": "Rename the method to handleMethodArgumentNotValid.",
+              "ok": false,
+              "why": "Spring chooses exception handlers by exception type and advice order, not by method name."
+            },
+            {
+              "text": "Add @Valid to the parameter of the @ExceptionHandler method.",
+              "ok": false,
+              "why": "@Valid asks for validation of an argument; it has no effect on which advice handles an exception."
+            }
+          ]
+        },
+        {
+          "id": "u24-l2-i7",
+          "type": "diagram",
+          "src": "s7",
+          "layout": "flow",
+          "q": "Complete the path of a versioned request. The service calls configurer.useRequestHeader(\"API-Version\"), and the client sends version 1.3.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Request with the header API-Version: 1.3",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "ApiVersionResolver reads the header",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "ApiVersionParser: major 1, minor 3, patch 0",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Check: is 1.3 a supported version?",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "Request mapping picks @GetMapping(version = \"1.2+\")",
+              "slot": false
+            },
+            {
+              "id": "n6",
+              "label": "Response, with Deprecation and Sunset headers if 1.3 is deprecated",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "resolve"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "parse"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "validate"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "map to a method"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "respond"
+            }
+          ],
+          "decoys": [
+            "Jackson reads the version from the JSON body",
+            "@ConfigurationProperties binds the header",
+            "Check: is the prod profile active?"
+          ]
+        },
+        {
+          "id": "u24-l2-i8",
+          "type": "scenario",
+          "src": "s3",
+          "q": "An API has GET methods mapped with version \"1.2+\" and, since last week, \"1.5\". Version 1.6 is configured as supported. Clients that send 1.6 now get 400, but before the 1.5 method existed they reached the 1.2+ method.",
+          "options": [
+            {
+              "text": "Map the new method with version \"1.5+\", so it serves 1.5 and the supported versions above it.",
+              "ok": true,
+              "why": "A fixed \"1.5\" allows only an exact match, and it supersedes \"1.2+\" for higher versions, so 1.6 had no match."
+            },
+            {
+              "text": "Remove 1.6 from the supported versions.",
+              "ok": false,
+              "why": "Then 1.6 is rejected as unsupported with InvalidApiVersionException, which is still a 400."
+            },
+            {
+              "text": "Add a method with no version as a fallback.",
+              "ok": false,
+              "why": "A method without a version has the lowest priority and is superseded by the versioned methods, so 1.6 still has no match."
+            },
+            {
+              "text": "Call setVersionRequired(false) on the ApiVersionConfigurer.",
+              "ok": false,
+              "why": "That only changes requests without a version, and these clients send 1.6."
+            }
+          ]
+        },
+        {
+          "id": "u24-l2-i9",
+          "type": "code",
+          "src": "s12",
+          "lang": "java",
+          "q": "Complete the typed configuration for the SuccessFactors client. The values come from recruiting.sfsf.*, a missing base URL must stop the start-up, and the page size defaults to 100.",
+          "code": "[[1]](\"recruiting.sfsf\")\n[[2]]\npublic record RecruitingProperties(\n        @NotNull URI baseUrl,\n        [[3]](\"100\") int pageSize) {\n}\n\n@SpringBootApplication\n[[4]]\npublic class RecruitingApplication {\n\n    public static void main(String[] args) {\n        SpringApplication.run(RecruitingApplication.class, args);\n    }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "@ConfigurationProperties",
+              "decoys": [
+                "@Value",
+                "@PropertySource"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "@Validated",
+              "decoys": [
+                "@Valid",
+                "@Profile"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "@DefaultValue",
+              "decoys": [
+                "@Value",
+                "@NotNull"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "@ConfigurationPropertiesScan",
+              "decoys": [
+                "@ComponentScan",
+                "@EnableAutoConfiguration"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u24-l2-i10",
+          "type": "code",
+          "src": "s12",
+          "lang": "text",
+          "q": "The same container image runs on Cloud Run in production. Complete the environment variables: activate the prod profile and override recruiting.sfsf.base-url.",
+          "code": "# Cloud Run service: environment variables\n[[1]]=prod\n[[2]]=https://api.sfsf.example.com/odata/v2\nRECRUITING_SFSF_PAGESIZE=500",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "SPRING_PROFILES_ACTIVE",
+              "decoys": [
+                "SPRING_PROFILE",
+                "SPRING_PROFILES_INCLUDED"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "RECRUITING_SFSF_BASEURL",
+              "decoys": [
+                "RECRUITING_SFSF_BASE_URL",
+                "recruiting-sfsf-base-url"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u24-l3",
+      "kind": "interview",
+      "title": "Talk about Spring REST APIs",
+      "items": [
+        {
+          "id": "u24-l3-i1",
+          "type": "say",
+          "src": "s6",
+          "text": "I return every error as an RFC 9457 problem detail, so clients always get the same fields: type, title, status, detail and instance."
+        },
+        {
+          "id": "u24-l3-i2",
+          "type": "tf",
+          "src": "s4",
+          "statement": "If a controller has a class-level @Validated, Spring MVC's built-in method validation still handles a @Min constraint on a path variable.",
+          "answer": false,
+          "why": "A class-level @Validated applies method validation through an AOP proxy. To use the built-in support from Spring Framework 6.1, you remove it from the controller."
+        },
+        {
+          "id": "u24-l3-i3",
+          "type": "explain",
+          "src": "s5",
+          "seconds": 150,
+          "q": "How do you handle errors in a Spring Boot REST API?",
+          "model": "I want every error to have the same shape, so I use problem details from RFC 9457. The response has the media type application/problem+json, with type, title, status, detail and instance. In Spring Boot I either set spring.mvc.problemdetails.enabled to true, or I write one controller advice that extends ResponseEntityExceptionHandler. That base class already turns the built-in Spring MVC exceptions, like validation errors or an unsupported media type, into problem details. For my own errors, I add exception handler methods that return a ProblemDetail, or the exception extends ErrorResponseException. For example, when an application is not found, the client gets a 404 with a stable type URI and the application ID as an extra field. I also customise the messages through a MessageSource, because the default details can reveal implementation details. And I never return stack traces: I log the full error with a trace ID, so we can find it later.",
+          "keypoints": [
+            {
+              "text": "One shape for every error: RFC 9457 problem details",
+              "kw": [
+                "problem details",
+                "problem detail",
+                "rfc 9457",
+                "9457",
+                "problem+json",
+                "same shape"
+              ]
+            },
+            {
+              "text": "The standard fields: type, title, status, detail, instance",
+              "kw": [
+                "type",
+                "title",
+                "status",
+                "detail",
+                "instance"
+              ]
+            },
+            {
+              "text": "A controller advice extending ResponseEntityExceptionHandler, or the Spring Boot property",
+              "kw": [
+                "controller advice",
+                "controlleradvice",
+                "responseentityexceptionhandler",
+                "exception handler",
+                "problemdetails.enabled",
+                "property"
+              ]
+            },
+            {
+              "text": "Own exceptions: @ExceptionHandler returning ProblemDetail, or ErrorResponseException",
+              "kw": [
+                "exceptionhandler",
+                "exception handler",
+                "errorresponseexception",
+                "own errors",
+                "custom exception",
+                "404",
+                "not found"
+              ]
+            },
+            {
+              "text": "Do not leak internals: custom messages, no stack traces, log with a trace ID",
+              "kw": [
+                "implementation details",
+                "stack trace",
+                "stack traces",
+                "messagesource",
+                "message source",
+                "reveal",
+                "leak",
+                "trace id",
+                "log"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u24-l3-i4",
+          "type": "explain",
+          "src": "s4",
+          "seconds": 150,
+          "q": "How do you validate the input of a REST endpoint in Spring?",
+          "model": "I use Jakarta Bean Validation. The request body is usually a record, and I put constraints such as NotBlank, Email or NotNull on its fields. Then I mark the controller parameter with @Valid. If the body is invalid, Spring MVC raises MethodArgumentNotValidException before my method runs. For simple parameters, like a path variable or a query parameter, I put the constraint directly on the parameter, for example Min 1. That triggers method validation, and the error is HandlerMethodValidationException. The two exceptions are very similar, and my handler covers both, because the method signature decides which one you get. ResponseEntityExceptionHandler already turns both into a 400 problem detail, and I can add the field errors as an extra field. One trap: if the controller has a class-level @Validated, validation goes through an AOP proxy instead, so I remove it. And validation at the edge is not the whole story: the domain still checks its own business rules.",
+          "keypoints": [
+            {
+              "text": "Jakarta Bean Validation constraints on the fields of the body",
+              "kw": [
+                "bean validation",
+                "jakarta",
+                "constraint",
+                "constraints",
+                "notblank",
+                "not blank",
+                "notnull",
+                "not null",
+                "email"
+              ]
+            },
+            {
+              "text": "@Valid on the request body raises MethodArgumentNotValidException",
+              "kw": [
+                "valid",
+                "methodargumentnotvalidexception",
+                "method argument not valid",
+                "request body"
+              ]
+            },
+            {
+              "text": "Constraints on parameters lead to method validation and HandlerMethodValidationException",
+              "kw": [
+                "method validation",
+                "handlermethodvalidationexception",
+                "handler method validation",
+                "path variable",
+                "query parameter",
+                "parameter"
+              ]
+            },
+            {
+              "text": "Handle both exceptions and return a 400 problem detail",
+              "kw": [
+                "both",
+                "400",
+                "bad request",
+                "problem detail",
+                "problem details",
+                "responseentityexceptionhandler"
+              ]
+            },
+            {
+              "text": "No class-level @Validated on controllers",
+              "kw": [
+                "validated",
+                "class-level",
+                "class level",
+                "aop",
+                "proxy"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u24-l3-i5",
+          "type": "scenario",
+          "src": "s16",
+          "q": "After an upgrade to Spring Boot 4, a custom serialiser for candidate dates no longer compiles: com.fasterxml.jackson.databind.JsonSerializer cannot be found. It was registered with @JsonComponent.",
+          "options": [
+            {
+              "text": "Move it to Jackson 3: extend tools.jackson.databind.ValueSerializer and register it with @JacksonComponent.",
+              "ok": true,
+              "why": "Jackson 3 uses the tools.jackson packages and renamed JsonSerializer to ValueSerializer, and Spring Boot 4 renamed @JsonComponent to @JacksonComponent."
+            },
+            {
+              "text": "Move every Jackson import to tools.jackson, including the imports of @JsonProperty and @JsonFormat.",
+              "ok": false,
+              "why": "jackson-annotations keeps its com.fasterxml.jackson.annotation package in Jackson 3, so the annotation imports must not change."
+            },
+            {
+              "text": "Set spring.jackson.use-jackson2-defaults=true.",
+              "ok": false,
+              "why": "That only brings the defaults of the JsonMapper closer to Spring Boot 3; it does not bring back the Jackson 2 classes."
+            },
+            {
+              "text": "Replace the serialiser with a mixin annotated with @JsonMixin.",
+              "ok": false,
+              "why": "@JsonMixin is now @JacksonMixin in Spring Boot 4, and a mixin only adds annotations; it cannot hold custom serialisation code."
+            }
+          ]
+        },
+        {
+          "id": "u24-l3-i6",
+          "type": "say",
+          "src": "s12",
+          "text": "I bind configuration to a validated @ConfigurationProperties record, so a missing value stops the service at start-up instead of failing on the first request."
+        },
+        {
+          "id": "u24-l3-i7",
+          "type": "explain",
+          "src": "s8",
+          "seconds": 150,
+          "q": "How would you version a REST API with Spring Boot 4?",
+          "model": "First, I try not to break clients at all: I add optional fields and keep the old ones. When a breaking change is unavoidable, Spring Framework 7 has built-in API versioning. I choose one place for the version, usually a request header such as API-Version, or a path segment if the clients need visible URLs. In Spring Boot I can set it with properties, like spring.mvc.apiversion.use.header, or in code with configureApiVersioning in a WebMvcConfigurer. Then I map controller methods with the version attribute, for example version 1.1, or a baseline like 1.2 plus, which also matches the supported versions above it. Unsupported versions get a 400 response. By default the version is required, but I can set a default version for older clients. When I retire a version, the deprecation handler sends Deprecation, Sunset and Link headers, so partners, like the team that runs the SuccessFactors integration, get a warning before the date.",
+          "keypoints": [
+            {
+              "text": "Avoid breaking changes first",
+              "kw": [
+                "breaking",
+                "break",
+                "backward compatible",
+                "backwards compatible",
+                "optional fields",
+                "additive",
+                "compatible"
+              ]
+            },
+            {
+              "text": "Choose where the version travels: header, query parameter, path segment or media type",
+              "kw": [
+                "header",
+                "query parameter",
+                "path segment",
+                "path",
+                "media type",
+                "api-version"
+              ]
+            },
+            {
+              "text": "Configure it with properties or ApiVersionConfigurer",
+              "kw": [
+                "apiversionconfigurer",
+                "configureapiversioning",
+                "webmvcconfigurer",
+                "spring.mvc.apiversion",
+                "properties",
+                "configure"
+              ]
+            },
+            {
+              "text": "The version attribute: fixed versions and baselines such as 1.2+",
+              "kw": [
+                "version attribute",
+                "baseline",
+                "plus",
+                "getmapping",
+                "requestmapping",
+                "fixed version",
+                "mapping"
+              ]
+            },
+            {
+              "text": "Unsupported or missing versions give 400; a default version helps old clients",
+              "kw": [
+                "400",
+                "bad request",
+                "default version",
+                "required",
+                "unsupported",
+                "supported versions"
+              ]
+            },
+            {
+              "text": "Deprecation, Sunset and Link headers before a version is retired",
+              "kw": [
+                "deprecation",
+                "deprecated",
+                "sunset",
+                "link",
+                "retire",
+                "warning"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u24-l3-i8",
+          "type": "tf",
+          "src": "s14",
+          "statement": "In Spring Boot 4, Jackson 2 support has already been removed.",
+          "answer": false,
+          "why": "Jackson 3 is the default, but Jackson 2 is still available in a deprecated form through the spring-boot-jackson2 module. It will be removed in a future Spring Boot 4.x release."
+        },
+        {
+          "id": "u24-l3-i9",
+          "type": "explain",
+          "src": "s12",
+          "seconds": 150,
+          "q": "How do you manage configuration for different environments, for example dev and production on Cloud Run?",
+          "model": "I bind settings to typed classes with @ConfigurationProperties, usually a record, for example RecruitingProperties with the SuccessFactors base URL and the page size. I add @Validated and constraints, so the service fails at start-up if a value is missing, not on the first request at night. In the files I write the keys in kebab case. For environments, I keep shared defaults in application.yaml and use profiles for the differences: application-prod.yaml overrides the defaults when the prod profile is active, and a profile group can activate several profiles with one name. On Cloud Run, I set the profile and any overrides as environment variables, like SPRING_PROFILES_ACTIVE. Environment variables override the files, and the names follow simple rules: dots become underscores, dashes are removed, and everything is upper case. Secrets never go into the files or the image. And I prefer @ConfigurationProperties to scattered @Value fields, because it gives relaxed binding, metadata and one clear place for the configuration.",
+          "keypoints": [
+            {
+              "text": "Typed configuration with @ConfigurationProperties, often a record",
+              "kw": [
+                "configurationproperties",
+                "configuration properties",
+                "record",
+                "typed",
+                "type-safe"
+              ]
+            },
+            {
+              "text": "Validated at start-up, so it fails fast",
+              "kw": [
+                "validated",
+                "validation",
+                "start-up",
+                "startup",
+                "fail fast",
+                "fails"
+              ]
+            },
+            {
+              "text": "Profiles and profile-specific files that override the defaults",
+              "kw": [
+                "profile",
+                "profiles",
+                "application-prod",
+                "profile-specific",
+                "profile group"
+              ]
+            },
+            {
+              "text": "Environment variables override the files, with the naming rules",
+              "kw": [
+                "environment variable",
+                "environment variables",
+                "spring_profiles_active",
+                "override",
+                "overrides",
+                "underscores",
+                "upper case"
+              ]
+            },
+            {
+              "text": "Secrets stay out of the files and the image",
+              "kw": [
+                "secret",
+                "secrets",
+                "secret manager"
+              ]
+            },
+            {
+              "text": "Prefer it to @Value: relaxed binding and metadata",
+              "kw": [
+                "value",
+                "relaxed binding",
+                "metadata"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u24-l3-i10",
+          "type": "explain",
+          "src": "s15",
+          "seconds": 150,
+          "q": "What changes when you move a Spring Boot 3 service to Spring Boot 4 and Jackson 3?",
+          "model": "Spring Boot 4 uses Jackson 3 by default, and the biggest change is the package. Jackson 3 lives in tools.jackson instead of com.fasterxml.jackson, for both the Maven group and the Java packages. The exception is jackson-annotations, so annotations like JsonProperty keep their old package and most DTOs do not change. The mapper is now immutable: Spring Boot auto-configures a JsonMapper, and when I need my own, I build it with JsonMapper.builder() instead of changing an ObjectMapper at runtime. Exceptions are unchecked now, and several classes were renamed, for example JsonSerializer became ValueSerializer. In Spring Boot, @JsonComponent became @JacksonComponent. Some defaults changed too, so I compare the JSON in contract tests before I release. For a gradual migration, the property spring.jackson.use-jackson2-defaults keeps the behaviour closer to Spring Boot 3. Jackson 2 support still exists, but it is deprecated and will be removed, so I treat it as a bridge, not a destination.",
+          "keypoints": [
+            {
+              "text": "New packages and group IDs: tools.jackson",
+              "kw": [
+                "tools.jackson",
+                "package",
+                "packages",
+                "group",
+                "groupid"
+              ]
+            },
+            {
+              "text": "jackson-annotations keeps its old package",
+              "kw": [
+                "annotations",
+                "jsonproperty",
+                "jackson-annotations",
+                "com.fasterxml"
+              ]
+            },
+            {
+              "text": "Immutable JsonMapper built with a builder",
+              "kw": [
+                "jsonmapper",
+                "json mapper",
+                "immutable",
+                "builder"
+              ]
+            },
+            {
+              "text": "Unchecked exceptions and renamed classes such as ValueSerializer and @JacksonComponent",
+              "kw": [
+                "unchecked",
+                "runtimeexception",
+                "valueserializer",
+                "value serializer",
+                "value serialiser",
+                "renamed",
+                "jacksoncomponent",
+                "jackson component"
+              ]
+            },
+            {
+              "text": "Changed defaults: test the JSON, use-jackson2-defaults as a bridge",
+              "kw": [
+                "defaults",
+                "default",
+                "use-jackson2-defaults",
+                "contract test",
+                "contract tests",
+                "compare"
+              ]
+            },
+            {
+              "text": "Jackson 2 support is deprecated and will be removed",
+              "kw": [
+                "deprecated",
+                "jackson 2",
+                "bridge",
+                "removed",
+                "migration"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Controllers and mappings",
+        "points": [
+          "@RestController = @Controller + @ResponseBody: return values go to the body, with no view rendering.",
+          "@RequestMapping on the class for the shared path; @GetMapping, @PostMapping, @PutMapping, @DeleteMapping, @PatchMapping on methods.",
+          "Only one mapping annotation per element; extra ones are ignored with a warning.",
+          "Local @ExceptionHandler methods in the controller are tried before global ones in an advice.",
+          "201 Created: ResponseEntity.created(uri).body(created) also sets the Location header.",
+          "Message converters write the body; JSON goes through Jackson 3 (JacksonJsonHttpMessageConverter)."
+        ]
+      },
+      {
+        "h": "Validation",
+        "points": [
+          "@Valid (or @Validated) on @RequestBody, @ModelAttribute or @RequestPart: errors raise MethodArgumentNotValidException.",
+          "Constraints directly on parameters (@Min, @NotBlank) or on the return value: method validation, HandlerMethodValidationException.",
+          "@Valid is not a constraint; it cascades to the fields inside the object.",
+          "Handle both exceptions; ResponseEntityExceptionHandler covers both.",
+          "No class-level @Validated on controllers: it switches to AOP method validation."
+        ]
+      },
+      {
+        "h": "Errors with ProblemDetail (RFC 9457)",
+        "points": [
+          "RFC 9457 (July 2023) replaces RFC 7807.",
+          "Fields: type (default about:blank), title, status, detail, instance; extra fields are extension members.",
+          "Media type application/problem+json.",
+          "Return ProblemDetail or ErrorResponse from any @ExceptionHandler; Spring fills instance from the URL path.",
+          "ProblemDetail.forStatusAndDetail(status, detail), setType(uri), setProperty(name, value).",
+          "spring.mvc.problemdetails.enabled=true: Spring Boot adds a ResponseEntityExceptionHandler with order 0.",
+          "Own advice for a built-in exception: order it ahead of 0, or extend ResponseEntityExceptionHandler.",
+          "Customise texts with MessageSource codes such as problemDetail.title.<exception class>; never expose stack traces."
+        ]
+      },
+      {
+        "h": "API versioning (Spring Framework 7)",
+        "points": [
+          "Turn it on: WebMvcConfigurer.configureApiVersioning(ApiVersionConfigurer), or spring.mvc.apiversion.* in Spring Boot.",
+          "Resolvers: useRequestHeader, useQueryParam, usePathSegment, useMediaTypeParameter.",
+          "version = \"1.2\" is fixed; \"1.2+\" is a baseline; no version matches any version with the lowest priority.",
+          "The highest mapping at or below the request version wins.",
+          "No version: MissingApiVersionException (required by default). Unsupported: InvalidApiVersionException. No match: NotAcceptableApiVersionException. All give 400.",
+          "setDefaultVersion for old clients; addSupportedVersions or detected versions from the mappings.",
+          "StandardApiVersionDeprecationHandler: Deprecation, Sunset and Link headers (RFC 9745, RFC 8594).",
+          "RestClient, WebClient and HTTP Service clients can send API versions too."
+        ]
+      },
+      {
+        "h": "Typed configuration",
+        "points": [
+          "@ConfigurationProperties(\"recruiting.sfsf\") on a record: constructor binding, @DefaultValue for defaults.",
+          "Enable it with @EnableConfigurationProperties or @ConfigurationPropertiesScan.",
+          "The prefix must be kebab case; write keys in kebab case in files.",
+          "Environment variable: dots to underscores, remove dashes, upper case (SPRING_MAIN_LOGSTARTUPINFO); lists use MY_SERVICE_0_OTHER.",
+          "@Validated plus jakarta.validation constraints; nested objects need @Valid.",
+          "@Value: limited relaxed binding and no metadata, but it can evaluate SpEL."
+        ]
+      },
+      {
+        "h": "Profiles and property order",
+        "points": [
+          "application-{profile}.yaml overrides application.yaml; with several profiles, the last one wins.",
+          "Activate: spring.profiles.active=prod, --spring.profiles.active=prod or SPRING_PROFILES_ACTIVE=prod.",
+          "No active profile: the default profile is used.",
+          "spring.profiles.active, default, include and group only in non-profile-specific documents.",
+          "A profile group activates several profiles with one name.",
+          "Precedence, high to low: command-line arguments, Java system properties, OS environment variables, config files."
+        ]
+      },
+      {
+        "h": "Jackson 3 in Spring Boot 4",
+        "points": [
+          "Packages and group IDs move to tools.jackson; jackson-annotations keeps com.fasterxml.jackson.annotation.",
+          "Immutable JsonMapper built with JsonMapper.builder(); Spring Boot auto-configures one.",
+          "Unchecked exceptions: JsonProcessingException becomes JacksonException; JsonSerializer becomes ValueSerializer.",
+          "Spring Boot renames: @JsonComponent to @JacksonComponent, @JsonMixin to @JacksonMixin, Jackson2ObjectMapperBuilderCustomizer to JsonMapperBuilderCustomizer.",
+          "spring.jackson.read.* and write.* move to spring.jackson.json.read.* and write.*.",
+          "Jackson 3 changed defaults; spring.jackson.use-jackson2-defaults eases the migration.",
+          "Jackson 2 is deprecated: spring-boot-jackson2 module, spring.jackson2.* properties, to be removed in a future 4.x release."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Spring Boot (project page, 4.1.2) - spring.io",
+      "url": "https://spring.io/projects/spring-boot",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Declaration (Annotated Controllers) - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann.html",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Mapping Requests - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-requestmapping.html",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Validation (Spring MVC) - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-validation.html",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Error Responses - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-ann-rest-exceptions.html",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "RFC 9457: Problem Details for HTTP APIs",
+      "url": "https://www.rfc-editor.org/rfc/rfc9457.html",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "API Versioning - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc-versioning.html",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "API Version (MVC Config) - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-config/api-version.html",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "ApiVersionConfigurer (Spring Framework 7.0.10 API)",
+      "url": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/web/servlet/config/annotation/ApiVersionConfigurer.html",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "ProblemDetail (Spring Framework 7.0.10 API)",
+      "url": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/ProblemDetail.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Servlet Web Applications - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/reference/web/servlet.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Externalized Configuration - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/reference/features/external-config.html",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Profiles - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/reference/features/profiles.html",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "JSON - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/reference/features/json.html",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Introducing Jackson 3 support in Spring - Spring Blog (7 October 2025)",
+      "url": "https://spring.io/blog/2025/10/07/introducing-jackson-3-support-in-spring/",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Spring Boot 4.0 Migration Guide - spring-projects/spring-boot wiki",
+      "url": "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Migration-Guide",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Jackson Release 3.0 - FasterXML jackson wiki",
+      "url": "https://github.com/FasterXML/jackson/wiki/Jackson-Release-3.0",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Managed Dependency Coordinates - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/appendix/dependency-versions/coordinates.html",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Controller Advice - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/web/webmvc/mvc-controller/ann-advice.html",
+      "official": true
+    }
+  ]
+}

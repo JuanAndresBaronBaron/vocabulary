@@ -1,0 +1,1304 @@
+{
+  "format": 1,
+  "id": "u12",
+  "n": 12,
+  "block": "successfactors",
+  "title": "Events",
+  "summary": "After this unit you can explain how SuccessFactors Recruiting publishes events through Intelligent Services and SAP Cloud Application Event Hub, choose between events and polling, and design a consumer that copes with ID-only payloads, duplicates, wrong order and lost events.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Checked on 2026-10-25 (two passes). The SAP Help Portal blocks automated reading (robots), so the SuccessFactors facts come from SAP Learning, SAP KBAs, the Feature Scope Description for SAP SuccessFactors Foundation (2H 2025 edition), SAP Developers tutorials, the CAP documentation and an SAP TechEd 2025 exercise on GitHub. In the second pass the web search budget ran out, so no new pages were found by search; the pages listed in sources were read again.",
+    "SAP Cloud Application Event Hub: an SAP Help Portal release note titled 'Replacement of Intelligent Service Center with SAP Cloud Application Event Hub' exists (its title was seen in search results on 2026-10-25), and SAP's tutorial says SuccessFactors is adopting Event Hub as the central platform for publishing events. unconfirmed: the release note itself could not be read, so the release, the dates, and which ISC features are retired (Event Subscription Management, External Event Notification, Integration Center event triggers) are not stated in this unit. unconfirmed: whether Event Hub can deliver SuccessFactors events directly to a non-SAP endpoint; the tutorials describe SAP cloud applications in a formation, and the basic concepts tutorial names SAP Integration Suite among the systems that can produce or consume events.",
+    "Recruiting event names: SAP Learning (Recruiter Experience Administration) names Requisitions Reassigned, Update of Job Requisition, Update of Job Application (published when an application changes while the applicant is in an applied state) and Approval of Offer Detail; SAP KBA 2951051 names Update of Job Application Status. The platform course of SAP Learning gives Update on a Job Requisition as an example. unconfirmed: the Recruiting event types offered in Event Hub; SAP's tutorial points to SAP Help for the list of published events, which could not be read.",
+    "External Event Notification as SOAP: an older SAP blog (it calls SAP's integration service HCI) says the event is sent as a SOAP message and the receiving web service is built from the WSDL of the Intelligent Services event. The Event Notification Subscription tabs (Subscriber, External Event with the endpoint URL, SEB External Event with the Service Event Bus topic) come from ServiceNow's SuccessFactors spoke guide; the Feature Scope Description says Audit Log monitors the status of external event notifications. unconfirmed: the fields of the SOAP message (the WSDL could not be read), and the transport and payload of Event Subscription Manager notifications, so the unit names no payload fields for them.",
+    "unconfirmed: the delivery guarantee, retry policy and ordering of SuccessFactors notifications and of Event Hub. The sources read do not state them; the Feature Scope Description only says failed Event Subscription Management subscriptions can be retried by hand from Admin Alerts. The unit therefore treats duplicates, wrong order and lost events as design assumptions.",
+    "KBA 3063887 read on 2026-10-25: fewer than 500 events per hour for ISC plus Integration Center, the REST endpoint processes an event within 30 seconds, one integration job per event (two at most), event-based integration is not meant for heavy load. KBA 2735876 read on 2026-10-25: do not run jobs too often to get real-time results; repeating queries in much less than one hour consumes too much API resource and may be throttled in the future; query only the records modified since the last run. KBAs 2951051 (one flow per Recruiting event, no enhancement planned), 3094391 (most ISC events are bulk events) and 2899328 (no new entries in the SEB External Event list) were read again on 2026-10-25.",
+    "CloudEvents: read on the main branch of the specification on GitHub (version 1.0.3-wip, last commit 22 October 2026); the latest release is v1.0.2, and specversion is 1.0. CloudEvents became a CNCF graduated project on 25 January 2024.",
+    "Pub/Sub behaviour as documented on 2026-10-25 (see unit 15): push success codes acknowledge; messages with the same ordering key are received in order on a subscription with message ordering, and Pub/Sub still delivers at least once; exactly-once delivery is for pull subscriptions only; a dead-letter topic takes a message after about 5 to 100 delivery attempts (default 5, the count is approximate) and needs its own subscription, or the forwarded messages are lost.",
+    "SAP's Event Hub basic concepts tutorial shows a SuccessFactors event of type sap.sf.onboarding.journey.reviewNewHireData.created.v1 whose data holds mainly IDs (onboardingProcessId, personIdExternal, userId) and a few flags and dates.",
+    "PostgreSQL ON CONFLICT DO NOTHING, DO UPDATE with EXCLUDED and a WHERE condition, and RETURNING only for rows actually inserted or updated, as in the INSERT reference (current development source read on 2026-10-25; the same clauses exist in PostgreSQL 18).",
+    "The receiver, processed-events table, newer-wins update and delta safety net are design recommendations built on these sources, not SAP features. Intelligent Services Center and Event Subscription Manager keep SAP's spelling of Center."
+  ],
+  "terms": [
+    {
+      "id": "t-intelligent-services",
+      "term": "Intelligent Services",
+      "ipa": "/ɪnˈtelɪdʒənt ˈsɜːvɪsɪz/",
+      "say": "intelligent services",
+      "def": "The event framework of SAP SuccessFactors. Any SuccessFactors solution can raise an event when something changes, and subscribers, inside SuccessFactors or in third-party systems, receive a notification.",
+      "example": "When a recruiter moves an application to a new status, Recruiting raises the event Update of Job Application Status.",
+      "src": "s2"
+    },
+    {
+      "id": "t-isc",
+      "term": "Intelligent Services Center (ISC)",
+      "ipa": "/ɪnˈtelɪdʒənt ˈsɜːvɪsɪz ˈsentə ˌaɪ es ˈsiː/",
+      "say": "Intelligent Services Center, I S C",
+      "def": "The Admin Center tool where you configure and monitor Intelligent Services events, their flows and activities, and the subscribers that receive notifications. It lists the events of the last 1, 7 or 15 days.",
+      "example": "In ISC, the admin opens Update of Job Application Status and adds an Integration activity that runs an Integration Center job.",
+      "src": "s1"
+    },
+    {
+      "id": "t-bulk-event",
+      "term": "Bulk event",
+      "ipa": "/ˌbʌlk ɪˈvent/",
+      "say": "bulk event",
+      "def": "An Intelligent Services event that is a list of standard (single) events. SAP says most events in ISC are bulk events, each standard event inside is processed, and the behaviour should be the same as for single events.",
+      "example": "The receiver loops over the list in a bulk event and handles each standard event on its own, exactly as it handles a single event.",
+      "src": "s7"
+    },
+    {
+      "id": "t-esm",
+      "term": "Event Subscription Management",
+      "ipa": "/ɪˈvent səbˈskrɪpʃn ˈmænɪdʒmənt/",
+      "say": "event subscription management",
+      "def": "The SuccessFactors feature for registering external, third-party subscribers to Intelligent Services events. In SAP Learning the tool is called Event Subscription Manager; subscriptions are monitored in Execution Manager, and failed ones can be retried by hand from Admin Alerts.",
+      "example": "The admin adds the endpoint URL of the integration platform as a subscriber to Update of Job Application Status.",
+      "src": "s2"
+    },
+    {
+      "id": "t-een",
+      "term": "External Event Notification",
+      "ipa": "/ɪkˈstɜːnl ɪˈvent ˌnəʊtɪfɪˈkeɪʃn/",
+      "say": "external event notification",
+      "def": "A SuccessFactors feature that sends Intelligent Services events to external subscribers as SOAP messages, described by a WSDL. In Admin Center, Event Notification Subscription, you set up the subscriber, put its endpoint URL in the External Event tab, and choose events in the SEB External Event tab.",
+      "example": "The admin cannot add a custom event to the SEB External Event list, because the list only shows events that exist in Intelligent Services Center.",
+      "src": "s24"
+    },
+    {
+      "id": "t-event-hub",
+      "term": "SAP Cloud Application Event Hub",
+      "ipa": "/ˌes eɪ ˈpiː ˈklaʊd ˌæplɪˈkeɪʃn ɪˈvent hʌb/",
+      "say": "S A P Cloud Application Event Hub",
+      "def": "An SAP BTP service that distributes business events between SAP cloud applications. Every event must follow the CloudEvents specification, and SAP SuccessFactors is adopting it as the central platform for publishing events.",
+      "example": "Instead of adding another endpoint in Intelligent Services Center, the team subscribes to the SuccessFactors event types in Event Hub.",
+      "src": "s3"
+    },
+    {
+      "id": "t-formation",
+      "term": "Formation (Eventing Between SAP Cloud Systems)",
+      "ipa": "/fɔːˈmeɪʃn/",
+      "say": "formation",
+      "def": "A group of systems in the SAP BTP global account that work together. For events, the formation type is Eventing Between SAP Cloud Systems, and it includes the systems and an Event Hub instance; a consumer's integration dependency in it appears as a subscription.",
+      "example": "After the admin pastes the registration token in Extension Center, the SuccessFactors system is added to the eventing formation.",
+      "src": "s4"
+    },
+    {
+      "id": "t-cloudevents",
+      "term": "CloudEvents",
+      "ipa": "/ˈklaʊd ɪˌvents/",
+      "say": "cloud events",
+      "def": "A CNCF specification for describing events in a common format. Every event has the attributes id, source, specversion and type, and the producer must keep source plus id unique for each distinct event.",
+      "example": "SAP's Event Hub tutorial shows a SuccessFactors CloudEvent of type sap.sf.onboarding.journey.reviewNewHireData.created.v1.",
+      "src": "s12"
+    },
+    {
+      "id": "t-event-notification",
+      "term": "Event notification (IDs only)",
+      "ipa": "/ɪˈvent ˌnəʊtɪfɪˈkeɪʃn/",
+      "say": "event notification",
+      "def": "An event that only says that something changed, often with little more than an ID. A consumer that needs the details calls the source system back, for example through the OData API.",
+      "example": "The event carries application ID 3020, and the worker then reads JobApplication(3020L) through the OData API.",
+      "src": "s16"
+    },
+    {
+      "id": "t-ecst",
+      "term": "Event-carried state transfer (full state)",
+      "ipa": "/ɪˈvent ˌkærid ˈsteɪt ˈtrænsfɜː/",
+      "say": "event carried state transfer",
+      "def": "The event carries the data that consumers need, so they can update their own copy without calling the source. It removes calls to the source, but more data travels, and there are more copies of it to keep correct.",
+      "example": "An event with the full application, including the candidate's name and email, lets the job board update its copy without an API call.",
+      "src": "s16"
+    },
+    {
+      "id": "t-polling",
+      "term": "Polling (delta query)",
+      "ipa": "/ˈpəʊlɪŋ/",
+      "say": "polling",
+      "def": "The consumer asks the source again and again for the records that changed since its last run, for example with a filter on lastModifiedDateTime. It is simple and easy to restart, but the data is only as fresh as the interval, and every run uses API resources.",
+      "example": "Every hour, a Cloud Run job asks for job applications with a lastModifiedDateTime after the start of its last successful run.",
+      "src": "s10"
+    },
+    {
+      "id": "t-duplicate",
+      "term": "Duplicate event",
+      "ipa": "/ˈdjuːplɪkət ɪˈvent/",
+      "say": "duplicate event",
+      "def": "The same event delivered more than once, for example when a sender retries after a network error. In CloudEvents, events with the same source and id are duplicates, so a consumer can recognise and skip the copy.",
+      "example": "The integration platform retried a delivery that timed out, so the same status event reached the payroll adapter twice.",
+      "src": "s12"
+    },
+    {
+      "id": "t-out-of-order",
+      "term": "Out-of-order delivery",
+      "ipa": "/ˌaʊt əv ˈɔːdə dɪˈlɪvəri/",
+      "say": "out of order delivery",
+      "def": "Events arrive in a different order from the order in which the changes happened. CloudEvents says that a batch of events is not ordered, so a consumer must not assume that the last event it received is the latest state.",
+      "example": "The Offer event was processed a few seconds before the older Interview event, so the copy went back to Interview.",
+      "src": "s13"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u12-l1",
+      "kind": "concepts",
+      "title": "How SuccessFactors publishes events",
+      "items": [
+        {
+          "type": "card",
+          "term": "t-intelligent-services",
+          "src": "s2",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "rec",
+                "label": "Recruiting: a status change"
+              },
+              {
+                "id": "ev",
+                "label": "Intelligent Services event"
+              },
+              {
+                "id": "act",
+                "label": "ISC flow and activities"
+              },
+              {
+                "id": "ic",
+                "label": "Integration Center job"
+              },
+              {
+                "id": "ext",
+                "label": "Third-party subscriber"
+              }
+            ],
+            "edges": [
+              {
+                "from": "rec",
+                "to": "ev",
+                "label": "raises"
+              },
+              {
+                "from": "ev",
+                "to": "act",
+                "label": "triggers"
+              },
+              {
+                "from": "act",
+                "to": "ic",
+                "label": "Integration activity"
+              },
+              {
+                "from": "ev",
+                "to": "ext",
+                "label": "notification"
+              }
+            ]
+          },
+          "id": "u12-l1-i1"
+        },
+        {
+          "type": "card",
+          "term": "t-isc",
+          "src": "s1",
+          "id": "u12-l1-i2"
+        },
+        {
+          "type": "tf",
+          "src": "s6",
+          "statement": "In Intelligent Services Center, you can add a second flow to a Recruiting event such as Update of Job Application Status.",
+          "answer": false,
+          "why": "SAP KBA 2951051 says Recruiting events are limited to one flow, and no enhancement is planned. Put every activity that the event needs into that one flow.",
+          "id": "u12-l1-i3"
+        },
+        {
+          "type": "pick",
+          "src": "s1",
+          "q": "A third-party onboarding tool must receive Intelligent Services events at its own endpoint URL. Where does the SuccessFactors admin add that endpoint?",
+          "options": [
+            "Event Subscription Manager",
+            "Execution Manager",
+            "Upgrade Center",
+            "OData API Metadata Refresh and Export"
+          ],
+          "answer": 0,
+          "why": "SAP Learning says subscriptions to third-party endpoint URLs are added in Event Subscription Manager. Execution Manager only shows how integrations ran, Upgrade Center turns on features, and the metadata refresh updates the OData API model.",
+          "id": "u12-l1-i4"
+        },
+        {
+          "type": "card",
+          "term": "t-een",
+          "src": "s24",
+          "id": "u12-l1-i5"
+        },
+        {
+          "type": "pick",
+          "src": "s24",
+          "q": "With External Event Notification, in what form does SuccessFactors send an Intelligent Services event to the subscriber's endpoint?",
+          "options": [
+            "A SOAP message, described by a WSDL",
+            "A CloudEvent in JSON",
+            "An OData V2 $batch request",
+            "A CSV file on an SFTP server"
+          ],
+          "answer": 0,
+          "why": "An SAP blog shows the event sent as a SOAP message, with the receiving web service built from the WSDL of the Intelligent Services event. CloudEvents is the format of Event Hub, and OData and CSV files belong to API calls and Integration Center jobs.",
+          "id": "u12-l1-i6"
+        },
+        {
+          "type": "card",
+          "term": "t-event-hub",
+          "src": "s3",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "sf",
+                "label": "SuccessFactors (publisher)"
+              },
+              {
+                "id": "eh",
+                "label": "SAP Cloud Application Event Hub"
+              },
+              {
+                "id": "sub",
+                "label": "Subscription (integration dependency)"
+              },
+              {
+                "id": "app",
+                "label": "Consuming SAP cloud application"
+              }
+            ],
+            "edges": [
+              {
+                "from": "sf",
+                "to": "eh",
+                "label": "publishes CloudEvents"
+              },
+              {
+                "from": "eh",
+                "to": "sub",
+                "label": "matches the event type"
+              },
+              {
+                "from": "sub",
+                "to": "app",
+                "label": "delivers the event"
+              }
+            ]
+          },
+          "id": "u12-l1-i7"
+        },
+        {
+          "type": "tf",
+          "src": "s4",
+          "statement": "Before two SAP cloud applications can exchange events through Event Hub, you must create the topics and queues yourself.",
+          "answer": false,
+          "why": "SAP's tutorial says you do not define topics or queues. You define an integration dependency in the formation, and it appears as a subscription that an admin enables or disables.",
+          "id": "u12-l1-i8"
+        },
+        {
+          "type": "card",
+          "term": "t-event-notification",
+          "src": "s16",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "sf",
+                "label": "SuccessFactors"
+              },
+              {
+                "id": "w",
+                "label": "Worker on Cloud Run"
+              },
+              {
+                "id": "db",
+                "label": "Cloud SQL copy"
+              }
+            ],
+            "edges": [
+              {
+                "from": "sf",
+                "to": "w",
+                "label": "1. event: application 3020 changed"
+              },
+              {
+                "from": "w",
+                "to": "sf",
+                "label": "2. GET JobApplication(3020L)"
+              },
+              {
+                "from": "sf",
+                "to": "w",
+                "label": "3. the current record"
+              },
+              {
+                "from": "w",
+                "to": "db",
+                "label": "4. update the copy"
+              }
+            ]
+          },
+          "id": "u12-l1-i9"
+        },
+        {
+          "type": "match",
+          "src": "s2",
+          "q": "Match each SuccessFactors tool with its job in an event integration.",
+          "pairs": [
+            [
+              "Intelligent Services Center",
+              "Configure and monitor events, flows and subscribers"
+            ],
+            [
+              "Event Subscription Manager",
+              "Add third-party endpoint URLs as subscribers"
+            ],
+            [
+              "Execution Manager",
+              "Monitor the integrations that subscriptions trigger"
+            ],
+            [
+              "Admin Alerts",
+              "Retry failed subscriptions by hand"
+            ],
+            [
+              "Audit Log",
+              "Check the status of each external event notification"
+            ],
+            [
+              "Extension Center",
+              "Paste the token that connects SuccessFactors to SAP BTP"
+            ]
+          ],
+          "id": "u12-l1-i10"
+        }
+      ]
+    },
+    {
+      "id": "u12-l2",
+      "kind": "practice",
+      "title": "Build a reliable event consumer",
+      "items": [
+        {
+          "type": "match",
+          "src": "s12",
+          "q": "Match each problem with the design that handles it.",
+          "pairs": [
+            [
+              "The same event arrives twice",
+              "Store source and id under a unique key and skip repeats"
+            ],
+            [
+              "An older status arrives after a newer one",
+              "Read the current record and keep it only if it is newer"
+            ],
+            [
+              "The receiver was down and events were lost",
+              "A scheduled delta query on lastModifiedDateTime fills the gap"
+            ],
+            [
+              "The work takes longer than the sender waits",
+              "Answer quickly, queue the work and process it later"
+            ],
+            [
+              "One notification holds a list of events",
+              "Loop over the bulk event and handle each event on its own"
+            ]
+          ],
+          "id": "u12-l2-i1"
+        },
+        {
+          "type": "scenario",
+          "src": "s10",
+          "q": "A product owner wants interview status changes from SuccessFactors Recruiting in a Cloud SQL copy within a minute. A developer suggests a Cloud Run job that queries JobApplication with a lastModifiedDateTime filter every minute.",
+          "options": [
+            {
+              "text": "Subscribe to the Update of Job Application Status event, read each changed application through OData, and keep an hourly or nightly delta query as a safety net.",
+              "ok": true,
+              "why": "The event reports the change soon after it happens, without constant queries, and SAP says that repeating queries in much less than an hour uses too much API resource. The delta query catches any event that was lost."
+            },
+            {
+              "text": "Keep the query every minute, because polling never misses a change.",
+              "ok": false,
+              "why": "SAP says not to run jobs too often to get real-time results, and a lastModifiedDateTime filter cannot return deleted records."
+            },
+            {
+              "text": "Use the event, and copy its payload into Cloud SQL without calling the API.",
+              "ok": false,
+              "why": "The event may carry only IDs, and events can arrive twice or in the wrong order, so the payload alone is not a reliable copy."
+            },
+            {
+              "text": "Export all applications as a CSV file from Integration Center every hour.",
+              "ok": false,
+              "why": "A full export moves far more data than needed, and the delay is still up to an hour."
+            }
+          ],
+          "id": "u12-l2-i2"
+        },
+        {
+          "type": "order",
+          "src": "s20",
+          "q": "Put the steps of an ID-only event flow in order, from the status change to the updated copy.",
+          "steps": [
+            "A recruiter moves application 3020 to Interview Two",
+            "SuccessFactors sends an event that carries the application ID",
+            "The receiver stores the event in Pub/Sub and answers with a success code",
+            "A worker takes the event and calls GET JobApplication(3020L) through OData",
+            "In one transaction, the worker records the event ID and updates the copy if the record is newer",
+            "After the commit, the worker acknowledges the message in Pub/Sub"
+          ],
+          "id": "u12-l2-i3"
+        },
+        {
+          "type": "code",
+          "src": "s14",
+          "lang": "java",
+          "q": "Complete the Spring receiver for CloudEvents sent in HTTP binary mode, where the attributes travel as ce- headers. It reads the event ID, stores the event in Pub/Sub, and tells the sender that the event is accepted but not processed yet.",
+          "code": "@RestController\npublic class RecruitingEventController {\n\n    private final EventQueue queue; // our own class: publishes to Pub/Sub and waits until it is stored\n\n    public RecruitingEventController(EventQueue queue) {\n        this.queue = queue;\n    }\n\n    [[1]](\"/events/recruiting\")\n    public ResponseEntity<Void> receive(\n            @RequestHeader(\"[[2]]\") String id,\n            @RequestHeader(\"ce-source\") String source,\n            @RequestHeader(\"ce-type\") String type,\n            @RequestBody String data) {\n        queue.publish(source, id, type, data);\n        return ResponseEntity.[[3]]().build();\n    }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "@PostMapping",
+              "decoys": [
+                "@GetMapping",
+                "@PutMapping"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "ce-id",
+              "decoys": [
+                "ce-subject",
+                "ce-time"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "accepted",
+              "decoys": [
+                "noContent",
+                "ok"
+              ]
+            }
+          ],
+          "id": "u12-l2-i4"
+        },
+        {
+          "type": "diagram",
+          "src": "s1",
+          "layout": "flow",
+          "q": "Complete the flow that keeps a Cloud SQL copy of job applications up to date with Intelligent Services events and an OData call back.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "SuccessFactors Recruiting",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Event Subscription Manager subscription",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Receiver on Cloud Run: answers quickly",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Pub/Sub topic",
+              "slot": false
+            },
+            {
+              "id": "n5",
+              "label": "Worker: GET JobApplication by key",
+              "slot": true
+            },
+            {
+              "id": "n6",
+              "label": "Cloud SQL copy",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "Update of Job Application Status"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "notification to the endpoint URL"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "publish, then answer"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "at least once"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "update only if newer"
+            }
+          ],
+          "decoys": [
+            "Polling job every minute",
+            "Integration Center CSV export",
+            "Two-phase commit coordinator"
+          ],
+          "id": "u12-l2-i5"
+        },
+        {
+          "type": "scenario",
+          "src": "s12",
+          "q": "For each application status event, which arrives as a CloudEvent, the payroll adapter creates an onboarding task. After the integration platform retried a delivery that timed out, some new hires have two identical tasks.",
+          "options": [
+            {
+              "text": "Insert the event's source and id into a processed-events table with a unique key, in the same transaction as the task, and skip the event if the key already exists.",
+              "ok": true,
+              "why": "CloudEvents says events with the same source and id are duplicates, so the key catches the retry. The shared transaction means the task and the record of the event commit together."
+            },
+            {
+              "text": "Check the processed-events table, create the task, and record the id afterwards in a second transaction.",
+              "ok": false,
+              "why": "If the adapter stops between the two transactions, the id is never saved, and the next retry creates the task again."
+            },
+            {
+              "text": "Skip any event whose type was already processed today.",
+              "ok": false,
+              "why": "Many different changes share one event type, so this drops real events."
+            },
+            {
+              "text": "Ask the sender never to retry.",
+              "ok": false,
+              "why": "Without retries, a short network error loses the event, so you swap a duplicate task for a missing one."
+            }
+          ],
+          "id": "u12-l2-i6"
+        },
+        {
+          "type": "code",
+          "src": "s22",
+          "lang": "sql",
+          "q": "Complete the PostgreSQL statements of the worker on Cloud SQL. A repeated event must change nothing, and an older version of an application must never overwrite a newer one.",
+          "code": "-- 1. Record the event. A repeat inserts nothing and returns no row.\nINSERT INTO processed_event (source, event_id)\nVALUES (:source, :eventId)\nON CONFLICT (source, event_id) DO [[1]]\nRETURNING event_id;\n\n-- 2. Store the record read from OData, but never over a newer one.\nINSERT INTO application_copy (application_id, status, last_modified)\nVALUES (:applicationId, :status, :lastModified)\nON CONFLICT ([[2]]) DO UPDATE\nSET status = EXCLUDED.status,\n    last_modified = EXCLUDED.last_modified\nWHERE application_copy.last_modified [[3]] EXCLUDED.last_modified;",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "NOTHING",
+              "decoys": [
+                "UPDATE",
+                "ROLLBACK"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "application_id",
+              "decoys": [
+                "status",
+                "last_modified"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "<",
+              "decoys": [
+                ">",
+                "="
+              ]
+            }
+          ],
+          "id": "u12-l2-i7"
+        },
+        {
+          "type": "scenario",
+          "src": "s13",
+          "q": "Your copy of an application sometimes shows Interview One although SuccessFactors shows Offer. The logs show that the Offer event was processed a few seconds before the older Interview event.",
+          "options": [
+            {
+              "text": "For every event, read the current application through OData and keep it only if its lastModifiedDateTime is newer than the stored one.",
+              "ok": true,
+              "why": "The worker always ends with the latest state, whatever order the events arrive in."
+            },
+            {
+              "text": "Sort the events by the time they arrived before you process them.",
+              "ok": false,
+              "why": "The arrival order is exactly what is wrong here; it does not tell you when the change happened."
+            },
+            {
+              "text": "Process all events in a single thread.",
+              "ok": false,
+              "why": "One thread keeps the order of arrival, not the order of the changes, and it limits throughput."
+            },
+            {
+              "text": "Wait five seconds before you process each event.",
+              "ok": false,
+              "why": "A delay makes the wrong order less likely but does not prevent it, and it slows down every event."
+            }
+          ],
+          "id": "u12-l2-i8"
+        },
+        {
+          "type": "order",
+          "src": "s3",
+          "q": "Put the steps for connecting SuccessFactors to SAP Cloud Application Event Hub in order.",
+          "steps": [
+            "In the SAP BTP cockpit, add a system of type SAP SuccessFactors and generate a registration token",
+            "In SuccessFactors Admin Center, open Extension Center, Extensions on SAP BTP, and paste the token in Add Integration with SAP BTP",
+            "Include the system in a formation of type Eventing Between SAP Cloud Systems with an Event Hub instance",
+            "Define the integration dependency for the event types the consumer needs",
+            "Enable the event subscription and test it with a real change"
+          ],
+          "id": "u12-l2-i9"
+        },
+        {
+          "type": "scenario",
+          "src": "s11",
+          "q": "An Integration Center job is triggered by an Intelligent Services event for every application status change. During campus hiring, recruiters make about 2,000 status changes an hour, and some events are never processed.",
+          "options": [
+            {
+              "text": "Send the events to middleware that answers quickly, queues them and processes them at its own pace, or use a scheduled job for the bulk changes.",
+              "ok": true,
+              "why": "SAP advises fewer than 500 events per hour for event-based Integration Center jobs, and says event-based integration is not meant for heavy load."
+            },
+            {
+              "text": "Subscribe three more Integration Center jobs to the same event to share the load.",
+              "ok": false,
+              "why": "SAP advises one job per event, two at most; more jobs can cause performance problems and data loss."
+            },
+            {
+              "text": "Let the REST endpoint finish all the processing before it answers.",
+              "ok": false,
+              "why": "SAP asks the endpoint to process an event within 30 seconds, so long processing makes the problem worse."
+            },
+            {
+              "text": "Export every application as a full CSV file every five minutes.",
+              "ok": false,
+              "why": "A full export every five minutes moves far more data than needed and is a heavy load too."
+            }
+          ],
+          "id": "u12-l2-i10"
+        }
+      ]
+    },
+    {
+      "id": "u12-l3",
+      "kind": "interview",
+      "title": "Talk about events",
+      "items": [
+        {
+          "type": "say",
+          "src": "s10",
+          "text": "For urgent changes I use events, and I keep a delta query on lastModifiedDateTime as a safety net, because events can be lost.",
+          "id": "u12-l3-i1"
+        },
+        {
+          "type": "tf",
+          "src": "s12",
+          "statement": "In CloudEvents, a consumer may treat two events with the same source and id as duplicates.",
+          "answer": true,
+          "why": "Producers must keep source plus id unique for each distinct event, and an event that is sent again may keep the same id.",
+          "id": "u12-l3-i2"
+        },
+        {
+          "type": "tf",
+          "src": "s1",
+          "statement": "An event in Intelligent Services Center can have at most six subscriptions, counting Event Connector and Event Subscription Manager subscriptions together.",
+          "answer": true,
+          "why": "SAP Learning gives a maximum of 6 subscriptions for an event across both tools. If more systems need the event, send it once to middleware and fan it out there.",
+          "id": "u12-l3-i3"
+        },
+        {
+          "type": "explain",
+          "src": "s10",
+          "seconds": 120,
+          "q": "Events or polling: how do you get changes out of SuccessFactors Recruiting?",
+          "model": "It depends on how fresh the data must be and on the volume. Polling is the simple option. A scheduled job asks the OData API for records with a lastModifiedDateTime after its last successful run. It is easy to operate and easy to restart, but the data is only as fresh as the interval, and SAP warns that repeating queries in much less than an hour uses too much API resource. It also cannot see deleted records. Events are better for urgent changes. Recruiting raises Intelligent Services events, such as Update of Job Application Status, and a subscriber is notified soon after the change, with no constant queries. The trade-off is that I must handle duplicates, the wrong order and lost events. Volume matters too. SAP says event-based integration with Integration Center is not meant for heavy load, so for mass changes I prefer a scheduled job. So in practice I combine them. Events drive the fast updates, and a delta query, every hour or every night, is the safety net that fills any gap.",
+          "keypoints": [
+            {
+              "text": "Polling: a delta query on lastModifiedDateTime",
+              "kw": [
+                "polling",
+                "poll",
+                "lastmodifieddatetime",
+                "last modified",
+                "delta",
+                "scheduled"
+              ]
+            },
+            {
+              "text": "The cost of polling: delay of one interval, API load, not too often",
+              "kw": [
+                "interval",
+                "an hour",
+                "once an hour",
+                "api load",
+                "api resource",
+                "frequency",
+                "too often",
+                "fresh",
+                "resources"
+              ]
+            },
+            {
+              "text": "Events for urgent changes, such as Update of Job Application Status",
+              "kw": [
+                "event",
+                "events",
+                "intelligent services",
+                "notification",
+                "notified",
+                "real time",
+                "subscriber"
+              ]
+            },
+            {
+              "text": "Events bring duplicates, wrong order and lost events",
+              "kw": [
+                "duplicates",
+                "duplicate",
+                "order",
+                "lost",
+                "missed",
+                "twice"
+              ]
+            },
+            {
+              "text": "Heavy load or mass changes: a scheduled job, not events",
+              "kw": [
+                "heavy load",
+                "volume",
+                "mass",
+                "bulk",
+                "high volume",
+                "scheduled job",
+                "batch job"
+              ]
+            },
+            {
+              "text": "Combine them: events plus a delta query as a safety net",
+              "kw": [
+                "safety net",
+                "combine",
+                "both",
+                "reconcile",
+                "reconciliation",
+                "fills the gap"
+              ]
+            }
+          ],
+          "id": "u12-l3-i4"
+        },
+        {
+          "type": "scenario",
+          "src": "s2",
+          "q": "On Monday, a recruiter reports that offers approved over the weekend never reached the payroll system. The receiving endpoint, registered in Event Subscription Manager, was down for six hours on Saturday.",
+          "options": [
+            {
+              "text": "Check the failed subscriptions in Execution Manager, retry them from Admin Alerts, and run the delta query from the last good watermark to catch anything else.",
+              "ok": true,
+              "why": "SAP says failed subscriptions can be retried by hand from Admin Alerts, and the delta query finds changes that no event delivered."
+            },
+            {
+              "text": "Ask the recruiters to approve the offers again.",
+              "ok": false,
+              "why": "This changes business data and creates new approvals and emails just to repair an integration."
+            },
+            {
+              "text": "Do nothing: the events will arrive on their own when the endpoint is back.",
+              "ok": false,
+              "why": "SAP describes a manual retry from Admin Alerts for failed subscriptions, so you cannot assume they arrive on their own."
+            },
+            {
+              "text": "Run a full load of every application ever created.",
+              "ok": false,
+              "why": "It works, but it is far heavier than a delta from the watermark, which reads only what changed."
+            }
+          ],
+          "id": "u12-l3-i5"
+        },
+        {
+          "type": "explain",
+          "src": "s12",
+          "seconds": 150,
+          "q": "The notification you receive contains only the application ID. Why would a system send so little, and how do you design the consumer?",
+          "model": "An ID-only event is the event notification style. It says that something changed and leaves the details in the source system. There are good reasons for it. The event stays small, and the CloudEvents specification recommends compact events that link to the data. It also protects personal data, because candidate details are not copied to every subscriber, and each consumer reads only what its API user is allowed to see. And the consumer always gets the current state, not the state at the moment of the event. So my consumer takes the ID, calls the OData API, for example JobApplication with a $select of the fields it needs, and stores the record if it is newer than its copy. The cost is an extra API call for each event, so when many events arrive together, I group the IDs and read them in one query with the in operator.",
+          "keypoints": [
+            {
+              "text": "Event notification: something changed, the details stay in the source",
+              "kw": [
+                "event notification",
+                "notification",
+                "only the id",
+                "id only",
+                "something changed",
+                "source system"
+              ]
+            },
+            {
+              "text": "Small, compact events that link to the data",
+              "kw": [
+                "small",
+                "compact",
+                "size",
+                "link"
+              ]
+            },
+            {
+              "text": "Personal data stays protected; each consumer reads what it may see",
+              "kw": [
+                "personal data",
+                "privacy",
+                "sensitive",
+                "permissions",
+                "allowed",
+                "access control",
+                "gdpr"
+              ]
+            },
+            {
+              "text": "Call the OData API back for the current state",
+              "kw": [
+                "odata",
+                "call back",
+                "callback",
+                "call the api",
+                "current state",
+                "latest",
+                "fetch",
+                "read the record"
+              ]
+            },
+            {
+              "text": "The cost: one extra call per event; group IDs for bursts",
+              "kw": [
+                "extra call",
+                "api call",
+                "cost",
+                "batch",
+                "in operator",
+                "group"
+              ]
+            }
+          ],
+          "id": "u12-l3-i6"
+        },
+        {
+          "type": "scenario",
+          "src": "s27",
+          "q": "A worker reads each application named in an event through OData. For one event the application no longer exists, because it was deleted a minute after the change. The worker throws an error, and Pub/Sub delivers the same message again and again.",
+          "options": [
+            {
+              "text": "Treat a missing record as a final result: remove the row from the copy, record the event as processed and acknowledge it. For errors that keep failing, add a dead-letter topic with its own subscription and an alert.",
+              "ok": true,
+              "why": "A retry cannot bring back a deleted record, so the worker must finish the event. A dead-letter topic takes the messages that will never succeed out of the flow, and its subscription keeps them for someone to check."
+            },
+            {
+              "text": "Keep retrying until the call succeeds.",
+              "ok": false,
+              "why": "The record will never come back, so the message fails until it expires, and every attempt wastes an API call."
+            },
+            {
+              "text": "Acknowledge every message as soon as it arrives, before the OData call.",
+              "ok": false,
+              "why": "Then a short API outage loses events, because nothing is retried."
+            },
+            {
+              "text": "Stop the worker until someone checks the application by hand.",
+              "ok": false,
+              "why": "One bad event then blocks every other event, and the copy falls further behind."
+            }
+          ],
+          "id": "u12-l3-i7"
+        },
+        {
+          "type": "explain",
+          "src": "s12",
+          "seconds": 150,
+          "q": "How do you deal with duplicate and out-of-order events?",
+          "model": "I design for at-least-once delivery, so I assume that both will happen. Senders retry after a timeout, and nothing promises that events arrive in the order of the changes. CloudEvents even says that a batch of events is not ordered. For duplicates, every CloudEvent has a source and an id, and two events with the same pair are duplicates. So the consumer inserts that pair into a processed-events table with a unique key, in the same transaction as its own change, and skips any repeat. For order, I don't trust the event to carry the latest state. I read the record from the OData API and keep it only if its lastModifiedDateTime is newer than my copy, so the state update is idempotent by itself. The processed-events table matters most for side effects, like creating an onboarding task or sending an email, which must happen only once. A Pub/Sub ordering key does not fix the order on its own, because it only keeps the order in which my receiver published the events.",
+          "keypoints": [
+            {
+              "text": "Assume at-least-once delivery: duplicates and wrong order will happen",
+              "kw": [
+                "at least once",
+                "at-least-once",
+                "assume",
+                "retry",
+                "retries",
+                "timeout",
+                "will happen",
+                "not ordered"
+              ]
+            },
+            {
+              "text": "source plus id identifies a duplicate",
+              "kw": [
+                "source",
+                "id",
+                "event id",
+                "same id",
+                "duplicate",
+                "duplicates"
+              ]
+            },
+            {
+              "text": "A processed-events table with a unique key, in the same transaction",
+              "kw": [
+                "processed",
+                "inbox",
+                "unique key",
+                "same transaction",
+                "unique constraint",
+                "skip"
+              ]
+            },
+            {
+              "text": "Read the current state; the newer lastModifiedDateTime wins",
+              "kw": [
+                "lastmodifieddatetime",
+                "newer",
+                "current state",
+                "latest",
+                "read the record",
+                "odata"
+              ]
+            },
+            {
+              "text": "Side effects need deduplication; an ordering key alone is not enough",
+              "kw": [
+                "side effect",
+                "side effects",
+                "email",
+                "task",
+                "only once",
+                "ordering key",
+                "ordering keys"
+              ]
+            }
+          ],
+          "id": "u12-l3-i8"
+        },
+        {
+          "type": "say",
+          "src": "s3",
+          "text": "SuccessFactors is adopting Event Hub as its central platform for events, so for each new event integration I first check whether Event Hub offers the event I need.",
+          "id": "u12-l3-i9"
+        },
+        {
+          "type": "explain",
+          "src": "s3",
+          "seconds": 150,
+          "q": "A customer has twenty Intelligent Services subscriptions to third-party systems. What would you tell them about SAP Cloud Application Event Hub?",
+          "model": "First, I would explain the direction. SAP says SuccessFactors is adopting SAP Cloud Application Event Hub as the central platform for publishing events, and SAP has published a release note about replacing Intelligent Services Center with Event Hub. So I would not add new subscriptions in Intelligent Services without a plan to move them. Second, I would make an inventory: every Event Subscription Manager endpoint, every Integration Center job triggered by an event, and every external event notification, with its owner and its events. Third, I would check in SAP Help which of those event types Event Hub publishes today, especially for Recruiting, and how each third-party system can receive them, for example through SAP Integration Suite. Then I would connect SuccessFactors to Event Hub through a formation and move one flow at a time, comparing the old and new paths for a while. Event Hub events are CloudEvents, so consumers must change how they read them, and they stay idempotent, with a delta query as the safety net.",
+          "keypoints": [
+            {
+              "text": "The direction: Event Hub is the central platform and replaces ISC",
+              "kw": [
+                "event hub",
+                "central platform",
+                "replace",
+                "replacement",
+                "replacing",
+                "adopting"
+              ]
+            },
+            {
+              "text": "An inventory of the existing subscriptions and their owners",
+              "kw": [
+                "inventory",
+                "list",
+                "existing",
+                "event subscription manager",
+                "integration center",
+                "owner"
+              ]
+            },
+            {
+              "text": "Check which event types Event Hub publishes and how third parties receive them",
+              "kw": [
+                "event types",
+                "sap help",
+                "which events",
+                "recruiting",
+                "integration suite",
+                "third-party",
+                "third party"
+              ]
+            },
+            {
+              "text": "Connect through a formation and move one flow at a time",
+              "kw": [
+                "formation",
+                "one at a time",
+                "step by step",
+                "migrate",
+                "move",
+                "parallel"
+              ]
+            },
+            {
+              "text": "CloudEvents format; stay idempotent with a safety net",
+              "kw": [
+                "cloudevents",
+                "cloud events",
+                "cloudevent",
+                "idempotent",
+                "safety net",
+                "delta"
+              ]
+            }
+          ],
+          "id": "u12-l3-i10"
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Intelligent Services and ISC",
+        "points": [
+          "Any SuccessFactors solution can raise an event; a subscriber is a SuccessFactors solution or a third-party system.",
+          "Recruiting events named by SAP: Update of Job Application Status, Update of Job Application, Update of Job Requisition, Approval of Offer Detail and Requisitions Reassigned.",
+          "Update of Job Application is published only while the applicant is in an applied state; the Event Center dashboard shows event details and status.",
+          "ISC: configure and monitor events, flows, activities and subscribers; it lists the events of the last 1, 7 or 15 days.",
+          "A Recruiting event can have only one flow in ISC (KBA 2951051).",
+          "Most ISC events are bulk events: a list of standard events, each processed on its own.",
+          "At most 6 subscriptions per event, Event Connector and Event Subscription Manager together."
+        ]
+      },
+      {
+        "h": "Sending events to other systems",
+        "points": [
+          "Event Subscription Manager: third-party endpoint URLs; monitor in Execution Manager; retry failures by hand from Admin Alerts.",
+          "External Event Notification: Admin Center, Event Notification Subscription; set the subscriber, the endpoint URL in the External Event tab, and the events in the SEB (Service Event Bus) External Event tab.",
+          "External Event Notification sends each event as a SOAP message described by a WSDL; check each notification in the Audit Log.",
+          "The SEB External Event list shows ISC events only; you cannot add your own (KBA 2899328).",
+          "Integration Center jobs can be triggered by Intelligent Services events.",
+          "Event-based Integration Center: fewer than 500 events per hour, the REST endpoint processes an event within 30 seconds, one job per event (two at most).",
+          "Event-based integration is not meant for heavy load; scheduled jobs are more flexible for it."
+        ]
+      },
+      {
+        "h": "SAP Cloud Application Event Hub",
+        "points": [
+          "SuccessFactors is adopting Event Hub as the central platform for publishing events; SAP has a release note on replacing ISC with it.",
+          "Connect: in the BTP cockpit add the SuccessFactors system and generate a token; paste it in Admin Center, Extension Center, Extensions on SAP BTP.",
+          "Formation of type Eventing Between SAP Cloud Systems, with an Event Hub instance.",
+          "A consumer's integration dependency appears as a subscription that you enable or disable; no topics or queues to define.",
+          "Events are CloudEvents; SAP's tutorial points to SAP Help for the list of published SuccessFactors events."
+        ]
+      },
+      {
+        "h": "CloudEvents",
+        "points": [
+          "Required attributes: id, source, specversion (1.0) and type. Optional: datacontenttype, dataschema, subject, time.",
+          "source plus id must be unique for each distinct event; a re-sent event may keep its id.",
+          "A batch of CloudEvents has no meaning of its own and is not ordered.",
+          "Keep events compact (64 KiB is the safe size) and link to large or sensitive data.",
+          "HTTP binary mode: attributes in ce- headers, such as ce-id, ce-source and ce-type.",
+          "Webhook answers: 200 or 201 with a body, 201 or 204 without one, 202 if accepted but not processed, 429 with Retry-After, 410 if the target is retired."
+        ]
+      },
+      {
+        "h": "IDs only or full state",
+        "points": [
+          "Event notification: little more than an ID; the consumer calls the source back.",
+          "Event-carried state transfer: the event holds the data; no call back, but more data travels and more copies exist.",
+          "ID-only events keep personal data in SuccessFactors and give you the current state when you read it.",
+          "SAP's Event Hub example of a SuccessFactors onboarding event carries mainly IDs, such as userId and onboardingProcessId.",
+          "Call back: GET /odata/v2/JobApplication(3020L) with $select; for many IDs, one $filter with the in operator."
+        ]
+      },
+      {
+        "h": "Events or polling",
+        "points": [
+          "Polling: $filter=lastModifiedDateTime gt datetimeoffset'...' from the watermark of the last good run.",
+          "SAP: do not run jobs too often to get real-time results; repeating queries in much less than an hour uses too much API resource.",
+          "A last-modified filter cannot return deleted records.",
+          "Events: a short delay with no constant queries, but you must handle duplicates, order and loss.",
+          "Best of both: events for urgent changes, a delta query as the safety net."
+        ]
+      },
+      {
+        "h": "Reliable consumers",
+        "points": [
+          "Answer fast (202) only after the event is safely stored, for example in Pub/Sub; process it later.",
+          "Deduplicate on source plus id with a unique key, in the same transaction as the change.",
+          "The newer lastModifiedDateTime wins; an old event must never overwrite a newer state.",
+          "Side effects, such as tasks and emails, need deduplication most.",
+          "A record that no longer exists is a final result, not a retry; messages that keep failing go to a dead-letter topic with its own subscription.",
+          "Pub/Sub: at least once by default; an ordering key keeps the publish order only, on a subscription with ordering on; exactly-once only for pull subscriptions.",
+          "Monitor: Execution Manager, Admin Alerts, the Audit Log, and your own dead-letter topic."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Describing Intelligent Services - SAP Learning (Configuring SAP SuccessFactors Platform: Advanced Topics)",
+      "url": "https://learning.sap.com/learning-journeys/configuring-sap-successfactors-platform-advanced-topics/describing-intelligent-services",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Feature Scope Description for SAP SuccessFactors Foundation (2H 2025 edition, PDF)",
+      "url": "https://assets.cdn.sap.com/agreements/product-policy/css/service-specifications/feature-scope-description-sap-successfactors-foundation-2h-2025-english-v11-2025.pdf",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Set up SAP SuccessFactors with SAP Cloud Application Event Hub - SAP Developers tutorial",
+      "url": "https://developers.sap.com/tutorials/eh-setup-success-factors.html",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Basic concepts of SAP Cloud Application Event Hub - SAP Developers tutorial",
+      "url": "https://developers.sap.com/tutorials/eh-basic-concepts.html",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "SAP Cloud Application Event Hub - CAP documentation (capire)",
+      "url": "https://cap.cloud.sap/docs/guides/events/event-hub.md",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "SAP KBA 2951051: Unable to create multiple flows on a Recruiting type event on Intelligent Services Center",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2951051",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "SAP KBA 3094391: which Intelligent Services events are standard events and which are bulk events",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3094391",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "SAP KBA 2899328: How to add new Event entries on SEB External Event - Platform",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2899328",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "SAP KBA 2735876: SuccessFactors OData API Best Practices [Query Modified Records, Pagination, Batch Size, Timeout, etc.]",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2735876",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "SAP KBA 3063887: Best Practices for creating Event Based Integration via Intelligent Services Center (ISC) and Integration Center (IC)",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3063887",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "CloudEvents specification (CNCF), version 1.0.3-wip; latest release v1.0.2",
+      "url": "https://github.com/cloudevents/spec/blob/main/cloudevents/spec.md",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "CloudEvents Primer (CNCF)",
+      "url": "https://github.com/cloudevents/spec/blob/main/cloudevents/primer.md",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "HTTP 1.1 Web Hooks for Event Delivery - CloudEvents (CNCF)",
+      "url": "https://github.com/cloudevents/spec/blob/main/cloudevents/http-webhook.md",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "HTTP Protocol Binding for CloudEvents (CNCF)",
+      "url": "https://github.com/cloudevents/spec/blob/main/cloudevents/bindings/http-protocol-binding.md",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "What do you mean by Event-Driven? - Martin Fowler",
+      "url": "https://martinfowler.com/articles/201701-event-driven.html",
+      "official": false
+    },
+    {
+      "id": "s17",
+      "title": "Push subscriptions - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/push",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Order messages - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/ordering",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Exactly-once delivery - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/exactly-once-delivery",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "AD167 - Extend SAP S/4HANA and SAP SuccessFactors with event-driven automation - SAP TechEd 2025 exercises (SAP-samples on GitHub)",
+      "url": "https://github.com/SAP-samples/teched2025-AD167",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Replacement of Intelligent Service Center with SAP Cloud Application Event Hub - SAP SuccessFactors release information (SAP Help Portal)",
+      "url": "https://help.sap.com/docs/successfactors-release-information/8e0d540f96474717bbf18df51e54e522/9d9a65d3d81f41449d5996609cafec8a.html",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "INSERT - PostgreSQL documentation",
+      "url": "https://www.postgresql.org/docs/current/sql-insert.html",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "SAP KBA 2883239: How to update the Application Status via Integration Center/OData API - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2883239",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "Integrating SuccessFactors Intelligent Services with SAP Cloud Identity through SAP HCI - SAP blog",
+      "url": "https://blogs.sap.com/?p=146704",
+      "official": false
+    },
+    {
+      "id": "s25",
+      "title": "Set up webhook for the SuccessFactors spoke - ServiceNow documentation (Xanadu)",
+      "url": "https://www.servicenow.com/docs/r/xanadu/integrate-applications/integration-hub/setup-sapsf-webhooks.html",
+      "official": false
+    },
+    {
+      "id": "s26",
+      "title": "Applying Intelligent Services and Events - SAP Learning (SAP SuccessFactors Recruiting: Recruiter Experience Administration)",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-administration/applying-intelligent-services-and-events",
+      "official": true
+    },
+    {
+      "id": "s27",
+      "title": "Dead-letter topics - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/dead-letter-topics",
+      "official": true
+    }
+  ]
+}

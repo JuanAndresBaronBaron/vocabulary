@@ -1,0 +1,1529 @@
+{
+  "format": 1,
+  "id": "u33",
+  "n": 33,
+  "block": "final",
+  "title": "Mock interview",
+  "summary": "After this unit you can get through a full mock interview: give short, clear warm-up answers, answer mixed technical questions on integration, SuccessFactors, Google Cloud, Java and Spring, MCP and Angular against the clock, and answer behavioural questions with your own STAR stories.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Read again for this unit on 2026-10-25: the MCP 2026-07-28 changelog and authorisation page; the Pub/Sub subscription overview, exactly-once delivery and dead-letter topics pages; the Cloud Run concurrency and maximum instances pages (all three Google pages last updated 2026-10-22); the Spring Boot 4.1.2 SpringApplication reference (virtual threads); the Spring Framework 7.0.10 REST clients reference; SAP KBAs 3159263, 3239495, 3043111 and 2723468; the Angular v22 guides on httpResource and zoneless; JEP 491; the Oracle Java SE Support Roadmap; the Microsoft Learn page on idempotent event handling; and the National Careers Service STAR method page.",
+    "Review pass on 2026-10-25: read again the MCP 2026-07-28 changelog and authorisation page; the Pub/Sub subscription overview; the Cloud Run maximum instances page (last updated 2026-10-22: 100 instances per revision by default, which can be exceeded briefly in traffic spikes); the National Careers Service STAR page; the Azure Architecture Center page on interservice communication (updated 2025-10-30); and W3C Trace Context Level 1 (Recommendation, 23 November 2021). The other facts were cross-checked against units 9, 10, 14, 15, 25, 28, 29 and 30, reviewed on 2026-10-25, because the shared web budget ran out.",
+    "Taken from earlier units and not read again here, because the research budget for this session ran out: Spring Boot 4.1 needs Java 17 or later (unit 28, System Requirements); JEP 491 was delivered in JDK 24 (unit 28; the JEP page itself names no release); lastModifiedDateTime delta filters, the 15-minute snapshot rule and the fact that a last-modified filter cannot return deleted records (unit 9); Cloud Run scale to zero and minimum instances (unit 14); RFC 7522 for the SAML bearer grant (unit 10); Pub/Sub keeps unacknowledged messages for 7 days by default (units 1 and 15).",
+    "RestTemplate: the Spring Framework 7.0.10 reference says that, as of Spring Framework 7.0, RestTemplate is deprecated in favour of RestClient and will be removed in a future version. Unit 25 records that the 7.1.0-RC1 Javadoc marks the class @Deprecated(since = \"7.1\", forRemoval = true), for removal in 8.0, and that 7.1 was not yet generally available on 2026-10-25 (not read again here). The items therefore say only that it is deprecated in favour of RestClient and will be removed in a future version.",
+    "MCP specification revision 2026-07-28: stateless, no initialize handshake, no Mcp-Session-Id, server/discover mandatory for servers. Authorisation is optional; for HTTP transports it is based on the OAuth 2.1 Internet-Draft draft-ietf-oauth-v2-1-13 (not an RFC) with RFC 9728 and RFC 8707; stdio servers take credentials from the environment.",
+    "SuccessFactors on 2026-10-25: KBA 3159263 recommends retrying a 429 after 300 seconds, a value that may change, and says rate limiting was postponed indefinitely. KBA 3239495: /oauth/idp deprecated in the 2H 2022 release, no deletion date given. KBA 3043111: Basic Authentication sunset announced in 2H 2020; unconfirmed: the current end date, so the unit gives none.",
+    "Java on 2026-10-25 (Oracle roadmap): Java 25 (September 2025) is the latest LTS; Java 26 and Java 27 are non-LTS; the next planned LTS is Java 29 in September 2027.",
+    "STAR follows the National Careers Service, whose Result step includes what you learned. Like unit 7, this unit shows Lessons learned as a separate last step.",
+    "The three rounds, the timings and the STAR wording in the model answers are a practice design for this app, not a standard from any source. The National Careers Service gives no word count, only 'short and to the point'.",
+    "All companies, people and numbers in the model answers are invented and illustrative. Learners should replace them with their own stories from My stories."
+  ],
+  "terms": [
+    {
+      "id": "t-behavioural-question",
+      "term": "Behavioural question",
+      "ipa": "/bɪˈheɪvjərəl ˈkwestʃən/",
+      "say": "behavioural question",
+      "def": "A question about what you really did in a past situation, often starting with 'Tell me about a time'. You answer it with one real example, structured with STAR.",
+      "example": "'Tell me about a time you disagreed with a colleague' is a behavioural question, so I answer with one real project, not with what I would do in theory.",
+      "src": "s1"
+    },
+    {
+      "id": "t-star",
+      "term": "STAR method",
+      "ipa": "/ˈstɑː ˌmeθəd/",
+      "say": "star method",
+      "def": "A way to structure an answer: the Situation, the Task you had, the Action you took, and the Result, which includes what you learned.",
+      "example": "With the STAR method, my story about the nightly batch has two sentences of situation, most of the time on my actions, and a result with a number.",
+      "src": "s1"
+    },
+    {
+      "id": "t-follow-up",
+      "term": "Follow-up question",
+      "ipa": "/ˈfɒləʊ ʌp ˈkwestʃən/",
+      "say": "follow up question",
+      "def": "A question about your answer that checks the details, your own part or your reasons. The National Careers Service advises you to be ready for them.",
+      "example": "After my story, the follow-up question was: 'What exactly did you change in the retry policy?'",
+      "src": "s1"
+    },
+    {
+      "id": "t-at-least-once",
+      "term": "At-least-once delivery",
+      "ipa": "/ət ˌliːst ˈwʌns dɪˈlɪvəri/",
+      "say": "at least once delivery",
+      "def": "Every message is delivered, but some may arrive more than once. Pub/Sub works this way by default on all subscription types, and it can redeliver a message even after the acknowledgement succeeded.",
+      "example": "Because Pub/Sub delivers at least once, our hire processor checks the event ID before it creates an employee in payroll.",
+      "src": "s3"
+    },
+    {
+      "id": "t-idempotent-consumer",
+      "term": "Idempotent consumer",
+      "ipa": "/ˌaɪdɛmˈpəʊtənt kənˈsjuːmə/",
+      "say": "idempotent consumer",
+      "def": "A consumer that gives the same result whether it processes a message once or several times. It uses messages that are safe to repeat, such as 'set the status', or it detects duplicates by an event ID and discards them.",
+      "example": "The payroll adapter is an idempotent consumer: a second copy of the same hire event changes nothing.",
+      "src": "s20"
+    },
+    {
+      "id": "t-dead-letter-topic",
+      "term": "Dead-letter topic",
+      "ipa": "/ˌded ˈletə ˈtɒpɪk/",
+      "say": "dead letter topic",
+      "def": "A topic to which Pub/Sub forwards a message that subscribers have failed to acknowledge after a maximum number of delivery attempts (5 to 100, default 5, approximate). Attach a subscription to it, or the forwarded messages are lost.",
+      "example": "When payroll rejected the same hire five times, the message went to the dead-letter topic, and the on-call engineer got an alert.",
+      "src": "s13"
+    },
+    {
+      "id": "t-throttling",
+      "term": "Throttling (HTTP 429)",
+      "ipa": "/ˈθrɒtlɪŋ/",
+      "say": "throttling",
+      "def": "When a server limits clients that send too many requests and answers 429 Too Many Requests. For SuccessFactors, SAP currently recommends retrying after 300 seconds, a value that may change with server capacity.",
+      "example": "When SuccessFactors throttled our extract, the job waited five minutes before it tried again.",
+      "src": "s7"
+    },
+    {
+      "id": "t-saml-bearer",
+      "term": "SAML bearer assertion flow",
+      "ipa": "/ˈsæml ˈbeərər əˈsɜːʃn fləʊ/",
+      "say": "sammel bearer assertion flow",
+      "def": "An OAuth 2.0 grant defined in RFC 7522. The client sends a signed SAML assertion to the token endpoint and gets an access token back, so no password is sent.",
+      "example": "Our Recruiting integration uses the SAML bearer assertion flow, and the assertion comes from our identity provider, not from /oauth/idp.",
+      "src": "s21"
+    },
+    {
+      "id": "t-concurrency",
+      "term": "Concurrency (Cloud Run)",
+      "ipa": "/kənˈkʌrənsi/",
+      "say": "concurrency",
+      "def": "The maximum number of requests that one Cloud Run instance handles at the same time: 80 by default in the console, or 80 times the number of vCPUs with gcloud and Terraform for a new service, and at most 1,000.",
+      "example": "With a concurrency of 80, one instance of the hire processor can serve 80 push requests from Pub/Sub at once.",
+      "src": "s4"
+    },
+    {
+      "id": "t-virtual-thread",
+      "term": "Virtual thread",
+      "ipa": "/ˈvɜːtʃuəl ˈθred/",
+      "say": "virtual thread",
+      "def": "A lightweight Java thread that the runtime unmounts while it waits for I/O, so a few OS threads can serve many waiting tasks. Spring Boot turns them on with spring.threads.virtual.enabled=true and needs Java 21 or later.",
+      "example": "After we enabled virtual threads, the service could wait on many slow SuccessFactors calls at once without a bigger thread pool.",
+      "src": "s5"
+    },
+    {
+      "id": "t-lts",
+      "term": "Long-term support (LTS) release",
+      "ipa": "/ˌlɒŋ tɜːm səˈpɔːt rɪˈliːs/",
+      "say": "long term support release",
+      "def": "A Java release that gets longer support than a feature release. Java 8, 11, 17, 21 and 25 are LTS releases; Oracle plans Java 29 as the next one, in September 2027.",
+      "example": "We build new services on Java 25, the current LTS release, rather than on JDK 27, which is a feature release.",
+      "src": "s10"
+    },
+    {
+      "id": "t-server-discover",
+      "term": "server/discover",
+      "ipa": "/ˈsɜːvə dɪˈskʌvə/",
+      "say": "server discover",
+      "def": "The MCP request, added in revision 2026-07-28, that returns a server's supported protocol versions, capabilities and identity. Servers must implement it; clients may call it before any other request.",
+      "example": "Our agent calls server/discover once to choose the protocol version, then sends tool calls that each carry that version in _meta.",
+      "src": "s2"
+    },
+    {
+      "id": "t-httpresource",
+      "term": "httpResource",
+      "ipa": "/ˌeɪtʃ tiː tiː ˈpiː rɪˈzɔːs/",
+      "say": "H T T P resource",
+      "def": "An Angular function for reactive HTTP reads. It gives you the response and the request status as signals, and it sends a new request when a signal read in its URL function changes. Use HttpClient for POST or PUT.",
+      "example": "The recruiter dashboard uses an httpResource that reloads the applications whenever the selected requisition changes.",
+      "src": "s9"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u33-l1",
+      "kind": "interview",
+      "title": "Warm-up round",
+      "items": [
+        {
+          "id": "u33-l1-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "Thank you for having me. I'll keep my answers short and give real examples, so please stop me if you'd like more detail."
+        },
+        {
+          "id": "u33-l1-i2",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 90,
+          "q": "Tell me briefly about yourself, and why this integration architect role interests you.",
+          "model": "I'm an integration engineer, and for the last few years I've connected HR systems, mostly SAP SuccessFactors Recruiting with payroll, IT and onboarding tools. In my current role at a retail company, I lead the integration work: I design the flows, review the code and agree the decisions with the HR and IT teams. The project I'm proudest of moved new hires from a nightly file to events on Pub/Sub, with a Spring Boot service on Cloud Run, so new starters now get their accounts on their first day. Before that I was a Java developer, so I still enjoy the details of retries and testing. This role interests me because it brings together what I do best: SuccessFactors, Google Cloud and helping teams agree on a design. I'd like to do that on a larger scale.",
+          "keypoints": [
+            {
+              "text": "Who you are now, in one sentence",
+              "kw": [
+                "integration engineer",
+                "engineer",
+                "architect",
+                "developer",
+                "years"
+              ]
+            },
+            {
+              "text": "One project with a clear result",
+              "kw": [
+                "project",
+                "proudest",
+                "first day",
+                "result",
+                "events"
+              ]
+            },
+            {
+              "text": "The skills that the job asks for",
+              "kw": [
+                "successfactors",
+                "google cloud",
+                "pub/sub",
+                "spring",
+                "java",
+                "design"
+              ]
+            },
+            {
+              "text": "Why this role, and why now",
+              "kw": [
+                "this role",
+                "interests me",
+                "because",
+                "larger scale",
+                "next step"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u33-l1-i3",
+          "type": "tf",
+          "src": "s3",
+          "statement": "By default, Pub/Sub delivers each message exactly once, so a subscriber never sees the same message twice.",
+          "answer": false,
+          "why": "By default, Pub/Sub offers at-least-once delivery on all subscription types, and it might redeliver a message even after a successful acknowledgement. Every subscriber must handle duplicates."
+        },
+        {
+          "id": "u33-l1-i4",
+          "type": "tf",
+          "src": "s2",
+          "statement": "In MCP revision 2026-07-28, a client must send initialize and wait for the reply before it can call a tool.",
+          "answer": false,
+          "why": "Revision 2026-07-28 removed the initialize handshake: every request carries its protocol version and client capabilities in _meta. A client may call server/discover first, but it does not have to."
+        },
+        {
+          "id": "u33-l1-i5",
+          "type": "scenario",
+          "src": "s10",
+          "q": "A quick question from the panel: 'Which Java version would you choose for a new Spring Boot 4.1 service today, and why?'",
+          "options": [
+            {
+              "text": "Java 25, because it is the current LTS release and Spring Boot 4.1 supports it.",
+              "ok": true,
+              "why": "Oracle lists Java 25 (September 2025) as the latest LTS release, with longer support than a feature release. Spring Boot 4.1 needs Java 17 or later, so 25 is a safe choice."
+            },
+            {
+              "text": "JDK 27, because the newest release is always the safest choice for production.",
+              "ok": false,
+              "why": "JDK 27 is a non-LTS feature release, and Oracle considers a non-LTS release superseded as soon as the next feature release is out."
+            },
+            {
+              "text": "Java 11, because an older version is more stable.",
+              "ok": false,
+              "why": "Spring Boot 4 needs Java 17 or later, so Java 11 is not an option at all."
+            },
+            {
+              "text": "It does not matter, because Spring Boot works the same on every Java version.",
+              "ok": false,
+              "why": "Every Spring Boot line has a minimum Java version, and some features, such as virtual threads, need Java 21 or later."
+            }
+          ]
+        },
+        {
+          "id": "u33-l1-i6",
+          "type": "scenario",
+          "src": "s8",
+          "q": "A developer says: 'For the new SuccessFactors Recruiting integration, I'll get the SAML assertion from the /oauth/idp API. It's the quickest way.' What do you answer?",
+          "options": [
+            {
+              "text": "That API is deprecated, and new customers cannot use it. Let's get the assertion from IAS or from our own identity provider instead.",
+              "ok": true,
+              "why": "SAP announced the deprecation of /oauth/idp in the 2H 2022 release, and existing use stops on the deletion date. SAP names IAS, its offline tool or a third-party identity provider as alternatives."
+            },
+            {
+              "text": "Fine, and add Basic Authentication as a fallback in case the token request fails.",
+              "ok": false,
+              "why": "SAP announced the sunset of Basic Authentication for SFAPI and the OData API in 2H 2020, so a new integration should not depend on it."
+            },
+            {
+              "text": "Fine. SAP keeps deprecated APIs for ever, so there is no risk.",
+              "ok": false,
+              "why": "SAP says existing use of /oauth/idp stops on the deletion date, so building on it now creates work and risk later."
+            }
+          ]
+        },
+        {
+          "id": "u33-l1-i7",
+          "type": "tf",
+          "src": "s18",
+          "statement": "In a new Angular 21 or 22 application, change detection works without zone.js by default.",
+          "answer": true,
+          "why": "Zoneless is the default from Angular v21. Angular then runs change detection after notifications, such as an update to a signal that a template reads or a template listener."
+        },
+        {
+          "id": "u33-l1-i8",
+          "type": "explain",
+          "src": "s20",
+          "seconds": 90,
+          "q": "Briefly: what is idempotency, and why does it matter in an integration?",
+          "model": "An operation is idempotent when doing it several times gives the same result as doing it once. In integration this matters because duplicates are normal. Pub/Sub delivers at least once by default, so a subscriber can receive the same message twice, even after it acknowledged it. Retries cause the same problem: a call can time out after it has already worked, and the client sends it again. So I make every consumer idempotent. Where I can, the message itself is safe to repeat, for example 'set the status to Hired' rather than 'add one hire'. Otherwise I give every event an ID, store the IDs I have processed, and skip the duplicates. The cost is a table of processed IDs that I must keep and clean up, but that is much cheaper than a duplicate employee in payroll.",
+          "keypoints": [
+            {
+              "text": "Same result when it runs more than once",
+              "kw": [
+                "same result",
+                "several times",
+                "more than once",
+                "twice",
+                "doing it once"
+              ]
+            },
+            {
+              "text": "Duplicates are normal: at-least-once delivery and retries",
+              "kw": [
+                "at least once",
+                "at-least-once",
+                "duplicate",
+                "duplicates",
+                "redeliver",
+                "retry",
+                "retries",
+                "time out",
+                "timeout"
+              ]
+            },
+            {
+              "text": "Messages that are safe to repeat, such as setting a value",
+              "kw": [
+                "safe to repeat",
+                "set the status",
+                "setting",
+                "same value",
+                "upsert"
+              ]
+            },
+            {
+              "text": "Otherwise store event IDs and skip duplicates",
+              "kw": [
+                "event id",
+                "message id",
+                "store",
+                "skip",
+                "deduplicate",
+                "discard"
+              ]
+            },
+            {
+              "text": "The trade-off: a table of processed IDs to keep and clean up",
+              "kw": [
+                "cost",
+                "trade-off",
+                "trade off",
+                "clean up",
+                "cheaper",
+                "table"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u33-l1-i9",
+          "type": "tf",
+          "src": "s24",
+          "statement": "With W3C Trace Context, each service creates a new trace ID and sends it on in the traceparent header.",
+          "answer": false,
+          "why": "The trace ID stays the same for the whole trace; each service changes only the parent ID, to the ID of its own operation. That shared trace ID lets you follow one hire across every service."
+        },
+        {
+          "id": "u33-l1-i10",
+          "type": "explain",
+          "src": "s25",
+          "seconds": 90,
+          "q": "When would you choose a synchronous API call, and when asynchronous messaging?",
+          "model": "It depends on whether someone is waiting for the result. If a recruiter needs an answer now, for example to check that a candidate already exists, I use a synchronous call such as REST. It is simple, but the other service must be available, or the call fails, and a chain of calls adds latency. When nobody needs to wait, I prefer messaging. For example, a hire event goes to Pub/Sub, and payroll, IT and onboarding each process it at their own rate. If payroll is down, the messages wait until it recovers, and I can add a consumer without changing the sender. The trade-off is complexity: I must handle duplicate messages, I depend on the broker, and request-response needs a reply queue and a correlation ID.",
+          "keypoints": [
+            {
+              "text": "Start from the question: is someone waiting for the result?",
+              "kw": [
+                "waiting",
+                "wait",
+                "waits",
+                "needs an answer",
+                "right away",
+                "immediately"
+              ]
+            },
+            {
+              "text": "Synchronous: simple, but the other service must be available",
+              "kw": [
+                "synchronous",
+                "sync",
+                "rest",
+                "must be available",
+                "must be up",
+                "available",
+                "fails"
+              ]
+            },
+            {
+              "text": "A chain of synchronous calls adds latency",
+              "kw": [
+                "chain",
+                "chains",
+                "latency",
+                "slower",
+                "cascading"
+              ]
+            },
+            {
+              "text": "Messaging: consumers work at their own rate and catch up after an outage",
+              "kw": [
+                "asynchronous",
+                "async",
+                "messaging",
+                "queue",
+                "pub/sub",
+                "own rate",
+                "own pace",
+                "recovers",
+                "decoupled"
+              ]
+            },
+            {
+              "text": "The trade-off: duplicates, the broker, harder request-response",
+              "kw": [
+                "duplicate",
+                "duplicates",
+                "broker",
+                "complexity",
+                "complex",
+                "correlation",
+                "trade-off",
+                "trade off"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u33-l2",
+      "kind": "interview",
+      "title": "Technical round",
+      "items": [
+        {
+          "id": "u33-l2-i1",
+          "type": "say",
+          "src": "s3",
+          "text": "Pub/Sub delivers at least once, so every consumer we build is idempotent: it checks the event ID before it changes anything."
+        },
+        {
+          "id": "u33-l2-i2",
+          "type": "scenario",
+          "src": "s7",
+          "q": "Your nightly extract of job applications from SuccessFactors starts to get HTTP 429 Too Many Requests. A colleague wants to retry at once, in a loop, until it works. What do you do?",
+          "options": [
+            {
+              "text": "Wait before each retry, currently 300 seconds as SAP recommends, and cap the attempts. Then check whether the job can read only changed records.",
+              "ok": true,
+              "why": "SAP's throttling FAQ asks clients to retry after the recommended delay, currently 300 seconds, and says the value may change with server capacity. Fewer, smaller queries also make another 429 less likely."
+            },
+            {
+              "text": "Retry immediately in a loop until the call succeeds.",
+              "ok": false,
+              "why": "Immediate retries add load to a server that is already limiting you, so you are likely to get more 429s, not fewer."
+            },
+            {
+              "text": "Run ten copies of the job in parallel, so it finishes before the limit applies.",
+              "ok": false,
+              "why": "More parallel calls mean more requests per second, which is exactly what throttling limits."
+            },
+            {
+              "text": "Switch the job to Basic Authentication, because throttling only applies to OAuth clients.",
+              "ok": false,
+              "why": "A 429 means the client sent too many requests, and a different login method does not reduce them. SAP has also announced the sunset of Basic Authentication."
+            }
+          ]
+        },
+        {
+          "id": "u33-l2-i3",
+          "type": "explain",
+          "src": "s13",
+          "seconds": 150,
+          "q": "How would you make sure that a new hire from SuccessFactors Recruiting reaches payroll, is never lost and is never created twice?",
+          "model": "I'd start from the delivery guarantees, because they shape the design. When an application moves to Hired, a small receiver publishes a thin event with the application ID to Pub/Sub, and a Spring Boot service on Cloud Run consumes it. Pub/Sub keeps unacknowledged messages, for seven days by default, and delivers them again, so a hire is not lost while payroll is down. But it delivers at least once, so duplicates will happen. That's why the consumer is idempotent: it records each event ID in the same transaction as the change and skips IDs it has already seen. If payroll keeps rejecting a message, the subscription forwards it to a dead-letter topic after a set number of attempts, and we alert on it. That topic needs its own subscription, or the forwarded messages are lost. Finally, a notification can go missing at the source, so a nightly reconciliation compares hires in SuccessFactors with payroll and replays any gap.",
+          "keypoints": [
+            {
+              "text": "Events through Pub/Sub, which keeps and redelivers messages",
+              "kw": [
+                "pub/sub",
+                "event",
+                "events",
+                "unacknowledged",
+                "redeliver",
+                "delivers them again"
+              ]
+            },
+            {
+              "text": "At-least-once delivery means duplicates",
+              "kw": [
+                "at least once",
+                "at-least-once",
+                "duplicate",
+                "duplicates",
+                "twice"
+              ]
+            },
+            {
+              "text": "An idempotent consumer that records event IDs",
+              "kw": [
+                "idempotent",
+                "event id",
+                "application id",
+                "skip",
+                "skips",
+                "deduplicate",
+                "same transaction"
+              ]
+            },
+            {
+              "text": "A dead-letter topic with its own subscription and an alert",
+              "kw": [
+                "dead-letter",
+                "dead letter",
+                "alert",
+                "attempts",
+                "own subscription"
+              ]
+            },
+            {
+              "text": "Reconciliation to catch gaps at the source",
+              "kw": [
+                "reconciliation",
+                "reconcile",
+                "compare",
+                "compares",
+                "replay",
+                "replays",
+                "gap"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u33-l2-i4",
+          "type": "scenario",
+          "src": "s11",
+          "q": "The interviewer asks: 'Would you run the new candidate-sync service on Cloud Run or on GKE Autopilot?' It is a stateless Spring Boot API that receives Pub/Sub push messages.",
+          "options": [
+            {
+              "text": "Cloud Run. Google recommends considering serverless first, and a stateless HTTP service fits it well. I'd choose GKE Autopilot if we needed Kubernetes features, more control or long-lived stateful workloads.",
+              "ok": true,
+              "why": "The Cloud Architecture Center recommends serverless first. It points to GKE Autopilot for more control of the environment, Kubernetes dependencies and long-lived or stateful workloads."
+            },
+            {
+              "text": "GKE Autopilot, because Kubernetes is always the more professional choice.",
+              "ok": false,
+              "why": "That is a preference, not a requirement. Nothing in this service needs Kubernetes, and you would operate more for no benefit."
+            },
+            {
+              "text": "Compute Engine, so that we control the operating system.",
+              "ok": false,
+              "why": "Nothing here needs control of the operating system, and you would have to build the scaling and patching yourself."
+            },
+            {
+              "text": "Cloud Run, because a service on GKE cannot receive Pub/Sub messages.",
+              "ok": false,
+              "why": "The decision is right but the reason is wrong: workloads on GKE can consume Pub/Sub too. The real reason is that serverless fits a stateless service with less to operate."
+            }
+          ]
+        },
+        {
+          "id": "u33-l2-i5",
+          "type": "explain",
+          "src": "s14",
+          "seconds": 120,
+          "q": "How does Cloud Run scale your service, and which limits would you set?",
+          "model": "Cloud Run scales out by adding instances, and each instance handles several requests at the same time. That number is the concurrency: 80 by default in the console, or 80 times the vCPUs with gcloud, and up to 1,000. I set concurrency to 1 only if the code cannot handle parallel requests, because it hurts scaling. With no traffic, a service can scale to zero, so I either accept a slower first request or keep a few minimum instances. The limit I always set is maximum instances. The default is 100 per revision, and it can be exceeded briefly during spikes. I set it lower to protect what sits behind the service, for example the database: maximum instances times the connection pool size must stay under the database's connection limit. It also caps the cost. Then I load-test, because more instances only help if the next system can take the load.",
+          "keypoints": [
+            {
+              "text": "Scales out by adding instances",
+              "kw": [
+                "scale out",
+                "scales out",
+                "instances",
+                "autoscaling",
+                "horizontal"
+              ]
+            },
+            {
+              "text": "Concurrency per instance: 80 by default, up to 1,000",
+              "kw": [
+                "concurrency",
+                "80",
+                "1,000",
+                "1000",
+                "same time"
+              ]
+            },
+            {
+              "text": "Maximum instances protect the database and the cost",
+              "kw": [
+                "maximum instances",
+                "max instances",
+                "database",
+                "connection",
+                "connections",
+                "cost"
+              ]
+            },
+            {
+              "text": "Scale to zero, and minimum instances for a faster first request",
+              "kw": [
+                "scale to zero",
+                "zero",
+                "minimum instances",
+                "min instances",
+                "cold start",
+                "first request"
+              ]
+            },
+            {
+              "text": "Load-test before you promise",
+              "kw": [
+                "load-test",
+                "load test",
+                "test",
+                "measure"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u33-l2-i6",
+          "type": "explain",
+          "src": "s17",
+          "seconds": 150,
+          "q": "How do you extract a large number of job applications from SuccessFactors reliably?",
+          "model": "I use the OData V2 API, and I keep every request as small as I can. I select only the properties I need, and I filter on lastModifiedDateTime, so each run reads only the records changed since the last successful run. For paging, I avoid $top and $skip in an integration, because if records change during the extract, the engine can miss or duplicate some of them. Instead I use server-side pagination with paging=snapshot, and I follow the next link until there is none. I keep the page loop fast: I write each page to storage and transform the data later. If SuccessFactors answers 429, I wait about five minutes, as SAP recommends, and I cap the retries. A last-modified filter cannot return deleted records, so I also run a full comparison from time to time. Finally, I log the number of records in each run, so a sudden drop raises an alert.",
+          "keypoints": [
+            {
+              "text": "Small requests: select only what you need and filter on lastModifiedDateTime",
+              "kw": [
+                "select",
+                "$select",
+                "filter",
+                "lastmodifieddatetime",
+                "last modified",
+                "delta",
+                "changed"
+              ]
+            },
+            {
+              "text": "Server-side snapshot paging, not $top and $skip",
+              "kw": [
+                "snapshot",
+                "paging=snapshot",
+                "server-side",
+                "server side",
+                "next link",
+                "skiptoken"
+              ]
+            },
+            {
+              "text": "Why: client-side paging can miss or duplicate records",
+              "kw": [
+                "miss",
+                "duplicate",
+                "top",
+                "skip",
+                "offset"
+              ]
+            },
+            {
+              "text": "Wait before retrying a 429",
+              "kw": [
+                "429",
+                "throttling",
+                "wait",
+                "300",
+                "five minutes",
+                "back off",
+                "backoff"
+              ]
+            },
+            {
+              "text": "A full comparison for deletes, and record counts with an alert",
+              "kw": [
+                "full comparison",
+                "full load",
+                "deleted",
+                "deletes",
+                "reconcile",
+                "count",
+                "alert"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u33-l2-i7",
+          "type": "scenario",
+          "src": "s5",
+          "q": "Your team wants to turn on virtual threads in a Spring Boot 4.1 service on Java 25. The service mostly waits for SuccessFactors and Cloud SQL. What do you tell them?",
+          "options": [
+            {
+              "text": "Good idea for a service that mostly waits on I/O: set spring.threads.virtual.enabled=true, and keep the connection pool limit, because the database still accepts only so many connections.",
+              "ok": true,
+              "why": "Spring Boot says virtual threads need Java 21 or later, and that thread-pool properties stop having an effect once they are on. The database limit stays, so the connection pool becomes the main limit."
+            },
+            {
+              "text": "Turn them on to make the CPU-heavy PDF generation faster.",
+              "ok": false,
+              "why": "Virtual threads give scale, not speed: they help many tasks that wait, not work that keeps the CPU busy."
+            },
+            {
+              "text": "Not possible yet: virtual threads need Java 27.",
+              "ok": false,
+              "why": "Spring Boot says virtual threads need Java 21 or later, and strongly recommends Java 24 or later, so Java 25 is fine."
+            },
+            {
+              "text": "Turn them on, and also raise the Tomcat thread pool to 10,000 threads.",
+              "ok": false,
+              "why": "With virtual threads enabled, properties that configure thread pools no longer have an effect, so this change does nothing."
+            }
+          ]
+        },
+        {
+          "id": "u33-l2-i8",
+          "type": "explain",
+          "src": "s6",
+          "seconds": 120,
+          "q": "How would you call a REST API, such as SuccessFactors, from a new Spring Boot 4 service?",
+          "model": "For a normal synchronous call I use RestClient, which has a fluent API, or an HTTP service client: an annotated Java interface for which Spring generates the implementation. If the service is reactive or streams data, I use WebClient. I would not start new code with RestTemplate: it is deprecated in favour of RestClient and will be removed in a future version, so I'd also migrate existing code step by step. Whatever the client, I set a connect timeout and a read timeout on every call, because a call without a timeout can block for a very long time. I put the base URL and the credentials in typed configuration, not in the code, and I add the bearer token in one place, for example in an interceptor. Finally, I retry only errors that are safe to retry, such as a 429 or a 503, with backoff.",
+          "keypoints": [
+            {
+              "text": "RestClient or an HTTP service client for synchronous calls",
+              "kw": [
+                "restclient",
+                "rest client",
+                "http service client",
+                "interface",
+                "httpexchange"
+              ]
+            },
+            {
+              "text": "WebClient for reactive or streaming work",
+              "kw": [
+                "webclient",
+                "web client",
+                "reactive",
+                "streaming",
+                "non-blocking"
+              ]
+            },
+            {
+              "text": "RestTemplate is deprecated: no new code with it",
+              "kw": [
+                "resttemplate",
+                "rest template",
+                "deprecated",
+                "migrate"
+              ]
+            },
+            {
+              "text": "Connect and read timeouts on every call",
+              "kw": [
+                "timeout",
+                "timeouts",
+                "connect",
+                "read timeout"
+              ]
+            },
+            {
+              "text": "Retry only safe errors, with backoff",
+              "kw": [
+                "retry",
+                "retries",
+                "backoff",
+                "back off",
+                "429",
+                "503"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u33-l2-i9",
+          "type": "scenario",
+          "src": "s9",
+          "q": "In an Angular 22 recruiter dashboard, the list of applications must reload whenever the recruiter picks another job requisition. Which approach do you describe?",
+          "options": [
+            {
+              "text": "An httpResource whose URL function reads the selected requisition signal, so it requests again when the selection changes; the template shows isLoading(), error() and value().",
+              "ok": true,
+              "why": "httpResource sends a new request when a signal read in its URL function changes, and cancels the pending one. It exposes the response and the request status as signals for the template."
+            },
+            {
+              "text": "An httpResource that also saves the recruiter's changes with POST.",
+              "ok": false,
+              "why": "The Angular guide says to avoid httpResource for mutations; use HttpClient for POST or PUT."
+            },
+            {
+              "text": "A timer that reloads the list every second.",
+              "ok": false,
+              "why": "Polling sends many useless requests and still reacts late. The selection is already a signal, so react to it."
+            },
+            {
+              "text": "An effect() that subscribes to HttpClient and copies each result into a signal.",
+              "ok": false,
+              "why": "It can work, but you rebuild by hand what httpResource already gives you, including cancelling the old request and the loading and error states."
+            }
+          ]
+        },
+        {
+          "id": "u33-l2-i10",
+          "type": "explain",
+          "src": "s15",
+          "seconds": 150,
+          "q": "What changed in the MCP specification in 2026, and how would you secure a remote MCP server that runs on Cloud Run?",
+          "model": "The big change in revision 2026-07-28 is that MCP became stateless. There is no initialize handshake any more and no protocol-level sessions, so the Mcp-Session-Id header is gone. Instead, every request carries its protocol version and the client capabilities in _meta, and servers must implement server/discover, which returns their versions, capabilities and identity. On Cloud Run that's good news: any instance can answer any request, so the service scales out without sticky sessions. If a tool needs state across calls, the server returns an explicit handle that the client passes back as an argument. For security, the MCP server is an OAuth resource server. It publishes protected resource metadata, as RFC 9728 describes, so clients can find the authorisation server. It must check that every token was issued for this server as the audience, and it must never pass the client's token on to an upstream API such as SuccessFactors; it uses its own credentials there.",
+          "keypoints": [
+            {
+              "text": "Stateless: no initialize handshake and no sessions",
+              "kw": [
+                "stateless",
+                "initialize",
+                "handshake",
+                "session",
+                "sessions"
+              ]
+            },
+            {
+              "text": "Version and capabilities in every request; server/discover",
+              "kw": [
+                "_meta",
+                "meta",
+                "server/discover",
+                "discover",
+                "capabilities",
+                "protocol version"
+              ]
+            },
+            {
+              "text": "Scales out on Cloud Run without sticky sessions",
+              "kw": [
+                "scale out",
+                "scales out",
+                "any instance",
+                "sticky",
+                "instance"
+              ]
+            },
+            {
+              "text": "An OAuth resource server with protected resource metadata",
+              "kw": [
+                "oauth",
+                "resource server",
+                "metadata",
+                "9728",
+                "authorisation server",
+                "authorization server"
+              ]
+            },
+            {
+              "text": "Validate the audience; never pass the token through",
+              "kw": [
+                "audience",
+                "passthrough",
+                "pass through",
+                "pass on",
+                "own credentials",
+                "validate"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u33-l3",
+      "kind": "interview",
+      "title": "Leadership round: your own stories",
+      "items": [
+        {
+          "id": "u33-l3-i1",
+          "type": "tf",
+          "src": "s1",
+          "statement": "For a behavioural question, a good answer describes one real example of what you did, not what you would do in theory.",
+          "answer": true,
+          "why": "STAR asks for the action you took and what happened as a result, so it needs a real example from work, home or volunteering. A theoretical answer gives the interviewer no evidence."
+        },
+        {
+          "id": "u33-l3-i2",
+          "type": "order",
+          "src": "s1",
+          "q": "Put the parts of a STAR answer in order.",
+          "steps": [
+            "Situation: the context, in one or two sentences",
+            "Task: what you had to achieve, and your part in it",
+            "Action: what you did, step by step",
+            "Result: what happened, with a number if you have one",
+            "Lessons learned: what you would do the same way, or differently"
+          ]
+        },
+        {
+          "id": "u33-l3-i3",
+          "type": "scenario",
+          "src": "s1",
+          "q": "Your mock interview is next week. How do you prepare for the behavioural questions?",
+          "options": [
+            {
+              "text": "Write one real story for each guide in My stories (a conflict, a failure, influencing others, a hard decision, a risk), match them to the job description, and practise them aloud with a timer.",
+              "ok": true,
+              "why": "The National Careers Service suggests using STAR to show the skills in the job description and speaking in a conversational way, so you do not sound too rehearsed. Practising aloud, not word for word, helps with both."
+            },
+            {
+              "text": "Learn the model answers in this unit word for word.",
+              "ok": false,
+              "why": "They are not your experience, and a memorised answer sounds over-rehearsed. Use them only to see the shape of a good answer."
+            },
+            {
+              "text": "Prepare nothing, so that your answers sound natural.",
+              "ok": false,
+              "why": "Without prepared examples you lose time searching your memory and may pick a weak story. Prepare the stories, not the exact words."
+            },
+            {
+              "text": "Prepare one long story that you can use for every question.",
+              "ok": false,
+              "why": "Different questions test different skills, and one long story is neither short nor to the point."
+            }
+          ]
+        },
+        {
+          "id": "u33-l3-i4",
+          "type": "say",
+          "src": "s1",
+          "text": "Let me give you one specific example. I'll describe the situation briefly, then what I did, and what happened in the end."
+        },
+        {
+          "id": "u33-l3-i5",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 150,
+          "q": "Tell me about a time you disagreed with a colleague about a technical decision.",
+          "model": "The situation was at a retail company, where new hires reached payroll a day late because of a nightly batch from SuccessFactors Recruiting. My task was to fix the delay. I proposed events on Pub/Sub, but a senior developer wanted to keep the batch, which had worked for years. First, I asked him what worried him most. It was duplicates and failures at night, which was a fair point. So we agreed the criteria together: the delay, failure handling and the effort to operate it. I built a two-week proof of concept with an idempotent consumer and a dead-letter topic, and he wrote the failure tests. We reviewed the results together and recorded the decision in an ADR, including his concerns. As a result, we chose events, and hires now reach payroll in about two minutes. He owns the failure tests, and we still work well together. I learned that asking about the real concern first turns a debate about opinions into a test we can both trust.",
+          "keypoints": [
+            {
+              "text": "Situation: a short, real context",
+              "kw": [
+                "situation",
+                "company",
+                "project",
+                "nightly batch",
+                "batch"
+              ]
+            },
+            {
+              "text": "Task: your goal and the disagreement",
+              "kw": [
+                "my task",
+                "task",
+                "i proposed",
+                "disagreed",
+                "wanted to keep"
+              ]
+            },
+            {
+              "text": "Action: you listened and agreed criteria",
+              "kw": [
+                "i asked",
+                "worried",
+                "concern",
+                "listened",
+                "criteria",
+                "agreed"
+              ]
+            },
+            {
+              "text": "Action: evidence you could both trust",
+              "kw": [
+                "proof of concept",
+                "test",
+                "tests",
+                "data",
+                "adr",
+                "results"
+              ]
+            },
+            {
+              "text": "Result with a number, and a good relationship",
+              "kw": [
+                "as a result",
+                "result",
+                "minutes",
+                "work well",
+                "relationship"
+              ]
+            },
+            {
+              "text": "What you learned",
+              "kw": [
+                "learned",
+                "learnt",
+                "lesson",
+                "next time"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u33-l3-i6",
+          "type": "scenario",
+          "src": "s1",
+          "q": "You practise 'Tell me about a time something went wrong'. Your answer takes five minutes, and four of them are technical details of the outage. What is the best change?",
+          "options": [
+            {
+              "text": "Cut the situation to two sentences, spend most of the time on what you did, and end with the result, a number and the lesson.",
+              "ok": true,
+              "why": "The National Careers Service says to keep examples short and to the point, and the Action step is where you show what you did. The technical details can wait for the follow-up questions."
+            },
+            {
+              "text": "Add even more detail, so the panel sees how complex the outage was.",
+              "ok": false,
+              "why": "More detail makes the answer longer, not stronger, and it hides your own actions."
+            },
+            {
+              "text": "Choose a story where nothing really went wrong.",
+              "ok": false,
+              "why": "A success that you call a failure does not answer the question. Pick a real failure and show what you changed."
+            },
+            {
+              "text": "Blame the vendor, so that it does not sound like your fault.",
+              "ok": false,
+              "why": "Interviewers look for ownership in a failure story, and blaming others shows the opposite."
+            }
+          ]
+        },
+        {
+          "id": "u33-l3-i7",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 150,
+          "q": "Tell me about a time something you were responsible for went wrong.",
+          "model": "The situation: I approved a release of our hire integration that changed how job titles were mapped from SuccessFactors Recruiting to payroll. As the integration lead, the release and its impact were my responsibility. The next morning, payroll told us that about sixty new hires were missing. I stopped the rollout, rolled back to the previous version, and replayed the failed messages from the dead-letter topic, so every hire arrived the same day. Then I ran a blameless review with the team. The root cause was a picklist value that existed only in production, and our tests covered only the happy path. I added tests with real picklist values, an alert on the dead-letter topic, and a rollback plan for every release. The result was that all sixty hires reached payroll before the pay run, and we have had no mapping incidents in the year since. What I learned is to test the failure paths, not just the happy path.",
+          "keypoints": [
+            {
+              "text": "Situation and your ownership",
+              "kw": [
+                "my responsibility",
+                "responsible",
+                "i approved",
+                "release",
+                "situation"
+              ]
+            },
+            {
+              "text": "Quick action to limit the impact",
+              "kw": [
+                "stopped",
+                "rolled back",
+                "roll back",
+                "rollback",
+                "replayed",
+                "replay"
+              ]
+            },
+            {
+              "text": "The root cause, without blame",
+              "kw": [
+                "root cause",
+                "blameless",
+                "review",
+                "cause"
+              ]
+            },
+            {
+              "text": "A lasting change: tests, alerts or a new step",
+              "kw": [
+                "tests",
+                "test",
+                "alert",
+                "rollback plan",
+                "process"
+              ]
+            },
+            {
+              "text": "Result with numbers",
+              "kw": [
+                "result",
+                "sixty",
+                "60",
+                "pay run",
+                "no incidents",
+                "no mapping incidents"
+              ]
+            },
+            {
+              "text": "What you learned",
+              "kw": [
+                "learned",
+                "learnt",
+                "lesson",
+                "failure paths"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u33-l3-i8",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 150,
+          "q": "Tell me about a time you persuaded people who did not report to you.",
+          "model": "The situation was at an insurance company. Three teams, IT, payroll and the learning platform, each received new hires from SuccessFactors in their own nightly file. My task was to move them all to one hire event on Pub/Sub, but none of them reported to me, and each had other priorities. First, I met each team lead to understand what they cared about. IT wanted accounts on day one, payroll wanted no surprises before the pay run, and the learning team had very little time. So I built a small adapter for each team, which meant most of the work was mine, not theirs. I offered a pilot with IT first, because they had the most to gain, and kept the old files running for a month. As a result, the other two teams joined within six weeks, and first-day access tickets fell by about 70 per cent. I made sure the IT team got the credit. I learned that people say yes when you make it easy and show them what they gain.",
+          "keypoints": [
+            {
+              "text": "Situation: several teams, no authority",
+              "kw": [
+                "did not report",
+                "none of them reported",
+                "teams",
+                "no authority",
+                "situation"
+              ]
+            },
+            {
+              "text": "Understand what each team cares about",
+              "kw": [
+                "cared about",
+                "understand",
+                "listened",
+                "met each",
+                "wanted"
+              ]
+            },
+            {
+              "text": "Make it easy to say yes: a pilot, less work for them",
+              "kw": [
+                "pilot",
+                "adapter",
+                "easy",
+                "proof of concept",
+                "parallel"
+              ]
+            },
+            {
+              "text": "Result with a number",
+              "kw": [
+                "as a result",
+                "result",
+                "per cent",
+                "percent",
+                "weeks",
+                "tickets"
+              ]
+            },
+            {
+              "text": "Share the credit",
+              "kw": [
+                "credit",
+                "thanked",
+                "their success"
+              ]
+            },
+            {
+              "text": "What you learned",
+              "kw": [
+                "learned",
+                "learnt",
+                "lesson",
+                "next time"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u33-l3-i9",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 150,
+          "q": "Tell me about a difficult decision you made without all the information.",
+          "model": "The situation was two weeks before the go-live of a new candidate integration. Load tests showed that the new retry queue for failed payroll calls was not stable yet. As the architect, my task was to recommend either a delay or a launch without the queue, and we did not know how often payroll would fail in production. First, I agreed the criteria with the product owner: the risk to new hires, the cost of a delay and the effort to recover. To reduce the uncertainty, I checked six months of payroll incidents: they were rare and short. So I proposed going live with a simpler safety net: failed messages went to a dead-letter topic with an alert, and a runbook explained how to replay them. I recorded the decision and its risks in an ADR, with a review after one month. As a result, we launched on time, only three messages needed a manual replay, and the full retry queue followed four weeks later. I learned to make the risk visible and keep the decision easy to reverse.",
+          "keypoints": [
+            {
+              "text": "Why it was hard: a deadline and missing facts",
+              "kw": [
+                "two weeks",
+                "go-live",
+                "deadline",
+                "did not know",
+                "uncertainty"
+              ]
+            },
+            {
+              "text": "Options and agreed criteria",
+              "kw": [
+                "options",
+                "criteria",
+                "delay",
+                "either",
+                "product owner"
+              ]
+            },
+            {
+              "text": "Reduce the uncertainty quickly with data",
+              "kw": [
+                "checked",
+                "incidents",
+                "data",
+                "six months",
+                "evidence"
+              ]
+            },
+            {
+              "text": "A safety net, recorded in an ADR, with a review date",
+              "kw": [
+                "safety net",
+                "dead-letter",
+                "dead letter",
+                "runbook",
+                "adr",
+                "review"
+              ]
+            },
+            {
+              "text": "Result with numbers",
+              "kw": [
+                "as a result",
+                "on time",
+                "three messages",
+                "weeks",
+                "result"
+              ]
+            },
+            {
+              "text": "What you learned",
+              "kw": [
+                "learned",
+                "learnt",
+                "lesson",
+                "reverse",
+                "visible"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u33-l3-i10",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "Tell me about a time you saw a risk before others did.",
+          "model": "The situation was a design review for a new partner API on Cloud Run, and I noticed that there was no limit per partner. I was a reviewer, not the owner, but I saw my task as making sure one faulty client could not take the API down for everyone. So I put a number on the risk: one partner in a retry loop could send thousands of requests a minute, and the database behind the API accepted only a few hundred connections. I showed this to the owner with a simple diagram and proposed a small fix: a quota per partner at the API gateway, and a maximum number of Cloud Run instances to protect the database. It took about three days. Two months later, one partner had a bug that retried every failed call at once. The gateway returned 429 to that partner only, and the other partners saw no impact. I learned to put a number on a risk and to propose a fix that fits its size.",
+          "keypoints": [
+            {
+              "text": "The early signal you noticed",
+              "kw": [
+                "noticed",
+                "no limit",
+                "design review",
+                "signal",
+                "situation"
+              ]
+            },
+            {
+              "text": "Impact in numbers",
+              "kw": [
+                "thousands",
+                "requests a minute",
+                "connections",
+                "number",
+                "impact"
+              ]
+            },
+            {
+              "text": "A mitigation that fits the risk",
+              "kw": [
+                "quota",
+                "maximum number",
+                "max instances",
+                "limit",
+                "three days",
+                "fix"
+              ]
+            },
+            {
+              "text": "The team acted on it",
+              "kw": [
+                "owner",
+                "proposed",
+                "diagram",
+                "agreed"
+              ]
+            },
+            {
+              "text": "Result: the risk was avoided or reduced",
+              "kw": [
+                "429",
+                "no impact",
+                "two months",
+                "result",
+                "only that partner",
+                "to that partner only"
+              ]
+            },
+            {
+              "text": "What you learned",
+              "kw": [
+                "learned",
+                "learnt",
+                "lesson",
+                "fits its size"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "How to use the mock interview",
+        "points": [
+          "Three rounds, like a real interview: warm-up, technical and leadership.",
+          "Listen to the question, then answer aloud and try to finish within the time shown.",
+          "If you cannot speak, type the main points.",
+          "Compare with the model answer and the key points, then grade yourself honestly.",
+          "The model answers show a shape, not your words: use your own projects and numbers."
+        ]
+      },
+      {
+        "h": "Warm-up answers",
+        "points": [
+          "Tell me about yourself: who you are now, one project with a result, the skills the job asks for, why this role.",
+          "Match your examples to the skills in the job description.",
+          "Short and to the point: aim for about a minute; the warm-up timers stop at 90 seconds.",
+          "Quick questions: answer first in one sentence, then give the reason."
+        ]
+      },
+      {
+        "h": "Facts to have ready: integration and Google Cloud",
+        "points": [
+          "Synchronous call: the caller waits, and the other service must be available; chains of calls add latency.",
+          "Messaging: consumers work at their own rate and catch up after an outage, but you must handle duplicates.",
+          "Tracing: traceparent keeps one trace ID across every service; each service sets the parent ID to its own operation.",
+          "Pub/Sub: at least once by default on all subscription types; it can redeliver even after a successful acknowledgement.",
+          "Exactly-once delivery: pull subscriptions only, within one region; publisher retries still create duplicates.",
+          "Dead-letter topic: after 5 to 100 delivery attempts (default 5, approximate); give it its own subscription.",
+          "Idempotent consumer: messages that are safe to repeat, or event IDs to detect duplicates.",
+          "Cloud Run concurrency: 80 in the console, 80 x vCPUs with gcloud or Terraform, at most 1,000.",
+          "Maximum instances: 100 per revision by default, briefly exceeded in spikes; lower it to protect a database.",
+          "Serverless first: Cloud Run for a stateless service; GKE Autopilot for more control, Kubernetes features or long-lived stateful work."
+        ]
+      },
+      {
+        "h": "Facts to have ready: SuccessFactors, Java, MCP and Angular",
+        "points": [
+          "SuccessFactors 429: retry after the recommended delay, currently 300 seconds.",
+          "Large extracts: server-side paging with paging=snapshot, not $top and $skip; filter on lastModifiedDateTime.",
+          "/oauth/idp: deprecated in 2H 2022, not for new customers; get assertions from IAS or your identity provider.",
+          "Basic Authentication: sunset announced in 2H 2020; no confirmed end date, so use OAuth.",
+          "Java 25 is the current LTS. Virtual threads: Java 21 or later, 24 or later strongly recommended.",
+          "Spring: RestClient or HTTP service clients for synchronous calls, WebClient for reactive; RestTemplate is deprecated.",
+          "MCP 2026-07-28: stateless, no initialize, no sessions, server/discover; validate the token audience, no token passthrough.",
+          "Angular: zoneless by default since v21; httpResource for reactive reads, HttpClient for POST and PUT."
+        ]
+      },
+      {
+        "h": "Behavioural answers with STAR",
+        "points": [
+          "Situation: the context in one or two sentences.",
+          "Task: what you had to achieve, and your part in it.",
+          "Action: most of your time; say I for what you did.",
+          "Result: what happened, with a number if you have one, and what you learned.",
+          "Speak conversationally; do not recite a memorised text.",
+          "Be ready for follow-up questions: what exactly you did, why, and what you would change."
+        ]
+      },
+      {
+        "h": "Prepare with My stories",
+        "points": [
+          "Write one real story for each guide: a conflict, a failure, influence without authority, a hard decision, a risk you saw early.",
+          "Match each story to a skill in the job description.",
+          "Practise each one aloud with the timer, then shorten it.",
+          "Keep the real numbers: time saved, incidents, tickets, cost.",
+          "Replace the model stories in this unit with your own before the real interview."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "The STAR method (National Careers Service)",
+      "url": "https://nationalcareers.service.gov.uk/careers-advice/interview-advice/the-star-method",
+      "official": false
+    },
+    {
+      "id": "s2",
+      "title": "Key Changes (changelog) - MCP specification 2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Subscription overview - Pub/Sub, Google Cloud Documentation (last updated 2026-10-22)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-overview",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Maximum concurrent requests for services - Cloud Run, Google Cloud Documentation (last updated 2026-10-22)",
+      "url": "https://docs.cloud.google.com/run/docs/about-concurrency",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "SpringApplication: Virtual threads - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/reference/features/spring-application.html",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "REST Clients - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/integration/rest-clients.html",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "SAP KBA 3159263: Rate Limiting on SAP SuccessFactors APIs - FAQ on API Throttling",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3159263",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "SAP KBA 3239495: 2H 2022 Deprecation of OAuth IdP API /oauth/idp",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3239495",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Reactive data fetching with httpResource - Angular guide (angular.dev, v22)",
+      "url": "https://angular.dev/guide/http/http-resource",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Oracle Java SE Support Roadmap",
+      "url": "https://www.oracle.com/java/technologies/java-se-support-roadmap.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Select a managed container runtime environment - Cloud Architecture Center (last updated 2024-08-30)",
+      "url": "https://docs.cloud.google.com/architecture/select-managed-container-runtime-environment",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Exactly-once delivery - Pub/Sub, Google Cloud Documentation (last updated 2026-10-22)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/exactly-once-delivery",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Dead-letter topics - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/dead-letter-topics",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Set maximum instances for services - Cloud Run, Google Cloud Documentation (last updated 2026-10-22)",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/max-instances",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Authorization - MCP specification 2026-07-28",
+      "url": "https://modelcontextprotocol.io/specification/2026-07-28/basic/authorization",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "SAP KBA 3043111: SFAPI OAuth 2.0 Support and Basic Authentication Sunset",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3043111",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "SAP KBA 2723468: missing or duplicate data when paging with the SuccessFactors OData API",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2723468",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Angular without ZoneJS (Zoneless) - Angular guide (angular.dev, v22)",
+      "url": "https://angular.dev/guide/zoneless",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "JEP 491: Synchronize Virtual Threads without Pinning - OpenJDK",
+      "url": "https://openjdk.org/jeps/491",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Subscribing to events (.NET Microservices: Architecture for Containerized .NET Applications) - Microsoft Learn",
+      "url": "https://learn.microsoft.com/dotnet/architecture/microservices/multi-container-microservice-net-applications/subscribe-events",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "RFC 7522: Security Assertion Markup Language (SAML) 2.0 Profile for OAuth 2.0 Client Authentication and Authorization Grants",
+      "url": "https://www.rfc-editor.org/rfc/rfc7522.html",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "System Requirements - Spring Boot 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-boot/system-requirements.html",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "SAP KBA 2920680: Using lastModifiedDateTime Range Filtering - SuccessFactors OData API",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2920680",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "Trace Context (W3C Recommendation, Level 1, 23 November 2021)",
+      "url": "https://www.w3.org/TR/trace-context/",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "Interservice communication in microservices - Azure Architecture Center (updated 2025-10-30)",
+      "url": "https://learn.microsoft.com/azure/architecture/microservices/design/interservice-communication",
+      "official": true
+    }
+  ]
+}

@@ -1,0 +1,959 @@
+{
+  "format": 1,
+  "id": "u23",
+  "n": 23,
+  "block": "leadership",
+  "title": "Anticipating risks",
+  "summary": "After this unit you can run a pre-mortem, keep a risk register with likelihood, impact, owners and triggers, choose a response for typical integration risks, explain a risk to a manager in plain words, and tell STAR stories about a risk you anticipated and a failure you learned from.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Sources checked on 2026-10-25. The Orange Book page on GOV.UK (HM Treasury) was first published on 20 August 2025 and last updated on 29 July 2026; Azure failure mode analysis page last updated 2026-08-21; Pub/Sub exactly-once delivery and subscription overview pages last updated 2026-10-22; Google Cloud database migration concepts page last reviewed 2025-04-29; ICO guide to the data protection principles dated 23 March 2026.",
+    "Risk responses: this unit uses avoid, reduce, transfer and accept. NIST lists accepting, avoiding, mitigating, sharing or transferring risk. The Orange Book lists avoiding the risk, retaining it by informed decision, changing the likelihood, changing the consequences (including contingency plans) and sharing it, for example through commercial contracts. Reduce here covers both changing the likelihood and changing the consequences.",
+    "The risk register columns in this unit (risk, likelihood, impact, owner, response, trigger, status) and the 1-to-5 scores multiplied into one number are a teaching structure. The Orange Book asks for common risk criteria based on likelihood and consequences, and arc42 asks for a list ordered by priority with suggested measures, but no source used here prescribes these columns or scales.",
+    "Triggers: the Orange Book speaks of agreed triggers for escalation and of early warning indicators. Using a trigger to start a planned response is a common project habit; the exact thresholds in the examples (50 responses with 429 in ten minutes, 30 days before a certificate expires) are invented.",
+    "Pre-mortem: Atlassian's play lists 10 minutes of preparation and about 60 minutes for 3 to 11 people, and also asks what could go right; the Microsoft engineering playbook describes a 90-minute meeting with the whole team after the first design sessions. The idea comes from Gary Klein (Harvard Business Review, September 2007); only the summary of the article could be read.",
+    "SuccessFactors API rate limits: KBA 3159263 (read on 2026-10-25) says the rate limiting announced for 2H 2022 was postponed indefinitely, that a throttled call gets HTTP 429, and recommends waiting 300 seconds, a value that may change with server capacity. unconfirmed: newer SAP pages on rate limits (see unit 9).",
+    "SuccessFactors /oauth/idp: KBA 3239495 (read on 2026-10-25) says the deprecation was announced in the 2H 2022 release, new customers cannot use the API, and existing usage stops on the deletion date. It names SAP Cloud Identity Services (IAS), SAP's offline tool and a third-party identity provider as alternatives. unconfirmed: the deletion date (see unit 10). Unit 10 also notes a community article (21 April 2026) that says the endpoint has been removed for all tenants. unconfirmed: no SAP page that could be read confirms this, so check it before you quote it.",
+    "Pub/Sub on 2026-10-25: at-least-once delivery by default on all subscription types; exactly-once delivery only for pull subscriptions, only for subscribers in the same region, and it does not remove duplicates created on the publishing side.",
+    "ICO guidance on the UK GDPR is under review after the Data (Use and Access) Act and may change. The EU GDPR has the same principles; retention periods must come from the customer's legal team.",
+    "The delta load in the failure story filters on lastModifiedDateTime, as described in unit 9 (SAP KBAs 2735876 and 2972887); those KBAs were not re-read for this unit.",
+    "Expiring certificates: the unit does not state how SuccessFactors treats an assertion signed with a key whose certificate has reached its end date. unconfirmed: whether the token request then fails; the items say 'if', and advise testing it in a test instance.",
+    "STAR follows the National Careers Service, whose Result step includes what you learned. This unit shows Lessons learned as a separate fifth step. The numbers in the model stories are illustrative and come from invented cases.",
+    "SuccessFactors Basic Authentication: KBA 3043111 (read on 2026-10-25) says the sunset was announced in 2H 2020 for SFAPI and the OData API and recommends OAuth. unconfirmed: the end date (see unit 10).",
+    "Risk owner: the Orange Book asks for clear accountabilities and names those accountable for approving and implementing a risk treatment, but it does not define 'risk owner'. One named owner per risk is a common project habit, not a rule from these sources.",
+    "Failure mode analysis: the Azure guide asks you to consider the likelihood of each failure mode and to prioritise by severity and likelihood. Its example table has likelihood and effect or mitigation columns; detection is covered in a separate section on monitoring and alerts, not per failure mode."
+  ],
+  "terms": [
+    {
+      "id": "t-risk",
+      "term": "Risk",
+      "ipa": "/rɪsk/",
+      "say": "risk",
+      "def": "The effect of uncertainty on objectives. A risk is usually written as a cause, a possible event and its consequences.",
+      "example": "Because the backfill sends many requests, SuccessFactors may throttle our calls, and the daily candidate sync may fall hours behind.",
+      "src": "s1"
+    },
+    {
+      "id": "t-pre-mortem",
+      "term": "Pre-mortem",
+      "ipa": "/ˌpriː ˈmɔːtəm/",
+      "say": "pre mortem",
+      "def": "A meeting early in a project where the team imagines that the project has already failed and lists the reasons. It makes it safe to raise concerns while the plan can still change.",
+      "example": "In the pre-mortem for the onboarding integration, a developer said: it failed because the signing certificate expired and nobody noticed.",
+      "src": "s5"
+    },
+    {
+      "id": "t-risk-register",
+      "term": "Risk register",
+      "ipa": "/ˈrɪsk ˌredʒɪstə/",
+      "say": "risk register",
+      "def": "A list of the known risks of a project or system, ordered by priority. Each entry says what could happen, how likely and how serious it is, who owns it and what the team will do about it.",
+      "example": "Our risk register for the cut-over had eight entries; the top one was duplicate hire events reaching payroll.",
+      "src": "s6"
+    },
+    {
+      "id": "t-likelihood-impact",
+      "term": "Likelihood and impact",
+      "ipa": "/ˈlaɪklihʊd ənd ˈɪmpækt/",
+      "say": "likelihood and impact",
+      "def": "The two measures used to rate a risk: how probable it is that the event happens, and how serious the consequences would be if it did. Use the same scale for every risk, so that you can compare them.",
+      "example": "Throttling during the backfill: likelihood 4 out of 5, impact 3 out of 5, so it goes near the top of the list.",
+      "src": "s1"
+    },
+    {
+      "id": "t-risk-owner",
+      "term": "Risk owner",
+      "ipa": "/ˈrɪsk ˌəʊnə/",
+      "say": "risk owner",
+      "def": "The one named person who is accountable for a risk: they watch it, make sure the agreed actions happen, and report when it changes.",
+      "example": "The platform lead is the risk owner for certificate expiry, so the expiry alert goes to her team.",
+      "src": "s1"
+    },
+    {
+      "id": "t-risk-response",
+      "term": "Risk response",
+      "ipa": "/ˈrɪsk rɪˌspɒns/",
+      "say": "risk response",
+      "def": "What you decide to do about a risk. The usual choices are to avoid it, reduce it, transfer or share it with another party, or accept it by an informed decision.",
+      "example": "SAP has announced the sunset of Basic Authentication for the SuccessFactors APIs, so we avoided the risk: we moved the integration to OAuth early, without waiting for a date.",
+      "src": "s2"
+    },
+    {
+      "id": "t-trigger",
+      "term": "Trigger",
+      "ipa": "/ˈtrɪɡə/",
+      "say": "trigger",
+      "def": "An agreed sign or threshold that shows a risk is starting to happen, so the planned action or escalation starts at once. Good triggers use early warning indicators that you already monitor.",
+      "example": "Trigger: more than 50 responses with HTTP 429 in ten minutes. Action: the backfill job pauses and the owner gets an alert.",
+      "src": "s1"
+    },
+    {
+      "id": "t-contingency-plan",
+      "term": "Contingency plan",
+      "ipa": "/kənˈtɪndʒənsi ˌplæn/",
+      "say": "contingency plan",
+      "def": "A plan, prepared in advance, for what you will do if a risk happens. It reduces the impact, not the likelihood, for example with a tested way back to the old system.",
+      "example": "Our contingency plan for the cut-over was to keep the nightly batch ready for two weeks and switch back within an hour if needed.",
+      "src": "s1"
+    },
+    {
+      "id": "t-risk-appetite",
+      "term": "Risk appetite",
+      "ipa": "/ˈrɪsk ˌæpɪtaɪt/",
+      "say": "risk appetite",
+      "def": "The nature and amount of risk that an organisation is willing to take to reach its objectives. Risk reports help leaders see whether decisions stay within it.",
+      "example": "HR has almost no risk appetite for wrong payroll data, but it accepts that interview invitations may arrive an hour late.",
+      "src": "s1"
+    },
+    {
+      "id": "t-fma",
+      "term": "Failure mode analysis (FMA)",
+      "ipa": "/ˈfeɪljə ˌməʊd əˈnæləsɪs/",
+      "say": "failure mode analysis",
+      "def": "A review that follows each flow of a workload, lists its dependencies and the ways each one can fail, and rates each failure by likelihood and effect. You then plan mitigations and set up monitoring and alerts to detect failures early.",
+      "example": "In our failure mode analysis, the SuccessFactors API was an external dependency, so we listed throttling, timeouts and expired credentials as its failure modes.",
+      "src": "s7"
+    },
+    {
+      "id": "t-cutover",
+      "term": "Cut-over",
+      "ipa": "/ˈkʌt ˌəʊvə/",
+      "say": "cut over",
+      "def": "The moment when users or systems switch from the old system to the new one. Before it, you load the existing data (the backfill) and every change made since, and you check that nothing is missing.",
+      "example": "We planned the cut-over for a Sunday and kept the old batch ready as a fallback.",
+      "src": "s13"
+    },
+    {
+      "id": "t-data-minimisation",
+      "term": "Data minimisation",
+      "ipa": "/ˈdeɪtə ˌmɪnɪmaɪˈzeɪʃn/",
+      "say": "data minimisation",
+      "def": "A UK GDPR principle: personal data must be adequate, relevant and limited to what is necessary for the purpose. In an integration, send only the fields that the receiver needs.",
+      "example": "The onboarding system needs the start date and contact details, so the flow does not send the candidate's CV or interview notes.",
+      "src": "s14"
+    },
+    {
+      "id": "t-blameless-postmortem",
+      "term": "Blameless postmortem",
+      "ipa": "/ˈbleɪmləs ˌpəʊst ˈmɔːtəm/",
+      "say": "blameless postmortem",
+      "def": "A written record of an incident, its impact, the actions taken, the root causes and the follow-up actions. It assumes that everyone had good intentions and looks for causes in systems and processes, not in people.",
+      "example": "After the missing hires on Monday, I wrote a blameless postmortem, and our cut-over checklist got a reconciliation step.",
+      "src": "s8"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u23-l1",
+      "kind": "concepts",
+      "title": "Pre-mortems and the risk register",
+      "items": [
+        {
+          "id": "u23-l1-i1",
+          "type": "card",
+          "src": "s5",
+          "term": "t-pre-mortem"
+        },
+        {
+          "id": "u23-l1-i2",
+          "type": "tf",
+          "src": "s4",
+          "statement": "In a pre-mortem, the team waits until the project has failed and then looks for the cause.",
+          "answer": false,
+          "why": "A pre-mortem happens early: the team only imagines that the project has failed and lists the reasons. The Microsoft engineering playbook then uses that list to decide which risks to explore with engineering spikes."
+        },
+        {
+          "id": "u23-l1-i3",
+          "type": "order",
+          "src": "s3",
+          "q": "Put the steps of a pre-mortem session in order, as in Atlassian's play.",
+          "steps": [
+            "Ask the team to imagine what could go wrong, and what could go right, in this project",
+            "Each person writes ideas silently for about ten minutes",
+            "Group similar ideas together",
+            "Vote for the biggest threats, with three votes each",
+            "Discuss the top three threats and agree at least one action for each",
+            "Give every action an owner and a deadline"
+          ]
+        },
+        {
+          "id": "u23-l1-i4",
+          "type": "card",
+          "src": "s6",
+          "term": "t-risk-register"
+        },
+        {
+          "id": "u23-l1-i5",
+          "type": "card",
+          "src": "s1",
+          "term": "t-likelihood-impact"
+        },
+        {
+          "id": "u23-l1-i6",
+          "type": "pick",
+          "src": "s1",
+          "q": "Your team rates each risk from 1 to 5 for likelihood and for impact, and multiplies the two to get a score. Which risk goes first on the list?",
+          "options": [
+            "Pub/Sub delivers a hire event twice and payroll creates a second record: likelihood 4, impact 4",
+            "The Cloud Run region has a full outage: likelihood 1, impact 5",
+            "A log message has a spelling mistake: likelihood 5, impact 1",
+            "The test instance is refreshed in the middle of testing: likelihood 2, impact 2"
+          ],
+          "answer": 0,
+          "why": "The duplicate scores 16, the highest, because it is both likely and serious. The outage and the spelling mistake score only 5 each, but a rare and serious risk like the outage still needs a contingency plan."
+        },
+        {
+          "id": "u23-l1-i7",
+          "type": "card",
+          "src": "s2",
+          "term": "t-risk-response"
+        },
+        {
+          "id": "u23-l1-i8",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each risk response to an example from a SuccessFactors Recruiting integration.",
+          "pairs": [
+            [
+              "Avoid",
+              "Do not copy candidate CVs to the analytics store at all"
+            ],
+            [
+              "Reduce",
+              "Spread the backfill over several nights and slow it down when the API returns 429"
+            ],
+            [
+              "Transfer or share",
+              "Agree in the contract that the implementation partner fixes defects in its adapter"
+            ],
+            [
+              "Accept",
+              "Record that interview invitations may arrive up to an hour late, and the owner signs off"
+            ]
+          ]
+        },
+        {
+          "id": "u23-l1-i9",
+          "type": "card",
+          "src": "s1",
+          "term": "t-trigger"
+        },
+        {
+          "id": "u23-l1-i10",
+          "type": "code",
+          "src": "s1",
+          "lang": "text",
+          "q": "Complete this entry in the risk register of the onboarding integration.",
+          "code": "R4  Nobody replaces the certificate that signs our SAML assertions for\n    SuccessFactors before its end date. If SuccessFactors then rejects\n    the assertions, we get no access tokens and new hires stop reaching\n    onboarding.\n\n[[1]]: 2 (low)\n[[2]]: 5 (very high)\n[[3]]: Platform lead (one named person)\nResponse: Reduce. When the trigger fires, create, test and register a\n    new certificate; the steps are in the runbook.\n[[4]]: 30 days before the end date, or any token request that fails\n    with an authentication error.\nStatus: Open, reviewed every two weeks",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "Likelihood",
+              "decoys": [
+                "Budget",
+                "Version"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "Impact",
+              "decoys": [
+                "Effort",
+                "Deadline"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "Owner",
+              "decoys": [
+                "Reporter",
+                "Whole team"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "Trigger",
+              "decoys": [
+                "Root cause",
+                "Result"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u23-l2",
+      "kind": "stories",
+      "title": "My stories: risks and failures",
+      "items": [
+        {
+          "id": "u23-l2-i1",
+          "type": "tf",
+          "src": "s9",
+          "statement": "In the STAR method, the Result is only the outcome; what you learned does not belong in the answer.",
+          "answer": false,
+          "why": "The National Careers Service describes the Result as what happened and what you learned. This unit shows Lessons learned as a separate last step, so you do not forget it."
+        },
+        {
+          "id": "u23-l2-i2",
+          "type": "story",
+          "src": "s3",
+          "prompt": "Tell me about a risk you anticipated.",
+          "template": [
+            "Situation",
+            "Task",
+            "Action",
+            "Result",
+            "Lessons learned"
+          ],
+          "model": "Situation: At a manufacturing company, we were moving new hires from SuccessFactors Recruiting to a new onboarding platform. Before the cut-over, we also had to backfill about 200,000 old applications. Task: As the integration lead, I had to go live with no impact on daily recruiting. Action: Two months before go-live, I ran a one-hour pre-mortem with the team and the HR systems owner. The top risk was that the backfill would hit the API limits, get HTTP 429 responses and slow down the daily candidate sync. I added it to our risk register with an owner and a trigger: more than 50 responses with 429 in ten minutes. We split the backfill into night-time batches, made the job wait 300 seconds after a 429, as SAP recommends, and built an automatic pause on the trigger. Result: The backfill finished in nine nights. The trigger fired once, the job paused itself, and recruiters noticed no delays. Lessons learned: A risk is only managed when it has an owner and a trigger, not just a line in a document."
+        },
+        {
+          "id": "u23-l2-i3",
+          "type": "scenario",
+          "src": "s9",
+          "q": "After your story, the interviewer asks: 'How did you know that throttling was likely, and not just a guess?' What is the best answer?",
+          "options": [
+            {
+              "text": "Give the evidence: you ran a small backfill in the test instance, counted the 429 responses, and read SAP's guidance on throttling.",
+              "ok": true,
+              "why": "Follow-up questions check that your story is real. Evidence from a test and from the vendor's documentation shows that your rating was based on facts."
+            },
+            {
+              "text": "Say it was your experience, so the interviewer should trust you.",
+              "ok": false,
+              "why": "Experience matters, but without a concrete fact it still sounds like a guess, which is what the interviewer asked about."
+            },
+            {
+              "text": "Change the story and say that the risk had already happened in production.",
+              "ok": false,
+              "why": "This is not honest, and it turns a story about anticipating a risk into a story about reacting to one."
+            },
+            {
+              "text": "Say that every integration has throttling, so it is always likely.",
+              "ok": false,
+              "why": "This is too general. The interviewer wants to know how you rated this risk in this project."
+            }
+          ]
+        },
+        {
+          "id": "u23-l2-i4",
+          "type": "tf",
+          "src": "s8",
+          "statement": "Google's SRE book suggests writing a postmortem after any data loss, even a small one.",
+          "answer": true,
+          "why": "Data loss of any kind is one of the book's example triggers for a postmortem. Others include user-visible downtime above a threshold and a monitoring failure."
+        },
+        {
+          "id": "u23-l2-i5",
+          "type": "story",
+          "src": "s8",
+          "prompt": "Tell me about a failure and what you learned.",
+          "template": [
+            "Situation",
+            "Task",
+            "Action",
+            "Result",
+            "Lessons learned"
+          ],
+          "model": "Situation: At a retail company, we replaced a nightly SuccessFactors Recruiting export with hire events on Pub/Sub. Task: I owned the cut-over plan, and I planned the switch for a weekend. Action: We switched off the batch on Friday evening and switched on the events on Saturday morning. My plan had no step for applications that changed between those two moments. On Monday, the onboarding team reported 140 missing new hires. I told my manager within the hour and said that the gap was in my plan. We ran a delta load of every application changed since Friday evening, using lastModifiedDateTime, and compared the counts in both systems. Result: All the missing hires were in the onboarding system by the afternoon, before any start date was affected. I ran a blameless postmortem, and we added a backfill step and a reconciliation step to every cut-over checklist. The next two cut-overs had no missing records. Lessons learned: For every cut-over, I now ask what happens to the data that changes while we switch."
+        },
+        {
+          "id": "u23-l2-i6",
+          "type": "scenario",
+          "src": "s8",
+          "q": "During your failure story, the interviewer asks: 'So whose fault was it?' What is the best answer?",
+          "options": [
+            {
+              "text": "Say that the gap was in your plan, then explain what you changed in the process so that it cannot happen again.",
+              "ok": true,
+              "why": "Owning your part shows maturity, and a blameless view looks for causes in the process. The SRE book puts it simply: you cannot fix people, but you can fix systems and processes."
+            },
+            {
+              "text": "Name the developer who switched off the batch too early.",
+              "ok": false,
+              "why": "Blaming a colleague makes you sound unsafe to work with. The SRE book warns that blame makes people hide problems instead of raising them."
+            },
+            {
+              "text": "Say that it was nobody's fault, because the systems were complex.",
+              "ok": false,
+              "why": "This avoids the question. The interviewer wants to see that you take responsibility for your part."
+            },
+            {
+              "text": "Blame SAP, because SuccessFactors should resend every change.",
+              "ok": false,
+              "why": "The system worked as designed; the gap was in the plan. The interviewer will hear an excuse, not a lesson."
+            }
+          ]
+        },
+        {
+          "id": "u23-l2-i7",
+          "type": "tf",
+          "src": "s8",
+          "statement": "For 'Tell me about a failure', the safest choice is a tiny failure with no consequences, such as a spelling mistake in a report.",
+          "answer": false,
+          "why": "The question tests whether you learn from failure, so choose a real failure with a real impact and show what you changed. The SRE book treats a failure as a chance to learn, not as a punishment."
+        },
+        {
+          "id": "u23-l2-i9",
+          "type": "scenario",
+          "src": "s1",
+          "q": "You raise a serious risk, with options and a cost. The steering group decides to accept the risk and to spend the budget on other work. What do you do?",
+          "options": [
+            {
+              "text": "Record the decision in the risk register: who accepted the risk and why. Keep the owner, the trigger and the contingency plan, and raise it again if the trigger fires or the facts change.",
+              "ok": true,
+              "why": "The Orange Book lists retaining a risk by informed decision as a valid response, and escalation should follow agreed triggers. Interviewers want to see that you can disagree, accept the decision and still keep the risk visible."
+            },
+            {
+              "text": "Raise the same risk again in every meeting until they change their mind.",
+              "ok": false,
+              "why": "The decision was informed, so repeating it without new facts damages trust. Bring it back when the trigger fires or the facts change."
+            },
+            {
+              "text": "Fix it anyway in the team's own time, without telling anyone.",
+              "ok": false,
+              "why": "This hides work and uses time that the business did not approve. It also breaks the trust that you need the next time you raise a risk."
+            },
+            {
+              "text": "Delete the risk from the register, because the decision is made.",
+              "ok": false,
+              "why": "An accepted risk still exists. It must stay visible, with an owner and a trigger, so that everyone knows what was accepted."
+            }
+          ]
+        },
+        {
+          "id": "u23-l2-i8",
+          "type": "story",
+          "src": "s15",
+          "prompt": "Tell me about a time you raised a risk that others did not want to hear.",
+          "template": [
+            "Situation",
+            "Task",
+            "Action",
+            "Result",
+            "Lessons learned"
+          ],
+          "model": "Situation: At a logistics company, our Recruiting integration still got its SAML assertions from the SuccessFactors /oauth/idp endpoint. SAP had deprecated it, and existing usage would stop on a deletion date that we did not know. Task: I was the integration architect. The programme manager wanted to move the fix to next year, because the team was busy with a new careers site. Action: I wrote a one-page note in plain words. If the endpoint stops, no new hires reach payroll or IT. We did not know the date, so every month of delay made a surprise more likely. I proposed two options with effort and cost: generate the assertions with SAP Cloud Identity Services, or with our company's own identity provider. I asked for one sprint and a decision within a week. Result: The steering group approved the first option. We finished the migration in three weeks, with no downtime. Lessons learned: People accept bad news more easily when it comes with options, a cost and a clear ask."
+        }
+      ]
+    },
+    {
+      "id": "u23-l3",
+      "kind": "interview",
+      "title": "Risks in the interview",
+      "items": [
+        {
+          "id": "u23-l3-i1",
+          "type": "say",
+          "src": "s3",
+          "text": "Early in every integration project, I run a short pre-mortem: we imagine it has already failed, list the reasons, and turn the top risks into actions with owners."
+        },
+        {
+          "id": "u23-l3-i2",
+          "type": "tf",
+          "src": "s11",
+          "statement": "If you turn on exactly-once delivery, Pub/Sub can no longer send a duplicate hire event to a Cloud Run push endpoint.",
+          "answer": false,
+          "why": "Only pull subscriptions support exactly-once delivery, and even then copies created on the publishing side can still arrive. The consumer must be idempotent, for example by checking the application ID."
+        },
+        {
+          "id": "u23-l3-i3",
+          "type": "scenario",
+          "src": "s10",
+          "q": "You must backfill 200,000 job applications from SuccessFactors Recruiting into a new system. In the first test run, many calls return HTTP 429. What do you do?",
+          "options": [
+            {
+              "text": "Lower the request rate, wait 300 seconds after a 429, run the big batches at night, and add a trigger that pauses the job and alerts the owner.",
+              "ok": true,
+              "why": "A 429 means too many requests, so the fix is fewer requests per second and a planned pause. SAP's throttling FAQ recommends waiting 300 seconds before a retry."
+            },
+            {
+              "text": "Retry each failed call at once, so that the backfill still finishes on time.",
+              "ok": false,
+              "why": "Immediate retries send even more requests, which is the opposite of what a 429 asks for."
+            },
+            {
+              "text": "Run more jobs in parallel, so that each one sends fewer requests.",
+              "ok": false,
+              "why": "The total number of requests per second stays the same or grows, so the throttling continues."
+            },
+            {
+              "text": "Ignore the errors, because SAP has postponed its general rate limiting.",
+              "ok": false,
+              "why": "The 429 responses are real, whatever the general plan is. Records that fail and are never retried are missing from the new system."
+            }
+          ]
+        },
+        {
+          "id": "u23-l3-i4",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "How do you identify and manage risks in an integration project?",
+          "model": "I start early, with a short pre-mortem. The team, and ideally someone from the business, imagines that the integration has failed and writes down the reasons. I also walk through each flow and its dependencies, for example SuccessFactors, Pub/Sub and the payroll system, and ask how each one can fail. Then I put the risks in a register. Each risk gets a likelihood and an impact on the same scale, so we can sort them. For each of the top risks, I choose a response: avoid, reduce, transfer or accept. Every risk gets a named owner and a trigger, such as a number of 429 responses or thirty days before a certificate expires, so we act before it becomes an incident. We review the register every two weeks, and I report the top risks to my manager in plain language. I keep the register short, because people stop reading a long list. After go-live, real incidents feed back into the register.",
+          "keypoints": [
+            {
+              "text": "Run a pre-mortem early, with the team and the business",
+              "kw": [
+                "pre-mortem",
+                "premortem",
+                "pre mortem",
+                "imagine",
+                "failed"
+              ]
+            },
+            {
+              "text": "Walk through the flows and their dependencies",
+              "kw": [
+                "dependencies",
+                "dependency",
+                "flow",
+                "flows",
+                "failure mode",
+                "fail"
+              ]
+            },
+            {
+              "text": "Keep a register with likelihood and impact",
+              "kw": [
+                "register",
+                "likelihood",
+                "impact",
+                "probability",
+                "score"
+              ]
+            },
+            {
+              "text": "Choose a response for each top risk",
+              "kw": [
+                "avoid",
+                "reduce",
+                "mitigate",
+                "mitigation",
+                "transfer",
+                "accept",
+                "response"
+              ]
+            },
+            {
+              "text": "Give each risk an owner and a trigger",
+              "kw": [
+                "owner",
+                "owners",
+                "trigger",
+                "threshold",
+                "alert"
+              ]
+            },
+            {
+              "text": "Review and report regularly",
+              "kw": [
+                "review",
+                "report",
+                "update",
+                "every two weeks",
+                "manager"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u23-l3-i5",
+          "type": "scenario",
+          "src": "s7",
+          "q": "In a review you find that the certificate your integration uses to sign its SAML assertions for SuccessFactors reaches its end date in six weeks. The colleague who created it has left the company. What do you do?",
+          "options": [
+            {
+              "text": "Add it to the risk register with a named owner, create a new key pair and certificate, test it in the test instance and register it before the end date, and set an alert well before every future expiry.",
+              "ok": true,
+              "why": "The Azure failure mode guide names authentication as an external dependency, and each failure mode needs a mitigation and early detection. An early alert turns a surprise outage into a planned task."
+            },
+            {
+              "text": "Wait until the certificate expires, then create a new one quickly.",
+              "ok": false,
+              "why": "If SuccessFactors rejects the assertions, every token request fails until the fix is live, and new hires stop flowing. A known end date is the easiest risk to plan for."
+            },
+            {
+              "text": "Ask the colleague who left to email you the private key.",
+              "ok": false,
+              "why": "Email exposes the private key, and the person no longer has a role in the company. Create a new key pair instead."
+            },
+            {
+              "text": "Create the new certificate with a validity of 50 years, so the problem never comes back.",
+              "ok": false,
+              "why": "A very long lifetime hides the risk instead of managing it: if the private key leaks, it stays useful for decades. Keep a normal lifetime and plan each renewal with an owner."
+            }
+          ]
+        },
+        {
+          "id": "u23-l3-i6",
+          "type": "scenario",
+          "src": "s15",
+          "q": "Your integration still uses the SuccessFactors /oauth/idp endpoint. SAP has deprecated it, and its KBA gives no deletion date. Your manager asks: 'Can this wait until next year?' What is the best answer?",
+          "options": [
+            {
+              "text": "Explain that the impact would be high, because no tokens means no data flows, and that the unknown date makes the timing uncertain. Propose to migrate now, with the effort and the decision you need.",
+              "ok": true,
+              "why": "SAP says existing usage stops on the deletion date, so the question is when, not if. Naming the impact, the uncertainty and a clear ask lets the manager decide."
+            },
+            {
+              "text": "Yes. Deprecated features usually keep working for many years.",
+              "ok": false,
+              "why": "Some do, but SAP's KBA says existing usage will stop on the deletion date. A guess is not a plan."
+            },
+            {
+              "text": "No. The whole team must stop other work today and fix it.",
+              "ok": false,
+              "why": "This overreacts. The manager needs a planned option with effort and a date, not panic."
+            },
+            {
+              "text": "Wait until the endpoint returns errors, and then migrate.",
+              "ok": false,
+              "why": "Then the migration happens during an outage, under pressure, while new hires are blocked."
+            }
+          ]
+        },
+        {
+          "id": "u23-l3-i7",
+          "type": "say",
+          "src": "s1",
+          "text": "The likelihood is medium, but the impact on payroll would be high. We have a fallback ready, and I need one extra week in the plan."
+        },
+        {
+          "id": "u23-l3-i8",
+          "type": "scenario",
+          "src": "s14",
+          "q": "The analytics team asks you to copy every SuccessFactors Recruiting field, including CVs and interview notes, to BigQuery 'in case we need it later'. What do you do?",
+          "options": [
+            {
+              "text": "Ask which questions they need to answer, send only the fields that are necessary, and agree how long the copy is kept and how it is deleted.",
+              "ok": true,
+              "why": "Under the UK GDPR, personal data must be limited to what is necessary and kept no longer than necessary. 'In case we need it later' is not a purpose."
+            },
+            {
+              "text": "Copy everything, because storage in BigQuery is cheap.",
+              "ok": false,
+              "why": "Cost is not the issue. Extra personal data adds legal and security risk with no clear purpose."
+            },
+            {
+              "text": "Copy everything, but give access to only two people.",
+              "ok": false,
+              "why": "Access control helps security, but the copy still holds more data than the purpose needs."
+            },
+            {
+              "text": "Refuse, because personal data can never leave SuccessFactors.",
+              "ok": false,
+              "why": "This is too strict: personal data can be processed for a clear purpose with the right controls. The problem here is the amount."
+            }
+          ]
+        },
+        {
+          "id": "u23-l3-i9",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "How do you communicate a technical risk to a non-technical manager?",
+          "model": "I translate the risk into business terms, and I keep it short. First, I say what could happen and what it would mean for the business, for example: new starters might not get their accounts on their first day. Then I give the likelihood and the impact in plain words, and I say how confident I am. Next, I explain what we are already doing about it, who owns it, and which trigger will tell us that it is happening. If the risk is more than the business is willing to accept, I bring options with their cost and effort, and I state the decision I need and by when. I avoid jargon like 429 or SAML unless the manager asks. I raise risks early and update them regularly, so there are no surprises. A risk that I report late is much harder to manage than one that I report early.",
+          "keypoints": [
+            {
+              "text": "Start with the business impact",
+              "kw": [
+                "business",
+                "impact",
+                "new starters",
+                "payroll",
+                "customers"
+              ]
+            },
+            {
+              "text": "Likelihood in plain words, with your confidence",
+              "kw": [
+                "likelihood",
+                "likely",
+                "chance",
+                "confident",
+                "confidence"
+              ]
+            },
+            {
+              "text": "What you are doing, the owner and the trigger",
+              "kw": [
+                "owner",
+                "owns",
+                "trigger",
+                "mitigation",
+                "doing",
+                "action"
+              ]
+            },
+            {
+              "text": "Options and a clear ask",
+              "kw": [
+                "options",
+                "option",
+                "decision",
+                "ask",
+                "by when",
+                "cost"
+              ]
+            },
+            {
+              "text": "No jargon",
+              "kw": [
+                "jargon",
+                "plain",
+                "simple"
+              ]
+            },
+            {
+              "text": "Early and regular updates",
+              "kw": [
+                "early",
+                "regularly",
+                "update",
+                "updates",
+                "surprises"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u23-l3-i10",
+          "type": "explain",
+          "src": "s12",
+          "seconds": 150,
+          "q": "What are the typical risks in an integration, and how do you reduce them?",
+          "model": "I usually look at seven areas. First, API limits: a big backfill can get HTTP 429 responses, so I limit the request rate, wait as the vendor recommends, and run heavy jobs at night. Second, data quality: records with missing or invalid fields, so I validate at the boundary and send bad records to a dead-letter queue. Third, duplicates: Pub/Sub delivers at least once by default, so the consumer must be idempotent, for example keyed on the application ID. Fourth, expiring credentials and certificates: each one has an owner and an alert weeks before the end date. Fifth, vendor deprecations: I follow the vendor's announcements, such as the deprecated /oauth/idp endpoint in SuccessFactors, and plan the migration early. Sixth, cut-over and backfill: I plan for the data that changes during the switch, reconcile the counts and keep a fallback. Seventh, personal data: I send only the fields the receiver needs and agree how long copies are kept. Then I rate each area for the project, because they do not all matter equally.",
+          "keypoints": [
+            {
+              "text": "API limits and throttling",
+              "kw": [
+                "429",
+                "throttling",
+                "throttle",
+                "throttled",
+                "rate",
+                "limits",
+                "quota"
+              ]
+            },
+            {
+              "text": "Data quality",
+              "kw": [
+                "data quality",
+                "validate",
+                "validation",
+                "invalid",
+                "missing"
+              ]
+            },
+            {
+              "text": "Duplicates and idempotency",
+              "kw": [
+                "duplicate",
+                "duplicates",
+                "idempotent",
+                "idempotency",
+                "at least once"
+              ]
+            },
+            {
+              "text": "Expiring credentials and certificates",
+              "kw": [
+                "certificate",
+                "certificates",
+                "credentials",
+                "expire",
+                "expiry",
+                "expires",
+                "expiring"
+              ]
+            },
+            {
+              "text": "Vendor deprecations",
+              "kw": [
+                "deprecation",
+                "deprecated",
+                "deprecations",
+                "sunset",
+                "announcements"
+              ]
+            },
+            {
+              "text": "Cut-over, backfill and personal data",
+              "kw": [
+                "cut-over",
+                "cutover",
+                "backfill",
+                "reconcile",
+                "personal data",
+                "minimisation"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Pre-mortem",
+        "points": [
+          "Imagine that the project has already failed, then list the reasons.",
+          "Run it early, while the plan can still change.",
+          "Atlassian: about 60 minutes, 3 to 11 people; write silently, group, vote, discuss the top three.",
+          "Microsoft playbook: about 90 minutes with the whole team; the output decides which risks become spikes.",
+          "End with actions, each with an owner and a deadline."
+        ]
+      },
+      {
+        "h": "Risk register",
+        "points": [
+          "One line per risk: cause, event, consequence.",
+          "Likelihood and impact on the same scale for every risk; sort by priority.",
+          "Owner: one named person who is accountable.",
+          "Response, trigger and status; review the register regularly.",
+          "Contingency plan for the top risks: what you do if it happens."
+        ]
+      },
+      {
+        "h": "Four responses",
+        "points": [
+          "Avoid: stop or change the activity that creates the risk.",
+          "Reduce: lower the likelihood (rate limits, tests) or the impact (fallback, contingency plan).",
+          "Transfer or share: move part of it to another party, for example by contract.",
+          "Accept: an informed, recorded decision by the owner, within the risk appetite.",
+          "An accepted risk stays in the register, with who accepted it, the owner and the trigger.",
+          "NIST lists accept, avoid, mitigate, share and transfer; the Orange Book says retain the risk by informed decision."
+        ]
+      },
+      {
+        "h": "Typical integration risks",
+        "points": [
+          "API limits: HTTP 429; SAP suggests waiting 300 seconds; run heavy jobs at night.",
+          "Data quality: validate at the boundary; park bad records in a dead-letter queue.",
+          "Duplicates: Pub/Sub delivers at least once by default; make consumers idempotent.",
+          "Expiring credentials and certificates: owner, runbook, alert weeks before the end date.",
+          "Vendor deprecations: follow announcements; /oauth/idp stops on its deletion date.",
+          "Cut-over and backfill: existing data plus every change since; reconcile counts; keep a fallback.",
+          "Personal data: only the fields needed; agree how long copies are kept and how they are deleted."
+        ]
+      },
+      {
+        "h": "Telling a manager",
+        "points": [
+          "Business impact first, in plain words, without jargon.",
+          "Likelihood, impact and how confident you are.",
+          "What we are doing, who owns it, which trigger we watch.",
+          "Options with cost and effort, and the decision you need by when.",
+          "Raise risks early and update them regularly: no surprises."
+        ]
+      },
+      {
+        "h": "My stories (STAR)",
+        "points": [
+          "Situation, Task, Action, Result, Lessons learned.",
+          "Risk anticipated: how you found it, how you rated it, owner, trigger, result.",
+          "Failure: own your part, explain what you changed in the process, show the result.",
+          "Blameless: look for causes in systems and processes, not in people.",
+          "Short and conversational; be ready for follow-up questions."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "The Orange Book: Management of Risk - Principles and Concepts (HM Treasury, GOV.UK)",
+      "url": "https://www.gov.uk/government/publications/orange-book/the-orange-book-management-of-risk-principles-and-concepts",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Risk response - Glossary (NIST Computer Security Resource Center)",
+      "url": "https://csrc.nist.gov/glossary/term/risk_response",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Pre-mortem (Atlassian Team Playbook)",
+      "url": "https://www.atlassian.com/team-playbook/plays/pre-mortem",
+      "official": false
+    },
+    {
+      "id": "s4",
+      "title": "Engineering Feasibility Spikes (Microsoft Code With Engineering Playbook)",
+      "url": "https://microsoft.github.io/code-with-engineering-playbook/design/design-reviews/recipes/engineering-feasibility-spikes/",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Performing a Project Premortem (Gary Klein, Harvard Business Review, September 2007)",
+      "url": "https://hbr.org/2007/09/performing-a-project-premortem",
+      "official": false
+    },
+    {
+      "id": "s6",
+      "title": "Section 11: Risks and technical debt - arc42 documentation",
+      "url": "https://docs.arc42.org/section-11/",
+      "official": false
+    },
+    {
+      "id": "s7",
+      "title": "Recommendations for performing failure mode analysis (Azure Well-Architected Framework, last updated 2026-08-21)",
+      "url": "https://learn.microsoft.com/en-us/azure/well-architected/reliability/failure-mode-analysis",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Postmortem Culture: Learning from Failure (Google SRE book)",
+      "url": "https://sre.google/sre-book/postmortem-culture/",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "The STAR method (National Careers Service)",
+      "url": "https://nationalcareers.service.gov.uk/careers-advice/interview-advice/the-star-method",
+      "official": false
+    },
+    {
+      "id": "s10",
+      "title": "SAP KBA 3159263: Rate Limiting on SAP SuccessFactors APIs - FAQ on API Throttling",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3159263",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Exactly-once delivery - Pub/Sub, Google Cloud Documentation (last updated 2026-10-22)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/exactly-once-delivery",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Subscription overview - Pub/Sub, Google Cloud Documentation (last updated 2026-10-22)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-overview",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Database migration: Concepts and principles (Part 1) - Google Cloud Architecture Center",
+      "url": "https://docs.cloud.google.com/architecture/database-migration-concepts-principles-part-1",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "A guide to the data protection principles - ICO (UK GDPR guidance)",
+      "url": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/data-protection-principles/a-guide-to-the-data-protection-principles/",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "SAP KBA 3239495: 2H 2022 Deprecation of OAuth IdP API /oauth/idp",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3239495",
+      "official": true
+    }
+  ]
+}

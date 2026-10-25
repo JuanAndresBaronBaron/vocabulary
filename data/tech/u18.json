@@ -1,0 +1,1085 @@
+{
+  "format": 1,
+  "id": "u18",
+  "n": 18,
+  "block": "gcp",
+  "title": "Managed integration",
+  "summary": "After this unit you can explain Application Integration and Integration Connectors, set up the SAP SuccessFactors connector with OAuth SAML2, build a flow with triggers, Connectors tasks, data mapping and error handling, and argue when to build it yourself on Cloud Run and Pub/Sub instead.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "SAP SuccessFactors connector page checked on 2026-10-25 (last updated 2026-10-22): authentication types are named Username and password, and OAuth SAML2. The page does not use the words SAML bearer, but the OAuth SAML2 fields (private key of the X.509 certificate, client ID from the OAuth client registration, user ID) are those of the SuccessFactors OAuth 2.0 SAML bearer flow in unit 10. The page itself does not recommend one type; the preference for OAuth comes from SAP's Basic Authentication sunset (end date unconfirmed, see unit 10).",
+    "SuccessFactors connector limits on 2026-10-25: 10 transactions per second per node, then throttling; 2 nodes by default; node settings default to a minimum of 2 and a maximum of 50; only pay-as-you-go customers can change them, subscription customers contact support.",
+    "The connector page lists one action (UpsertEntity) and shows List, Get, Create, Update and Delete examples on FOCompany, User and TimeZone, but it does not list the entities: schemas are read at runtime. unconfirmed: that Recruiting entities such as JobApplication appear in a connection; this depends on the SuccessFactors metadata and the API user's permissions, so the items say 'assume'.",
+    "Application Integration quotas page checked on 2026-10-25 (last updated 2026-10-24): synchronous executions 2 minutes, asynchronous 10 minutes, Connectors task 3 minutes, 30 MB of integration data per execution (local logging off above 10 MB), 50 concurrent executions per project by default, 100 tasks and 100 versions per integration, 1,000 integrations per project, While Loop and For Each Loop 8,000 iterations, For Each Parallel 10,000 iterations.",
+    "The list of triggers (updated 2026-10-20) has no SuccessFactors connector event trigger. unconfirmed: whether SuccessFactors can call the Webhook trigger directly, so the unit's flow checks for changes with a Schedule trigger.",
+    "The Data Transformer task (Jsonnet) is in Preview, a Pre-GA stage (data mapping overview, updated 2026-09-24). The Cloud Pub/Sub trigger page contradicts itself about topics in another project, so the unit does not use cross-project topics.",
+    "Pub/Sub push values checked on 2026-10-25 (push page updated 2026-10-22): 102, 200, 201, 202 and 204 acknowledge; any other code is a negative acknowledgement. Other Pub/Sub and Cloud Run values come from units 14 and 15, reviewed on 2026-10-25."
+  ],
+  "terms": [
+    {
+      "id": "t-app-integration",
+      "term": "Application Integration",
+      "ipa": "/ˌæplɪˈkeɪʃn ˌɪntɪˈɡreɪʃn/",
+      "say": "application integration",
+      "def": "Google Cloud's integration platform as a service (iPaaS). It is serverless, scales automatically and is fully managed by Google, and you design each flow in a drag-and-drop editor with little or no code.",
+      "example": "A retail company builds its SuccessFactors-to-payroll flow in Application Integration instead of writing and running its own service.",
+      "src": "s1"
+    },
+    {
+      "id": "t-integration-connectors",
+      "term": "Integration Connectors",
+      "ipa": "/ˌɪntɪˈɡreɪʃn kəˈnektəz/",
+      "say": "integration connectors",
+      "def": "The Google Cloud service that gives integrations one standard interface to Google services and business applications. Each connector handles authentication and translates the application's native protocol into a standard one, such as REST.",
+      "example": "The integration reads SuccessFactors records through Integration Connectors, so the team writes no OData client code.",
+      "src": "s2"
+    },
+    {
+      "id": "t-connection",
+      "term": "Connection",
+      "ipa": "/kəˈnekʃn/",
+      "say": "connection",
+      "def": "An instance of a connector type that actually accesses the data source. A connector on its own connects to nothing. You can create several connections for one connector type, each with its own unique name.",
+      "example": "The team creates two connections with the SAP SuccessFactors connector: sf-recruiting-prod for the production company and sf-recruiting-test for the test company.",
+      "src": "s3"
+    },
+    {
+      "id": "t-entity",
+      "term": "Entity (Integration Connectors)",
+      "ipa": "/ˈentəti/",
+      "say": "entity",
+      "def": "An object, or a collection of properties, in the connected application. What an entity is depends on the connector, for example a table in a database or a queue in a messaging system. You run the operations List, Get, Create, Update and Delete on it.",
+      "example": "In the SuccessFactors connection, FOCompany and User are entities, and the integration runs List on FOCompany with a filter clause.",
+      "src": "s4"
+    },
+    {
+      "id": "t-action",
+      "term": "Action (Integration Connectors)",
+      "ipa": "/ˈækʃn/",
+      "say": "action",
+      "def": "A first-class function that a connector makes available to the integration, in addition to the entity operations. Actions vary from connector to connector, and some connectors have none.",
+      "example": "The SuccessFactors connector lists one action, UpsertEntity; the Pub/Sub connector has no entities, only the publishMessage action.",
+      "src": "s4"
+    },
+    {
+      "id": "t-upsertentity",
+      "term": "UpsertEntity",
+      "ipa": "/ˈʌpsɜːt ˈentəti/",
+      "say": "upsert entity",
+      "def": "The action of the SAP SuccessFactors connector that upserts a record of an entity: it updates the record if it exists and inserts it if it does not. Its inputs are entityType and a JSON payload, and it returns HTTP 200 with the upsert results.",
+      "example": "The integration calls UpsertEntity with entityType PerPersonal and a payload with personIdExternal, startDate, firstName and lastName.",
+      "src": "s5"
+    },
+    {
+      "id": "t-oauth-saml2",
+      "term": "OAuth SAML2 (SuccessFactors connection)",
+      "ipa": "/ˈəʊ ɔːθ ˈsæml tuː/",
+      "say": "O auth sammel two",
+      "def": "The OAuth authentication type of the SAP SuccessFactors connector. You give it the private key of the X.509 certificate from SuccessFactors, the client ID (the API key of the OAuth client application) and the SuccessFactors user ID bound to that client.",
+      "example": "An admin registers an OAuth2 client application in the SuccessFactors Admin Center, and the integration team enters its API key and private key in the connection.",
+      "src": "s5"
+    },
+    {
+      "id": "t-node",
+      "term": "Connection node",
+      "ipa": "/kəˈnekʃn nəʊd/",
+      "say": "connection node",
+      "def": "A unit of processing capacity for a connection. The SAP SuccessFactors connector processes 10 transactions per second per node and throttles anything above that. A connection has 2 nodes by default, and nodes scale automatically with use.",
+      "example": "Before the year-end load, the team raises the minimum to 4 nodes, after checking that SuccessFactors can take the extra traffic.",
+      "src": "s5"
+    },
+    {
+      "id": "t-trigger",
+      "term": "Trigger (Application Integration)",
+      "ipa": "/ˈtrɪɡə/",
+      "say": "trigger",
+      "def": "The element that starts an execution of an integration. Examples are the API trigger, the Schedule trigger, the Cloud Pub/Sub trigger, the Error Catcher trigger and connector event triggers such as the Webhook trigger.",
+      "example": "A Cloud Pub/Sub trigger starts the integration each time a CandidateHired message reaches the hires topic.",
+      "src": "s7"
+    },
+    {
+      "id": "t-task",
+      "term": "Task (Application Integration)",
+      "ipa": "/tɑːsk/",
+      "say": "task",
+      "def": "One configurable step of an integration, such as a Connectors task, a Data Mapping task, a Call REST Endpoint task, a For Each Parallel task or a Call Integration task. Edges connect the tasks into a flow.",
+      "example": "The flow has three tasks: a Connectors task that lists changed applications, a Data Mapping task and a Call REST Endpoint task to payroll.",
+      "src": "s7"
+    },
+    {
+      "id": "t-filter-clause",
+      "term": "Filter clause",
+      "ipa": "/ˈfɪltə klɔːz/",
+      "say": "filter clause",
+      "def": "The condition that selects records in the List, Update and Delete operations of a Connectors task, written as field name, condition and value. String values go in quotes, and integration variables must be mapped into it with a Data Mapping task.",
+      "example": "The List operation on FOCompany uses the filter clause externalCode='5100' and startDate='1900-01-01 00:00:00'.",
+      "src": "s6"
+    },
+    {
+      "id": "t-data-mapping",
+      "term": "Data Mapping task",
+      "ipa": "/ˈdeɪtə ˈmæpɪŋ tɑːsk/",
+      "say": "data mapping task",
+      "def": "A no-code, low-code task with a visual editor that maps input variables, literal values or functions to output variables. The rows run from top to bottom, and the editor shows a validation error when a value's type does not match its target.",
+      "example": "A Data Mapping task maps the SuccessFactors candidate fields into the message that the payroll service expects.",
+      "src": "s9"
+    },
+    {
+      "id": "t-error-strategy",
+      "term": "Error handling strategy",
+      "ipa": "/ˈerə ˈhændlɪŋ ˈstrætədʒi/",
+      "say": "error handling strategy",
+      "def": "The setting on a task that decides what happens after a temporary error: None, Fatal, Ignore, Restart integration with backoff, or Retry task with exponential backoff, a fixed interval or linear backoff. You can add a retry condition and a maximum retry count.",
+      "example": "The payroll call uses Retry task with exponential backoff, with a condition on the error code and at most five retries.",
+      "src": "s10"
+    },
+    {
+      "id": "t-error-catcher",
+      "term": "Error catcher",
+      "ipa": "/ˈerə ˈkætʃə/",
+      "say": "error catcher",
+      "def": "A small flow inside an integration, started by an Error Catcher trigger, that runs the tasks you configure to handle a failure. A task-level catcher handles one task's failure; an event-level catcher handles failures that no task-level catcher covers.",
+      "example": "When the payroll call still fails after its retries, an error catcher sends an email to the integration team with the application ID.",
+      "src": "s11"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u18-l1",
+      "kind": "concepts",
+      "title": "The vocabulary of managed integration",
+      "items": [
+        {
+          "id": "u18-l1-i1",
+          "type": "card",
+          "src": "s1",
+          "term": "t-app-integration"
+        },
+        {
+          "id": "u18-l1-i2",
+          "type": "card",
+          "src": "s2",
+          "term": "t-integration-connectors",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "a",
+                "label": "Integration: Connectors task"
+              },
+              {
+                "id": "b",
+                "label": "Connection (SAP SuccessFactors connector)"
+              },
+              {
+                "id": "c",
+                "label": "SuccessFactors OData API"
+              }
+            ],
+            "edges": [
+              {
+                "from": "a",
+                "to": "b",
+                "label": "entity operation or action"
+              },
+              {
+                "from": "b",
+                "to": "c",
+                "label": "authenticates and translates the protocol"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u18-l1-i3",
+          "type": "pick",
+          "src": "s3",
+          "q": "A colleague says: \"The SAP SuccessFactors connector is in Integration Connectors, so our integration can read candidates now.\" What is still missing?",
+          "options": [
+            "A connection: a configured instance of the connector, with the company ID and the credentials",
+            "A Cloud Run service that calls the SuccessFactors OData API",
+            "A Pub/Sub topic between the integration and SuccessFactors",
+            "Nothing: the connector connects to SuccessFactors on its own"
+          ],
+          "answer": 0,
+          "why": "A connector only provides connectivity to a type of data source and connects to nothing by itself. A connection, an instance of the connector with its own settings and authentication, actually accesses SuccessFactors."
+        },
+        {
+          "id": "u18-l1-i4",
+          "type": "card",
+          "src": "s3",
+          "term": "t-connection"
+        },
+        {
+          "id": "u18-l1-i5",
+          "type": "card",
+          "src": "s4",
+          "term": "t-entity"
+        },
+        {
+          "id": "u18-l1-i6",
+          "type": "card",
+          "src": "s4",
+          "term": "t-action"
+        },
+        {
+          "id": "u18-l1-i7",
+          "type": "tf",
+          "src": "s4",
+          "statement": "The Pub/Sub connector shows each topic as an entity, so you publish a message with the Create operation.",
+          "answer": false,
+          "why": "The Pub/Sub connector has no entities at all, only the publishMessage action. What an entity is depends on the connector, and some connectors have none."
+        },
+        {
+          "id": "u18-l1-i8",
+          "type": "card",
+          "src": "s5",
+          "term": "t-oauth-saml2"
+        },
+        {
+          "id": "u18-l1-i9",
+          "type": "card",
+          "src": "s5",
+          "term": "t-node"
+        },
+        {
+          "id": "u18-l1-i10",
+          "type": "match",
+          "src": "s4",
+          "q": "Match each Integration Connectors word with its SuccessFactors example.",
+          "pairs": [
+            [
+              "Connector",
+              "SAP SuccessFactors, the type you choose from the list"
+            ],
+            [
+              "Connection",
+              "sf-recruiting-prod, with the company ID and OAuth SAML2"
+            ],
+            [
+              "Entity",
+              "FOCompany or User"
+            ],
+            [
+              "Operation",
+              "List with a filter clause"
+            ],
+            [
+              "Action",
+              "UpsertEntity"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u18-l2",
+      "kind": "practice",
+      "title": "Build the SuccessFactors flow",
+      "items": [
+        {
+          "id": "u18-l2-i1",
+          "type": "match",
+          "src": "s6",
+          "q": "Match each Connectors task operation or action with the inputs it uses.",
+          "pairs": [
+            [
+              "List",
+              "filterClause, listEntitiesPageSize and listEntitiesPageToken"
+            ],
+            [
+              "Get",
+              "The entityId of one record"
+            ],
+            [
+              "Create",
+              "connectorInputPayload with the new values"
+            ],
+            [
+              "Delete",
+              "entityId or filterClause, and it returns no output"
+            ],
+            [
+              "UpsertEntity (SuccessFactors action)",
+              "entityType and a JSON payload"
+            ]
+          ]
+        },
+        {
+          "id": "u18-l2-i2",
+          "type": "scenario",
+          "src": "s5",
+          "q": "You are creating a SuccessFactors connection for a recruiting integration. The customer's SAP team reminds you that SAP has announced the sunset of Basic Authentication for its APIs. Which authentication do you configure?",
+          "options": [
+            {
+              "text": "OAuth SAML2: the private key of the X.509 certificate, the API key as the client ID, and the SuccessFactors user bound to the OAuth client.",
+              "ok": true,
+              "why": "It is the connector's OAuth option, so the connection does not depend on Basic Authentication."
+            },
+            {
+              "text": "Username and password, with a long password stored in Secret Manager.",
+              "ok": false,
+              "why": "Secret Manager protects the password, but the connection still uses Basic Authentication, which SAP plans to retire."
+            },
+            {
+              "text": "A key for the connection's Google service account.",
+              "ok": false,
+              "why": "The service account lets the connection read its secrets in Secret Manager; it does not authenticate to SuccessFactors."
+            },
+            {
+              "text": "Call /oauth/idp from the integration to create the SAML assertion.",
+              "ok": false,
+              "why": "SAP has deprecated /oauth/idp, and the OAuth SAML2 type only needs the private key, the client ID and the user."
+            }
+          ]
+        },
+        {
+          "id": "u18-l2-i3",
+          "type": "order",
+          "src": "s5",
+          "q": "Put the steps to connect an integration to SuccessFactors with OAuth SAML2 in order.",
+          "steps": [
+            "Register an OAuth2 client application in the SuccessFactors Admin Center and generate an X.509 certificate",
+            "Download the .pem file and copy the API key and the private key",
+            "Create the connection: region, SAP SuccessFactors connector, company ID",
+            "Enter the host address of the SuccessFactors API server as the destination",
+            "Choose OAuth SAML2 and enter the client ID, the private key and the SuccessFactors user",
+            "In the integration, add a Connectors task and select the connection",
+            "Choose Entities, then the entity and the operation"
+          ]
+        },
+        {
+          "id": "u18-l2-i4",
+          "type": "code",
+          "src": "s6",
+          "lang": "text",
+          "q": "Complete the Connectors task that reads the applications changed since the last run, one page at a time. A Data Mapping task builds the filter clause before this task. Assume the connection shows the JobApplication entity.",
+          "code": "Connectors task: Read changed applications\n  Connection:  sf-recruiting-prod\n  Type:        Entities\n  Entity:      JobApplication\n  Operation:   [[1]]\n  Inputs:\n    filterClause:          [[2]]\n    listEntitiesPageSize:  100\n    listEntitiesPageToken: the value of [[3]] from the previous page\n  Output:\n    [[4]]   (the records, as JSON)",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "List",
+              "decoys": [
+                "Get",
+                "Update"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "lastModifiedDateTime > '2026-10-24 00:00:00'",
+              "decoys": [
+                "lastModifiedDateTime > $lastRun$",
+                "$filter=lastModifiedDateTime gt datetime'2026-10-24T00:00:00'"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "listEntitiesNextPageToken",
+              "decoys": [
+                "entityId",
+                "connectorInputPayload"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "connectorOutputPayload",
+              "decoys": [
+                "connectorInputPayload",
+                "CloudPubSubMessage"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u18-l2-i5",
+          "type": "order",
+          "src": "s6",
+          "q": "A While Loop reads every page of changed applications. Put its steps in order.",
+          "steps": [
+            "Set listEntitiesPageSize and run List for the first page",
+            "Process the records of this page in connectorOutputPayload",
+            "Check listEntitiesNextPageToken, and stop if there is none",
+            "Map the token into listEntitiesPageToken with a Data Mapping task",
+            "Run List again for the next page"
+          ]
+        },
+        {
+          "id": "u18-l2-i6",
+          "type": "diagram",
+          "src": "s7",
+          "layout": "flow",
+          "q": "Complete the flow. The trigger list has no SuccessFactors event trigger, so this integration checks for changes on a schedule and publishes hire events for payroll.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Schedule trigger (every 15 minutes)",
+              "slot": true
+            },
+            {
+              "id": "n2",
+              "label": "Connectors task: List JobApplication with a filter clause",
+              "slot": false
+            },
+            {
+              "id": "n3",
+              "label": "Data Mapping task: SuccessFactors fields to the hire event",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Connectors task: Pub/Sub publishMessage action",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "Topic hires, read by the payroll service on Cloud Run",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "starts an execution"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "connectorOutputPayload"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "the mapped message"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "publishes"
+            }
+          ],
+          "decoys": [
+            "Cloud Pub/Sub trigger on the hires topic",
+            "Get operation with one entityId",
+            "Pub/Sub connector: Create operation on the topic entity"
+          ]
+        },
+        {
+          "id": "u18-l2-i7",
+          "type": "scenario",
+          "src": "s5",
+          "q": "Every Monday a flow upserts 30,000 records into SuccessFactors through the connector, and many calls fail because the connector throttles them. The connection still has the default node settings. What do you do?",
+          "options": [
+            {
+              "text": "Retry the task with exponential backoff, and raise the minimum number of nodes for the Monday load after checking that SuccessFactors can take the extra traffic.",
+              "ok": true,
+              "why": "Each node processes 10 transactions per second, and a higher minimum reserves capacity. Backoff absorbs the short peaks that remain."
+            },
+            {
+              "text": "Set the error handling strategy to Ignore so that the run finishes.",
+              "ok": false,
+              "why": "The run would look successful while records are missing in SuccessFactors."
+            },
+            {
+              "text": "Raise the For Each Parallel task to 500 parallel executions.",
+              "ok": false,
+              "why": "More parallel calls cause more throttling, and For Each Parallel is capped at 50 by default unless you raise the concurrency quota."
+            },
+            {
+              "text": "Switch the connection to username and password to get a higher limit.",
+              "ok": false,
+              "why": "The limit is per node, not per authentication type, and Basic Authentication is the option SAP plans to retire."
+            }
+          ]
+        },
+        {
+          "id": "u18-l2-i8",
+          "type": "scenario",
+          "src": "s10",
+          "q": "A Call REST Endpoint task posts each new hire to a payroll API. The API sometimes returns 503 for a few seconds. Which error handling strategy do you set on the task?",
+          "options": [
+            {
+              "text": "Retry task with exponential backoff, with a retry condition on the 503 code and a maximum retry count.",
+              "ok": true,
+              "why": "It retries only the failed task, waits longer each time and stops after a limit, so an error catcher can take over."
+            },
+            {
+              "text": "Restart integration with backoff.",
+              "ok": false,
+              "why": "It runs the whole integration again from the first task, so earlier steps such as the List call and the publish run again."
+            },
+            {
+              "text": "Ignore.",
+              "ok": false,
+              "why": "The next task runs as if the call had worked, so the hire never reaches payroll and nobody is told."
+            },
+            {
+              "text": "Fatal.",
+              "ok": false,
+              "why": "It stops the whole execution at the first 503, with no retry, although the error is temporary."
+            }
+          ]
+        },
+        {
+          "id": "u18-l2-i9",
+          "type": "code",
+          "src": "s14",
+          "lang": "java",
+          "q": "Now build the payroll side yourself: a Spring Boot service on Cloud Run with a Pub/Sub push subscription. Complete the controller. A redelivered message must be acknowledged, not processed again.",
+          "code": "@RestController\npublic class HireEventController {\n\n    @[[1]](\"/pubsub/hires\")\n    public ResponseEntity<Void> receive(@RequestBody PushRequest request) {\n        PushRequest.Message msg = request.message();\n        String id = msg.[[2]]();\n        if (processedMessages.exists(id)) {\n            return ResponseEntity.[[3]]().build();   // a redelivery: acknowledge it\n        }\n        String json = new String(Base64.getDecoder().decode(msg.data()), StandardCharsets.UTF_8);\n        payrollService.createEmployee(json, id);    // stores the id in the same transaction\n        return ResponseEntity.ok().build();\n    }\n}\n\nrecord PushRequest(Message message, String subscription) {\n    record Message(String data, String messageId, Map<String, String> attributes) {}\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "PostMapping",
+              "decoys": [
+                "GetMapping",
+                "Scheduled"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "messageId",
+              "decoys": [
+                "data",
+                "attributes"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "noContent",
+              "decoys": [
+                "badRequest",
+                "internalServerError"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u18-l2-i10",
+          "type": "scenario",
+          "src": "s13",
+          "q": "A retail company wants six flows between SuccessFactors, Salesforce and BigQuery. The volumes are low, the mapping is simple, and business analysts should be able to read and change the flows. What do you propose?",
+          "options": [
+            {
+              "text": "Application Integration with Integration Connectors.",
+              "ok": true,
+              "why": "Google suggests it for integrating business systems: ready-made connectors, visual data mapping and an editor that needs little or no code."
+            },
+            {
+              "text": "Spring Boot services on Cloud Run, linked by Pub/Sub topics.",
+              "ok": false,
+              "why": "It works, but the team must write and run the connection, authentication and mapping code that the platform already provides, and analysts cannot read Java."
+            },
+            {
+              "text": "Workflows with YAML steps.",
+              "ok": false,
+              "why": "Workflows is aimed at developers who orchestrate services, with steps written in YAML or JSON, and its connectors are for Google Cloud APIs."
+            },
+            {
+              "text": "A nightly CSV export over SFTP for all six flows.",
+              "ok": false,
+              "why": "It adds up to a day of delay and file handling, and it gives analysts nothing to read or change."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u18-l3",
+      "kind": "interview",
+      "title": "Talk about managed integration",
+      "items": [
+        {
+          "id": "u18-l3-i1",
+          "type": "say",
+          "src": "s13",
+          "text": "Application Integration is Google Cloud's managed integration platform. I choose it when the work is mainly connecting business systems and mapping data, not complex custom logic."
+        },
+        {
+          "id": "u18-l3-i2",
+          "type": "tf",
+          "src": "s12",
+          "statement": "A synchronous Application Integration execution can wait up to ten minutes for a slow SuccessFactors call.",
+          "answer": false,
+          "why": "Synchronous executions time out after 2 minutes, including the time spent in external systems; asynchronous executions get 10 minutes. A Connectors task also times out after 3 minutes."
+        },
+        {
+          "id": "u18-l3-i3",
+          "type": "explain",
+          "src": "s13",
+          "seconds": 150,
+          "q": "When would you use Application Integration instead of building the integration yourself on Cloud Run and Pub/Sub?",
+          "model": "I look at three things: the kind of work, the volume, and who will maintain it. If the flow mainly connects business systems, like SuccessFactors, Salesforce and BigQuery, with simple mapping, I choose Application Integration. It is serverless and fully managed, the connectors handle authentication and the protocol, and analysts can follow the flow in the visual editor. But I check its limits first. A synchronous execution times out after two minutes, one execution carries at most 30 megabytes of data, and the SuccessFactors connector handles ten transactions per second per node. If I need complex logic, high volume, or full control over retries and tests, I build it myself, for example a Spring Boot service on Cloud Run with a Pub/Sub subscription, unit tests and a normal CI pipeline. Then I own more code and more operations. Often I combine them: the platform talks to SuccessFactors and publishes an event, and a Cloud Run service does the heavy processing.",
+          "keypoints": [
+            {
+              "text": "Business systems with simple mapping fit the platform",
+              "kw": [
+                "business systems",
+                "business system",
+                "mapping",
+                "connectors",
+                "low code",
+                "no code",
+                "little code",
+                "analysts",
+                "visual"
+              ]
+            },
+            {
+              "text": "Managed: serverless, and connectors handle authentication and protocol",
+              "kw": [
+                "serverless",
+                "managed",
+                "fully managed",
+                "authentication",
+                "protocol",
+                "no servers"
+              ]
+            },
+            {
+              "text": "Check the limits: timeouts, payload size, connector throughput",
+              "kw": [
+                "limit",
+                "limits",
+                "quota",
+                "quotas",
+                "timeout",
+                "two minutes",
+                "30 megabytes",
+                "transactions per second",
+                "throttling",
+                "nodes",
+                "2 minutes",
+                "30 mb",
+                "payload size"
+              ]
+            },
+            {
+              "text": "Complex logic, high volume or full control: build it on Cloud Run and Pub/Sub",
+              "kw": [
+                "cloud run",
+                "pub/sub",
+                "pubsub",
+                "spring",
+                "complex logic",
+                "high volume",
+                "tests",
+                "control"
+              ]
+            },
+            {
+              "text": "Combine both approaches",
+              "kw": [
+                "combine",
+                "combining",
+                "combination",
+                "together",
+                "hybrid",
+                "mix"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u18-l3-i4",
+          "type": "say",
+          "src": "s17",
+          "text": "When I build it myself on Cloud Run and Pub/Sub, I get full control and normal tests, but I also own the code, the retries and the monitoring."
+        },
+        {
+          "id": "u18-l3-i5",
+          "type": "scenario",
+          "src": "s12",
+          "q": "The interviewer says: an integration receives a full export of 80,000 candidates as one 60 MB payload, and every execution fails. What do you answer?",
+          "options": [
+            {
+              "text": "Split the load into smaller batches, each in its own execution, or move the bulk load to a Cloud Run job, because one execution can carry only 30 MB of integration data.",
+              "ok": true,
+              "why": "The 30 MB limit applies to each execution, so smaller batches, or a service built for bulk work, stay under it."
+            },
+            {
+              "text": "Start it with a synchronous API trigger so that the data is processed faster.",
+              "ok": false,
+              "why": "Synchronous executions time out after 2 minutes, and the 30 MB limit stays the same."
+            },
+            {
+              "text": "Turn off local logging to make room for the payload.",
+              "ok": false,
+              "why": "Above 10 MB local logging is already disabled, and the 30 MB limit still applies."
+            },
+            {
+              "text": "Retry the execution with exponential backoff.",
+              "ok": false,
+              "why": "A retry does not change the size of the payload, so every attempt fails in the same way."
+            }
+          ]
+        },
+        {
+          "id": "u18-l3-i6",
+          "type": "tf",
+          "src": "s8",
+          "statement": "The Cloud Pub/Sub trigger starts the integration exactly once for each message, so the flow does not need to handle duplicates.",
+          "answer": false,
+          "why": "Pub/Sub may deliver the same message more than once, so Google says you must design the integration to be idempotent. The message_id field identifies each message."
+        },
+        {
+          "id": "u18-l3-i7",
+          "type": "explain",
+          "src": "s5",
+          "seconds": 120,
+          "q": "How would you connect Application Integration to SAP SuccessFactors securely?",
+          "model": "I create a connection with the SAP SuccessFactors connector in Integration Connectors. For authentication I choose OAuth SAML2, not username and password, because SAP has announced the sunset of Basic Authentication for its APIs. First, a SuccessFactors admin registers an OAuth2 client application with an X.509 certificate. Then the connection gets three things: the API key as the client ID, the private key, and the technical user bound to that client. That user's permission role limits which entities and fields the integration can read and write, so I give it only what the flows need. The connection runs as a Google service account with the Secret Manager roles the connector requires. I also set the company ID, and I create one connection per environment, so test and production never share credentials. Finally, I keep the private key out of tickets and chats, and I plan who renews the certificate.",
+          "keypoints": [
+            {
+              "text": "OAuth SAML2 instead of Basic Authentication",
+              "kw": [
+                "oauth",
+                "saml",
+                "saml2",
+                "basic authentication",
+                "basic auth",
+                "username and password"
+              ]
+            },
+            {
+              "text": "OAuth client registered in SuccessFactors with an X.509 certificate",
+              "kw": [
+                "x.509",
+                "certificate",
+                "client application",
+                "api key",
+                "client id",
+                "private key"
+              ]
+            },
+            {
+              "text": "A technical user with only the permissions it needs",
+              "kw": [
+                "technical user",
+                "api user",
+                "permission",
+                "permissions",
+                "permission role",
+                "least privilege",
+                "only what"
+              ]
+            },
+            {
+              "text": "A service account with Secret Manager access",
+              "kw": [
+                "service account",
+                "secret manager",
+                "secrets",
+                "secret"
+              ]
+            },
+            {
+              "text": "Separate connections per environment",
+              "kw": [
+                "environment",
+                "environments",
+                "production",
+                "test",
+                "separate"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u18-l3-i8",
+          "type": "say",
+          "src": "s5",
+          "text": "The SuccessFactors connector handles ten transactions per second per node, so before a big load I check what SuccessFactors can take and reserve more nodes."
+        },
+        {
+          "id": "u18-l3-i9",
+          "type": "scenario",
+          "src": "s6",
+          "q": "The interviewer says: a Schedule trigger runs every 15 minutes and lists the applications changed since the start time of the previous run. After a SuccessFactors outage, some changes never reach payroll. What do you change?",
+          "options": [
+            {
+              "text": "Save the newest lastModifiedDateTime that the flow processed as a watermark, and save it only after the run succeeds. Start the next List from it with a small overlap, and make the payroll write idempotent.",
+              "ok": true,
+              "why": "A failed run no longer moves the starting point past records it never processed. The overlap catches late or equal timestamps, and the idempotent write makes the repeats harmless."
+            },
+            {
+              "text": "Keep the start time of each run as the next starting point, and set the error handling strategy to Ignore.",
+              "ok": false,
+              "why": "Ignore makes the failed run look successful, and the next run still starts after the records that were never processed."
+            },
+            {
+              "text": "Run the schedule every minute so that each gap is smaller.",
+              "ok": false,
+              "why": "The gap comes from how the starting point is saved, not from the interval. More runs also add load on SuccessFactors."
+            },
+            {
+              "text": "Replace the delta with a full export of all applications every 15 minutes.",
+              "ok": false,
+              "why": "It finds every change, but it moves far more data, can pass the 30 MB limit of one execution and puts heavy load on SuccessFactors."
+            }
+          ]
+        },
+        {
+          "id": "u18-l3-i10",
+          "type": "explain",
+          "src": "s10",
+          "seconds": 120,
+          "q": "How do you handle errors in an Application Integration flow?",
+          "model": "I handle errors at two levels. On each task, I set an error handling strategy. For a temporary error, like a 503 from a payroll API, I use Retry task with exponential backoff, with a condition on the error code and a maximum retry count. I avoid Ignore, because the flow then continues as if the call had worked. I am also careful with Restart integration, because it runs the whole flow again from the first task, so every step must be safe to repeat. That is one reason I prefer upserts when I write to SuccessFactors. At the second level, I add error catchers. An Error Catcher trigger starts a small flow that, for example, sends an email to the team or publishes the failed record to a Pub/Sub topic so that we can replay it. Finally, I alert on failed executions with Cloud Monitoring, so a person always knows when data did not arrive.",
+          "keypoints": [
+            {
+              "text": "A strategy on each task",
+              "kw": [
+                "error handling strategy",
+                "strategy",
+                "task level",
+                "each task",
+                "per task"
+              ]
+            },
+            {
+              "text": "Retry temporary errors with exponential backoff, a condition and a limit",
+              "kw": [
+                "retry",
+                "retries",
+                "exponential backoff",
+                "backoff",
+                "condition",
+                "maximum",
+                "limit"
+              ]
+            },
+            {
+              "text": "Avoid Ignore; Restart repeats every step, so steps must be idempotent",
+              "kw": [
+                "ignore",
+                "restart",
+                "idempotent",
+                "safe to repeat",
+                "upsert",
+                "upserts",
+                "twice"
+              ]
+            },
+            {
+              "text": "Error catchers handle what the retries cannot fix",
+              "kw": [
+                "error catcher",
+                "error catchers",
+                "catcher",
+                "email",
+                "replay"
+              ]
+            },
+            {
+              "text": "Alert on failed executions",
+              "kw": [
+                "alert",
+                "alerts",
+                "alerting",
+                "monitoring",
+                "cloud monitoring",
+                "logging"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Application Integration",
+        "points": [
+          "Google Cloud's iPaaS: serverless, scales automatically, fully managed by Google.",
+          "Drag-and-drop editor: a trigger starts the flow, tasks do the work, edges connect them.",
+          "Choose it for business systems and business processes; choose Workflows to orchestrate services, pipelines and infrastructure.",
+          "Cloud Logging and Cloud Monitoring are built in; Gemini can draft an integration from a prompt."
+        ]
+      },
+      {
+        "h": "Integration Connectors",
+        "points": [
+          "Connector: connectivity to one type of data source; on its own it connects to nothing.",
+          "Connection: an instance of a connector that accesses the system; one connector can have many connections, each with a unique name.",
+          "Entity: an object in the system; operations List, Get, Create, Update and Delete.",
+          "Action: a function of one connector, such as UpsertEntity or the Pub/Sub publishMessage.",
+          "Connectors handle authentication and translate the native protocol into a standard one, such as REST."
+        ]
+      },
+      {
+        "h": "SAP SuccessFactors connector",
+        "points": [
+          "Authentication: Username and password, or OAuth SAML2 (private key, client ID = API key, user ID).",
+          "Prefer OAuth SAML2: SAP has announced the sunset of Basic Authentication for its APIs.",
+          "Settings: company ID, data format ATOM or JSON, Use Display Names, Include Navigation Properties.",
+          "Schemas are read at runtime: use Refresh connection schema after changes in SuccessFactors.",
+          "One action: UpsertEntity, with entityType and a JSON payload; HTTP 200 with the results.",
+          "10 transactions per second per node, then throttling; 2 nodes by default; nodes autoscale.",
+          "Only pay-as-you-go customers change node numbers; subscription customers contact support.",
+          "IAM: you need roles/connectors.admin; the service account needs Secret Manager Viewer and Secret Manager Secret Accessor."
+        ]
+      },
+      {
+        "h": "Triggers, tasks and mapping",
+        "points": [
+          "Triggers: API, Schedule, Cloud Scheduler, Cloud Pub/Sub, Error Catcher, and connector events such as Webhook or Apache Kafka.",
+          "Cloud Pub/Sub trigger: the subscription is created when you publish the integration; the message is in CloudPubSubMessage; up to 10 MB; may arrive twice.",
+          "Connectors task List: filterClause, page size (25 by default), next page token; Get needs an entityId.",
+          "filterClause: field, condition, value, strings in quotes; map variables into it with a Data Mapping task.",
+          "Data Mapping task: visual, rows run top to bottom, type errors shown; Data Transformer (Jsonnet) is in Preview.",
+          "Delta loads: save the newest lastModifiedDateTime only after a successful run, and read again with a small overlap.",
+          "Loops and reuse: For Each Loop, For Each Parallel (50 at once by default), While Loop, Call Integration."
+        ]
+      },
+      {
+        "h": "Error handling",
+        "points": [
+          "Per task: None, Fatal, Ignore, Restart integration with backoff, or Retry task (exponential, fixed or linear).",
+          "Add a retry condition on the error and a maximum retry count.",
+          "Ignore hides failures; Restart runs everything again from the first task, so every step must be idempotent.",
+          "Error catchers: an Error Catcher trigger runs a handling flow; task level first, then event level; no nesting.",
+          "Alert on failed executions, and send failed records somewhere you can replay them."
+        ]
+      },
+      {
+        "h": "Limits to remember",
+        "points": [
+          "Synchronous execution 2 minutes, asynchronous 10 minutes, Connectors task 3 minutes.",
+          "30 MB of integration data per execution; above 10 MB local logging is off.",
+          "50 concurrent executions per project by default; Call REST Endpoint: 100 concurrent calls.",
+          "100 tasks and 100 versions per integration; 1,000 integrations per project.",
+          "While Loop and For Each Loop: 8,000 iterations; For Each Parallel: 10,000."
+        ]
+      },
+      {
+        "h": "Build it yourself: Cloud Run and Pub/Sub",
+        "points": [
+          "You write the client, tokens, paging, mapping and retries; you get full control and normal tests.",
+          "Push to Cloud Run: 102, 200, 201, 202 or 204 acknowledges; any other code means Pub/Sub sends it again.",
+          "At least once: store the message ID and skip redeliveries; a message published twice gets a new ID, so also check a business key such as the application ID.",
+          "Dead-letter topic after a maximum number of delivery attempts (5 by default).",
+          "Good for complex logic, high volume and strict testing; the cost is more code and more to operate.",
+          "Combine: the platform talks to SuccessFactors and publishes events; Cloud Run does the heavy work."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Application Integration overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/application-integration/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Integration Connectors overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/integration-connectors/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Connector versus connection - Integration Connectors, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/integration-connectors/docs/connectorvsconnection",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Entities, operations, and actions - Integration Connectors, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/integration-connectors/docs/entities-operation-action",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "SAP SuccessFactors connector - Integration Connectors, Google Cloud Documentation (updated 2026-10-22)",
+      "url": "https://docs.cloud.google.com/integration-connectors/docs/connectors/sapsuccessfactors/configure",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Connectors task - Application Integration, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/application-integration/docs/configure-connectors-task",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "All triggers and tasks - Application Integration, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/application-integration/docs/all-triggers-tasks",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Cloud Pub/Sub trigger - Application Integration, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/application-integration/docs/configure-pubsub-trigger",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Data mapping overview - Application Integration, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/application-integration/docs/data-mapping-overview",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Error handling strategies - Application Integration, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/application-integration/docs/error-handling-strategy",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Error catchers - Application Integration, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/application-integration/docs/error-catcher",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Quotas and limits - Application Integration, Google Cloud Documentation (updated 2026-10-24)",
+      "url": "https://docs.cloud.google.com/application-integration/docs/quotas",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Choose Application Integration or Workflows - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/application-integration/docs/choose-application-integration-or-workflows",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Push subscriptions - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/push",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Subscription overview - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-overview",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Dead-letter topics - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/dead-letter-topics",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "What is Cloud Run - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/overview/what-is-cloud-run",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "SAP KBA 3043111: SFAPI OAuth 2.0 Support and Basic Authentication Sunset",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3043111",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "SAP KBA 2316798: How to restrict API access to specific Employee Central Entities and Fields",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2316798",
+      "official": true
+    }
+  ]
+}

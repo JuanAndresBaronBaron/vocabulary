@@ -1,0 +1,1301 @@
+{
+  "format": 1,
+  "id": "u19",
+  "n": 19,
+  "block": "gcp",
+  "title": "Data",
+  "summary": "After this unit you can choose Cloud Storage classes and lifecycle rules, protect objects with versioning and retention, share them with signed URLs, and connect to Cloud SQL securely with replicas, high availability and point-in-time recovery.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Cloud Storage (checked 2026-10-25): minimum storage durations are Nearline 30, Coldline 90 and Archive 365 days; Standard and Rapid (zonal buckets only) have none. Lifecycle storage class changes and Autoclass buckets have no early deletion charges.",
+    "gcloud CLI 570.0.0 help, checked 2026-10-25: gcloud storage sign-url allows at most 12 hours with a system-managed key (impersonation) and 7 days with a private key file; the Signed URLs page gives 604800 seconds (7 days) as the V4 maximum.",
+    "Cloud SQL, gcloud sql instances create (gcloud CLI 570.0.0, checked 2026-10-25): retained backups default to 7 (Enterprise) or 15 (Enterprise Plus), range 1 to 365; transaction log retention is 7 days (default and maximum) on Enterprise, and 14 by default with a maximum of 35 on Enterprise Plus.",
+    "Cloud SQL high availability (checked 2026-10-25): the docs say to expect about sixty seconds of unavailability during a failover, depending on the environment.",
+    "Cloud SQL connections (checked 2026-10-25): Language Connectors exist for Java, Python, Go and Node.js; automatic IAM database authentication is documented for the Auth Proxy and the Go, Java and Python connectors; the Java connector page recommends cloudSqlRefreshStrategy=lazy in serverless environments; Google recommends Private Service Connect over private services access for private IP.",
+    "Cloud SQL deletion (gcloud CLI 570.0.0 help and the backups page, checked 2026-10-25): --deletion-protection, --retain-backups-on-delete and --final-backup exist; a final backup is kept 30 days by default (range 1 to 365); retained backups become independent of the instance and are stored at project level. Unconfirmed: whether backups are kept by default when an instance is deleted.",
+    "Cloud Storage CORS (checked 2026-10-25): XML API endpoints, which signed URLs use, allow CORS requests only as the bucket's CORS configuration allows; JSON API endpoints always allow them."
+  ],
+  "terms": [
+    {
+      "id": "t-storage-class",
+      "term": "Storage class",
+      "ipa": "/ˈstɔːrɪdʒ klɑːs/",
+      "say": "storage class",
+      "def": "A setting on each object, taken from the bucket's default class unless you choose one, that decides its storage price and its access costs. Standard is for hot data; Nearline, Coldline and Archive cost less to store but add a retrieval fee and a minimum storage duration.",
+      "example": "Interview recordings that recruiters open in the first week stay in Standard, and last year's audit exports sit in Archive.",
+      "src": "s1"
+    },
+    {
+      "id": "t-min-storage-duration",
+      "term": "Minimum storage duration",
+      "ipa": "/ˈmɪnɪməm ˈstɔːrɪdʒ djuˈreɪʃn/",
+      "say": "minimum storage duration",
+      "def": "The shortest storage time you pay for: 30 days for Nearline, 90 for Coldline and 365 for Archive. If you delete, replace or move an object earlier, you are charged as if it had stayed for the whole period.",
+      "example": "A Coldline file that is deleted after 40 days is still billed as 90 days of storage.",
+      "src": "s2"
+    },
+    {
+      "id": "t-lifecycle-rule",
+      "term": "Lifecycle rule",
+      "ipa": "/ˈlaɪfsaɪkl ruːl/",
+      "say": "lifecycle rule",
+      "def": "A rule in a bucket's lifecycle configuration. It has one action, such as Delete or SetStorageClass, and conditions, such as age; the action runs only when an object meets all the conditions.",
+      "example": "One rule moves the CSV exports from Standard to Coldline when they are 30 days old, and another deletes them after three years.",
+      "src": "s3"
+    },
+    {
+      "id": "t-object-versioning",
+      "term": "Object Versioning",
+      "ipa": "/ˈɒbdʒɪkt ˈvɜːʃənɪŋ/",
+      "say": "object versioning",
+      "def": "A bucket setting that keeps the old copy when you replace or delete an object. The old copy becomes a noncurrent version, identified by its generation number, and it is billed like a live object.",
+      "example": "A bug overwrote 300 CVs, so the team copied the noncurrent versions to make them live again.",
+      "src": "s5"
+    },
+    {
+      "id": "t-retention-policy",
+      "term": "Retention policy",
+      "ipa": "/rɪˈtenʃn ˈpɒləsi/",
+      "say": "retention policy",
+      "def": "A bucket setting that stops anyone from deleting or replacing an object until it reaches a set age. After you lock the policy, you can never remove it or shorten the period; you can only make it longer.",
+      "example": "Signed offer letters go to a bucket with a locked seven-year retention policy, so an early delete fails with 403 retentionPolicyNotMet.",
+      "src": "s6"
+    },
+    {
+      "id": "t-signed-url",
+      "term": "Signed URL",
+      "ipa": "/ˌsaɪnd ˌjuː ɑːr ˈel/",
+      "say": "signed U R L",
+      "def": "A URL with a signature and an expiry time in its query string. Anyone who has it can make the request it was signed for, such as downloading or uploading one object, until it expires, even without a Google account.",
+      "example": "The Spring Boot service on Cloud Run returns a signed URL, valid for 15 minutes, so the candidate's browser can upload the CV straight to the bucket.",
+      "src": "s7"
+    },
+    {
+      "id": "t-ubla",
+      "term": "Uniform bucket-level access",
+      "ipa": "/ˈjuːnɪfɔːm ˈbʌkɪt ˌlevl ˈækses/",
+      "say": "uniform bucket level access",
+      "def": "A bucket setting that turns off ACLs, so only IAM permissions at bucket level grant access to the bucket and its objects. Once it has been on for 90 consecutive days, you cannot turn it off.",
+      "example": "With uniform bucket-level access on the CV bucket, nobody can make a single file public with an object ACL.",
+      "src": "s8"
+    },
+    {
+      "id": "t-auth-proxy",
+      "term": "Cloud SQL Auth Proxy",
+      "ipa": "/ˌklaʊd ˌes kjuː ˈel ˈɔːθ ˌprɒksi/",
+      "say": "cloud S Q L auth proxy",
+      "def": "A Cloud SQL connector that runs as a local client next to your application. It checks IAM permissions, gets a short-lived certificate from the Cloud SQL Admin API and encrypts the traffic with TLS 1.3, so you need no authorised networks and no SSL setup.",
+      "example": "On the reporting VM, the Auth Proxy listens on localhost, and the BI tool connects to it as if the database were local.",
+      "src": "s11"
+    },
+    {
+      "id": "t-language-connector",
+      "term": "Cloud SQL Language Connector",
+      "ipa": "/ˌklaʊd ˌes kjuː ˈel ˈlæŋɡwɪdʒ kəˈnektə/",
+      "say": "cloud S Q L language connector",
+      "def": "A library for Java, Python, Go or Node.js that opens an encrypted, IAM-authorised connection to Cloud SQL from inside the application. You manage no SSL certificates, firewall rules or authorised networks, and you run no extra process.",
+      "example": "The candidate-sync service on Cloud Run uses the Cloud SQL Java connector, so it needs no Auth Proxy sidecar.",
+      "src": "s20"
+    },
+    {
+      "id": "t-private-ip",
+      "term": "Private IP",
+      "ipa": "/ˌpraɪvət ˌaɪ ˈpiː/",
+      "say": "private I P",
+      "def": "An internal address for a Cloud SQL instance, set up with Private Service Connect, which Google recommends, or with the older private services access, which uses VPC Network Peering. Clients reach it from a VPC network, so the instance needs no public address.",
+      "example": "The recruiting database is created with no public IP, and Cloud Run reaches it on its private IP and port 5432 through Direct VPC egress.",
+      "src": "s21"
+    },
+    {
+      "id": "t-iam-db-auth",
+      "term": "IAM database authentication",
+      "ipa": "/ˌaɪ eɪ ˈem ˈdeɪtəbeɪs ɔːˌθentɪˈkeɪʃn/",
+      "say": "I A M database authentication",
+      "def": "Logging in to the database as an IAM principal with an OAuth 2.0 access token instead of a password. A token is valid for one hour; with the Auth Proxy or the Java, Python or Go connector, it is fetched and refreshed for you.",
+      "example": "The candidate-sync service account logs in to PostgreSQL with automatic IAM database authentication, so there is no database password to store or rotate.",
+      "src": "s12"
+    },
+    {
+      "id": "t-read-replica",
+      "term": "Read replica",
+      "ipa": "/ˈriːd ˌreplɪkə/",
+      "say": "read replica",
+      "def": "A read-only copy of the primary instance that receives its changes in almost real time. It takes read and analytics traffic off the primary, but it does not provide failover.",
+      "example": "The recruiting dashboard runs its heavy morning reports on a read replica, so the sync from SuccessFactors keeps its speed.",
+      "src": "s15"
+    },
+    {
+      "id": "t-high-availability",
+      "term": "High availability (regional instance)",
+      "ipa": "/ˌhaɪ əˌveɪləˈbɪləti/",
+      "say": "high availability",
+      "def": "A Cloud SQL configuration with a primary and a standby instance in two zones of one region. Every write reaches the disks in both zones before it commits, and if the primary fails, the standby takes over with the same IP address.",
+      "example": "When a zone failed, the recruiting database was unavailable for about a minute, and then the services reconnected with the same connection settings.",
+      "src": "s14"
+    },
+    {
+      "id": "t-pitr",
+      "term": "Point-in-time recovery",
+      "ipa": "/ˌpɔɪnt ɪn ˈtaɪm rɪˈkʌvəri/",
+      "say": "point in time recovery",
+      "def": "Recovering an instance to its state at an exact moment, from automated backups and transaction logs. It always creates a new instance; you cannot recover the existing instance in place.",
+      "example": "A migration deleted rows at 14:05 UTC, so the team cloned the instance as it was at 14:04 and copied the lost rows back.",
+      "src": "s17"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u19-l1",
+      "kind": "concepts",
+      "title": "The vocabulary of data on Google Cloud",
+      "items": [
+        {
+          "id": "u19-l1-i1",
+          "type": "card",
+          "src": "s1",
+          "term": "t-storage-class",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "std",
+                "label": "Standard: hot data, no minimum"
+              },
+              {
+                "id": "nl",
+                "label": "Nearline: about once a month, 30 days"
+              },
+              {
+                "id": "cl",
+                "label": "Coldline: once a quarter, 90 days"
+              },
+              {
+                "id": "ar",
+                "label": "Archive: less than once a year, 365 days"
+              }
+            ],
+            "edges": [
+              {
+                "from": "std",
+                "to": "nl",
+                "label": "colder: cheaper to store, retrieval fee"
+              },
+              {
+                "from": "nl",
+                "to": "cl",
+                "label": "colder"
+              },
+              {
+                "from": "cl",
+                "to": "ar",
+                "label": "colder"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u19-l1-i2",
+          "type": "pick",
+          "src": "s2",
+          "q": "Interview recordings are stored in Coldline. A recruiter deletes one of them after 40 days. What does the company pay for its storage?",
+          "options": [
+            "Storage as if the object had been kept for 90 days",
+            "Storage for 40 days only",
+            "Storage for 30 days, the same minimum for every cold class",
+            "Nothing, because Cloud Storage refuses the delete before 90 days"
+          ],
+          "answer": 0,
+          "why": "Coldline has a 90-day minimum storage duration, so an early delete is charged as if the object had stayed 90 days. Each cold class has its own minimum (30, 90 or 365 days), and the delete itself is allowed."
+        },
+        {
+          "id": "u19-l1-i3",
+          "type": "card",
+          "src": "s3",
+          "term": "t-lifecycle-rule"
+        },
+        {
+          "id": "u19-l1-i4",
+          "type": "tf",
+          "src": "s2",
+          "statement": "When a lifecycle rule moves an object from Nearline to Coldline after 10 days, you pay an early deletion charge for Nearline.",
+          "answer": false,
+          "why": "Early deletion charges do not apply when Object Lifecycle Management changes the storage class. You still pay the Class A operation rate of the new class."
+        },
+        {
+          "id": "u19-l1-i5",
+          "type": "tf",
+          "src": "s5",
+          "statement": "With Object Versioning, a noncurrent version costs nothing until you delete it.",
+          "answer": false,
+          "why": "A noncurrent version is billed at the same rate as when it was live, and there is no default limit on versions. Use lifecycle rules to delete old versions."
+        },
+        {
+          "id": "u19-l1-i6",
+          "type": "card",
+          "src": "s6",
+          "term": "t-retention-policy"
+        },
+        {
+          "id": "u19-l1-i7",
+          "type": "card",
+          "src": "s7",
+          "term": "t-signed-url"
+        },
+        {
+          "id": "u19-l1-i8",
+          "type": "card",
+          "src": "s11",
+          "term": "t-auth-proxy",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "app",
+                "label": "Spring Boot service"
+              },
+              {
+                "id": "px",
+                "label": "Cloud SQL Auth Proxy"
+              },
+              {
+                "id": "api",
+                "label": "Cloud SQL Admin API"
+              },
+              {
+                "id": "db",
+                "label": "Cloud SQL instance"
+              }
+            ],
+            "edges": [
+              {
+                "from": "app",
+                "to": "px",
+                "label": "1. opens a local connection"
+              },
+              {
+                "from": "px",
+                "to": "api",
+                "label": "2. IAM check, gets an ephemeral certificate"
+              },
+              {
+                "from": "px",
+                "to": "db",
+                "label": "3. TLS 1.3 over the public or private IP"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u19-l1-i9",
+          "type": "card",
+          "src": "s14",
+          "term": "t-high-availability",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "app",
+                "label": "Cloud Run services"
+              },
+              {
+                "id": "pri",
+                "label": "Primary (zone b)"
+              },
+              {
+                "id": "sb",
+                "label": "Standby (zone c)"
+              }
+            ],
+            "edges": [
+              {
+                "from": "app",
+                "to": "pri",
+                "label": "one static IP address"
+              },
+              {
+                "from": "pri",
+                "to": "sb",
+                "label": "each write reaches both zones before commit"
+              },
+              {
+                "from": "sb",
+                "to": "app",
+                "label": "on failure, takes over the same IP"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u19-l1-i10",
+          "type": "match",
+          "src": "s15",
+          "q": "Match each term with its meaning.",
+          "pairs": [
+            [
+              "Read replica",
+              "A read-only copy for reports, with no failover"
+            ],
+            [
+              "Standby instance",
+              "Takes over in another zone when the primary fails"
+            ],
+            [
+              "Point-in-time recovery",
+              "A new instance with the data as it was at an exact moment"
+            ],
+            [
+              "IAM database authentication",
+              "A one-hour access token instead of a password"
+            ],
+            [
+              "Private IP",
+              "The database is reached through your VPC network"
+            ],
+            [
+              "Uniform bucket-level access",
+              "ACLs are off, and only IAM grants access"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u19-l2",
+      "kind": "practice",
+      "title": "Design storage and database access",
+      "items": [
+        {
+          "id": "u19-l2-i1",
+          "type": "match",
+          "src": "s3",
+          "q": "Match each requirement with the Cloud Storage feature that meets it.",
+          "pairs": [
+            [
+              "Offer letters must not be deleted for seven years",
+              "A locked retention policy"
+            ],
+            [
+              "Recover a CV that a bug overwrote yesterday",
+              "Object Versioning"
+            ],
+            [
+              "A candidate uploads a file without a Google account",
+              "A signed URL"
+            ],
+            [
+              "Access is managed only with IAM, never with ACLs",
+              "Uniform bucket-level access"
+            ],
+            [
+              "Move old exports to a cheaper class automatically",
+              "A lifecycle rule with SetStorageClass"
+            ],
+            [
+              "Remove old copies 30 days after they are replaced",
+              "A lifecycle rule with daysSinceNoncurrentTime"
+            ]
+          ]
+        },
+        {
+          "id": "u19-l2-i2",
+          "type": "scenario",
+          "src": "s1",
+          "q": "A Cloud Run job writes a daily export of applications from SuccessFactors Recruiting to Cloud Storage. Analysts read each file in its first week, auditors read it about once a quarter, and it must be kept for three years.",
+          "options": [
+            {
+              "text": "Write to Standard, move the files to Coldline at 30 days with a lifecycle rule, and delete them at three years.",
+              "ok": true,
+              "why": "Hot data starts in Standard, and Coldline fits data read at most once a quarter. The rules run automatically, and lifecycle class changes have no early deletion charge."
+            },
+            {
+              "text": "Write straight to Archive, because it is the cheapest class.",
+              "ok": false,
+              "why": "Archive is for data read less than once a year, and every read in the first week would add a retrieval fee."
+            },
+            {
+              "text": "Keep everything in Standard, so that reads are always free.",
+              "ok": false,
+              "why": "You would pay the hot storage price for three years for files that are rarely read."
+            },
+            {
+              "text": "Write to Nearline and delete the files after 20 days to save money.",
+              "ok": false,
+              "why": "An early delete is still billed as 30 days, and the files must be kept for three years."
+            }
+          ]
+        },
+        {
+          "id": "u19-l2-i3",
+          "type": "code",
+          "src": "s4",
+          "lang": "json",
+          "q": "Complete the lifecycle configuration of a versioned bucket: move exports to Coldline at 30 days, delete them at three years, and remove old versions 30 days after they become noncurrent.",
+          "code": "{\n  \"lifecycle\": {\n    \"rule\": [\n      {\n        \"action\": { \"type\": \"[[1]]\", \"storageClass\": \"COLDLINE\" },\n        \"condition\": { \"age\": 30, \"matchesStorageClass\": [\"STANDARD\"] }\n      },\n      {\n        \"action\": { \"type\": \"[[2]]\" },\n        \"condition\": { \"[[3]]\": 1095 }\n      },\n      {\n        \"action\": { \"type\": \"Delete\" },\n        \"condition\": { \"isLive\": [[4]], \"daysSinceNoncurrentTime\": 30 }\n      }\n    ]\n  }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "SetStorageClass",
+              "decoys": [
+                "Delete",
+                "ChangeStorageClass"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "Delete",
+              "decoys": [
+                "SetStorageClass",
+                "AbortIncompleteMultipartUpload"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "age",
+              "decoys": [
+                "daysSinceNoncurrentTime",
+                "numNewerVersions"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "false",
+              "decoys": [
+                "true",
+                "null"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u19-l2-i4",
+          "type": "scenario",
+          "src": "s7",
+          "q": "Candidates upload CVs on a career site. A Spring Boot service on Cloud Run must let the browser upload each file straight to a private bucket, without sending the file through the service.",
+          "options": [
+            {
+              "text": "The service creates a signed URL for a PUT on one object name, valid for 15 minutes, and the browser uploads to it over HTTPS.",
+              "ok": true,
+              "why": "Anyone with the URL can make only that request, and only until it expires, so a short expiry keeps the risk small. Signed URLs use the XML API, so the bucket also needs a CORS configuration that allows the career site."
+            },
+            {
+              "text": "Grant allUsers the Storage Object Creator role on the bucket.",
+              "ok": false,
+              "why": "Anyone on the internet could then write objects to the bucket."
+            },
+            {
+              "text": "Create one signed URL that is valid for 30 days and give it to every candidate.",
+              "ok": false,
+              "why": "A V4 signed URL is valid for at most 7 days, and every holder could overwrite the same object."
+            },
+            {
+              "text": "Send a service account key to the browser so that it can call Cloud Storage itself.",
+              "ok": false,
+              "why": "Every visitor could copy the key and act with all the permissions of the service account."
+            }
+          ]
+        },
+        {
+          "id": "u19-l2-i5",
+          "type": "scenario",
+          "src": "s6",
+          "q": "Legal says that signed offer letters must be kept for seven years, and nobody, not even an administrator, may delete or overwrite them before then.",
+          "options": [
+            {
+              "text": "Store them in a bucket with a seven-year retention policy, test it, and then lock the policy.",
+              "ok": true,
+              "why": "A locked policy cannot be removed or shortened, and an early delete or overwrite fails with 403 retentionPolicyNotMet."
+            },
+            {
+              "text": "Turn on Object Versioning.",
+              "ok": false,
+              "why": "Versioning keeps old copies, but a user with the right permission can still delete every version."
+            },
+            {
+              "text": "Remove the delete permission from everyone's IAM roles.",
+              "ok": false,
+              "why": "An administrator can grant the permission again, so this is not a guarantee."
+            },
+            {
+              "text": "Add a lifecycle rule that deletes the letters after seven years.",
+              "ok": false,
+              "why": "A lifecycle rule only deletes objects; it does not stop anyone from deleting a letter earlier."
+            }
+          ]
+        },
+        {
+          "id": "u19-l2-i6",
+          "type": "diagram",
+          "src": "s13",
+          "layout": "flow",
+          "q": "Complete the private path from a Spring Boot service on Cloud Run to a Cloud SQL instance that has no public IP. The connector adds no network path of its own.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Spring Boot service on Cloud Run",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Cloud SQL Java connector",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Cloud SQL Admin API",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Direct VPC egress",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "VPC network",
+              "slot": false
+            },
+            {
+              "id": "n6",
+              "label": "Cloud SQL instance with private IP",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "JDBC connection"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "needs the API; IAM decides who connects"
+            },
+            {
+              "from": "n2",
+              "to": "n4",
+              "label": "encrypted traffic"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "enters the VPC"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "private IP, port 5432"
+            }
+          ],
+          "decoys": [
+            "Authorised network 0.0.0.0/0",
+            "Service account key file",
+            "Public IP address"
+          ]
+        },
+        {
+          "id": "u19-l2-i7",
+          "type": "code",
+          "src": "s20",
+          "lang": "java",
+          "q": "Complete the connection pool of a Spring Boot service on Cloud Run. It uses the Cloud SQL Java connector for PostgreSQL to reach instance recruiting-db in project acme-hr-prod, region europe-west1, over its private IP (private services access), with the refresh setting recommended for serverless environments.",
+          "code": "HikariConfig config = new HikariConfig();\nconfig.setJdbcUrl(\"jdbc:postgresql:///recruiting\");\nconfig.setUsername(System.getenv(\"DB_USER\"));\nconfig.setPassword(System.getenv(\"DB_PASS\")); // a secret from Secret Manager\nconfig.addDataSourceProperty(\"socketFactory\", \"[[1]]\");\nconfig.addDataSourceProperty(\"cloudSqlInstance\", \"[[2]]\");\nconfig.addDataSourceProperty(\"ipTypes\", \"[[3]]\");\nconfig.addDataSourceProperty(\"cloudSqlRefreshStrategy\", \"[[4]]\");\nDataSource pool = new HikariDataSource(config);",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "com.google.cloud.sql.postgres.SocketFactory",
+              "decoys": [
+                "com.google.cloud.sql.mysql.SocketFactory",
+                "javax.net.ssl.SSLSocketFactory"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "acme-hr-prod:europe-west1:recruiting-db",
+              "decoys": [
+                "recruiting-db.europe-west1.acme-hr-prod",
+                "10.20.0.3:5432"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "PRIVATE",
+              "decoys": [
+                "PUBLIC",
+                "VPC"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "lazy",
+              "decoys": [
+                "background",
+                "never"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u19-l2-i8",
+          "type": "scenario",
+          "src": "s14",
+          "q": "After a zone outage, your high-availability Cloud SQL instance failed over. For about a minute the Spring Boot services on Cloud Run logged connection errors, and two of them did not recover until they were restarted.",
+          "options": [
+            {
+              "text": "Use a connection pool that replaces broken connections, retry with backoff, and keep the same connection settings.",
+              "ok": true,
+              "why": "A failover closes existing connections, and the standby takes over the same IP address, so clients only need to reconnect."
+            },
+            {
+              "text": "Update the JDBC URL with the standby's IP address after each failover.",
+              "ok": false,
+              "why": "The standby shares the primary's static IP address, so the address does not change."
+            },
+            {
+              "text": "Turn off high availability, because failovers cause errors.",
+              "ok": false,
+              "why": "Without high availability there is no failover, so a zone outage would stop the database."
+            },
+            {
+              "text": "Promote a read replica each time the primary fails over.",
+              "ok": false,
+              "why": "The standby already takes over automatically, and a promoted replica becomes a separate standalone instance."
+            }
+          ]
+        },
+        {
+          "id": "u19-l2-i9",
+          "type": "order",
+          "src": "s17",
+          "q": "At 14:05 UTC a faulty migration deleted thousands of candidate rows. Put the recovery steps in order.",
+          "steps": [
+            "Stop the migration job and find, in the logs, the exact time it started",
+            "Check that 14:04 UTC is inside the point-in-time recovery window",
+            "Clone the instance as it was at 14:04 UTC",
+            "Check the deleted rows on the new instance",
+            "Copy the missing rows back to the primary",
+            "Delete the clone when the data is correct"
+          ]
+        },
+        {
+          "id": "u19-l2-i10",
+          "type": "code",
+          "src": "s18",
+          "lang": "text",
+          "q": "Complete the commands. The production instance must fail over to another zone, have only a private IP on the hr-vpc network (private services access) and keep seven days of transaction logs. Then recover it as it was at 14:04 UTC.",
+          "code": "gcloud sql instances create recruiting-db \\\n    --database-version=POSTGRES_17 \\\n    --edition=enterprise \\\n    --cpu=2 --memory=4GB \\\n    --region=europe-west1 \\\n    --availability-type=[[1]] \\\n    --no-assign-ip \\\n    --network=projects/acme-hr-prod/global/networks/hr-vpc \\\n    --enable-point-in-time-recovery \\\n    --[[2]]=7\n\ngcloud sql instances [[3]] recruiting-db recruiting-db-restore \\\n    --point-in-time='2026-10-20T14:04:00Z'",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "regional",
+              "decoys": [
+                "zonal",
+                "multi-region"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "retained-transaction-log-days",
+              "decoys": [
+                "retained-backups-count",
+                "backup-start-time"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "clone",
+              "decoys": [
+                "restore-backup",
+                "promote-replica"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u19-l3",
+      "kind": "interview",
+      "title": "Talk about data on Google Cloud",
+      "items": [
+        {
+          "id": "u19-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "I choose the storage class by how often we read the data, and I let lifecycle rules move it to colder classes automatically."
+        },
+        {
+          "id": "u19-l3-i2",
+          "type": "tf",
+          "src": "s14",
+          "statement": "High availability in Cloud SQL also protects you if someone runs DROP TABLE by mistake.",
+          "answer": false,
+          "why": "Every write, including the DROP TABLE, reaches the standby's disk before it commits. To get the data back, you need a backup or point-in-time recovery."
+        },
+        {
+          "id": "u19-l3-i3",
+          "type": "explain",
+          "src": "s13",
+          "seconds": 150,
+          "q": "How would you connect a Spring Boot service on Cloud Run to Cloud SQL securely?",
+          "model": "I start with the network. In production I give the instance a private IP only, and the Cloud Run service reaches the VPC through Direct VPC egress, so the database has no public address. For the connection itself, I use the Cloud SQL Java connector, or the Auth Proxy for tools that are not written in Java. The connector encrypts the traffic and uses IAM to decide who can connect, so I do not manage SSL certificates, firewall rules or authorised networks. For the login, I prefer automatic IAM database authentication. The service account gets the Cloud SQL Client and Cloud SQL Instance User roles, and it logs in with a one-hour token that the connector refreshes, so there is no password to store or rotate. Inside PostgreSQL, I still grant only the privileges the service needs. Finally, I use a connection pool that replaces broken connections, because a failover closes them.",
+          "keypoints": [
+            {
+              "text": "Private IP, reached through Direct VPC egress",
+              "kw": [
+                "private ip",
+                "private address",
+                "vpc",
+                "direct vpc egress",
+                "serverless vpc access",
+                "no public"
+              ]
+            },
+            {
+              "text": "Java connector or Auth Proxy: encryption and IAM authorisation",
+              "kw": [
+                "connector",
+                "auth proxy",
+                "proxy",
+                "tls",
+                "encrypts",
+                "encrypted",
+                "encryption",
+                "certificate"
+              ]
+            },
+            {
+              "text": "IAM database authentication: a token, not a password",
+              "kw": [
+                "iam database authentication",
+                "iam authentication",
+                "token",
+                "no password",
+                "passwordless",
+                "instance user"
+              ]
+            },
+            {
+              "text": "Least privilege: Cloud SQL Client role and database grants",
+              "kw": [
+                "cloud sql client",
+                "least privilege",
+                "grant",
+                "privileges",
+                "roles"
+              ]
+            },
+            {
+              "text": "A connection pool that reconnects",
+              "kw": [
+                "connection pool",
+                "pool",
+                "reconnect",
+                "reconnects",
+                "hikari",
+                "hikaricp"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u19-l3-i4",
+          "type": "scenario",
+          "src": "s8",
+          "q": "The interviewer says: last year, someone made one file in our CV bucket public through an object ACL. How do you stop this from happening again?",
+          "options": [
+            {
+              "text": "Turn on uniform bucket-level access, require it with an organisation policy constraint, and share single files only through short-lived signed URLs.",
+              "ok": true,
+              "why": "With uniform bucket-level access, ACLs no longer grant access, and the constraint stops anyone from turning it off."
+            },
+            {
+              "text": "Review all object ACLs once a month.",
+              "ok": false,
+              "why": "A review finds the problem after the data is already exposed; it does not prevent it."
+            },
+            {
+              "text": "Turn on Object Versioning.",
+              "ok": false,
+              "why": "Versioning keeps old copies of files; it does not control who can read them."
+            },
+            {
+              "text": "Move the CVs to Archive storage.",
+              "ok": false,
+              "why": "The storage class changes the price, not who can read the objects."
+            }
+          ]
+        },
+        {
+          "id": "u19-l3-i5",
+          "type": "explain",
+          "src": "s14",
+          "seconds": 150,
+          "q": "What is the difference between high availability, read replicas and backups in Cloud SQL?",
+          "model": "They protect against different problems, so production usually needs all three. High availability protects against the failure of an instance or a zone. A regional instance has a primary and a standby in two zones, and every write reaches both zones before it commits. If the primary fails, the standby takes over with the same IP address, and the database is unavailable for about a minute. Read replicas are for scale. They are read-only copies that receive changes in almost real time, so I send reports and analytics there. They do not fail over on their own, but in a disaster I can promote a cross-region replica to a primary. Backups and point-in-time recovery protect against bad data, such as a faulty migration or a DROP TABLE. High availability and replicas copy that mistake straight away, but point-in-time recovery lets me create a new instance as it was a minute before the mistake.",
+          "keypoints": [
+            {
+              "text": "HA: a standby in another zone and automatic failover",
+              "kw": [
+                "high availability",
+                "standby",
+                "failover",
+                "fails over",
+                "zone",
+                "regional"
+              ]
+            },
+            {
+              "text": "Writes reach both zones; the IP stays the same",
+              "kw": [
+                "both zones",
+                "synchronous",
+                "same ip",
+                "same address",
+                "before it commits"
+              ]
+            },
+            {
+              "text": "Read replicas: read-only, for reports and analytics",
+              "kw": [
+                "read replica",
+                "read replicas",
+                "replica",
+                "read-only",
+                "reports",
+                "analytics"
+              ]
+            },
+            {
+              "text": "Replicas do not fail over; promote one in a disaster",
+              "kw": [
+                "promote",
+                "promoted",
+                "cross-region",
+                "disaster",
+                "region"
+              ]
+            },
+            {
+              "text": "Backups and PITR protect against bad data",
+              "kw": [
+                "backup",
+                "backups",
+                "point-in-time",
+                "point in time",
+                "pitr",
+                "drop table",
+                "migration"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u19-l3-i6",
+          "type": "scenario",
+          "src": "s18",
+          "q": "The interviewer says: a clean-up script with the wrong project ID deleted our production Cloud SQL instance. What do you put in place so that this does not cost us the data again?",
+          "options": [
+            {
+              "text": "Turn on deletion protection, keep backups after a delete with retained backups or a final backup, and give scripts only the roles they need.",
+              "ok": true,
+              "why": "Deletion protection blocks the delete until someone turns it off on purpose. Retained backups stay in the project after the instance is gone, so you can still restore the data."
+            },
+            {
+              "text": "Turn on high availability, so that the standby keeps a copy.",
+              "ok": false,
+              "why": "High availability protects against zone failures. The standby belongs to the same instance, so the delete removes it too."
+            },
+            {
+              "text": "Lock a retention policy on the instance, as we do for the offer letters.",
+              "ok": false,
+              "why": "A retention policy is a Cloud Storage feature for objects in a bucket; Cloud SQL instances do not have one."
+            },
+            {
+              "text": "Remove the public IP address of the instance.",
+              "ok": false,
+              "why": "The delete is a Cloud SQL Admin API call that IAM allows or denies, so the database's network settings do not stop it."
+            }
+          ]
+        },
+        {
+          "id": "u19-l3-i7",
+          "type": "explain",
+          "src": "s3",
+          "seconds": 150,
+          "q": "How would you design the storage for candidate documents that come from SuccessFactors Recruiting?",
+          "model": "First, I keep the bucket private with uniform bucket-level access, so only IAM controls access and nobody can share one file through an ACL. The integration's service account can write, and users read through our service. When a candidate or a recruiter needs a file directly, the service creates a signed URL that is valid for a few minutes. Second, I choose the storage class by access. New CVs are read often, so they start in Standard, and a lifecycle rule moves them to Coldline after some months. I check the minimum durations, because a Coldline file deleted before 90 days is still billed as 90 days. Third, I protect the data. Soft delete keeps deleted files for seven days by default, and Object Versioning lets us recover a file that a bug overwrote. A lifecycle rule removes old versions after 30 days. Retention is a legal decision. If we must keep offer letters for years, I use a retention policy, and I lock it only after legal approval, because locking cannot be undone.",
+          "keypoints": [
+            {
+              "text": "A private bucket with uniform bucket-level access",
+              "kw": [
+                "uniform bucket-level access",
+                "uniform",
+                "iam",
+                "acl",
+                "acls",
+                "private"
+              ]
+            },
+            {
+              "text": "Signed URLs for short, direct access",
+              "kw": [
+                "signed url",
+                "signed urls",
+                "few minutes",
+                "expires",
+                "short-lived"
+              ]
+            },
+            {
+              "text": "Storage class by access, moved by lifecycle rules",
+              "kw": [
+                "storage class",
+                "standard",
+                "nearline",
+                "coldline",
+                "archive",
+                "lifecycle"
+              ]
+            },
+            {
+              "text": "Minimum storage durations",
+              "kw": [
+                "minimum",
+                "90 days",
+                "early deletion",
+                "billed"
+              ]
+            },
+            {
+              "text": "Soft delete and versioning with clean-up; retention only with legal approval",
+              "kw": [
+                "versioning",
+                "soft delete",
+                "noncurrent",
+                "versions",
+                "retention",
+                "retention policy",
+                "lock",
+                "legal"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u19-l3-i8",
+          "type": "say",
+          "src": "s14",
+          "text": "High availability protects us from a zone failure. It does not protect us from a bad write, so we also keep backups and point-in-time recovery."
+        },
+        {
+          "id": "u19-l3-i9",
+          "type": "scenario",
+          "src": "s15",
+          "q": "The interviewer says: every morning our recruiting dashboard runs heavy reports on Cloud SQL, and at the same time the sync from SuccessFactors Recruiting becomes slow. What do you suggest?",
+          "options": [
+            {
+              "text": "Create a read replica and point the dashboard at it.",
+              "ok": true,
+              "why": "A read replica takes read and analytics traffic off the primary. The reports see changes in almost real time, which is enough for a dashboard."
+            },
+            {
+              "text": "Enable high availability so that the standby shares the read load.",
+              "ok": false,
+              "why": "The standby exists for failover, not for extra read capacity; read replicas are the feature for read traffic."
+            },
+            {
+              "text": "Restore last night's backup to a new instance every morning for the reports.",
+              "ok": false,
+              "why": "This is slow and costly, and the reports would always show yesterday's data."
+            },
+            {
+              "text": "Give the dashboard its own database user on the primary.",
+              "ok": false,
+              "why": "A new user does not reduce the load, because the same instance still runs every query."
+            }
+          ]
+        },
+        {
+          "id": "u19-l3-i10",
+          "type": "explain",
+          "src": "s17",
+          "seconds": 120,
+          "q": "A migration deleted thousands of rows at 14:05. How do you recover?",
+          "model": "First, I stop the damage. I stop the migration job and, if needed, the services that write to those tables. Then I find the exact time the migration started, from the job logs or the database logs. Because the instance has point-in-time recovery, I can clone it as it was just before that time, for example at 14:04 UTC. The clone is always a new instance, so the primary keeps running, and I do not lose the good writes that came after 14:05. I check the deleted rows on the clone. Then, in most cases, I export only those rows and insert them back into the primary, because moving every service to the clone would lose the later changes. Finally, I delete the clone and write a short incident review. For example, we could agree to test every migration on a clone first.",
+          "keypoints": [
+            {
+              "text": "Stop the damage first",
+              "kw": [
+                "stop",
+                "pause",
+                "stop the migration",
+                "stop the job"
+              ]
+            },
+            {
+              "text": "Find the exact time",
+              "kw": [
+                "exact time",
+                "logs",
+                "timestamp",
+                "before"
+              ]
+            },
+            {
+              "text": "Clone with point-in-time recovery: a new instance",
+              "kw": [
+                "point-in-time",
+                "point in time",
+                "pitr",
+                "clone",
+                "new instance"
+              ]
+            },
+            {
+              "text": "Copy back only the lost rows",
+              "kw": [
+                "copy",
+                "export",
+                "insert",
+                "lost rows",
+                "deleted rows",
+                "back into"
+              ]
+            },
+            {
+              "text": "Clean up and learn from it",
+              "kw": [
+                "incident",
+                "review",
+                "post-mortem",
+                "postmortem",
+                "delete the clone",
+                "test"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Storage classes and costs",
+        "points": [
+          "Standard: hot data, no minimum duration, no retrieval fee. It is the default class of a new bucket.",
+          "Nearline: read about once a month or less; 30-day minimum.",
+          "Coldline: read at most once a quarter; 90-day minimum.",
+          "Archive: read less than once a year; 365-day minimum, yet still available in milliseconds.",
+          "Delete, replace or move early: you pay as if the object had stayed for the minimum. A rewrite to change the class counts too.",
+          "Nearline, Coldline and Archive add a retrieval fee for each GiB you read.",
+          "Rapid: only in zonal buckets, for the lowest latency and highest throughput; no minimum duration."
+        ]
+      },
+      {
+        "h": "Lifecycle rules",
+        "points": [
+          "Actions: Delete, SetStorageClass, AbortIncompleteMultipartUpload.",
+          "All conditions in a rule must match. Rules with the same action are alternatives.",
+          "Delete wins over SetStorageClass; between two classes, the cheaper storage price wins.",
+          "SetStorageClass only moves data to colder classes, and it has no early deletion charge.",
+          "A new configuration can take up to 24 hours to apply, and actions run asynchronously.",
+          "Delete waits for object holds and for the retention policy."
+        ]
+      },
+      {
+        "h": "Versioning, retention and holds",
+        "points": [
+          "Versioning: replacing or deleting the live version makes it noncurrent; it keeps its generation number.",
+          "To restore, copy a noncurrent version so that it becomes the live version.",
+          "Noncurrent versions are billed like live ones; clean them up with numNewerVersions or daysSinceNoncurrentTime.",
+          "Soft delete keeps deleted objects for seven days by default, and Google recommends it over versioning against permanent data loss.",
+          "Retention policy: no delete or replace until the object reaches the set age (403 retentionPolicyNotMet); maximum 100 years.",
+          "Locking is irreversible: you can make the period longer, never shorter, and you cannot remove the policy.",
+          "Object holds (event-based or temporary) work per object: lifecycle Delete waits until the hold is removed. Object Retention Lock sets retention per object."
+        ]
+      },
+      {
+        "h": "Bucket access and signed URLs",
+        "points": [
+          "Uniform bucket-level access: ACLs off, only IAM. After 90 consecutive days it cannot be turned off.",
+          "It is required for hierarchical namespace, managed folders, IAM Conditions on the bucket and federated identities.",
+          "An organisation policy constraint can require it for an organisation, a folder or a project.",
+          "Signed URL: the signature and expiry are in the query string, and anyone who has it can use it.",
+          "V4 maximum: 7 days. gcloud allows at most 12 hours when it signs with a system-managed key, for example as an impersonated service account.",
+          "Signed URLs work only with the XML API endpoints, which follow the bucket's CORS configuration: a browser upload from another site needs one."
+        ]
+      },
+      {
+        "h": "Cloud SQL Auth Proxy and connectors",
+        "points": [
+          "Auth Proxy: a local client; IAM check, ephemeral certificate from the Cloud SQL Admin API, TLS 1.3.",
+          "Language connectors (Java, Python, Go, Node.js): encrypted, IAM-authorised connections inside the app; no SSL certificates, firewall rules or authorised networks to manage.",
+          "Neither adds a network path: the client must already reach the public IP or the private IP.",
+          "Java connector: socketFactory com.google.cloud.sql.postgres.SocketFactory, cloudSqlInstance PROJECT:REGION:INSTANCE, ipTypes PRIVATE, cloudSqlRefreshStrategy lazy on serverless.",
+          "The principal needs cloudsql.instances.connect, for example through the Cloud SQL Client role.",
+          "Connector enforcement REQUIRED: only the Auth Proxy and connectors may connect, and authorised networks are disabled."
+        ]
+      },
+      {
+        "h": "Cloud SQL network and login",
+        "points": [
+          "Private IP: Private Service Connect is recommended and accepts several VPC networks; the older private services access (VPC peering) accepts one.",
+          "Cloud Run and private IP: Direct VPC egress or a Serverless VPC Access connector, then TCP to port 5432.",
+          "Cloud Run and public IP: add the instance to the service and use the Unix socket /cloudsql/INSTANCE_CONNECTION_NAME.",
+          "IAM database authentication: one-hour tokens, the cloudsql.iam_authentication flag, the Cloud SQL Instance User role, and GRANT inside PostgreSQL.",
+          "Automatic IAM database authentication needs the Auth Proxy or a Java, Python or Go connector; manual login passes the token as the password.",
+          "A Cloud Run instance can open up to 100 connections to a database; use a pool that reconnects."
+        ]
+      },
+      {
+        "h": "High availability, replicas, backups and PITR",
+        "points": [
+          "High availability: primary and standby in two zones, writes reach both before commit, the same IP after failover.",
+          "Expect about 60 seconds of downtime; existing connections close, and there is no automatic failback.",
+          "Read replicas: read-only, almost real time, no failover; promote one in a disaster.",
+          "Automated backups run daily by default and are incremental; 7 kept on Enterprise, 15 on Enterprise Plus (range 1 to 365).",
+          "PITR needs automated backups. Log retention: 7 days on Enterprise; 14 by default and up to 35 on Enterprise Plus.",
+          "PITR always creates a new instance: gcloud sql instances clone with --point-in-time.",
+          "Deletion protection blocks deleting the instance; retained backups and a final backup (kept 30 days by default) stay in the project after a delete.",
+          "High availability and replicas copy a bad write within moments; backups and PITR bring the old data back."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Storage classes - Cloud Storage, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/storage-classes",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Cloud Storage pricing - Google Cloud",
+      "url": "https://cloud.google.com/storage/pricing",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Object Lifecycle Management - Cloud Storage, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/lifecycle",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Lifecycle configuration examples - Cloud Storage, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/lifecycle-configurations",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Object Versioning - Cloud Storage, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/object-versioning",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Bucket Lock - Cloud Storage, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/bucket-lock",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Signed URLs - Cloud Storage, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/access-control/signed-urls",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Uniform bucket-level access - Cloud Storage, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/uniform-bucket-level-access",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "gcloud storage buckets update - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/storage/buckets/update",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "gcloud storage sign-url - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/storage/sign-url",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "About the Cloud SQL Auth Proxy - Cloud SQL for PostgreSQL, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/sql-proxy",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Cloud SQL Language Connectors overview - Cloud SQL for PostgreSQL, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/connect-connectors",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "About private IP - Cloud SQL for PostgreSQL, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/private-ip",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "IAM authentication - Cloud SQL for PostgreSQL, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/iam-authentication",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Connect from Cloud Run - Cloud SQL for PostgreSQL, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/connect-run",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "About high availability - Cloud SQL for PostgreSQL, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/high-availability",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "About replication - Cloud SQL for PostgreSQL, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/replication",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "About Cloud SQL backups - Cloud SQL for PostgreSQL, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/backup-recovery/backups",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Use point-in-time recovery - Cloud SQL for PostgreSQL, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/sql/docs/postgres/backup-recovery/pitr",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "gcloud sql instances create - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/sql/instances/create",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "gcloud sql instances clone - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/sql/instances/clone",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Cross-origin resource sharing (CORS) - Cloud Storage, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/storage/docs/cross-origin",
+      "official": true
+    }
+  ]
+}

@@ -1,0 +1,1288 @@
+{
+  "format": 1,
+  "id": "u20",
+  "n": 20,
+  "block": "gcp",
+  "title": "Identity and secrets",
+  "summary": "After this unit you can explain Google Cloud IAM roles and policy inheritance, give workloads an identity without service account keys, and store, rotate and use secrets safely with Secret Manager and Cloud Run.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "IAM roles overview (checked 2026-10-25): Owner, Editor and Viewer are now called the legacy basic roles; new basic roles Reader (roles/reader), Writer (roles/writer) and Admin (roles/admin) are in Preview and can be granted only with the API or the gcloud CLI.",
+    "Organisation Policy (checked 2026-10-25): in organisations created on or after 3 May 2024, the legacy constraints iam.disableServiceAccountKeyCreation, iam.disableServiceAccountKeyUpload and iam.automaticIamGrantsForDefaultServiceAccounts are enforced by default; the managed constraints are iam.managed.disableServiceAccountKeyCreation and iam.managed.disableServiceAccountKeyUpload.",
+    "Short-lived credentials (checked 2026-10-25): service account access tokens last at most 1 hour by default, and up to 12 hours for service accounts listed in constraints/iam.allowServiceAccountCredentialLifetimeExtension.",
+    "IAM access change propagation (checked 2026-10-25): policy changes typically take 2 minutes, potentially 7 minutes or longer; group membership changes can take hours.",
+    "Secret Manager (checked 2026-10-25): rotation_period at least one hour, next_rotation_time at least five minutes in the future, up to 10 Pub/Sub topics per secret; Cloud Run does not support regional secrets.",
+    "Workload Identity Federation with deployment pipelines (checked 2026-10-25): for GitHub Actions an attribute condition is required, for example assertion.repository_owner; map google.subject at least to assertion.sub; Google recommends direct resource access, with service account impersonation as the fallback."
+  ],
+  "terms": [
+    {
+      "id": "t-principal",
+      "term": "Principal",
+      "ipa": "/ˈprɪnsəpl/",
+      "say": "principal",
+      "def": "One or more authenticated identities that you can give access to in Google Cloud. Principals include Google Accounts, Google groups, service accounts and federated identities.",
+      "example": "The allow policy on the secret names two principals: the group hr-integration-team@example.com and the service account of the candidate-sync service.",
+      "src": "s28"
+    },
+    {
+      "id": "t-role",
+      "term": "Role",
+      "ipa": "/rəʊl/",
+      "say": "role",
+      "def": "A collection of permissions. You grant roles, never single permissions. Basic roles are very broad, predefined roles are created and maintained by Google, and custom roles contain only the permissions you choose.",
+      "example": "Instead of Editor on the project, the integration's service account gets the predefined role Secret Manager Secret Accessor on one secret.",
+      "src": "s2"
+    },
+    {
+      "id": "t-allow-policy",
+      "term": "Allow policy",
+      "ipa": "/əˈlaʊ ˈpɒləsi/",
+      "say": "allow policy",
+      "def": "A collection of role bindings and metadata, attached to a resource. Each binding gives one role to one or more principals, optionally with a condition.",
+      "example": "The allow policy on the Pub/Sub topic has one binding: roles/pubsub.publisher for the candidate-sync service account.",
+      "src": "s3"
+    },
+    {
+      "id": "t-least-privilege",
+      "term": "Least privilege",
+      "ipa": "/ˌliːst ˈprɪvəlɪdʒ/",
+      "say": "least privilege",
+      "def": "Give each principal only the permissions it needs for its task. In Google Cloud this means predefined or custom roles instead of basic roles, granted at the lowest level of the resource hierarchy.",
+      "example": "The SuccessFactors adapter can read one secret and publish to one topic, and nothing else in the project.",
+      "src": "s20"
+    },
+    {
+      "id": "t-policy-inheritance",
+      "term": "Policy inheritance",
+      "ipa": "/ˈpɒləsi ɪnˈherɪtəns/",
+      "say": "policy inheritance",
+      "def": "A role granted on an organisation, folder or project also applies to every resource below it. The effective allow policy of a resource is the union of its own policy and the policies of all its ancestors.",
+      "example": "A team with Secret Accessor on the hr-prod folder can read every secret in every project under that folder.",
+      "src": "s1"
+    },
+    {
+      "id": "t-iam-condition",
+      "term": "IAM condition",
+      "ipa": "/ˌaɪ eɪ ˈem kənˈdɪʃn/",
+      "say": "I A M condition",
+      "def": "An expression in Common Expression Language (CEL) added to a role binding. The role applies only when the expression is true, for example before a date or only for one type of resource.",
+      "example": "A contractor gets Secret Accessor with the condition request.time < timestamp('2026-12-01T00:00:00Z'), so the access ends automatically at go-live.",
+      "src": "s4"
+    },
+    {
+      "id": "t-service-account",
+      "term": "Service account",
+      "ipa": "/ˈsɜːvɪs əˈkaʊnt/",
+      "say": "service account",
+      "def": "An account for an application or workload instead of a person. It is a principal that you grant roles to, and also a resource that other principals can be given access to.",
+      "example": "The candidate-sync service runs as candidate-sync@acme-hr.iam.gserviceaccount.com, and only the deployment pipeline may act as it.",
+      "src": "s27"
+    },
+    {
+      "id": "t-attached-sa",
+      "term": "Attached service account",
+      "ipa": "/əˈtætʃt ˈsɜːvɪs əˈkaʊnt/",
+      "say": "attached service account",
+      "def": "A user-managed service account that you set as the identity of a resource, such as a Cloud Run service. Client libraries get short-lived tokens for it from the metadata server, so the code needs no key file.",
+      "example": "The Cloud Run service is deployed with its own service account, and the Pub/Sub client library authenticates as that account without a key file.",
+      "src": "s26"
+    },
+    {
+      "id": "t-impersonation",
+      "term": "Service account impersonation",
+      "ipa": "/ˈsɜːvɪs əˈkaʊnt ɪmˌpɜːsəˈneɪʃn/",
+      "say": "service account impersonation",
+      "def": "An authenticated principal, such as a developer, gets short-lived credentials for a service account and acts as it. It needs the permission iam.serviceAccounts.getAccessToken, for example through the Service Account Token Creator role, and most audit logs show both identities.",
+      "example": "A developer runs gcloud with --impersonate-service-account to test the adapter's permissions without downloading a key.",
+      "src": "s8"
+    },
+    {
+      "id": "t-short-lived",
+      "term": "Short-lived credentials",
+      "ipa": "/ˌʃɔːt ˈlɪvd krəˈdenʃlz/",
+      "say": "short lived credentials",
+      "def": "Credentials with a limited lifetime, such as OAuth 2.0 access tokens and OpenID Connect ID tokens. A service account access token lasts at most one hour by default, so a stolen token is useful only for a short time.",
+      "example": "The pipeline gets a one-hour access token for the deployer service account instead of storing a key.",
+      "src": "s9"
+    },
+    {
+      "id": "t-wif",
+      "term": "Workload Identity Federation",
+      "ipa": "/ˈwɜːkləʊd aɪˈdentəti ˌfedəˈreɪʃn/",
+      "say": "workload identity federation",
+      "def": "Lets a workload outside Google Cloud, such as a job on AWS or a GitHub Actions pipeline, exchange its own credential for a short-lived Google Cloud token. You configure a workload identity pool and a provider that describes the trust with the external identity provider.",
+      "example": "The GitHub Actions workflow exchanges its OIDC token at the Security Token Service and deploys to Cloud Run with no stored key.",
+      "src": "s10"
+    },
+    {
+      "id": "t-sa-key",
+      "term": "Service account key",
+      "ipa": "/ˈsɜːvɪs əˈkaʊnt kiː/",
+      "say": "service account key",
+      "def": "A long-lived private key that lets anyone who holds it authenticate as a service account. Keys can leak, have no expiry time by default and make it hard to tell who really used them, so Google recommends more secure alternatives.",
+      "example": "A key file committed to a Git repository gave an attacker the same access as the integration's service account.",
+      "src": "s15"
+    },
+    {
+      "id": "t-secret-version",
+      "term": "Secret version",
+      "ipa": "/ˈsiːkrət ˈvɜːʃn/",
+      "say": "secret version",
+      "def": "A secret holds metadata and permissions; each version holds one value of the secret data. To change the value you add a new version. A version is enabled, disabled or destroyed, and latest is an alias for the most recently added version.",
+      "example": "Version 3 of sf-api-key holds the current credential; version 2 is disabled and will be destroyed next week.",
+      "src": "s18"
+    },
+    {
+      "id": "t-rotation-schedule",
+      "term": "Rotation schedule",
+      "ipa": "/rəʊˈteɪʃn ˈʃedjuːl/",
+      "say": "rotation schedule",
+      "def": "Settings on a secret, next_rotation_time and an optional rotation_period, that make Secret Manager send a SECRET_ROTATE message to the secret's Pub/Sub topics. Your own subscriber must then create the new credential and add the new version.",
+      "example": "Every 30 days a SECRET_ROTATE message reaches a Cloud Run service that creates a new API credential and adds it as a new version.",
+      "src": "s22"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u20-l1",
+      "kind": "concepts",
+      "title": "The vocabulary of identity and secrets",
+      "items": [
+        {
+          "id": "u20-l1-i1",
+          "type": "card",
+          "term": "t-principal",
+          "src": "s28"
+        },
+        {
+          "id": "u20-l1-i2",
+          "type": "card",
+          "term": "t-role",
+          "src": "s2"
+        },
+        {
+          "id": "u20-l1-i3",
+          "type": "pick",
+          "src": "s1",
+          "q": "In Google Cloud IAM, what do you grant to a principal to give it access to a resource?",
+          "options": [
+            "A role, which is a collection of permissions",
+            "A single permission, such as secretmanager.versions.access",
+            "An access token that never expires",
+            "A firewall rule on the resource's network"
+          ],
+          "answer": 0,
+          "why": "You cannot grant permissions directly; you grant roles in an allow policy. An access token is a credential, not a grant, and firewall rules control network traffic, not IAM access."
+        },
+        {
+          "id": "u20-l1-i4",
+          "type": "card",
+          "term": "t-policy-inheritance",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "org",
+                "label": "Organisation: example.com"
+              },
+              {
+                "id": "fold",
+                "label": "Folder: hr-prod"
+              },
+              {
+                "id": "proj",
+                "label": "Project: acme-hr-prod"
+              },
+              {
+                "id": "sec",
+                "label": "Secret: sf-api-key"
+              }
+            ],
+            "edges": [
+              {
+                "from": "org",
+                "to": "fold",
+                "label": "grants are inherited"
+              },
+              {
+                "from": "fold",
+                "to": "proj",
+                "label": "grants are inherited"
+              },
+              {
+                "from": "proj",
+                "to": "sec",
+                "label": "grants are inherited"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u20-l1-i5",
+          "type": "tf",
+          "src": "s3",
+          "statement": "If a group has Secret Manager Secret Accessor on the project, you can stop it reading one secret by editing that secret's allow policy.",
+          "answer": false,
+          "why": "The effective policy is the union of the secret's policy and its ancestors' policies, so the project grant still applies. Remove the project grant and grant the role only on the secrets the group needs."
+        },
+        {
+          "id": "u20-l1-i6",
+          "type": "card",
+          "term": "t-iam-condition",
+          "src": "s4"
+        },
+        {
+          "id": "u20-l1-i7",
+          "type": "tf",
+          "src": "s4",
+          "statement": "You can add an IAM condition to a role binding for the legacy basic role Editor.",
+          "answer": false,
+          "why": "Conditions cannot be used with the legacy basic roles Owner, Editor and Viewer, or with allUsers and allAuthenticatedUsers. Use a predefined role with a condition instead."
+        },
+        {
+          "id": "u20-l1-i8",
+          "type": "tf",
+          "src": "s7",
+          "statement": "To deploy a Cloud Run service that runs as a service account, the deployer needs a role such as Service Account User on that service account.",
+          "answer": true,
+          "why": "Attaching a service account to a resource needs the permission iam.serviceAccounts.actAs, which is in the Service Account User role. Without it, the deployer cannot make the service run as that account."
+        },
+        {
+          "id": "u20-l1-i9",
+          "type": "card",
+          "term": "t-secret-version",
+          "src": "s18",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "s",
+                "label": "Secret: sf-api-key (metadata and IAM policy)"
+              },
+              {
+                "id": "v1",
+                "label": "Version 1: destroyed"
+              },
+              {
+                "id": "v2",
+                "label": "Version 2: disabled"
+              },
+              {
+                "id": "v3",
+                "label": "Version 3: enabled, alias latest"
+              }
+            ],
+            "edges": [
+              {
+                "from": "s",
+                "to": "v1",
+                "label": "holds"
+              },
+              {
+                "from": "s",
+                "to": "v2",
+                "label": "holds"
+              },
+              {
+                "from": "s",
+                "to": "v3",
+                "label": "holds"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u20-l1-i10",
+          "type": "match",
+          "src": "s6",
+          "q": "Match each term with its meaning.",
+          "pairs": [
+            [
+              "Attached service account",
+              "The identity that a Cloud Run service or a VM runs as"
+            ],
+            [
+              "Service account impersonation",
+              "A principal gets short-lived credentials to act as a service account"
+            ],
+            [
+              "Workload Identity Federation",
+              "An external workload exchanges its own credential for a Google Cloud token"
+            ],
+            [
+              "Service account key",
+              "A long-lived private key that works for anyone who holds it"
+            ],
+            [
+              "Rotation schedule",
+              "Makes Secret Manager publish SECRET_ROTATE messages to Pub/Sub"
+            ],
+            [
+              "Custom role",
+              "A role with only the permissions you choose, at organisation or project level"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u20-l2",
+      "kind": "practice",
+      "title": "Design keyless access and safe secrets",
+      "items": [
+        {
+          "id": "u20-l2-i1",
+          "type": "match",
+          "src": "s6",
+          "q": "Match each workload with the way it should get Google Cloud credentials without a key.",
+          "pairs": [
+            [
+              "A Spring Boot service on Cloud Run",
+              "Attach a dedicated user-managed service account"
+            ],
+            [
+              "A pod on GKE",
+              "Workload Identity Federation for GKE"
+            ],
+            [
+              "A GitHub Actions deployment pipeline",
+              "Workload Identity Federation with the GitHub OIDC token"
+            ],
+            [
+              "A batch job on AWS",
+              "Workload Identity Federation with its AWS credentials"
+            ],
+            [
+              "A developer debugging on a laptop",
+              "Impersonate the service account with gcloud"
+            ]
+          ]
+        },
+        {
+          "id": "u20-l2-i2",
+          "type": "scenario",
+          "src": "s26",
+          "q": "A Spring Boot service on Cloud Run reads data from SuccessFactors Recruiting and publishes CandidateHired events to Pub/Sub. It was deployed without a service account, so it runs as the Compute Engine default service account, which has Editor on the project. What do you do?",
+          "options": [
+            {
+              "text": "Create a dedicated service account, grant it only Secret Accessor on the API secret and Publisher on the topic, and redeploy the service with it.",
+              "ok": true,
+              "why": "A user-managed service account with the smallest set of roles is the recommended service identity for Cloud Run."
+            },
+            {
+              "text": "Keep the default service account, because Cloud Run needs Editor to work.",
+              "ok": false,
+              "why": "Cloud Run works with a user-managed service account that has only the roles it needs. Google recommends replacing Editor on the default service account with less permissive roles."
+            },
+            {
+              "text": "Create a key for a new service account and set GOOGLE_APPLICATION_CREDENTIALS on the service.",
+              "ok": false,
+              "why": "The Cloud Run docs warn against setting GOOGLE_APPLICATION_CREDENTIALS, and a key adds a long-lived credential that can leak."
+            },
+            {
+              "text": "Create a new service account with the basic role Editor, so that nothing breaks.",
+              "ok": false,
+              "why": "Basic roles should not be granted in production unless there is no alternative, so this repeats the same problem under a new name."
+            }
+          ]
+        },
+        {
+          "id": "u20-l2-i3",
+          "type": "code",
+          "src": "s25",
+          "lang": "text",
+          "q": "Complete the commands. The service runs as its own service account, access is granted on the secret itself, and the environment variable is pinned to a version.",
+          "code": "gcloud secrets add-iam-policy-binding sf-api-key \\\n  --member=serviceAccount:candidate-sync@acme-hr.iam.gserviceaccount.com \\\n  --role=roles/secretmanager.[[1]]\n\ngcloud run deploy candidate-sync \\\n  --image=europe-west1-docker.pkg.dev/acme-hr/apps/candidate-sync:1.4.0 \\\n  --region=europe-west1 \\\n  --[[2]]=candidate-sync@acme-hr.iam.gserviceaccount.com \\\n  --update-secrets=SF_API_KEY=sf-api-key:[[3]]",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "secretAccessor",
+              "decoys": [
+                "viewer",
+                "admin"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "service-account",
+              "decoys": [
+                "impersonate-service-account",
+                "workload-pool"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "3",
+              "decoys": [
+                "latest",
+                "enabled"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u20-l2-i4",
+          "type": "scenario",
+          "src": "s6",
+          "q": "A developer wants to run the candidate-sync service on a laptop with exactly the permissions it has in production, to debug a permission error. What do you set up?",
+          "options": [
+            {
+              "text": "Grant the developer Service Account Token Creator on that one service account, and let them use gcloud with --impersonate-service-account.",
+              "ok": true,
+              "why": "Impersonation gives short-lived credentials with no key, and most audit logs show both the developer and the service account."
+            },
+            {
+              "text": "Create a key for the service account and send it to the developer.",
+              "ok": false,
+              "why": "A key is a long-lived credential that can leak, and the logs cannot show which person used it."
+            },
+            {
+              "text": "Grant the developer Service Account Token Creator on the whole project.",
+              "ok": false,
+              "why": "At project level the developer could impersonate every service account in the project, not only this one."
+            },
+            {
+              "text": "Give the developer Owner on the project for one day.",
+              "ok": false,
+              "why": "A basic role gives far more access than the service has, so it does not reproduce the permission error."
+            }
+          ]
+        },
+        {
+          "id": "u20-l2-i5",
+          "type": "diagram",
+          "src": "s12",
+          "layout": "flow",
+          "q": "Complete the keyless flow. A GitHub Actions workflow deploys the integration to Cloud Run with Workload Identity Federation. In this set-up it impersonates a deployer service account, the fallback when direct resource access is not possible.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "GitHub Actions workflow",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Security Token Service",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Federated token",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Deployer service account",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "Short-lived access token",
+              "slot": false
+            },
+            {
+              "id": "n6",
+              "label": "Cloud Run Admin API",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "sends its GitHub OIDC token"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "checks the provider and its attribute condition, then returns"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "impersonates (Workload Identity User role)"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "issues"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "deploys the new revision"
+            }
+          ],
+          "decoys": [
+            "Service account key stored as a GitHub secret",
+            "Owner role on the project",
+            "Personal access token"
+          ]
+        },
+        {
+          "id": "u20-l2-i6",
+          "type": "scenario",
+          "src": "s15",
+          "q": "A security scan finds a service account key in a Git repository. An on-premises job uses the key to publish candidate updates to Pub/Sub. What is the best long-term fix?",
+          "options": [
+            {
+              "text": "Disable and delete the leaked key, move the job to Workload Identity Federation with your identity provider, and enforce the organisation policy that disables key creation.",
+              "ok": true,
+              "why": "This removes the long-lived credential and stops new keys from being created."
+            },
+            {
+              "text": "Create a new key, keep it out of Git and rotate it every 90 days.",
+              "ok": false,
+              "why": "Rotation shortens the exposure window, but the key can still leak and still hides who used it."
+            },
+            {
+              "text": "Set an expiry time of one day on new keys for this production job.",
+              "ok": false,
+              "why": "Google advises against key expiry for production workloads, because an expired key can cause an outage."
+            },
+            {
+              "text": "Make the repository private and keep using the same key.",
+              "ok": false,
+              "why": "The key has already leaked, so it must be disabled, and a private repository does not remove the other risks of keys."
+            }
+          ]
+        },
+        {
+          "id": "u20-l2-i7",
+          "type": "scenario",
+          "src": "s13",
+          "q": "On GKE Standard, the candidate-matching pods call Pub/Sub with the node's Compute Engine service account. Other teams' pods run on the same nodes. How should the matching pods get only the access they need?",
+          "options": [
+            {
+              "text": "Enable Workload Identity Federation for GKE, give the pods their own Kubernetes ServiceAccount, and grant the Pub/Sub role to that ServiceAccount's principal identifier.",
+              "ok": true,
+              "why": "Each application gets its own identity, and IAM roles are granted to it directly, with no key."
+            },
+            {
+              "text": "Grant the Pub/Sub role to the node service account.",
+              "ok": false,
+              "why": "The node service account is shared by all workloads on the node, so every team's pods would get the access."
+            },
+            {
+              "text": "Create a service account key and store it as a Kubernetes Secret.",
+              "ok": false,
+              "why": "Keys are a security risk if not managed correctly, and Workload Identity Federation for GKE avoids them."
+            },
+            {
+              "text": "Enable Workload Identity Federation for GKE and change nothing else, because it grants the needed roles.",
+              "ok": false,
+              "why": "Enabling it does not grant workloads any IAM permissions; you still grant roles to the workload's identity."
+            }
+          ]
+        },
+        {
+          "id": "u20-l2-i8",
+          "type": "match",
+          "src": "s25",
+          "q": "Match each Cloud Run secret setting with what happens.",
+          "pairs": [
+            [
+              "Environment variable pinned to version 3",
+              "Read at instance start-up; a new value needs a new revision"
+            ],
+            [
+              "Environment variable set to latest",
+              "Each new instance picks up the newest version, even a bad one"
+            ],
+            [
+              "Secret mounted as a volume",
+              "Fetched from Secret Manager each time the file is read"
+            ],
+            [
+              "Environment variable secret not accessible at start-up",
+              "The instance does not start"
+            ],
+            [
+              "Volume secret not accessible at runtime",
+              "Reading the file fails"
+            ]
+          ]
+        },
+        {
+          "id": "u20-l2-i9",
+          "type": "order",
+          "src": "s23",
+          "q": "A rotation schedule fires for the secret that holds an external API credential. Put the safe rotation steps in order.",
+          "steps": [
+            "Secret Manager publishes a SECRET_ROTATE message to the secret's Pub/Sub topic",
+            "A Cloud Run rotation service receives the message",
+            "It creates a new credential in the external system without invalidating the old one",
+            "It adds the new credential as a new secret version",
+            "The new version is rolled out to every application that uses it",
+            "The old version is disabled, and you check that nothing breaks",
+            "The old credential is removed from the external system and the old version is destroyed"
+          ]
+        },
+        {
+          "id": "u20-l2-i10",
+          "type": "code",
+          "src": "s3",
+          "lang": "json",
+          "q": "Complete the allow policy. The on-call group may read the payload of the SuccessFactors API secret, but only until go-live on 1 December 2026.",
+          "code": "{\n  \"bindings\": [\n    {\n      \"role\": \"[[1]]\",\n      \"members\": [\"group:sf-integration-oncall@example.com\"],\n      \"condition\": {\n        \"title\": \"Until go-live\",\n        \"expression\": \"[[2]] < timestamp('2026-12-01T00:00:00Z')\"\n      }\n    }\n  ],\n  \"etag\": \"BwYa1b2c3d4=\",\n  \"version\": [[3]]\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "roles/secretmanager.secretAccessor",
+              "decoys": [
+                "roles/secretmanager.viewer",
+                "roles/editor"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "request.time",
+              "decoys": [
+                "resource.name",
+                "principal.type"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "3",
+              "decoys": [
+                "1",
+                "2"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u20-l3",
+      "kind": "interview",
+      "title": "Talk about identity and secrets",
+      "items": [
+        {
+          "id": "u20-l3-i1",
+          "type": "say",
+          "src": "s15",
+          "text": "I avoid service account keys. On Google Cloud I attach a dedicated service account, and outside Google Cloud I use Workload Identity Federation."
+        },
+        {
+          "id": "u20-l3-i2",
+          "type": "tf",
+          "src": "s6",
+          "statement": "To let a developer impersonate one service account, the cleanest option is to grant Service Account Token Creator on the project.",
+          "answer": false,
+          "why": "At project level the role lets the user impersonate any service account in the project. Grant it on the one service account instead."
+        },
+        {
+          "id": "u20-l3-i3",
+          "type": "explain",
+          "src": "s20",
+          "seconds": 120,
+          "q": "How do you apply least privilege with Google Cloud IAM?",
+          "model": "I start from the task, not from the list of roles. First, each application gets its own user-managed service account, never the default compute account, which may have Editor. Second, I use predefined roles, or a custom role when no predefined role is small enough. I don't grant basic roles like Owner or Editor in production. Third, I grant at the lowest level that works, because a role on a project or folder is inherited by everything below it. For example, our SuccessFactors adapter on Cloud Run gets Secret Accessor on one secret and Publisher on one topic, not on the whole project. For people, I grant roles to groups, and for temporary access I add an IAM condition with an end date. The trade-off is more bindings to manage. So I keep them in code and review them regularly, because allow policies only add access, and a grant higher up cannot be removed lower down.",
+          "keypoints": [
+            {
+              "text": "A dedicated service account for each application",
+              "kw": [
+                "dedicated",
+                "own service account",
+                "user-managed",
+                "each application",
+                "per application",
+                "default service account"
+              ]
+            },
+            {
+              "text": "Predefined or custom roles, not basic roles",
+              "kw": [
+                "predefined",
+                "custom role",
+                "custom roles",
+                "basic role",
+                "basic roles",
+                "owner",
+                "editor"
+              ]
+            },
+            {
+              "text": "Grant at the lowest level, because roles are inherited",
+              "kw": [
+                "lowest level",
+                "one secret",
+                "on the secret",
+                "resource level",
+                "inherited",
+                "inheritance",
+                "hierarchy"
+              ]
+            },
+            {
+              "text": "Conditions for temporary access",
+              "kw": [
+                "condition",
+                "conditions",
+                "temporary",
+                "end date",
+                "expire",
+                "time-limited"
+              ]
+            },
+            {
+              "text": "Groups for people and regular reviews",
+              "kw": [
+                "group",
+                "groups",
+                "review",
+                "reviews",
+                "audit",
+                "recommender"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u20-l3-i4",
+          "type": "scenario",
+          "src": "s23",
+          "q": "The interviewer says: our Cloud Run service reads the SuccessFactors API credential from Secret Manager as latest. Last week someone added a wrong value, and every new instance failed to start. What do you recommend?",
+          "options": [
+            {
+              "text": "Pin the environment variable to a version number, change it only through a new deployment, and roll back to the previous revision if it breaks.",
+              "ok": true,
+              "why": "Pinning lets the release process validate the secret and roll it back like any other configuration."
+            },
+            {
+              "text": "Make the application read latest again every minute, so that a fix reaches all instances quickly.",
+              "ok": false,
+              "why": "Continuous polling risks an immediate, service-wide outage, because a bad value reaches every instance at once."
+            },
+            {
+              "text": "Grant the service account Secret Manager Admin, so that it can repair bad versions itself.",
+              "ok": false,
+              "why": "This breaks least privilege and does not stop a bad value from being used."
+            },
+            {
+              "text": "Keep latest and ask people to be more careful when they add versions.",
+              "ok": false,
+              "why": "Google warns that latest can roll out a bad value immediately in production; care alone gives no validation or rollback."
+            }
+          ]
+        },
+        {
+          "id": "u20-l3-i5",
+          "type": "explain",
+          "src": "s15",
+          "seconds": 120,
+          "q": "Why should we avoid service account keys, and what do you use instead?",
+          "model": "A service account key is a long-lived private key, and anyone who has the file can act as the service account. Keys leak, for example in a Git repository or a laptop backup. By default they have no expiry time. Also, the logs show only the service account, so it is hard to tell who really used the key. So my rule is: no keys unless there is no alternative. On Google Cloud, I attach a dedicated service account to the Cloud Run service or the VM, and the client libraries get short-lived tokens automatically. On GKE, I use Workload Identity Federation for GKE. For workloads outside Google Cloud, like a GitHub Actions pipeline or a job on AWS, I use Workload Identity Federation. Developers impersonate the service account. I also enforce the organisation policy that disables key creation. If a legacy tool really needs a key, I allow it in that one project only and rotate the key routinely.",
+          "keypoints": [
+            {
+              "text": "A long-lived credential that can leak",
+              "kw": [
+                "long-lived",
+                "leak",
+                "leaks",
+                "leaked",
+                "git",
+                "stolen",
+                "file"
+              ]
+            },
+            {
+              "text": "No expiry by default, and no reliable record of who used it",
+              "kw": [
+                "expiry",
+                "expire",
+                "hard to tell",
+                "who used",
+                "who really",
+                "non-repudiation",
+                "logs",
+                "audit"
+              ]
+            },
+            {
+              "text": "Attached service accounts on Google Cloud",
+              "kw": [
+                "attach",
+                "attached",
+                "cloud run",
+                "metadata server",
+                "client libraries"
+              ]
+            },
+            {
+              "text": "Workload Identity Federation for GKE and for external workloads",
+              "kw": [
+                "workload identity",
+                "federation",
+                "gke",
+                "github",
+                "aws",
+                "exchange"
+              ]
+            },
+            {
+              "text": "Impersonation for developers",
+              "kw": [
+                "impersonate",
+                "impersonation",
+                "token creator"
+              ]
+            },
+            {
+              "text": "An organisation policy that disables key creation",
+              "kw": [
+                "organisation policy",
+                "organization policy",
+                "org policy",
+                "disables key creation",
+                "disable key creation",
+                "constraint"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u20-l3-i6",
+          "type": "tf",
+          "src": "s13",
+          "statement": "Turning on Workload Identity Federation for GKE automatically gives your pods the IAM roles they need.",
+          "answer": false,
+          "why": "Enabling it does not grant workloads any additional IAM permissions. You still grant roles to each workload's principal identifier or to a linked service account."
+        },
+        {
+          "id": "u20-l3-i10",
+          "type": "scenario",
+          "src": "s5",
+          "q": "The interviewer says: I granted Secret Accessor on the secret to the service's own service account and deployed one minute later. The new Cloud Run revision does not start, because access to the secret is denied. What do you do?",
+          "options": [
+            {
+              "text": "Check that the binding names the right service account and the right secret, give the change a few minutes to propagate, and deploy again.",
+              "ok": true,
+              "why": "IAM changes are eventually consistent: they typically take 2 minutes and can take 7 minutes or longer. A wrong principal in the binding is the other common cause."
+            },
+            {
+              "text": "Grant the service account Editor on the project, so that the deployment works.",
+              "ok": false,
+              "why": "A basic role breaks least privilege, and you still do not know the real cause."
+            },
+            {
+              "text": "Create a key for the service account and set GOOGLE_APPLICATION_CREDENTIALS on the service.",
+              "ok": false,
+              "why": "The Cloud Run docs say never to set this variable on a service, and a key adds a long-lived credential that can leak."
+            },
+            {
+              "text": "Change the secret reference from a version number to latest.",
+              "ok": false,
+              "why": "The version reference does not change who has access, so access is still denied."
+            }
+          ]
+        },
+        {
+          "id": "u20-l3-i7",
+          "type": "say",
+          "src": "s22",
+          "text": "Secret Manager only tells me when it is time to rotate. My own service does the rotation, and it must be safe to run again."
+        },
+        {
+          "id": "u20-l3-i8",
+          "type": "explain",
+          "src": "s23",
+          "seconds": 150,
+          "q": "How would you rotate the credential that your integration uses for an external API, with Secret Manager?",
+          "model": "I put a rotation schedule on the secret: a next rotation time, a rotation period, for example thirty days, and a Pub/Sub topic. The Secret Manager service agent needs the Publisher role on that topic. When the time comes, Secret Manager publishes a SECRET_ROTATE message, but it does not change the credential itself. A small Cloud Run service subscribes to the topic and does the work. It creates a new credential in the external system without invalidating the old one, and adds it as a new secret version. Then we roll the new version out to every application, and only after that do we disable the old version and check that nothing breaks. After a waiting period, we revoke the old credential and destroy the old version. The rotation can be stopped at any moment, so the service must be reentrant, and I configure retries. The trade-off is a short time with two valid credentials, but that overlap is what avoids downtime.",
+          "keypoints": [
+            {
+              "text": "A rotation schedule with a period and a Pub/Sub topic",
+              "kw": [
+                "rotation schedule",
+                "rotation period",
+                "next rotation",
+                "schedule",
+                "pub/sub",
+                "pubsub",
+                "topic"
+              ]
+            },
+            {
+              "text": "Secret Manager only sends SECRET_ROTATE; your service rotates",
+              "kw": [
+                "secret_rotate",
+                "secret rotate",
+                "message",
+                "notification",
+                "does not change",
+                "only tells"
+              ]
+            },
+            {
+              "text": "Create the new credential first, without invalidating the old one",
+              "kw": [
+                "new credential",
+                "new version",
+                "without invalidating",
+                "old one",
+                "overlap",
+                "both valid"
+              ]
+            },
+            {
+              "text": "Roll out, then disable the old version, then destroy it",
+              "kw": [
+                "roll out",
+                "rollout",
+                "disable",
+                "destroy",
+                "waiting period",
+                "revoke"
+              ]
+            },
+            {
+              "text": "A reentrant handler with retries",
+              "kw": [
+                "reentrant",
+                "re-entrant",
+                "retry",
+                "retries",
+                "idempotent",
+                "run again"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u20-l3-i9",
+          "type": "explain",
+          "src": "s10",
+          "seconds": 120,
+          "q": "A GitHub Actions pipeline and a job on AWS both need to call Google Cloud. How do they authenticate without keys?",
+          "model": "I use Workload Identity Federation. Both workloads already have an identity from their own platform: GitHub issues an OIDC token to each workflow run, and the AWS job has AWS credentials. In a dedicated Google Cloud project, I create workload identity pools, with one provider in each pool to avoid subject collisions. The workload sends its credential to the Security Token Service, which checks it against the provider and returns a short-lived federated token. Where possible, I grant roles directly to the workload's principal identifier. Otherwise, the workload impersonates a service account on which it has the Workload Identity User role. For GitHub, an attribute condition is required. GitHub uses one issuer for every organisation, so I restrict the provider to ours with assertion.repository_owner, and often to the main branch. I also map google.subject to the sub claim, so the audit logs show which workflow did what. It takes more set-up than a key, but nothing long-lived can leak.",
+          "keypoints": [
+            {
+              "text": "Workload Identity Federation with a pool and providers",
+              "kw": [
+                "workload identity federation",
+                "federation",
+                "pool",
+                "provider",
+                "dedicated project",
+                "one provider"
+              ]
+            },
+            {
+              "text": "Token exchange at the Security Token Service",
+              "kw": [
+                "security token service",
+                "sts",
+                "exchange",
+                "federated token",
+                "oidc token",
+                "oidc"
+              ]
+            },
+            {
+              "text": "Short-lived credentials and no stored key",
+              "kw": [
+                "short-lived",
+                "short lived",
+                "no key",
+                "without keys",
+                "one hour",
+                "expires"
+              ]
+            },
+            {
+              "text": "Direct resource access or impersonating a service account",
+              "kw": [
+                "direct",
+                "directly",
+                "principal identifier",
+                "impersonate",
+                "impersonates",
+                "workload identity user"
+              ]
+            },
+            {
+              "text": "An attribute condition that trusts only your organisation",
+              "kw": [
+                "attribute condition",
+                "condition",
+                "repository_owner",
+                "organisation",
+                "organization",
+                "branch"
+              ]
+            },
+            {
+              "text": "Attribute mapping for clear audit logs",
+              "kw": [
+                "google.subject",
+                "mapping",
+                "map",
+                "audit",
+                "logs",
+                "subject"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "IAM in one minute",
+        "points": [
+          "IAM controls who (a principal) can do what (a role) on which resource.",
+          "Principals: Google Accounts, groups, service accounts and federated identities (principal:// and principalSet://).",
+          "You grant roles, never single permissions; a permission looks like service.resource.verb.",
+          "Basic roles are too broad for production: the legacy Owner, Editor and Viewer, and the new Admin, Writer and Reader (Preview).",
+          "Use predefined roles (maintained by Google) or custom roles (organisation or project level, not folders; you maintain them).",
+          "An allow policy holds role bindings; read, modify, write, and let the etag reject a conflicting update.",
+          "Changes are eventually consistent: typically 2 minutes, potentially 7 minutes or longer; group membership changes can take hours."
+        ]
+      },
+      {
+        "h": "Inheritance and conditions",
+        "points": [
+          "Organisation, folders, projects, resources: a grant on a parent applies to everything below it.",
+          "Effective policy: the union of the resource's policy and all its ancestors' policies.",
+          "Allow policies only add access; to block inherited access, remove the higher grant or use a deny policy.",
+          "IAM Conditions are CEL expressions, for example request.time < timestamp('2026-12-01T00:00:00Z') or resource.type == 'compute.googleapis.com/Instance'.",
+          "Use allow policy version 3 with conditions; no conditions on legacy basic roles, allUsers or allAuthenticatedUsers."
+        ]
+      },
+      {
+        "h": "Service accounts without keys",
+        "points": [
+          "One dedicated user-managed service account per application; avoid default service accounts, which may have Editor.",
+          "On Cloud Run: deploy with the service account; client libraries get tokens from the metadata server.",
+          "Attaching needs iam.serviceAccounts.actAs (Service Account User) on the service account.",
+          "Impersonation: Service Account Token Creator on one service account, never on the whole project.",
+          "Access tokens last at most 1 hour by default (up to 12 hours with an organisation policy exception).",
+          "Outside Google Cloud: Workload Identity Federation (pool, provider, Security Token Service, attribute condition).",
+          "Federated principals: grant roles directly where possible; otherwise impersonate a service account (Workload Identity User). One provider per pool.",
+          "GKE: Workload Identity Federation for GKE; grant roles to principal://.../subject/ns/NAMESPACE/sa/KSA_NAME."
+        ]
+      },
+      {
+        "h": "Why avoid keys",
+        "points": [
+          "Risks: credential leakage, privilege escalation, information disclosure, non-repudiation.",
+          "Keys have no expiry time by default; Google advises against key expiry for production because it can cause outages.",
+          "Organisation policy constraints: iam.disableServiceAccountKeyCreation and iam.disableServiceAccountKeyUpload (managed versions: iam.managed.*).",
+          "These are enforced by default in organisations created on or after 3 May 2024.",
+          "If a key is unavoidable, rotate it routinely."
+        ]
+      },
+      {
+        "h": "Secret Manager basics",
+        "points": [
+          "Secret: metadata and IAM policy. Secret version: the value; to change it, add a new version.",
+          "Version states: enabled, disabled (contents kept but not accessible), destroyed (permanent).",
+          "latest is an alias for the newest version; in production, reference a version number.",
+          "Roles: Secret Accessor reads the payload, Viewer sees metadata only, Secret Version Adder adds versions.",
+          "Grant on the individual secret when several services share one project.",
+          "Disable a version before you destroy it, and wait, for example a week, to find lingering dependencies.",
+          "Enable Data Access audit logs to see AccessSecretVersion requests."
+        ]
+      },
+      {
+        "h": "Rotation and notifications",
+        "points": [
+          "Rotation schedule: next_rotation_time (at least 5 minutes ahead) and rotation_period (at least 1 hour).",
+          "Secret Manager publishes SECRET_ROTATE to the secret's Pub/Sub topics (up to 10); your subscriber does the rotation.",
+          "The Secret Manager service agent needs roles/pubsub.publisher on each topic.",
+          "Safe order: new credential, new version, roll out, disable the old version, verify, then destroy.",
+          "The rotation service must be reentrant; configure retries.",
+          "Other events include SECRET_VERSION_ADD and SECRET_VERSION_DISABLE; expect new event types."
+        ]
+      },
+      {
+        "h": "Secrets in Cloud Run",
+        "points": [
+          "The service identity needs roles/secretmanager.secretAccessor on the secret.",
+          "Environment variable: resolved at instance start-up; pin a version, for example SF_API_KEY=sf-api-key:3.",
+          "Volume: Cloud Run fetches the value from Secret Manager each time the file is read; with latest, this works well with rotation.",
+          "Not accessible: an environment variable stops the instance from starting; a volume makes the read fail.",
+          "Any configuration change creates a new revision, so you can roll back to the previous one.",
+          "Never set GOOGLE_APPLICATION_CREDENTIALS on a Cloud Run service; use the service identity instead.",
+          "Cloud Run does not support regional secrets; use global secrets."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "IAM overview - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Roles overview - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/roles-overview",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Understanding allow policies - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/allow-policies",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "IAM Conditions overview - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/conditions-overview",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Access change propagation - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/access-change-propagation",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Best practices for using service accounts securely - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/best-practices-service-accounts",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Attach service accounts to resources - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/attach-service-accounts",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Service account impersonation - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/service-account-impersonation",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Create short-lived credentials for a service account - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/create-short-lived-credentials-direct",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Workload Identity Federation - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/workload-identity-federation",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Best practices for using Workload Identity Federation - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/best-practices-for-using-workload-identity-federation",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Configure Workload Identity Federation with deployment pipelines - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/workload-identity-federation-with-deployment-pipelines",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "About Workload Identity Federation for GKE - GKE security, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/kubernetes-engine/docs/concepts/workload-identity",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Authenticate to Google Cloud APIs from GKE workloads - GKE security, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/kubernetes-engine/docs/how-to/workload-identity",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Best practices for managing service account keys - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/best-practices-for-managing-service-account-keys",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Restrict IAM service account usage - Organization Policy, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/organization-policy/restrict-service-accounts",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Secret Manager overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Add a secret version - Secret Manager, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/add-secret-version",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Access a secret version - Secret Manager, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/access-secret-version",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Access control with IAM - Secret Manager, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/access-control",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Secret Manager best practices - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/best-practices",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Create rotation schedules in Secret Manager - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/secret-rotation",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "About rotation schedules - Secret Manager, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/rotation-recommendations",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "Set up notifications on a secret - Secret Manager, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/secret-manager/docs/event-notifications",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "Configure secrets for services - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/services/secrets",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "Introduction to service identity - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/securing/service-identity",
+      "official": true
+    },
+    {
+      "id": "s27",
+      "title": "Manage access to service accounts - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/manage-access-service-accounts",
+      "official": true
+    },
+    {
+      "id": "s28",
+      "title": "IAM principals - Identity and Access Management, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/iam/docs/principals-overview",
+      "official": true
+    }
+  ]
+}

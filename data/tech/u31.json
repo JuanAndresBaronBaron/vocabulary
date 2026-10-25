@@ -1,0 +1,1253 @@
+{
+  "format": 1,
+  "id": "u31",
+  "n": 31,
+  "block": "final",
+  "title": "Your architectures",
+  "summary": "After this unit you can present an architecture you built in seven clear parts, draw it at the right C4 zoom level, and answer the classic follow-up questions: why not synchronous, what if Pub/Sub delivers twice, and how it would scale ten times.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Sources re-checked on 2026-10-25: c4model.com (diagrams; system context, container, component, code, dynamic and deployment diagrams; notation; container abstraction; queues and topics); arc42 documentation sections 2, 10 and 11; Cloud Run maximum instances and concurrency pages and the Pub/Sub subscription overview, exactly-once, push and ordering pages (all last updated 2026-10-22); Azure interservice communication (last updated 2025-10-30), autoscaling guidance (last updated 2026-03-10) and reliability tradeoffs (last updated 2026-04-27); SAP KBA 3159263; Google Technical Writing One; Oxford Learner's Dictionaries.",
+    "The seven-part walkthrough (context and problem, requirements and constraints, options considered, decision and why, trade-offs, risks and mitigations, outcome and metrics) is a teaching structure built from arc42, the ADR habits of unit 7 and the app's model cases. No single source prescribes it.",
+    "The answer pattern for follow-up questions (check the question, answer first, give the reason, name the trade-off, offer detail) is a teaching habit. Google's technical writing course supports only the idea that the start should answer the reader's essential questions; it is about documents, not interviews.",
+    "Cloud Run on 2026-10-25: maximum instances 100 per revision by default, and the limit can be exceeded briefly during spikes; concurrency 80 by default in the console, 80 x vCPUs with gcloud and Terraform for new services, maximum 1,000.",
+    "Pub/Sub on 2026-10-25: at-least-once delivery by default on all subscription types; exactly-once delivery only for pull subscriptions, within one region; push subscriptions use a slow-start push window and back off for 100 milliseconds to 60 seconds after negative acknowledgements; 1 MBps per ordering key.",
+    "SuccessFactors API rate limits: KBA 3159263 says the rate limiting announced for 2H 2022 was postponed indefinitely, that a throttled call gets HTTP 429, and suggests waiting 300 seconds, a value that may change with server capacity. unconfirmed: the current limits and any newer SAP pages on them (see unit 9).",
+    "The numbers in the examples (events per day, delivery times, ticket reductions) are illustrative and come from the invented model cases, not from real systems."
+  ],
+  "terms": [
+    {
+      "id": "t-quality-requirement",
+      "term": "Quality requirement",
+      "ipa": "/ˈkwɒləti rɪˈkwaɪəmənt/",
+      "say": "quality requirement",
+      "def": "A requirement about how well the system must work, for example how fast, how available or how secure it is, rather than what it does. arc42 asks for quality requirements that are specific and measurable.",
+      "example": "Our key quality requirement was that a hire reaches payroll within five minutes, even on a day when payroll is down for hours.",
+      "src": "s11"
+    },
+    {
+      "id": "t-constraint",
+      "term": "Constraint",
+      "ipa": "/kənˈstreɪnt/",
+      "say": "constraint",
+      "def": "Any requirement that limits the architect's freedom in design and implementation decisions. arc42 groups constraints as technical, organisational and political, or conventions; you must deal with them, although some may be negotiable.",
+      "example": "Two constraints shaped the design: Google Cloud was the only approved platform, and the team knew Java and Spring Boot.",
+      "src": "s10"
+    },
+    {
+      "id": "t-quality-scenario",
+      "term": "Quality scenario",
+      "ipa": "/ˈkwɒləti səˈnɑːriəʊ/",
+      "say": "quality scenario",
+      "def": "A short, measurable description of how the system must react to a stimulus. The long form has six parts: source, stimulus, environment, artefact, response and response measure.",
+      "example": "When payroll is unavailable for three hours, no hire is lost, and every waiting hire reaches payroll within ten minutes after it recovers.",
+      "src": "s11"
+    },
+    {
+      "id": "t-trade-off",
+      "term": "Trade-off",
+      "ipa": "/ˈtreɪd ɒf/",
+      "say": "trade off",
+      "def": "A decision that helps one quality but makes another one worse. For example, more reliability usually means more cost, more latency or more complexity.",
+      "example": "Events made the flow resilient, but the trade-off was eventual consistency and more parts to operate.",
+      "src": "s13"
+    },
+    {
+      "id": "t-mitigation",
+      "term": "Risk mitigation",
+      "ipa": "/ˈrɪsk ˌmɪtɪˈɡeɪʃn/",
+      "say": "risk mitigation",
+      "def": "An action that makes a risk less likely or reduces its impact. arc42 suggests a list of technical risks ordered by priority, with measures to minimise, mitigate or avoid them.",
+      "example": "Risk: a message fails again and again. Mitigation: after several failed attempts it goes to a dead-letter topic, an alert fires, and a runbook explains how to replay it.",
+      "src": "s12"
+    },
+    {
+      "id": "t-c4",
+      "term": "C4 model",
+      "ipa": "/ˌsiː ˈfɔː ˌmɒdl/",
+      "say": "C four model",
+      "def": "A way to draw software architecture at four zoom levels: system context, containers, components and code. It does not prescribe a notation, and the context and container diagrams are enough for most teams.",
+      "example": "On the whiteboard, I drew the system context first and then zoomed into the containers.",
+      "src": "s1"
+    },
+    {
+      "id": "t-system-context",
+      "term": "System context diagram",
+      "ipa": "/ˈsɪstəm ˈkɒntekst ˌdaɪəɡræm/",
+      "say": "system context diagram",
+      "def": "The C4 diagram that shows your system as one box in the middle, with the people who use it and the other systems it works with. It leaves out technology, so technical and non-technical people can all read it.",
+      "example": "The context diagram showed SuccessFactors Recruiting, our hire integration, and the IT, payroll and onboarding systems.",
+      "src": "s2"
+    },
+    {
+      "id": "t-container",
+      "term": "Container (C4 model)",
+      "ipa": "/kənˈteɪnə/",
+      "say": "container",
+      "def": "In the C4 model, an application or a data store, such as a server-side web application, a serverless function or a database. It does not mean a Docker container.",
+      "example": "The event receiver, the hire processor, the Cloud SQL database and each Pub/Sub topic are separate containers on our diagram.",
+      "src": "s4"
+    },
+    {
+      "id": "t-dynamic",
+      "term": "Dynamic diagram",
+      "ipa": "/daɪˈnæmɪk ˌdaɪəɡræm/",
+      "say": "dynamic diagram",
+      "def": "A C4 diagram that shows how elements work together at runtime for one feature or use case, with numbered interactions to show the order. C4 advises using it sparingly, for interesting or complicated flows.",
+      "example": "I drew one dynamic diagram to show what happens when Pub/Sub delivers the same hire event twice.",
+      "src": "s6"
+    },
+    {
+      "id": "t-deployment",
+      "term": "Deployment diagram",
+      "ipa": "/dɪˈplɔɪmənt ˌdaɪəɡræm/",
+      "say": "deployment diagram",
+      "def": "A C4 diagram that shows where the instances of your containers run in one environment, such as production, on deployment nodes, together with infrastructure such as load balancers and DNS.",
+      "example": "The production deployment diagram showed both Cloud Run services and the Cloud SQL instance in one Google Cloud region.",
+      "src": "s7"
+    },
+    {
+      "id": "t-horizontal-scaling",
+      "term": "Horizontal scaling (scaling out)",
+      "ipa": "/ˌhɒrɪˈzɒntl ˈskeɪlɪŋ/",
+      "say": "horizontal scaling",
+      "def": "Adding or removing instances of a resource, while the application keeps running. Vertical scaling instead makes one resource bigger. More instances do not guarantee better performance if something else is the limit.",
+      "example": "Cloud Run scaled the hire processor out by adding instances, so the real limit was the number of database connections behind it.",
+      "src": "s15"
+    },
+    {
+      "id": "t-signposting",
+      "term": "Signposting",
+      "ipa": "/ˈsaɪnpəʊstɪŋ/",
+      "say": "signposting",
+      "def": "Showing your listener clearly how your answer will develop, for example by saying which points you will make and in what order.",
+      "example": "I'll cover three things: the problem, the options we compared, and why we chose events.",
+      "src": "s24"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u31-l1",
+      "kind": "concepts",
+      "title": "The parts of an architecture story",
+      "items": [
+        {
+          "id": "u31-l1-i1",
+          "type": "card",
+          "term": "t-constraint",
+          "src": "s10"
+        },
+        {
+          "id": "u31-l1-i2",
+          "type": "pick",
+          "src": "s10",
+          "q": "You are listing the requirements of the recruiting-events integration. Which of these is a constraint, not a quality requirement?",
+          "options": [
+            "Google Cloud is the company's only approved cloud platform.",
+            "A hire reaches payroll within five minutes in 99 per cent of cases.",
+            "No hire is lost when payroll is down for several hours.",
+            "Status checks answer in under half a second for most calls."
+          ],
+          "answer": 0,
+          "why": "A constraint limits your freedom of design, so you must work within it, even if it may be negotiable. The other three describe how well the system must behave, so they are quality requirements."
+        },
+        {
+          "id": "u31-l1-i3",
+          "type": "card",
+          "term": "t-quality-scenario",
+          "src": "s11"
+        },
+        {
+          "id": "u31-l1-i4",
+          "type": "pick",
+          "src": "s11",
+          "q": "Which requirement is written as a specific, measurable quality scenario?",
+          "options": [
+            "The integration must be fast and reliable.",
+            "When payroll is unavailable for up to three hours, no hire is lost, and every waiting hire reaches payroll within ten minutes after it recovers.",
+            "We will use Pub/Sub and Cloud Run.",
+            "The system should scale as much as possible."
+          ],
+          "answer": 1,
+          "why": "It names the stimulus, the environment, the response and a measure that you can test. 'Fast and reliable' and 'as much as possible' cannot be tested, and 'Pub/Sub and Cloud Run' is a solution, not a requirement."
+        },
+        {
+          "id": "u31-l1-i5",
+          "type": "card",
+          "term": "t-trade-off",
+          "src": "s13"
+        },
+        {
+          "id": "u31-l1-i6",
+          "type": "match",
+          "src": "s12",
+          "q": "Match each part of the walkthrough to an example from the recruiting-events case.",
+          "pairs": [
+            [
+              "Requirements and constraints",
+              "Hires reach payroll within five minutes; Google Cloud and Java are given"
+            ],
+            [
+              "Options considered",
+              "An hourly export, synchronous calls to each system, or events"
+            ],
+            [
+              "Decision and why",
+              "Events, because nobody waits for the result and three systems need the same news"
+            ],
+            [
+              "Trade-offs",
+              "Eventual consistency and more parts to operate"
+            ],
+            [
+              "Risks and mitigations",
+              "A failing message goes to a dead-letter topic, with an alert"
+            ],
+            [
+              "Outcome and metrics",
+              "Hires arrive in about two minutes; first-day tickets fell by about 80 per cent"
+            ]
+          ]
+        },
+        {
+          "id": "u31-l1-i7",
+          "type": "card",
+          "term": "t-c4",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "l1",
+                "label": "System context: your system and its neighbours"
+              },
+              {
+                "id": "l2",
+                "label": "Containers: applications and data stores"
+              },
+              {
+                "id": "l3",
+                "label": "Components: the parts inside one container"
+              },
+              {
+                "id": "l4",
+                "label": "Code: classes and functions"
+              }
+            ],
+            "edges": [
+              {
+                "from": "l1",
+                "to": "l2",
+                "label": "zoom in"
+              },
+              {
+                "from": "l2",
+                "to": "l3",
+                "label": "zoom in"
+              },
+              {
+                "from": "l3",
+                "to": "l4",
+                "label": "zoom in"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u31-l1-i8",
+          "type": "card",
+          "term": "t-container",
+          "src": "s4"
+        },
+        {
+          "id": "u31-l1-i9",
+          "type": "tf",
+          "src": "s4",
+          "statement": "In the C4 model, a container means a Docker container.",
+          "answer": false,
+          "why": "In C4, a container is an application or a data store, such as a Spring Boot service, a serverless function or a database. Where it runs, for example in a Docker container, belongs on a deployment diagram."
+        },
+        {
+          "id": "u31-l1-i10",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each C4 diagram to what it shows.",
+          "pairs": [
+            [
+              "System context diagram",
+              "Your system as one box, with its users and the systems around it"
+            ],
+            [
+              "Container diagram",
+              "The applications and data stores inside your system, and how they talk"
+            ],
+            [
+              "Component diagram",
+              "The parts inside one container; draw it only if it adds value"
+            ],
+            [
+              "Dynamic diagram",
+              "Numbered interactions for one feature or use case"
+            ],
+            [
+              "Deployment diagram",
+              "Where container instances run in one environment, such as production"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u31-l2",
+      "kind": "practice",
+      "title": "Build your walkthrough",
+      "items": [
+        {
+          "id": "u31-l2-i1",
+          "type": "order",
+          "src": "s12",
+          "q": "Put the parts of an architecture walkthrough in order.",
+          "steps": [
+            "Context and problem",
+            "Requirements and constraints",
+            "Options considered",
+            "Decision and why",
+            "Trade-offs",
+            "Risks and mitigations",
+            "Outcome and metrics"
+          ]
+        },
+        {
+          "id": "u31-l2-i2",
+          "type": "scenario",
+          "src": "s23",
+          "q": "The interviewer says: 'Tell me about an integration you designed.' How do you open your answer?",
+          "options": [
+            {
+              "text": "In two sentences: who had the problem, what it cost and what had to change. For example, new starters had no accounts on day one because hires arrived in a nightly file.",
+              "ok": true,
+              "why": "The start of an answer should cover the listener's essential question: why this system exists. Your technical choices only make sense after the problem."
+            },
+            {
+              "text": "With the technology stack: Spring Boot on Cloud Run, Pub/Sub, Cloud SQL and Terraform.",
+              "ok": false,
+              "why": "A list of tools gives the interviewer no reason to care. Without the problem, they cannot judge whether your choices were good."
+            },
+            {
+              "text": "With the component diagram of the hire processor, class by class.",
+              "ok": false,
+              "why": "That level of detail is for developers working on the code. Start zoomed out, with the system context."
+            },
+            {
+              "text": "With an apology that the project was small and not very interesting.",
+              "ok": false,
+              "why": "It weakens your story before it starts. A small system can still show how you think, so present it with confidence."
+            }
+          ]
+        },
+        {
+          "id": "u31-l2-i3",
+          "type": "diagram",
+          "src": "s2",
+          "layout": "flow",
+          "q": "Complete the system context diagram for the recruiting-events case. Remember: technology belongs on the container diagram, not here.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Recruiter (person)",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "SAP SuccessFactors Recruiting",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Hire integration (the system in scope)",
+              "slot": false
+            },
+            {
+              "id": "n4",
+              "label": "IT accounts system",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "Payroll system",
+              "slot": true
+            },
+            {
+              "id": "n6",
+              "label": "Onboarding portal",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "moves applications to Hired and approves offers"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "notifies each change"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "creates the new starter's user accounts"
+            },
+            {
+              "from": "n3",
+              "to": "n5",
+              "label": "creates the employee for the next pay run"
+            },
+            {
+              "from": "n3",
+              "to": "n6",
+              "label": "invites the new starter"
+            }
+          ],
+          "decoys": [
+            "Pub/Sub topic recruiting-events",
+            "Cloud SQL database",
+            "HireProcessor class"
+          ]
+        },
+        {
+          "id": "u31-l2-i4",
+          "type": "diagram",
+          "src": "s3",
+          "layout": "flow",
+          "q": "Complete the container diagram for the partner API case. Each arrow says what the call does and, where it matters, how.",
+          "nodes": [
+            {
+              "id": "p1",
+              "label": "Agency software (external system)",
+              "slot": false
+            },
+            {
+              "id": "p2",
+              "label": "API proxy (Apigee): OAuth, quota, spike arrest",
+              "slot": true
+            },
+            {
+              "id": "p3",
+              "label": "Submission service (Spring Boot on Cloud Run)",
+              "slot": false
+            },
+            {
+              "id": "p4",
+              "label": "Assessment requests queue (Pub/Sub topic)",
+              "slot": true
+            },
+            {
+              "id": "p5",
+              "label": "Legacy assessment system (external system)",
+              "slot": true
+            }
+          ],
+          "edges": [
+            {
+              "from": "p1",
+              "to": "p2",
+              "label": "submits candidates over HTTPS with an OAuth access token"
+            },
+            {
+              "from": "p2",
+              "to": "p3",
+              "label": "forwards the call over HTTPS with a Google-signed ID token"
+            },
+            {
+              "from": "p3",
+              "to": "p5",
+              "label": "requests an assessment: 2-second timeout, through a circuit breaker"
+            },
+            {
+              "from": "p3",
+              "to": "p4",
+              "label": "queues the request while the breaker is open"
+            },
+            {
+              "from": "p4",
+              "to": "p3",
+              "label": "delivers each queued request later, for a new try"
+            }
+          ],
+          "decoys": [
+            "One message bus shared by all services",
+            "Docker host",
+            "Recruiter (person)"
+          ]
+        },
+        {
+          "id": "u31-l2-i5",
+          "type": "scenario",
+          "src": "s1",
+          "q": "You have ten minutes and a whiteboard to explain the recruiting-events integration to an engineering manager and two developers. Which diagrams do you draw?",
+          "options": [
+            {
+              "text": "A system context diagram first, then a container diagram, and a dynamic diagram only if they ask about a tricky flow.",
+              "ok": true,
+              "why": "C4 says the context and container diagrams are enough for most teams, and that dynamic diagrams should be used sparingly."
+            },
+            {
+              "text": "A code diagram of the main classes, because there are developers in the room.",
+              "ok": false,
+              "why": "C4 does not recommend code diagrams, especially for long-lived documentation, because most IDEs can generate that detail on demand. It also hides the architecture."
+            },
+            {
+              "text": "One big diagram with every service, class, table and firewall rule.",
+              "ok": false,
+              "why": "Mixing zoom levels makes the picture hard to read. C4 uses separate levels so that each diagram tells one story to one audience."
+            },
+            {
+              "text": "No diagram at all, because a good explanation needs only words.",
+              "ok": false,
+              "why": "A simple picture helps the panel follow you and ask better questions. A context diagram takes less than a minute to draw."
+            }
+          ]
+        },
+        {
+          "id": "u31-l2-i6",
+          "type": "code",
+          "src": "s11",
+          "lang": "text",
+          "q": "Complete the one-page outline you prepare before the interview. Each heading matches the line after it.",
+          "code": "Recruiting events to payroll: walkthrough outline\n\n[[1]]: new starters had no accounts on day one; hires left\n  SuccessFactors Recruiting in a nightly file.\n[[2]]: a hire reaches payroll within 5 minutes; none is lost\n  or created twice.\n[[3]]: Google Cloud only; the team knows Java and Spring Boot.\nOptions: hourly batch, synchronous calls to each system, or events.\nDecision: events through Pub/Sub, because nobody waits for the\n  answer and three systems need the same news.\n[[4]]: eventual consistency; more parts to operate.\nRisks: a message that keeps failing -> dead-letter topic + alert.\n[[5]]: about 2 minutes to payroll; first-day tickets down\n  by about 80 per cent.",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "Problem",
+              "decoys": [
+                "Solution",
+                "Decision"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "Quality requirements",
+              "decoys": [
+                "Constraints",
+                "Technology stack"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "Constraints",
+              "decoys": [
+                "Quality requirements",
+                "Risks"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "Trade-offs",
+              "decoys": [
+                "Benefits",
+                "Requirements"
+              ]
+            },
+            {
+              "n": 5,
+              "answer": "Outcome",
+              "decoys": [
+                "Options",
+                "Context"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u31-l2-i7",
+          "type": "scenario",
+          "src": "s12",
+          "q": "The interviewer asks: 'What were the main risks, and what did you do about them?' Which answer is strongest?",
+          "options": [
+            {
+              "text": "Two risks. First, a consumer could process a hire twice, because Pub/Sub delivers at least once, so every consumer is idempotent. Second, a change notification could go missing, so a nightly reconciliation catches any gap.",
+              "ok": true,
+              "why": "Each risk is specific, has a cause and has a mitigation. arc42 lists risks by priority, with measures to reduce them."
+            },
+            {
+              "text": "There were no real risks, because Pub/Sub and Cloud Run are managed services.",
+              "ok": false,
+              "why": "Managed services still fail, and Pub/Sub still delivers duplicates. 'No risks' sounds as if you did not look."
+            },
+            {
+              "text": "Everything could go wrong, so we tested a lot.",
+              "ok": false,
+              "why": "It names no risk and no mitigation, so the interviewer learns nothing about your judgement."
+            },
+            {
+              "text": "The main risk was the budget, but that was the manager's problem.",
+              "ok": false,
+              "why": "Cost is a fair risk, but passing it to someone else shows no ownership, and there is still no mitigation."
+            }
+          ]
+        },
+        {
+          "id": "u31-l2-i8",
+          "type": "match",
+          "src": "s11",
+          "q": "Match each follow-up question to the part of your design that it tests.",
+          "pairs": [
+            [
+              "Why not synchronous?",
+              "The decision and the options you rejected"
+            ],
+            [
+              "What happens if Pub/Sub delivers twice?",
+              "Idempotency and failure handling"
+            ],
+            [
+              "How would it scale ten times?",
+              "Capacity and the first bottleneck"
+            ],
+            [
+              "How do you know it works in production?",
+              "Metrics, alerts and reconciliation"
+            ],
+            [
+              "What would you do differently?",
+              "Honest reflection on trade-offs and lessons"
+            ]
+          ]
+        },
+        {
+          "id": "u31-l2-i9",
+          "type": "order",
+          "src": "s23",
+          "q": "Put the steps of a strong answer to a follow-up question in order.",
+          "steps": [
+            "Make sure you understand the question; ask one short clarifying question if you need to",
+            "Give the direct answer in one sentence",
+            "Give the main reason, linked to a requirement",
+            "Name the trade-off, or the limit of your answer",
+            "Offer more detail, or check that you answered the question"
+          ]
+        },
+        {
+          "id": "u31-l2-i10",
+          "type": "scenario",
+          "src": "s14",
+          "q": "About the partner API, the interviewer says: 'You clearly like asynchronous messaging. So why is the status check a synchronous call?'",
+          "options": [
+            {
+              "text": "Because the agency is waiting for the answer and needs it in under half a second. A request and response fits a query; we only made the slow assessment asynchronous.",
+              "ok": true,
+              "why": "Synchronous calls fit when the caller needs the response now. Their cost is that the downstream service must be available, which is why the slow assessment system sits behind a queue and a circuit breaker."
+            },
+            {
+              "text": "Because synchronous calls are always faster and more reliable than messaging.",
+              "ok": false,
+              "why": "A synchronous call fails when the downstream service is down, and latencies add up along the chain. Neither style is always better."
+            },
+            {
+              "text": "It was a mistake: every call should be asynchronous.",
+              "ok": false,
+              "why": "An agency that asks for a status needs the answer in the same call. Sending a query through a queue adds delay and complexity for no benefit."
+            },
+            {
+              "text": "Because the team did not have time to set up Pub/Sub for it.",
+              "ok": false,
+              "why": "Time pressure may be real, but it is not a design reason. The interviewer will simply ask what you would do with more time."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u31-l3",
+      "kind": "interview",
+      "title": "Present it and defend it",
+      "items": [
+        {
+          "id": "u31-l3-i1",
+          "type": "say",
+          "src": "s24",
+          "text": "Let me start with the problem, then the options we compared, and then why we chose events and what that cost us."
+        },
+        {
+          "id": "u31-l3-i2",
+          "type": "tf",
+          "src": "s16",
+          "statement": "Pub/Sub can deliver a message again even after the acknowledgement request returned successfully.",
+          "answer": true,
+          "why": "The Pub/Sub documentation says this can happen, for example after server-side restarts. That is why every subscriber must be idempotent."
+        },
+        {
+          "id": "u31-l3-i3",
+          "type": "scenario",
+          "src": "s14",
+          "q": "The interviewer asks: 'Wouldn't it be simpler if the receiver just called IT, payroll and onboarding directly, one after another?'",
+          "options": [
+            {
+              "text": "Simpler to build, yes. But nobody waits for the result, and the hire would fail whenever any of the three systems is down. With Pub/Sub, each system gets its own copy and catches up after an outage.",
+              "ok": true,
+              "why": "A synchronous call needs the downstream service to be available, and the latencies add up. Messaging isolates failures, at the cost of duplicates you must handle."
+            },
+            {
+              "text": "Yes, and we should have done it: events were over-engineering.",
+              "ok": false,
+              "why": "It ignores the requirement that no hire is lost when a system is down for hours. Three synchronous calls make the slowest system everyone's problem."
+            },
+            {
+              "text": "No, because synchronous calls cannot be secured properly.",
+              "ok": false,
+              "why": "HTTPS calls can be secured as well as messages, so security is not the difference here. The real difference is coupling: who must be up, and who waits."
+            },
+            {
+              "text": "No, because HTTP is always slower than Pub/Sub.",
+              "ok": false,
+              "why": "The speed of one call is not the point, and it is not always true. The point is that the receiver would depend on three systems at the same moment."
+            }
+          ]
+        },
+        {
+          "id": "u31-l3-i4",
+          "type": "explain",
+          "src": "s11",
+          "seconds": 150,
+          "q": "Walk me through an architecture you designed.",
+          "model": "I'll take the new-hire integration I designed for a retail company. I'll cover the problem, the options, the decision and what it cost us. The problem was that new starters had no accounts on day one, because hires left SuccessFactors Recruiting in a nightly file. We agreed two requirements: a hire reaches IT, payroll and onboarding within five minutes, and no hire is lost or created twice. The constraints were Google Cloud and a Java team. We compared an hourly batch, synchronous calls to each system, and events. We chose events, because nobody waits for the answer and three systems need the same news. SuccessFactors notifies a receiver, which publishes a thin event to Pub/Sub. A Spring Boot service on Cloud Run creates the new starter in all three. The trade-offs were eventual consistency and more parts to operate. The main risks were duplicates and repeated failures, so every consumer is idempotent and failures end in a dead-letter topic with an alert. Hires now arrive in about two minutes, and first-day access tickets fell by about 80 per cent.",
+          "keypoints": [
+            {
+              "text": "Signpost the structure before you start",
+              "kw": [
+                "i'll cover",
+                "i will cover",
+                "cover",
+                "structure",
+                "three things",
+                "start with"
+              ]
+            },
+            {
+              "text": "The problem and its impact",
+              "kw": [
+                "problem",
+                "first day",
+                "no accounts",
+                "nightly",
+                "impact",
+                "day one"
+              ]
+            },
+            {
+              "text": "Measurable requirements and the constraints",
+              "kw": [
+                "five minutes",
+                "requirement",
+                "requirements",
+                "constraint",
+                "constraints",
+                "lost"
+              ]
+            },
+            {
+              "text": "The options compared and the decision",
+              "kw": [
+                "options",
+                "compared",
+                "alternatives",
+                "hourly",
+                "synchronous",
+                "we chose",
+                "decision"
+              ]
+            },
+            {
+              "text": "Trade-offs, and risks with their mitigations",
+              "kw": [
+                "trade-off",
+                "trade-offs",
+                "tradeoff",
+                "eventual consistency",
+                "risk",
+                "risks",
+                "idempotent",
+                "dead-letter",
+                "dead letter"
+              ]
+            },
+            {
+              "text": "The outcome, with numbers",
+              "kw": [
+                "two minutes",
+                "80",
+                "per cent",
+                "percent",
+                "tickets",
+                "outcome"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u31-l3-i5",
+          "type": "scenario",
+          "src": "s17",
+          "q": "The interviewer asks: 'Couldn't you just turn on exactly-once delivery and stop worrying about duplicates?' Your hire processor uses a push subscription.",
+          "options": [
+            {
+              "text": "Not with our design. Exactly-once delivery works only for pull subscriptions, within one region, and we use push. It also does not remove duplicates from publisher retries, so the consumer stays idempotent.",
+              "ok": true,
+              "why": "Push and export subscriptions do not support exactly-once delivery. Also, when a publisher retries and publishes a message again, the copy gets a new message ID."
+            },
+            {
+              "text": "Yes. With exactly-once delivery turned on, Pub/Sub never delivers a message twice.",
+              "ok": false,
+              "why": "Even with the feature on, publish-side duplicates arrive as separate messages, and subscribers in other regions can still see duplicates."
+            },
+            {
+              "text": "Yes, as long as we also use ordering keys.",
+              "ok": false,
+              "why": "Ordering does not remove duplicates. With ordering, a redelivery even triggers redelivery of the later messages for that key, including acknowledged ones."
+            },
+            {
+              "text": "No, because Pub/Sub has no feature at all against duplicates.",
+              "ok": false,
+              "why": "It has one, exactly-once delivery for pull subscriptions in one region. It just does not cover a push subscription or publisher retries."
+            }
+          ]
+        },
+        {
+          "id": "u31-l3-i6",
+          "type": "say",
+          "src": "s15",
+          "text": "Ten times sounds big, so let me put numbers on it first, and then I'll tell you where the first bottleneck is."
+        },
+        {
+          "id": "u31-l3-i7",
+          "type": "explain",
+          "src": "s20",
+          "seconds": 150,
+          "q": "What would happen if the volume grew ten times?",
+          "model": "First I'd put numbers on ten times, because the answer depends on them. Say a busy day has 5,000 recruiting events. Ten times that is 50,000, still less than one per second on average, so I'd look at the peaks. The platform scales out on its own: Cloud Run adds instances, and one instance can handle many requests at once, 80 by default with one vCPU. So the bottleneck moves to what sits behind it. The first limit is the database: more instances mean more connections, so I'd set maximum instances and size the connection pool to stay under the database limit. The second is SuccessFactors: our events are thin, so each one costs an OData call. Ten times the events means ten times the calls, so I'd check our API limits with SAP and back off when we get a 429. Pub/Sub helps, because push delivery slows down when we return errors, and the messages wait instead of being lost. Finally, I'd run a load test at ten times the peak before I promised anything.",
+          "keypoints": [
+            {
+              "text": "Put numbers on ten times, including the peaks",
+              "kw": [
+                "numbers",
+                "per second",
+                "peak",
+                "peaks",
+                "per day",
+                "volume"
+              ]
+            },
+            {
+              "text": "Cloud Run scales out by adding instances",
+              "kw": [
+                "scale out",
+                "scales out",
+                "instances",
+                "horizontal",
+                "autoscaling",
+                "concurrency"
+              ]
+            },
+            {
+              "text": "The bottleneck moves to the database connections",
+              "kw": [
+                "bottleneck",
+                "database",
+                "connections",
+                "connection pool",
+                "maximum instances",
+                "max instances"
+              ]
+            },
+            {
+              "text": "SuccessFactors calls grow too: back off on 429",
+              "kw": [
+                "successfactors",
+                "odata",
+                "429",
+                "throttling",
+                "back off",
+                "backoff",
+                "api calls"
+              ]
+            },
+            {
+              "text": "Pub/Sub absorbs the load: push slows down and messages wait",
+              "kw": [
+                "pub/sub",
+                "push",
+                "slows down",
+                "slow down",
+                "buffer",
+                "wait",
+                "backlog"
+              ]
+            },
+            {
+              "text": "Prove it with a load test",
+              "kw": [
+                "load test",
+                "test",
+                "prove",
+                "measure"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u31-l3-i8",
+          "type": "scenario",
+          "src": "s12",
+          "q": "At the end of your walkthrough, the interviewer asks: 'Looking back, what would you do differently?'",
+          "options": [
+            {
+              "text": "One thing: I'd write and test the replay runbook before go-live. The first time a message reached the dead-letter topic, we worked out the replay steps under pressure.",
+              "ok": true,
+              "why": "It is honest, specific and about your own work, and it shows what you learned. Interviewers ask this to see whether you can reflect without blaming anyone."
+            },
+            {
+              "text": "Nothing, really. The design worked exactly as we planned.",
+              "ok": false,
+              "why": "Every design has trade-offs, so 'nothing' sounds as if you never thought about them. Name one real change and say why."
+            },
+            {
+              "text": "I'd rebuild it on a different cloud with a newer framework.",
+              "ok": false,
+              "why": "It ignores the constraints that shaped the design, such as Google Cloud being the only approved platform. A good answer changes one thing for a clear reason."
+            },
+            {
+              "text": "I'd ask the payroll team to make their system more reliable, because their outages caused most of our problems.",
+              "ok": false,
+              "why": "It blames another team and shows no ownership. Your design already expected payroll to fail, so talk about what you would change yourself."
+            }
+          ]
+        },
+        {
+          "id": "u31-l3-i9",
+          "type": "scenario",
+          "src": "s23",
+          "q": "In the middle of your walkthrough, the interviewer asks: 'What is the maximum size of a Pub/Sub message?' You are not sure of the exact number.",
+          "options": [
+            {
+              "text": "Say that you don't remember the exact limit, that your events carry only IDs and are tiny, so the limit does not affect the design, and that you would check the quotas page.",
+              "ok": true,
+              "why": "It is honest and still shows judgement: you know why the limit does not matter here and how you would check it."
+            },
+            {
+              "text": "Give a confident number that sounds about right.",
+              "ok": false,
+              "why": "If the number is wrong, the interviewer may start to doubt everything else you said. A guess is riskier than saying you would check."
+            },
+            {
+              "text": "Say 'I don't know' and wait for the next question.",
+              "ok": false,
+              "why": "It is honest, but it misses the chance to show how you reason about limits in your design."
+            },
+            {
+              "text": "Move on quickly to a part of the design that you know better.",
+              "ok": false,
+              "why": "Interviewers notice when a question is avoided, and they usually come back to it."
+            }
+          ]
+        },
+        {
+          "id": "u31-l3-i10",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 120,
+          "q": "How do you decide what to draw when you explain a design?",
+          "model": "I zoom in only as far as the question needs. I always start with a system context diagram: our system as one box, the people who use it and the systems around it, with no technology, so everyone in the room can follow. Then I draw the container diagram: the applications and data stores, such as the receiver and the hire processor on Cloud Run, the Cloud SQL database, and each Pub/Sub topic as its own box. I label every arrow with what it does and how, for example a push subscription over HTTPS, and I add a small key. I rarely draw components, and I never draw code, because that level changes often and an IDE can show it. If someone asks about a tricky flow, like a duplicate delivery, I sketch a quick dynamic diagram with numbered steps. Regions and other deployment details go on a separate deployment diagram, and only if they matter to the question.",
+          "keypoints": [
+            {
+              "text": "Start with the system context, without technology",
+              "kw": [
+                "system context",
+                "context diagram",
+                "context",
+                "one box",
+                "no technology"
+              ]
+            },
+            {
+              "text": "Then the container diagram: applications and data stores",
+              "kw": [
+                "container",
+                "containers",
+                "container diagram",
+                "applications",
+                "data stores"
+              ]
+            },
+            {
+              "text": "Label every arrow and add a key",
+              "kw": [
+                "label",
+                "labels",
+                "labelled",
+                "labeled",
+                "arrow",
+                "arrows",
+                "key",
+                "legend"
+              ]
+            },
+            {
+              "text": "Components rarely, code almost never",
+              "kw": [
+                "component",
+                "components",
+                "code",
+                "ide",
+                "rarely"
+              ]
+            },
+            {
+              "text": "Dynamic or deployment diagrams only when the question needs them",
+              "kw": [
+                "dynamic",
+                "numbered",
+                "deployment",
+                "sequence",
+                "only if",
+                "only when"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "The seven-part walkthrough",
+        "points": [
+          "Context and problem: who had the problem and what it cost, in two sentences.",
+          "Requirements and constraints: two or three measurable quality requirements, and the limits you had to accept.",
+          "Options considered: two to four, including keeping things as they are.",
+          "Decision and why: link the reason to a requirement.",
+          "Trade-offs: what you gave up, and why that was acceptable.",
+          "Risks and mitigations: the top two or three, each with a measure.",
+          "Outcome and metrics: numbers before and after."
+        ]
+      },
+      {
+        "h": "Requirements you can test",
+        "points": [
+          "Quality requirement: how well the system must work (speed, availability, security), not what it does.",
+          "Make it specific and measurable: 'within five minutes in 99 per cent of cases', not 'fast'.",
+          "Quality scenario: source, stimulus, environment, artefact, response, response measure.",
+          "Constraint: limits your design freedom; technical, organisational or political, or a convention. It may be negotiable."
+        ]
+      },
+      {
+        "h": "C4: draw at the right zoom level",
+        "points": [
+          "System context: your system as one box, its users and neighbours; no technology; for everybody.",
+          "Container: an application or a data store (not Docker); show its technology; for technical people.",
+          "Component: inside one container, only if it adds value. Code: rarely, because an IDE can show it.",
+          "Dynamic: numbered steps for one flow; use it sparingly. Deployment: where instances run in one environment.",
+          "Context and container diagrams are enough for most teams.",
+          "Draw each Pub/Sub topic as its own container, not one big message bus.",
+          "Notation: a title, a key, one-way arrows with specific labels and the protocol."
+        ]
+      },
+      {
+        "h": "Answering follow-up questions",
+        "points": [
+          "Check the question; ask one short clarifying question if you need to.",
+          "Answer first in one sentence, then give the reason, linked to a requirement.",
+          "Name the trade-off, or the limit of your answer.",
+          "Not sure? Say so, reason from what you know, and say how you would check.",
+          "Signpost: 'I'll cover three things: the problem, the options and the decision.'",
+          "'What would you do differently?': one real change, the reason and what you learned; never 'nothing'."
+        ]
+      },
+      {
+        "h": "Why not synchronous?",
+        "points": [
+          "Synchronous fits when the caller needs the answer now, such as a status check.",
+          "Its cost: the downstream service must be available, and the latencies add up.",
+          "Messaging gives reduced coupling, several subscribers, failure isolation and load levelling.",
+          "Its cost: duplicates to handle, more latency when queues fill up, and more to operate."
+        ]
+      },
+      {
+        "h": "What if Pub/Sub delivers twice?",
+        "points": [
+          "By default, Pub/Sub delivers at least once, on every subscription type.",
+          "It can redeliver a message even after a successful acknowledgement.",
+          "Exactly-once delivery: pull subscriptions only, within one region; not push or export.",
+          "A publisher retry creates a duplicate with a new message ID, so deduplicate by your own event ID.",
+          "With ordering keys, a redelivery also redelivers the later messages for that key."
+        ]
+      },
+      {
+        "h": "How would it scale ten times?",
+        "points": [
+          "Put numbers on it first: per day, per second and at the peak.",
+          "Cloud Run scales out by adding instances: 80 concurrent requests per instance by default in the console (80 x vCPUs with gcloud), up to 1,000.",
+          "Maximum instances: 100 per revision by default; set it to protect a database's connection limit.",
+          "The bottleneck moves downstream: database connections, SuccessFactors API calls.",
+          "SuccessFactors: a throttled call gets 429; SAP suggests waiting 300 seconds.",
+          "Pub/Sub push uses a slow-start window and backs off on errors; messages wait.",
+          "More instances do not guarantee better performance: load-test before you promise."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Diagrams - The C4 model for visualising software architecture (c4model.com)",
+      "url": "https://c4model.com/diagrams",
+      "official": false
+    },
+    {
+      "id": "s2",
+      "title": "System context diagram - The C4 model (c4model.com)",
+      "url": "https://c4model.com/diagrams/system-context",
+      "official": false
+    },
+    {
+      "id": "s3",
+      "title": "Container diagram - The C4 model (c4model.com)",
+      "url": "https://c4model.com/diagrams/container",
+      "official": false
+    },
+    {
+      "id": "s4",
+      "title": "Container (abstraction) - The C4 model (c4model.com)",
+      "url": "https://c4model.com/abstractions/container",
+      "official": false
+    },
+    {
+      "id": "s5",
+      "title": "Component diagram - The C4 model (c4model.com)",
+      "url": "https://c4model.com/diagrams/component",
+      "official": false
+    },
+    {
+      "id": "s6",
+      "title": "Dynamic diagram - The C4 model (c4model.com)",
+      "url": "https://c4model.com/diagrams/dynamic",
+      "official": false
+    },
+    {
+      "id": "s7",
+      "title": "Deployment diagram - The C4 model (c4model.com)",
+      "url": "https://c4model.com/diagrams/deployment",
+      "official": false
+    },
+    {
+      "id": "s8",
+      "title": "Notation - The C4 model (c4model.com)",
+      "url": "https://c4model.com/diagrams/notation",
+      "official": false
+    },
+    {
+      "id": "s9",
+      "title": "Queues and topics - The C4 model (c4model.com)",
+      "url": "https://c4model.com/abstractions/queues-and-topics",
+      "official": false
+    },
+    {
+      "id": "s10",
+      "title": "Section 2: Constraints - arc42 documentation",
+      "url": "https://docs.arc42.org/section-2/",
+      "official": false
+    },
+    {
+      "id": "s11",
+      "title": "Section 10: Quality requirements - arc42 documentation",
+      "url": "https://docs.arc42.org/section-10/",
+      "official": false
+    },
+    {
+      "id": "s12",
+      "title": "Section 11: Risks and technical debt - arc42 documentation",
+      "url": "https://docs.arc42.org/section-11/",
+      "official": false
+    },
+    {
+      "id": "s13",
+      "title": "Reliability tradeoffs - Azure Well-Architected Framework (last updated 2026-04-27)",
+      "url": "https://learn.microsoft.com/en-us/azure/well-architected/reliability/tradeoffs",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Interservice communication in microservices - Azure Architecture Center",
+      "url": "https://learn.microsoft.com/azure/architecture/microservices/design/interservice-communication",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Autoscaling best practices - Azure Architecture Center (last updated 2026-03-10)",
+      "url": "https://learn.microsoft.com/en-us/azure/architecture/best-practices/auto-scaling",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Subscription overview - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-overview",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Exactly-once delivery - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/exactly-once-delivery",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Push subscriptions - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/push",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Order messages - Pub/Sub, Google Cloud Documentation (last updated 2026-10-22)",
+      "url": "https://docs.cloud.google.com/pubsub/docs/ordering",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Set maximum instances for services - Cloud Run, Google Cloud Documentation (last updated 2026-10-22)",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/max-instances",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Maximum concurrent requests for services - Cloud Run, Google Cloud Documentation (last updated 2026-10-22)",
+      "url": "https://docs.cloud.google.com/run/docs/about-concurrency",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "SAP KBA 3159263: Rate Limiting on SAP SuccessFactors APIs - FAQ on API Throttling",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3159263",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Documents - Google Technical Writing One",
+      "url": "https://developers.google.com/tech-writing/one/documents",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "signpost (verb) - Oxford Learner's Dictionaries",
+      "url": "https://www.oxfordlearnersdictionaries.com/definition/english/signpost_2",
+      "official": false
+    },
+    {
+      "id": "s25",
+      "title": "Code diagram - The C4 model (c4model.com)",
+      "url": "https://c4model.com/diagrams/code",
+      "official": false
+    }
+  ]
+}

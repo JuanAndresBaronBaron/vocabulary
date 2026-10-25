@@ -1,0 +1,1320 @@
+{
+  "format": 1,
+  "id": "u08",
+  "n": 8,
+  "block": "successfactors",
+  "title": "Recruiting",
+  "summary": "After this unit you can describe the SuccessFactors Recruiting data model, build an integration that copes with each customer's templates, statuses and picklists, explain the hand-off to Onboarding and Employee Central, and handle candidate data under GDPR.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "unconfirmed: the help.sap.com OData V2 reference pages and api.sap.com could not be read on 2026-10-25 (both block automated reading). The entity names come from SAP KBAs 2251702 and 2341070 and from SAP Learning; full property lists and key names were not checked against the OData V2 reference guide, so the unit names only properties that appear in SAP KBAs.",
+    "Release-dependent behaviour from SAP KBAs: Recruiting template entities (JobReqTemplate_<name>) appear in the OData API Data Dictionary since release 1605 (KBA 2339790); the JobApplication status field has not been directly updatable since release 1811 (KBA 2541688); status changes through OData send the status emails since the 2018 Q4 release (KBA 2745616).",
+    "Data privacy features as described by SAP Learning (Recruiting academy) and KBA 2635179: DPCS 1.0 should be replaced with DPCS 2.0; legacy DRM and DRTM cannot run at the same time, and a customer that has moved to DRTM cannot go back.",
+    "GDPR points use the UK ICO guidance on the UK GDPR (storage limitation, right to erasure), which the ICO says is under review. The EU GDPR has the same principles; local retention periods must come from the customer's legal team.",
+    "The reconciliation job that deletes downstream copies after a SuccessFactors purge is a design recommendation in this unit, not an SAP feature.",
+    "unconfirmed: that moving an application to Hired through OData does not close the requisition (no source found on 2026-10-25, so the line was removed from the cheat sheet)."
+  ],
+  "terms": [
+    {
+      "id": "t-job-requisition",
+      "term": "Job requisition (JobRequisition)",
+      "ipa": "/ˈdʒɒb ˌrekwɪˈzɪʃn/",
+      "say": "job requisition",
+      "def": "The hiring order that starts the recruiting process. It is created from a requisition template, approved through a route map and then posted to career sites; in OData its key is jobReqId.",
+      "example": "A retail company creates a JobRequisition for a store manager from its requisition template with ID 8, and the response returns the new jobReqId.",
+      "src": "s22"
+    },
+    {
+      "id": "t-candidate",
+      "term": "Candidate (candidate profile)",
+      "ipa": "/ˈkændɪdət/",
+      "say": "candidate",
+      "def": "The person's record in the searchable candidate database. Recruiting uses the email address as the unique identifier, so a second profile with the same email cannot be created.",
+      "example": "A job board sends a new applicant, and the integration first checks whether a candidate with that email address already exists.",
+      "src": "s17"
+    },
+    {
+      "id": "t-job-application",
+      "term": "Job application (JobApplication)",
+      "ipa": "/ˈdʒɒb ˌæplɪˈkeɪʃn/",
+      "say": "job application",
+      "def": "Links one candidate to one requisition through candidateId and jobReqId. It holds the data the candidate submitted, a snapshot of the profile and the current pipeline status.",
+      "example": "Alex applied to two store manager jobs, so there is one Candidate and two JobApplication records.",
+      "src": "s22"
+    },
+    {
+      "id": "t-status-set",
+      "term": "Applicant status set",
+      "ipa": "/ˈæplɪkənt ˈsteɪtəs ˌset/",
+      "say": "applicant status set",
+      "def": "The pipeline of statuses that the requisitions of one template use. Each requisition template names one status set, built from the single base set of the instance.",
+      "example": "Executive jobs use a status set with four interview steps, and store jobs use a different set with two.",
+      "src": "s21"
+    },
+    {
+      "id": "t-app-status-item",
+      "term": "appStatusSetItemId",
+      "ipa": "/ˌæp ˈsteɪtəs set ˌaɪtəm ˌaɪ ˈdiː/",
+      "say": "app status set item I D",
+      "def": "The JobApplication property that holds the ID of the application's current status. An integration writes it to move an application, and the system then sets the internal status field itself.",
+      "example": "The service upserts appStatusSetItemId 11 to move application 3020 from Interview One to Interview Two.",
+      "src": "s8"
+    },
+    {
+      "id": "t-job-offer",
+      "term": "Job offer (JobOffer)",
+      "ipa": "/ˈdʒɒb ˌɒfə/",
+      "say": "job offer",
+      "def": "The offer approval for an application: the offer details, based on the offer detail template, routed to a list of approvers. Each approver's action and its date are in JobOfferApprover.",
+      "example": "The offer for the new store manager goes to the hiring manager and then to the department head, and JobOfferApprover records when each one signed.",
+      "src": "s1"
+    },
+    {
+      "id": "t-offer-letter",
+      "term": "Offer letter (OfferLetter)",
+      "ipa": "/ˈɒfə ˌletə/",
+      "say": "offer letter",
+      "def": "The letter for an application, generated from an offer letter template. The OData function import sendMailOfferLetter sends it to the candidate by email.",
+      "example": "After the offer is approved, the recruiter generates the offer letter from the UK template and sends it to the candidate.",
+      "src": "s2"
+    },
+    {
+      "id": "t-template-entity",
+      "term": "Template entity (JobReqTemplate_<name>)",
+      "ipa": "/ˈtempleɪt ˌentəti/",
+      "say": "template entity",
+      "def": "An entity in the OData API Data Dictionary that describes one customer template, such as JobReqTemplate_, JobAppTemplate_ or JobOfferTemplate_ followed by the template name. It is metadata only: you read its $metadata, and a GET fails.",
+      "example": "The integration reads JobReqTemplate_Job_Requisition_Employee/$metadata to learn which fields that template has before it builds a payload.",
+      "src": "s4"
+    },
+    {
+      "id": "t-metadata-refresh",
+      "term": "OData API Metadata Refresh",
+      "ipa": "/ˌəʊ ˈdeɪtə ˌeɪ piː ˈaɪ ˈmetədeɪtə rɪˈfreʃ/",
+      "say": "O data A P I metadata refresh",
+      "def": "An Admin Center tool that rebuilds the cached OData metadata. Run it after a field is added to a template; until then the new field can be missing from the API and the data dictionary.",
+      "example": "The admins added a custom field to the application template, ran the metadata refresh, and the field appeared in $metadata.",
+      "src": "s5"
+    },
+    {
+      "id": "t-picklist",
+      "term": "Picklist field",
+      "ipa": "/ˈpɪklɪst ˌfiːld/",
+      "say": "picklist field",
+      "def": "A field whose value is one option from a configured list. In OData it is a complex type: you write the option ID, and you use $expand to read the option details.",
+      "example": "To set the candidate's state, the payload sends the option ID 480 inside an object, not the state's name.",
+      "src": "s7"
+    },
+    {
+      "id": "t-dpcs",
+      "term": "Data Privacy Consent Statement (DPCS)",
+      "ipa": "/ˌdiː piː siː ˈes/",
+      "say": "D P C S, data privacy consent statement",
+      "def": "The statement that tells candidates how their personal data is handled; they must accept it before they enter their data. DPCS 2.0 has internal and external Recruiting statements, one per country for each type, and a new version must be accepted again.",
+      "example": "A candidate in Germany sees the German external statement when she creates her account, and she must accept it to continue.",
+      "src": "s28"
+    },
+    {
+      "id": "t-drtm",
+      "term": "Data Retention Time Management (DRTM)",
+      "ipa": "/ˌdiː ɑː tiː ˈem/",
+      "say": "D R T M",
+      "def": "The SuccessFactors tool that purges personal data after a retention period. Recruiting uses purge types such as DRTM Inactive Candidate Purge and DRTM Inactive Application Purge, configured per country and approved before they run.",
+      "example": "A DRTM Inactive Candidate Purge for Germany is scheduled a week ahead, the approver checks the preview report, and the job then purges the profiles that have been inactive for longer than the configured period.",
+      "src": "s27"
+    },
+    {
+      "id": "t-anonymisation",
+      "term": "Anonymisation",
+      "ipa": "/əˌnɒnɪmaɪˈzeɪʃn/",
+      "say": "anonymisation",
+      "def": "Removing personal data so that the person can no longer be identified. In Recruiting, only fields marked anonymize=\"true\" in the candidate profile, application and offer detail templates are anonymised.",
+      "example": "After the purge, the candidate's name and email address are anonymised, so a new profile with the same email can be created later.",
+      "src": "s27"
+    },
+    {
+      "id": "t-hirable",
+      "term": "Hirable status",
+      "ipa": "/ˈhaɪərəbl ˈsteɪtəs/",
+      "say": "hirable status",
+      "def": "The applicant status with the Hirable option, from which the candidate is handed over to Onboarding and Employee Central. A status set can contain only one hirable status.",
+      "example": "When the candidate accepts the offer, the recruiter moves the application to the one hirable status in that requisition's status set, and onboarding can start.",
+      "src": "s24"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u08-l1",
+      "kind": "concepts",
+      "title": "The Recruiting data model",
+      "items": [
+        {
+          "id": "u08-l1-i1",
+          "type": "card",
+          "term": "t-job-requisition",
+          "src": "s22",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "tpl",
+                "label": "Requisition template"
+              },
+              {
+                "id": "req",
+                "label": "JobRequisition (jobReqId)"
+              },
+              {
+                "id": "route",
+                "label": "Approval through the route map"
+              },
+              {
+                "id": "post",
+                "label": "Posting to career sites"
+              }
+            ],
+            "edges": [
+              {
+                "from": "tpl",
+                "to": "req",
+                "label": "templateId"
+              },
+              {
+                "from": "req",
+                "to": "route",
+                "label": "approvers sign off"
+              },
+              {
+                "from": "route",
+                "to": "post",
+                "label": "after approval"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u08-l1-i2",
+          "type": "card",
+          "term": "t-job-application",
+          "src": "s22",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "cand",
+                "label": "Candidate (candidateId)"
+              },
+              {
+                "id": "req",
+                "label": "JobRequisition (jobReqId)"
+              },
+              {
+                "id": "app",
+                "label": "JobApplication"
+              },
+              {
+                "id": "offer",
+                "label": "JobOffer"
+              },
+              {
+                "id": "letter",
+                "label": "OfferLetter"
+              }
+            ],
+            "edges": [
+              {
+                "from": "cand",
+                "to": "app",
+                "label": "applies"
+              },
+              {
+                "from": "req",
+                "to": "app",
+                "label": "receives"
+              },
+              {
+                "from": "app",
+                "to": "offer",
+                "label": "offer approval"
+              },
+              {
+                "from": "app",
+                "to": "letter",
+                "label": "letter for this application"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u08-l1-i3",
+          "type": "pick",
+          "src": "s9",
+          "q": "An integration must move an application to the next step of its pipeline. Which JobApplication property does it write?",
+          "options": [
+            "appStatusSetItemId",
+            "status",
+            "appStatusSetId",
+            "jobReqId"
+          ],
+          "answer": 0,
+          "why": "appStatusSetItemId holds the ID of the application's pipeline status, and since release 1811 the system sets status from it. appStatusSetId belongs to JobApplicationStatus and, despite its name, holds a status ID, while jobReqId is the requisition."
+        },
+        {
+          "id": "u08-l1-i4",
+          "type": "card",
+          "term": "t-status-set",
+          "src": "s21"
+        },
+        {
+          "id": "u08-l1-i5",
+          "type": "tf",
+          "src": "s17",
+          "statement": "Recruiting uses the email address as the unique identifier of a candidate profile.",
+          "answer": true,
+          "why": "A second profile with the same email address cannot be created. An integration should therefore look for an existing candidate before it creates a new one."
+        },
+        {
+          "id": "u08-l1-i6",
+          "type": "card",
+          "term": "t-job-offer",
+          "src": "s1"
+        },
+        {
+          "id": "u08-l1-i7",
+          "type": "card",
+          "term": "t-template-entity",
+          "src": "s4"
+        },
+        {
+          "id": "u08-l1-i8",
+          "type": "tf",
+          "src": "s4",
+          "statement": "To list the fields of a requisition template, you send GET /odata/v2/JobReqTemplate_Engineering.",
+          "answer": false,
+          "why": "Template entities are metadata only, so a GET returns COE_GENERAL_FORBIDDEN. You read JobReqTemplate_Engineering/$metadata instead."
+        },
+        {
+          "id": "u08-l1-i9",
+          "type": "card",
+          "term": "t-drtm",
+          "src": "s27"
+        },
+        {
+          "id": "u08-l1-i10",
+          "type": "match",
+          "src": "s2",
+          "q": "Match each Recruiting entity with what it holds.",
+          "pairs": [
+            [
+              "JobRequisition",
+              "The hiring order, created from a requisition template"
+            ],
+            [
+              "Candidate",
+              "The person's profile, identified by the email address"
+            ],
+            [
+              "JobApplication",
+              "One candidate on one requisition, with its pipeline status"
+            ],
+            [
+              "JobOffer",
+              "The offer approval for an application"
+            ],
+            [
+              "JobOfferApprover",
+              "Each approver's action and its date"
+            ],
+            [
+              "OfferLetter",
+              "The letter the candidate receives"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u08-l2",
+      "kind": "practice",
+      "title": "Integrate with Recruiting",
+      "items": [
+        {
+          "id": "u08-l2-i1",
+          "type": "match",
+          "src": "s2",
+          "q": "Match each part of the customer's configuration with where an integration finds it in OData.",
+          "pairs": [
+            [
+              "Job requisition template",
+              "JobReqTemplate_<name>, metadata only"
+            ],
+            [
+              "Application template",
+              "JobAppTemplate_<name>, metadata only"
+            ],
+            [
+              "Offer detail template",
+              "JobOfferTemplate_<name>, metadata only"
+            ],
+            [
+              "A background element of the candidate profile",
+              "CandidateBackground_<element name>"
+            ],
+            [
+              "The standard requisition title",
+              "JobRequisitionLocale"
+            ]
+          ]
+        },
+        {
+          "id": "u08-l2-i2",
+          "type": "diagram",
+          "src": "s3",
+          "layout": "flow",
+          "q": "Complete the Recruiting data model. Drag each entity to its place.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Requisition template (metadata only)",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "JobRequisition",
+              "slot": false
+            },
+            {
+              "id": "n3",
+              "label": "Candidate",
+              "slot": false
+            },
+            {
+              "id": "n4",
+              "label": "JobApplication",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "JobOffer",
+              "slot": true
+            },
+            {
+              "id": "n6",
+              "label": "JobOfferApprover",
+              "slot": true
+            },
+            {
+              "id": "n7",
+              "label": "OfferLetter",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "templateId"
+            },
+            {
+              "from": "n2",
+              "to": "n4",
+              "label": "jobReqId"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "candidateId"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "offer approval"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "approvers"
+            },
+            {
+              "from": "n4",
+              "to": "n7",
+              "label": "letter for the application"
+            }
+          ],
+          "decoys": [
+            "EmpJob (Employee Central job information)",
+            "PicklistOption",
+            "DRTM purge request"
+          ]
+        },
+        {
+          "id": "u08-l2-i3",
+          "type": "scenario",
+          "src": "s10",
+          "q": "A Spring Boot service on Cloud Run moves applications to Interview Two by upserting appStatusSetItemId 11. On one engineering requisition, recruiters can no longer open the applications that were moved.",
+          "options": [
+            {
+              "text": "Status 11 is not in the status set of that requisition's template. Map status IDs per status set, and upsert the broken applications back to a valid status.",
+              "ok": true,
+              "why": "An application in a status outside its requisition's status set cannot be opened, and SAP's fix is an upsert to a valid status ID."
+            },
+            {
+              "text": "Upsert the status field as In Progress instead.",
+              "ok": false,
+              "why": "Since release 1811 the status field is not directly updatable; the system sets it from the pipeline status."
+            },
+            {
+              "text": "Read the status set through the API before every call.",
+              "ok": false,
+              "why": "No API entity returns the status set configuration; the CandidateStatus picklist lists statuses, but not the set they belong to."
+            },
+            {
+              "text": "Ask an admin to run the OData API Metadata Refresh.",
+              "ok": false,
+              "why": "A refresh fixes fields that are missing from the metadata, not an invalid status on an application."
+            }
+          ]
+        },
+        {
+          "id": "u08-l2-i4",
+          "type": "code",
+          "src": "s8",
+          "lang": "http",
+          "q": "Complete the call that moves application 3020 from Interview One to Interview Two, whose status ID is 11.",
+          "code": "POST /odata/v2/[[1]]?$format=json\nContent-Type: application/json\n\n{\n  \"__metadata\": { \"uri\": \"[[2]]\" },\n  \"[[3]]\": \"11\"\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "upsert",
+              "decoys": [
+                "update",
+                "JobApplicationAudit"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "JobApplication(3020L)",
+              "decoys": [
+                "JobRequisition(3020L)",
+                "JobApplicationStatus(11L)"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "appStatusSetItemId",
+              "decoys": [
+                "status",
+                "appStatusSetId"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u08-l2-i5",
+          "type": "scenario",
+          "src": "s6",
+          "q": "The Recruiting admins added a custom field, Remote work allowed, to the requisition template. Your integration reads JobRequisition, but the new field is not in the response or in the OData API Data Dictionary.",
+          "options": [
+            {
+              "text": "Ask an admin to run the OData API Metadata Refresh, check that the field is visible to the API, and then add it to your mapping.",
+              "ok": true,
+              "why": "SAP says to refresh the metadata each time a field is added, and the missing data then appears almost at once."
+            },
+            {
+              "text": "Send a GET to the template entity to read the values of the new field.",
+              "ok": false,
+              "why": "Template entities are metadata only, and a GET returns COE_GENERAL_FORBIDDEN."
+            },
+            {
+              "text": "Move the integration to SFAPI, because OData does not support custom fields.",
+              "ok": false,
+              "why": "The OData API supports both custom and standard requisition fields."
+            },
+            {
+              "text": "Wait for the next SuccessFactors release.",
+              "ok": false,
+              "why": "No release is needed: a metadata refresh is enough when the field is visible to the API."
+            }
+          ]
+        },
+        {
+          "id": "u08-l2-i6",
+          "type": "code",
+          "src": "s7",
+          "lang": "http",
+          "q": "First read the status picklist of requisition 101 with its option details. Then create a candidate whose state picklist is option 480.",
+          "code": "GET /odata/v2/JobRequisition?$filter=jobReqId eq 101&$select=status&[[1]]=status&$format=json\n\nPOST /odata/v2/Candidate\nContent-Type: application/json\n\n{\n  \"firstName\": \"Alex\",\n  \"lastName\": \"Morgan\",\n  \"primaryEmail\": \"alex.morgan@example.com\",\n  \"country\": \"BR\",\n  \"state\": { \"[[2]]\": \"480\" }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "$expand",
+              "decoys": [
+                "$orderby",
+                "$top"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "id",
+              "decoys": [
+                "label",
+                "value"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u08-l2-i7",
+          "type": "scenario",
+          "src": "s13",
+          "q": "Your integration inserts an OfferLetter for application 4512 and gets the error Property applicationId is invalid. The application exists and the ID is correct.",
+          "options": [
+            {
+              "text": "Check the application's status: OData accepts the insert only when the applicant's status category is Offer.",
+              "ok": true,
+              "why": "SAP's fix is to move the candidate to a status in the Offer category, or to have a partner change the status category after checking the impact."
+            },
+            {
+              "text": "Turn on Enable Offer Approval in Provisioning.",
+              "ok": false,
+              "why": "That setting fixes a different error, when a JobApplication insert fails on its association with JobOffer."
+            },
+            {
+              "text": "Ask an admin to run the OData API Metadata Refresh.",
+              "ok": false,
+              "why": "The property exists; the error comes from a status check, not from missing metadata."
+            },
+            {
+              "text": "Retry the insert with exponential backoff.",
+              "ok": false,
+              "why": "It is a validation error, not a temporary one, so every retry fails in the same way."
+            }
+          ]
+        },
+        {
+          "id": "u08-l2-i8",
+          "type": "scenario",
+          "src": "s11",
+          "q": "Before go-live, a one-off job must move 3,000 old applications to the status Not selected with OData upserts.",
+          "options": [
+            {
+              "text": "Agree with the Recruiting admins how to handle the candidate emails configured for that status, and test the run in the preview instance first.",
+              "ok": true,
+              "why": "Since the 2018 Q4 release, a status change through OData sends the same status emails as a change in the UI."
+            },
+            {
+              "text": "Run it as planned: API updates never send emails to candidates.",
+              "ok": false,
+              "why": "Status changes through OData do send the emails configured for the new status."
+            },
+            {
+              "text": "Set the status field to Disqualified directly, so that no email is sent.",
+              "ok": false,
+              "why": "The status field is not directly updatable since release 1811; you move applications with appStatusSetItemId."
+            },
+            {
+              "text": "Use Integration Center instead, because it does not trigger emails.",
+              "ok": false,
+              "why": "An Integration Center CSV input integration also performs an OData upsert of the application status."
+            }
+          ]
+        },
+        {
+          "id": "u08-l2-i9",
+          "type": "scenario",
+          "src": "s32",
+          "q": "A Cloud Run service copies candidate profiles from SuccessFactors into Cloud SQL for a skills-matching tool. DRTM purges inactive candidates after the period set for each country, but the Cloud SQL table keeps every candidate for ever.",
+          "options": [
+            {
+              "text": "Copy only the fields the tool needs, and add a scheduled job that deletes or anonymises the candidates SuccessFactors has purged, in the live tables and in the backups.",
+              "ok": true,
+              "why": "The copy must follow storage limitation just like the source, and its backups must follow the same rule."
+            },
+            {
+              "text": "Keep the rows: the candidates accepted the Data Privacy Consent Statement.",
+              "ok": false,
+              "why": "Collecting data fairly and lawfully does not allow you to keep it for longer than you need it."
+            },
+            {
+              "text": "Replace names and emails with a hash and keep the rest for ever.",
+              "ok": false,
+              "why": "Pseudonymised data usually still allows identification, so storage limitation still applies to it."
+            },
+            {
+              "text": "Delete the live rows, but keep the database backups for ever.",
+              "ok": false,
+              "why": "Backup copies are still personal data, so the retention rules apply to them too: delete the data or put it beyond use."
+            }
+          ]
+        },
+        {
+          "id": "u08-l2-i10",
+          "type": "order",
+          "src": "s26",
+          "q": "An offer is accepted. Put the hand-off from Recruiting to Employee Central in order, with Onboarding in between.",
+          "steps": [
+            "The recruiter moves the application to the hirable status",
+            "The recruiter initiates onboarding, and an event reason is sent",
+            "The mapped Recruiting fields go to Onboarding",
+            "The new hire completes the onboarding tasks",
+            "The candidate appears in Manage Pending Hires and HR clicks Hire",
+            "Recruiting moves the application to Hired"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u08-l3",
+      "kind": "interview",
+      "title": "Talk about Recruiting integrations",
+      "items": [
+        {
+          "id": "u08-l3-i1",
+          "type": "say",
+          "src": "s4",
+          "text": "I never hard-code Recruiting fields. I read the template metadata first, because every customer's requisition and application templates are different."
+        },
+        {
+          "id": "u08-l3-i2",
+          "type": "explain",
+          "src": "s22",
+          "seconds": 120,
+          "q": "Walk me through the SuccessFactors Recruiting data model from an integration point of view.",
+          "model": "I think of it as three core objects, with the offer objects around them. JobRequisition is the hiring order. It is created from a requisition template, approved through a route map and then posted. Candidate is the person's profile, and Recruiting uses the email address as its unique identifier. JobApplication links one candidate to one requisition, and it keeps the submitted data and a snapshot of the profile. Its place in the pipeline is appStatusSetItemId, which must be a status from the status set of that requisition's template. For the offer, JobOffer is the offer approval, each approver's action is in JobOfferApprover, and OfferLetter is the letter the candidate receives. One detail often surprises people: the standard requisition title is not on JobRequisition but on JobRequisitionLocale. Finally, the fields of every entity depend on the customer's templates, so I read the metadata before I map anything.",
+          "keypoints": [
+            {
+              "text": "JobRequisition: the hiring order, from a template, approved and posted",
+              "kw": [
+                "requisition",
+                "jobrequisition",
+                "hiring order",
+                "route map",
+                "approved",
+                "approval",
+                "posted"
+              ]
+            },
+            {
+              "text": "Candidate: the profile, unique by email address",
+              "kw": [
+                "candidate",
+                "profile",
+                "email",
+                "unique"
+              ]
+            },
+            {
+              "text": "JobApplication links a candidate to a requisition and holds the status",
+              "kw": [
+                "application",
+                "jobapplication",
+                "links",
+                "appstatussetitemid",
+                "status set",
+                "pipeline"
+              ]
+            },
+            {
+              "text": "The offer objects: JobOffer, JobOfferApprover, OfferLetter",
+              "kw": [
+                "joboffer",
+                "offer approval",
+                "approver",
+                "approvers",
+                "jobofferapprover",
+                "offerletter",
+                "offer letter"
+              ]
+            },
+            {
+              "text": "Fields depend on the customer's templates, so read the metadata",
+              "kw": [
+                "template",
+                "templates",
+                "metadata",
+                "custom fields",
+                "customer"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u08-l3-i3",
+          "type": "tf",
+          "src": "s31",
+          "statement": "Once SuccessFactors has purged a candidate, the copies of that candidate in your other systems are no longer a GDPR concern.",
+          "answer": false,
+          "why": "Every copy of personal data, including backups, falls under the same rules. A valid erasure must reach live systems and backups, and you must tell the organisations you disclosed the data to, unless that is impossible or takes disproportionate effort."
+        },
+        {
+          "id": "u08-l3-i4",
+          "type": "explain",
+          "src": "s4",
+          "seconds": 120,
+          "q": "Recruiting fields depend on each customer's templates. How do you build an integration that copes with that?",
+          "model": "First, I accept that there is no fixed schema. The requisition, candidate profile, application and offer detail templates are configured by each customer, so two customers can have very different fields. So I read the metadata. The template entities, such as JobReqTemplate followed by the template name, are metadata only: a GET fails, but their dollar metadata lists the fields of that template. I keep the field mapping in configuration, not in code, so a new custom field is a configuration change and not a new release. When the admins add a field, someone must run the OData API Metadata Refresh, or the API does not show it. Picklist fields need care: they are complex types, so I send and store the option ID, never the label. Statuses work the same way: I map status IDs per status set. Before go-live, I test every template in the preview instance.",
+          "keypoints": [
+            {
+              "text": "No fixed schema: templates are configured per customer",
+              "kw": [
+                "no fixed schema",
+                "template",
+                "templates",
+                "each customer",
+                "per customer",
+                "configured"
+              ]
+            },
+            {
+              "text": "Read the template entities' metadata",
+              "kw": [
+                "metadata",
+                "dollar metadata",
+                "jobreqtemplate",
+                "data dictionary",
+                "template entity"
+              ]
+            },
+            {
+              "text": "Keep the mapping in configuration, not in code",
+              "kw": [
+                "configuration",
+                "config",
+                "config-driven",
+                "mapping",
+                "not in code"
+              ]
+            },
+            {
+              "text": "Run the metadata refresh after a new field",
+              "kw": [
+                "refresh",
+                "metadata refresh",
+                "new field",
+                "custom field"
+              ]
+            },
+            {
+              "text": "Picklists and statuses by ID",
+              "kw": [
+                "picklist",
+                "option id",
+                "optionid",
+                "status id",
+                "status set",
+                "appstatussetitemid"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u08-l3-i10",
+          "type": "explain",
+          "src": "s8",
+          "seconds": 150,
+          "q": "An assessment vendor will move candidates forward in the pipeline through the API. What can go wrong, and how do you design for it?",
+          "model": "The short answer is that a status change through the API is more than a field update, so I design for its side effects. First, I write appStatusSetItemId, not the status field, because the system sets the status itself. Second, status IDs belong to status sets, and each requisition template has its own set. So I map the vendor's result to a status ID per status set. If I send an ID from another set, recruiters cannot open the application. Third, the move sends the same candidate emails as a move in the UI. I agree with the recruiting team which statuses may send emails, and I test the whole flow in the preview instance. Fourth, errors. A validation error, such as an invalid property, fails on every retry, so I send it to a dead-letter queue for a person to fix, and I retry only temporary errors. The trade-off is more configuration, but no candidate gets a wrong email.",
+          "keypoints": [
+            {
+              "text": "Write appStatusSetItemId, not the status field",
+              "kw": [
+                "appstatussetitemid",
+                "status id",
+                "status field",
+                "not updatable"
+              ]
+            },
+            {
+              "text": "Map status IDs per status set and template",
+              "kw": [
+                "status set",
+                "status sets",
+                "per template",
+                "map",
+                "mapping"
+              ]
+            },
+            {
+              "text": "A status change sends the candidate emails",
+              "kw": [
+                "email",
+                "emails",
+                "notification",
+                "notifications"
+              ]
+            },
+            {
+              "text": "Test the flow in the preview instance",
+              "kw": [
+                "preview",
+                "test",
+                "testing"
+              ]
+            },
+            {
+              "text": "Retry only temporary errors; send validation errors to a person",
+              "kw": [
+                "retry",
+                "retries",
+                "validation",
+                "dead-letter",
+                "dead letter",
+                "temporary"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u08-l3-i5",
+          "type": "scenario",
+          "src": "s33",
+          "q": "The head of talent acquisition at Acme asks you to load every applicant's full profile and CV into BigQuery and to keep it for five years for analytics. What do you propose?",
+          "options": [
+            {
+              "text": "Agree the questions the analysis must answer, load only the fields it needs, apply the same retention as SuccessFactors, and keep long-term trends as figures with no personal data.",
+              "ok": true,
+              "why": "This follows data minimisation and storage limitation, and data that is truly anonymised is no longer personal data."
+            },
+            {
+              "text": "Load everything, because the candidates accepted the consent statement.",
+              "ok": false,
+              "why": "Accepting the statement does not allow you to keep identifiable data for longer than the purpose needs."
+            },
+            {
+              "text": "Replace the names with a hash and keep the rest for five years.",
+              "ok": false,
+              "why": "Pseudonymised data usually still allows identification, so storage limitation still applies."
+            },
+            {
+              "text": "Refuse, because candidate data must never leave SuccessFactors.",
+              "ok": false,
+              "why": "This is too absolute: data can be processed elsewhere for a clear purpose, with minimisation and retention rules."
+            }
+          ]
+        },
+        {
+          "id": "u08-l3-i6",
+          "type": "explain",
+          "src": "s27",
+          "seconds": 150,
+          "q": "How do you handle candidate personal data in an integration that copies Recruiting data to Google Cloud?",
+          "model": "I start from two principles: data minimisation and storage limitation. First, I ask what the target system really needs. Often it is IDs, statuses and dates, not the CV or the home address, so I copy only those fields. Second, I align retention with SuccessFactors. Recruiting uses Data Retention Time Management to purge inactive candidates and applications, with inactivity periods per country, so a copy in Cloud SQL or BigQuery must not keep the person for longer. A scheduled job reconciles the copies and deletes or anonymises the people that SuccessFactors has purged, and the backups follow the same rule. Third, consent: candidates accept the Data Privacy Consent Statement, but consent does not remove the retention rules. Finally, an erasure request needs an answer within one month, and the erasure must reach every copy, so I keep a register of every system that receives candidate data.",
+          "keypoints": [
+            {
+              "text": "Data minimisation: copy only the fields the target needs",
+              "kw": [
+                "minimisation",
+                "minimization",
+                "minimise",
+                "minimize",
+                "only the fields",
+                "only what",
+                "need"
+              ]
+            },
+            {
+              "text": "Align retention with DRTM purges per country",
+              "kw": [
+                "retention",
+                "drtm",
+                "purge",
+                "purges",
+                "inactive",
+                "country"
+              ]
+            },
+            {
+              "text": "Delete or anonymise downstream copies, backups included",
+              "kw": [
+                "delete",
+                "reconcile",
+                "reconciliation",
+                "anonymise",
+                "anonymize",
+                "backup",
+                "backups",
+                "copies"
+              ]
+            },
+            {
+              "text": "Consent through the DPCS does not remove retention rules",
+              "kw": [
+                "consent",
+                "dpcs",
+                "consent statement",
+                "privacy statement"
+              ]
+            },
+            {
+              "text": "Erasure requests: one month, every copy",
+              "kw": [
+                "erasure",
+                "right to erasure",
+                "one month",
+                "deletion request",
+                "register"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u08-l3-i7",
+          "type": "say",
+          "src": "s32",
+          "text": "Candidate data must not live longer in our systems than in SuccessFactors. Every copy we make follows the same retention rules, backups included."
+        },
+        {
+          "id": "u08-l3-i9",
+          "type": "tf",
+          "src": "s27",
+          "statement": "If a DRTM purge removed the wrong candidates, SAP Support can restore their data.",
+          "answer": false,
+          "why": "Purges are irreversible. That is why every purge request needs an approver, who first reviews a preview report of the data to be purged."
+        },
+        {
+          "id": "u08-l3-i8",
+          "type": "explain",
+          "src": "s24",
+          "seconds": 150,
+          "q": "What happens between the moment a candidate accepts the offer and the moment they exist as an employee in Employee Central?",
+          "model": "At a high level there are three steps. First, in Recruiting, the recruiter moves the application to the hirable status. A status set can have only one hirable status, and the requisition template needs the onboarding feature permission. Then the recruiter initiates onboarding, which must send an event reason, set by a business rule or mapped from a Recruiting field. The Recruit-to-Hire Data Mapping copies the mapped Recruiting fields into the Employee Central fields that Onboarding uses. Second, the new hire completes the onboarding tasks, such as personal data and compliance forms. Third, the hire into Employee Central: the candidate appears in Manage Pending Hires, where HR clicks Hire, or, if automatic hiring is enabled, the system hires them when they reach Ready to Hire. After that, Recruiting moves the application to Hired. One rule I always repeat: do not use Add New Employee directly for these candidates, or the application never reaches Hired.",
+          "keypoints": [
+            {
+              "text": "Move the application to the hirable status",
+              "kw": [
+                "hirable",
+                "hireable",
+                "hirable status"
+              ]
+            },
+            {
+              "text": "Initiate onboarding with an event reason",
+              "kw": [
+                "initiate onboarding",
+                "onboarding",
+                "event reason"
+              ]
+            },
+            {
+              "text": "Recruiting fields are mapped to Employee Central fields",
+              "kw": [
+                "mapping",
+                "mapped",
+                "recruit-to-hire",
+                "map",
+                "hris",
+                "fields"
+              ]
+            },
+            {
+              "text": "Hire through Manage Pending Hires or automatic hiring",
+              "kw": [
+                "manage pending hires",
+                "pending hires",
+                "ready to hire",
+                "automatic",
+                "automatically"
+              ]
+            },
+            {
+              "text": "Not Add New Employee, so the application reaches Hired",
+              "kw": [
+                "add new employee",
+                "hired"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "The data model",
+        "points": [
+          "JobRequisition: the hiring order, created from a requisition template (templateId); key jobReqId.",
+          "The standard requisition title is in JobRequisitionLocale, not in JobRequisition.",
+          "Candidate: the profile; the email address is the unique identifier.",
+          "JobApplication: one candidate on one requisition (candidateId, jobReqId), with a snapshot of the profile.",
+          "JobOffer: the offer approval; JobOfferApprover: each approver's action and date (approverAction, approverActionDate).",
+          "OfferLetter: the letter; the function import sendMailOfferLetter emails it.",
+          "CandidateLight: creates a candidate with only firstName, lastName, primaryEmail and country."
+        ]
+      },
+      {
+        "h": "Application statuses",
+        "points": [
+          "Move an application by writing appStatusSetItemId; the system sets the status field (not updatable since 1811).",
+          "The status ID must belong to the status set of the requisition's template, or the application cannot be opened.",
+          "One status set per requisition template, built from the single base set.",
+          "No API returns the status set configuration; the CandidateStatus picklist lists the statuses only.",
+          "A status change through OData sends the status emails, just like the UI (since 2018 Q4).",
+          "appStatusSetId in JobApplicationStatus holds a status ID, not the set ID; the set ID cannot be read.",
+          "An OfferLetter insert needs a status in the Offer category."
+        ]
+      },
+      {
+        "h": "Templates and metadata",
+        "points": [
+          "Requisition, candidate profile, application and offer detail templates define the fields for each customer.",
+          "JobReqTemplate_<name>, JobAppTemplate_<name> and JobOfferTemplate_<name> are metadata only: a GET returns COE_GENERAL_FORBIDDEN.",
+          "Read <template entity>/$metadata to see the fields, then build the payload for the real entity.",
+          "After adding a field: OData API Metadata Refresh in the Admin Center.",
+          "Keep the field mapping in configuration, and test every template in the preview instance."
+        ]
+      },
+      {
+        "h": "Picklists and custom fields",
+        "points": [
+          "Picklist fields are complex types: write { \"id\": \"<option ID>\" }, not the label.",
+          "Use $expand on the field to get the PicklistOption (id, externalCode, status, and more).",
+          "Store option IDs in your own systems, not labels.",
+          "Mapped fields (for example requisition to offer detail) must use the same picklist, or the offer shows an option ID.",
+          "Once an application snapshot exists, updates to custom application fields do not show in the UI."
+        ]
+      },
+      {
+        "h": "Offer to hire",
+        "points": [
+          "Offer approval (JobOffer), then the offer letter, then the hirable status.",
+          "Only one hirable status per status set; the requisition template needs the onboarding feature permission.",
+          "Initiating onboarding requires an event reason.",
+          "Through OData, the function import initiateOnboarding starts onboarding.",
+          "Recruit-to-Hire Data Mapping: Recruiting fields go to Employee Central fields.",
+          "Hire through Manage Pending Hires, or automatically at Ready to Hire when Enable Automatic Hiring for Recruiting is on.",
+          "Never use Add New Employee directly, or the application does not reach Hired."
+        ]
+      },
+      {
+        "h": "Candidate data and GDPR",
+        "points": [
+          "DPCS 2.0: internal and external statements, one per country per type; each new version must be accepted.",
+          "DRTM: Inactive Candidate Purge and Inactive Application Purge, per country, approved before they run; purges are irreversible.",
+          "Only fields with anonymize=\"true\" in the templates are anonymised.",
+          "Purge Freeze puts a candidate on legal hold, so DRTM purges skip their data.",
+          "The UK GDPR sets no fixed retention periods: justify, document and review them.",
+          "Erasure: answer within one month; reach every copy, put backups beyond use, and tell the recipients."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Describing OData and APIs in Recruiting - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-administration/describing-odata-and-apis-in-recruiting",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "SAP KBA 2251702 - oData API Integration with Recruiting Management",
+      "url": "https://apps.support.sap.com/sap/support/knowledge/public/en/2251702",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "SAP KBA 2341070 - Hub KBA for API services in use with Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2341070",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "SAP KBA 2339790 - COE_GENERAL_FORBIDDEN for Job Requisition Template entities with error 'GET not allowed' - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2339790",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "SAP KBA 2171588 - OData API Metadata Refresh and Export in SuccessFactors Cloud",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2171588",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "SAP KBA 2943498 - Missing values in Recruiting Posting Field Completion Rules - Recruiting Posting",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2943498",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "SAP KBA 2556173 - How to read / update picklist fields via Odata API - Syntax",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2556173",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "SAP KBA 2883239 - How to update the Application Status via Integration Center/OData API - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2883239",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "SAP KBA 2541688 - Odata - How to Update and Use the Standard internal Field Status from JobApplication Entity as Filter - RCM",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2541688",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "SAP KBA 2846600 - Application cannot be opened because its status is not part of the job requisition - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2846600",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "SAP KBA 2745616 - Odata - Emails are triggered when update the application status using an Odata call - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2745616",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "SAP KBA 2825011 - Statuses of an Application Status Set through the API - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2825011",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "SAP KBA 3090729 - Error - Property applicationId is invalid - Insert using Odata - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3090729",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "SAP KBA 2734562 - Reporting on Offer Detail Approved Date of each approver via Integration Center - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2734562",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "SAP KBA 2530902 - Job Application creation via OData fails on the JobOffer association - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2530902",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "SAP KBA 2569249 - Creating candidates with minimal fields using the CandidateLight OData entity - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2569249",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "SAP KBA 2869603 - Account Already Exists when creating a candidate profile - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2869603",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "SAP KBA 2848692 - Create Job Requisition via ODATA API - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2848692",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "SAP KBA 2816649 - Standard Job Requisition field 'title' not found in JobRequisition entity - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2816649",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "SAP KBA 3044860 - Custom field updates on the Job Application are not reflected in the UI - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3044860",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Creating Applicant Statuses for Candidate Application - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-academy/creating-applicant-statuses-1",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Discovering Recruiting: Recruiter Experience Process - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-project-team-orientation/discovering-recruiting-recruiter-experience-process",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Explaining the Process to Create a Job Requisition - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-project-team-orientation/explaining-the-process-to-create-a-job-requisition",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "Integrating SAP SuccessFactors Onboarding and SAP SuccessFactors Recruiting - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-onboarding-administration/integrating-sap-successfactors-onboarding-and-sap-successfactors-recruiting_ce263b39-1310-4177-9610-c9029ba7ae2c",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "Experiencing SAP SuccessFactors Onboarding in the Workflow - SAP Learning",
+      "url": "https://learning.sap.com/courses/navigating-the-employee-lifecycle-through-sap-successfactors/experiencing-sap-successfactors-onboarding-in-the-workflow",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "SAP KBA 2414231 - Candidates hired through Employee Central stay in Hireable instead of Hired - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2414231",
+      "official": true
+    },
+    {
+      "id": "s27",
+      "title": "Enabling Data Privacy - SAP Learning (SAP SuccessFactors Recruiting: Recruiter Experience Academy)",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-academy/enabling-data-privacy-1",
+      "official": true
+    },
+    {
+      "id": "s28",
+      "title": "Creating Data Privacy Consent Statement (DPCS) - SAP Learning",
+      "url": "https://learning.sap.com/courses/sap-successfactors-recruiting-recruiter-experience-administration/creating-data-privacy-consent-statement-dpcs-",
+      "official": true
+    },
+    {
+      "id": "s29",
+      "title": "SAP KBA 2635179 - Data Retention Time Management configuration in Recruiting",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2635179",
+      "official": true
+    },
+    {
+      "id": "s30",
+      "title": "SAP KBA 2919317 - DRM/DRTM - Imminent Candidate Purge Email Notification - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2919317",
+      "official": true
+    },
+    {
+      "id": "s31",
+      "title": "Right to erasure - ICO (UK GDPR guidance)",
+      "url": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/individual-rights/individual-rights/right-to-erasure/",
+      "official": true
+    },
+    {
+      "id": "s32",
+      "title": "Principle (e): Storage limitation - ICO (UK GDPR guidance)",
+      "url": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/data-protection-principles/a-guide-to-the-data-protection-principles/storage-limitation/",
+      "official": true
+    },
+    {
+      "id": "s33",
+      "title": "A guide to the data protection principles - ICO (UK GDPR guidance)",
+      "url": "https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/data-protection-principles/a-guide-to-the-data-protection-principles/",
+      "official": true
+    },
+    {
+      "id": "s34",
+      "title": "SAP KBA 3095019 - Offer showing Option ID instead of Picklist Label on field from Job Requisition - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/3095019",
+      "official": true
+    },
+    {
+      "id": "s35",
+      "title": "SAP KBA 2493267 - Error when updating the job application of a candidate using OData API (JobOffer/approvers association)",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2493267",
+      "official": true
+    },
+    {
+      "id": "s36",
+      "title": "SAP KBA 2879453 - ODATA - unable to get the Application Status Set ID - Recruiting Management",
+      "url": "https://userapps.support.sap.com/sap/support/knowledge/en/2879453",
+      "official": true
+    }
+  ]
+}

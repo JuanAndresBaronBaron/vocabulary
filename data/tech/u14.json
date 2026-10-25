@@ -1,0 +1,1263 @@
+{
+  "format": 1,
+  "id": "u14",
+  "n": 14,
+  "block": "gcp",
+  "title": "Compute",
+  "summary": "After this unit you can choose between Cloud Run services, jobs, functions and worker pools, GKE Autopilot, GKE Standard and Compute Engine, and explain how Cloud Run scales, times out and is billed.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Cloud Run documentation checked on 2026-10-25 (pages last updated 2026-10-22): default concurrency 80 in the console or 80 x vCPUs with gcloud and Terraform for new services, maximum 1,000; request timeout 300 seconds by default, 3,600 maximum; maximum instances 100 per revision by default; default scaling target 60 per cent for CPU and concurrency.",
+    "Cloud Run functions is the current name of Cloud Functions (2nd gen); deploying functions in Cloud Run became GA on 19 February 2025.",
+    "Cloud Run worker pools became GA on 14 April 2026. Cloud Run instances (long-lived, individually addressable) have been in Preview since 25 August 2026 and are not covered here.",
+    "Cloud Run jobs: task timeout up to 168 hours GA since 11 November 2025 (1 hour for tasks with GPUs).",
+    "The billing setting was renamed from CPU allocation in the console on 13 December 2024: request-based billing (formerly CPU only allocated during request processing) and instance-based billing (formerly CPU always allocated).",
+    "GKE pricing checked on 2026-10-25: cluster management fee 0.10 USD per cluster per hour in every mode of operation.",
+    "The Cloud Architecture Center page on choosing between Cloud Run and GKE Autopilot was last updated on 2024-08-30; it is used only for the serverless-first recommendation and the general criteria.",
+    "unconfirmed: instance-based billing may need at least 512 MiB of memory, and minimum instances may be only a best-effort target; both were left out of the unit."
+  ],
+  "terms": [
+    {
+      "id": "t-run-service",
+      "term": "Cloud Run service",
+      "ipa": "/ˌklaʊd rʌn ˈsɜːvɪs/",
+      "say": "Cloud Run service",
+      "def": "Code in a container that answers HTTP requests at a stable HTTPS endpoint. Cloud Run adds and removes stateless instances automatically as the traffic changes.",
+      "example": "The candidate-sync service receives application status changes from SuccessFactors Recruiting, through the integration layer, at its HTTPS URL.",
+      "src": "s1"
+    },
+    {
+      "id": "t-run-job",
+      "term": "Cloud Run job",
+      "ipa": "/ˌklaʊd rʌn ˈdʒɒb/",
+      "say": "Cloud Run job",
+      "def": "Code in a container that does its work and then stops; it does not listen for requests. One execution can split the work into up to 10,000 independent tasks, which run in parallel by default, and failed tasks can be retried.",
+      "example": "A nightly job with ten tasks reconciles all open job requisitions; each task processes one tenth of the list and exits with code 0.",
+      "src": "s9"
+    },
+    {
+      "id": "t-concurrency",
+      "term": "Concurrency (maximum concurrent requests)",
+      "ipa": "/kənˈkʌrənsi/",
+      "say": "concurrency",
+      "def": "The maximum number of requests that one Cloud Run instance handles at the same time. The default is 80 in the console, or 80 times the number of vCPUs with gcloud and Terraform; the maximum is 1,000.",
+      "example": "With concurrency 40, a burst of 400 simultaneous requests needs at least ten instances.",
+      "src": "s2"
+    },
+    {
+      "id": "t-scale-to-zero",
+      "term": "Scale to zero",
+      "ipa": "/ˌskeɪl tə ˈzɪərəʊ/",
+      "say": "scale to zero",
+      "def": "When a service receives no requests, Cloud Run removes even the last instance, so there is nothing running to pay for. Only a new request can start an instance again.",
+      "example": "The interview-scheduling API has no traffic at night, so it scales to zero, and the first request in the morning starts a new instance.",
+      "src": "s3"
+    },
+    {
+      "id": "t-cold-start",
+      "term": "Cold start",
+      "ipa": "/ˌkəʊld ˈstɑːt/",
+      "say": "cold start",
+      "def": "The extra latency when a request must wait for a new instance to start, for example after the service has scaled to zero. Minimum instances and startup CPU boost reduce it.",
+      "example": "The first search after a quiet night took several seconds because Spring Boot had to start in a new instance.",
+      "src": "s3"
+    },
+    {
+      "id": "t-min-instances",
+      "term": "Minimum instances",
+      "ipa": "/ˈmɪnɪməm ˈɪnstənsɪz/",
+      "say": "minimum instances",
+      "def": "The number of instances Cloud Run tries to keep warm, even with no traffic, to avoid cold starts. The idle instances it keeps are still billed.",
+      "example": "The recruiter-facing API keeps one minimum instance, so the first request at 8 a.m. does not wait for a cold start.",
+      "src": "s4"
+    },
+    {
+      "id": "t-max-instances",
+      "term": "Maximum instances",
+      "ipa": "/ˈmæksɪməm ˈɪnstənsɪz/",
+      "say": "maximum instances",
+      "def": "The upper limit on the number of instances; the default is 100 per revision. It controls cost and protects downstream systems, such as a database with a connection limit, although it can be exceeded briefly during spikes.",
+      "example": "With 10 database connections per instance and at most 15 instances, the service normally opens no more than 150 connections to Cloud SQL.",
+      "src": "s5"
+    },
+    {
+      "id": "t-request-timeout",
+      "term": "Request timeout",
+      "ipa": "/rɪˈkwest ˈtaɪmaʊt/",
+      "say": "request timeout",
+      "def": "How long a Cloud Run service has to respond to a request: 5 minutes by default and up to 60 minutes. After that, Cloud Run closes the connection and returns HTTP 504, but the instance keeps running.",
+      "example": "A bulk export that needed 70 minutes failed with 504 every time, so the team moved it to a Cloud Run job.",
+      "src": "s6"
+    },
+    {
+      "id": "t-request-billing",
+      "term": "Request-based billing",
+      "ipa": "/rɪˈkwest beɪst ˈbɪlɪŋ/",
+      "say": "request based billing",
+      "def": "The default billing setting of a Cloud Run service, formerly called CPU only allocated during request processing. The instance has CPU only while it handles requests, starts or shuts down, and there is a fee per request.",
+      "example": "The webhook receiver has spiky traffic, a few bursts a day, so request-based billing is the cheaper choice.",
+      "src": "s7"
+    },
+    {
+      "id": "t-instance-billing",
+      "term": "Instance-based billing",
+      "ipa": "/ˈɪnstəns beɪst ˈbɪlɪŋ/",
+      "say": "instance based billing",
+      "def": "A billing setting, formerly called CPU always allocated, in which the instance has CPU for its whole life and you pay for that whole time, with no per-request fee. It allows short background work outside requests.",
+      "example": "The payroll adapter has steady traffic all day and sends batched metrics in the background, so it uses instance-based billing.",
+      "src": "s7"
+    },
+    {
+      "id": "t-run-functions",
+      "term": "Cloud Run functions",
+      "ipa": "/ˌklaʊd rʌn ˈfʌŋkʃənz/",
+      "say": "Cloud Run functions",
+      "def": "The current name of Cloud Functions. You deploy only a function from source; it is built into a container and deployed as a Cloud Run service, and an Eventarc trigger can call it for events such as a Pub/Sub message or a new file in Cloud Storage.",
+      "example": "A small function extracts the text of each CV uploaded to a Cloud Storage bucket for the search index.",
+      "src": "s12"
+    },
+    {
+      "id": "t-worker-pool",
+      "term": "Worker pool",
+      "ipa": "/ˈwɜːkə puːl/",
+      "say": "worker pool",
+      "def": "A Cloud Run resource for continuous background work, such as a Kafka or Pub/Sub pull consumer. It has no URL and does not autoscale by default: you set the number of instances or scale on external metrics.",
+      "example": "The team runs its Pub/Sub pull subscriber as a worker pool with two instances, because it must keep working when no HTTP requests arrive.",
+      "src": "s15"
+    },
+    {
+      "id": "t-gke-autopilot",
+      "term": "GKE Autopilot",
+      "ipa": "/ˌdʒiː keɪ ˈiː ˈɔːtəʊpaɪlət/",
+      "say": "G K E Autopilot",
+      "def": "The recommended GKE mode, in which Google manages the nodes, scaling and security settings. For general-purpose Pods you pay for the CPU, memory and ephemeral storage that the Pods request, not for whole nodes.",
+      "example": "The team runs its Helm-based integration platform on GKE Autopilot, so nobody has to size or upgrade node pools.",
+      "src": "s23"
+    },
+    {
+      "id": "t-gke-standard",
+      "term": "GKE Standard",
+      "ipa": "/ˌdʒiː keɪ ˈiː ˈstændəd/",
+      "say": "G K E Standard",
+      "def": "The GKE mode in which you create and manage the node pools yourself and can change most cluster settings. You pay for node capacity whether or not the Pods use it.",
+      "example": "The platform team needs full control over the node pools and node settings, so that cluster runs in Standard mode.",
+      "src": "s24"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u14-l1",
+      "kind": "concepts",
+      "title": "Cloud Run, functions and GKE",
+      "items": [
+        {
+          "id": "u14-l1-i1",
+          "type": "card",
+          "term": "t-run-service",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "c",
+                "label": "Client"
+              },
+              {
+                "id": "url",
+                "label": "Service URL (HTTPS)"
+              },
+              {
+                "id": "inst",
+                "label": "Instances: from zero up to the maximum"
+              },
+              {
+                "id": "db",
+                "label": "Cloud SQL"
+              }
+            ],
+            "edges": [
+              {
+                "from": "c",
+                "to": "url",
+                "label": "HTTP request"
+              },
+              {
+                "from": "url",
+                "to": "inst",
+                "label": "load balanced"
+              },
+              {
+                "from": "inst",
+                "to": "db",
+                "label": "reads and writes"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u14-l1-i2",
+          "type": "card",
+          "term": "t-concurrency",
+          "src": "s2"
+        },
+        {
+          "id": "u14-l1-i3",
+          "type": "pick",
+          "src": "s2",
+          "q": "A Cloud Run service has its maximum concurrent requests per instance set to 80. What does that mean?",
+          "options": [
+            "Each instance handles up to 80 requests at the same time",
+            "The service never runs more than 80 instances",
+            "Each instance handles up to 80 requests per second",
+            "Each instance starts a pool of 80 threads"
+          ],
+          "answer": 0,
+          "why": "Concurrency is the number of simultaneous requests one instance may receive. The instance limit is a different setting (maximum instances), a rate per second is not concurrency, and the thread pool is your own configuration."
+        },
+        {
+          "id": "u14-l1-i4",
+          "type": "card",
+          "term": "t-scale-to-zero",
+          "src": "s3"
+        },
+        {
+          "id": "u14-l1-i5",
+          "type": "tf",
+          "src": "s3",
+          "statement": "A Cloud Run service that has scaled to zero starts again when new messages arrive for its Pub/Sub pull subscriber.",
+          "answer": false,
+          "why": "Scaling from zero can only be triggered by a request, and a pull subscriber makes no request to the service. Use a push subscription or a worker pool instead."
+        },
+        {
+          "id": "u14-l1-i6",
+          "type": "card",
+          "term": "t-request-billing",
+          "src": "s7"
+        },
+        {
+          "id": "u14-l1-i7",
+          "type": "tf",
+          "src": "s18",
+          "statement": "With request-based billing, work that a Spring @Async method starts after the response has been sent may stall or never finish.",
+          "answer": true,
+          "why": "After the request ends, the instance's CPU is disabled or severely limited, and an idle instance can be shut down at any time. Use instance-based billing for short background work, or Cloud Tasks for longer work."
+        },
+        {
+          "id": "u14-l1-i8",
+          "type": "card",
+          "term": "t-run-job",
+          "src": "s9",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "sch",
+                "label": "Cloud Scheduler"
+              },
+              {
+                "id": "ex",
+                "label": "Job execution"
+              },
+              {
+                "id": "t0",
+                "label": "Task 0"
+              },
+              {
+                "id": "t1",
+                "label": "Task 1"
+              },
+              {
+                "id": "t2",
+                "label": "Task 2"
+              }
+            ],
+            "edges": [
+              {
+                "from": "sch",
+                "to": "ex",
+                "label": "executes the job every night"
+              },
+              {
+                "from": "ex",
+                "to": "t0",
+                "label": "in parallel"
+              },
+              {
+                "from": "ex",
+                "to": "t1",
+                "label": "in parallel"
+              },
+              {
+                "from": "ex",
+                "to": "t2",
+                "label": "in parallel"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u14-l1-i9",
+          "type": "card",
+          "term": "t-gke-autopilot",
+          "src": "s23"
+        },
+        {
+          "id": "u14-l1-i10",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each compute option with what it is for.",
+          "pairs": [
+            [
+              "Cloud Run service",
+              "Answers HTTP requests at a stable URL and scales automatically"
+            ],
+            [
+              "Cloud Run job",
+              "Runs tasks to completion, then stops"
+            ],
+            [
+              "Cloud Run functions",
+              "One function deployed from source, called by HTTP or by events"
+            ],
+            [
+              "Worker pool",
+              "Always-on background work with no URL, such as a pull consumer"
+            ],
+            [
+              "GKE Autopilot",
+              "Kubernetes in which Google manages the nodes"
+            ],
+            [
+              "Compute Engine",
+              "Virtual machines with full control over the OS and kernel"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u14-l2",
+      "kind": "practice",
+      "title": "Choose and configure compute",
+      "items": [
+        {
+          "id": "u14-l2-i1",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each integration workload with the compute option that fits it best.",
+          "pairs": [
+            [
+              "An HTTPS webhook that receives application status changes",
+              "Cloud Run service"
+            ],
+            [
+              "A nightly reconciliation that must run to completion",
+              "Cloud Run job"
+            ],
+            [
+              "Extract the text of each CV uploaded to a Cloud Storage bucket",
+              "Cloud Run function with an Eventarc trigger"
+            ],
+            [
+              "A Kafka consumer that must run all the time",
+              "Cloud Run worker pool"
+            ],
+            [
+              "A platform built on Helm charts and custom resources",
+              "GKE Autopilot"
+            ],
+            [
+              "A legacy application that needs custom kernel settings",
+              "Compute Engine"
+            ]
+          ]
+        },
+        {
+          "id": "u14-l2-i2",
+          "type": "scenario",
+          "src": "s19",
+          "q": "A Spring Boot service on Cloud Run uses a Pub/Sub pull subscriber for OfferAccepted events. It has default settings and no other traffic at night. In the morning, the night's messages are still waiting in the subscription.",
+          "options": [
+            {
+              "text": "Use a push subscription that calls the service URL with an invoker service account, and return a success code, such as 200 or 204, only after processing.",
+              "ok": true,
+              "why": "Each message becomes an HTTP request, which can start an instance from zero, and a success code acknowledges the message."
+            },
+            {
+              "text": "Raise maximum instances from 100 to 500.",
+              "ok": false,
+              "why": "Maximum instances only caps scaling; with no requests, Cloud Run still has no reason to start an instance."
+            },
+            {
+              "text": "Increase the request timeout to 60 minutes.",
+              "ok": false,
+              "why": "There are no requests at all, so a longer timeout changes nothing."
+            },
+            {
+              "text": "Set concurrency to 1.",
+              "ok": false,
+              "why": "Concurrency limits requests per instance; it cannot start an instance when no request arrives."
+            }
+          ]
+        },
+        {
+          "id": "u14-l2-i3",
+          "type": "order",
+          "src": "s8",
+          "q": "A Cloud Run service has scaled to zero. Put the life of its next instance in order.",
+          "steps": [
+            "A request arrives and no instance is running",
+            "Cloud Run starts a new instance (a cold start)",
+            "The container listens on the port in the PORT variable, 8080 by default",
+            "Cloud Run sends the waiting request to the instance",
+            "Traffic stops, and the instance stays idle for up to 15 minutes",
+            "Cloud Run sends SIGTERM to the container",
+            "After 10 seconds, Cloud Run sends SIGKILL"
+          ]
+        },
+        {
+          "id": "u14-l2-i4",
+          "type": "code",
+          "src": "s20",
+          "lang": "text",
+          "q": "Complete the deploy command for a Spring Boot service. Each instance handles up to 40 requests at once, one instance stays warm, a request may take two minutes at most, and CPU stays allocated between requests for a metrics exporter.",
+          "code": "gcloud run deploy candidate-sync \\\n  --image=europe-west1-docker.pkg.dev/acme-hr/apps/candidate-sync:1.4.0 \\\n  --region=europe-west1 \\\n  --no-allow-unauthenticated \\\n  --memory=1Gi \\\n  --[[1]]=40 \\\n  --[[2]]=1 \\\n  --max-instances=15 \\\n  --[[3]]=120 \\\n  --[[4]]",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "concurrency",
+              "decoys": [
+                "parallelism",
+                "max-concurrency"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "min-instances",
+              "decoys": [
+                "tasks",
+                "max-retries"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "timeout",
+              "decoys": [
+                "task-timeout",
+                "ack-deadline"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "no-cpu-throttling",
+              "decoys": [
+                "cpu-throttling",
+                "cpu-boost"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u14-l2-i5",
+          "type": "scenario",
+          "src": "s5",
+          "q": "A payroll adapter on Cloud Run writes to a Cloud SQL database that allows about 200 connections. Each instance has a connection pool of 10. During a hiring campaign, Cloud Run scaled to 40 instances and the database started to refuse connections.",
+          "options": [
+            {
+              "text": "Set maximum instances so that instances times pool size stays below the limit, for example 15 instances with 10 connections each.",
+              "ok": true,
+              "why": "Maximum instances is the setting that protects a backing service such as a database. Keep maximum instances times connections per instance below the database limit."
+            },
+            {
+              "text": "Raise the connection pool to 50 per instance.",
+              "ok": false,
+              "why": "Each instance would open more connections, so the database runs out even sooner."
+            },
+            {
+              "text": "Switch to instance-based billing.",
+              "ok": false,
+              "why": "Billing decides when the CPU is allocated; it does not limit the number of instances, or of connections."
+            },
+            {
+              "text": "Set minimum instances to 40 so that the instances are always ready.",
+              "ok": false,
+              "why": "This keeps 40 instances and their pools open all the time, which makes the problem permanent."
+            }
+          ]
+        },
+        {
+          "id": "u14-l2-i6",
+          "type": "diagram",
+          "src": "s19",
+          "layout": "flow",
+          "q": "Complete the event flow. The payroll adapter is private, and Pub/Sub must prove who it is when it calls the adapter.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Application status change in SuccessFactors Recruiting",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Webhook receiver (Cloud Run service)",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Pub/Sub topic",
+              "slot": false
+            },
+            {
+              "id": "n4",
+              "label": "Push subscription with an invoker service account",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "Payroll adapter: Cloud Run service with no unauthenticated access",
+              "slot": true
+            },
+            {
+              "id": "n6",
+              "label": "Cloud SQL",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "HTTPS POST through the integration layer"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "publishes CandidateHired"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "delivers the message"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "HTTP POST with an OIDC token; a success code acknowledges"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "writes the payroll record"
+            }
+          ],
+          "decoys": [
+            "Cloud Run job",
+            "Pull subscriber in a service that scales to zero",
+            "Service that allows unauthenticated access"
+          ]
+        },
+        {
+          "id": "u14-l2-i7",
+          "type": "scenario",
+          "src": "s14",
+          "q": "A Cloud Run function with an Eventarc trigger indexes each CV uploaded to a Cloud Storage bucket. Sometimes the same CV appears twice in the search index.",
+          "options": [
+            {
+              "text": "Make the function idempotent: use the object name as the document ID in the index, so a second run overwrites the same entry.",
+              "ok": true,
+              "why": "Event-driven functions can be retried, so Google says a function should produce the same result even if it is called several times."
+            },
+            {
+              "text": "Turn off retries on the trigger.",
+              "ok": false,
+              "why": "Retries are how the function recovers from failures; without them, a failed call would leave the CV out of the index."
+            },
+            {
+              "text": "Set maximum instances to 1.",
+              "ok": false,
+              "why": "A single instance can still receive the same event twice, one after the other."
+            },
+            {
+              "text": "Set concurrency to 1.",
+              "ok": false,
+              "why": "Concurrency only limits parallel requests per instance; a repeated event is still processed again."
+            }
+          ]
+        },
+        {
+          "id": "u14-l2-i8",
+          "type": "code",
+          "src": "s8",
+          "lang": "java",
+          "q": "Complete the main method of a Cloud Run job that syncs job requisitions. Each task takes its own slice of the list, and the exit code tells Cloud Run that the task succeeded.",
+          "code": "public static void main(String[] args) {\n    int index = Integer.parseInt(System.getenv(\"[[1]]\"));\n    int count = Integer.parseInt(System.getenv(\"[[2]]\"));\n    List<String> ids = loadRequisitionIds();\n    for (int i = index; i < ids.size(); i += count) {\n        syncRequisition(ids.get(i)); // throws if the sync fails\n    }\n    System.exit([[3]]);\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "CLOUD_RUN_TASK_INDEX",
+              "decoys": [
+                "CLOUD_RUN_TASK_ATTEMPT",
+                "PORT"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "CLOUD_RUN_TASK_COUNT",
+              "decoys": [
+                "CLOUD_RUN_TASK_ATTEMPT",
+                "K_SERVICE"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "0",
+              "decoys": [
+                "1",
+                "15"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u14-l2-i9",
+          "type": "scenario",
+          "src": "s9",
+          "q": "A nightly reconciliation reads 50,000 candidate records from SuccessFactors Recruiting. Cloud Scheduler calls an endpoint on a Cloud Run service, and the run now takes about 90 minutes. Every night it fails with a timeout.",
+          "options": [
+            {
+              "text": "Move it to a Cloud Run job with several tasks, each taking a slice of the records and with a task timeout that fits, and let Cloud Scheduler execute the job.",
+              "ok": true,
+              "why": "A job does not serve requests, so the request timeout does not apply; the task timeout can be set up to 168 hours, and failed tasks are retried."
+            },
+            {
+              "text": "Raise the request timeout to 120 minutes.",
+              "ok": false,
+              "why": "The maximum request timeout for a service is 60 minutes."
+            },
+            {
+              "text": "Return 200 at once and continue the work in a background thread.",
+              "ok": false,
+              "why": "With request-based billing, the CPU is disabled or severely limited after the response, and an idle instance can be shut down at any time."
+            },
+            {
+              "text": "Deploy the same code as a Cloud Run function with an HTTP trigger.",
+              "ok": false,
+              "why": "A function is deployed as a Cloud Run service, so the same 60-minute limit applies to HTTP functions."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u14-l3",
+      "kind": "interview",
+      "title": "Explain your compute choices",
+      "items": [
+        {
+          "id": "u14-l3-i1",
+          "type": "say",
+          "src": "s28",
+          "text": "For a stateless API, my default is Cloud Run. I move to GKE when we need Kubernetes itself, for example Helm charts, operators or custom resources."
+        },
+        {
+          "id": "u14-l3-i2",
+          "type": "explain",
+          "src": "s28",
+          "seconds": 120,
+          "q": "When would you choose Cloud Run, and when GKE?",
+          "model": "I go serverless first, so my default for a stateless API or an integration adapter is Cloud Run. There is no cluster to run, it scales out quickly, it can scale to zero, and the team only needs to know containers. I move to GKE when the workload needs Kubernetes itself, for example Helm charts, operators or custom resources, or when it needs persistent volumes, fine-grained networking such as network policies, or hardware that Cloud Run does not offer. Inside GKE, my default is Autopilot, which Google recommends: Google manages the nodes, and we pay for what the Pods request. I choose Standard only when we need control over the nodes, for example for an agent that needs elevated access on the node. Team skills matter too, because Kubernetes skills are scarce. And it is not all or nothing: we can run both, with each workload on the platform that fits it.",
+          "keypoints": [
+            {
+              "text": "Serverless first: Cloud Run is the default for stateless services",
+              "kw": [
+                "serverless",
+                "cloud run",
+                "stateless",
+                "default",
+                "no cluster"
+              ]
+            },
+            {
+              "text": "Cloud Run strengths: fast scale-out, scale to zero, little to operate",
+              "kw": [
+                "scale to zero",
+                "scales to zero",
+                "scale out",
+                "scales out",
+                "operate",
+                "operations",
+                "fully managed"
+              ]
+            },
+            {
+              "text": "GKE when you need Kubernetes itself, or stateful, networking or hardware needs",
+              "kw": [
+                "kubernetes",
+                "helm",
+                "operators",
+                "operator",
+                "custom resources",
+                "persistent volumes",
+                "stateful",
+                "network policies"
+              ]
+            },
+            {
+              "text": "Autopilot by default; Standard when you need control over the nodes",
+              "kw": [
+                "autopilot",
+                "standard",
+                "nodes",
+                "node pools",
+                "elevated access"
+              ]
+            },
+            {
+              "text": "Team skills, and running both platforms side by side",
+              "kw": [
+                "skills",
+                "team",
+                "expertise",
+                "hiring",
+                "side by side",
+                "mix"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u14-l3-i3",
+          "type": "tf",
+          "src": "s6",
+          "statement": "When a Cloud Run service reaches its request timeout, Cloud Run returns HTTP 504 and stops the instance that was handling the request.",
+          "answer": false,
+          "why": "Cloud Run closes the connection and returns 504, but it does not terminate the instance. The container may keep processing the aborted request, so long requests should be idempotent or able to resume."
+        },
+        {
+          "id": "u14-l3-i4",
+          "type": "scenario",
+          "src": "s4",
+          "q": "A recruiter-facing Spring Boot API on Cloud Run scales to zero every night. Recruiters complain that the first search at 8 a.m. takes several seconds. The service uses default settings.",
+          "options": [
+            {
+              "text": "Set minimum instances to 1, keep startup CPU boost on, and accept the cost of one idle instance.",
+              "ok": true,
+              "why": "A warm instance takes the first request without a cold start, and startup CPU boost shortens the starts that still happen. Idle minimum instances are billed, at a lower rate with request-based billing."
+            },
+            {
+              "text": "Raise the request timeout to 60 minutes.",
+              "ok": false,
+              "why": "The timeout limits how long a request may take; it does nothing to make the first request faster."
+            },
+            {
+              "text": "Set concurrency to 1 so that each request gets a whole instance.",
+              "ok": false,
+              "why": "A concurrency of 1 means more instances must start under load, so there are more cold starts, not fewer."
+            },
+            {
+              "text": "Switch to instance-based billing and leave minimum instances at 0.",
+              "ok": false,
+              "why": "Instance-based billing changes when CPU is allocated and billed; with no minimum, the service still scales to zero overnight."
+            }
+          ]
+        },
+        {
+          "id": "u14-l3-i5",
+          "type": "explain",
+          "src": "s3",
+          "seconds": 120,
+          "q": "How does Cloud Run scale a service, and how do you control it?",
+          "model": "In short, Cloud Run scales automatically, and I steer it with three settings. It adds instances when CPU utilisation or request concurrency goes above a target, which is 60 per cent by default. Concurrency is the maximum number of requests that one instance handles at the same time: by default 80, or 80 per vCPU with gcloud, and at most 1,000. When traffic drops, Cloud Run removes instances, and by default it scales to zero, so the next request has a cold start. First, minimum instances keep one or more instances warm for a latency-sensitive API, but those idle instances are billed. Second, maximum instances cap the cost and protect downstream systems; for example, I keep maximum instances times the connection pool size below the Cloud SQL connection limit. Third, I tune concurrency to what the code can really handle in parallel, because a value that is too high can exhaust memory, and a value of 1 means many more instances and more cold starts.",
+          "keypoints": [
+            {
+              "text": "Scales on CPU utilisation and request concurrency, with a 60 per cent target by default",
+              "kw": [
+                "cpu",
+                "concurrency",
+                "concurrent requests",
+                "60 per cent",
+                "60 percent",
+                "utilisation",
+                "utilization"
+              ]
+            },
+            {
+              "text": "Scales to zero by default; the next request has a cold start",
+              "kw": [
+                "scale to zero",
+                "scales to zero",
+                "zero",
+                "cold start",
+                "cold starts"
+              ]
+            },
+            {
+              "text": "Minimum instances keep instances warm, at a cost",
+              "kw": [
+                "minimum instances",
+                "min instances",
+                "warm",
+                "minimum"
+              ]
+            },
+            {
+              "text": "Maximum instances cap cost and protect downstream systems",
+              "kw": [
+                "maximum instances",
+                "max instances",
+                "connection limit",
+                "connections",
+                "database",
+                "downstream"
+              ]
+            },
+            {
+              "text": "Tune concurrency to what the code can handle in parallel",
+              "kw": [
+                "tune",
+                "threads",
+                "thread",
+                "parallel",
+                "memory",
+                "concurrency of 1"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u14-l3-i6",
+          "type": "say",
+          "src": "s18",
+          "text": "With request-based billing, the CPU is there only while a request runs, so I never leave work for a background thread after the response."
+        },
+        {
+          "id": "u14-l3-i7",
+          "type": "explain",
+          "src": "s7",
+          "seconds": 120,
+          "q": "What is the difference between request-based and instance-based billing on Cloud Run, and when do you use each?",
+          "model": "The billing setting decides when the instance has CPU. With request-based billing, which is the default, CPU is only allocated while the instance handles requests, starts up or shuts down. You pay a fee per request and only for that time, so it is the right choice for sporadic or spiky traffic, such as a webhook receiver that gets a few bursts a day. The downside is that you cannot keep working after the response, because the CPU is then disabled or severely limited. So a Spring async method or a batched metrics exporter may never finish. With instance-based billing, CPU is allocated for the whole life of the instance, and you pay for that whole time, with no per-request fee. Google recommends it for steady traffic, and it can be cheaper when instances are rarely idle. It is also what you need for short background work. For longer asynchronous work, I would use Cloud Tasks or a Cloud Run job instead.",
+          "keypoints": [
+            {
+              "text": "Request-based (the default): CPU only while handling requests, with a fee per request",
+              "kw": [
+                "request-based",
+                "request based",
+                "only during requests",
+                "default",
+                "per request"
+              ]
+            },
+            {
+              "text": "Request-based fits sporadic or spiky traffic",
+              "kw": [
+                "spiky",
+                "sporadic",
+                "bursty",
+                "bursts",
+                "occasional"
+              ]
+            },
+            {
+              "text": "No work after the response with request-based billing",
+              "kw": [
+                "background",
+                "after the response",
+                "async",
+                "throttled",
+                "disabled",
+                "limited"
+              ]
+            },
+            {
+              "text": "Instance-based: CPU for the whole life of the instance, no per-request fee",
+              "kw": [
+                "instance-based",
+                "instance based",
+                "whole life",
+                "lifetime",
+                "always allocated",
+                "lifecycle"
+              ]
+            },
+            {
+              "text": "Instance-based fits steady traffic and short background work; longer work goes to Cloud Tasks or a job",
+              "kw": [
+                "steady",
+                "cloud tasks",
+                "job",
+                "cheaper",
+                "constant"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u14-l3-i8",
+          "type": "tf",
+          "src": "s12",
+          "statement": "Cloud Run functions are deployed as Cloud Run services, so one function instance can handle many requests at the same time.",
+          "answer": true,
+          "why": "A function is built as a container and deployed as a Cloud Run service, with up to 1,000 concurrent requests per instance. The 1st gen version allows only one."
+        },
+        {
+          "id": "u14-l3-i9",
+          "type": "scenario",
+          "src": "s25",
+          "q": "A company already deploys its integration platform with Helm charts and a Kubernetes operator. The security team also requires a monitoring agent from a vendor that is not a GKE Autopilot partner, and the agent needs elevated access on every node. Which runtime do you recommend?",
+          "options": [
+            {
+              "text": "GKE Standard, because the team needs control over the nodes; workloads that fit can still run as Autopilot workloads in the same cluster.",
+              "ok": true,
+              "why": "Standard gives direct control over node pools and allows tools that need access to the node. Standard clusters can run both Autopilot and Standard workloads."
+            },
+            {
+              "text": "GKE Autopilot, because Google recommends it for every case.",
+              "ok": false,
+              "why": "Autopilot allows partner tools, or third-party tools that do not need elevated access on the node, and this agent is neither."
+            },
+            {
+              "text": "Cloud Run, because it scales to zero and has no cluster to manage.",
+              "ok": false,
+              "why": "Cloud Run does not support Kubernetes, so the Helm charts and the operator cannot run there."
+            },
+            {
+              "text": "Kubernetes installed by the team on Compute Engine VMs.",
+              "ok": false,
+              "why": "On Compute Engine, orchestration is manual, so the team would build and run everything itself; GKE Standard gives node control with managed Kubernetes."
+            }
+          ]
+        },
+        {
+          "id": "u14-l3-i10",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 150,
+          "q": "Service, job, function or worker pool: how do you choose for an integration workload?",
+          "model": "I start from how the work arrives and when it ends. If something calls us over HTTP, like a webhook from the recruiting system or a Pub/Sub push subscription, I use a Cloud Run service. It has a stable URL and scales with the requests, but each request must finish within the timeout, at most 60 minutes. If the work has a clear end, like a nightly reconciliation of job requisitions, I use a Cloud Run job. It runs to completion, splits the work into up to 10,000 tasks that can run in parallel, retries failed tasks, and a task can run for up to seven days. I schedule it with Cloud Scheduler. If the logic is one small handler for an event, such as a new CV in a Cloud Storage bucket, a Cloud Run function is the quickest option: I deploy only the function, and an Eventarc trigger calls it. Underneath, it is a Cloud Run service. And for an always-on pull consumer, for Kafka or Pub/Sub, I use a worker pool, because it keeps running without requests.",
+          "keypoints": [
+            {
+              "text": "Service for HTTP requests and push, within the request timeout",
+              "kw": [
+                "service",
+                "http",
+                "webhook",
+                "push",
+                "timeout",
+                "url"
+              ]
+            },
+            {
+              "text": "Job for work that runs to completion, with parallel tasks and retries",
+              "kw": [
+                "job",
+                "completion",
+                "tasks",
+                "parallel",
+                "retries",
+                "nightly",
+                "batch"
+              ]
+            },
+            {
+              "text": "Schedule the job with Cloud Scheduler",
+              "kw": [
+                "cloud scheduler",
+                "scheduler",
+                "schedule",
+                "scheduled"
+              ]
+            },
+            {
+              "text": "Function for one small event handler, called by an Eventarc trigger",
+              "kw": [
+                "function",
+                "eventarc",
+                "trigger",
+                "event",
+                "cloud storage"
+              ]
+            },
+            {
+              "text": "Worker pool for an always-on pull consumer",
+              "kw": [
+                "worker pool",
+                "pull",
+                "kafka",
+                "always-on",
+                "always on",
+                "consumer"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Pick the compute option",
+        "points": [
+          "Serverless first: Cloud Run unless you need Kubernetes or something Cloud Run cannot do.",
+          "Cloud Run service: HTTP requests at a stable URL; autoscaling, can scale to zero.",
+          "Cloud Run job: runs to completion; tasks in parallel; no port, no requests.",
+          "Cloud Run functions (formerly Cloud Functions): one function from source, deployed as a Cloud Run service; HTTP or Eventarc triggers.",
+          "Worker pool: always-on background work such as Kafka or Pub/Sub pull consumers; no URL, no autoscaling by default.",
+          "GKE: when you need Kubernetes itself (Helm, operators, custom resources), persistent volumes or fine-grained networking.",
+          "Compute Engine: full control over the OS and kernel, but you run the orchestration yourself."
+        ]
+      },
+      {
+        "h": "Cloud Run scaling",
+        "points": [
+          "Concurrency = maximum simultaneous requests per instance: 80 in the console, 80 x vCPUs with gcloud or Terraform, maximum 1,000.",
+          "Concurrency 1 only for code that cannot handle parallel requests; it hurts scaling.",
+          "Autoscaling follows CPU utilisation and request concurrency; default target 60 per cent.",
+          "Scale to zero by default; only a request can start an instance from zero.",
+          "Minimum instances: keep instances warm against cold starts; idle ones are still billed.",
+          "Maximum instances: default 100 per revision; caps cost and protects databases (max instances x pool size < connection limit).",
+          "Startup CPU boost: extra CPU during startup; on by default for new services; helps Java."
+        ]
+      },
+      {
+        "h": "Timeouts and lifecycle",
+        "points": [
+          "Request timeout: 5 minutes by default, up to 60 minutes; then HTTP 504.",
+          "After a 504 the instance keeps running and may still process the request: make it idempotent.",
+          "For timeouts over 15 minutes, Google recommends implementing retries.",
+          "Listen on 0.0.0.0 on PORT (8080 by default), within 4 minutes of starting.",
+          "Idle instances are kept for up to 15 minutes unless they are minimum instances.",
+          "Shutdown: SIGTERM, then SIGKILL 10 seconds later; handle SIGTERM.",
+          "The file system is in memory: delete temporary files."
+        ]
+      },
+      {
+        "h": "Billing settings",
+        "points": [
+          "Request-based billing (default; formerly CPU only allocated during request processing): CPU only during requests, startup and shutdown; fee per request.",
+          "Best for sporadic, bursty or spiky traffic.",
+          "No background work after the response: CPU is disabled or severely limited.",
+          "Instance-based billing (formerly CPU always allocated): CPU and billing for the whole instance life; no per-request fee.",
+          "Best for steady traffic and short background work; longer async work goes to Cloud Tasks.",
+          "gcloud: --no-cpu-throttling = instance-based; --cpu-throttling = request-based.",
+          "Jobs always use instance-based billing."
+        ]
+      },
+      {
+        "h": "Cloud Run jobs",
+        "points": [
+          "Job, execution, task: each task runs one container instance.",
+          "Up to 10,000 tasks; parallel by default; limit with --parallelism.",
+          "Retries: 3 by default (0 to 10), per task.",
+          "Task timeout: 10 minutes by default, up to 168 hours (7 days), per attempt.",
+          "Split work with CLOUD_RUN_TASK_INDEX and CLOUD_RUN_TASK_COUNT; CLOUD_RUN_TASK_ATTEMPT is the retry count.",
+          "Exit code 0 means the task succeeded.",
+          "Run once, on a schedule with Cloud Scheduler, or from Workflows."
+        ]
+      },
+      {
+        "h": "Functions, push and worker pools",
+        "points": [
+          "Functions: up to 1,000 concurrent requests per instance; HTTP functions up to 60 minutes.",
+          "Deploy: gcloud run deploy NAME --source . --function ENTRY_POINT --base-image java25.",
+          "Event-driven functions can be retried: make them idempotent.",
+          "Pub/Sub push to a private service: invoker service account with roles/run.invoker; a success code such as 200 or 204 acknowledges, errors are retried.",
+          "A pull subscriber inside a service gets little or no CPU between requests and stops when the service scales to zero: use push or a worker pool.",
+          "Worker pools: GA since April 2026; fixed instance count or scaling on external metrics."
+        ]
+      },
+      {
+        "h": "GKE Autopilot or Standard",
+        "points": [
+          "Autopilot is the recommended mode: Google manages nodes, scaling and security settings.",
+          "Autopilot: general-purpose Pods are billed for the CPU, memory and storage they request.",
+          "Standard: you manage node pools and pay for node capacity whether or not Pods use it.",
+          "Standard when you need node-level control, for example tools that need elevated access on the node.",
+          "Standard clusters can also run Autopilot workloads through compute classes.",
+          "Cluster management fee: 0.10 USD per cluster per hour in both modes; Autopilot clusters are regional."
+        ]
+      },
+      {
+        "h": "Java and Spring on Cloud Run",
+        "points": [
+          "Bound the thread and connection pools; concurrency can reach 1,000.",
+          "Lazy initialisation speeds startup but slows the first request, and does not help with minimum instances.",
+          "No @Async work, batched metrics or scheduled timers after the response with request-based billing.",
+          "Use a startup probe for slow-starting applications.",
+          "Leave memory for the JVM outside the heap."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "What is Cloud Run - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/overview/what-is-cloud-run",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Maximum concurrent requests for services - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/about-concurrency",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "About instance autoscaling in Cloud Run services - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/about-instance-autoscaling",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Set minimum instances for services - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/min-instances",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Set maximum instances for services - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/max-instances",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Configure request timeout for services - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/request-timeout",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Billing settings for services - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/billing-settings",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Container runtime contract - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/container-contract",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Create jobs - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/create-jobs",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Set task timeout for jobs - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/task-timeout",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Execute jobs on a schedule - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/execute/jobs-on-schedule",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Compare Cloud Run functions - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/functions/docs/2nd-gen/2nd-gen-differences",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Deploy a Cloud Run function - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/deploy-functions",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Functions best practices - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/tips/functions-best-practices",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Deploy worker pools to Cloud Run - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/deploy-worker-pools",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Cloud Run release notes - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/release-notes",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Optimize Java applications for Cloud Run - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/tips/java",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "General development tips - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/tips/general",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Use Pub/Sub with Cloud Run tutorial - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/triggering/pubsub-push",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "gcloud run deploy - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/run/deploy",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "gcloud run jobs create - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/run/jobs/create",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Configure CPU limits for services - Cloud Run, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/run/docs/configuring/services/cpu",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "GKE Autopilot overview - Google Kubernetes Engine, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "About GKE modes of operation - Google Kubernetes Engine, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/kubernetes-engine/docs/concepts/choose-cluster-mode",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "Compare features in Autopilot and Standard clusters - Google Kubernetes Engine, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/kubernetes-engine/docs/resources/autopilot-standard-feature-comparison",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "Google Kubernetes Engine pricing - Google Cloud",
+      "url": "https://cloud.google.com/kubernetes-engine/pricing",
+      "official": true
+    },
+    {
+      "id": "s27",
+      "title": "Choose compute options - Compute, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/docs/compute-area/choose-compute-options",
+      "official": true
+    },
+    {
+      "id": "s28",
+      "title": "Select a managed container runtime environment - Cloud Architecture Center (last updated 2024-08-30)",
+      "url": "https://docs.cloud.google.com/architecture/select-managed-container-runtime-environment",
+      "official": true
+    }
+  ]
+}

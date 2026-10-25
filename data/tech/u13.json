@@ -1,0 +1,935 @@
+{
+  "format": 1,
+  "id": "u13",
+  "n": 13,
+  "block": "leadership",
+  "title": "Making decisions",
+  "summary": "After this unit you can sort decisions into one-way and two-way doors, compare options with a weighted decision matrix, close a disagreement with a clear decision owner, a time-boxed spike and early escalation, and tell STAR stories about a hard decision and a technical conflict.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Sources checked on 2026-10-25. Azure Well-Architected ADR page last updated 2026-04-13; Bain & Company article dated 4 May 2011; Amazon letters to shareholders for 2015 and 2016; Microsoft Code With Engineering Playbook pages as published on that date.",
+    "One-way and two-way doors (Type 1 and Type 2 decisions) come from Amazon's 2015 letter. Disagree and commit, the 70 per cent remark, course correction and early escalation come from the 2016 letter. They are one company's management ideas, not a standard.",
+    "DACI follows the Atlassian Team Playbook, which gives a decision one Approver. Other descriptions of DACI exist; this unit uses only Atlassian's.",
+    "unconfirmed: the pronunciation of DACI. The Atlassian page does not give one, so the term has no IPA and the speech text reads the letters.",
+    "RAPID follows Bain's 2011 article by Marcia Blenko, Michael Mankins and Paul Rogers. This unit covers only the five roles and the rule that one person has the D.",
+    "The weighted decision matrix follows ASQ, rating method 1 (a scale for each criterion, high scores always favour selection). ASQ also describes rank-order ratings and the Pugh method, which rates options as worse, same or better than a baseline.",
+    "The Microsoft engineering playbook says spikes are time-boxed but gives no fixed length. The five-day time box in this unit is an example, not a rule. The technical spike page sets the fact-finding goal and the document with an appendix; the feasibility spike page covers the pre-mortem, weekly sharing and spike code that is not the final solution.",
+    "Running the old and new flows side by side to keep a go-live reversible is a teaching example built on the one-way and two-way door idea. No source prescribes it.",
+    "STAR follows the National Careers Service, whose Result step includes what you learned. This unit shows Lessons learned as a separate fifth step."
+  ],
+  "terms": [
+    {
+      "id": "t-trade-off",
+      "term": "Trade-off",
+      "ipa": "/ˈtreɪd ɒf/",
+      "say": "trade off",
+      "def": "A choice where you accept less of one quality to get more of another. Every real option has trade-offs, so you name them openly and record them with the decision.",
+      "example": "Moving candidate updates to Pub/Sub was a trade-off: hires reached payroll in minutes, but the team had a new subscription to run and monitor.",
+      "src": "s8"
+    },
+    {
+      "id": "t-one-way-door",
+      "term": "One-way door decision (Type 1)",
+      "ipa": "/ˌwʌn weɪ ˈdɔː dɪˈsɪʒn/",
+      "say": "one way door decision",
+      "def": "A decision that is consequential and irreversible, or nearly irreversible: once you walk through, you cannot get back. Amazon calls it a Type 1 decision and makes it methodically, carefully and slowly, with consultation.",
+      "example": "Switching off the old payroll interface and deleting its data was a one-way door, so we tested the migration twice and asked the data owners first.",
+      "src": "s1"
+    },
+    {
+      "id": "t-two-way-door",
+      "term": "Two-way door decision (Type 2)",
+      "ipa": "/ˌtuː weɪ ˈdɔː dɪˈsɪʒn/",
+      "say": "two way door decision",
+      "def": "A decision that is changeable and reversible: if the result is poor, you can go back through the door. Amazon calls it a Type 2 decision; one person with good judgement or a small group should make it quickly.",
+      "example": "Changing the batch size of the candidate sync was a two-way door, so the engineer on call decided it alone and reviewed it a week later.",
+      "src": "s1"
+    },
+    {
+      "id": "t-weighted-matrix",
+      "term": "Weighted decision matrix",
+      "ipa": "/ˌweɪtɪd dɪˈsɪʒn ˈmeɪtrɪks/",
+      "say": "weighted decision matrix",
+      "def": "A table that rates each option against agreed criteria, multiplies each rating by the weight of the criterion and adds the points. The highest total is not automatically the choice, but it gives the team a clear basis for discussion.",
+      "example": "In our weighted decision matrix, delay to payroll had a weight of 5 out of 10, so it counted more than running cost or effort.",
+      "src": "s9"
+    },
+    {
+      "id": "t-disagree-and-commit",
+      "term": "Disagree and commit",
+      "ipa": "/ˌdɪsəˈɡriː ənd kəˈmɪt/",
+      "say": "disagree and commit",
+      "def": "You state your disagreement clearly, and once the decision is made, you support it fully. Bezos says the phrase saves a lot of time, and that bosses should do it too.",
+      "example": "I preferred pull subscriptions, but the approver chose push. I said so once, then I disagreed and committed and helped build it.",
+      "src": "s2"
+    },
+    {
+      "id": "t-daci",
+      "term": "DACI",
+      "ipa": null,
+      "say": "D A C I",
+      "def": "A decision-making framework with four roles: the Driver, who gathers the stakeholders and gets a decision by the agreed date; one Approver, who makes the decision; Contributors, who have a voice but no vote; and the Informed, who hear the outcome.",
+      "example": "For the choice of integration platform, the integration lead was the Driver and the Head of IT was the only Approver.",
+      "src": "s3",
+      "ipaTodo": true
+    },
+    {
+      "id": "t-rapid",
+      "term": "RAPID",
+      "ipa": "/ˈræpɪd/",
+      "say": "rapid",
+      "def": "A Bain & Company tool that gives each person a decision role: Recommend, Agree, Perform, Input or Decide. One person has the D, which gives single-point accountability.",
+      "example": "In our RAPID chart, the architect had the R, the security team had an A, and the CIO had the D.",
+      "src": "s4"
+    },
+    {
+      "id": "t-time-box",
+      "term": "Time box",
+      "ipa": "/ˈtaɪm bɒks/",
+      "say": "time box",
+      "def": "A fixed limit, agreed in advance, on how long an activity can take. Spikes and the evaluation in a trade study are time-boxed, so the investigation ends and the team can decide.",
+      "example": "We gave the spike a time box of five working days, with the decision meeting on the Friday.",
+      "src": "s13"
+    },
+    {
+      "id": "t-spike",
+      "term": "Spike",
+      "ipa": "/spaɪk/",
+      "say": "spike",
+      "def": "A short, time-boxed investigation that answers a technical question and reduces risk. Its purpose is learning: the spike code is not meant to become the code of the final solution.",
+      "example": "Our spike had one question: what happens to an application when the SuccessFactors API is slow or returns errors?",
+      "src": "s7"
+    },
+    {
+      "id": "t-pre-mortem",
+      "term": "Pre-mortem",
+      "ipa": "/ˌpriː ˈmɔːtəm/",
+      "say": "pre mortem",
+      "def": "A meeting where the team imagines that the project has already failed and lists the problems that caused the failure. The output decides which risks become spikes.",
+      "example": "In the pre-mortem, someone said the project failed because payroll rejected our hire events, so that became our first spike.",
+      "src": "s7"
+    },
+    {
+      "id": "t-escalation",
+      "term": "Escalation",
+      "ipa": "/ˌeskəˈleɪʃn/",
+      "say": "escalation",
+      "def": "Taking a disagreement that the people involved cannot resolve to someone who can decide, such as a tech lead or a manager. Bezos advises recognising true misalignment early and escalating it immediately.",
+      "example": "HR and IT had different goals for the sync frequency, so the two leads and I escalated together to the programme sponsor with a one-page summary.",
+      "src": "s2"
+    },
+    {
+      "id": "t-course-correction",
+      "term": "Course correction",
+      "ipa": "/ˈkɔːs kəˌrekʃn/",
+      "say": "course correction",
+      "def": "Recognising quickly that a decision was wrong and changing it. Bezos argues that if you are good at course correcting, being wrong may cost less than you think, while being slow is certain to be expensive.",
+      "example": "We agreed to review the new retry settings after one week, so we could decide quickly and course-correct if the error rate went up.",
+      "src": "s2"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u13-l1",
+      "kind": "concepts",
+      "title": "Doors, roles and the decision matrix",
+      "items": [
+        {
+          "id": "u13-l1-i1",
+          "type": "card",
+          "src": "s8",
+          "term": "t-trade-off"
+        },
+        {
+          "id": "u13-l1-i2",
+          "type": "card",
+          "src": "s1",
+          "term": "t-one-way-door"
+        },
+        {
+          "id": "u13-l1-i3",
+          "type": "tf",
+          "src": "s1",
+          "statement": "According to Amazon's 2015 letter to shareholders, most decisions are one-way doors, so they should be made slowly.",
+          "answer": false,
+          "why": "The letter says most decisions are changeable and reversible: two-way doors. Using the heavy one-way-door process for them leads to slowness, risk aversion and too little experimentation."
+        },
+        {
+          "id": "u13-l1-i4",
+          "type": "pick",
+          "src": "s1",
+          "q": "Which of these decisions is closest to a one-way door?",
+          "options": [
+            "Changing the acknowledgement deadline of a Pub/Sub subscription",
+            "Sending 10 per cent of traffic to a new Cloud Run revision",
+            "Switching off the old payroll interface and deleting its data on the day the new flow goes live",
+            "Adding a chart for failed messages to the monitoring dashboard"
+          ],
+          "answer": 2,
+          "why": "Once the data is deleted and the old interface is gone, you cannot go back, so this needs the slow, careful process. The other changes can be undone quickly if they go wrong."
+        },
+        {
+          "id": "u13-l1-i5",
+          "type": "card",
+          "src": "s2",
+          "term": "t-disagree-and-commit"
+        },
+        {
+          "id": "u13-l1-i6",
+          "type": "match",
+          "src": "s3",
+          "q": "Match each DACI role to what it does.",
+          "pairs": [
+            [
+              "Driver",
+              "Gathers the stakeholders and gets a decision made by the agreed date"
+            ],
+            [
+              "Approver",
+              "The one person who makes the decision"
+            ],
+            [
+              "Contributors",
+              "Bring subject knowledge; they have a voice but no vote"
+            ],
+            [
+              "Informed",
+              "Hear the outcome after the decision is made"
+            ]
+          ]
+        },
+        {
+          "id": "u13-l1-i7",
+          "type": "tf",
+          "src": "s4",
+          "statement": "In Bain's RAPID, the order of the letters is the order of the steps: first Recommend, then Agree, and so on.",
+          "answer": false,
+          "why": "Bain's authors say they took some liberties with the sequence to make the acronym. What matters is that each role is clear and that one person has the D."
+        },
+        {
+          "id": "u13-l1-i8",
+          "type": "card",
+          "src": "s9",
+          "term": "t-weighted-matrix"
+        },
+        {
+          "id": "u13-l1-i9",
+          "type": "order",
+          "src": "s9",
+          "q": "Put the steps of a weighted decision matrix in order.",
+          "steps": [
+            "Brainstorm the evaluation criteria with the team",
+            "Keep only the most important criteria",
+            "Give each criterion a weight, for example by sharing 10 points",
+            "Draw the matrix: criteria and weights on one edge, options on the other",
+            "Rate each option against each criterion, with high scores always better",
+            "Multiply each rating by its weight and add the points for each option"
+          ]
+        },
+        {
+          "id": "u13-l1-i10",
+          "type": "code",
+          "src": "s9",
+          "q": "Complete the weighted decision matrix for sending new hires to payroll. Ratings go from 1 (worst) to 5 (best), and the weights share 10 points.",
+          "lang": "text",
+          "code": "Criterion (weight)      Nightly batch   Hourly batch    Pub/Sub events\nDelay to payroll (5)    1               3               5\nRunning cost (3)        5               4               3\nEffort to operate (2)   4               3               3\n\nNightly batch:   1x5 + 5x3 + 4x2 = 28\nHourly batch:    3x5 + 4x3 + 3x2 = [[1]]\nPub/Sub events:  5x5 + 3x3 + 3x2 = [[2]]\n\nHighest total: [[3]]\nNext step: [[4]] the totals with the team; the approver decides.",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "33",
+              "decoys": [
+                "10",
+                "30"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "40",
+              "decoys": [
+                "11",
+                "45"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "Pub/Sub events",
+              "decoys": [
+                "Nightly batch",
+                "Hourly batch"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "discuss",
+              "decoys": [
+                "hide",
+                "ignore"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u13-l2",
+      "kind": "stories",
+      "title": "My stories: hard decisions and conflicts",
+      "items": [
+        {
+          "id": "u13-l2-i1",
+          "type": "tf",
+          "src": "s2",
+          "statement": "Bezos suggests that most decisions should be made with about 70 per cent of the information you wish you had.",
+          "answer": true,
+          "why": "He says that waiting for much more information usually means being slow. If you are good at course correcting, a wrong decision may cost less than you think."
+        },
+        {
+          "id": "u13-l2-i2",
+          "type": "story",
+          "src": "s12",
+          "prompt": "Tell me about a hard decision you made.",
+          "template": [
+            "Situation",
+            "Task",
+            "Action",
+            "Result",
+            "Lessons learned"
+          ],
+          "model": "Situation: At a manufacturing company, we were replacing a nightly export from SuccessFactors Recruiting to payroll with an event-driven flow. Go-live was two weeks away, and the old export was due to stop on the same day. In the final test, about three per cent of hires failed because of duplicate person IDs. Task: As the integration lead, I had to recommend whether to keep the date. Action: I saw that switching off the old export was a one-way door, but the go-live itself was not. I ran a two-day spike to find where the duplicates came from. Then, with the HR and payroll leads, I scored three options in a weighted matrix: go live with a manual workaround, delay by a month, or go live and keep the old export as a fallback for failed hires. The risk of a wrong payslip had the highest weight. Result: The HR director, as the approver, chose the fallback option. We kept the date, fixed the duplicates in ten days and switched off the old export three weeks later, with no payroll errors. Lessons learned: Separating the reversible part from the irreversible part turned a yes-or-no choice into a safer plan."
+        },
+        {
+          "id": "u13-l2-i3",
+          "type": "scenario",
+          "src": "s3",
+          "q": "You tell your hard-decision story and say: 'We decided to go live in parallel.' The interviewer asks: 'Who actually made the call?' What is the best answer?",
+          "options": [
+            {
+              "text": "Explain the roles: you prepared the options and the recommendation, and the HR director, as the approver, made the decision.",
+              "ok": true,
+              "why": "It is honest and shows that you understand decision ownership: in DACI, the Driver prepares the decision and one Approver makes it."
+            },
+            {
+              "text": "Say that the team decided together, so no single person was responsible.",
+              "ok": false,
+              "why": "It hides who was accountable. Frameworks such as DACI exist to give every decision one clear owner."
+            },
+            {
+              "text": "Say that you made the call alone, although the director approved it.",
+              "ok": false,
+              "why": "This is not honest, and follow-up questions will show it."
+            },
+            {
+              "text": "Move on to the technical design of the parallel run.",
+              "ok": false,
+              "why": "Avoiding a direct question makes the interviewer think you are hiding something."
+            }
+          ]
+        },
+        {
+          "id": "u13-l2-i9",
+          "type": "scenario",
+          "src": "s2",
+          "q": "After your hard-decision story, the interviewer asks: 'Imagine that, after go-live, the new flow caused more payroll errors than the old one. What would you have done?' What is the best answer?",
+          "options": [
+            {
+              "text": "Say it openly, show the data to the decision owner, send hires through the old export again while you fix the cause, and record the changed decision.",
+              "ok": true,
+              "why": "Bezos argues that if you are good at course correcting, being wrong may cost less than you think. The fallback kept the go-live reversible, so going back would be quick."
+            },
+            {
+              "text": "Wait a month to collect more data before you tell anyone.",
+              "ok": false,
+              "why": "Bezos says that being slow is going to be expensive for sure. Here, every day of waiting means more wrong payslips."
+            },
+            {
+              "text": "Fix it quietly, so that nobody loses confidence in your design.",
+              "ok": false,
+              "why": "Hiding a problem destroys trust. The decision owner cannot choose well without the facts."
+            },
+            {
+              "text": "Explain that the HR director made the final call, so the problem was not yours.",
+              "ok": false,
+              "why": "You recommended the design, so you own your part of the result. Interviewers want to see that you take responsibility."
+            }
+          ]
+        },
+        {
+          "id": "u13-l2-i4",
+          "type": "tf",
+          "src": "s2",
+          "statement": "Bezos warns that, without escalation, the default way to settle a disagreement is exhaustion: whoever has more stamina carries the decision.",
+          "answer": true,
+          "why": "That is why he advises recognising true misalignment early and escalating it immediately. Arguing until one side gives up is slow, and the better option may lose."
+        },
+        {
+          "id": "u13-l2-i5",
+          "type": "scenario",
+          "src": "s11",
+          "q": "Two months after the team accepted ADR 9, a colleague raises the same objection again in every planning meeting. What do you do?",
+          "options": [
+            {
+              "text": "Ask him privately whether he has new facts. If he does, he can propose a new ADR that would supersede ADR 9; if not, ask him to commit to the recorded decision.",
+              "ok": true,
+              "why": "An accepted ADR is not edited; a change needs a new ADR that supersedes it. Without new facts, reopening the decision only costs time."
+            },
+            {
+              "text": "Edit ADR 9 so that it includes his view and he stops complaining.",
+              "ok": false,
+              "why": "Accepted ADRs are not changed in place. A new ADR with the reasons should supersede the old one."
+            },
+            {
+              "text": "Ignore it, because he will stop on his own.",
+              "ok": false,
+              "why": "Unresolved conflict grows and slows the team. A short, direct conversation is better."
+            },
+            {
+              "text": "Ask his manager to tell him to stop, without speaking to him first.",
+              "ok": false,
+              "why": "Escalation is for real misalignment that you cannot resolve together, not a replacement for a direct conversation."
+            }
+          ]
+        },
+        {
+          "id": "u13-l2-i6",
+          "type": "tf",
+          "src": "s10",
+          "statement": "Google's code review guide says that, if the author and the reviewer cannot agree, the change should wait until one of them gives up.",
+          "answer": false,
+          "why": "The guide says to try for consensus, then talk face to face or by video call, and then escalate, for example to a tech lead or an engineering manager. It says not to let a change sit around because people cannot agree."
+        },
+        {
+          "id": "u13-l2-i7",
+          "type": "scenario",
+          "src": "s2",
+          "q": "After your conflict story, the interviewer asks: 'And what if the tech lead had chosen your colleague's design?' What is the best answer?",
+          "options": [
+            {
+              "text": "Say that you would disagree and commit: you state your concerns once, with your data, and then you support the decision fully.",
+              "ok": true,
+              "why": "Disagree and commit saves time and keeps the team moving. Bezos says it applies to bosses too."
+            },
+            {
+              "text": "Say that you would keep raising it until the team changed its mind.",
+              "ok": false,
+              "why": "That is disagreeing without committing, and it slows down every later decision."
+            },
+            {
+              "text": "Say that you would agree in the meeting but quietly build your own version.",
+              "ok": false,
+              "why": "That is not commitment. It wastes effort and destroys trust."
+            },
+            {
+              "text": "Say that a decision has never gone against you.",
+              "ok": false,
+              "why": "It is not believable, and you miss the chance to show maturity."
+            }
+          ]
+        },
+        {
+          "id": "u13-l2-i8",
+          "type": "story",
+          "src": "s10",
+          "prompt": "Tell me about a technical conflict with a colleague.",
+          "template": [
+            "Situation",
+            "Task",
+            "Action",
+            "Result",
+            "Lessons learned"
+          ],
+          "model": "Situation: At a retail company, we were building a careers site that sent applications to SuccessFactors Recruiting. A senior developer wanted the site to call the SuccessFactors API directly and wait for the answer. I wanted to put each application on a Pub/Sub topic, so a Cloud Run service could retry when the API was slow. Task: The debate had already blocked two sprint plannings, and I needed us to agree quickly and stay on good terms. Action: I suggested a call instead of more review comments. I listened first: his real concern was an instant confirmation for candidates. We agreed the criteria and a one-week spike with one question: what happens to an application when the API is slow or fails? We also agreed that the tech lead would decide if the data did not settle it. In a load test, some direct calls failed and candidates saw an error. Result: The tech lead chose the Pub/Sub design, and we kept my colleague's idea: the site confirms as soon as the message is published. He then built the retry logic. Lessons learned: Turning opinions into a question for a spike ended the conflict, and we still work well together."
+        }
+      ]
+    },
+    {
+      "id": "u13-l3",
+      "kind": "interview",
+      "title": "Making decisions in the interview",
+      "items": [
+        {
+          "id": "u13-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "For a two-way door, I decide quickly with a small group. For a one-way door, I slow down, consult widely and test the riskiest part first."
+        },
+        {
+          "id": "u13-l3-i2",
+          "type": "tf",
+          "src": "s3",
+          "statement": "In DACI, a decision can have several Approvers, so that every team feels heard.",
+          "answer": false,
+          "why": "Atlassian says the Approver is one person, and stresses it: yes, one. Contributors are heard, because they have a voice, but they have no vote."
+        },
+        {
+          "id": "u13-l3-i3",
+          "type": "scenario",
+          "src": "s5",
+          "q": "The interviewer says: 'Your team has argued for three weeks about push or pull subscriptions for a Cloud Run service that reads candidate events. What do you do?'",
+          "options": [
+            {
+              "text": "Agree who decides, turn the dispute into one question for a time-boxed spike, set a decision date, then decide and record it in an ADR.",
+              "ok": true,
+              "why": "A clear owner and a time box end the debate, and this choice is a two-way door that you can change later. The ADR stops the same debate from coming back."
+            },
+            {
+              "text": "Keep discussing until every person agrees, because consensus is the only fair way.",
+              "ok": false,
+              "why": "Endless debate is expensive. When there is no quorum, the person with the most context on the problem should make the final decision."
+            },
+            {
+              "text": "Build both designs fully and run them in production for three months to compare.",
+              "ok": false,
+              "why": "This is far too slow and costly for a reversible choice. A small spike answers the question faster."
+            },
+            {
+              "text": "Ask the CIO to choose, without any written options.",
+              "ok": false,
+              "why": "Escalation without options or data gives the decider nothing to work with, and a choice at this level belongs to the team."
+            }
+          ]
+        },
+        {
+          "id": "u13-l3-i4",
+          "type": "explain",
+          "src": "s9",
+          "seconds": 120,
+          "q": "How do you choose between two technical options?",
+          "model": "In short, I match the effort to the risk. First, I ask how reversible the decision is. If it is a two-way door, for example a retry setting, I decide quickly with a small group and review it after a week. If it is a one-way door, such as switching off an old system, I slow down and consult more people. For an important choice, I agree the criteria and their weights with the stakeholders before anyone scores the options. For a payroll flow, these might be delay to payroll, running cost and effort to operate. Then I rate each option in a weighted decision matrix. The totals do not decide for me, but they make the trade-offs visible. Where there is real uncertainty, I run a short, time-boxed spike to get facts. Finally, the decision owner decides, and I record the decision, the rejected options and the trade-offs in an ADR. The trade-off is a little more process for big decisions, but it is much faster than an endless debate.",
+          "keypoints": [
+            {
+              "text": "Check how reversible it is: one-way or two-way door",
+              "kw": [
+                "reversible",
+                "irreversible",
+                "reverse",
+                "reversibility",
+                "one-way",
+                "two-way",
+                "door",
+                "doors"
+              ]
+            },
+            {
+              "text": "Agree weighted criteria with the stakeholders",
+              "kw": [
+                "criteria",
+                "criterion",
+                "weight",
+                "weights",
+                "weighted",
+                "stakeholders"
+              ]
+            },
+            {
+              "text": "Compare the options in a matrix and show the trade-offs",
+              "kw": [
+                "matrix",
+                "score",
+                "scores",
+                "scoring",
+                "rate",
+                "rating",
+                "trade-off",
+                "trade-offs",
+                "tradeoff",
+                "tradeoffs"
+              ]
+            },
+            {
+              "text": "Reduce uncertainty with a time-boxed spike",
+              "kw": [
+                "spike",
+                "prototype",
+                "proof of concept",
+                "time-boxed",
+                "time box",
+                "timebox",
+                "experiment"
+              ]
+            },
+            {
+              "text": "A clear decision owner decides",
+              "kw": [
+                "owner",
+                "approver",
+                "decides",
+                "decide",
+                "decision maker",
+                "decision owner"
+              ]
+            },
+            {
+              "text": "Record it in an ADR",
+              "kw": [
+                "adr",
+                "adrs",
+                "record",
+                "decision record",
+                "document"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u13-l3-i5",
+          "type": "scenario",
+          "src": "s1",
+          "q": "The project manager wants to switch off the nightly SuccessFactors export on the same day the new Pub/Sub flow goes live, to save a month of running costs. What do you recommend?",
+          "options": [
+            {
+              "text": "Treat the switch-off as a one-way door: run both flows side by side for a short period, compare the results, and switch off the export only when the new flow is proven.",
+              "ok": true,
+              "why": "Removing the old export is hard to reverse, so it deserves a careful decision. Running both flows for a while keeps the go-live itself reversible."
+            },
+            {
+              "text": "Agree, because events are a better design than a batch.",
+              "ok": false,
+              "why": "A better design on paper is not proof. If the new flow fails on day one, there is no way back."
+            },
+            {
+              "text": "Refuse to switch off the export at any time.",
+              "ok": false,
+              "why": "That keeps the cost and the complexity for ever. The goal is to make the change safe, not to avoid it."
+            },
+            {
+              "text": "Let the developer on duty decide on the day.",
+              "ok": false,
+              "why": "A one-way door needs deliberation and consultation, not a last-minute individual choice."
+            }
+          ]
+        },
+        {
+          "id": "u13-l3-i6",
+          "type": "say",
+          "src": "s2",
+          "text": "When I am not the decision owner, I give my view with data. Once the decision is made, I disagree and commit, and I support it fully."
+        },
+        {
+          "id": "u13-l3-i7",
+          "type": "explain",
+          "src": "s10",
+          "seconds": 120,
+          "q": "How do you resolve a technical disagreement in your team?",
+          "model": "In short, I turn opinions into facts, and I make sure one person decides. I start by listening, because a disagreement often hides a different priority or a risk that I have not seen. I ask each person what problem they are solving and what they are optimising for. Then we agree the criteria, so that we argue about facts, not opinions. If we still disagree, we turn the question into a short, time-boxed spike, and we agree in advance which result would change our minds. We also agree who decides, for example with DACI: one Driver and one Approver. If two teams have truly different goals, I escalate early, together, with a short written summary of both options, instead of letting the most stubborn person win. Once the decision is made, everyone disagrees and commits, me included. Finally, I record the decision and the rejected options in an ADR, so the same debate does not come back without new facts.",
+          "keypoints": [
+            {
+              "text": "Listen first to find the real concern",
+              "kw": [
+                "listen",
+                "listening",
+                "concern",
+                "priority",
+                "understand"
+              ]
+            },
+            {
+              "text": "Agree the criteria and use facts",
+              "kw": [
+                "criteria",
+                "facts",
+                "data",
+                "evidence"
+              ]
+            },
+            {
+              "text": "Test the dispute with a time-boxed spike",
+              "kw": [
+                "spike",
+                "time-boxed",
+                "time box",
+                "timebox",
+                "experiment",
+                "prototype"
+              ]
+            },
+            {
+              "text": "Agree who decides",
+              "kw": [
+                "daci",
+                "rapid",
+                "approver",
+                "owner",
+                "who decides",
+                "decision maker"
+              ]
+            },
+            {
+              "text": "Escalate true misalignment early",
+              "kw": [
+                "escalate",
+                "escalation",
+                "escalating",
+                "escalated"
+              ]
+            },
+            {
+              "text": "Disagree and commit, and record it in an ADR",
+              "kw": [
+                "commit",
+                "commits",
+                "committed",
+                "adr",
+                "record"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u13-l3-i8",
+          "type": "scenario",
+          "src": "s2",
+          "q": "The HR systems team wants the candidate sync to run once a day to keep the load on the SuccessFactors API low. IT wants it every five minutes for first-day accounts. After two meetings, neither side will move. What do you do?",
+          "options": [
+            {
+              "text": "Treat it as a real conflict of goals: write a one-page summary of the options and trade-offs with both leads, and take it together to the person who owns both goals.",
+              "ok": true,
+              "why": "Bezos advises escalating true misalignment early. A shared summary gives the decider both views and the facts."
+            },
+            {
+              "text": "Choose the five-minute sync yourself, because you are the architect.",
+              "ok": false,
+              "why": "The conflict is about business goals that you do not own. A decision without the owner's support will not hold."
+            },
+            {
+              "text": "Hold more meetings until one team gives up.",
+              "ok": false,
+              "why": "That is decision by exhaustion: the side with more stamina wins, not the better option."
+            },
+            {
+              "text": "Escalate alone and present only your preferred option.",
+              "ok": false,
+              "why": "A one-sided escalation damages trust, and the decider does not see the trade-offs."
+            }
+          ]
+        },
+        {
+          "id": "u13-l3-i9",
+          "type": "tf",
+          "src": "s6",
+          "statement": "According to the Microsoft engineering playbook, the main goal of a technical spike is to make the final decision for the team.",
+          "answer": false,
+          "why": "The playbook says a spike is for fact-finding, not decision-making or recommendation. It answers the technical questions so the wider team can decide how to move forward."
+        },
+        {
+          "id": "u13-l3-i10",
+          "type": "explain",
+          "src": "s7",
+          "seconds": 120,
+          "q": "What is a spike, and how do you run one?",
+          "model": "A spike is a short, time-boxed investigation that answers a specific technical question and reduces a risk. For example, before we committed to an event-driven design, we ran a five-day spike with one question: can payroll accept hire events at our peak volume? I write down the question and the time box first, so the spike does not grow. On a larger project, we start with a pre-mortem: we imagine that the project has failed and list the reasons, and the biggest risks become spikes. During the spikes we share what we learn every week, and we may re-prioritise the next ones. The code is disposable and does not go into production. The output is a short document with what we evaluated, the evidence and the outcome. The spike gives us facts; then the team and the decision owner make the decision and record it. The trade-off is a few days of delay, but that is cheap compared with a wrong one-way-door decision.",
+          "keypoints": [
+            {
+              "text": "Short and time-boxed",
+              "kw": [
+                "time-boxed",
+                "time box",
+                "timebox",
+                "short",
+                "days"
+              ]
+            },
+            {
+              "text": "Answers one clear question and reduces a risk",
+              "kw": [
+                "question",
+                "risk",
+                "uncertainty",
+                "unknown"
+              ]
+            },
+            {
+              "text": "Pre-mortem to choose the spikes",
+              "kw": [
+                "pre-mortem",
+                "premortem",
+                "failed",
+                "failure"
+              ]
+            },
+            {
+              "text": "Disposable code, not for production",
+              "kw": [
+                "disposable",
+                "throwaway",
+                "throw away",
+                "production"
+              ]
+            },
+            {
+              "text": "Share and document the evidence",
+              "kw": [
+                "document",
+                "evidence",
+                "share",
+                "findings",
+                "results"
+              ]
+            },
+            {
+              "text": "Facts first, then the decision owner decides",
+              "kw": [
+                "fact finding",
+                "facts",
+                "decision owner",
+                "owner",
+                "team decides"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "One-way and two-way doors (Amazon)",
+        "points": [
+          "Type 1, one-way door: consequential and irreversible or nearly so. Decide methodically, carefully and slowly, with consultation.",
+          "Type 2, two-way door: changeable and reversible. A person with good judgement or a small group decides quickly.",
+          "Most decisions are two-way doors. A heavy process on them causes slowness, risk aversion and too little experimentation.",
+          "Decide with about 70 per cent of the information you wish you had.",
+          "Be good at course correction: then being wrong may cost less than you think, but being slow is expensive for sure.",
+          "Make a one-way door safer: run old and new side by side, and remove the old part later."
+        ]
+      },
+      {
+        "h": "Weighted decision matrix (ASQ)",
+        "points": [
+          "Use it to narrow a short list of options to one, based on several criteria.",
+          "Agree the criteria and their weights first, for example by sharing 10 points; rate the options only after that.",
+          "Rate every option on each criterion; a high score always means better.",
+          "Multiply each rating by its weight and add the points.",
+          "The highest total is not automatically the choice: use the scores to discuss and reach agreement.",
+          "Record the trade-offs, the options you ruled out and your confidence level with the decision (Azure Well-Architected).",
+          "When there is a clear choice, skip the trade study and just record the decision in the decision log (Microsoft playbook)."
+        ]
+      },
+      {
+        "h": "Who decides (DACI and RAPID)",
+        "points": [
+          "DACI: the Driver runs the process; one Approver decides; Contributors have a voice but no vote; the Informed hear the outcome.",
+          "The Driver gets a decision by the agreed date; then the outcome is summarised, shared with the team and documented.",
+          "RAPID (Bain): Recommend, Agree, Perform, Input, Decide. One person has the D.",
+          "The letters of RAPID are not the order of the steps.",
+          "No quorum in a design review: the person with the most context, often the story owner, decides (Microsoft playbook)."
+        ]
+      },
+      {
+        "h": "Closing a disagreement",
+        "points": [
+          "Listen first: find the priority or the risk behind the other view.",
+          "Agree the criteria, then test the disputed point with a time-boxed spike.",
+          "Agree who decides and by when, before the results come in.",
+          "Code review conflict (Google): try for consensus, then talk face to face or by video, then escalate.",
+          "Write the result of a live discussion down for future readers.",
+          "Escalate true misalignment early, together, with both options; avoid decision by exhaustion.",
+          "Disagree and commit, bosses included. Reopen a decision only with new facts and a new ADR that supersedes the old one."
+        ]
+      },
+      {
+        "h": "Spikes and prototypes",
+        "points": [
+          "A spike is a time-boxed investigation that answers a technical question and reduces risk.",
+          "Its goal is fact-finding, not the decision or a recommendation (Microsoft technical spike).",
+          "Output: a document of what was evaluated and the outcome; detailed results in an appendix.",
+          "Spike code is not the code of the final solution.",
+          "Prototype with just enough code to prove out an idea and move the investigation forward (Microsoft feasibility spikes).",
+          "Pre-mortem: imagine the project failed; the biggest risks become spikes.",
+          "Share what you learn every week and re-prioritise the next spikes."
+        ]
+      },
+      {
+        "h": "My stories (STAR)",
+        "points": [
+          "Situation, Task, Action, Result, Lessons learned.",
+          "Hard decision: real trade-offs, incomplete information, your recommendation, a measured result.",
+          "Technical conflict: the other person's real concern, the data, who decided, how everyone committed.",
+          "Say clearly who owned the decision and what your role was.",
+          "Speak about the colleague with respect, and give them credit for good ideas.",
+          "Keep examples short and to the point (National Careers Service)."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "2015 Letter to Shareholders (Amazon)",
+      "url": "https://s2.q4cdn.com/299287126/files/doc_financials/annual/2015-Letter-to-Shareholders.PDF",
+      "official": false
+    },
+    {
+      "id": "s2",
+      "title": "2016 Letter to Shareholders (Amazon)",
+      "url": "https://www.aboutamazon.com/news/company-news/2016-letter-to-shareholders",
+      "official": false
+    },
+    {
+      "id": "s3",
+      "title": "DACI decision-making framework (Atlassian Team Playbook)",
+      "url": "https://www.atlassian.com/team-playbook/plays/daci",
+      "official": false
+    },
+    {
+      "id": "s4",
+      "title": "Decisions: Who does what? (Bain & Company, 4 May 2011)",
+      "url": "https://www.bain.com/insights/decisions-who-does-what/",
+      "official": false
+    },
+    {
+      "id": "s5",
+      "title": "Design Reviews (Microsoft Code With Engineering Playbook)",
+      "url": "https://microsoft.github.io/code-with-engineering-playbook/design/design-reviews/",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Technical Spike (Microsoft Code With Engineering Playbook)",
+      "url": "https://microsoft.github.io/code-with-engineering-playbook/design/design-reviews/recipes/technical-spike/",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Engineering Feasibility Spikes (Microsoft Code With Engineering Playbook)",
+      "url": "https://microsoft.github.io/code-with-engineering-playbook/design/design-reviews/recipes/engineering-feasibility-spikes/",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Maintain an architecture decision record (ADR) (Azure Well-Architected Framework)",
+      "url": "https://learn.microsoft.com/en-us/azure/well-architected/architect-role/architecture-decision-record",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Decision Matrix (ASQ)",
+      "url": "https://asq.org/quality-resources/decision-matrix",
+      "official": false
+    },
+    {
+      "id": "s10",
+      "title": "The Standard of Code Review: Resolving Conflicts (Google Engineering Practices)",
+      "url": "https://google.github.io/eng-practices/review/reviewer/standard.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "ADR process (AWS Prescriptive Guidance)",
+      "url": "https://docs.aws.amazon.com/prescriptive-guidance/latest/architectural-decision-records/adr-process.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "The STAR method (National Careers Service)",
+      "url": "https://nationalcareers.service.gov.uk/careers-advice/interview-advice/the-star-method",
+      "official": false
+    },
+    {
+      "id": "s13",
+      "title": "Trade Studies (Microsoft Code With Engineering Playbook)",
+      "url": "https://microsoft.github.io/code-with-engineering-playbook/design/design-reviews/trade-studies/",
+      "official": true
+    }
+  ]
+}

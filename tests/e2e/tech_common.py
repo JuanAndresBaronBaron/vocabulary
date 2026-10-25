@@ -100,6 +100,19 @@ def units() -> list:
     return [unit(u["id"]) for u in index()["units"] if u["available"]]
 
 
+def soon_index(ids) -> dict:
+    """index.json con esas unidades como «Coming soon» (available: false)."""
+    ix = index()
+    return {**ix, "units": [{**u, "available": False} if u["id"] in ids else u for u in ix["units"]]}
+
+
+def soon_route(page, ids):
+    """Sirve data/tech/index.json con esas unidades como «Coming soon». Las 33 ya están publicadas, así que solo así se
+    prueba esa vista. Va antes de abrir la página (sin service worker, que es lo normal en las pruebas)."""
+    body = json.dumps(soon_index(ids))
+    page.route("**/data/tech/index.json*", lambda r: r.fulfill(status=200, content_type="application/json", body=body))
+
+
 def lessons(uid=None) -> list:
     """[(unidad, lección)] de una unidad o de todas las disponibles."""
     us = [unit(uid)] if uid else units()
@@ -204,13 +217,16 @@ def open_tech(page, hash="#/tech", data_=None, kid=True, on=True, gate=True, ext
     return k
 
 
-def tech_page(kind="phone", hash="#/tech", data=None, kid=True, gate=True, speech=True, extra=None, session=None, **ctx_kw):
+def tech_page(kind="phone", hash="#/tech", data=None, kid=True, gate=True, speech=True, extra=None, session=None, soon=None, **ctx_kw):
     """Página nueva (contexto nuevo, reloj en FIXED_NOW) con la partida del niño, Tech Prep encendido, la Puerta pasada
-    y hash abierto. speech: speechSynthesis de mentira (TC.spoken). **ctx_kw va a C.new_context (color_scheme,
-    reduced_motion, viewport…). Ciérrala con page.context.close()."""
+    y hash abierto. speech: speechSynthesis de mentira (TC.spoken). soon: ids de unidades que se sirven como «Coming
+    soon» (soon_route). **ctx_kw va a C.new_context (color_scheme, reduced_motion, viewport…). Ciérrala con
+    page.context.close()."""
     page = C.new_page(kind, **ctx_kw)
     if speech:
         page.add_init_script(SPEECH)
+    if soon:
+        soon_route(page, soon)
     open_tech(page, hash, data_=data, kid=kid, gate=gate, extra=extra, session=session)
     return page
 

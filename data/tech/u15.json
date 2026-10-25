@@ -1,0 +1,1297 @@
+{
+  "format": 1,
+  "id": "u15",
+  "n": 15,
+  "block": "gcp",
+  "title": "Messaging and events",
+  "summary": "After this unit you can choose between pull, push and export subscriptions, design retries with backoff and dead-letter topics, explain ordering keys, exactly-once delivery and replay, and choose between Pub/Sub, Eventarc and Cloud Tasks.",
+  "reviewed": "2026-10-25",
+  "versionNotes": [
+    "Pub/Sub values checked on 2026-10-25: ack deadline 10 to 600 s (default 10 s; 60 s on exactly-once subscriptions when none is set), retry backoff 0 to 600 s, maximum delivery attempts 5 to 100 (default 5), subscription retention 10 minutes to 31 days (default 7 days), topic retention up to 31 days, snapshots at most 7 days, 1 MBps per ordering key.",
+    "Eventarc comparison table checked on 2026-10-25: Standard has events up to 512 KB and dead-lettering through a Pub/Sub dead-letter topic; Advanced has events up to 1 MB, no dead-letter queues, CEL transformations and cross-project delivery.",
+    "Cloud Tasks limits checked on 2026-10-25 (Quotas and limits page): schedule up to 30 days ahead, 500 tasks per second per queue, 31 days of retention. The task size differs between pages (1 MiB on the quotas page, 100KB in the tasks.create reference), so it is left out of the items.",
+    "The Java sample for ordering keys marks resumePublish as Beta in a code comment.",
+    "Eventarc resource names such as enrollment keep Google's spelling.",
+    "Bigtable export subscriptions are in Preview and are not used in the items."
+  ],
+  "terms": [
+    {
+      "id": "t-pull-subscription",
+      "term": "Pull subscription",
+      "ipa": "/pʊl səbˈskrɪpʃn/",
+      "say": "pull subscription",
+      "def": "The subscriber client asks Pub/Sub for messages and acknowledges each one after processing. The client controls the rate, and the client libraries use StreamingPull for the highest throughput and lowest latency.",
+      "example": "A Spring Boot payroll adapter pulls candidate events through the Java client library and acknowledges each one only after the payroll record is saved.",
+      "src": "s24"
+    },
+    {
+      "id": "t-push-subscription",
+      "term": "Push subscription",
+      "ipa": "/pʊʃ səbˈskrɪpʃn/",
+      "say": "push subscription",
+      "def": "Pub/Sub sends each message as an HTTPS POST request to your endpoint. A success code such as 200 or 204 acknowledges the message; any other code, or no answer before the deadline, makes Pub/Sub send it again.",
+      "example": "Pub/Sub pushes each CandidateHired event to a Cloud Run service, which returns 204 after it has created the onboarding record.",
+      "src": "s3"
+    },
+    {
+      "id": "t-export-subscription",
+      "term": "Export subscription",
+      "ipa": "/ˈekspɔːt səbˈskrɪpʃn/",
+      "say": "export subscription",
+      "def": "A subscription that writes messages straight into a Google Cloud resource, such as a BigQuery table or a Cloud Storage bucket, so you run no subscriber code.",
+      "example": "A BigQuery subscription loads every application status change from SuccessFactors Recruiting into a table for the hiring dashboard.",
+      "src": "s1"
+    },
+    {
+      "id": "t-ack-deadline",
+      "term": "Acknowledgement deadline (ack deadline)",
+      "ipa": "/əkˈnɒlɪdʒmənt ˈdedlaɪn/",
+      "say": "acknowledgement deadline",
+      "def": "How long Pub/Sub waits for a subscriber to acknowledge a message before it sends the message again. The default is 10 seconds and the maximum is 600 seconds; pull client libraries extend it automatically while a message is being processed.",
+      "example": "The adapter needs about 40 seconds per message, so the Java client library keeps extending the deadline instead of letting Pub/Sub redeliver.",
+      "src": "s5"
+    },
+    {
+      "id": "t-retry-policy",
+      "term": "Retry policy",
+      "ipa": "/ˌriːˈtraɪ ˈpɒləsi/",
+      "say": "retry policy",
+      "def": "A subscription setting that decides when Pub/Sub redelivers a message after a negative acknowledgement (nack) or an expired deadline. The default is immediate redelivery; exponential backoff waits between a minimum and a maximum delay, each from 0 to 600 seconds.",
+      "example": "With a 10-second minimum and a 600-second maximum backoff, the background-check adapter has time to recover before a failed event comes back.",
+      "src": "s6"
+    },
+    {
+      "id": "t-dead-letter-topic",
+      "term": "Dead-letter topic",
+      "ipa": "/ˌded ˈletə ˈtɒpɪk/",
+      "say": "dead-letter topic",
+      "def": "A topic where Pub/Sub forwards a message that subscribers have failed to acknowledge after a maximum number of delivery attempts (5 to 100, default 5). The count is approximate, and the dead-letter topic needs its own subscription, or the forwarded messages are lost.",
+      "example": "After about 10 failed attempts, an event with an unknown job requisition ID goes to candidate-events-dlq, where the support team inspects it.",
+      "src": "s7"
+    },
+    {
+      "id": "t-ordering-key",
+      "term": "Ordering key",
+      "ipa": "/ˈɔːdərɪŋ kiː/",
+      "say": "ordering key",
+      "def": "A string on a message, such as an application ID. On a subscription with ordering enabled, messages with the same key, published in the same region, are delivered in the order Pub/Sub received them.",
+      "example": "The integration publishes every status change of one application with the application ID as the ordering key, so Offer never overtakes Interview.",
+      "src": "s8"
+    },
+    {
+      "id": "t-exactly-once",
+      "term": "Exactly-once delivery",
+      "ipa": "/ɪɡˈzæktli ˌwʌns dɪˈlɪvəri/",
+      "say": "exactly-once delivery",
+      "def": "A setting for pull subscriptions only: Pub/Sub does not redeliver a message after a successful acknowledgement, or while it is still outstanding. It works within one region and does not remove duplicates that the publisher creates by publishing twice.",
+      "example": "The payroll adapter enables exactly-once delivery and checks the result of each acknowledgement before it marks the payment as sent.",
+      "src": "s9"
+    },
+    {
+      "id": "t-seek",
+      "term": "Seek",
+      "ipa": "/siːk/",
+      "say": "seek",
+      "def": "An operation that changes which messages of a subscription count as acknowledged. Seeking to a past time or to a snapshot replays messages; seeking to a future time purges the backlog.",
+      "example": "After a faulty release, the team seeks the subscription, which retains acknowledged messages, back to 09:00, and the fixed consumer processes the morning's events again.",
+      "src": "s10"
+    },
+    {
+      "id": "t-snapshot",
+      "term": "Snapshot",
+      "ipa": "/ˈsnæpʃɒt/",
+      "say": "snapshot",
+      "def": "A saved view of a subscription's acknowledgement state at one moment. It keeps the messages that were unacknowledged then, and those published later, for at most 7 days, so you can seek back to it.",
+      "example": "Before deploying a new version of the payroll adapter, the pipeline creates a snapshot, so after a bad release the messages can be replayed with one seek.",
+      "src": "s10"
+    },
+    {
+      "id": "t-eventarc-standard",
+      "term": "Eventarc Standard",
+      "ipa": "/ɪˈvent ɑːk ˈstændəd/",
+      "say": "event arc standard",
+      "def": "The Eventarc edition for simple routing from a provider to a destination. A trigger filters events by type and attributes, and Pub/Sub carries them to Cloud Run, Cloud Run functions, Workflows and other targets in CloudEvents format.",
+      "example": "A trigger on google.cloud.storage.object.v1.finalized sends each new CV uploaded to a bucket to a Cloud Run parsing service.",
+      "src": "s19"
+    },
+    {
+      "id": "t-eventarc-advanced",
+      "term": "Eventarc Advanced",
+      "ipa": "/ɪˈvent ɑːk ədˈvɑːnst/",
+      "say": "event arc advanced",
+      "def": "The Eventarc edition for complex eventing. Providers publish to a central bus, enrollments select events with CEL expressions, and each pipeline can transform the events and deliver them to one destination, also across projects.",
+      "example": "The HR platform team runs one bus, and the recruiting and payroll teams each add an enrollment for the events they need.",
+      "src": "s20"
+    },
+    {
+      "id": "t-explicit-invocation",
+      "term": "Explicit invocation",
+      "ipa": "/ɪkˈsplɪsɪt ˌɪnvəˈkeɪʃn/",
+      "say": "explicit invocation",
+      "def": "The producer names the endpoint for each message and keeps control of when and how fast it runs, as with Cloud Tasks. Pub/Sub uses implicit invocation: the publisher just publishes an event and does not know its subscribers.",
+      "example": "The offer service creates a Cloud Tasks task that calls the e-signature reminder endpoint at 08:00 the next morning.",
+      "src": "s21"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u15-l1",
+      "kind": "concepts",
+      "title": "The vocabulary of messaging",
+      "items": [
+        {
+          "id": "u15-l1-i1",
+          "type": "card",
+          "term": "t-pull-subscription",
+          "src": "s24"
+        },
+        {
+          "id": "u15-l1-i2",
+          "type": "card",
+          "term": "t-push-subscription",
+          "src": "s3",
+          "diagram": {
+            "layout": "sequence",
+            "nodes": [
+              {
+                "id": "ps",
+                "label": "Pub/Sub subscription"
+              },
+              {
+                "id": "run",
+                "label": "Cloud Run service"
+              }
+            ],
+            "edges": [
+              {
+                "from": "ps",
+                "to": "run",
+                "label": "1. HTTPS POST with the message"
+              },
+              {
+                "from": "run",
+                "to": "ps",
+                "label": "2. 204: the message is acknowledged"
+              },
+              {
+                "from": "ps",
+                "to": "run",
+                "label": "Any other code, or no answer in time: send again"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u15-l1-i3",
+          "type": "pick",
+          "src": "s3",
+          "q": "A Cloud Run service receives a message from a push subscription. Which response tells Pub/Sub that the message is acknowledged?",
+          "options": [
+            "HTTP 204 No Content",
+            "HTTP 302 Found",
+            "HTTP 429 Too Many Requests",
+            "HTTP 500 Internal Server Error"
+          ],
+          "answer": 0,
+          "why": "Pub/Sub treats 102, 200, 201, 202 and 204 as an acknowledgement. Any other code, such as 302, 429 or 500, is a negative acknowledgement, so Pub/Sub sends the message again."
+        },
+        {
+          "id": "u15-l1-i4",
+          "type": "card",
+          "term": "t-ack-deadline",
+          "src": "s5"
+        },
+        {
+          "id": "u15-l1-i5",
+          "type": "tf",
+          "src": "s3",
+          "statement": "A push subscriber can extend the acknowledgement deadline of one slow message, just as a pull client can.",
+          "answer": false,
+          "why": "You can't modify the acknowledgement deadline of individual messages from a push subscription. Pull clients can, and the client libraries do it automatically with lease management."
+        },
+        {
+          "id": "u15-l1-i6",
+          "type": "card",
+          "term": "t-dead-letter-topic",
+          "src": "s7",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "topic",
+                "label": "Topic candidate-events"
+              },
+              {
+                "id": "sub",
+                "label": "Subscription payroll-sub"
+              },
+              {
+                "id": "app",
+                "label": "Payroll adapter"
+              },
+              {
+                "id": "dlt",
+                "label": "Dead-letter topic"
+              },
+              {
+                "id": "dlsub",
+                "label": "Subscription on the dead-letter topic"
+              }
+            ],
+            "edges": [
+              {
+                "from": "topic",
+                "to": "sub",
+                "label": "message"
+              },
+              {
+                "from": "sub",
+                "to": "app",
+                "label": "delivers; the adapter fails"
+              },
+              {
+                "from": "sub",
+                "to": "dlt",
+                "label": "after about the maximum attempts"
+              },
+              {
+                "from": "dlt",
+                "to": "dlsub",
+                "label": "kept for investigation"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u15-l1-i7",
+          "type": "tf",
+          "src": "s7",
+          "statement": "With maximum delivery attempts set to 5, Pub/Sub always forwards a failing message to the dead-letter topic after exactly five attempts.",
+          "answer": false,
+          "why": "The count is approximate: Pub/Sub may forward a message after fewer or a few more attempts, and the count can reset to zero. A consumer must cope with extra deliveries."
+        },
+        {
+          "id": "u15-l1-i8",
+          "type": "card",
+          "term": "t-ordering-key",
+          "src": "s8"
+        },
+        {
+          "id": "u15-l1-i9",
+          "type": "pick",
+          "src": "s9",
+          "q": "Which kind of subscription supports exactly-once delivery?",
+          "options": [
+            "A pull subscription, including StreamingPull",
+            "A push subscription to a Cloud Run service",
+            "A BigQuery export subscription",
+            "Any kind, as long as message ordering is enabled"
+          ],
+          "answer": 0,
+          "why": "Only pull subscriptions support exactly-once delivery; push and export subscriptions do not. Message ordering is a separate feature and does not change this."
+        },
+        {
+          "id": "u15-l1-i10",
+          "type": "match",
+          "src": "s1",
+          "q": "Match each term with its meaning.",
+          "pairs": [
+            [
+              "Export subscription",
+              "Writes messages straight to BigQuery or Cloud Storage"
+            ],
+            [
+              "Retry policy",
+              "Decides how long Pub/Sub waits before it redelivers"
+            ],
+            [
+              "Seek",
+              "Replays or purges messages by changing their acknowledgement state"
+            ],
+            [
+              "Snapshot",
+              "Saves a subscription's acknowledgement state for up to 7 days"
+            ],
+            [
+              "Eventarc Advanced",
+              "A central bus with enrollments and pipelines"
+            ],
+            [
+              "Explicit invocation",
+              "The producer names the endpoint and controls when it runs"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u15-l2",
+      "kind": "practice",
+      "title": "Design reliable messaging",
+      "items": [
+        {
+          "id": "u15-l2-i1",
+          "type": "match",
+          "src": "s21",
+          "q": "Match each requirement with the best Google Cloud choice.",
+          "pairs": [
+            [
+              "Payroll, IT and onboarding each need every CandidateHired event",
+              "A Pub/Sub topic with one subscription per consumer"
+            ],
+            [
+              "Call a partner API at most 10 times per second",
+              "A Cloud Tasks queue"
+            ],
+            [
+              "Load every message into a BigQuery table with no code",
+              "A BigQuery export subscription"
+            ],
+            [
+              "Send each new CV in a Cloud Storage bucket to a Cloud Run service",
+              "An Eventarc Standard trigger"
+            ],
+            [
+              "One bus for several teams and projects, with CEL transformations",
+              "Eventarc Advanced"
+            ],
+            [
+              "The subscriber has no public HTTPS endpoint",
+              "A pull subscription"
+            ]
+          ]
+        },
+        {
+          "id": "u15-l2-i2",
+          "type": "scenario",
+          "src": "s6",
+          "q": "When an application reaches Hired in SuccessFactors Recruiting, an integration publishes CandidateHired. A Spring Boot service on Cloud Run gets it by push and calls a background-check API. When the API is down, Pub/Sub redelivers at once, and a few events with a bad requisition ID fail forever.",
+          "options": [
+            {
+              "text": "Switch the retry policy to exponential backoff, and add a dead-letter topic with a maximum number of delivery attempts and its own subscription.",
+              "ok": true,
+              "why": "Backoff gives the API time to recover, and the dead-letter topic takes the events that will never succeed out of the flow."
+            },
+            {
+              "text": "Return 200 when the API call fails, so that Pub/Sub stops redelivering.",
+              "ok": false,
+              "why": "A 200 acknowledges the event, so it is lost and nobody knows that it failed."
+            },
+            {
+              "text": "Raise the acknowledgement deadline to 600 seconds.",
+              "ok": false,
+              "why": "The service answers quickly with an error code, and that code already triggers the redelivery. A longer deadline changes nothing here."
+            },
+            {
+              "text": "Enable message ordering, so the failing events are processed one at a time.",
+              "ok": false,
+              "why": "Ordering does not stop retries. With ordering, a failing message also holds back the later messages for its key."
+            }
+          ]
+        },
+        {
+          "id": "u15-l2-i3",
+          "type": "order",
+          "src": "s7",
+          "q": "A message keeps failing on a push subscription that has an exponential backoff retry policy and a dead-letter topic. Put what happens in order.",
+          "steps": [
+            "Pub/Sub pushes the message to the Cloud Run endpoint",
+            "The endpoint returns 503, which is a negative acknowledgement",
+            "Pub/Sub waits for the backoff delay of the retry policy",
+            "Pub/Sub delivers the message again, and the attempt count goes up",
+            "After about the maximum delivery attempts, Pub/Sub forwards the message to the dead-letter topic",
+            "The subscription on the dead-letter topic keeps it until someone investigates"
+          ]
+        },
+        {
+          "id": "u15-l2-i4",
+          "type": "code",
+          "src": "s16",
+          "lang": "text",
+          "q": "Complete the gcloud command for the payroll adapter's pull subscription. It needs a dead-letter topic, a number of attempts that Pub/Sub accepts, the longest backoff allowed, and exactly-once delivery.",
+          "code": "gcloud pubsub subscriptions create payroll-sub \\\n    --topic=candidate-events \\\n    --[[1]]=candidate-events-dlq \\\n    --max-delivery-attempts=[[2]] \\\n    --min-retry-delay=10s \\\n    --max-retry-delay=[[3]] \\\n    --[[4]]",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "dead-letter-topic",
+              "decoys": [
+                "dead-letter-subscription",
+                "retry-topic"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "10",
+              "decoys": [
+                "3",
+                "500"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "600s",
+              "decoys": [
+                "3600s",
+                "1d"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "enable-exactly-once-delivery",
+              "decoys": [
+                "enable-message-ordering",
+                "retain-acked-messages"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u15-l2-i5",
+          "type": "diagram",
+          "src": "s20",
+          "layout": "flow",
+          "q": "Complete the Eventarc Advanced flow. The HR platform team owns the bus, and the payroll team receives only the Hired events.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Providers: Google sources and direct publishers",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Bus that receives every published event",
+              "slot": true
+            },
+            {
+              "id": "n3",
+              "label": "Enrollment with a CEL filter on the event type",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Pipeline with an optional transformation",
+              "slot": true
+            },
+            {
+              "id": "n5",
+              "label": "Payroll service on Cloud Run",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "publish"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "matches events"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "sends the matched events"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "delivers in CloudEvents format"
+            }
+          ],
+          "decoys": [
+            "Pub/Sub dead-letter topic",
+            "Trigger that routes one provider to one destination",
+            "Cloud Tasks queue with a rate limit"
+          ]
+        },
+        {
+          "id": "u15-l2-i6",
+          "type": "scenario",
+          "src": "s8",
+          "q": "Payroll must process the status changes of each application in order: Offer, then Hired. The team wants to turn on ordering for the existing subscription payroll-sub.",
+          "options": [
+            {
+              "text": "Create a new subscription with message ordering enabled, publish in one region with the application ID as the ordering key, and move the adapter to it.",
+              "ok": true,
+              "why": "The ordering property can't be changed after a subscription is created. Order holds only for messages with the same key, published in the same region."
+            },
+            {
+              "text": "Update payroll-sub to enable message ordering.",
+              "ok": false,
+              "why": "You can set message ordering only when you create a subscription."
+            },
+            {
+              "text": "Use one ordering key, such as all, for every event, so that everything stays in order.",
+              "ok": false,
+              "why": "Publishing is limited to 1 MBps for each key, and one hot key makes all events wait for each other. Google recommends the most granular key possible."
+            },
+            {
+              "text": "Enable exactly-once delivery, because it also delivers messages in order.",
+              "ok": false,
+              "why": "Exactly-once delivery is about redelivery, not order. Order needs ordering keys and an ordering-enabled subscription."
+            }
+          ]
+        },
+        {
+          "id": "u15-l2-i7",
+          "type": "code",
+          "src": "s17",
+          "lang": "java",
+          "q": "Complete the Java publisher. Events for one application must stay in order, and after a failed publish the key must be unblocked.",
+          "code": "TopicName topic = TopicName.of(projectId, \"candidate-events\");\nPublisher publisher = Publisher.newBuilder(topic)\n    .[[1]](true)\n    .setEndpoint(\"us-east1-pubsub.googleapis.com:443\")\n    .build();\n\nPubsubMessage message = PubsubMessage.newBuilder()\n    .setData(ByteString.copyFromUtf8(eventJson))\n    .[[2]](applicationId)\n    .build();\n\nApiFutures.addCallback(publisher.publish(message), new ApiFutureCallback<String>() {\n    @Override\n    public void onFailure(Throwable t) {\n        log.warn(\"Publish failed for {}\", applicationId, t);\n        publisher.[[3]](applicationId);\n    }\n\n    @Override\n    public void onSuccess(String messageId) {\n        log.info(\"Published {}\", messageId);\n    }\n}, MoreExecutors.directExecutor());",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "setEnableMessageOrdering",
+              "decoys": [
+                "setOrderingKey",
+                "setEnableExactlyOnceDelivery"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "setOrderingKey",
+              "decoys": [
+                "setMessageId",
+                "putAttributes"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "resumePublish",
+              "decoys": [
+                "shutdown",
+                "publish"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u15-l2-i8",
+          "type": "scenario",
+          "src": "s21",
+          "q": "After a candidate accepts an offer, the onboarding service must call a partner background-check API. The partner allows at most 10 requests per second, and each call should run at 08:00 the next morning.",
+          "options": [
+            {
+              "text": "Create a Cloud Tasks task for each call with a schedule time, on a queue limited to 10 dispatches per second.",
+              "ok": true,
+              "why": "Cloud Tasks gives the producer scheduled delivery and explicit rate controls, which Pub/Sub publishers do not have."
+            },
+            {
+              "text": "Publish to Pub/Sub with a push subscription to the partner API.",
+              "ok": false,
+              "why": "Push adjusts its rate to the endpoint's responses, but you can't set a fixed rate limit or a delivery time."
+            },
+            {
+              "text": "Publish to Pub/Sub and nack the message, with a long backoff, until 08:00.",
+              "ok": false,
+              "why": "Backoff is 600 seconds at most, and Google does not recommend retries for intentional delays. It suggests Cloud Tasks for scheduling."
+            }
+          ]
+        },
+        {
+          "id": "u15-l2-i9",
+          "type": "scenario",
+          "src": "s12",
+          "q": "A new version of the payroll adapter acknowledged two hours of messages without saving them. The subscription has default settings, the topic has no retention, and there is no snapshot.",
+          "options": [
+            {
+              "text": "Send the events again from the source system, then turn on topic retention or retention of acknowledged messages, and create a snapshot before each release.",
+              "ok": true,
+              "why": "By default, Pub/Sub discards a message as soon as it is acknowledged, so these messages can't be replayed from Pub/Sub."
+            },
+            {
+              "text": "Seek the subscription to a time two hours ago.",
+              "ok": false,
+              "why": "Seeking to a past time replays acknowledged messages only if the subscription retains them or the topic has message retention."
+            },
+            {
+              "text": "Create a snapshot now and seek to it.",
+              "ok": false,
+              "why": "A snapshot records the current state, in which those messages are already acknowledged."
+            },
+            {
+              "text": "Read the lost messages from the dead-letter topic.",
+              "ok": false,
+              "why": "Only messages that were not acknowledged go to the dead-letter topic, and these were acknowledged."
+            }
+          ]
+        },
+        {
+          "id": "u15-l2-i10",
+          "type": "order",
+          "src": "s10",
+          "q": "Put the steps of a safe subscriber release with a snapshot in order.",
+          "steps": [
+            "Create a snapshot of the subscription",
+            "Deploy the new version of the subscriber",
+            "Notice that it acknowledges messages without processing them",
+            "Roll back to the previous version",
+            "Seek the subscription to the snapshot",
+            "The idempotent consumer processes the redelivered messages"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u15-l3",
+      "kind": "interview",
+      "title": "Talk about messaging and events",
+      "items": [
+        {
+          "id": "u15-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "Pub/Sub delivers at least once by default, so I make every consumer idempotent and treat a duplicate as normal, not as an error."
+        },
+        {
+          "id": "u15-l3-i2",
+          "type": "tf",
+          "src": "s9",
+          "statement": "With exactly-once delivery enabled, a subscriber never receives the same event twice, even when the publisher sends it twice.",
+          "answer": false,
+          "why": "Exactly-once delivery stops redelivery after a successful acknowledgement, but two publishes are two messages with different message IDs. The guarantee also holds only within one region."
+        },
+        {
+          "id": "u15-l3-i3",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 120,
+          "q": "When would you use a push subscription, and when a pull subscription?",
+          "model": "It depends mainly on where the subscriber runs and how much control it needs. With pull, the subscriber asks Pub/Sub for messages. The client libraries use StreamingPull, which gives high throughput and low latency, and the client controls the rate with flow control. I choose pull for high volume, for exactly-once delivery, which only pull supports, and when the subscriber has no public HTTPS endpoint. With push, Pub/Sub sends each message as an HTTPS request, and a success code such as 200 or 204 is the acknowledgement. That fits serverless services like Cloud Run very well, because there is no client to keep running, and Pub/Sub controls the push rate for me. I secure push with an OIDC token from a service account, and I give that account the Cloud Run Invoker role. And if I only need to load messages into BigQuery or Cloud Storage, I use an export subscription and write no code at all.",
+          "keypoints": [
+            {
+              "text": "Pull: the subscriber asks and controls the rate",
+              "kw": [
+                "pull",
+                "streamingpull",
+                "streaming pull",
+                "flow control",
+                "controls the rate",
+                "throughput"
+              ]
+            },
+            {
+              "text": "Pull for exactly-once delivery or when there is no public endpoint",
+              "kw": [
+                "exactly-once",
+                "exactly once",
+                "public endpoint",
+                "no public",
+                "firewall",
+                "private"
+              ]
+            },
+            {
+              "text": "Push: Pub/Sub sends HTTPS requests and a success code acknowledges",
+              "kw": [
+                "push",
+                "https",
+                "http",
+                "200",
+                "204",
+                "status code",
+                "success code",
+                "webhook",
+                "endpoint"
+              ]
+            },
+            {
+              "text": "Push fits serverless services such as Cloud Run",
+              "kw": [
+                "cloud run",
+                "serverless",
+                "cloud run functions",
+                "scales",
+                "scale"
+              ]
+            },
+            {
+              "text": "Secure push with an OIDC token and the invoker role",
+              "kw": [
+                "oidc",
+                "token",
+                "jwt",
+                "service account",
+                "invoker",
+                "authentication",
+                "authenticate"
+              ]
+            },
+            {
+              "text": "Export subscriptions for BigQuery or Cloud Storage",
+              "kw": [
+                "export",
+                "bigquery",
+                "cloud storage",
+                "bucket",
+                "no code"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u15-l3-i4",
+          "type": "scenario",
+          "src": "s3",
+          "q": "In an interview you hear: \"Our Cloud Run push endpoint returns 200 at once and processes the event in a background thread. When an instance stops, some events are lost.\" What do you recommend?",
+          "options": [
+            {
+              "text": "Return the success code only after processing has finished, and return an error code when it fails, so that Pub/Sub delivers the event again.",
+              "ok": true,
+              "why": "For push, the HTTP response is the acknowledgement. A 200 sent before the work is done acknowledges an event that may never be processed."
+            },
+            {
+              "text": "Raise the acknowledgement deadline to 600 seconds.",
+              "ok": false,
+              "why": "The 200 has already acknowledged the event, so the deadline no longer matters."
+            },
+            {
+              "text": "Enable exactly-once delivery on the push subscription.",
+              "ok": false,
+              "why": "Push subscriptions do not support exactly-once delivery, and it would not bring back an acknowledged event anyway."
+            },
+            {
+              "text": "Add a dead-letter topic to catch the lost events.",
+              "ok": false,
+              "why": "Only messages that are not acknowledged go to a dead-letter topic, and these were acknowledged with 200."
+            }
+          ]
+        },
+        {
+          "id": "u15-l3-i5",
+          "type": "explain",
+          "src": "s7",
+          "seconds": 150,
+          "q": "How do you deal with messages that keep failing in Pub/Sub?",
+          "model": "First, I separate temporary failures from messages that will never succeed. For temporary failures, such as a partner API that is down, I set the subscription's retry policy to exponential backoff instead of the default immediate redelivery, for example a minimum of 10 seconds and a maximum of 600 seconds. That gives the service time to recover. For poison messages, I configure a dead-letter topic on the subscription with a maximum number of delivery attempts, between 5 and 100. After about that many attempts, Pub/Sub forwards the message to the dead-letter topic. I keep three details in mind. The count is approximate, so it is not an exact limit. The Pub/Sub service agent needs the Publisher role on the dead-letter topic and the Subscriber role on the source subscription. And the dead-letter topic needs its own subscription, or the messages are lost. Then I alert on that subscription, fix the cause and republish the messages. The consumer stays idempotent, because a retried message can arrive twice.",
+          "keypoints": [
+            {
+              "text": "Separate temporary failures from poison messages",
+              "kw": [
+                "temporary",
+                "transient",
+                "permanent",
+                "poison",
+                "never succeed"
+              ]
+            },
+            {
+              "text": "Exponential backoff instead of immediate redelivery",
+              "kw": [
+                "retry policy",
+                "exponential backoff",
+                "backoff",
+                "immediate",
+                "minimum",
+                "maximum"
+              ]
+            },
+            {
+              "text": "A dead-letter topic with maximum delivery attempts",
+              "kw": [
+                "dead-letter",
+                "dead letter",
+                "dlq",
+                "delivery attempts",
+                "attempts"
+              ]
+            },
+            {
+              "text": "Approximate count, IAM roles, and a subscription on the dead-letter topic",
+              "kw": [
+                "approximate",
+                "best effort",
+                "publisher role",
+                "subscriber role",
+                "service agent",
+                "service account",
+                "roles",
+                "lost"
+              ]
+            },
+            {
+              "text": "Alert, fix and republish; keep the consumer idempotent",
+              "kw": [
+                "alert",
+                "monitor",
+                "republish",
+                "replay",
+                "idempotent",
+                "twice",
+                "duplicate"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u15-l3-i6",
+          "type": "say",
+          "src": "s8",
+          "text": "I use the application ID as the ordering key, so events for one application stay in order, while different applications are still processed in parallel."
+        },
+        {
+          "id": "u15-l3-i7",
+          "type": "explain",
+          "src": "s9",
+          "seconds": 120,
+          "q": "What does exactly-once delivery guarantee in Pub/Sub? Would you still make your consumers idempotent?",
+          "model": "Exactly-once delivery is a subscription setting, and only pull subscriptions support it, including StreamingPull. When it is on, Pub/Sub does not redeliver a message after it has been acknowledged successfully, or while it is still outstanding within its acknowledgement deadline. To use it well, I choose a client library that returns the result of each acknowledgement. If an acknowledgement fails, I know the message will come back. But it has limits. The guarantee is regional, so the subscribers must connect in the same region. It does not remove duplicates from the publisher side: if the publisher sends the same event twice, for example after a timeout, those are two messages with different message IDs. It also adds publish-to-subscribe latency. So yes, I still make the consumer idempotent, for example with a processed-events table keyed by our own event ID. Exactly-once delivery reduces duplicates, but it does not replace idempotency.",
+          "keypoints": [
+            {
+              "text": "Pull subscriptions only, including StreamingPull",
+              "kw": [
+                "pull",
+                "streamingpull",
+                "streaming pull"
+              ]
+            },
+            {
+              "text": "No redelivery after a successful acknowledgement or while outstanding",
+              "kw": [
+                "acknowledged",
+                "acknowledgement",
+                "ack",
+                "redeliver",
+                "redelivery",
+                "outstanding",
+                "deadline"
+              ]
+            },
+            {
+              "text": "Check the result of each acknowledgement",
+              "kw": [
+                "result",
+                "response",
+                "ackwithresponse",
+                "fails",
+                "failed"
+              ]
+            },
+            {
+              "text": "Limits: one region, publisher duplicates, more latency",
+              "kw": [
+                "region",
+                "regional",
+                "same region",
+                "publisher",
+                "message id",
+                "message ids",
+                "latency"
+              ]
+            },
+            {
+              "text": "Consumers stay idempotent",
+              "kw": [
+                "idempotent",
+                "idempotency",
+                "deduplicate",
+                "processed",
+                "event id"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u15-l3-i8",
+          "type": "scenario",
+          "src": "s5",
+          "q": "In an interview you hear: \"Our push subscription uses the default settings. The Cloud Run handler needs about 30 seconds per event, and many events are processed two or three times, but the logs show no errors.\" What do you recommend?",
+          "options": [
+            {
+              "text": "Raise the subscription's acknowledgement deadline above the normal processing time, for example to 60 seconds, and keep the handler idempotent.",
+              "ok": true,
+              "why": "The default deadline is 10 seconds, so Pub/Sub sends the event again while the first request is still running. A longer deadline stops these redeliveries, and idempotency covers the duplicates that can still happen."
+            },
+            {
+              "text": "Enable exactly-once delivery on the subscription.",
+              "ok": false,
+              "why": "Push subscriptions do not support exactly-once delivery. The cause is a deadline that is shorter than the processing time."
+            },
+            {
+              "text": "Add a dead-letter topic with a maximum of 5 delivery attempts.",
+              "ok": false,
+              "why": "A dead-letter topic is for messages that keep failing. It does not fix a deadline that is shorter than the normal processing time."
+            },
+            {
+              "text": "Switch the retry policy to exponential backoff.",
+              "ok": false,
+              "why": "Backoff only adds a delay before each redelivery. The deadline still expires after 10 seconds, so the event is still sent again while the first request is running."
+            }
+          ]
+        },
+        {
+          "id": "u15-l3-i9",
+          "type": "explain",
+          "src": "s18",
+          "seconds": 150,
+          "q": "We already use Pub/Sub. Why would we add Eventarc, and which edition would you choose?",
+          "model": "I use Eventarc when I want to react to events, especially from Google Cloud services, without writing the routing code myself. Events arrive in CloudEvents format, so every consumer sees the same structure. For simple routing, I choose Eventarc Standard. A trigger filters events by type and attributes, for example a new file in a Cloud Storage bucket, and sends them to a destination such as a Cloud Run service. It uses Pub/Sub underneath, so dead-lettering works through a Pub/Sub dead-letter topic. When several teams and projects share events, I look at Eventarc Advanced. Publishers send events to a central bus, each team creates enrollments that filter with CEL, and pipelines can transform the events before delivery, even across projects. The trade-offs are that Advanced is regional only and has no dead-letter queues, so I plan how to handle events that keep failing. In both editions, delivery is at least once and not in order, so the handlers must be idempotent.",
+          "keypoints": [
+            {
+              "text": "Managed routing, with events in CloudEvents format",
+              "kw": [
+                "cloudevents",
+                "cloud events",
+                "google cloud services",
+                "routing",
+                "route",
+                "managed"
+              ]
+            },
+            {
+              "text": "Standard: a trigger filters by type and sends to a destination",
+              "kw": [
+                "standard",
+                "trigger",
+                "event type",
+                "filter",
+                "filters",
+                "cloud storage"
+              ]
+            },
+            {
+              "text": "Advanced: bus, enrollments with CEL, pipelines, across projects",
+              "kw": [
+                "advanced",
+                "bus",
+                "enrollment",
+                "enrollments",
+                "cel",
+                "pipeline",
+                "pipelines",
+                "transform",
+                "cross-project",
+                "projects",
+                "teams"
+              ]
+            },
+            {
+              "text": "Trade-offs: Advanced is regional only and has no dead-letter queues",
+              "kw": [
+                "regional",
+                "dead-letter",
+                "dead letter",
+                "trade-off",
+                "trade-offs"
+              ]
+            },
+            {
+              "text": "At least once and no ordering, so handlers are idempotent",
+              "kw": [
+                "at least once",
+                "at-least-once",
+                "order",
+                "ordering",
+                "idempotent"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u15-l3-i10",
+          "type": "explain",
+          "src": "s21",
+          "seconds": 120,
+          "q": "Pub/Sub or Cloud Tasks: how do you choose?",
+          "model": "The key difference is implicit versus explicit invocation. With Pub/Sub, the publisher just publishes an event and does not know who consumes it. That is ideal for fan-out: when a candidate is hired, payroll, IT and onboarding each have their own subscription and receive the same event. With Cloud Tasks, the producer creates a task for one specific endpoint and keeps control of the execution. I choose Cloud Tasks when I need to schedule a call for later, up to 30 days ahead, or to limit the rate, for example for a partner API that accepts only ten requests per second. A queue has a maximum dispatch rate, a maximum number of concurrent dispatches and its own retry settings. Cloud Tasks can also deduplicate tasks by name. I would not use Pub/Sub retries to create delays, because Google does not recommend it. Both give at-least-once delivery, so the handlers are idempotent in either case.",
+          "keypoints": [
+            {
+              "text": "Implicit versus explicit invocation",
+              "kw": [
+                "implicit",
+                "explicit",
+                "invocation",
+                "does not know",
+                "control"
+              ]
+            },
+            {
+              "text": "Pub/Sub for fan-out to many subscribers",
+              "kw": [
+                "fan-out",
+                "fan out",
+                "subscribers",
+                "subscription",
+                "subscriptions",
+                "same event"
+              ]
+            },
+            {
+              "text": "Cloud Tasks to schedule a call for later",
+              "kw": [
+                "schedule",
+                "scheduled",
+                "later",
+                "30 days",
+                "delay"
+              ]
+            },
+            {
+              "text": "Cloud Tasks to limit the rate",
+              "kw": [
+                "rate",
+                "rate limit",
+                "per second",
+                "concurrent",
+                "dispatch",
+                "throttle"
+              ]
+            },
+            {
+              "text": "Deduplication, retries, and idempotent handlers in both cases",
+              "kw": [
+                "deduplicate",
+                "deduplication",
+                "task name",
+                "retry",
+                "retries",
+                "idempotent",
+                "at-least-once",
+                "at least once"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Subscription types",
+        "points": [
+          "Pull: the client asks for messages and controls the rate; client libraries use StreamingPull.",
+          "Choose pull for high volume, for exactly-once delivery, or when there is no public HTTPS endpoint.",
+          "Push: Pub/Sub sends HTTPS POST requests; 102, 200, 201, 202 and 204 acknowledge, any other code is a nack.",
+          "Push fits Cloud Run: Pub/Sub sets the rate with a slow-start push window.",
+          "Secure push with an OIDC token from a push auth service account; on Cloud Run, give it roles/run.invoker.",
+          "Export: BigQuery or Cloud Storage subscriptions write messages with no subscriber code; use Dataflow for complex processing."
+        ]
+      },
+      {
+        "h": "Ack deadline and retries",
+        "points": [
+          "Ack deadline: default 10 s, from 10 to 600 s; 60 s by default on exactly-once subscriptions.",
+          "Client libraries extend deadlines automatically (lease management), by default for up to an hour.",
+          "A push subscriber can't extend the deadline of one message.",
+          "Retry policy: immediate redelivery by default, or exponential backoff (minimum and maximum each 0 to 600 s).",
+          "Backoff applies per message, after a nack or an expired deadline; it is not a scheduler.",
+          "At least once by default: a message can come back even after an ack, so consumers are idempotent."
+        ]
+      },
+      {
+        "h": "Dead-letter topics",
+        "points": [
+          "Set on the subscription: a different topic plus maximum delivery attempts (5 to 100, default 5).",
+          "The count is approximate and can reset, so expect a few extra deliveries.",
+          "Pub/Sub service agent: Publisher role on the dead-letter topic, Subscriber role on the source subscription.",
+          "Attach a subscription to the dead-letter topic, or forwarded messages are lost.",
+          "The attempt number is in delivery_attempt (pull) or deliveryAttempt (push)."
+        ]
+      },
+      {
+        "h": "Ordering and exactly-once",
+        "points": [
+          "Ordering: same key, same region, ordering-enabled subscription; you set it only at creation.",
+          "Each key: 1 MBps of publishing; use the most granular key, such as the application ID.",
+          "A redelivery for a key also redelivers the later messages for that key, even acknowledged ones.",
+          "After a failed ordered publish, call resumePublish for that key.",
+          "Exactly-once: pull only, within one region; no redelivery after a successful ack.",
+          "It does not remove publisher duplicates and adds latency: stay idempotent."
+        ]
+      },
+      {
+        "h": "Retention, seek and snapshots",
+        "points": [
+          "Subscription retention: 7 days by default, from 10 minutes to 31 days.",
+          "Acknowledged messages are discarded unless the subscription retains them or the topic has retention.",
+          "Topic retention: up to 31 days; any attached subscription can seek back within it.",
+          "Seek to a past time: replay. Seek to a future time: purge.",
+          "Snapshot: saves the acknowledgement state for at most 7 days, less when the backlog is old.",
+          "Create a snapshot before each subscriber release; after a seek, expect duplicates."
+        ]
+      },
+      {
+        "h": "Eventarc Standard or Advanced",
+        "points": [
+          "Both: CloudEvents format, at least once, no ordering, 24 hours of retention with exponential backoff.",
+          "Standard: a trigger filters by event type and attributes, provider to destination, with Pub/Sub underneath.",
+          "Standard: events up to 512 KB, dead-lettering through a Pub/Sub dead-letter topic, regional or global.",
+          "Advanced: a central bus, enrollments with CEL filters, pipelines that can transform, one destination per pipeline.",
+          "Advanced: many to many, cross-project, events up to 1 MB, regional only, no dead-letter queues."
+        ]
+      },
+      {
+        "h": "Cloud Tasks or Pub/Sub",
+        "points": [
+          "Pub/Sub: implicit invocation and fan-out; the publisher does not know its subscribers.",
+          "Cloud Tasks: explicit invocation; the producer names the endpoint and controls execution.",
+          "Cloud Tasks: schedule up to 30 days ahead, up to 500 tasks per second per queue, a limit on concurrent dispatches, retries per queue.",
+          "Cloud Tasks can deduplicate named tasks; Pub/Sub has no publish deduplication.",
+          "Both deliver at least once."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Subscription overview - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-overview",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Choose a subscription type - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/subscriber",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Push subscriptions - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/push",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Authentication for push subscriptions - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/authenticate-push-subscriptions",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Subscription properties - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-properties",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Subscription retry policy - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-retry-policy",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Dead-letter topics - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/dead-letter-topics",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Order messages - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/ordering",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Exactly-once delivery - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/exactly-once-delivery",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Replay and purge messages with seek - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/replay-overview",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Replay a message in Pub/Sub by seeking to a snapshot or timestamp - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/replay-message",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Configure message retention for a subscription - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/subscription-message-retention",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Extend ack time with lease management - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/lease-management",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "BigQuery subscriptions - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/bigquery",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Pub/Sub quotas and limits - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/quotas",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "gcloud pubsub subscriptions create - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/pubsub/subscriptions/create",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Resume publishing with ordering keys (code sample) - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/samples/pubsub-resume-publish-with-ordering-keys",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Eventarc overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/eventarc/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Eventarc Standard overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/eventarc/standard/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Eventarc Advanced overview - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/eventarc/advanced/docs/overview",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Choose Cloud Tasks or Pub/Sub - Cloud Tasks, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/tasks/docs/comp-pub-sub",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "Configure Cloud Tasks queues - Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/tasks/docs/configuring-queues",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "Quotas and limits - Cloud Tasks, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/tasks/docs/quotas",
+      "official": true
+    },
+    {
+      "id": "s24",
+      "title": "Pull subscriptions - Pub/Sub, Google Cloud Documentation",
+      "url": "https://docs.cloud.google.com/pubsub/docs/pull",
+      "official": true
+    },
+    {
+      "id": "s25",
+      "title": "gcloud pubsub topics update - Google Cloud SDK reference",
+      "url": "https://docs.cloud.google.com/sdk/gcloud/reference/pubsub/topics/update",
+      "official": true
+    },
+    {
+      "id": "s26",
+      "title": "Method: projects.locations.queues.tasks.create - Cloud Tasks REST reference",
+      "url": "https://docs.cloud.google.com/tasks/docs/reference/rest/v2/projects.locations.queues.tasks/create",
+      "official": true
+    }
+  ]
+}
