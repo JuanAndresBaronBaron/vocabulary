@@ -8,7 +8,7 @@
   "reviewed": "2026-10-25",
   "versionNotes": [
     "Checked on 2026-10-25 against the Spring Framework 7.0.10 reference (the current release), the 7.1.0-RC1 reference and the Spring Boot 4.1.2 reference.",
-    "RestTemplate: the 7.0.10 and 7.1.0-RC1 references both say that, as of Spring Framework 7.0, RestTemplate is deprecated in favour of RestClient and will be removed in a future version. The Spring blog of 30 September 2025 gives the plan: intent announced in 7.0 (November 2025), formal deprecation in 7.1 (provisional, November 2026), removal in 8.0 (date to be decided), and open-source support until at least 2029. The 7.1.0-RC1 Javadoc has @Deprecated(since=\"7.1\", forRemoval=true) and says it is deprecated as of 7.1 in favour of RestClient, for removal in 8.0. On 2026-10-25 the default reference on docs.spring.io still shows 7.0.10, so 7.1 is not yet generally available.",
+    "RestTemplate: the 7.0.10 and 7.1.0-RC1 references both say that, as of Spring Framework 7.0, RestTemplate is deprecated in favour of RestClient and will be removed in a future version. The Spring blog of 30 September 2025 gives the plan: intent announced in 7.0 (November 2025), formal deprecation in 7.1 (provisional, November 2026), removal in 8.0 (date to be decided), and open-source support until at least 2029. The 7.0.10 Javadoc of RestTemplate has no @Deprecated annotation; the 7.1.0-RC1 Javadoc has @Deprecated(since=\"7.1\", forRemoval=true) and says it is deprecated as of 7.1 in favour of RestClient, for removal in 8.0. On 2026-10-25 the default reference on docs.spring.io still shows 7.0.10, so 7.1 is not yet generally available.",
     "HTTP Service Registry, @ImportHttpServices (attributes group, types, basePackages, clientType), AbstractHttpServiceRegistrar and RestClientHttpServiceGroupConfigurer are new in Spring Framework 7.0 (Spring blog, 23 September 2025). Spring Boot 4.1.2: spring.http.serviceclient.<group>.base-url, connect-timeout and read-timeout; the default group is named default.",
     "Spring Boot 4.1.2: global HTTP client settings are spring.http.clients.connect-timeout, read-timeout, redirects, cookie-handling, imperative.factory and reactive.connector. Detection order for RestClient and RestTemplate: Apache HttpClient, Jetty, Reactor Netty, JDK HttpClient, HttpURLConnection.",
     "Spring Framework 7.0.10 observability: the client observations have a low-cardinality key error; the older key exception is deprecated, duplicates error and might be removed."
@@ -109,7 +109,7 @@
       "term": "Observation",
       "ipa": "/ˌɒbzəˈveɪʃn/",
       "say": "observation",
-      "def": "A Micrometer measurement of one operation. Spring's HTTP clients create an http.client.requests observation for each exchange, from opening the connection to reading the body, but only when the client has an ObservationRegistry.",
+      "def": "A Micrometer record of one operation; each observation produces metrics, such as a timer, and a span for the current trace. Spring's HTTP clients create an http.client.requests observation for each exchange, from opening the connection to reading the body, but only when the client has an ObservationRegistry.",
       "example": "The dashboard shows http.client.requests for the uri /odata/v2/JobApplication with status 503, so the team sees when SuccessFactors starts failing.",
       "src": "s5"
     },
@@ -200,7 +200,7 @@
             "A new HttpURLConnection for each call, to avoid any framework code"
           ],
           "answer": 0,
-          "why": "Spring Boot says that if you are not writing a reactive WebFlux application you can use RestClient, and it advises injecting the auto-configured builder. Spring maintains both RestClient and WebClient, and Spring Boot auto-configures a RestTemplateBuilder, not a RestTemplate bean."
+          "why": "Spring Boot recommends RestClient when the application does not use Spring WebFlux or Project Reactor, and it strongly advises injecting the auto-configured builder. Spring maintains both RestClient and WebClient, and Spring Boot auto-configures a RestTemplateBuilder, not a RestTemplate bean."
         },
         {
           "id": "u25-l1-i4",
@@ -453,9 +453,9 @@
           "q": "An adapter on Cloud Run reads job applications from SuccessFactors with a RestClient that has no timeouts. During a slow period at the API, calls wait for minutes, and the adapter runs out of threads.",
           "options": [
             {
-              "text": "Set a short connect timeout and a read timeout based on the API's normal latency, and treat a timeout as a retryable failure with backoff.",
+              "text": "Set a short connect timeout and a read timeout based on the API's normal latency, and retry this read-only call a few times with backoff when it times out.",
               "ok": true,
-              "why": "The timeouts free the threads quickly, and a limited retry with backoff copes with the slow period."
+              "why": "The timeouts free the threads quickly. Because the call only reads data, a limited retry with backoff is safe and copes with the slow period."
             },
             {
               "text": "Raise the Cloud Run request timeout to 60 minutes so that the calls have time to finish.",
@@ -616,7 +616,7 @@
             {
               "text": "Inject the auto-configured RestClient.Builder, which Spring Boot sets up for observations, and build the second client from it.",
               "ok": true,
-              "why": "Spring Boot Actuator instruments RestClient only through the auto-configured builder, and without an ObservationRegistry the observations are no-ops. Automatic trace propagation also needs that builder."
+              "why": "Spring Boot Actuator instruments RestClient through the auto-configured builder or an ObservationRestClientCustomizer applied by hand. Without an ObservationRegistry the observations are no-ops, and automatic trace propagation also needs the auto-configured builder."
             },
             {
               "text": "Add a metrics registry dependency, such as the Prometheus one.",
@@ -857,10 +857,10 @@
         {
           "id": "u25-l3-i6",
           "type": "tf",
-          "src": "s5",
-          "statement": "If a RestClient.Builder has no ObservationRegistry, the client's http.client.requests observations are no-ops.",
-          "answer": true,
-          "why": "The Spring Framework reference says the registry is the only required step, and without it observations do nothing. In Spring Boot, building the client from the auto-configured builder solves this."
+          "src": "s12",
+          "statement": "On Spring Framework 7.0.10, the RestTemplate class already carries a @Deprecated annotation, so the compiler warns about every use.",
+          "answer": false,
+          "why": "The 7.0 reference calls RestTemplate deprecated, but the 7.0.10 class has no @Deprecated annotation yet. The 7.1 release candidate adds @Deprecated(since = \"7.1\", forRemoval = true), so the warnings start with 7.1."
         },
         {
           "id": "u25-l3-i7",
@@ -1038,8 +1038,9 @@
         "points": [
           "Spring Framework 7 reference: deprecated in favour of RestClient, to be removed in a future version.",
           "Spring team plan: intent announced in 7.0 (November 2025), formal deprecation in 7.1 (planned for November 2026), removal in 8.0.",
+          "The 7.0.10 class has no @Deprecated annotation, so compiler warnings start with 7.1.",
           "7.1.0-RC1 Javadoc: @Deprecated(since = \"7.1\", forRemoval = true), \"for removal in 8.0\". 7.1 is not yet generally available on 2026-10-25; the current release is 7.0.10.",
-          "Reasons: a crowded template API with many overloads, no room for new features such as API versioning, and a poor fit for streaming.",
+          "Reasons: many overloaded template methods, new features such as API versioning would need new constructors, and the template style is a poor fit for streaming, which keeps the response open.",
           "Migrate: RestClient.create(restTemplate), move calls component by component, then rebuild with RestClient.Builder and reuse factories and interceptors.",
           "Watch out: with no extra library, RestClient uses the JDK HttpClient and RestTemplate uses HttpURLConnection."
         ]
@@ -1156,6 +1157,12 @@
       "id": "s11",
       "title": "ClientHttpRequestInterceptor - Spring Framework 7.0.10 Javadoc",
       "url": "https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/http/client/ClientHttpRequestInterceptor.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "RestTemplate - Spring Framework 7.0.10 Javadoc",
+      "url": "https://docs.spring.io/spring-framework/docs/7.0.10/javadoc-api/org/springframework/web/client/RestTemplate.html",
       "official": true
     }
   ]

@@ -4,12 +4,13 @@
   "n": 26,
   "block": "java",
   "title": "Resilience",
-  "summary": "After this unit you can choose between the retry and concurrency limits now built into Spring Framework 7 and the five Resilience4j modules, configure them in Spring Boot, combine a retry with a circuit breaker safely, and explain why retries need idempotent operations.",
+  "summary": "After this unit you can choose between the retry and concurrency-limit support now built into Spring Framework 7 and the five Resilience4j modules, configure them in Spring Boot, combine a retry with a circuit breaker safely, and explain why retries need idempotent operations.",
   "reviewed": "2026-10-25",
   "versionNotes": [
     "Spring Framework 7.0.10 reference and API docs (checked 2026-10-25; 7.1.0-RC1 is in preview): the core resilience features are new in 7.0. @Retryable, @ConcurrencyLimit and @EnableResilientMethods are in org.springframework.resilience.annotation; RetryTemplate and RetryPolicy are in org.springframework.core.retry. The @Retryable timeout attribute needs 7.0.2 or later, and the @ConcurrencyLimit policy attribute (BLOCK or REJECT) needs 7.0.3 or later.",
     "Spring Retry: the GitHub repository says it is no longer maintained, was superseded by Spring Framework 7 and was archived on 27 July 2026. The Spring Boot 4.0 migration guide says Spring Boot no longer manages its version and suggests moving to the Spring Framework retry support. The same guide renames spring-boot-starter-aop to spring-boot-starter-aspectj.",
-    "Resilience4j: the reference on resilience4j.readme.io is labelled v2.2.0 and documents only the Spring Boot 2 and 3 modules (Resilience4j 2 requires Java 17). Maven Central lists io.github.resilience4j:resilience4j-spring-boot4 2.4.0, published on 14 March 2026. Unconfirmed: the exact dependencies of the Spring Boot 4 module; the unit assumes it keeps the application.yml properties and annotations documented for the Spring Boot 3 module.",
+    "Resilience4j: the reference on resilience4j.readme.io is labelled v2.2.0 and documents only the Spring Boot 2 and 3 modules (Resilience4j 2 requires Java 17). Maven Central lists io.github.resilience4j:resilience4j-spring-boot4 2.4.0, published on 14 March 2026, as its only version. Its POM depends on resilience4j-spring6 and is built against Spring Framework 7.0.2 and Spring Boot 4.0.0; it declares no AspectJ or Actuator dependency, so, as with the Spring Boot 3 module, the application adds them. Unconfirmed: that the Spring Boot 4 module keeps exactly the application.yml properties and annotations documented for the Spring Boot 3 module, and that 2.4.0 is tested with Spring Boot 4.1.",
+    "The Resilience4j Spring Boot retry properties enableExponentialBackoff and exponentialBackoffMultiplier (used in the YAML exercise) are not on the readme pages; they come from CommonRetryConfigurationProperties in the resilience4j GitHub repository (s18).",
     "Unconfirmed: the TimeLimiter defaults (timeoutDuration, cancelRunningFuture) and the exception a full Bulkhead throws, because the Resilience4j pages read do not state them; the unit does not use them. Unconfirmed: whether Spring Boot 4 auto-configures @EnableResilientMethods; the examples always declare it."
   ],
   "terms": [
@@ -36,7 +37,7 @@
       "term": "CircuitBreaker (Resilience4j)",
       "ipa": "/ˈsɜːkɪt ˌbreɪkə/",
       "say": "circuit breaker",
-      "def": "Records the result of each call in a sliding window. When the failure rate or the slow-call rate reaches its threshold, it opens and rejects calls at once with a CallNotPermittedException.",
+      "def": "Records the result of each call in a sliding window and opens when the failure rate or the slow-call rate reaches its threshold. While open it rejects calls at once with a CallNotPermittedException; after waitDurationInOpenState it goes half-open, and a few trial calls decide whether it closes or opens again.",
       "example": "When the SuccessFactors API keeps failing, the breaker opens and the adapter stops sending requests for a while.",
       "src": "s8"
     },
@@ -63,7 +64,7 @@
       "term": "TimeLimiter",
       "ipa": "/ˈtaɪm ˌlɪmɪtə/",
       "say": "time limiter",
-      "def": "Puts a time limit on an asynchronous call. In Resilience4j it decorates a CompletionStage or a Future, so it is for asynchronous calls, for example a method that returns a CompletableFuture.",
+      "def": "Puts a time limit on an asynchronous call. In Resilience4j it decorates a CompletionStage or a Future, for example a method that returns a CompletableFuture.",
       "example": "The time limiter gives up on the CompletableFuture that waits for the assessment vendor after two seconds.",
       "src": "s12"
     },
@@ -89,7 +90,7 @@
       "id": "t-retryable",
       "term": "@Retryable (Spring Framework 7)",
       "ipa": "/ˌriːˈtraɪəbl/",
-      "say": "at retryable",
+      "say": "retryable",
       "def": "A core Spring Framework 7 annotation, in org.springframework.resilience.annotation, that retries a method called through a Spring proxy. By default it retries any exception up to 3 times after the first failure, with a 1-second delay.",
       "example": "@Retryable(includes = ResourceAccessException.class, maxRetries = 4, delay = 200, multiplier = 2) retries a SuccessFactors call on I/O errors with exponential backoff.",
       "src": "s1"
@@ -98,9 +99,9 @@
       "id": "t-concurrency-limit",
       "term": "@ConcurrencyLimit",
       "ipa": "/kənˈkʌrənsi ˌlɪmɪt/",
-      "say": "at concurrency limit",
+      "say": "concurrency limit",
       "def": "A Spring Framework 7 annotation that limits how many threads can run a method at the same time. Extra callers block by default; since 7.0.3, policy = REJECT makes them fail with an InvocationRejectedException instead.",
-      "example": "With virtual threads there is no pool limit, so @ConcurrencyLimit(10) protects a legacy SOAP endpoint from thousands of parallel calls.",
+      "example": "With virtual threads there is usually no thread pool limit, so @ConcurrencyLimit(10) protects a legacy SOAP endpoint from thousands of parallel calls.",
       "src": "s3"
     },
     {
@@ -116,7 +117,7 @@
       "id": "t-enable-resilient-methods",
       "term": "@EnableResilientMethods",
       "ipa": "/ɪˌneɪbl rɪˈzɪliənt ˈmeθədz/",
-      "say": "at enable resilient methods",
+      "say": "enable resilient methods",
       "def": "Turns on the processing of @Retryable and @ConcurrencyLimit; you declare it on a @Configuration class. The two annotations are only metadata until their processing is enabled, by this annotation or by the matching bean post-processors.",
       "example": "In a plain Spring Framework application, the retries in the Pub/Sub publisher only started to work after the team added @EnableResilientMethods.",
       "src": "s4"
@@ -489,7 +490,7 @@
           "src": "s1",
           "seconds": 120,
           "q": "When would you use the retry support in Spring Framework, and when Resilience4j?",
-          "model": "Since Spring Framework 7, retry is part of the core framework, so for simple cases I do not add a library. If a method only needs to retry a transient failure, I use @Retryable, with includes for the exceptions that are really transient, and exponential backoff with a multiplier, a maximum delay and some jitter. If I need to retry a block of code inside a method, I use RetryTemplate. The core also has @ConcurrencyLimit, which is useful with virtual threads, because there is no thread pool to limit the calls. But the core has no circuit breaker, no rate limiter and no time limiter. When I call an external system like SuccessFactors, I usually need those, so I use Resilience4j. It gives me all five patterns, configuration per instance in application.yml, and metrics through Actuator. I try not to put both retry mechanisms on the same call, because the retries would multiply.",
+          "model": "Since Spring Framework 7, retry is part of the core framework, so for simple cases I do not add a library. If a method only needs to retry a transient failure, I use @Retryable, with includes for the exceptions that are really transient, and exponential backoff with a multiplier, a maximum delay and some jitter. If I need to retry a block of code inside a method, I use RetryTemplate. The core also has @ConcurrencyLimit, which is useful with virtual threads, because there is usually no thread pool to limit the calls. But the core has no circuit breaker, no rate limiter and no time limiter. When I call an external system like SuccessFactors, I usually need those, so I use Resilience4j. It gives me all five patterns, configuration per instance in application.yml, and metrics through Actuator. I try not to put both retry mechanisms on the same call, because the retries would multiply.",
           "keypoints": [
             { "text": "Retry is in the Spring Framework 7 core", "kw": ["spring framework 7", "core", "no library", "no extra library", "built in", "built-in"] },
             { "text": "@Retryable or RetryTemplate for simple retries, with backoff", "kw": ["retryable", "retrytemplate", "retry template", "backoff", "multiplier", "jitter"] },
@@ -573,11 +574,31 @@
         },
         {
           "id": "u26-l3-i9",
-          "type": "tf",
-          "src": "s3",
-          "statement": "@ConcurrencyLimit rejects extra calls with an exception by default.",
-          "answer": false,
-          "why": "By default, extra calls block until a slot is free. Since Spring Framework 7.0.3 you can set policy = REJECT, and then they fail with an InvocationRejectedException."
+          "type": "scenario",
+          "src": "s8",
+          "q": "The interviewer asks: a Resilience4j circuit breaker has been open for longer than waitDurationInOpenState, and a new call arrives. What happens with the default settings?",
+          "options": [
+            {
+              "text": "The breaker goes half-open and lets a limited number of trial calls through, and their results decide whether it closes or opens again.",
+              "ok": true,
+              "why": "By default 10 calls are permitted in the half-open state, and further calls are rejected until they finish. If the failure rate or slow-call rate still reaches the threshold, the breaker opens again."
+            },
+            {
+              "text": "The breaker closes, and all calls go through again.",
+              "ok": false,
+              "why": "It does not go straight from open to closed. The half-open state first tests the dependency with a few calls."
+            },
+            {
+              "text": "The call is rejected, because the breaker stays open until someone resets it.",
+              "ok": false,
+              "why": "The breaker leaves the open state by itself after waitDurationInOpenState. By default this happens when the next call arrives."
+            },
+            {
+              "text": "The breaker goes half-open and lets every call through until one of them fails.",
+              "ok": false,
+              "why": "Only permittedNumberOfCallsInHalfOpenState calls go through, 10 by default. The breaker then decides on their failure rate, not on a single failure."
+            }
+          ]
         },
         {
           "id": "u26-l3-i10",
@@ -605,6 +626,7 @@
         "points": [
           "Retry: calls again after a failure; maxAttempts includes the first call (default 3, 500 ms apart).",
           "CircuitBreaker: opens when the failure or slow-call rate reaches the threshold (default 50% over the last 100 calls) and rejects calls with CallNotPermittedException.",
+          "CircuitBreaker states: CLOSED, OPEN, then HALF_OPEN after waitDurationInOpenState (default 60 s); 10 trial calls decide whether it closes or opens again.",
           "RateLimiter: limitForPeriod calls per limitRefreshPeriod; a caller waits up to timeoutDuration (defaults 50, 500 ns, 5 s).",
           "Bulkhead: maxConcurrentCalls at once (default 25); the thread-pool bulkhead uses a fixed pool and a bounded queue.",
           "TimeLimiter: limits the time of a CompletionStage or Future, so the method must be asynchronous.",
@@ -678,6 +700,7 @@
     { "id": "s14", "title": "Retry pattern - Azure Architecture Center", "url": "https://learn.microsoft.com/azure/architecture/patterns/retry", "official": true },
     { "id": "s15", "title": "Circuit Breaker pattern - Azure Architecture Center", "url": "https://learn.microsoft.com/azure/architecture/patterns/circuit-breaker", "official": true },
     { "id": "s16", "title": "Introduction - Resilience4j documentation", "url": "https://resilience4j.readme.io/docs/getting-started", "official": true },
-    { "id": "s17", "title": "spring-projects/spring-retry (archived repository) - GitHub", "url": "https://github.com/spring-projects/spring-retry", "official": true }
+    { "id": "s17", "title": "spring-projects/spring-retry (archived repository) - GitHub", "url": "https://github.com/spring-projects/spring-retry", "official": true },
+    { "id": "s18", "title": "CommonRetryConfigurationProperties.java - resilience4j GitHub repository", "url": "https://github.com/resilience4j/resilience4j/blob/master/resilience4j-framework-common/src/main/java/io/github/resilience4j/common/retry/configuration/CommonRetryConfigurationProperties.java", "official": true }
   ]
 }

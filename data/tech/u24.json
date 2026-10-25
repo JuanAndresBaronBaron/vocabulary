@@ -7,11 +7,12 @@
   "summary": "After this unit you can build a REST API with Spring Boot 4: map and validate requests, return RFC 9457 problem details, version the API with Spring Framework 7, bind typed configuration with profiles, and explain the move to Jackson 3.",
   "reviewed": "2026-10-25",
   "versionNotes": [
-    "Spring Boot 4.1.2 (current on spring.io on 2026-10-25) and the Spring Framework 7.0.10 reference (stable; 7.1.0-RC1 is in preview). API versioning (ApiVersionConfigurer and the version attribute of @RequestMapping) is new in Spring Framework 7.0; usePathSegment(int, Predicate) needs 7.0.6 or later.",
-    "Spring Boot properties checked: spring.mvc.problemdetails.enabled (its ResponseEntityExceptionHandler has order 0), spring.mvc.apiversion.default and spring.mvc.apiversion.use.header. Other spring.mvc.apiversion.* properties were not checked and are not used.",
-    "Jackson 3.0 was released on 3 October 2025 (Java 17 baseline). In Spring Boot 4, Jackson 3 is the default and Jackson 2 is deprecated; Spring Boot 4.1.2 still manages Jackson 2.21.7 and jackson-annotations 2.21. Unconfirmed: the exact Jackson 3 version that Spring Boot 4.1.2 manages.",
-    "Jackson 3.0 changed defaults: WRITE_DATES_AS_TIMESTAMPS false, SORT_PROPERTIES_ALPHABETICALLY true, FAIL_ON_UNKNOWN_PROPERTIES false, FAIL_ON_NULL_FOR_PRIMITIVES true. Unconfirmed: which of these the auto-configured JsonMapper of Spring Boot 4 overrides, so the items only say that defaults changed.",
-    "Spring Boot 4.1.2 manages jakarta.validation-api 3.1.1. The built-in Spring MVC method validation (HandlerMethodValidationException) exists since Spring Framework 6.1."
+    "Spring Boot 4.1.2 (latest stable on spring.io and Maven Central on 2026-10-25; 4.2.0-RC1 is a preview) with the Spring Framework 7.0.10 reference (7.1.0-RC1 is a preview). API versioning (ApiVersionConfigurer and the version attribute of @RequestMapping) is new in Spring Framework 7.0; usePathSegment(int, Predicate) needs 7.0.6 or later.",
+    "Spring Boot 4.1.2 properties, checked in the spring-boot-webmvc sources: spring.mvc.problemdetails.enabled adds a ResponseEntityExceptionHandler with @Order(0), but only when the application has no ResponseEntityExceptionHandler bean of its own. API versioning: spring.mvc.apiversion.required, default, supported, detect-supported, use.header, use.query-parameter, use.path-segment and use.media-type-parameter.",
+    "Jackson 3.0.0 was released on 3 October 2025. Spring Boot 4.1.2 manages Jackson 3.1.7 (jackson-annotations 2.21) and, for the deprecated Jackson 2 support, Jackson 2.21.7. The spring-boot-jackson2 classes are marked deprecated since 4.0.0 for removal in 4.3.0; the reference only says a future Spring Boot 4.x release.",
+    "Jackson 3 defaults (Jackson 3.0 release notes and the 3.1.7 sources): WRITE_DATES_AS_TIMESTAMPS false, SORT_PROPERTIES_ALPHABETICALLY true, FAIL_ON_UNKNOWN_PROPERTIES false, FAIL_ON_NULL_FOR_PRIMITIVES true. The JsonMapper that Spring Boot 4.1.2 auto-configures keeps these defaults. With spring.jackson.use-jackson2-defaults=true it calls configureForJackson2() and then disables WRITE_DATES_AS_TIMESTAMPS, FAIL_ON_UNKNOWN_PROPERTIES and DEFAULT_VIEW_INCLUSION, as Spring Boot 3 did.",
+    "Spring Boot 4.1.2 manages jakarta.validation-api 3.1.1 and Hibernate Validator 9.1.5.Final. Built-in Spring MVC method validation (HandlerMethodValidationException) exists since Spring Framework 6.1.",
+    "Environment variables: the documented rule removes dashes (RECRUITING_SFSF_BASEURL). The Spring Boot 4.1.2 sources also accept a legacy form with underscores for dashes (RECRUITING_SFSF_BASE_URL), so no item uses that form as a wrong answer."
   ],
   "terms": [
     {
@@ -215,9 +216,9 @@
           "id": "u24-l1-i4",
           "type": "tf",
           "src": "s4",
-          "statement": "In Spring MVC, @Valid on its own is enough to trigger method validation.",
+          "statement": "In Spring MVC, @Valid on a single @RequestBody object is enough to trigger method validation.",
           "answer": false,
-          "why": "@Valid is not a constraint; it only cascades to the constraints inside an object. A constraint such as @NotNull or @Min on the parameter is what leads to method validation."
+          "why": "On its own, @Valid validates that one argument and raises MethodArgumentNotValidException. Method validation starts when a constraint such as @Min sits directly on a parameter, or when @Valid is on a List or Map."
         },
         {
           "id": "u24-l1-i5",
@@ -342,7 +343,7 @@
             ],
             [
               "@JacksonComponent",
-              "Registers a custom Jackson serialiser as a Spring bean"
+              "Registers a serialiser or deserialiser bean with Jackson"
             ]
           ]
         }
@@ -445,12 +446,12 @@
           "id": "u24-l2-i4",
           "type": "scenario",
           "src": "s4",
-          "q": "A controller has @Validated on the class and @PathVariable @Min(1) long id on a method. Invalid request bodies return 400 problem details, but GET /api/applications/0 returns a different kind of error.",
+          "q": "A controller has @Validated on the class and @PathVariable @Min(1) long id on a method. Invalid request bodies return 400 problem details, but GET /api/applications/0 returns a 500 error.",
           "options": [
             {
               "text": "Remove the class-level @Validated, so Spring MVC's built-in method validation raises HandlerMethodValidationException, which ResponseEntityExceptionHandler renders.",
               "ok": true,
-              "why": "With a class-level @Validated, method validation goes through an AOP proxy instead of the built-in support added in Spring Framework 6.1."
+              "why": "With a class-level @Validated, an AOP proxy validates the method instead of the built-in support from Spring Framework 6.1. Its exception is not one that ResponseEntityExceptionHandler turns into a 400."
             },
             {
               "text": "Replace @Min(1) with @Valid on the path variable.",
@@ -700,7 +701,7 @@
               "n": 2,
               "answer": "RECRUITING_SFSF_BASEURL",
               "decoys": [
-                "RECRUITING_SFSF_BASE_URL",
+                "SPRING_RECRUITING_SFSF_BASEURL",
                 "recruiting-sfsf-base-url"
               ]
             }
@@ -722,10 +723,10 @@
         {
           "id": "u24-l3-i2",
           "type": "tf",
-          "src": "s4",
-          "statement": "If a controller has a class-level @Validated, Spring MVC's built-in method validation still handles a @Min constraint on a path variable.",
+          "src": "s9",
+          "statement": "After you call setDefaultVersion(\"1.0\") on the ApiVersionConfigurer, requests without a version still fail with MissingApiVersionException.",
           "answer": false,
-          "why": "A class-level @Validated applies method validation through an AOP proxy. To use the built-in support from Spring Framework 6.1, you remove it from the controller."
+          "why": "A default version turns the version requirement off, so Spring treats a request with no version as version 1.0. This keeps older clients working when you introduce versioning."
         },
         {
           "id": "u24-l3-i3",
@@ -884,7 +885,7 @@
             {
               "text": "Replace the serialiser with a mixin annotated with @JsonMixin.",
               "ok": false,
-              "why": "@JsonMixin is now @JacksonMixin in Spring Boot 4, and a mixin only adds annotations; it cannot hold custom serialisation code."
+              "why": "@JsonMixin is @JacksonMixin in Spring Boot 4, and a mixin only adds annotations, so the serialiser code still needs the Jackson 3 classes."
             }
           ]
         },
@@ -974,11 +975,31 @@
         },
         {
           "id": "u24-l3-i8",
-          "type": "tf",
-          "src": "s14",
-          "statement": "In Spring Boot 4, Jackson 2 support has already been removed.",
-          "answer": false,
-          "why": "Jackson 3 is the default, but Jackson 2 is still available in a deprecated form through the spring-boot-jackson2 module. It will be removed in a future Spring Boot 4.x release."
+          "type": "scenario",
+          "src": "s17",
+          "q": "After the upgrade to Spring Boot 4, a partner's request with \"noticePeriodDays\": null gets 400. The field is an int in the NewApplication record, and the partner has changed nothing.",
+          "options": [
+            {
+              "text": "Jackson 3 enables FAIL_ON_NULL_FOR_PRIMITIVES by default. Fix the contract: use Integer if null is allowed, or ask the partner to send a number.",
+              "ok": true,
+              "why": "Jackson 2 read null as 0 for an int, but Jackson 3 rejects it, and Spring Boot 4 keeps this default. As a short-term bridge, spring.jackson.deserialization.fail-on-null-for-primitives=false restores the old behaviour."
+            },
+            {
+              "text": "Jackson 3 rejects unknown properties, so ask the partner to remove the field.",
+              "ok": false,
+              "why": "Jackson 3 ignores unknown properties by default, and noticePeriodDays is a known field anyway."
+            },
+            {
+              "text": "Remove @Valid from the parameter, because Bean Validation now rejects the null.",
+              "ok": false,
+              "why": "Jackson fails while it reads the body, before Bean Validation runs, so @Valid is not the cause."
+            },
+            {
+              "text": "Set spring.mvc.problemdetails.enabled=false to get the old behaviour.",
+              "ok": false,
+              "why": "That only changes how the error is written; Jackson still cannot read the body."
+            }
+          ]
         },
         {
           "id": "u24-l3-i9",
@@ -986,7 +1007,7 @@
           "src": "s12",
           "seconds": 150,
           "q": "How do you manage configuration for different environments, for example dev and production on Cloud Run?",
-          "model": "I bind settings to typed classes with @ConfigurationProperties, usually a record, for example RecruitingProperties with the SuccessFactors base URL and the page size. I add @Validated and constraints, so the service fails at start-up if a value is missing, not on the first request at night. In the files I write the keys in kebab case. For environments, I keep shared defaults in application.yaml and use profiles for the differences: application-prod.yaml overrides the defaults when the prod profile is active, and a profile group can activate several profiles with one name. On Cloud Run, I set the profile and any overrides as environment variables, like SPRING_PROFILES_ACTIVE. Environment variables override the files, and the names follow simple rules: dots become underscores, dashes are removed, and everything is upper case. Secrets never go into the files or the image. And I prefer @ConfigurationProperties to scattered @Value fields, because it gives relaxed binding, metadata and one clear place for the configuration.",
+          "model": "I bind settings to typed classes with @ConfigurationProperties, usually a record, for example RecruitingProperties with the SuccessFactors base URL and the page size. I add @Validated and constraints, so the service fails at start-up if a value is missing, not on the first request at night. In the files I write the keys in kebab case. For environments, I keep shared defaults in application.yaml and use profiles for the differences: application-prod.yaml overrides the defaults when the prod profile is active, and a profile group can activate several profiles with one name. On Cloud Run, I set the profile and any overrides as environment variables, like SPRING_PROFILES_ACTIVE. Environment variables override the files, and the names follow simple rules: dots become underscores, dashes are removed, and everything is upper case. Secrets never go into the files or the image. On Cloud Run, they come from Secret Manager. And I prefer @ConfigurationProperties to scattered @Value fields, because it gives relaxed binding, metadata and one clear place for the configuration.",
           "keypoints": [
             {
               "text": "Typed configuration with @ConfigurationProperties, often a record",
@@ -1055,7 +1076,7 @@
           "src": "s15",
           "seconds": 150,
           "q": "What changes when you move a Spring Boot 3 service to Spring Boot 4 and Jackson 3?",
-          "model": "Spring Boot 4 uses Jackson 3 by default, and the biggest change is the package. Jackson 3 lives in tools.jackson instead of com.fasterxml.jackson, for both the Maven group and the Java packages. The exception is jackson-annotations, so annotations like JsonProperty keep their old package and most DTOs do not change. The mapper is now immutable: Spring Boot auto-configures a JsonMapper, and when I need my own, I build it with JsonMapper.builder() instead of changing an ObjectMapper at runtime. Exceptions are unchecked now, and several classes were renamed, for example JsonSerializer became ValueSerializer. In Spring Boot, @JsonComponent became @JacksonComponent. Some defaults changed too, so I compare the JSON in contract tests before I release. For a gradual migration, the property spring.jackson.use-jackson2-defaults keeps the behaviour closer to Spring Boot 3. Jackson 2 support still exists, but it is deprecated and will be removed, so I treat it as a bridge, not a destination.",
+          "model": "Spring Boot 4 uses Jackson 3 by default, and the biggest change is the package. Jackson 3 lives in tools.jackson instead of com.fasterxml.jackson, for both the Maven group and the Java packages. The exception is jackson-annotations, so annotations like JsonProperty keep their old package and most DTOs do not change. The mapper is now immutable: Spring Boot auto-configures a JsonMapper, and when I need my own, I build it with JsonMapper.builder() instead of changing an ObjectMapper at runtime. Exceptions are unchecked now, and several classes were renamed, for example JsonSerializer became ValueSerializer. In Spring Boot, @JsonComponent became @JacksonComponent. Some defaults changed too. For example, Jackson now sorts properties alphabetically, and a null for an int field fails. So I compare the JSON in contract tests before I release. For a gradual migration, the property spring.jackson.use-jackson2-defaults keeps the behaviour closer to Spring Boot 3. Jackson 2 support still exists, but it is deprecated and will be removed, so I treat it as a bridge, not a destination.",
           "keypoints": [
             {
               "text": "New packages and group IDs: tools.jackson",
@@ -1106,7 +1127,10 @@
                 "use-jackson2-defaults",
                 "contract test",
                 "contract tests",
-                "compare"
+                "compare",
+                "sorted",
+                "alphabetically",
+                "null"
               ]
             },
             {
@@ -1140,8 +1164,8 @@
       {
         "h": "Validation",
         "points": [
-          "@Valid (or @Validated) on @RequestBody, @ModelAttribute or @RequestPart: errors raise MethodArgumentNotValidException.",
-          "Constraints directly on parameters (@Min, @NotBlank) or on the return value: method validation, HandlerMethodValidationException.",
+          "@Valid (or @Validated) on one @RequestBody, @ModelAttribute or @RequestPart object (not a List or Map): errors raise MethodArgumentNotValidException.",
+          "Constraints directly on parameters (@Min, @NotBlank), on the return value, or @Valid on a List or Map: method validation, HandlerMethodValidationException.",
           "@Valid is not a constraint; it cascades to the fields inside the object.",
           "Handle both exceptions; ResponseEntityExceptionHandler covers both.",
           "No class-level @Validated on controllers: it switches to AOP method validation."
@@ -1157,7 +1181,7 @@
           "ProblemDetail.forStatusAndDetail(status, detail), setType(uri), setProperty(name, value).",
           "spring.mvc.problemdetails.enabled=true: Spring Boot adds a ResponseEntityExceptionHandler with order 0.",
           "Own advice for a built-in exception: order it ahead of 0, or extend ResponseEntityExceptionHandler.",
-          "Customise texts with MessageSource codes such as problemDetail.title.<exception class>; never expose stack traces."
+          "Customise texts with MessageSource codes such as problemDetail.title.<fully qualified exception class>; never expose stack traces."
         ]
       },
       {
@@ -1202,9 +1226,9 @@
           "Immutable JsonMapper built with JsonMapper.builder(); Spring Boot auto-configures one.",
           "Unchecked exceptions: JsonProcessingException becomes JacksonException; JsonSerializer becomes ValueSerializer.",
           "Spring Boot renames: @JsonComponent to @JacksonComponent, @JsonMixin to @JacksonMixin, Jackson2ObjectMapperBuilderCustomizer to JsonMapperBuilderCustomizer.",
-          "spring.jackson.read.* and write.* move to spring.jackson.json.read.* and write.*.",
-          "Jackson 3 changed defaults; spring.jackson.use-jackson2-defaults eases the migration.",
-          "Jackson 2 is deprecated: spring-boot-jackson2 module, spring.jackson2.* properties, to be removed in a future 4.x release."
+          "spring.jackson.parser.* and generator.* are replaced, in part, by spring.jackson.json.read.* and json.write.*.",
+          "Jackson 3 changed defaults, for example sorted properties and a null for an int now fails; spring.jackson.use-jackson2-defaults=true applies the defaults of Spring Boot 3.",
+          "Jackson 2 is deprecated: spring-boot-jackson2 module, spring.jackson2.* properties, to be removed in a future 4.x release (the Javadoc says 4.3.0)."
         ]
       }
     ]

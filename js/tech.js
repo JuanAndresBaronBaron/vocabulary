@@ -736,9 +736,17 @@ const CSS = `
 .tp-wk span.on{background:var(--ok-fill);color:#fff}
 .tp-wk span.now{box-shadow:inset 0 0 0 2px var(--label2)}
 .tp-wk span.on.now{box-shadow:inset 0 0 0 2px rgba(255,255,255,.7)}
-.tp-ready{padding:4px 0}
-.tp-ready h2{margin:10px 16px 2px;font:600 var(--fs-note)/1.33 var(--f-text);color:var(--label2)}
-.tp-ready .tp-row{min-height:56px}
+.tp-ready{display:flex;flex-direction:column;min-width:0}
+.tp-ready .tp-h{margin:4px 16px 6px}
+.tp-rgrid{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x proximity;padding:0 0 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tp-rgrid::-webkit-scrollbar{display:none}
+.tp-rd{flex:0 0 136px;scroll-snap-align:start;display:flex;flex-direction:column;gap:4px;min-width:0;padding:10px 14px;border-radius:var(--r-card);
+  background:var(--card);color:var(--label);text-decoration:none;-webkit-tap-highlight-color:transparent}
+.tp-rd:focus-visible{outline-offset:-3px}
+.tp-rd-t{font:600 var(--fs-sub)/1.25 var(--f-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tp-rd-r{display:flex;align-items:center;gap:8px}
+.tp-rd small{font:400 var(--fs-note)/1.33 var(--f-text);color:var(--label2)}
+@media (min-width:700px){.tp-rgrid{flex-wrap:wrap;overflow:visible}.tp-rd{flex:1 1 140px}}
 .tp-pct{flex:none;font:700 var(--fs-sub)/1 var(--f-text);font-variant-numeric:tabular-nums;color:var(--label)}
 .tp-medal{flex:none;color:var(--gold-ink)}
 .tp-date{flex:none;min-height:var(--tap);max-width:170px;padding:0 10px;border:0;border-radius:10px;background:var(--fill2);color:var(--label);
@@ -812,11 +820,14 @@ function todayHtml(){
       <span class="tp-st-t">${s ? `${s}-day streak` : nwk ? plural(nwk, "study day this week", "study days this week") : "No study days yet this week"}</span>
       <span class="tp-wk" role="img" aria-label="This week: ${nwk ? wk.map((x, i) => x ? LL[i] : "").filter(Boolean).join(", ") : "no study days yet"}">${wk.map((x, i) => `<span class="${x ? "on" : ""}${i === wi ? " now" : ""}">${L[i]}</span>`).join("")}</span></section>`;
   const ms = medals();
-  const ready = ms.length ? `<section class="tp-list tp-ready" aria-labelledby="tp-ready-h"><h2 id="tp-ready-h">Interview ready</h2>${ms.map(m => {
-    const r = readiness(m.id);
-    return ui.row({href: "#/techpath", t: m.title, sub: m.sub, cls: "tp-rd", attrs: `data-block="${esc(m.id)}" aria-label="${esc(`${m.title}: ${r}% interview ready, ${m.sub}${m.note ? ". " + m.note : ""}`)}"`,
-      end: `${m.got ? ico("medal", "fill", 22, "tp-medal") : ""}<span class="tp-pct">${r}%</span>${ui.ring(r, {size: 36, cls: m.got ? "done" : ""})}`});
-  }).join("")}</section>` : "";
+  /* una ficha pequeña por bloque, en una fila que se desliza en el móvil (con los 7 bloques, Today sigue cabiendo sin scroll) */
+  const ready = ms.length ? `<section class="tp-ready" aria-labelledby="tp-ready-h"><h2 id="tp-ready-h" class="tp-h">Interview ready</h2><div class="tp-rgrid">${ms.map(m => {
+    const r = readiness(m.id), b = blockOf(m.id) || {};
+    return `<a class="tp-rd" href="#/techpath" data-block="${esc(m.id)}" aria-label="${esc(`${m.title}: ${r}% interview ready, ${m.sub}${m.note ? ". " + m.note : ""}`)}">
+      <span class="tp-rd-t">${esc(b.short || m.title)}</span>
+      <span class="tp-rd-r">${ui.ring(r, {size: 40, cls: m.got ? "done" : ""})}<span class="tp-pct">${r}%</span>${m.got ? ico("medal", "fill", 22, "tp-medal") : ""}</span>
+      <small>${esc(m.sub)}</small></a>`;
+  }).join("")}</div></section>` : "";
   const date = dl == null || dl < 0 ? `<div class="tp-list tp-dlist">${ui.row({icon: "calendar-blank", t: "Set interview date", sub: "Reviews are planned around it", id: "tp-date-b", chev: true})}
       <input type="date" class="tp-date tp-date-x" id="tp-date" min="${dayStr(t)}" aria-label="Interview date" tabindex="-1"></div>` : "";
   return `<div class="tp-page tp-today" id="tp-today">${cd}
