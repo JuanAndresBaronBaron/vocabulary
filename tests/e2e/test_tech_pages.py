@@ -454,7 +454,7 @@ def test_block_cheat_sheet_complete():
         _wait_hash(page, "techsheet/integration")
         assert _back_pill(page) == {"t": "Path", "h": "#/techpath"}, _back_pill(page)
         TC.goto(page, "#/techsheet/java")
-        assert "Java cheat sheet" in _app_text(page) and "Coming soon" not in _app_text(page)
+        assert page.locator("#tp-sheet[data-block=java]").count() == 1 and "Coming soon" not in _app_text(page)
         TC.goto(page, "#/techsheet/nope")
         assert "No such cheat sheet" in _app_text(page)
         assert not C.errors(page), C.errors(page)
@@ -499,8 +499,9 @@ def test_glossary_complete_and_search():
             t = by[(i["unit"], i["id"])]
             assert i["name"] == t["term"] and i["def"] == t["def"] and i["says"] == 2 and i["ipa"] == bool(t.get("ipa")), i
             assert i["link"] == f"#/techunit/{i['unit']}", i
-        names = [i["name"].lower() for i in r["items"]]
-        assert names == sorted(names, key=lambda s: (not s[0].isdigit(), s)) or names[0][0].isdigit(), names[:10]
+        # los signos del principio no cuentan («@RestController» con la R, «$batch» con la B)
+        names = [re.sub(r"^[^a-z0-9]+", "", i["name"].lower()) for i in r["items"]]
+        assert names == sorted(names, key=lambda s: (not s[0].isdigit(), s)) or names[0][0].isdigit(), [n for n, m in zip(names, sorted(names)) if n != m][:10]
         assert r["letters"] == sorted(set(r["letters"]), key=lambda x: (x != "#", x)), r["letters"]
         q = page.locator("#tp-g-q")
         q.fill("idempotency")

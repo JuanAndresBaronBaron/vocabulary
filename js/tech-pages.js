@@ -313,11 +313,13 @@ ROUTES.techsheet.load = () => T.units();
 
 /* ---------- el glosario (#/techgloss, §10.5) ---------- */
 let GQ = "";
-const letterOf = s => { const c = norm(s).charAt(0).toUpperCase(); return /[A-Z]/.test(c) ? c : "#"; };
+/* «@RestController» va con la R y «$batch» con la B: los signos del principio no cuentan ni para ordenar ni para la letra */
+const glossKey = s => norm(s).replace(/^[^a-z0-9]+/, "");
+const letterOf = s => { const c = glossKey(s).charAt(0).toUpperCase(); return /[A-Z]/.test(c) ? c : "#"; };
 function glossHtml(){
   const all = [];
   for(const u of US) for(const t of u.terms || []) all.push({t, u, q: norm(`${t.term} ${t.say || ""} ${t.def || ""}`)});
-  all.sort((a, b) => a.t.term.localeCompare(b.t.term, "en-GB", {sensitivity: "base", numeric: true}) || a.u.n - b.u.n);
+  all.sort((a, b) => glossKey(a.t.term).localeCompare(glossKey(b.t.term), "en-GB", {sensitivity: "base", numeric: true}) || a.u.n - b.u.n);
   const groups = [];
   for(const e of all){ const L = letterOf(e.t.term), g = groups[groups.length - 1]; if(g && g.L === L) g.list.push(e); else groups.push({L, list: [e]}); }
   return `<div class="tp-page tp-gloss" id="tp-gloss">
