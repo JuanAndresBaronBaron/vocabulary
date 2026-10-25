@@ -7,14 +7,16 @@
   "summary": "After this unit you can choose between Cloud Run services, jobs, functions and worker pools, GKE Autopilot, GKE Standard and Compute Engine, and explain how Cloud Run scales, times out and is billed.",
   "reviewed": "2026-10-25",
   "versionNotes": [
-    "Cloud Run documentation checked on 2026-10-25 (pages last updated 2026-10-22): default concurrency 80 in the console or 80 x vCPUs with gcloud and Terraform for new services, maximum 1,000; request timeout 300 seconds by default, 3,600 maximum; maximum instances 100 per revision by default; default scaling target 60 per cent for CPU and concurrency.",
+    "Cloud Run documentation checked on 2026-10-25 (most pages last updated 2026-10-22): default concurrency 80 in the console or 80 x vCPUs with gcloud and Terraform for new services, maximum 1,000; request timeout 300 seconds by default, 3,600 maximum; maximum instances 100 per revision by default; default scaling target 60 per cent for CPU and concurrency.",
     "Cloud Run functions is the current name of Cloud Functions (2nd gen); deploying functions in Cloud Run became GA on 19 February 2025.",
     "Cloud Run worker pools became GA on 14 April 2026. Cloud Run instances (long-lived, individually addressable) have been in Preview since 25 August 2026 and are not covered here.",
     "Cloud Run jobs: task timeout up to 168 hours GA since 11 November 2025 (1 hour for tasks with GPUs).",
     "The billing setting was renamed from CPU allocation in the console on 13 December 2024: request-based billing (formerly CPU only allocated during request processing) and instance-based billing (formerly CPU always allocated).",
     "GKE pricing checked on 2026-10-25: cluster management fee 0.10 USD per cluster per hour in every mode of operation.",
     "The Cloud Architecture Center page on choosing between Cloud Run and GKE Autopilot was last updated on 2024-08-30; it is used only for the serverless-first recommendation and the general criteria.",
-    "unconfirmed: instance-based billing may need at least 512 MiB of memory, and minimum instances may be only a best-effort target; both were left out of the unit."
+    "Confirmed on 2026-10-25: instance-based billing needs at least 512 MiB of memory, and minimum instances are a best-effort target that can drop for a short time, for example during capacity shortages or crashes.",
+    "unconfirmed: the cited Cloud Run pages do not mention Cloud Tasks; sending longer background work to Cloud Tasks or a job is design advice, not a documented rule.",
+    "unconfirmed: the exact rules for running a non-partner tool with elevated node access on Autopilot (privileged workload admission); the GKE scenario relies only on the documented advice to choose Standard for special privileges."
   ],
   "terms": [
     {
@@ -121,7 +123,7 @@
       "term": "Worker pool",
       "ipa": "/ˈwɜːkə puːl/",
       "say": "worker pool",
-      "def": "A Cloud Run resource for continuous background work, such as a Kafka or Pub/Sub pull consumer. It has no URL and does not autoscale by default: you set the number of instances or scale on external metrics.",
+      "def": "A Cloud Run resource for continuous background work, such as a Kafka or Pub/Sub pull consumer. It has no URL and does not scale automatically: you set the number of instances, or use Cloud Run External Metrics Autoscaling (CREMA).",
       "example": "The team runs its Pub/Sub pull subscriber as a worker pool with two instances, because it must keep working when no HTTP requests arrive.",
       "src": "s15"
     },
@@ -240,7 +242,7 @@
           "src": "s18",
           "statement": "With request-based billing, work that a Spring @Async method starts after the response has been sent may stall or never finish.",
           "answer": true,
-          "why": "After the request ends, the instance's CPU is disabled or severely limited, and an idle instance can be shut down at any time. Use instance-based billing for short background work, or Cloud Tasks for longer work."
+          "why": "After the request ends, the instance's CPU is disabled or severely limited, and an idle instance is kept for 15 minutes at most. Use instance-based billing for short background work, or Cloud Tasks for longer work."
         },
         {
           "id": "u14-l1-i8",
@@ -637,7 +639,7 @@
             {
               "text": "Return 200 at once and continue the work in a background thread.",
               "ok": false,
-              "why": "With request-based billing, the CPU is disabled or severely limited after the response, and an idle instance can be shut down at any time."
+              "why": "With request-based billing, the CPU is disabled or severely limited after the response, and an idle instance is kept for 15 minutes at most."
             },
             {
               "text": "Deploy the same code as a Cloud Run function with an HTTP trigger.",
@@ -665,7 +667,7 @@
           "src": "s28",
           "seconds": 120,
           "q": "When would you choose Cloud Run, and when GKE?",
-          "model": "I go serverless first, so my default for a stateless API or an integration adapter is Cloud Run. There is no cluster to run, it scales out quickly, it can scale to zero, and the team only needs to know containers. I move to GKE when the workload needs Kubernetes itself, for example Helm charts, operators or custom resources, or when it needs persistent volumes, fine-grained networking such as network policies, or hardware that Cloud Run does not offer. Inside GKE, my default is Autopilot, which Google recommends: Google manages the nodes, and we pay for what the Pods request. I choose Standard only when we need control over the nodes, for example for an agent that needs elevated access on the node. Team skills matter too, because Kubernetes skills are scarce. And it is not all or nothing: we can run both, with each workload on the platform that fits it.",
+          "model": "I go serverless first, so my default for a stateless API or an integration adapter is Cloud Run. There is no cluster to run, it scales out quickly, it can scale to zero, and the team only needs to know containers. I move to GKE when the workload needs Kubernetes itself, for example Helm charts, operators or custom resources, or when it needs persistent volumes, fine-grained networking such as network policies, or hardware that Cloud Run does not offer. Inside GKE, my default is Autopilot, which Google recommends: Google manages the nodes, and we pay for what the Pods request. I choose Standard only when we need control over the nodes, for example for an agent that needs elevated access on the node. Team skills matter too, because a team with Kubernetes experience delivers faster on GKE. And it is not all or nothing: we can run both, with each workload on the platform that fits it.",
           "keypoints": [
             {
               "text": "Serverless first: Cloud Run is the default for stateless services",
@@ -914,7 +916,7 @@
             {
               "text": "GKE Autopilot, because Google recommends it for every case.",
               "ok": false,
-              "why": "Autopilot allows partner tools, or third-party tools that do not need elevated access on the node, and this agent is neither."
+              "why": "Google recommends Autopilot unless a workload needs privileges or configuration that Autopilot does not allow, and this agent needs elevated access on every node."
             },
             {
               "text": "Cloud Run, because it scales to zero and has no cluster to manage.",
@@ -1003,7 +1005,7 @@
           "Cloud Run service: HTTP requests at a stable URL; autoscaling, can scale to zero.",
           "Cloud Run job: runs to completion; tasks in parallel; no port, no requests.",
           "Cloud Run functions (formerly Cloud Functions): one function from source, deployed as a Cloud Run service; HTTP or Eventarc triggers.",
-          "Worker pool: always-on background work such as Kafka or Pub/Sub pull consumers; no URL, no autoscaling by default.",
+          "Worker pool: always-on background work such as Kafka or Pub/Sub pull consumers; no URL, no automatic scaling.",
           "GKE: when you need Kubernetes itself (Helm, operators, custom resources), persistent volumes or fine-grained networking.",
           "Compute Engine: full control over the OS and kernel, but you run the orchestration yourself."
         ]
@@ -1015,7 +1017,7 @@
           "Concurrency 1 only for code that cannot handle parallel requests; it hurts scaling.",
           "Autoscaling follows CPU utilisation and request concurrency; default target 60 per cent.",
           "Scale to zero by default; only a request can start an instance from zero.",
-          "Minimum instances: keep instances warm against cold starts; idle ones are still billed.",
+          "Minimum instances: a best-effort target to keep instances warm against cold starts; idle ones are still billed.",
           "Maximum instances: default 100 per revision; caps cost and protects databases (max instances x pool size < connection limit).",
           "Startup CPU boost: extra CPU during startup; on by default for new services; helps Java."
         ]
@@ -1038,7 +1040,7 @@
           "Request-based billing (default; formerly CPU only allocated during request processing): CPU only during requests, startup and shutdown; fee per request.",
           "Best for sporadic, bursty or spiky traffic.",
           "No background work after the response: CPU is disabled or severely limited.",
-          "Instance-based billing (formerly CPU always allocated): CPU and billing for the whole instance life; no per-request fee.",
+          "Instance-based billing (formerly CPU always allocated): CPU and billing for the whole instance life; no per-request fee; at least 512 MiB of memory.",
           "Best for steady traffic and short background work; longer async work goes to Cloud Tasks.",
           "gcloud: --no-cpu-throttling = instance-based; --cpu-throttling = request-based.",
           "Jobs always use instance-based billing."
@@ -1064,14 +1066,14 @@
           "Event-driven functions can be retried: make them idempotent.",
           "Pub/Sub push to a private service: invoker service account with roles/run.invoker; a success code such as 200 or 204 acknowledges, errors are retried.",
           "A pull subscriber inside a service gets little or no CPU between requests and stops when the service scales to zero: use push or a worker pool.",
-          "Worker pools: GA since April 2026; fixed instance count or scaling on external metrics."
+          "Worker pools: GA since April 2026; set a fixed instance count, or scale on external metrics with CREMA."
         ]
       },
       {
         "h": "GKE Autopilot or Standard",
         "points": [
           "Autopilot is the recommended mode: Google manages nodes, scaling and security settings.",
-          "Autopilot: general-purpose Pods are billed for the CPU, memory and storage they request.",
+          "Autopilot: general-purpose Pods are billed for the CPU, memory and ephemeral storage they request.",
           "Standard: you manage node pools and pay for node capacity whether or not Pods use it.",
           "Standard when you need node-level control, for example tools that need elevated access on the node.",
           "Standard clusters can also run Autopilot workloads through compute classes.",
@@ -1257,6 +1259,12 @@
       "id": "s28",
       "title": "Select a managed container runtime environment - Cloud Architecture Center (last updated 2024-08-30)",
       "url": "https://docs.cloud.google.com/architecture/select-managed-container-runtime-environment",
+      "official": true
+    },
+    {
+      "id": "s29",
+      "title": "Cloud Run pricing - Google Cloud",
+      "url": "https://cloud.google.com/run/pricing",
       "official": true
     }
   ]

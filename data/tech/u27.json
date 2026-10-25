@@ -7,15 +7,16 @@
   "summary": "After this unit you can choose between unit tests, Spring test slices and @SpringBootTest, stub SuccessFactors with WireMock to test retries and timeouts, and explain where contract testing with Pact fits.",
   "reviewed": "2026-10-25",
   "versionNotes": [
-    "JUnit 6.1.3 (latest stable on 2026-10-25, released 7 August 2026). JUnit 6.0.0 (30 September 2025): Java 17 baseline, one version number for Platform, Jupiter and Vintage, JSpecify nullability annotations, Vintage engine deprecated, junit-platform-runner removed, Maven Surefire and Failsafe 3.0.0 or later. Unconfirmed: the Kotlin minimum (junit.org says Kotlin 2.1; the detailed 6.0.0 release notes say 2.2), so the unit does not state it.",
+    "JUnit 6.1.3 (latest stable on 2026-10-25, released 7 August 2026). JUnit 6.0.0 (30 September 2025): Java 17 baseline, one version number for Platform, Jupiter and Vintage, JSpecify nullability annotations, Vintage engine deprecated, junit-platform-runner removed, Maven Surefire and Failsafe 3.0.0 or later. The 6.0.0 release notes give Kotlin 2.2 as the minimum Kotlin version; the unit does not use Kotlin.",
     "Mockito 5.24.0 (latest on javadoc.io on 2026-10-25): inline mock maker by default since 5.0.0; on Java 21 or later the docs ask you to configure Mockito as a -javaagent.",
-    "Spring Boot 4.1.2 and Spring Framework 7.0.10 reference pages (checked 2026-10-25): @MockBean and @SpyBean were removed in Spring Boot 4.0; @WebMvcTest comes from the spring-boot-webmvc-test module; @RestClientTest is in org.springframework.boot.restclient.test.autoconfigure since 4.0.0; Spring Framework 7 requires JUnit 6 and deprecates its JUnit 4 support; @Retryable defaults are 3 retries and a 1-second delay.",
-    "WireMock 3.x documentation on wiremock.org (resetOnEachTest(false) and the LogNormal maxValue need 3.13.0 or later); wiremock-spring-boot 4.0.9; a WireMock 4 beta exists and was not used.",
+    "Spring Boot 4.1.2 and Spring Framework 7.0.10 reference pages (checked 2026-10-25): @MockBean and @SpyBean were removed in Spring Boot 4.0; @WebMvcTest comes from the spring-boot-webmvc-test module; @RestClientTest is in org.springframework.boot.restclient.test.autoconfigure since 4.0.0; Spring Framework 7 requires JUnit 6 and deprecates its JUnit 4 support; @Retryable defaults are 3 retries and a 1-second delay; the 4.0 migration guide says @SpringBootTest no longer provides MockMvc support, so a test that needs MockMvc adds @AutoConfigureMockMvc.",
+    "WireMock 3.x documentation on wiremock.org (resetOnEachTest(false) and the LogNormal maxValue need 3.13.0 or later); wiremock-spring-boot 4.0.9. The WireMock JUnit Jupiter page shows WireMockRuntimeInfo.getHttpPort(), so the code uses it to build the base URL.",
     "Testcontainers for Java 2.0.5 (PostgreSQLContainer is in the package org.testcontainers.postgresql).",
-    "Spring Cloud Contract: Spring blog post of 6 July 2026 says it will be removed from all future Spring Cloud release trains and continues as Stubborn.sh, led by Marcin Grzejszczak; stubborn.sh lists Stubborn Contract 0.2.0 under the sh.stubborn groupId, with the core under Apache 2.0. The last Spring Cloud Contract reference on docs.spring.io is 5.0.3.",
-    "SuccessFactors examples use the OData v2 path /odata/v2/JobApplication from SAP KBA 2882860; the SAP Help API reference pages could not be read automatically.",
-    "unconfirmed: whether the names of @MockitoBean fields are part of the Spring test context cache key, so the unit only says that a different set of mocks creates a new context.",
-    "unconfirmed: whether Spring Boot 4 changed how @SpringBootTest provides MockMvc (the 4.0 migration guide was not re-read in the review), so the unit only says that MockMvc in a @SpringBootTest needs @AutoConfigureMockMvc."
+    "Spring Cloud Contract: Spring blog post of 6 July 2026 says it will be removed from all future Spring Cloud release trains and continues as Stubborn.sh, led by Marcin Grzejszczak; stubborn.sh lists Stubborn Contract 0.2.0 under the sh.stubborn groupId, with the core under Apache 2.0. The latest stable Spring Cloud Contract reference on docs.spring.io is 5.0.3.",
+    "SuccessFactors examples use the JobApplication entity, the /odata/v2/ base path and application ID 514063 from SAP KBA 2882860 (which shows an upsert, not a GET), and the OData v2 JSON wrapper {\"d\":{\"results\":[...]}} from odata.org; the SAP Help API reference pages could not be read automatically.",
+    "The Spring Framework 7.0.10 @MockitoBean page says qualifiers, including the field name, decide whether a separate application context is created, so name the fields consistently across test classes.",
+    "unconfirmed: the $format=json query option in the examples (OData v2 URI conventions, not on the pages read in this review).",
+    "unconfirmed: whether a WireMock 4 beta is available (not re-read in this review); the unit follows the WireMock 3.x docs."
   ],
   "terms": [
     {
@@ -317,7 +318,7 @@
           "src": "s7",
           "lang": "java",
           "q": "Complete the test. SuccessFactors answers 503 once and then 200, and the client must try exactly twice in total. Note that the client adds a query string to the URL.",
-          "code": "@WireMockTest\nclass JobApplicationClientRetryTest {\n\n    @Test\n    void retriesOnceAfter503(WireMockRuntimeInfo wm) {\n        stubFor(get(urlPathEqualTo(\"/odata/v2/JobApplication\"))\n            .inScenario(\"SF busy\")\n            .whenScenarioStateIs([[1]])\n            .willReturn(aResponse().withStatus(503))\n            .willSetStateTo(\"Recovered\"));\n\n        stubFor(get(urlPathEqualTo(\"/odata/v2/JobApplication\"))\n            .inScenario(\"SF busy\")\n            .whenScenarioStateIs(\"Recovered\")\n            .willReturn(okJson(\"{\\\"d\\\":{\\\"results\\\":[]}}\")));\n\n        var client = new JobApplicationClient(wm.getHttpBaseUrl());\n        client.findApplications(); // GET /odata/v2/JobApplication?$format=json\n\n        [[2]](exactly(2), getRequestedFor([[3]](\"/odata/v2/JobApplication\")));\n    }\n}",
+          "code": "@WireMockTest\nclass JobApplicationClientRetryTest {\n\n    @Test\n    void retriesOnceAfter503(WireMockRuntimeInfo wm) {\n        stubFor(get(urlPathEqualTo(\"/odata/v2/JobApplication\"))\n            .inScenario(\"SF busy\")\n            .whenScenarioStateIs([[1]])\n            .willReturn(aResponse().withStatus(503))\n            .willSetStateTo(\"Recovered\"));\n\n        stubFor(get(urlPathEqualTo(\"/odata/v2/JobApplication\"))\n            .inScenario(\"SF busy\")\n            .whenScenarioStateIs(\"Recovered\")\n            .willReturn(okJson(\"{\\\"d\\\":{\\\"results\\\":[]}}\")));\n\n        var client = new JobApplicationClient(\"http://localhost:\" + wm.getHttpPort());\n        client.findApplications(); // GET /odata/v2/JobApplication?$format=json\n\n        [[2]](exactly(2), getRequestedFor([[3]](\"/odata/v2/JobApplication\")));\n    }\n}",
           "gaps": [
             {
               "n": 1,
@@ -670,7 +671,7 @@
           "src": "s14",
           "seconds": 120,
           "q": "What is the difference between @SpringBootTest and a test slice, and when do you use each?",
-          "model": "@SpringBootTest starts the whole application context, like production, but by default with a mock web environment and no real server. I can ask for a real server on a random port when I need real HTTP. I use it for a few tests that check the wiring end to end, for example the service with WireMock in place of SuccessFactors and a PostgreSQL container. A test slice loads only one layer. @WebMvcTest loads the Spring MVC infrastructure and the controllers, not the regular components, so I mock the services with @MockitoBean and test JSON, validation and status codes with MockMvcTester. @RestClientTest loads only the client beans that I name, which use RestClient.Builder or RestTemplateBuilder, and it gives me a MockRestServiceServer. Slices start faster and fail for one clear reason. I also keep the test configuration consistent, because Spring caches contexts, and every different set of mocks creates a new context and slows the suite down.",
+          "model": "@SpringBootTest starts the whole application context, like production, but by default with a mock web environment and no real server. I can ask for a real server on a random port when I need real HTTP. I use it for a few tests that check the wiring end to end, for example the service with WireMock in place of SuccessFactors and a PostgreSQL container. A test slice loads only one layer. @WebMvcTest loads the Spring MVC infrastructure and the controllers, not the regular components, so I mock the services with @MockitoBean and test JSON, validation and status codes with MockMvcTester. @RestClientTest focuses only on the client beans that use RestClient.Builder or RestTemplateBuilder, and it gives me a MockRestServiceServer. Slices start faster and fail for one clear reason. I also keep the test configuration consistent, because Spring caches contexts, and a different set of mocks, or mocks with different field names, creates a new context and slows the suite down.",
           "keypoints": [
             {
               "text": "@SpringBootTest loads the whole context, with a mock web environment by default",
@@ -772,7 +773,7 @@
           "src": "s23",
           "seconds": 120,
           "q": "What is consumer-driven contract testing, and when would you not use it?",
-          "model": "Contract testing checks an integration point by testing each side in isolation against a shared contract. In consumer-driven contract testing with Pact, the consumer team writes tests against a Pact mock provider. The test sends real requests, and Pact writes each interaction to a pact file, which we publish to a Pact Broker. Then the provider's build replays every request against the real provider and checks that each response contains at least what the consumer expects. Provider states set up the data that each interaction needs. Before a release, can-i-deploy asks the broker whether this version is safe to deploy to the target environment. I would not use it for public APIs with unknown consumers, for pass-through APIs, or when the other team will not run Pact, for example a SaaS vendor. It also does not test side effects or the provider's business logic.",
+          "model": "Contract testing checks an integration point by testing each side in isolation against a shared contract. In consumer-driven contract testing with Pact, the consumer team writes tests against a Pact mock provider. The test sends real requests, and Pact writes each interaction to a pact file, which we publish to a Pact Broker. Then the provider's build replays every request against the real provider and checks that each response contains at least what the consumer expects. Provider states set up the data that each interaction needs. Before a release, can-i-deploy asks the broker whether this version is safe to deploy to the target environment. I would not use it for public APIs with unknown consumers, for pass-through APIs, or when the other team will not run Pact, for example a SaaS vendor. It is also not meant for functional testing of the provider.",
           "keypoints": [
             {
               "text": "Each side is tested in isolation against a shared contract",
@@ -1013,12 +1014,12 @@
         "h": "Spring Boot test types",
         "points": [
           "@SpringBootTest: the whole context; mock web environment by default; RANDOM_PORT for a real server.",
-          "MockMvc in a @SpringBootTest needs @AutoConfigureMockMvc on the test class.",
+          "MockMvc in a @SpringBootTest needs @AutoConfigureMockMvc on the test class; Boot 4 no longer provides it otherwise.",
           "@WebMvcTest: Spring MVC infrastructure and controllers only; regular @Component beans are not scanned.",
-          "@RestClientTest: only the client beans you name (they use RestClient.Builder or RestTemplateBuilder), plus a MockRestServiceServer.",
+          "@RestClientTest: only beans that use RestClient.Builder or RestTemplateBuilder, plus an auto-configured MockRestServiceServer.",
           "MockRestServiceServer runs without a server; for timeouts and network faults, use WireMock.",
           "@MockitoBean and @MockitoSpyBean replace @MockBean and @SpyBean, which Boot 4 removed.",
-          "Context caching: the same configuration reuses one context, so keep the same set of @MockitoBean mocks across test classes.",
+          "Context caching: the same configuration reuses one context, so keep the same set of @MockitoBean mocks, with the same field names, across test classes.",
           "Boot 4 test starters per technology: spring-boot-starter-webmvc-test, spring-boot-starter-restclient-test."
         ]
       },
@@ -1041,7 +1042,7 @@
           "can-i-deploy before a release; record-deployment after it.",
           "Not a good fit: public APIs, pass-through APIs, or a provider team that will not use Pact, such as a SaaS vendor.",
           "Spring Cloud Contract: contracts generate tests for the producer and WireMock stubs for consumers.",
-          "On 6 July 2026 Spring announced that it leaves the Spring Cloud release trains; it continues as Stubborn Contract (stubborn.sh)."
+          "On 6 July 2026 Spring announced that it will be removed from all future Spring Cloud release trains; it continues as Stubborn Contract (stubborn.sh)."
         ]
       }
     ]
