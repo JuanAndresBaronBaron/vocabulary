@@ -32,7 +32,8 @@ from zoneinfo import ZoneInfo
 
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[1]
-CHROME = "/opt/pw-browsers/chromium-1194/chrome-linux/chrome"
+# el Chromium de las pruebas: el primero que exista (VOCAB_CHROME manda)
+CHROME = os.environ.get("VOCAB_CHROME") or next((p for p in ("/opt/pw-browsers/chromium-1194/chrome-linux/chrome", "/opt/pw-browsers/chromium") if os.path.exists(p)), "/opt/pw-browsers/chromium")
 TZ = "Europe/Madrid"
 LOCALE = "es-ES"
 FIXED_NOW = _dt.datetime(2026, 3, 11, 10, 0, 0, tzinfo=ZoneInfo(TZ))   # miércoles, de día, fuera de toda temporada

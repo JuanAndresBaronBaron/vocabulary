@@ -335,6 +335,10 @@ compartida no responde).
   de otra cosa de su familia; con `Math.random` fijo, también el niño de impostor que adivina la palabra) y Ordenar
   (cestas con nombre, IPA, dibujo y altavoz; tocar y arrastrar; gris con ✗ y la buena iluminada al segundo fallo;
   estrellas, récord «N a la primera» y monedas), en francés y danés, y capturas en `capturas/juegos-grupo`.
+- `test_pajarito.py` (`js/flyer.js`, «Pajarito volador»): la tarjeta en Juegos, la ciudad de cada idioma (Londres,
+  París, Copenhague), 3 puertas con palabras, el pajarito ≥ 96 px y la calle hasta abajo en 360 y 390 px, mover con
+  toque, flechas y teclas, acertar (+1) y fallar (−1 corazón) hasta el resultado con récord, la pausa que para las
+  puertas y capturas en `capturas/pajarito`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.
