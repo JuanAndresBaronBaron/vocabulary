@@ -1,0 +1,373 @@
+{
+ "format": 1,
+ "id": "u16",
+ "n": 16,
+ "block": "speaking",
+ "title": "Part 1: the interview",
+ "summary": "After this unit you can give relaxed, well-extended Part 1 answers that paraphrase the question and never sound memorised.",
+ "lessons": [
+  {
+   "id": "u16-l1",
+   "title": "What examiners hear in Part 1",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u16-l1-i1",
+     "type": "card",
+     "title": "Part 1 in brief",
+     "body": [
+      "Part 1 lasts four to five minutes. The examiner asks about two or three familiar topics (work or studies, your home, everyday habits), with three or four questions on each. The questions are simple on purpose: the examiner is listening to *how* you answer, not to whether your ideas are clever.",
+      "All four criteria are already being assessed: Fluency and Coherence, Lexical Resource, Grammatical Range and Accuracy, and Pronunciation. A band 9 Part 1 sounds like a relaxed, articulate person chatting, not like a candidate performing."
+     ],
+     "tip": "Aim for two to four sentences per answer, roughly 15-25 seconds. One-word answers give the examiner nothing to assess; one-minute speeches sound rehearsed and eat into time for later questions."
+    },
+    {
+     "id": "u16-l1-i2",
+     "type": "card",
+     "title": "Extending naturally",
+     "body": [
+      "The simplest way to extend is to answer, then add one of these: a reason, an example, a contrast (then versus now, me versus others), or a small personal detail. You do not need all of them: one or two is enough.",
+      "What matters is that the extension sounds like thought, not like a template. 'Answer + because + for example' every single time becomes as mechanical as written linkers."
+     ],
+     "list": [
+      "**Reason**: *...mainly because it's the only time the house is quiet.*",
+      "**Example**: *Last week, for instance, I...*",
+      "**Contrast**: *When I was a kid I hated it, but now...*",
+      "**Detail**: *...usually with a coffee, sitting by the window.*",
+      "**Qualification**: *Well, it depends what you mean by...*"
+     ]
+    },
+    {
+     "id": "u16-l1-i3",
+     "type": "card",
+     "title": "Avoiding memorised answers",
+     "body": [
+      "Examiners are trained to recognise rehearsed answers, and they will interrupt or move on if a response sounds memorised. Rehearsed answers also tend to have a different rhythm and vocabulary from the rest of the candidate's speech, which makes them easy to spot.",
+      "Instead of memorising answers, prepare *raw material*: a few genuine facts about your job, your city and your habits, and the vocabulary to talk about them. Then build the answer live."
+     ],
+     "examples": [
+      {
+       "text": "Q: Do you like cooking? A: Cooking is one of my greatest passions in life, as it allows me to express my creativity and connect with my cultural heritage.",
+       "note": "Sounds recited: too polished, too abstract for a simple question."
+      },
+      {
+       "text": "Q: Do you like cooking? A: I do, actually, though only at weekends. During the week I'm too tired, so it's mostly pasta, but on Sundays I'll spend a couple of hours on something more ambitious.",
+       "note": "Natural: specific, relaxed, a contrast that adds content."
+      }
+     ]
+    },
+    {
+     "id": "u16-l1-i4",
+     "type": "card",
+     "title": "Paraphrasing the question, not parroting it",
+     "body": [
+      "Repeating the examiner's words (*Do you like reading? Yes, I like reading because reading is...*) wastes the chance to show range. Echo the meaning with different words, or skip straight to the answer.",
+      "Natural openers buy a second of thinking time without sounding like a formula: *Yeah, I'd say so*, *Not really, no*, *It depends*, *Honestly?*, *I used to, but...*. Avoid the same opener every time, and avoid announcing your answer (*That's a very interesting question*)."
+     ],
+     "examples": [
+      {
+       "text": "Q: Do you enjoy your job? A: Mostly, yes. There are weeks when it's pretty draining, but I get a lot of satisfaction out of it.",
+       "note": "'Enjoy your job' becomes 'get a lot of satisfaction out of it'."
+      },
+      {
+       "text": "Q: Is your hometown a good place for young people? A: Not especially, if I'm honest. There's not much going on after about nine o'clock.",
+       "note": "Answers directly, then a specific detail."
+      }
+     ]
+    },
+    {
+     "id": "u16-l1-i5",
+     "type": "pick",
+     "q": "Q: 'Do you often listen to music?' Which answer would score best?",
+     "options": [
+      "Yes.",
+      "Yes, I often listen to music. I listen to music every day because I like music very much.",
+      "All the time, really. I've usually got something on while I'm working, nothing with lyrics, though, or I lose my concentration.",
+      "Music is the universal language of mankind, and it plays an indispensable role in my daily existence."
+     ],
+     "answer": 2,
+     "why": "C answers, extends with a specific detail and a qualification, and sounds spontaneous. A is too short, B parrots the question, and D sounds memorised and over-formal."
+    },
+    {
+     "id": "u16-l1-i6",
+     "type": "pick",
+     "q": "Q: 'What do you do?' Which is the most natural opening?",
+     "options": [
+      "That is a very interesting question.",
+      "I'm a civil engineer, actually, working mainly on bridge maintenance.",
+      "What I do is that I do engineering.",
+      "Regarding my job, I would like to say that my job is engineering."
+     ],
+     "answer": 1,
+     "why": "B answers immediately and precisely. A is a stalling formula examiners hear constantly, and C and D are wordy and repetitive."
+    },
+    {
+     "id": "u16-l1-i7",
+     "type": "select",
+     "q": "Decide how each answer to 'Do you like rainy days?' would sound to an examiner.",
+     "options": [
+      "A  Natural and well extended",
+      "B  Too short",
+      "C  Sounds memorised or over-formal"
+     ],
+     "rows": [
+      {
+       "label": "Not really.",
+       "answer": 1
+      },
+      {
+       "label": "I don't mind them, actually, as long as I don't have to go anywhere. There's something quite cosy about being inside with a book while it's pouring down.",
+       "answer": 0
+      },
+      {
+       "label": "Rainy days evoke a profound sense of melancholy within me, yet they also offer an opportunity for introspection.",
+       "answer": 2
+      },
+      {
+       "label": "It depends. In summer a bit of rain is a relief, but by February I've had more than enough of it.",
+       "answer": 0
+      }
+     ],
+     "why": "Natural answers combine a direct response with a concrete detail or contrast. Very short answers give nothing to assess; lyrical, abstract answers sound rehearsed."
+    },
+    {
+     "id": "u16-l1-i8",
+     "type": "pick",
+     "q": "Which answer paraphrases the question best? Q: 'Do you spend much time outdoors?'",
+     "options": [
+      "Yes, I spend much time outdoors.",
+      "Not as much as I'd like. I'm stuck at a desk most of the week, so I try to make up for it at weekends by getting out into the hills.",
+      "Outdoors is a place where I spend time.",
+      "I spend time outdoors, and the time I spend outdoors is good."
+     ],
+     "answer": 1,
+     "why": "B rephrases the idea ('stuck at a desk', 'getting out into the hills') rather than repeating 'spend much time outdoors', and adds a natural contrast."
+    },
+    {
+     "id": "u16-l1-i9",
+     "type": "gap",
+     "text": "Q: 'Did you enjoy school?' A: 'I ___ to hate it, to be honest, but I ended up loving the last couple of years.'",
+     "answer": [
+      "used"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Used to* for a past state that has changed creates a natural contrast between past and present."
+    },
+    {
+     "id": "u16-l1-i10",
+     "type": "gap",
+     "text": "Q: 'Do you like getting up early?' A: 'Not really, no. I'm much more of a night ___.'",
+     "answer": [
+      "owl",
+      "person"
+     ],
+     "limit": "ONE WORD",
+     "why": "*A night owl* (or *a night person*) is a natural, idiomatic phrase that fits informal Part 1 perfectly."
+    },
+    {
+     "id": "u16-l1-i11",
+     "type": "pick",
+     "q": "A candidate answers every Part 1 question with 'Well, there are several reasons. Firstly... Secondly... Finally...'. What is the likely effect?",
+     "options": [
+      "Higher Fluency and Coherence, because the answers are well organised.",
+      "Lower Fluency and Coherence, because the structure sounds mechanical and rehearsed for short, casual questions.",
+      "No effect, because examiners only assess vocabulary in Part 1.",
+      "Higher Lexical Resource, because ordinal numbers are advanced vocabulary."
+     ],
+     "answer": 1,
+     "why": "Essay-style signposting in casual answers sounds formulaic. Band 9 coherence in speech is about flexible, natural linking appropriate to the question."
+    }
+   ]
+  },
+  {
+   "id": "u16-l2",
+   "title": "Practice: work and home",
+   "kind": "practice",
+   "minutes": 15,
+   "items": [
+    {
+     "id": "u16-l2-i1",
+     "type": "speaking",
+     "part": 1,
+     "topic": "Work or studies",
+     "questions": [
+      "What do you do?",
+      "Do you enjoy your work?",
+      "Why did you choose this kind of work?",
+      "What would you like to be doing in five years' time?"
+     ],
+     "prep": 0,
+     "talk": 30,
+     "model": {
+      "text": [
+       "I work as a data analyst for a logistics company, so basically I spend my days trying to work out how to get things from A to B more cheaply. It sounds dull, but it's a bit like solving puzzles.",
+       "Mostly, yes. The best part is when a pattern suddenly jumps out of a spreadsheet and you realise it explains something people have been arguing about for months. The worst part is meetings, honestly.",
+       "I fell into it, really. I studied economics and assumed I'd end up in a bank, but I did an internship in logistics and found I preferred dealing with real things, lorries and warehouses, rather than abstract money.",
+       "Probably in the same field, but maybe more on the strategy side. I'd like to be the one deciding what questions we ask, not just answering them. Ask me again in five years, though!"
+      ],
+      "notes": [
+       "Each answer starts directly and adds one or two extensions (a comparison, a reason, a detail) without sounding scripted.",
+       "Natural spoken features (*basically*, *honestly*, *I fell into it, really*) show fluency without becoming fillers.",
+       "Precise, everyday vocabulary (*work out how to*, *jumps out of a spreadsheet*, *the strategy side*) earns Lexical Resource more than rare words would.",
+       "The question words are paraphrased rather than repeated (*Do you enjoy...?* becomes *The best part is...*)."
+      ]
+     },
+     "phrases": [
+      "I fell into it, really",
+      "It sounds dull, but...",
+      "The best part is... / The worst part is...",
+      "...more on the ... side",
+      "Ask me again in a few years"
+     ]
+    },
+    {
+     "id": "u16-l2-i2",
+     "type": "speaking",
+     "part": 1,
+     "topic": "Your hometown",
+     "questions": [
+      "Where is your hometown?",
+      "What do you like most about it?",
+      "Has it changed much since you were a child?",
+      "Would you recommend it to visitors?",
+      "Is there a place there you particularly like?"
+     ],
+     "prep": 0,
+     "talk": 30,
+     "model": {
+      "text": [
+       "I'm from a mid-sized city in the north, about an hour from the coast. It's an old industrial place that's been trying to reinvent itself, with mixed success.",
+       "I'd say the food and the people. It's the kind of place where strangers will chat to you at the bus stop, which I really miss now that I live somewhere bigger and more anonymous.",
+       "Quite a lot, actually. When I was growing up, the centre was pretty run-down, but over the last ten years or so they've restored the old warehouses and turned them into flats and restaurants. Some people grumble that it's lost its character, but I think on the whole it's livelier.",
+       "For a visit, definitely. For living, it depends what stage of life you're at. It's great for families, but young people tend to leave because the jobs are elsewhere.",
+       "Probably the old market hall. It's not on any postcard, but it's where you see the city as it really is."
+      ],
+      "notes": [
+       "A range of tenses is used naturally to compare then and now (*When I was growing up*, *they've restored*, *it's lost its character*).",
+       "Opinions are hedged appropriately (*I'd say*, *on the whole*, *it depends what stage of life you're at*), which sounds mature rather than vague.",
+       "Collocations are natural and specific: *reinvent itself*, *run-down*, *mixed success*, *lost its character*.",
+       "Answers are short enough to keep Part 1 moving but each contains genuine content."
+      ]
+     },
+     "phrases": [
+      "with mixed success",
+      "the kind of place where...",
+      "run-down",
+      "people grumble that...",
+      "it depends what stage of life you're at",
+      "it's not on any postcard, but..."
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u16-l3",
+   "title": "Practice: everyday topics",
+   "kind": "practice",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u16-l3-i1",
+     "type": "speaking",
+     "part": 1,
+     "topic": "Reading",
+     "questions": [
+      "Do you read much?",
+      "What kind of things do you like to read?",
+      "Do you prefer reading on paper or on a screen?",
+      "Did anyone read to you when you were a child?"
+     ],
+     "prep": 0,
+     "talk": 30,
+     "model": {
+      "text": [
+       "Less than I used to, sadly. I go through phases: I'll read three novels in a month and then nothing for weeks.",
+       "Mainly fiction, especially crime novels, which I know isn't very highbrow, but I like the fact that there's a puzzle driving the story. I also read quite a lot of long-form journalism on my phone.",
+       "Paper, without a doubt, for books. I spend all day looking at a screen, so reading on one in the evening feels too much like work. For articles, though, I just use my phone.",
+       "Yes, my grandmother did. She'd read to me in bed and do all the voices, which made it impossible to fall asleep."
+      ],
+      "notes": [
+       "Answers include honest qualifications (*sadly*, *which I know isn't very highbrow*), which sound authentic.",
+       "Habitual *would* (*She'd read to me*) and *I'll read three novels* show grammatical range used naturally for habits.",
+       "Contrasts (*for books... for articles, though...*) extend answers without formulaic structure."
+      ]
+     },
+     "phrases": [
+      "I go through phases",
+      "it isn't very highbrow, but...",
+      "without a doubt",
+      "it feels too much like work",
+      "she'd do all the voices"
+     ]
+    },
+    {
+     "id": "u16-l3-i2",
+     "type": "speaking",
+     "part": 1,
+     "topic": "Weather",
+     "questions": [
+      "What's the weather usually like where you live?",
+      "What's your favourite season?",
+      "Does the weather affect your mood?",
+      "Has the weather changed in your country in recent years?"
+     ],
+     "prep": 0,
+     "talk": 30,
+     "model": {
+      "text": [
+       "It's quite mild, really. We don't get extremes, just a lot of grey skies and drizzle, especially from October to March.",
+       "Spring, I think. There's that moment in April when you realise it's still light at eight o'clock, and everyone's mood seems to lift overnight.",
+       "Definitely. If it's sunny I'm far more likely to go for a run or meet people outside, whereas a grey day makes me want to stay in with the heating on.",
+       "I think so, yes. Summers seem to be getting hotter, and we've had a couple of heatwaves recently that would have been unheard of when I was a child."
+      ],
+      "notes": [
+       "Precise weather vocabulary (*drizzle*, *mild*, *heatwaves*) and natural collocations (*mood seems to lift*).",
+       "A conditional contrast (*If it's sunny... whereas a grey day...*) used naturally rather than for display.",
+       "*Would have been unheard of* shows a complex structure that arises from the meaning, not from an attempt to impress."
+      ]
+     },
+     "phrases": [
+      "just a lot of grey skies and drizzle",
+      "everyone's mood seems to lift",
+      "I'm far more likely to...",
+      "would have been unheard of"
+     ]
+    },
+    {
+     "id": "u16-l3-i3",
+     "type": "speaking",
+     "part": 1,
+     "topic": "Technology",
+     "questions": [
+      "How much do you use your phone each day?",
+      "What piece of technology could you not live without?",
+      "Are you quick to try new gadgets?",
+      "Do older people in your family use technology much?"
+     ],
+     "prep": 0,
+     "talk": 30,
+     "model": {
+      "text": [
+       "Far too much, if I'm honest. I check my phone first thing in the morning, which I keep promising myself I'll stop doing.",
+       "Probably my noise-cancelling headphones. I work in an open-plan office, and without them I'd get nothing done.",
+       "I'm somewhere in the middle. I'm not one of those people who queue for the latest phone, but I don't resist new things either. I tend to wait until something's been around a while and the problems have been ironed out.",
+       "My parents have got much better, actually. My mum was terrified of computers ten years ago, and now she sends me videos she's edited herself."
+      ],
+      "notes": [
+       "Self-aware, conversational answers that sound like a real person rather than a prepared speech.",
+       "Idiomatic but appropriate expressions (*ironed out*, *I'm somewhere in the middle*) suit the informal register of Part 1.",
+       "Varied grammar flows from content: a second conditional (*without them I'd get nothing done*), a present perfect for change (*have got much better*)."
+      ]
+     },
+     "phrases": [
+      "Far too much, if I'm honest",
+      "I keep promising myself I'll...",
+      "I'm somewhere in the middle",
+      "the problems have been ironed out"
+     ]
+    }
+   ]
+  }
+ ]
+}

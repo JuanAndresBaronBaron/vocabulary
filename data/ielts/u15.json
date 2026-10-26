@@ -1,0 +1,708 @@
+{
+ "format": 1,
+ "id": "u15",
+ "n": 15,
+ "block": "writing",
+ "title": "Band 9 craft",
+ "summary": "After this unit you can link ideas invisibly, choose precise collocations, avoid memorised and over-formal language, and eliminate the slips that hold writers at 7.5.",
+ "lessons": [
+  {
+   "id": "u15-l1",
+   "title": "Cohesion without mechanical linkers",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u15-l1-i1",
+     "type": "card",
+     "title": "Why 'Moreover' does not get you band 9",
+     "body": [
+      "The band descriptors for Coherence and Cohesion at band 9 say cohesion 'attracts no attention'. Starting every sentence with *Moreover*, *Furthermore*, *In addition* or *On the other hand* attracts a great deal of attention: it is the mark of a writer who has learnt linkers as a list.",
+      "Strong writers connect sentences mainly through **reference** (*this*, *these*, *such*, *the former*), **substitution and ellipsis** (*one*, *do so*, *the same*), and **thematic progression**: starting a sentence with the idea the previous sentence ended on."
+     ],
+     "examples": [
+      {
+       "text": "Many cities have introduced congestion charges. Moreover, they have built cycle lanes. Furthermore, they have raised parking fees.",
+       "note": "Mechanical: three linkers, no real connection."
+      },
+      {
+       "text": "Many cities have introduced congestion charges, often alongside new cycle lanes and higher parking fees. Together, these measures make driving into the centre both slower and more expensive.",
+       "note": "Reference ('these measures') does the linking."
+      }
+     ]
+    },
+    {
+     "id": "u15-l1-i2",
+     "type": "card",
+     "title": "Thematic progression: old before new",
+     "body": [
+      "English readers expect a sentence to begin with something familiar and end with something new. The new information at the end of one sentence becomes the familiar starting point of the next. This creates flow without any linking word.",
+      "Use summary nouns to pick up a whole previous idea: *this trend*, *this shift*, *such a policy*, *the result*, *this reluctance*."
+     ],
+     "examples": [
+      {
+       "text": "Rents in the city centre have doubled in a decade. **This rise** has pushed many young workers into the suburbs, where **the longer commute** adds to congestion.",
+       "note": "Each sentence starts from the end of the previous one."
+      }
+     ],
+     "tip": "When you edit, look at the first three or four words of each sentence. If they are mostly linkers, rewrite so that they are mostly reference to the previous idea."
+    },
+    {
+     "id": "u15-l1-i3",
+     "type": "card",
+     "title": "Substitution and ellipsis",
+     "body": [
+      "Repeating a noun phrase is clumsy; replacing it with a pronoun, *one*, *do so* or *the same* is natural. Ellipsis (leaving words out because they are obvious) is even more economical."
+     ],
+     "examples": [
+      {
+       "text": "Some governments subsidise public transport; others do not.",
+       "note": "Ellipsis: 'do not (subsidise public transport)'."
+      },
+      {
+       "text": "A well-made tool lasts for decades, whereas a cheap one may break within a year.",
+       "note": "'one' substitutes for 'tool'."
+      },
+      {
+       "text": "Councils could lower business rates, and some have already done so.",
+       "note": "'done so' replaces 'lowered business rates'."
+      }
+     ]
+    },
+    {
+     "id": "u15-l1-i4",
+     "type": "pick",
+     "q": "Which version links the ideas most naturally?",
+     "options": [
+      "Many people now work from home. Moreover, this means they spend less time commuting. In addition, they can spend more time with their families.",
+      "Many people now work from home, and the time they no longer spend commuting is often spent with their families instead.",
+      "Many people now work from home. Furthermore, commuting time is less. Also, family time is more.",
+      "Firstly, many people work from home. Secondly, commuting. Thirdly, families."
+     ],
+     "answer": 1,
+     "why": "B connects the ideas through the grammar of a single sentence. The others rely on stacked linkers or lose the logical relationship altogether."
+    },
+    {
+     "id": "u15-l1-i5",
+     "type": "gap",
+     "text": "Rural bus services have been cut in many regions. ___ cuts leave older residents without a car particularly isolated.",
+     "answer": [
+      "These",
+      "Such"
+     ],
+     "limit": "ONE WORD",
+     "why": "*These cuts* or *Such cuts* refers back to the previous sentence, linking without an adverbial linker."
+    },
+    {
+     "id": "u15-l1-i6",
+     "type": "gap",
+     "text": "Some students thrive in large lecture halls, while others ___ not.",
+     "answer": [
+      "do"
+     ],
+     "limit": "ONE WORD",
+     "why": "Ellipsis: *do not (thrive in large lecture halls)*. Repeating the verb phrase would be clumsy."
+    },
+    {
+     "id": "u15-l1-i7",
+     "type": "gap",
+     "text": "A reusable cup costs more than a disposable ___, but it pays for itself within weeks.",
+     "answer": [
+      "one"
+     ],
+     "limit": "ONE WORD",
+     "why": "*One* substitutes for the countable noun *cup*."
+    },
+    {
+     "id": "u15-l1-i8",
+     "type": "pick",
+     "q": "Which second sentence follows best from: 'Over the last decade, many high streets have lost their banks and post offices.'",
+     "options": [
+      "Moreover, people go to out-of-town shopping centres.",
+      "This loss of basic services gives residents one less reason to visit the town centre at all.",
+      "Banks are financial institutions that keep money safe.",
+      "In addition to this, on the other hand, shops have also closed."
+     ],
+     "answer": 1,
+     "why": "B starts with a summary noun phrase ('This loss of basic services') that picks up the previous sentence and then adds new information: classic thematic progression."
+    },
+    {
+     "id": "u15-l1-i9",
+     "type": "select",
+     "q": "Choose the most natural way to refer back in each sentence.",
+     "options": [
+      "A  the former",
+      "B  doing so",
+      "C  this approach",
+      "D  such"
+     ],
+     "rows": [
+      {
+       "label": "Teachers can either set more homework or extend the school day; ___ is cheaper but less effective. (refers to the first option)",
+       "answer": 0
+      },
+      {
+       "label": "Some schools ban phones entirely. ___ has reduced distraction but frustrated parents.",
+       "answer": 2
+      },
+      {
+       "label": "Learners are urged to read widely, as ___ builds vocabulary more effectively than lists.",
+       "answer": 1
+      },
+      {
+       "label": "Few councils can afford ___ ambitious schemes without central funding.",
+       "answer": 3
+      }
+     ],
+     "why": "*The former* picks the first of two options; *this approach* summarises a policy; *doing so* replaces a verb phrase; *such* + adjective + plural noun refers to a type."
+    },
+    {
+     "id": "u15-l1-i10",
+     "type": "order",
+     "q": "Order the sentences so that each begins with the idea the previous one ended on.",
+     "items": [
+      "Many universities now record their lectures and publish them online.",
+      "These recordings allow students to revisit difficult material at their own pace.",
+      "This flexibility is particularly valuable for those who combine study with paid work.",
+      "For such students, attending every lecture in person is often impossible."
+     ],
+     "why": "Each sentence starts with reference to the end of the one before: *These recordings*, *This flexibility*, *For such students*."
+    }
+   ]
+  },
+  {
+   "id": "u15-l2",
+   "title": "Lexical precision and collocation",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u15-l2-i1",
+     "type": "card",
+     "title": "Upgrade the vague word",
+     "body": [
+      "Lexical Resource at band 9 means 'a wide range of vocabulary used with very natural and sophisticated control'. The key word is *control*: the right word for this meaning in this context, combined with the words it naturally goes with.",
+      "Start by hunting down the vague words that carry no precise meaning: *thing*, *aspect*, *problem*, *good*, *bad*, *big*, *very*, *a lot of*, *affect*, *get*. Replace each with the word that says exactly what you mean."
+     ],
+     "examples": [
+      {
+       "text": "This has a big effect on the environment.",
+       "note": "Vague."
+      },
+      {
+       "text": "This places considerable strain on water supplies.",
+       "note": "Precise: what kind of effect, on what, how strong."
+      },
+      {
+       "text": "Cars are bad for cities. / Cars make cities noisier and more dangerous for pedestrians.",
+       "note": "Specific beats evaluative."
+      }
+     ]
+    },
+    {
+     "id": "u15-l2-i2",
+     "type": "card",
+     "title": "Collocation: words that belong together",
+     "body": [
+      "Collocation is the main difference between C1 and C2 writing. A non-native-sounding phrase is usually not wrong in grammar or meaning; it simply uses a word that native writers do not combine with the other one.",
+      "Learn words in pairs and chunks, not alone."
+     ],
+     "list": [
+      "**pose** a threat / a risk / a challenge (not *make a threat*)",
+      "**meet** demand / a need / a target (not *satisfy a target*)",
+      "**address / tackle** a problem (not *solve an issue* in every case)",
+      "**heavy** traffic, **strong** opposition, **high** unemployment, **deep** concern",
+      "**widen** access, **raise** awareness, **narrow** the gap, **bridge** the divide",
+      "a **growing** body of evidence, a **sharp** decline, a **marked** improvement"
+     ]
+    },
+    {
+     "id": "u15-l2-i3",
+     "type": "pick",
+     "q": "Choose the most precise replacement for 'affects': 'Noise pollution **affects** children's ability to concentrate in class.'",
+     "options": [
+      "influences",
+      "impairs",
+      "changes",
+      "does something to"
+     ],
+     "answer": 1,
+     "why": "*Impairs* means 'makes worse', which is exactly the meaning intended. *Influences* and *changes* are neutral and lose the negative direction."
+    },
+    {
+     "id": "u15-l2-i4",
+     "type": "pick",
+     "q": "Which collocation is natural?",
+     "options": [
+      "make a challenge to public health",
+      "pose a challenge to public health",
+      "do a challenge to public health",
+      "give a challenge to public health"
+     ],
+     "answer": 1,
+     "why": "*Pose a challenge / threat / risk* is the standard collocation in formal writing."
+    },
+    {
+     "id": "u15-l2-i5",
+     "type": "gap",
+     "text": "New housing developments are struggling to keep up with ___ demand for affordable homes.",
+     "answer": [
+      "growing",
+      "rising",
+      "increasing",
+      "mounting"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Growing / rising demand* is a fixed collocation; *big demand* sounds unnatural."
+    },
+    {
+     "id": "u15-l2-i6",
+     "type": "gap",
+     "text": "Free school meals can help to ___ the gap between children from rich and poor families.",
+     "answer": [
+      "narrow",
+      "close",
+      "bridge"
+     ],
+     "limit": "ONE WORD",
+     "why": "We *narrow* or *close* a gap; *bridge* also works. *Reduce the gap* is acceptable but less precise."
+    },
+    {
+     "id": "u15-l2-i7",
+     "type": "gap",
+     "text": "The proposal met with fierce ___ from residents who feared an increase in traffic.",
+     "answer": [
+      "opposition",
+      "resistance",
+      "criticism"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Fierce opposition / resistance* are strong collocations; *fierce* rarely goes with *disagreement*."
+    },
+    {
+     "id": "u15-l2-i8",
+     "type": "select",
+     "q": "Choose the most natural verb to complete each collocation.",
+     "options": [
+      "A  tackle",
+      "B  meet",
+      "C  raise",
+      "D  pose",
+      "E  widen"
+     ],
+     "rows": [
+      {
+       "label": "___ awareness of the risks of gambling",
+       "answer": 2
+      },
+      {
+       "label": "___ access to higher education",
+       "answer": 4
+      },
+      {
+       "label": "___ the root causes of poverty",
+       "answer": 0
+      },
+      {
+       "label": "___ the needs of an ageing population",
+       "answer": 1
+      },
+      {
+       "label": "___ a serious risk to coastal communities",
+       "answer": 3
+      }
+     ],
+     "why": "These are high-frequency academic collocations: raise awareness, widen access, tackle causes, meet needs, pose a risk."
+    },
+    {
+     "id": "u15-l2-i9",
+     "type": "pick",
+     "q": "Which sentence is the most precise?",
+     "options": [
+      "Tourism has many aspects that are good and bad for local people.",
+      "Tourism brings income to local people but also has some problems.",
+      "Tourism brings much-needed income to coastal villages but can also drive up house prices beyond the reach of local families.",
+      "Tourism is a very big thing that affects local people a lot."
+     ],
+     "answer": 2,
+     "why": "C says exactly which benefit and which drawback, and for whom. The others use vague words (*aspects*, *problems*, *thing*, *a lot*)."
+    },
+    {
+     "id": "u15-l2-i10",
+     "type": "pick",
+     "q": "'The government should do research about the problem.' Which revision has the most natural collocation?",
+     "options": [
+      "The government should make research into the problem.",
+      "The government should commission research into the problem.",
+      "The government should create research on the problem.",
+      "The government should perform research about the problem."
+     ],
+     "answer": 1,
+     "why": "Governments *commission* research (pay others to carry it out); researchers *conduct* or *carry out* research. The preposition is *into*."
+    }
+   ]
+  },
+  {
+   "id": "u15-l3",
+   "title": "Natural, not over-formal",
+   "kind": "learn",
+   "minutes": 15,
+   "items": [
+    {
+     "id": "u15-l3-i1",
+     "type": "card",
+     "title": "Memorised phrases cost marks",
+     "body": [
+      "Examiners are trained to spot memorised language, and the band descriptors penalise it. Phrases like *It is a truth universally acknowledged*, *In this day and age*, *Every coin has two sides* or *This essay will shed light on* signal that the writer is reproducing a formula rather than responding to the question.",
+      "The same applies to idioms forced into academic writing: *a double-edged sword*, *the tip of the iceberg*, *last but not least*. Used once, naturally, an idiom can be fine; used to decorate, it lowers the score."
+     ],
+     "list": [
+      "Avoid: *In this modern era*, *Nowadays, with the development of society*, *It is undeniable that*",
+      "Avoid: *To put it in a nutshell*, *All in all*, *Last but not least*",
+      "Avoid: opening sentences that could introduce any essay on any topic"
+     ]
+    },
+    {
+     "id": "u15-l3-i2",
+     "type": "card",
+     "title": "Over-formality",
+     "body": [
+      "Band 9 writing is clear, not ornate. Long Latinate words chosen to sound academic often make the meaning less precise and the style stiff: *utilise* for *use*, *commence* for *start*, *in the event that* for *if*, *a plethora of* for *many*.",
+      "Academic does not mean pompous. Use the formal word when it is more precise (*obsolete*, *allocate*, *mitigate*), not when it simply sounds grander."
+     ],
+     "examples": [
+      {
+       "text": "Individuals who utilise public transportation modalities commence their journeys earlier.",
+       "note": "Over-formal and vague."
+      },
+      {
+       "text": "People who use public transport tend to set off earlier.",
+       "note": "Clear and natural."
+      }
+     ]
+    },
+    {
+     "id": "u15-l3-i3",
+     "type": "select",
+     "q": "Decide whether each opening sentence is appropriate for a band 9 essay.",
+     "options": [
+      "A  Appropriate: specific to the question",
+      "B  Memorised or generic"
+     ],
+     "rows": [
+      {
+       "label": "In this day and age, technology has become an integral part of our lives.",
+       "answer": 1
+      },
+      {
+       "label": "As more writing moves onto screens, schools face a genuine choice about how to spend limited lesson time.",
+       "answer": 0
+      },
+      {
+       "label": "Every coin has two sides, and this issue is no exception.",
+       "answer": 1
+      },
+      {
+       "label": "Towns that once relied on fishing fleets now face empty shops and shrinking populations.",
+       "answer": 0
+      },
+      {
+       "label": "It is a controversial issue which has been hotly debated for many years.",
+       "answer": 1
+      }
+     ],
+     "why": "A good opening is so specific to the question that it could not begin any other essay. Generic openers and proverbs are recognisably memorised."
+    },
+    {
+     "id": "u15-l3-i4",
+     "type": "pick",
+     "q": "Which is the most natural version?",
+     "options": [
+      "In the event that the council commences the utilisation of the site, a plethora of issues will arise.",
+      "If the council starts using the site, several problems are likely to arise.",
+      "If council start to use site, many problem will arise.",
+      "Should the council commence utilising the site, numerous issues shall arise."
+     ],
+     "answer": 1,
+     "why": "B is clear and correct. A and D are over-formal ('commences the utilisation', 'shall arise'), and C has article and agreement errors."
+    },
+    {
+     "id": "u15-l3-i5",
+     "type": "pick",
+     "q": "Which use of an idiom is acceptable in a Task 2 essay?",
+     "options": [
+      "Social media is a double-edged sword, and every cloud has a silver lining.",
+      "Last but not least, the tip of the iceberg is that pollution is rising.",
+      "None of these idioms; a precise literal phrase is better in this case.",
+      "To put it in a nutshell, at the end of the day, it is a win-win situation."
+     ],
+     "answer": 2,
+     "why": "All three idiom-heavy options are stacks of clichés. In Writing, literal precise language almost always scores higher; idioms belong more naturally in Speaking."
+    },
+    {
+     "id": "u15-l3-i6",
+     "type": "gap",
+     "text": "Rewrite naturally: 'commence' becomes ___ (one word).",
+     "answer": [
+      "start",
+      "begin"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Start* or *begin* is clearer in almost every context; *commence* is very formal and rarely needed in an essay."
+    },
+    {
+     "id": "u15-l3-i7",
+     "type": "gap",
+     "text": "Rewrite naturally: 'a plethora of reasons' becomes ___ reasons.",
+     "answer": [
+      "many",
+      "several",
+      "numerous",
+      "various"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Many* or *several* says the same thing without the inflated tone. *A plethora* also implies 'too many', which is often not what the writer means."
+    }
+   ]
+  },
+  {
+   "id": "u15-l4",
+   "title": "Grammar range and spotting slips",
+   "kind": "learn",
+   "minutes": 25,
+   "items": [
+    {
+     "id": "u15-l4-i1",
+     "type": "card",
+     "title": "Range that serves meaning",
+     "body": [
+      "Grammatical Range and Accuracy at band 9 requires 'a wide range of structures' with 'rare minor errors'. Range is not a checklist of tenses to show off; it is the ability to choose the structure that expresses a precise relationship between ideas."
+     ],
+     "list": [
+      "**Conditionals** for hypotheses and conditions: *If cities were designed around walking, fewer people would need cars.*",
+      "**Relative clauses** to add precise information: *households whose income has fallen*",
+      "**Nominalisation** to compress an idea into a noun phrase: *The closure of the factory led to...*",
+      "**Passives** when the agent is unknown or unimportant: *Many of these buildings were never designed to last.*",
+      "**Participle clauses** for economy: *Faced with rising costs, many families...*"
+     ]
+    },
+    {
+     "id": "u15-l4-i2",
+     "type": "card",
+     "title": "The slips that keep you at 7.5",
+     "body": [
+      "Writers at this level rarely make errors with tenses. Their slips cluster in a few areas, especially for speakers of Spanish and other Romance languages. Learn your own pattern and check for it in the last three minutes."
+     ],
+     "list": [
+      "**Articles**: *the society* (general) should be *society*; *in the 2010s* needs *the*.",
+      "**Countability**: *researches*, *advices*, *informations*, *equipments*, *evidences* are all wrong; use *research*, *advice*, *information*.",
+      "**Agreement**: *The number of cars have risen* should be *has risen*; *one of the main reasons are* should be *is*.",
+      "**Punctuation**: comma splices (*Prices rose, people bought less.*), and commas around defining relative clauses.",
+      "**Word form**: *economic* (relating to the economy) vs *economical* (saving money)."
+     ]
+    },
+    {
+     "id": "u15-l4-i3",
+     "type": "select",
+     "q": "Each sentence contains one typical slip. Identify its type.",
+     "options": [
+      "A  Article",
+      "B  Countability",
+      "C  Subject-verb agreement",
+      "D  Punctuation"
+     ],
+     "rows": [
+      {
+       "label": "The government should provide more informations about the scheme.",
+       "answer": 1
+      },
+      {
+       "label": "The number of students living at home have increased.",
+       "answer": 2
+      },
+      {
+       "label": "In the most countries, the cost of living has risen.",
+       "answer": 0
+      },
+      {
+       "label": "Rents have doubled, many young people cannot afford to move out.",
+       "answer": 3
+      },
+      {
+       "label": "Recent researches show that sleep affects memory.",
+       "answer": 1
+      },
+      {
+       "label": "One of the main reasons for this trend are the cost of fuel.",
+       "answer": 2
+      }
+     ],
+     "why": "*Information* and *research* are uncountable. *The number of* and *one of* take singular verbs. 'In most countries' takes no article. Two independent clauses joined only by a comma make a comma splice."
+    },
+    {
+     "id": "u15-l4-i4",
+     "type": "pick",
+     "q": "Which sentence is correct?",
+     "options": [
+      "People who lives in cities tend to own fewer cars.",
+      "The society has changed a lot since the internet.",
+      "Students who take notes by hand tend to remember more.",
+      "Students, who take notes by hand, tend to remember more."
+     ],
+     "answer": 2,
+     "why": "C is correct. A has an agreement error (*lives*), B wrongly uses *the* with *society* in a general sense, and D's commas turn a defining clause (only those students) into a non-defining one (all students)."
+    },
+    {
+     "id": "u15-l4-i5",
+     "type": "gap",
+     "text": "If governments ___ invested in rail decades ago, roads would be far less congested today.",
+     "answer": [
+      "had"
+     ],
+     "limit": "ONE WORD",
+     "why": "A mixed conditional: past condition (*had invested*) with a present result (*would be*)."
+    },
+    {
+     "id": "u15-l4-i6",
+     "type": "gap",
+     "text": "The ___ of the coal mine in 1985 left thousands of families without an income.",
+     "answer": [
+      "closure",
+      "closing"
+     ],
+     "limit": "ONE WORD",
+     "why": "Nominalisation: *the closure of the mine* turns a clause (*the mine closed*) into the subject of a new sentence."
+    },
+    {
+     "id": "u15-l4-i7",
+     "type": "gap",
+     "text": "___ with rising energy bills, many households have cut back on heating.",
+     "answer": [
+      "Faced",
+      "Confronted"
+     ],
+     "limit": "ONE WORD",
+     "why": "A participle clause (*Faced with...*) replaces *Because they are faced with...* economically."
+    },
+    {
+     "id": "u15-l4-i8",
+     "type": "pick",
+     "q": "Which is the best rewrite of: 'The factory closed. This caused unemployment. The unemployment was high.'",
+     "options": [
+      "The factory closed and this caused unemployment which was high.",
+      "The closure of the factory caused high unemployment.",
+      "The factory, it closed, causing the unemployment to be high.",
+      "Because the factory was closed, so unemployment was high."
+     ],
+     "answer": 1,
+     "why": "Nominalisation (*The closure of the factory*) and a compressed noun phrase (*high unemployment*) express the same idea in one precise clause. D has a double conjunction (*Because... so*)."
+    },
+    {
+     "id": "u15-l4-i9",
+     "type": "select",
+     "q": "Correct or incorrect?",
+     "options": [
+      "A  Correct",
+      "B  Incorrect"
+     ],
+     "rows": [
+      {
+       "label": "Each of the proposals has its merits.",
+       "answer": 0
+      },
+      {
+       "label": "Less people are buying newspapers than a decade ago.",
+       "answer": 1
+      },
+      {
+       "label": "Fewer people are buying newspapers than a decade ago.",
+       "answer": 0
+      },
+      {
+       "label": "The equipments in many schools are out of date.",
+       "answer": 1
+      },
+      {
+       "label": "Little evidence supports this claim.",
+       "answer": 0
+      },
+      {
+       "label": "The economical consequences of the decision were severe.",
+       "answer": 1
+      }
+     ],
+     "why": "*Each* takes a singular verb. *Fewer* goes with countable plurals (*people*); *less* with uncountables. *Equipment* is uncountable. *Economic* means relating to the economy; *economical* means not wasteful."
+    },
+    {
+     "id": "u15-l4-i10",
+     "type": "pick",
+     "q": "Which sentence uses the passive most appropriately?",
+     "options": [
+      "The report was written by someone in 2019.",
+      "Many of these houses were built in the 1960s and were never designed to last.",
+      "The government was decided to raise taxes.",
+      "It is believed by me that this is wrong."
+     ],
+     "answer": 1,
+     "why": "B uses the passive because the builders are unknown and unimportant. A adds a pointless *by someone*, C is ungrammatical, and D is unnatural (*I believe*)."
+    }
+   ]
+  },
+  {
+   "id": "u15-l5",
+   "title": "Practice: putting it together",
+   "kind": "practice",
+   "minutes": 45,
+   "items": [
+    {
+     "id": "u15-l5-i1",
+     "type": "card",
+     "title": "A band 9 editing routine",
+     "body": [
+      "Leave three or four minutes at the end of Task 2 for checking. Read once for meaning (does every paragraph answer the question?), then once for your personal error pattern.",
+      "This essay asks whether advantages outweigh disadvantages, so it needs a verdict, not two balanced lists."
+     ],
+     "list": [
+      "Sentence openings: mostly reference, not linkers?",
+      "Vague words: *thing*, *aspect*, *big*, *affect*, *a lot of*?",
+      "Articles and plural/uncountable nouns.",
+      "Subject-verb agreement after *the number of*, *one of*, *each*.",
+      "Comma splices and commas around defining clauses."
+     ]
+    },
+    {
+     "id": "u15-l5-i2",
+     "type": "writing",
+     "task": 2,
+     "prompt": "In many cities, on-street parking spaces are being replaced by cycle lanes, wider pavements and outdoor seating for cafés.\n\nDo the advantages of this development outweigh the disadvantages?\n\nWrite at least 250 words.",
+     "minutes": 40,
+     "minWords": 250,
+     "plan": [
+      "Verdict: advantages outweigh.",
+      "Body 1: disadvantages (mobility, tradespeople, shopkeepers' fears).",
+      "Body 2: advantages (space efficiency, safety, cycling uptake, local spending).",
+      "Short paragraph: disadvantages can be mitigated; benefits cannot be had otherwise.",
+      "Conclusion: verdict restated."
+     ],
+     "model": {
+      "text": [
+       "Across many cities, the strip of road once reserved for parked cars is being handed over to cyclists, pedestrians and café tables. Although this change creates genuine difficulties for some residents and businesses, I believe its advantages clearly outweigh them.",
+       "The drawbacks should not be dismissed. For people with limited mobility, or tradespeople who need to unload heavy equipment, the loss of a parking space outside a building can make everyday tasks considerably harder. Some shopkeepers also fear that customers who can no longer park nearby will simply drive to an out-of-town retail park instead. These concerns are understandable, particularly where public transport is poor, and they explain why such schemes often meet strong local opposition at first.",
+       "Nevertheless, the benefits are broader and more lasting. A single parking space typically holds one stationary vehicle for hours, whereas the same area used as pavement or seating may serve dozens of people in a day. Wider pavements make walking safer and more pleasant, and protected cycle lanes encourage people who would never cycle alongside heavy traffic to try it, which in turn reduces congestion and pollution for everyone. Contrary to the fears of shopkeepers, streets that are pleasant to linger in often attract more spending, because pedestrians and cyclists tend to visit local shops more frequently than drivers do, even if they spend less on each visit.",
+       "The disadvantages, moreover, can largely be mitigated. Dedicated bays for disabled drivers and loading can be retained, and delivery times can be scheduled outside peak hours. The benefits, by contrast, depend on the space being reallocated in the first place.",
+       "In conclusion, while removing parking inconveniences certain groups, these problems can be managed, and the gains in safety, health and the vitality of local streets make the change worthwhile."
+      ],
+      "notes": [
+       "The verdict is stated in the introduction and justified by comparing the weight of each side, which is what 'outweigh' requires.",
+       "Cohesion relies on reference and thematic progression (*These concerns*, *the same area*, *The disadvantages*, *The benefits, by contrast*), with very few stand-alone linkers.",
+       "Collocations are natural and precise: *meet strong local opposition*, *heavy traffic*, *linger in*, *be largely mitigated*, *reallocate space*.",
+       "Grammatical range serves meaning: concessive clauses, a *whereas* contrast, relative clauses and passives where the agent is unimportant.",
+       "There are no memorised phrases or forced idioms; the opening sentence could only begin this essay.",
+       "The counter-argument is treated fairly and then answered, which strengthens the position."
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

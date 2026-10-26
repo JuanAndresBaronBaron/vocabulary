@@ -1,0 +1,554 @@
+{
+ "format": 1,
+ "id": "u12",
+ "n": 12,
+ "block": "writing",
+ "title": "Task 1: processes and maps",
+ "summary": "After this unit you can describe any process or map change with accurate passives, varied sequencing and a clear overview.",
+ "lessons": [
+  {
+   "id": "u12-l1",
+   "title": "Describing processes and maps",
+   "kind": "learn",
+   "minutes": 25,
+   "items": [
+    {
+     "id": "u12-l1-i1",
+     "type": "card",
+     "title": "Processes: what the examiner wants",
+     "body": [
+      "A process diagram has no numbers, so Task Achievement depends on **covering every stage** in a logical sequence and giving an overview that states how many stages there are, where the process begins and ends, and whether it is a cycle or a linear sequence.",
+      "Most of the verbs will be passive, because the agent (who does it) is unknown or unimportant: *the olives are washed*, *the paste is mixed*. But a band 9 answer is not a column of identical passives. Vary the grammar so that the stages flow."
+     ],
+     "list": [
+      "Passive: *The olives are then crushed into a paste.*",
+      "Active with a machine or material as subject: *A centrifuge separates the oil from the water.*",
+      "Participle clause: *Having been washed, the olives are fed into a mill.*",
+      "Relative clause: *the paste, which is then stirred slowly for around 30 minutes*",
+      "Purpose: *in order to release the oil*, *so that it can be stored*"
+     ],
+     "tip": "Use the labels on the diagram, but turn nouns into verbs where you can: 'Washing' becomes 'the olives are washed'. Copying labels as a list is a band 5 feature."
+    },
+    {
+     "id": "u12-l1-i2",
+     "type": "card",
+     "title": "Sequencing without a list of linkers",
+     "body": [
+      "'First... Second... Third... Next... Then... Finally' is easy to read but mechanical. Use a few sequencers, then let the grammar carry the order."
+     ],
+     "examples": [
+      {
+       "text": "Once harvested, the olives are taken to a mill, where they are washed and their leaves removed.",
+       "note": "Once + past participle; a relative 'where' clause joins two stages."
+      },
+      {
+       "text": "The resulting paste is mixed slowly before being pumped into a centrifuge.",
+       "note": "'The resulting' links to the previous stage; 'before being' + participle."
+      },
+      {
+       "text": "At this point the process divides: the oil continues to be filtered, while the solid residue is collected separately.",
+       "note": "Signals a branch in the diagram."
+      },
+      {
+       "text": "The cycle then begins again.",
+       "note": "Only for diagrams that really are cycles."
+      }
+     ]
+    },
+    {
+     "id": "u12-l1-i3",
+     "type": "card",
+     "title": "Maps: the language of change",
+     "body": [
+      "Map tasks compare two (sometimes three) maps of the same place at different times. Your overview should say what kind of change dominated: *the area became more residential*, *the village was transformed from an agricultural settlement into a tourist resort*, *most of the original features were retained*.",
+      "Use the passive to describe changes and prepositions of place to locate them. Precision with direction and position is what separates band 8 from 9."
+     ],
+     "list": [
+      "**was replaced by / made way for**: *The car park made way for a row of shops.*",
+      "**was converted into**: for a building whose use changed",
+      "**was extended northwards / was enlarged**",
+      "**was demolished / was cleared**",
+      "**was constructed / was built / a new road was laid**",
+      "**remained unchanged / was retained**",
+      "**to the east of / directly north of / adjacent to / in the north-western corner / along the coast**"
+     ],
+     "tip": "Say where things are relative to other features, not to the page: 'to the south of the main road', not 'at the bottom of the map'."
+    },
+    {
+     "id": "u12-l1-i4",
+     "type": "card",
+     "title": "Organising a map answer",
+     "body": [
+      "Choose one of two organisations. **By area**: the north of the town, then the south. **By type of change**: what was removed or replaced, then what was added. Both work; mixing them at random does not.",
+      "Tense matters. Describe the past map in the past (*there was a car park*), and changes in the past simple or present perfect (*has been replaced*), depending on whether the second map is the present day. Keep it consistent."
+     ]
+    },
+    {
+     "id": "u12-l1-i5",
+     "type": "order",
+     "q": "Put these stages of olive oil production in order.",
+     "items": [
+      "The olives are harvested and transported to a mill.",
+      "They are washed and any leaves are removed.",
+      "The olives are crushed into a paste.",
+      "The paste is mixed slowly for 30-40 minutes.",
+      "A centrifuge separates the oil from the water and solids.",
+      "The oil is filtered and bottled."
+     ],
+     "why": "Harvest, wash, crush, mix (malaxation), separate, filter and bottle. Each stage depends on the output of the previous one."
+    },
+    {
+     "id": "u12-l1-i6",
+     "type": "gap",
+     "text": "Once the olives have been washed, they ___ into a paste by steel or stone mills.",
+     "answer": [
+      "are crushed",
+      "are ground"
+     ],
+     "limit": "TWO WORDS",
+     "why": "The passive (*are crushed*) is natural because the agent is the machine, given after *by*."
+    },
+    {
+     "id": "u12-l1-i7",
+     "type": "gap",
+     "text": "The solid residue, known as pomace, is not wasted; ___ is either dried for fuel or used as fertiliser.",
+     "answer": [
+      "it",
+      "instead it",
+      "this"
+     ],
+     "limit": "ONE OR TWO WORDS",
+     "why": "A pronoun refers back to 'the solid residue' and avoids repeating it. Simple reference is a hallmark of natural cohesion."
+    },
+    {
+     "id": "u12-l1-i8",
+     "type": "pick",
+     "q": "Which sentence about a process is the most natural?",
+     "options": [
+      "Firstly, washing. Secondly, crushing. Thirdly, mixing.",
+      "The olives are washed, then the olives are crushed, then the olives are mixed.",
+      "After being washed, the olives are crushed and the resulting paste is mixed slowly.",
+      "The olives, they are washed and after they are crushing them."
+     ],
+     "answer": 2,
+     "why": "C uses a participle clause, a passive and 'the resulting' to link three stages smoothly. A copies labels, B repeats the subject mechanically, and D is ungrammatical."
+    },
+    {
+     "id": "u12-l1-i9",
+     "type": "pick",
+     "q": "Two maps show a village in 2000 and today. Which is the best overview?",
+     "options": [
+      "Overall, there is a new road, a marina, a hotel, some houses and a car park.",
+      "Overall, the village has been transformed from a small fishing and farming community into a leisure destination, with much of its farmland and woodland given over to housing and tourism.",
+      "Overall, the changes are positive because tourists bring money.",
+      "Overall, the map at the top is different from the map at the bottom."
+     ],
+     "answer": 1,
+     "why": "B summarises the *nature* of the change. A is a list of details, C is an opinion, and D refers to the page and says nothing."
+    },
+    {
+     "id": "u12-l1-i10",
+     "type": "gap",
+     "text": "The fishing harbour ___ into a much larger marina for leisure boats.",
+     "answer": [
+      "was converted",
+      "has been converted",
+      "was turned",
+      "has been turned",
+      "was transformed",
+      "has been transformed"
+     ],
+     "limit": "TWO OR THREE WORDS",
+     "why": "*Converted into* fits a change of use. The passive is required because the harbour did not change itself."
+    },
+    {
+     "id": "u12-l1-i11",
+     "type": "gap",
+     "text": "A new road was built running ___ from the main road through the former woodland.",
+     "answer": [
+      "north",
+      "northwards",
+      "northward"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Running north / northwards* gives direction precisely. British English prefers *northwards*."
+    },
+    {
+     "id": "u12-l1-i12",
+     "type": "select",
+     "q": "Each sentence describes a map. Choose the main problem, if any.",
+     "options": [
+      "A  Accurate and natural",
+      "B  Refers to the page, not to the place",
+      "C  Wrong voice or tense",
+      "D  Gives an opinion or a reason"
+     ],
+     "rows": [
+      {
+       "label": "On the left side of the picture there are some trees.",
+       "answer": 1
+      },
+      {
+       "label": "The woodland was reduced in size to make way for a hotel.",
+       "answer": 0
+      },
+      {
+       "label": "The car park has replaced by shops.",
+       "answer": 2
+      },
+      {
+       "label": "The marina is a welcome improvement for the local economy.",
+       "answer": 3
+      },
+      {
+       "label": "To the east of the houses, a car park was replaced by a row of shops and a café.",
+       "answer": 0
+      },
+      {
+       "label": "At the top of the map farmland is changing to houses.",
+       "answer": 1
+      }
+     ],
+     "why": "Locate features relative to other features or compass points. 'Has replaced by' needs the passive *has been replaced by*. Judging changes ('a welcome improvement') is outside Task 1."
+    }
+   ]
+  },
+  {
+   "id": "u12-l2",
+   "title": "Practice: a process",
+   "kind": "practice",
+   "minutes": 30,
+   "items": [
+    {
+     "id": "u12-l2-i1",
+     "type": "card",
+     "title": "Planning a process answer",
+     "body": [
+      "Count the stages and identify the start, the end and any branch. That is your overview: *The process consists of nine stages, from the harvesting of the olives to the bottling of the finished oil, with a by-product that is used separately.*",
+      "Then split the stages roughly in half for two body paragraphs. A natural break is often where the raw material becomes something else (here, when the olives become paste)."
+     ],
+     "list": [
+      "Introduction: what is produced and from what.",
+      "Overview: number of stages, start, end, any branch or by-product.",
+      "Body 1: early stages (harvest to crushing).",
+      "Body 2: later stages (mixing to bottling), plus the by-product."
+     ],
+     "tip": "Do not invent stages or details that are not in the diagram, and do not leave any out. Every label should appear in some form."
+    },
+    {
+     "id": "u12-l2-i2",
+     "type": "writing",
+     "task": 1,
+     "prompt": "The diagram below shows how olive oil is produced.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.",
+     "visual": {
+      "kind": "process",
+      "title": "The production of olive oil",
+      "cycle": false,
+      "steps": [
+       {
+        "label": "Harvesting",
+        "note": "by hand or by tree-shaking machines"
+       },
+       {
+        "label": "Transport to mill",
+        "note": "within 24 hours"
+       },
+       {
+        "label": "Washing",
+        "note": "leaves and twigs removed"
+       },
+       {
+        "label": "Crushing",
+        "note": "stone wheels or steel hammer mills; olives become paste"
+       },
+       {
+        "label": "Mixing",
+        "note": "slow mixing for 30-40 minutes; oil droplets combine"
+       },
+       {
+        "label": "Centrifuge",
+        "note": "separates oil, water and solid residue (pomace)"
+       },
+       {
+        "label": "Pomace",
+        "note": "by-product branch: dried for fuel or used as fertiliser"
+       },
+       {
+        "label": "Filtering",
+        "note": "remaining particles removed"
+       },
+       {
+        "label": "Storage",
+        "note": "stainless steel tanks, stable temperature"
+       },
+       {
+        "label": "Bottling",
+        "note": "dark glass protects the oil from light"
+       }
+      ]
+     },
+     "minutes": 20,
+     "minWords": 150,
+     "plan": [
+      "Intro: stages that turn olives into bottled oil.",
+      "Overview: nine main stages, harvest to bottling; one branch producing pomace.",
+      "Body 1: harvest, transport, washing, crushing, mixing.",
+      "Body 2: centrifuge, pomace branch, filtering, storage, bottling."
+     ],
+     "model": {
+      "text": [
+       "The diagram illustrates the stages involved in turning freshly picked olives into bottled olive oil.",
+       "Overall, the process consists of nine main stages, beginning with the harvest and ending with the bottling of the oil. It is a largely mechanical sequence, and at one point it divides, generating a solid by-product that is put to use rather than discarded.",
+       "First, the olives are harvested, either by hand or with machines that shake the trees, and are taken to a mill within twenty-four hours. Here they are washed and any leaves and twigs are removed. The clean olives are then crushed, using either traditional stone wheels or steel hammer mills, into a thick paste, which is mixed slowly for between thirty and forty minutes so that the tiny droplets of oil can combine.",
+       "The paste is next pumped into a centrifuge, which spins at high speed and separates it into three parts: oil, water and solid residue. The residue, known as pomace, is collected and either dried for use as fuel or spread on fields as fertiliser. The oil, meanwhile, is passed through filters to remove any remaining particles and is then stored in stainless steel tanks, where it is kept at a stable temperature until it is bottled in dark glass to protect it from light."
+      ],
+      "notes": [
+       "The overview states the number of stages, the start and end points and the branch, which is exactly what a process overview needs.",
+       "The passive dominates, but it is varied with active verbs (*a centrifuge, which spins...*), relative clauses and purpose clauses (*so that*, *to protect it*).",
+       "Sequencing is mostly carried by grammar and reference (*Here*, *The clean olives*, *The residue*, *meanwhile*) rather than a list of numbered linkers.",
+       "Every stage on the diagram is covered, including the by-product, and nothing is invented beyond the notes on the diagram.",
+       "Labels are turned into verbs and full clauses rather than copied (*Washing* becomes *they are washed*)."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "u12-l3",
+   "title": "Practice: comparing two maps",
+   "kind": "practice",
+   "minutes": 30,
+   "items": [
+    {
+     "id": "u12-l3-i1",
+     "type": "card",
+     "title": "Planning a map comparison",
+     "body": [
+      "Put the two maps side by side and tick off each feature: unchanged, removed, replaced, reduced, enlarged or new. Then look for the *theme* of the changes. Here the theme is clear: farming and fishing have given way to housing and tourism.",
+      "Organise by area. The main road divides this village neatly into a northern half and a southern, coastal half, which gives you two body paragraphs."
+     ],
+     "list": [
+      "Introduction: the place and the two dates.",
+      "Overview: the general direction of change and what stayed the same.",
+      "Body 1: north of the main road (farmland, woodland, new road, hotel).",
+      "Body 2: south of the main road (car park, harbour, beach, cycle path)."
+     ],
+     "tip": "Mention what has *not* changed. 'The original houses and the main road were retained' is an important comparison, and examiners notice when it is missing."
+    },
+    {
+     "id": "u12-l3-i2",
+     "type": "writing",
+     "task": 1,
+     "prompt": "The maps below show the coastal village of Westhaven in 2000 and today.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.",
+     "visual": {
+      "kind": "map",
+      "title": "Westhaven village, 2000 and today (north is at the top)",
+      "maps": [
+       {
+        "title": "2000 (north is at the top)",
+        "items": [
+         {
+          "label": "Farmland",
+          "x": 5,
+          "y": 5,
+          "w": 50,
+          "h": 35,
+          "shape": "rect"
+         },
+         {
+          "label": "Woodland",
+          "x": 60,
+          "y": 5,
+          "w": 35,
+          "h": 35,
+          "shape": "rect"
+         },
+         {
+          "label": "Main road",
+          "x": 0,
+          "y": 44,
+          "w": 100,
+          "h": 4,
+          "shape": "road"
+         },
+         {
+          "label": "Houses",
+          "x": 10,
+          "y": 52,
+          "w": 30,
+          "h": 18,
+          "shape": "rect"
+         },
+         {
+          "label": "Car park",
+          "x": 45,
+          "y": 54,
+          "w": 15,
+          "h": 12,
+          "shape": "rect"
+         },
+         {
+          "label": "Fishing harbour",
+          "x": 72,
+          "y": 64,
+          "w": 16,
+          "h": 10,
+          "shape": "rect"
+         },
+         {
+          "label": "Beach",
+          "x": 10,
+          "y": 76,
+          "w": 80,
+          "h": 9,
+          "shape": "rect"
+         },
+         {
+          "label": "Sea",
+          "x": 0,
+          "y": 86,
+          "w": 100,
+          "h": 14,
+          "shape": "water"
+         }
+        ]
+       },
+       {
+        "title": "Today (north is at the top)",
+        "items": [
+         {
+          "label": "Housing estate",
+          "x": 5,
+          "y": 5,
+          "w": 28,
+          "h": 35,
+          "shape": "rect"
+         },
+         {
+          "label": "Farmland",
+          "x": 35,
+          "y": 5,
+          "w": 20,
+          "h": 35,
+          "shape": "rect"
+         },
+         {
+          "label": "New road",
+          "x": 57,
+          "y": 5,
+          "w": 3,
+          "h": 39,
+          "shape": "road"
+         },
+         {
+          "label": "Woodland",
+          "x": 62,
+          "y": 5,
+          "w": 33,
+          "h": 18,
+          "shape": "rect"
+         },
+         {
+          "label": "Hotel",
+          "x": 64,
+          "y": 26,
+          "w": 16,
+          "h": 13,
+          "shape": "rect"
+         },
+         {
+          "label": "Main road",
+          "x": 0,
+          "y": 44,
+          "w": 100,
+          "h": 4,
+          "shape": "road"
+         },
+         {
+          "label": "Houses",
+          "x": 10,
+          "y": 52,
+          "w": 30,
+          "h": 18,
+          "shape": "rect"
+         },
+         {
+          "label": "Shops and café",
+          "x": 45,
+          "y": 54,
+          "w": 15,
+          "h": 12,
+          "shape": "rect"
+         },
+         {
+          "label": "Car park",
+          "x": 76,
+          "y": 51,
+          "w": 16,
+          "h": 8,
+          "shape": "rect"
+         },
+         {
+          "label": "Marina",
+          "x": 64,
+          "y": 62,
+          "w": 32,
+          "h": 12,
+          "shape": "rect"
+         },
+         {
+          "label": "Cycle path",
+          "x": 10,
+          "y": 75,
+          "w": 80,
+          "h": 2,
+          "shape": "road"
+         },
+         {
+          "label": "Beach",
+          "x": 10,
+          "y": 78,
+          "w": 52,
+          "h": 7,
+          "shape": "rect"
+         },
+         {
+          "label": "Sea",
+          "x": 0,
+          "y": 86,
+          "w": 100,
+          "h": 14,
+          "shape": "water"
+         }
+        ]
+       }
+      ]
+     },
+     "minutes": 20,
+     "minWords": 150,
+     "plan": [
+      "Intro: Westhaven, 2000 and now.",
+      "Overview: farming and fishing village to residential and leisure; road and houses kept.",
+      "Body 1: north of the road (housing estate, smaller woodland, hotel, new road).",
+      "Body 2: south of the road (shops and café, new car park, marina, shorter beach, cycle path)."
+     ],
+     "model": {
+      "text": [
+       "The two maps show how the coastal village of Westhaven has developed between 2000 and the present day.",
+       "Overall, the village has been transformed from a small farming and fishing community into a more residential settlement geared towards leisure and tourism. The main road and the original houses have been retained, but almost every other feature has been either reduced in size or put to a new use.",
+       "North of the main road, the western part of the farmland has made way for a housing estate, leaving only a narrow strip of fields. To the east, the woodland has been cut back to roughly half its former size, and a hotel now stands on the cleared land to its south. A new road has also been laid, running north from the main road between the remaining farmland and the woods.",
+       "The changes south of the main road are equally striking. The car park that stood to the east of the houses has been replaced by a row of shops and a café, and a smaller car park has been built further east, next to the main road. The fishing harbour has been converted into a marina more than twice its size, which has reduced the length of the beach, and a cycle path now runs along the shore."
+      ],
+      "notes": [
+       "The overview captures the overall character of the change and also what remained the same.",
+       "Organisation by area (north and south of the main road) is signalled clearly at the start of each body paragraph.",
+       "Location language is precise and relative to other features: *to its south*, *between the remaining farmland and the woods*, *to the east of the houses*.",
+       "A range of change verbs is used accurately in the present perfect passive: *has made way for*, *has been cut back*, *has been converted into*.",
+       "Tense is consistent: the second map is the present day, so present perfect is used for changes and present simple for what exists now."
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

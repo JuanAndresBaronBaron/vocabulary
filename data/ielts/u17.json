@@ -1,0 +1,354 @@
+{
+ "format": 1,
+ "id": "u17",
+ "n": 17,
+ "block": "speaking",
+ "title": "Part 2: the long turn",
+ "summary": "After this unit you can use the minute of preparation well, speak for the full two minutes, and tell a vivid, well-structured story with precise narrative tenses.",
+ "lessons": [
+  {
+   "id": "u17-l1",
+   "title": "Planning and telling the long turn",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u17-l1-i1",
+     "type": "card",
+     "title": "How Part 2 works",
+     "body": [
+      "The examiner gives you a cue card with a topic and three or four prompts, a pencil and paper. You have **one minute to prepare** and then speak for **one to two minutes** without interruption. The examiner may ask one or two short follow-up questions.",
+      "Band 9 candidates speak for the full two minutes, cover all the prompts (the last one, usually *explain why...*, matters most), and tell a story that is easy to follow and genuinely interesting. Stopping at 70 seconds suggests limited fluency, even if everything you said was accurate."
+     ],
+     "tip": "The examiner will stop you at two minutes. Being cut off mid-sentence is not a problem; running out of things to say after a minute is."
+    },
+    {
+     "id": "u17-l1-i2",
+     "type": "card",
+     "title": "Using the minute: notes, not sentences",
+     "body": [
+      "You cannot write a script in sixty seconds, and reading one would sound unnatural anyway. Write five to eight keywords in a simple structure, one line per prompt, plus one or two vivid details and a phrase or two you want to use.",
+      "Spend the first ten seconds choosing your story. Pick a real experience you can describe in detail, even if it is not a perfect fit; inventing details as you go is harder than remembering them."
+     ],
+     "examples": [
+      {
+       "text": "who: grandfather, retired carpenter | when: summer I was 15, his workshop | what: sharpening chisels, patience | how felt: bored, then hooked | why: slow is fast; still use it at work",
+       "note": "Keywords on one line per prompt, plus a punchline for 'why'."
+      }
+     ]
+    },
+    {
+     "id": "u17-l1-i3",
+     "type": "card",
+     "title": "Talking for two minutes",
+     "body": [
+      "Structure the talk like a story with a beginning, a middle and an end: set the scene, tell what happened, then reflect on why it matters. The reflection is where the most sophisticated language usually appears, so leave time for it.",
+      "If you run out of material early, expand the scene (what you could see, hear, feel), add what you thought at the time versus what you think now, or compare it with another experience."
+     ],
+     "list": [
+      "Scene (15-20 seconds): when, where, who.",
+      "Story (50-60 seconds): what happened, in sequence, with one or two vivid details.",
+      "Reflection (30-40 seconds): why it mattered, how you feel now, what changed."
+     ]
+    },
+    {
+     "id": "u17-l1-i4",
+     "type": "card",
+     "title": "Narrative tenses and storytelling devices",
+     "body": [
+      "Natural storytelling mixes tenses precisely: the **past simple** for the main events, the **past continuous** for background (*I was working in a café at the time*), the **past perfect** for what had happened earlier (*I'd never seen anything like it*), and *would* or *used to* for past habits.",
+      "Speakers also use devices that make a story vivid: a sentence that sets up suspense (*What I didn't know was that...*), direct speech (*He just said, 'Again.'*), and evaluative comments (*Looking back, that was the turning point*)."
+     ],
+     "examples": [
+      {
+       "text": "I'd been working there for about a month when my manager asked me to run the shop on my own.",
+       "note": "Past perfect continuous for background, past simple for the event."
+      },
+      {
+       "text": "What I didn't realise at the time was how much that one afternoon would shape my career.",
+       "note": "Cleft structure builds suspense naturally."
+      },
+      {
+       "text": "He'd hand me a chisel, watch me for a minute and just say, 'Again.'",
+       "note": "Habitual 'would' plus direct speech."
+      }
+     ]
+    },
+    {
+     "id": "u17-l1-i5",
+     "type": "pick",
+     "q": "You have one minute to prepare. Which is the best use of it?",
+     "options": [
+      "Write out the first three sentences in full so you start confidently.",
+      "Write a few keywords for each prompt, plus a detail or two and an idea for the final 'why' prompt.",
+      "Think silently without writing anything.",
+      "Write a list of advanced words to use, whatever the story."
+     ],
+     "answer": 1,
+     "why": "Keywords keep you on track without sounding scripted. Full sentences take too long and lead to reading aloud, and a list of words unconnected to your story leads to forced vocabulary."
+    },
+    {
+     "id": "u17-l1-i6",
+     "type": "pick",
+     "q": "A candidate stops after 75 seconds and says 'That's all.' What is the most likely effect?",
+     "options": [
+      "No effect, because the minimum is one minute.",
+      "It may lower Fluency and Coherence, because it suggests difficulty sustaining speech at length.",
+      "It will raise the band, because the answer was concise.",
+      "The examiner will give extra preparation time."
+     ],
+     "answer": 1,
+     "why": "Band 9 fluency involves speaking at length with ease. The examiner may ask a follow-up, but stopping early is a missed opportunity."
+    },
+    {
+     "id": "u17-l1-i7",
+     "type": "gap",
+     "text": "When I arrived at the station, the train ___ already left, so I had to wait two hours for the next one.",
+     "answer": [
+      "had"
+     ],
+     "limit": "ONE WORD",
+     "why": "Past perfect (*had left*) for an event that happened before another past event (*arrived*)."
+    },
+    {
+     "id": "u17-l1-i8",
+     "type": "gap",
+     "text": "I ___ walking along the river when I noticed a crowd gathering on the bridge.",
+     "answer": [
+      "was"
+     ],
+     "limit": "ONE WORD",
+     "why": "Past continuous (*was walking*) for the background action interrupted by a past simple event (*noticed*)."
+    },
+    {
+     "id": "u17-l1-i9",
+     "type": "gap",
+     "text": "Every summer my aunt ___ take us to the lake and teach us to fish.",
+     "answer": [
+      "would",
+      "used to"
+     ],
+     "limit": "ONE OR TWO WORDS",
+     "why": "*Would* (or *used to*) describes repeated past actions, a natural feature of storytelling."
+    },
+    {
+     "id": "u17-l1-i10",
+     "type": "select",
+     "q": "Match each sentence to the storytelling purpose it serves.",
+     "options": [
+      "A  Setting the scene",
+      "B  Building suspense",
+      "C  Reflecting on significance"
+     ],
+     "rows": [
+      {
+       "label": "It was a freezing Saturday in January, and the town was almost deserted.",
+       "answer": 0
+      },
+      {
+       "label": "What none of us expected was that the road would be closed.",
+       "answer": 1
+      },
+      {
+       "label": "Looking back, I think that was the moment I stopped being afraid of public speaking.",
+       "answer": 2
+      },
+      {
+       "label": "I'd just moved to the city and didn't know a soul.",
+       "answer": 0
+      },
+      {
+       "label": "It's only now that I understand why she was so strict with me.",
+       "answer": 2
+      }
+     ],
+     "why": "Scene-setting gives time, place and situation; suspense delays the key information; reflection connects the story to the present."
+    },
+    {
+     "id": "u17-l1-i11",
+     "type": "order",
+     "q": "Order these parts of a Part 2 talk about 'a time you helped a stranger'.",
+     "items": [
+      "This happened about three years ago, when I was waiting for a late train at a small country station.",
+      "An elderly man was standing on the wrong platform, completely unaware that his train was about to leave from the other side.",
+      "I grabbed his suitcase, and we ran over the footbridge together, arriving just as the doors were closing.",
+      "Looking back, what stays with me is how close he came to being stranded, and how easy it would have been for me to ignore him."
+     ],
+     "why": "Scene, complication, action, reflection: the classic shape of a good long turn."
+    }
+   ]
+  },
+  {
+   "id": "u17-l2",
+   "title": "Practice: people and places",
+   "kind": "practice",
+   "minutes": 15,
+   "items": [
+    {
+     "id": "u17-l2-i1",
+     "type": "speaking",
+     "part": 2,
+     "topic": "Learning from an older person",
+     "cue": {
+      "task": "Describe a time when you learnt something important from an older person.",
+      "bullets": [
+       "who the person was",
+       "when and where this happened",
+       "what you learnt"
+      ],
+      "close": "and explain why it was important to you."
+     },
+     "prep": 60,
+     "talk": 120,
+     "model": {
+      "text": [
+       "I'd like to talk about my grandfather, who was a carpenter all his working life, and about one summer when I was fifteen and spent a few weeks helping him in his workshop.",
+       "To be honest, I didn't go willingly. My parents thought I was spending too much time on screens, so they more or less sent me there. I was expecting to build something impressive straight away, a table or a bookcase, but on the first day he handed me a set of old chisels and told me to sharpen them. And that's what I did, for most of the first week. I'd work at one for twenty minutes, show it to him, and he'd run his thumb along the edge and just say, 'Again.'",
+       "I was furious at first. It seemed completely pointless. But somewhere in the second week something shifted. I started to notice the difference between an edge that was nearly right and one that was really right, and I got a strange satisfaction out of it. By the end of the summer we had made a small stool together, which my mother still has in her kitchen.",
+       "What I learnt, really, wasn't carpentry. It was that doing the boring preparation properly makes everything afterwards easier, and that rushing the early stages always costs you later. I think about that a lot in my job now, when I'm tempted to skip the groundwork on a project. He died a few years ago, and I think that summer is probably the most valuable thing he gave me."
+      ],
+      "notes": [
+       "All prompts are covered, and the final 'explain' prompt receives the most developed and reflective answer.",
+       "Narrative tenses are controlled precisely: past simple for events, habitual *would* (*I'd work at one... he'd run his thumb*), past perfect not needed and not forced.",
+       "Storytelling devices (direct speech, a turning point, a concrete object that survives) make the talk vivid and easy to follow.",
+       "Natural spoken discourse markers (*To be honest*, *really*, *somewhere in the second week*) support fluency without becoming fillers.",
+       "Precise vocabulary (*run his thumb along the edge*, *skip the groundwork*) is chosen for meaning, not for display."
+      ]
+     },
+     "phrases": [
+      "I didn't go willingly",
+      "something shifted",
+      "I got a strange satisfaction out of it",
+      "What I learnt, really, wasn't X. It was...",
+      "skip the groundwork"
+     ]
+    },
+    {
+     "id": "u17-l2-i2",
+     "type": "speaking",
+     "part": 2,
+     "topic": "A place that surprised you",
+     "cue": {
+      "task": "Describe a place you visited that turned out to be more interesting than you expected.",
+      "bullets": [
+       "where it was",
+       "why you went there",
+       "what you did there"
+      ],
+      "close": "and explain why it was more interesting than you had expected."
+     },
+     "prep": 60,
+     "talk": 120,
+     "model": {
+      "text": [
+       "I'm going to talk about a small industrial town in the north of England that I visited a couple of years ago, mainly because a friend of mine had moved there and kept inviting me.",
+       "I'll be honest: my expectations were pretty low. I'd only ever heard it mentioned in news stories about factory closures, so I imagined grey streets, boarded-up shops and not much else. The first impression didn't help, either. It was raining when I arrived, and the walk from the station took me past a row of empty units.",
+       "But over the weekend my friend showed me a completely different side to it. There was an old textile mill that had been converted into a sort of creative hub, with artists' studios, a bakery and a little cinema that showed old films on Sunday afternoons. We went on a walk along the canal, which was lined with these enormous Victorian warehouses, and the scale of them was genuinely impressive. In the evening we ended up in a tiny pub where a group of retired mill workers were playing folk music, and they insisted on telling us the history of every building we'd seen.",
+       "I think it was more interesting than I'd expected because it wasn't trying to be a tourist destination. Everything I saw was there for the people who lived there, and you could feel the history in a way you can't in places that have been polished up for visitors. It made me realise how much I'd judged it without ever having been, and I've tried to be a bit less quick to do that since."
+      ],
+      "notes": [
+       "The contrast between expectation and reality structures the whole talk, which makes it coherent without any formulaic signposting.",
+       "A range of past forms is used accurately (*I'd only ever heard*, *had been converted*, *we'd seen*, *without ever having been*).",
+       "Vivid, specific details (a converted mill, retired workers playing folk music) give the examiner rich lexical evidence.",
+       "The reflection goes beyond 'it was nice' to an insight about prejudging places, which shows the ability to discuss abstract ideas.",
+       "Spoken markers (*I'll be honest*, *sort of*, *these enormous warehouses*) give a natural conversational tone."
+      ]
+     },
+     "phrases": [
+      "my expectations were pretty low",
+      "boarded-up shops",
+      "a completely different side to it",
+      "it wasn't trying to be a tourist destination",
+      "polished up for visitors"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u17-l3",
+   "title": "Practice: skills and experiences",
+   "kind": "practice",
+   "minutes": 15,
+   "items": [
+    {
+     "id": "u17-l3-i1",
+     "type": "speaking",
+     "part": 2,
+     "topic": "A skill you taught yourself",
+     "cue": {
+      "task": "Describe a skill that you taught yourself.",
+      "bullets": [
+       "what the skill is",
+       "when and why you decided to learn it",
+       "how you learnt it"
+      ],
+      "close": "and explain how you feel about having learnt it."
+     },
+     "prep": 60,
+     "talk": 120,
+     "model": {
+      "text": [
+       "The skill I want to talk about is touch typing, which sounds a bit unexciting, I know, but it's probably made more difference to my working life than anything I learnt at university.",
+       "I taught myself about four years ago, during a fairly quiet period at work. I'd always typed with two or three fingers, looking down at the keyboard, and I was reasonably fast, so I'd never seen the point of changing. Then a colleague watched me writing a report and said, quite kindly, that I looked like I was fighting the keyboard. That stuck with me.",
+       "So I downloaded a free typing program and committed to fifteen minutes every morning before work. The first fortnight was genuinely frustrating, because I was much slower than before, and there were several moments when I was tempted to go back to my old habits, especially when I had a deadline. What kept me going was a little graph the program showed of my speed and accuracy, which crept up week by week. After about two months I'd overtaken my old speed, and now I'm roughly twice as fast as I used to be.",
+       "I'm proud of it partly because nobody made me do it, and partly because it taught me something about learning in general: that getting worse before you get better is normal, and that small daily practice beats occasional bursts of effort. I've since used the same approach for learning to read music, with mixed results, but that's another story."
+      ],
+      "notes": [
+       "The talk covers every prompt and builds naturally to a reflective final section.",
+       "A turning point (the colleague's comment) and a moment of difficulty give the story shape and tension.",
+       "Precise time and sequence language (*the first fortnight*, *after about two months*, *week by week*) keeps the narrative coherent.",
+       "Accurate perfect forms (*I'd always typed*, *I'd overtaken*, *it's probably made more difference*) arise from the meaning.",
+       "A light, self-aware ending (*with mixed results, but that's another story*) is natural and confident."
+      ]
+     },
+     "phrases": [
+      "That stuck with me",
+      "committed to fifteen minutes every morning",
+      "What kept me going was...",
+      "getting worse before you get better",
+      "but that's another story"
+     ]
+    },
+    {
+     "id": "u17-l3-i2",
+     "type": "speaking",
+     "part": 2,
+     "topic": "Waiting for something",
+     "cue": {
+      "task": "Describe an occasion when you had to wait a long time for something.",
+      "bullets": [
+       "what you were waiting for",
+       "where you were",
+       "what you did while you were waiting"
+      ],
+      "close": "and explain how you felt about it."
+     },
+     "prep": 60,
+     "talk": 120,
+     "model": {
+      "text": [
+       "I'd like to describe the time I waited nearly eight hours in an airport in Lisbon, on my way back from a work conference.",
+       "It was the end of a long week, and all I wanted was to get home. I'd checked in and was sitting at the gate when the announcement came that the flight was delayed by an hour because of a technical problem. Fine, I thought. An hour later it was delayed again, then again, and by mid-afternoon it was clear that nobody actually knew when we'd leave.",
+       "At first I did what everyone does: I paced around, checked my phone every five minutes and got increasingly irritated. But at some point I realised that being angry wasn't going to make the plane any less broken. So I found a quiet corner, finished a novel I'd been carrying around for months and, rather unexpectedly, got chatting to an elderly couple who were flying home after visiting their grandchildren. They'd been married for fifty-two years and had a story about almost every country in Europe. By the time we finally boarded, at about ten at night, I almost felt sorry it was over.",
+       "How did I feel? Exhausted, obviously, but also slightly surprised at myself. I'm not naturally a patient person, and that day taught me that once you accept that something is out of your control, waiting becomes much less painful. I wouldn't want to repeat it, but I've thought about that conversation with the couple many times since."
+      ],
+      "notes": [
+       "The talk follows a clear emotional arc (frustration, acceptance, an unexpected positive) that makes it engaging.",
+       "Narrative tenses are precise, including the past perfect continuous (*I'd been carrying around for months*).",
+       "Short direct thoughts (*Fine, I thought.*) and repetition for effect (*delayed again, then again*) are effective spoken storytelling devices.",
+       "The reflection discusses an abstract idea (control and patience) in natural, accessible language.",
+       "The speaker answers the 'how you felt' prompt explicitly, signalling coverage without a formula."
+      ]
+     },
+     "phrases": [
+      "all I wanted was to...",
+      "by mid-afternoon it was clear that...",
+      "got chatting to...",
+      "it's out of your control",
+      "I almost felt sorry it was over"
+     ]
+    }
+   ]
+  }
+ ]
+}

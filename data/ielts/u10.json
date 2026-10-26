@@ -1,0 +1,587 @@
+{
+ "format": 1,
+ "id": "u10",
+ "n": 10,
+ "block": "reading",
+ "title": "Writer's views at speed",
+ "summary": "After this unit you can separate the writer's own views from reported ones, answer YES/NO/NOT GIVEN precisely, and get through a dense argumentative passage in twenty minutes.",
+ "lessons": [
+  {
+   "id": "u10-l1",
+   "title": "Strategy: writer's views at speed",
+   "kind": "learn",
+   "minutes": 30,
+   "items": [
+    {
+     "id": "u10-l1-i1",
+     "type": "card",
+     "title": "YES/NO/NOT GIVEN: opinions, not facts",
+     "body": [
+      "YES/NO/NOT GIVEN appears with argumentative passages, where the writer has a position. **YES**: the statement agrees with the writer's view or claim. **NO**: it contradicts the writer's view. **NOT GIVEN**: the writer expresses no view on it.",
+      "The logic is the same as TRUE/FALSE/NOT GIVEN, but the target is different: you are matching an *attitude*. A statement can describe a fact that the passage reports while still being NO, because the writer disputes its significance."
+     ]
+    },
+    {
+     "id": "u10-l1-i2",
+     "type": "card",
+     "title": "Whose voice is it?",
+     "body": [
+      "Argumentative writers constantly report other people's views in order to agree or disagree with them: 'Advocates claim…', 'It is often said that…', 'Optimists insist…'. These are **not** the writer's views until the writer endorses them.",
+      "Look for the turn: 'However', 'Yet', 'This argument overlooks…', 'It would be complacent to…'. What follows the turn is usually the writer speaking. Concessions ('Admittedly…', 'It is true that…') are also the writer's own view, even though they precede a 'but'."
+     ],
+     "examples": [
+      {
+       "text": "'Supporters say the tax will cut obesity. The evidence for this is thin.'",
+       "note": "Statement 'The tax will cut obesity' is NO: the writer doubts it."
+      },
+      {
+       "text": "'Admittedly, the scheme is expensive. But…'",
+       "note": "Statement 'The scheme is costly' is YES: the writer concedes it."
+      }
+     ]
+    },
+    {
+     "id": "u10-l1-i3",
+     "type": "card",
+     "title": "Degree and certainty",
+     "body": [
+      "Writers at this level hedge carefully. 'It is hard to avoid the suspicion that…' is a fairly strong view; 'they may be right' is a weak concession, not agreement. A statement that says 'completely', 'always' or 'the only' will usually be NO if the writer is more measured.",
+      "Equally, do not turn a hedged view into NOT GIVEN. If the writer says a claim 'seems doubtful', the statement that the claim is true is NO, not NOT GIVEN."
+     ]
+    },
+    {
+     "id": "u10-l1-i4",
+     "type": "card",
+     "title": "Reading a dense passage at speed",
+     "body": [
+      "Passage 3 is often 900 words of abstract argument. You do not have time to understand every sentence, and you do not need to. First spend two minutes reading **only the first sentence of each paragraph** and the last paragraph: this gives you the shape of the argument and the writer's conclusion.",
+      "Then work question by question, reading closely only the part of the text each question points to. YES/NO/NOT GIVEN statements follow the order of the passage, so each one narrows the search for the next."
+     ],
+     "list": [
+      "Minute 0-2: topic sentences and conclusion",
+      "Minute 2-3: skim all question sets; underline anchors",
+      "Minute 3-18: questions in order, close reading only where needed",
+      "Minute 18-20: check guesses; never leave a blank"
+     ]
+    },
+    {
+     "id": "u10-l1-i5",
+     "type": "card",
+     "title": "Unknown words and long sentences",
+     "body": [
+      "In a dense passage you will meet words you do not know. Ask whether you need them: often the sentence's attitude is clear from its structure ('…is, to put it mildly, unflattering').",
+      "For a long sentence, find the main subject and verb and set aside the clauses in between. 'The research that has since accumulated, much of it in large firms over several years, is unflattering' reduces to 'the research is unflattering'."
+     ]
+    },
+    {
+     "id": "u10-l1-i6",
+     "type": "reading",
+     "title": "Drill: the case against open-plan offices",
+     "minutes": 7,
+     "paragraphs": [
+      {
+       "label": null,
+       "text": "Few workplace fashions have spread as quickly, or with as little evidence, as the open-plan office. Its advocates promised that removing walls would encourage spontaneous conversation and collaboration, and many organisations embraced the idea with enthusiasm. Open plan was presented as modern, egalitarian and creative, a decisive break with the hierarchical offices of the past. It is hard to avoid the suspicion that the attraction lay at least as much in the savings on floor space."
+      },
+      {
+       "label": null,
+       "text": "The research that has since accumulated is, to put it mildly, unflattering. Several studies have found that when companies move to open-plan layouts, face-to-face interaction actually declines, as employees retreat behind headphones and communicate by message instead. Workers report more distraction and less privacy, and some studies link open offices with higher rates of sick leave. Those whose work demands sustained concentration appear to suffer most."
+      },
+      {
+       "label": null,
+       "text": "None of this means that the traditional corridor of closed doors deserves to return. That arrangement had its own costs, isolating people who might have benefited from each other's company and reinforcing hierarchies through the allocation of offices. What is needed is not a return to the past but a variety of spaces, quiet rooms for concentration alongside areas where conversation is welcome, and the freedom for employees to choose between them. Some firms have already moved in this direction, with encouraging results. Admittedly, such flexibility is more expensive than either extreme. But an office that prevents people from doing their best work is a false economy, however efficiently it uses its square metres."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Do the following statements agree with the claims of the writer? Write YES, NO or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u10-l1-i6-q1",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "The popularity of open-plan offices was based on strong evidence.",
+         "answer": "N",
+         "why": "The writer says they spread \"with as little evidence\" as any workplace fashion: a clear rejection."
+        },
+        {
+         "id": "u10-l1-i6-q2",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Cost was probably an important reason for adopting open-plan layouts.",
+         "answer": "Y",
+         "why": "\"The attraction lay at least as much in the savings on floor space\": the writer's suspicion, clearly endorsed."
+        },
+        {
+         "id": "u10-l1-i6-q3",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Open-plan offices are more common in technology companies than elsewhere.",
+         "answer": "NG",
+         "why": "The writer never compares industries."
+        },
+        {
+         "id": "u10-l1-i6-q4",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Offices with closed doors had no disadvantages.",
+         "answer": "N",
+         "why": "\"That arrangement had its own costs.\""
+        },
+        {
+         "id": "u10-l1-i6-q5",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Providing a range of workspaces is cheaper than an open-plan office.",
+         "answer": "N",
+         "why": "\"Admittedly, such flexibility is more expensive than either extreme.\" The concession is the writer's own view."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u10-l1-i7",
+     "type": "reading",
+     "title": "Drill: should we fear automation?",
+     "minutes": 7,
+     "paragraphs": [
+      {
+       "label": null,
+       "text": "Every generation, it seems, rediscovers the fear that machines will make human labour redundant. The weavers who smashed mechanical looms in the early nineteenth century feared it; so did commentators in the 1960s who predicted that automation would leave most people with nothing to do. Each time, the anxiety was understandable, and each time the outcome was more complicated than either side expected. In aggregate, these fears have so far proved unfounded: new technologies have destroyed particular jobs but created others, and employment has generally recovered."
+      },
+      {
+       "label": null,
+       "text": "It would be complacent, however, to assume that the pattern must repeat itself. Previous waves of mechanisation largely replaced physical effort, leaving people free to move into work that required judgement, communication or care. Software capable of drafting documents, analysing images and holding conversations reaches into exactly those areas. Optimists insist that new kinds of work will appear, as they always have; they may be right, but 'always' is a weaker argument than it sounds when the thing being predicted is unprecedented."
+      },
+      {
+       "label": null,
+       "text": "What history does suggest is that the transition matters as much as the destination. The long-run gains from the Industrial Revolution were enormous, but they were of little comfort to the workers whose skills became worthless in their own lifetimes. If governments wish to avoid repeating that experience, they should be investing now in retraining and in support for those displaced, rather than waiting to discover whether the optimists or the pessimists were right. Retraining is not a cure-all, since not every displaced worker can or will move into a new field, but it is a better starting point than indifference."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Do the following statements agree with the claims of the writer? Write YES, NO or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u10-l1-i7-q1",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Past fears that technology would cause mass unemployment have turned out to be mistaken.",
+         "answer": "Y",
+         "why": "\"In aggregate, these fears have so far proved unfounded.\""
+        },
+        {
+         "id": "u10-l1-i7-q2",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Current technology is likely to affect the same kinds of work as earlier machines.",
+         "answer": "N",
+         "why": "The writer argues the opposite: earlier machines replaced physical effort, while new software \"reaches into exactly those areas\" of judgement and communication."
+        },
+        {
+         "id": "u10-l1-i7-q3",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "The optimists' argument is completely wrong.",
+         "answer": "N",
+         "why": "\"They may be right\": the writer weakens their argument but does not reject it outright. A statement that contradicts the writer's view is NO."
+        },
+        {
+         "id": "u10-l1-i7-q4",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Governments should act before the effects of automation are fully known.",
+         "answer": "Y",
+         "why": "They \"should be investing now… rather than waiting to discover\" who was right."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u10-l1-i8",
+     "type": "pick",
+     "q": "A writer says: 'It is often claimed that homework improves results. The evidence for younger children is weak.' Statement: 'Homework improves results for younger children.'",
+     "options": [
+      "YES",
+      "NO",
+      "NOT GIVEN"
+     ],
+     "answer": 1,
+     "why": "The claim is reported, then challenged by the writer: \"The evidence… is weak.\" The statement contradicts the writer's view: NO."
+    },
+    {
+     "id": "u10-l1-i9",
+     "type": "pick",
+     "q": "What should you read first in a dense Passage 3?",
+     "options": [
+      "every sentence of paragraph A",
+      "the first sentence of each paragraph and the conclusion",
+      "the longest paragraph"
+     ],
+     "answer": 1,
+     "why": "Topic sentences and the conclusion give you the **argument's shape** in about two minutes."
+    }
+   ]
+  },
+  {
+   "id": "u10-l2",
+   "title": "Practice: an argumentative passage",
+   "kind": "practice",
+   "minutes": 22,
+   "items": [
+    {
+     "id": "u10-l2-i1",
+     "type": "reading",
+     "title": "In defence of boredom",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "Boredom has a poor reputation. It is associated with idleness, with unruly pupils and with the restless dissatisfaction of people who cannot find anything to occupy them, and an entire industry now exists to ensure that nobody need ever experience it. A smartphone offers a constant supply of distraction to fill every queue, every train journey and every pause in conversation. Surveys suggest that many people now find even a few minutes without their phones mildly uncomfortable, and some will go to considerable lengths to avoid being left alone with their thoughts. It might seem churlish to complain. Yet there are reasons to think that in eliminating boredom so efficiently, we may have lost something of value."
+      },
+      {
+       "label": "B",
+       "text": "Psychologists who study boredom tend to describe it not as an absence of feeling but as a signal: an uncomfortable awareness that one's current situation is failing to engage one's attention or to meet one's goals. Like hunger or pain, the discomfort serves a purpose. It prompts us to change what we are doing. Seen in this light, boredom is not the enemy of activity but one of its sources, a nudge towards something more meaningful. The trouble with instant distraction is that it silences the signal without addressing its cause. We reach for the phone, the discomfort subsides, and the question of what we would really like to be doing is never asked."
+      },
+      {
+       "label": "C",
+       "text": "There is also some evidence, though it is more tentative than popular accounts suggest, that boredom can encourage creative thinking. In a frequently cited type of experiment, participants are first given a tedious task, such as copying numbers from a telephone directory, and then asked to think of as many uses as possible for an everyday object. Those who have been bored tend to produce more ideas than those who have not. The effect is usually attributed to mind-wandering: when the external world offers nothing of interest, attention turns inwards, and unexpected connections become possible. It would be unwise to build a theory of creativity on such studies, which involve small groups of students in artificial settings. But they are at least consistent with the experience of many writers and scientists who report that their best ideas arrived when they were doing nothing in particular."
+      },
+      {
+       "label": "D",
+       "text": "None of this amounts to a case for deliberately making life tedious. Chronic boredom, the kind experienced by people trapped in monotonous work or confined in institutions, is associated with depression, risk-taking and poor health, and there is nothing romantic about it. Nor is the point that boredom is pleasant; by definition it is not. The argument is a narrower one: that brief, ordinary episodes of boredom, the few minutes of waiting or wondering that used to be an unavoidable part of daily life, may be more useful than we realise, and that we have abolished them without considering what they did for us."
+      },
+      {
+       "label": "E",
+       "text": "Children are the obvious focus of concern. Parents increasingly feel obliged to fill every hour of their children's time with organised activities, and screens are always available to occupy the remainder. Some educationalists argue that children who are never left to entertain themselves have fewer opportunities to develop the capacity to do so. The claim is plausible, though difficult to test, and it is easy to slip from it into a nostalgic picture of a golden age of unsupervised play that may never have existed in quite the form imagined. Still, it seems reasonable to suggest that the ability to tolerate a period without stimulation is a skill, and that skills which are never practised tend to weaken. Schools face a similar pressure, as lessons are increasingly designed to be stimulating from the first minute to the last, leaving little room for the slower, less immediately rewarding kinds of attention that some subjects demand."
+      },
+      {
+       "label": "F",
+       "text": "What, then, should be done? Prohibition is neither practical nor desirable; the technologies that supply distraction also supply information, friendship and work. A more realistic aim is to treat boredom as an occasional companion rather than a problem to be solved immediately: to leave the phone in a pocket during a short wait, to take a walk without headphones, to allow a child an afternoon with nothing planned. Some people find it helpful to set aside particular times of day, or particular places, in which devices are simply not used. These are modest acts, and their benefits are uncertain. But the cost of attempting them is small, and the alternative, a life in which no moment is ever left unfilled, has costs of its own that we are only beginning to recognise."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 1-7. Do the following statements agree with the claims of the writer? Write YES, NO or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u10-l2-i1-q1",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "The constant availability of distraction may have had a hidden cost.",
+         "answer": "Y",
+         "why": "Paragraph A: \"in eliminating boredom so efficiently, we may have lost something of value\"."
+        },
+        {
+         "id": "u10-l2-i1-q2",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Boredom is best understood as a complete lack of emotion.",
+         "answer": "N",
+         "why": "Paragraph B: psychologists describe it \"not as an absence of feeling but as a signal\", a view the writer develops."
+        },
+        {
+         "id": "u10-l2-i1-q3",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Using a phone to escape boredom deals with the reason for feeling bored.",
+         "answer": "N",
+         "why": "Paragraph B: distraction \"silences the signal without addressing its cause\"."
+        },
+        {
+         "id": "u10-l2-i1-q4",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Popular accounts tend to overstate the link between boredom and creativity.",
+         "answer": "Y",
+         "why": "Paragraph C: the evidence \"is more tentative than popular accounts suggest\"."
+        },
+        {
+         "id": "u10-l2-i1-q5",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "The experiments on boredom and creativity provide a reliable basis for a general theory.",
+         "answer": "N",
+         "why": "Paragraph C: \"It would be unwise to build a theory of creativity on such studies.\""
+        },
+        {
+         "id": "u10-l2-i1-q6",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Chronic boredom is more common today than in the past.",
+         "answer": "NG",
+         "why": "Paragraph D describes the effects of chronic boredom but makes no comparison over time."
+        },
+        {
+         "id": "u10-l2-i1-q7",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "The idea of a past golden age of unsupervised play may be partly a myth.",
+         "answer": "Y",
+         "why": "Paragraph E: a golden age \"that may never have existed in quite the form imagined\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 8-10. Choose the correct letter, A, B, C or D.",
+       "items": [
+        {
+         "id": "u10-l2-i1-q8",
+         "type": "pick",
+         "q": "The writer compares boredom to hunger or pain in order to show that it",
+         "options": [
+          "A  can be physically harmful.",
+          "B  has a useful function.",
+          "C  is difficult to measure.",
+          "D  should be avoided."
+         ],
+         "answer": 1,
+         "why": "Paragraph B: \"Like hunger or pain, the discomfort serves a purpose. It prompts us to change what we are doing.\""
+        },
+        {
+         "id": "u10-l2-i1-q9",
+         "type": "pick",
+         "q": "In paragraph D, the writer's purpose is to",
+         "options": [
+          "A  argue that people should seek out monotonous work.",
+          "B  limit the scope of the argument.",
+          "C  describe the causes of depression.",
+          "D  criticise institutions."
+         ],
+         "answer": 1,
+         "why": "\"None of this amounts to a case for deliberately making life tedious… The argument is a narrower one.\""
+        },
+        {
+         "id": "u10-l2-i1-q10",
+         "type": "pick",
+         "q": "What is the writer's attitude to the measures suggested in paragraph F?",
+         "options": [
+          "A  They will certainly transform people's lives.",
+          "B  They are too difficult for most people.",
+          "C  They are worth trying despite uncertain benefits.",
+          "D  They should be required by law."
+         ],
+         "answer": 2,
+         "why": "\"Their benefits are uncertain. But the cost of attempting them is small.\" Prohibition is rejected."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 11-13. Complete each sentence with the correct ending, A-F.",
+       "items": [
+        {
+         "id": "u10-l2-i1-q11",
+         "type": "select",
+         "q": "Choose the correct ending, A-F, for each sentence.",
+         "options": [
+          "A  is a capacity that can weaken without practice.",
+          "B  is mainly a problem for adults.",
+          "C  can be replaced by organised activities.",
+          "D  turns attention inwards.",
+          "E  should be banned in schools.",
+          "F  offers information as well as distraction."
+         ],
+         "rows": [
+          {
+           "label": "Mind-wandering occurs when the outside world",
+           "answer": 3
+          },
+          {
+           "label": "The ability to cope without stimulation",
+           "answer": 0
+          },
+          {
+           "label": "The technology that supplies distraction",
+           "answer": 5
+          }
+         ],
+         "why": "C: when the external world offers nothing, \"attention turns inwards\". E: tolerating a period without stimulation \"is a skill\" and unpractised skills \"tend to weaken\". F: technologies \"also supply information, friendship and work\"."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u10-l3",
+   "title": "Test: an argumentative passage",
+   "kind": "test",
+   "minutes": 20,
+   "timed": 1200,
+   "items": [
+    {
+     "id": "u10-l3-i1",
+     "type": "reading",
+     "title": "The trouble with metrics",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "Measurement has an air of objectivity that opinion lacks. A number seems to cut through the vagueness of judgement, to make performance visible and comparable, and to hold the powerful to account. It is not surprising, then, that public services, universities and businesses have come to rely ever more heavily on quantitative indicators: waiting times, citation counts, customer ratings, targets met and missed. Indicators also make it possible to compare institutions that would otherwise be difficult to evaluate, which is attractive both to governments allocating funds and to members of the public choosing between, say, schools or hospitals. In many respects this has been an advance. Problems that were once invisible, such as wide variations in the outcomes of surgical procedures between hospitals, have been exposed by systematic measurement and, in some cases, corrected."
+      },
+      {
+       "label": "B",
+       "text": "Yet there is a well-documented tendency for indicators to distort the very activities they are intended to monitor. The economist Charles Goodhart gave his name to a version of the principle: when a measure becomes a target, it ceases to be a good measure. The mechanism is not mysterious. Once people are rewarded or punished according to a number, they have every incentive to improve the number, whether or not they improve the thing it was meant to represent. A hospital judged on how quickly patients are seen in an emergency department may find ways of recording patients as seen without treating them any sooner; a school judged on examination pass rates may concentrate its efforts on pupils just below the pass mark while neglecting those well above or below it."
+      },
+      {
+       "label": "C",
+       "text": "Defenders of measurement often reply that such distortions reflect badly designed indicators rather than measurement itself, and that the solution is better metrics. There is some truth in this. Indicators that combine several measures, or that are checked against independent inspection, are harder to manipulate. But the reply underestimates the problem. An indicator that is made more sophisticated may simply become harder to understand, and the people being measured may then devote even more effort to working out how it can be satisfied. Every indicator captures only part of what matters, and the more weight it is given, the more attention shifts towards that part and away from everything else. The difficulty is not a technical flaw awaiting a technical fix; it is inherent in the act of reducing a complex activity to a manageable set of numbers."
+      },
+      {
+       "label": "D",
+       "text": "A subtler cost concerns the people being measured. Professionals such as teachers, doctors and researchers typically enter their fields with a sense of purpose that goes beyond meeting targets. When their work is evaluated chiefly by numbers, that intrinsic motivation can be eroded, replaced by a calculating attention to whatever is counted. It is a familiar complaint among teachers, for instance, that time spent recording and reporting progress is time not spent teaching. Some studies of public-sector workers suggest that heavy reliance on performance targets is associated with lower morale and higher rates of people leaving the profession, although the direction of cause and effect is difficult to establish. What seems clear is that people who feel they are trusted to exercise judgement tend to behave differently from those who feel they are constantly being checked."
+      },
+      {
+       "label": "E",
+       "text": "None of this is an argument for abandoning measurement. Without data, decisions would be made on the basis of anecdote and prejudice, and it would be far easier for poor performance to go unnoticed. Measurement can also protect the vulnerable: without published data, inequalities between regions or social groups may remain hidden for years. The appropriate response is not to measure less in every case but to be clearer about what measurement is for. Numbers are at their most useful when they are used to inform judgement rather than to replace it: when they prompt questions, such as why one hospital's outcomes differ from another's, rather than automatically triggering rewards or sanctions."
+      },
+      {
+       "label": "F",
+       "text": "This distinction may sound modest, but its implications are considerable. It suggests, for instance, that indicators intended for learning should often be kept separate from those used for accountability, since the same number cannot easily serve both purposes. It suggests that the people closest to the work should have a say in how it is measured. And it suggests a degree of humility on the part of those who design measurement systems, who must accept that some of the most important aspects of any professional activity, such as a teacher's influence on a pupil's curiosity, may never be captured by a number at all. To recognise this is not to retreat from rigour, but to understand its limits."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 1-6. Do the following statements agree with the claims of the writer? Write YES, NO or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u10-l3-i1-q1",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "The widespread use of performance indicators has brought some genuine benefits.",
+         "answer": "Y",
+         "why": "Paragraph A: \"In many respects this has been an advance\", with the example of surgical outcomes."
+        },
+        {
+         "id": "u10-l3-i1-q2",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Goodhart was the first person ever to notice that targets can distort behaviour.",
+         "answer": "NG",
+         "why": "Paragraph B says Goodhart \"gave his name to a version of the principle\"; the writer says nothing about whether he was the first."
+        },
+        {
+         "id": "u10-l3-i1-q3",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "The distortions caused by indicators are difficult to explain.",
+         "answer": "N",
+         "why": "Paragraph B: \"The mechanism is not mysterious.\""
+        },
+        {
+         "id": "u10-l3-i1-q4",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Better-designed indicators can fully solve the problem of distortion.",
+         "answer": "N",
+         "why": "Paragraph C: the reply \"underestimates the problem\"; the difficulty \"is not a technical flaw awaiting a technical fix\"."
+        },
+        {
+         "id": "u10-l3-i1-q5",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "It has been proved that performance targets cause professionals to leave their jobs.",
+         "answer": "N",
+         "why": "Paragraph D: there is only an association, and \"the direction of cause and effect is difficult to establish\"."
+        },
+        {
+         "id": "u10-l3-i1-q6",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Private companies suffer less from the misuse of metrics than public services.",
+         "answer": "NG",
+         "why": "The writer mentions businesses in paragraph A but never compares them with public services on this point."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 7-10. Complete each sentence with the correct ending, A-G.",
+       "items": [
+        {
+         "id": "u10-l3-i1-q7",
+         "type": "select",
+         "q": "Choose the correct ending, A-G, for each sentence.",
+         "options": [
+          "A  can be harder to manipulate.",
+          "B  should be abolished in public services.",
+          "C  may focus on pupils close to the pass mark.",
+          "D  tend to behave differently from those who are closely monitored.",
+          "E  are used to raise questions rather than to impose penalties automatically.",
+          "F  always reflect the quality of teaching.",
+          "G  should usually be separated from those used for accountability."
+         ],
+         "rows": [
+          {
+           "label": "A school judged on pass rates",
+           "answer": 2
+          },
+          {
+           "label": "Indicators combining several measures",
+           "answer": 0
+          },
+          {
+           "label": "Professionals who feel trusted",
+           "answer": 3
+          },
+          {
+           "label": "Numbers are most useful when they",
+           "answer": 4
+          }
+         ],
+         "why": "B: a school \"may concentrate its efforts on pupils just below the pass mark\". C: combined indicators \"are harder to manipulate\". D: trusted people \"tend to behave differently\". E: numbers are most useful when they \"prompt questions… rather than automatically triggering rewards or sanctions\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 11-13. Choose the correct letter, A, B, C or D.",
+       "items": [
+        {
+         "id": "u10-l3-i1-q8",
+         "type": "pick",
+         "q": "The writer mentions emergency departments in paragraph B to illustrate",
+         "options": [
+          "A  how a measure can improve without real improvement.",
+          "B  why hospitals need more staff.",
+          "C  the value of independent inspection.",
+          "D  a successful use of targets."
+         ],
+         "answer": 0,
+         "why": "Patients are recorded as seen \"without treating them any sooner\": the number improves, the service does not."
+        },
+        {
+         "id": "u10-l3-i1-q9",
+         "type": "pick",
+         "q": "In paragraph E, the writer argues that",
+         "options": [
+          "A  measurement should be reduced in all areas.",
+          "B  data should guide, not replace, decision-making.",
+          "C  anecdote is a reliable basis for decisions.",
+          "D  rewards and sanctions are always harmful."
+         ],
+         "answer": 1,
+         "why": "\"Numbers are at their most useful when they are used to inform judgement rather than to replace it.\""
+        },
+        {
+         "id": "u10-l3-i1-q10",
+         "type": "pick",
+         "q": "Which best summarises the writer's overall position?",
+         "options": [
+          "A  Measurement is fundamentally harmful and should be resisted.",
+          "B  Metrics are valuable but have inherent limits that must be acknowledged.",
+          "C  Better technology will eventually make measurement perfect.",
+          "D  Professionals should not be held accountable."
+         ],
+         "answer": 1,
+         "why": "The writer rejects \"abandoning measurement\" (E) but insists on humility about what numbers can capture (F): \"not to retreat from rigour, but to understand its limits\"."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

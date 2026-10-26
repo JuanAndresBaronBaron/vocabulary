@@ -1,0 +1,979 @@
+{
+ "format": 1,
+ "id": "u03",
+ "n": 3,
+ "block": "listening",
+ "title": "Part 1: forms and details",
+ "summary": "After this unit you can complete Part 1 forms and notes without losing marks to corrections, spelling, numbers or word limits.",
+ "lessons": [
+  {
+   "id": "u03-l1",
+   "title": "How Part 1 works",
+   "kind": "learn",
+   "minutes": 22,
+   "items": [
+    {
+     "id": "u03-l1-i1",
+     "type": "card",
+     "title": "What Part 1 is like",
+     "body": [
+      "Part 1 is a conversation between two people in an everyday situation: booking a holiday, joining a club, reporting a problem, hiring equipment. One person usually asks for information and the other gives it, so the language is transactional and predictable.",
+      "It is the easiest part, which is exactly why it matters at band 9: these ten marks should be guaranteed. Candidates aiming high lose them through spelling, plurals, numbers and corrections, not through failing to understand."
+     ]
+    },
+    {
+     "id": "u03-l1-i2",
+     "type": "card",
+     "title": "The question types",
+     "body": [
+      "Most Part 1 tasks are **form, note or table completion** with a word limit such as ONE WORD AND/OR A NUMBER. You may also get **multiple choice** or a short **matching** task in the second half.",
+      "Answers come in the order of the questions, and the words you write are almost always the exact words you hear. You do not need to paraphrase or change the form of the word."
+     ],
+     "tip": "Use the reading time to predict the *type* of each answer: a name, a date, a price, a noun, a plural noun. Knowing you are waiting for a number makes you far less likely to write down a distractor word."
+    },
+    {
+     "id": "u03-l1-i3",
+     "type": "card",
+     "title": "Trap 1: distractors and corrections",
+     "body": [
+      "The recording is designed so that the first piece of information you hear is often not the answer. Speakers change their minds, correct themselves or reject an option: 'We could do Tuesday… oh no, Tuesday's full.'",
+      "Listen past the first mention. Words such as **actually, sorry, no wait, I mean, that's changed, not any more** signal that a correction is coming."
+     ],
+     "examples": [
+      {
+       "text": "It starts on the third, no, sorry, the fourth of March.",
+       "note": "Answer: 4th"
+      },
+      {
+       "text": "The standard room is sixty pounds, but with breakfast it comes to seventy-two.",
+       "note": "Read the form: does it ask for the room only or with breakfast?"
+      }
+     ]
+    },
+    {
+     "id": "u03-l1-i4",
+     "type": "card",
+     "title": "Trap 2: spelling and numbers",
+     "body": [
+      "Names and streets are spelt out letter by letter. Know the letters that confuse learners: **A, E and I**; **G and J**; **K and Q**; **M and N**; **B, P and V**. 'Double' means a repeated letter or digit ('double L', 'double five'), and **oh** is zero in phone numbers.",
+      "Numbers come as people say them: 'fifteen fifty' (£15.50 or 1550), 'the twenty-first' (21st), 'nought point five'. Listen for the difference between **-teen and -ty**: fif*teen* stresses the second syllable, *fif*ty the first."
+     ],
+     "list": [
+      "Dates: write 21 May, 21st May or May 21: all are accepted",
+      "Money: £15.50 or 15.50 when the £ is already printed",
+      "Phone numbers: write the digits; spaces do not matter"
+     ]
+    },
+    {
+     "id": "u03-l1-i5",
+     "type": "card",
+     "title": "Trap 3: word limits and form",
+     "body": [
+      "If the limit is ONE WORD AND/OR A NUMBER, 'a towel' is wrong because of the article, and so is 'blue towel'. Check whether the gap already contains a word: if the form says 'Bring: a ___', write only *towel*.",
+      "Plurals matter. If you hear 'two passport photographs', the answer is *photographs*, not *photograph*. A missing -s is the single most common way band 8.5 candidates lose a mark."
+     ]
+    },
+    {
+     "id": "u03-l1-i6",
+     "type": "card",
+     "title": "Signposting: knowing where you are",
+     "body": [
+      "Speakers often announce a change of topic: 'Right, now let's talk about payment', 'And the other thing I wanted to ask was…'. These phrases tell you to move your eyes to the next heading on the form.",
+      "If you miss an answer, let it go immediately. Following the signposts keeps you in step; worrying about a lost answer costs you the next two."
+     ]
+    },
+    {
+     "id": "u03-l1-i7",
+     "type": "listening",
+     "title": "Drill: a correction",
+     "part": 1,
+     "context": "Listen and answer the question.",
+     "speakers": [
+      {
+       "id": "a",
+       "name": "Assistant",
+       "voice": "m"
+      },
+      {
+       "id": "c",
+       "name": "Caller",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "c",
+       "t": "I'd like to book for the twenty-third of May, please."
+      },
+      {
+       "s": "a",
+       "t": "The twenty-third is a Monday, I'm afraid, and we're closed on Mondays."
+      },
+      {
+       "s": "c",
+       "t": "Oh, of course. The thirtieth, then. That's a Saturday, isn't it?"
+      },
+      {
+       "s": "a",
+       "t": "Yes, the thirtieth's fine."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Write ONE WORD AND/OR A NUMBER.",
+       "items": [
+        {
+         "id": "u03-l1-i7-q1",
+         "type": "gap",
+         "text": "Booking date: ___ May",
+         "answer": [
+          "30th",
+          "30",
+          "thirtieth"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "The 23rd is rejected because the place is closed on Mondays; the booking is for \"the thirtieth\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u03-l1-i8",
+     "type": "listening",
+     "title": "Drill: spelling a name",
+     "part": 1,
+     "context": "Listen and answer the question.",
+     "speakers": [
+      {
+       "id": "a",
+       "name": "Assistant",
+       "voice": "f"
+      },
+      {
+       "id": "c",
+       "name": "Caller",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "a",
+       "t": "And your surname?"
+      },
+      {
+       "s": "c",
+       "t": "It's Tait. T-A-I-T."
+      },
+      {
+       "s": "a",
+       "t": "Not T-A-T-E?"
+      },
+      {
+       "s": "c",
+       "t": "No, T-A-I-T. Everyone gets it wrong."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Write ONE WORD.",
+       "items": [
+        {
+         "id": "u03-l1-i8-q1",
+         "type": "gap",
+         "text": "Surname: ___",
+         "answer": [
+          "Tait"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "The spelling is given twice, \"T-A-I-T\", and the alternative T-A-T-E is explicitly rejected."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u03-l1-i9",
+     "type": "listening",
+     "title": "Drill: a phone number",
+     "part": 1,
+     "context": "Listen and answer the question.",
+     "speakers": [
+      {
+       "id": "a",
+       "name": "Assistant",
+       "voice": "m"
+      },
+      {
+       "id": "c",
+       "name": "Caller",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "a",
+       "t": "What's the best number to reach you on?"
+      },
+      {
+       "s": "c",
+       "t": "My mobile. It's oh-seven-seven-oh-oh, nine-double-one, four-eight-three."
+      },
+      {
+       "s": "a",
+       "t": "So that's oh-seven-seven-oh-oh, nine-one-one, four-eight-three."
+      },
+      {
+       "s": "c",
+       "t": "That's right."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Write A NUMBER.",
+       "items": [
+        {
+         "id": "u03-l1-i9-q1",
+         "type": "gap",
+         "text": "Mobile: ___",
+         "answer": [
+          "07700 911483",
+          "07700911483"
+         ],
+         "limit": "A NUMBER",
+         "why": "\"Oh\" is zero and \"double one\" is 11: 07700 911483, confirmed by the assistant."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u03-l1-i10",
+     "type": "listening",
+     "title": "Drill: a rejected option",
+     "part": 1,
+     "context": "Listen and answer the question.",
+     "speakers": [
+      {
+       "id": "a",
+       "name": "Assistant",
+       "voice": "f"
+      },
+      {
+       "id": "c",
+       "name": "Caller",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "a",
+       "t": "The talk's usually held in the Garden Room."
+      },
+      {
+       "s": "c",
+       "t": "Oh, I know where that is."
+      },
+      {
+       "s": "a",
+       "t": "Ah, but not this month. It's being redecorated, so we've moved it upstairs to the Library."
+      },
+      {
+       "s": "c",
+       "t": "The Library. OK, thanks."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u03-l1-i10-q1",
+         "type": "pick",
+         "q": "Where will the talk be held this month?",
+         "options": [
+          "A  the Garden Room",
+          "B  the Library",
+          "C  the main hall"
+         ],
+         "answer": 1,
+         "why": "The Garden Room is the usual place but \"not this month\"; the talk has moved \"upstairs to the Library\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u03-l1-i11",
+     "type": "listening",
+     "title": "Drill: prices",
+     "part": 1,
+     "context": "Listen and answer the question.",
+     "speakers": [
+      {
+       "id": "a",
+       "name": "Assistant",
+       "voice": "m"
+      },
+      {
+       "id": "c",
+       "name": "Caller",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "c",
+       "t": "How much are the tickets?"
+      },
+      {
+       "s": "a",
+       "t": "It's twelve pounds fifty for adults, eight pounds for children, and under-fives go free."
+      },
+      {
+       "s": "c",
+       "t": "And is there a discount for groups?"
+      },
+      {
+       "s": "a",
+       "t": "Only for groups of ten or more."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Write ONE WORD AND/OR A NUMBER.",
+       "items": [
+        {
+         "id": "u03-l1-i11-q1",
+         "type": "gap",
+         "text": "Adult ticket: £___",
+         "answer": [
+          "12.50",
+          "12.5"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"Twelve pounds fifty for adults\"; £8 is the children's price."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u03-l1-i12",
+     "type": "listening",
+     "title": "Drill: plurals",
+     "part": 1,
+     "context": "Listen and answer the question.",
+     "speakers": [
+      {
+       "id": "a",
+       "name": "Assistant",
+       "voice": "f"
+      },
+      {
+       "id": "c",
+       "name": "Caller",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "a",
+       "t": "When you come in to register, you'll need some ID, and two passport photographs."
+      },
+      {
+       "s": "c",
+       "t": "Do they need to be signed?"
+      },
+      {
+       "s": "a",
+       "t": "No, just recent ones."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Write ONE WORD ONLY.",
+       "items": [
+        {
+         "id": "u03-l1-i12-q1",
+         "type": "gap",
+         "text": "Bring: ID and two passport ___",
+         "answer": [
+          "photographs",
+          "photos"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Two passport photographs\": the plural -s is part of the answer."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u03-l1-i13",
+     "type": "pick",
+     "q": "You hear: 'It's on the fifteenth floor, not the fiftieth.' Which number is the answer?",
+     "options": [
+      "15",
+      "50"
+     ],
+     "answer": 0,
+     "why": "Fifteen is stressed on *-teen*; the speaker also explicitly rejects fifty."
+    },
+    {
+     "id": "u03-l1-i14",
+     "type": "pick",
+     "q": "The form says 'Bring: a ___'. You hear 'Bring an old towel.' What do you write for ONE WORD ONLY?",
+     "options": [
+      "an old towel",
+      "old towel",
+      "towel"
+     ],
+     "answer": 2,
+     "why": "Only *towel* fits ONE WORD and the printed article. The adjective is not needed and would break the limit."
+    }
+   ]
+  },
+  {
+   "id": "u03-l2",
+   "title": "Practice: a full Part 1",
+   "kind": "practice",
+   "minutes": 12,
+   "items": [
+    {
+     "id": "u03-l2-i1",
+     "type": "listening",
+     "title": "Lost property report",
+     "part": 1,
+     "context": "You will hear a woman phoning a railway station's lost property office. First, you have some time to look at questions 1 to 7.",
+     "speakers": [
+      {
+       "id": "j",
+       "name": "James",
+       "voice": "m"
+      },
+      {
+       "id": "c",
+       "name": "Carla",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "j",
+       "t": "Good afternoon, Northgate Station lost property, James speaking."
+      },
+      {
+       "s": "c",
+       "t": "Oh, hello. I left a bag on a train yesterday and I'm hoping someone's handed it in."
+      },
+      {
+       "s": "j",
+       "t": "I'm sorry to hear that. Let me take some details and I'll check our records. What sort of bag is it?"
+      },
+      {
+       "s": "c",
+       "t": "It's a laptop bag. Well, no, not exactly. It's a rucksack with a laptop pocket inside."
+      },
+      {
+       "s": "j",
+       "t": "A rucksack. And the colour?"
+      },
+      {
+       "s": "c",
+       "t": "Most people would say it's black, but it's actually dark green. It only looks black in poor light."
+      },
+      {
+       "s": "j",
+       "t": "Dark green, OK. Which train were you on?"
+      },
+      {
+       "s": "c",
+       "t": "The ten forty-five from York. No, hang on, that's the one I usually catch. Yesterday I was early, so it was the ten fifteen."
+      },
+      {
+       "s": "j",
+       "t": "The ten fifteen from York, arriving here at eleven twenty. Do you remember which coach you were in?"
+      },
+      {
+       "s": "c",
+       "t": "Coach D, near the front. D for David."
+      },
+      {
+       "s": "j",
+       "t": "And where exactly did you leave it?"
+      },
+      {
+       "s": "c",
+       "t": "On the rack above my seat. I was on the phone when we pulled in and I just walked off without it."
+      },
+      {
+       "s": "j",
+       "t": "It happens all the time. Did the train go any further after Northgate, do you know?"
+      },
+      {
+       "s": "c",
+       "t": "Yes, I think it carried on to Newcastle."
+      },
+      {
+       "s": "j",
+       "t": "Then it may have been handed in there instead. If it was, they'll send it down to us, but that can add a few days. Now, can you tell me what was inside? That's how we confirm it's yours."
+      },
+      {
+       "s": "c",
+       "t": "My laptop, obviously, and two library books. I thought my camera was in there too, but I found it at home this morning, so not the camera. Oh, and a scarf. A striped scarf."
+      },
+      {
+       "s": "j",
+       "t": "Laptop, library books and a scarf. Right. Can I have your name?"
+      },
+      {
+       "s": "c",
+       "t": "Carla Whitlock. That's W-H-I-T-L-O-C-K."
+      },
+      {
+       "s": "j",
+       "t": "Thank you. And a contact number?"
+      },
+      {
+       "s": "c",
+       "t": "It's oh-one-nine-oh-four, six-two-eight, double seven-three."
+      },
+      {
+       "s": "j",
+       "t": "Oh-one-nine-oh-four, six-two-eight, seven-seven-three. Is that a landline?"
+      },
+      {
+       "s": "c",
+       "t": "Yes, it's my work number. I'm at my desk most of the day, so that's the easiest way to get me."
+      },
+      {
+       "s": "j",
+       "t": "Fine, we'll use that, then. Lovely. Now, I can't see it on the system yet, but things from the York trains often take a day or two to reach us."
+      },
+      {
+       "s": "c",
+       "t": "Oh. How long do you keep things for?"
+      },
+      {
+       "s": "j",
+       "t": "Three months. It used to be just one month, but so many people were coming in after the deadline that we extended it."
+      },
+      {
+       "s": "c",
+       "t": "That's a relief. Should I ring back tomorrow?"
+      },
+      {
+       "s": "j",
+       "t": "You can, but honestly the quickest way is to use the online tracker. You put in the reference number I'll give you, and it's updated every morning. It saves you waiting on the phone, and you don't need to come in until we've actually got it."
+      },
+      {
+       "s": "c",
+       "t": "Great. What's the reference?"
+      },
+      {
+       "s": "j",
+       "t": "It's L-P, four-oh-nine-two. And when it does turn up, you'll need to collect it in person."
+      },
+      {
+       "s": "c",
+       "t": "Do I need to bring anything? A receipt for the laptop, or the reference number?"
+      },
+      {
+       "s": "j",
+       "t": "We don't need a receipt, and we can find the record from your name, so the reference isn't essential. But you must bring photo ID, a passport or driving licence. We can't release anything without it."
+      },
+      {
+       "s": "c",
+       "t": "Fine. Is there a charge?"
+      },
+      {
+       "s": "j",
+       "t": "There's a small handling fee, but you pay that when you collect."
+      },
+      {
+       "s": "c",
+       "t": "OK. Thank you so much, James. You've been very helpful."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the form below. Write ONE WORD AND/OR A NUMBER for each answer.",
+       "items": [
+        {
+         "id": "u03-l2-i1-q1",
+         "type": "gap",
+         "text": "Type of bag: ___",
+         "answer": [
+          "rucksack"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"A laptop bag. Well, no, not exactly. It's a rucksack.\""
+        },
+        {
+         "id": "u03-l2-i1-q2",
+         "type": "gap",
+         "text": "Colour: dark ___",
+         "answer": [
+          "green"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "Black is what \"most people would say\"; \"it's actually dark green\"."
+        },
+        {
+         "id": "u03-l2-i1-q3",
+         "type": "gap",
+         "text": "Train: the ___ from York",
+         "answer": [
+          "10.15",
+          "10:15",
+          "ten fifteen",
+          "1015"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "The 10.45 is her usual train; yesterday \"it was the ten fifteen\"."
+        },
+        {
+         "id": "u03-l2-i1-q4",
+         "type": "gap",
+         "text": "Coach: ___",
+         "answer": [
+          "D"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"Coach D, near the front. D for David.\""
+        },
+        {
+         "id": "u03-l2-i1-q5",
+         "type": "gap",
+         "text": "Contents: laptop, two library books and a ___",
+         "answer": [
+          "scarf"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "The camera was found at home, \"so not the camera\"; the last item is \"a striped scarf\"."
+        },
+        {
+         "id": "u03-l2-i1-q6",
+         "type": "gap",
+         "text": "Name: Carla ___",
+         "answer": [
+          "Whitlock"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "Spelt \"W-H-I-T-L-O-C-K\"."
+        },
+        {
+         "id": "u03-l2-i1-q7",
+         "type": "gap",
+         "text": "Phone: ___",
+         "answer": [
+          "01904 628773",
+          "01904628773"
+         ],
+         "limit": "A NUMBER",
+         "why": "\"Double seven\" is 77: 01904 628773, confirmed by James."
+        }
+       ]
+      },
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u03-l2-i1-q8",
+         "type": "pick",
+         "q": "How long does the office keep lost items?",
+         "options": [
+          "A  one week",
+          "B  one month",
+          "C  three months"
+         ],
+         "answer": 2,
+         "why": "\"Three months. It used to be just one month.\""
+        },
+        {
+         "id": "u03-l2-i1-q9",
+         "type": "pick",
+         "q": "What does James advise Carla to do?",
+         "options": [
+          "A  check a website",
+          "B  phone again tomorrow",
+          "C  come to the office"
+         ],
+         "answer": 0,
+         "why": "Phoning is possible, \"but honestly the quickest way is to use the online tracker\"."
+        },
+        {
+         "id": "u03-l2-i1-q10",
+         "type": "pick",
+         "q": "What must Carla take when she collects the bag?",
+         "options": [
+          "A  a receipt",
+          "B  the reference number",
+          "C  identification"
+         ],
+         "answer": 2,
+         "why": "No receipt is needed and the reference \"isn't essential\", \"but you must bring photo ID\"."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u03-l3",
+   "title": "Test: a full Part 1",
+   "kind": "test",
+   "minutes": 15,
+   "timed": 900,
+   "items": [
+    {
+     "id": "u03-l3-i1",
+     "type": "listening",
+     "title": "Hiring a venue",
+     "part": 1,
+     "context": "You will hear a man phoning a village hall to arrange a family celebration. First, you have some time to look at questions 1 to 5.",
+     "speakers": [
+      {
+       "id": "s",
+       "name": "Sarah",
+       "voice": "f"
+      },
+      {
+       "id": "m",
+       "name": "Mark",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "s",
+       "t": "Fernhill Hall, Sarah speaking."
+      },
+      {
+       "s": "m",
+       "t": "Hi, my name's Mark. I'm hoping to hire somewhere for my mother's sixtieth birthday party, and a friend recommended you."
+      },
+      {
+       "s": "s",
+       "t": "How lovely. How many people are you expecting?"
+      },
+      {
+       "s": "m",
+       "t": "About fifty, maybe fifty-five."
+      },
+      {
+       "s": "s",
+       "t": "Right. Our biggest space is the Garden Room, which takes eighty, but that's booked most Saturdays until the autumn. The Orchard Room would be my suggestion. It's a bit more intimate, it opens onto the terrace, and it holds up to sixty seated."
+      },
+      {
+       "s": "m",
+       "t": "Sixty seated. Could we squeeze in more if some people stand?"
+      },
+      {
+       "s": "s",
+       "t": "Seventy standing, yes, but if you're having a meal, sixty is the limit."
+      },
+      {
+       "s": "m",
+       "t": "We'll be eating, so sixty it is. I was hoping for a Saturday in June."
+      },
+      {
+       "s": "s",
+       "t": "Let me look. The fifth has gone, I'm afraid. The twelfth is free, and so is the twenty-sixth."
+      },
+      {
+       "s": "m",
+       "t": "The twenty-sixth is the day after her actual birthday, but half the family are away that weekend. Let's go for the twelfth."
+      },
+      {
+       "s": "s",
+       "t": "Saturday the twelfth of June. I'll pencil that in. Now, there are a few rules about timings. Because we're in a residential area, music has to stop at eleven o'clock, and we ask everyone to have left by half past."
+      },
+      {
+       "s": "m",
+       "t": "That's fine. Mum's not one for all-nighters. What about the cost?"
+      },
+      {
+       "s": "s",
+       "t": "The room is three hundred pounds for the evening, and to secure the date we take a deposit of one hundred and fifty pounds. You'd pay the rest a month before."
+      },
+      {
+       "s": "m",
+       "t": "OK. And I gather you do catering as well?"
+      },
+      {
+       "s": "s",
+       "t": "We do, through a local company we work with. There are three options. The cheapest is the buffet. That's sandwiches, salads and desserts, at fourteen pounds a head."
+      },
+      {
+       "s": "m",
+       "t": "Is there anything hot in the buffet?"
+      },
+      {
+       "s": "s",
+       "t": "There used to be, but not any more, I'm afraid. If you want something hot, there's the hot meal option. Guests get a choice of three main courses, all served with seasonal vegetables, and that's twenty-two pounds per person."
+      },
+      {
+       "s": "m",
+       "t": "And the third?"
+      },
+      {
+       "s": "s",
+       "t": "Afternoon tea, which is popular for daytime parties: scones, cakes and so on. That's eleven pounds fifty. It was ten pounds last year, but our suppliers put their prices up."
+      },
+      {
+       "s": "m",
+       "t": "I think the hot meal is more what we had in mind. Are there any extras I should know about?"
+      },
+      {
+       "s": "s",
+       "t": "Tables, chairs and tablecloths are all included. If anyone wants to make speeches, we can provide a microphone, which is twenty pounds extra. People usually find it worth it, because the room's quite echoey when it's full."
+      },
+      {
+       "s": "m",
+       "t": "My uncle will definitely want to make a speech, so yes, please. And one last thing: parking. Some of the relatives are quite elderly."
+      },
+      {
+       "s": "s",
+       "t": "We've only got space for about twelve cars here, but the school next door lets us use their car park at weekends, and that's just a two-minute walk. The church car park across the road is private, so please ask people not to use that."
+      },
+      {
+       "s": "m",
+       "t": "The school next door. Perfect. I'll pass that on."
+      },
+      {
+       "s": "s",
+       "t": "Wonderful. I'll email you a booking form with all this on it."
+      },
+      {
+       "s": "m",
+       "t": "Thanks very much, Sarah."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.",
+       "items": [
+        {
+         "id": "u03-l3-i1-q1",
+         "type": "gap",
+         "text": "Room: the ___ Room",
+         "answer": [
+          "Orchard"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "The Garden Room is booked; Sarah suggests \"the Orchard Room\"."
+        },
+        {
+         "id": "u03-l3-i1-q2",
+         "type": "gap",
+         "text": "Maximum number for a meal: ___",
+         "answer": [
+          "60",
+          "sixty"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "Seventy is the standing figure; \"if you're having a meal, sixty is the limit\"."
+        },
+        {
+         "id": "u03-l3-i1-q3",
+         "type": "gap",
+         "text": "Date: Saturday ___ June",
+         "answer": [
+          "12th",
+          "12",
+          "twelfth"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "The 5th has gone and the 26th is rejected: \"Let's go for the twelfth\"."
+        },
+        {
+         "id": "u03-l3-i1-q4",
+         "type": "gap",
+         "text": "Music must stop at ___ pm",
+         "answer": [
+          "11",
+          "eleven",
+          "11.00"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"Music has to stop at eleven o'clock\"; half past is when guests must leave."
+        },
+        {
+         "id": "u03-l3-i1-q5",
+         "type": "gap",
+         "text": "Deposit: £___",
+         "answer": [
+          "150",
+          "one hundred and fifty"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "The room is £300; \"a deposit of one hundred and fifty pounds\"."
+        }
+       ]
+      },
+      {
+       "instr": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer.",
+       "items": [
+        {
+         "id": "u03-l3-i1-q6",
+         "type": "gap",
+         "text": "Buffet: sandwiches, ___ and desserts, £14 per head",
+         "answer": [
+          "salads"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"Sandwiches, salads and desserts, at fourteen pounds a head.\""
+        },
+        {
+         "id": "u03-l3-i1-q7",
+         "type": "gap",
+         "text": "Hot meal: choice of ___ main courses, £22 per head",
+         "answer": [
+          "3",
+          "three"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"A choice of three main courses.\""
+        },
+        {
+         "id": "u03-l3-i1-q8",
+         "type": "gap",
+         "text": "Afternoon tea: scones and cakes, £___ per head",
+         "answer": [
+          "11.50",
+          "11.5"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "£10 was last year's price; now \"eleven pounds fifty\"."
+        },
+        {
+         "id": "u03-l3-i1-q9",
+         "type": "gap",
+         "text": "Extra: a ___ for speeches, £20",
+         "answer": [
+          "microphone"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"We can provide a microphone, which is twenty pounds extra.\""
+        },
+        {
+         "id": "u03-l3-i1-q10",
+         "type": "gap",
+         "text": "Extra parking: at the ___ next door",
+         "answer": [
+          "school"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"The school next door lets us use their car park\"; the church car park is private."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

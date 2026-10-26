@@ -1,0 +1,502 @@
+{
+ "format": 1,
+ "id": "u22",
+ "n": 22,
+ "block": "language",
+ "title": "Register and idiom",
+ "summary": "After this unit you can match register to each paper, use idioms naturally in Speaking and avoid them in Writing, and choose between phrasal and single-word verbs.",
+ "lessons": [
+  {
+   "id": "u22-l1",
+   "title": "Formal, neutral and informal",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u22-l1-i1",
+     "type": "card",
+     "title": "Register is part of Lexical Resource",
+     "body": [
+      "The band 9 descriptors refer to vocabulary used with 'very natural and sophisticated control', and at band 7 and above the examiner checks 'awareness of style'. In practice this means matching register to the task: Writing Task 1 and 2 are **formal-neutral academic**; Speaking is **neutral-informal conversation**.",
+      "Both directions cost marks. Slang and contractions in an essay sound careless; essay language in Speaking (*Furthermore, it is my contention that...*) sounds memorised and unnatural."
+     ],
+     "list": [
+      "**Formal**: *The authorities are reluctant to intervene.* (essays)",
+      "**Neutral**: *The government doesn't want to get involved.* (Speaking, or neutral writing without the contraction)",
+      "**Informal**: *The government's staying well out of it.* (relaxed speech only)"
+     ]
+    },
+    {
+     "id": "u22-l1-i2",
+     "type": "card",
+     "title": "Features of academic register in Writing",
+     "body": [
+      "Academic writing is impersonal and precise, but not pompous."
+     ],
+     "list": [
+      "No contractions: *do not*, *it is*, *cannot*.",
+      "Few personal pronouns, except to state your position (*I believe*); avoid addressing the reader as *you*.",
+      "Precise quantifiers instead of vague ones: *a significant minority* rather than *loads of people*.",
+      "No rhetorical questions or exclamation marks.",
+      "Neutral or formal single-word verbs where they are more precise: *investigate* rather than *look into*, though common phrasal verbs are acceptable (see lesson 3)."
+     ],
+     "examples": [
+      {
+       "text": "Loads of people can't afford to buy a house these days, which is pretty awful.",
+       "note": "Informal: loads of, can't, these days, pretty awful."
+      },
+      {
+       "text": "A growing number of people are unable to afford to buy a home, which is a cause for serious concern.",
+       "note": "Formal-neutral academic."
+      }
+     ]
+    },
+    {
+     "id": "u22-l1-i3",
+     "type": "card",
+     "title": "Features of natural spoken register",
+     "body": [
+      "In Speaking, natural register includes contractions, discourse markers (*well*, *actually*, *I mean*), vague language used appropriately (*sort of*, *and so on*, *a bit*), and personal examples. These are signs of fluency, not of informality to be avoided.",
+      "Keep it neutral rather than slangy. *It was a bit of a nightmare* is perfect; *It was well dodgy, innit* is not appropriate in an exam."
+     ]
+    },
+    {
+     "id": "u22-l1-i4",
+     "type": "select",
+     "q": "Which register is each sentence?",
+     "options": [
+      "A  Formal academic (suitable for Task 2)",
+      "B  Neutral spoken (suitable for Speaking)",
+      "C  Too informal for the exam"
+     ],
+     "rows": [
+      {
+       "label": "It is widely acknowledged that urban green space benefits mental health.",
+       "answer": 0
+      },
+      {
+       "label": "I think parks make a big difference, actually, especially if you live in a flat.",
+       "answer": 1
+      },
+      {
+       "label": "Parks are dead good for your head, no joke.",
+       "answer": 2
+      },
+      {
+       "label": "A significant proportion of respondents expressed dissatisfaction with the service.",
+       "answer": 0
+      },
+      {
+       "label": "Honestly, most people I know aren't that bothered about it.",
+       "answer": 1
+      }
+     ],
+     "why": "Formal academic sentences are impersonal and precise; neutral spoken ones use contractions and markers like *actually* and *honestly*; slang (*dead good*, *no joke*) is inappropriate in both papers."
+    },
+    {
+     "id": "u22-l1-i5",
+     "type": "pick",
+     "q": "Which sentence is most appropriate in a Task 2 essay?",
+     "options": [
+      "Kids these days spend loads of time on their phones.",
+      "Children now spend a considerable amount of time on their phones.",
+      "Kiddos are always glued to their screens, aren't they?",
+      "You know how children are always on their phones."
+     ],
+     "answer": 1,
+     "why": "B is formal-neutral and precise. A and C use informal vocabulary, C has a rhetorical tag question, and D addresses the reader as *you*."
+    },
+    {
+     "id": "u22-l1-i6",
+     "type": "pick",
+     "q": "Which answer sounds most natural in Speaking Part 1? Q: 'Do you like your neighbourhood?'",
+     "options": [
+      "It is my firm conviction that my neighbourhood possesses numerous advantages.",
+      "Yeah, I do, actually. It's quiet, but there are a couple of good cafés within walking distance.",
+      "Affirmative. The neighbourhood is satisfactory.",
+      "Furthermore, my neighbourhood is good. Moreover, it is quiet."
+     ],
+     "answer": 1,
+     "why": "B uses natural spoken features (*Yeah*, *actually*, contractions) and a concrete detail. The others are inappropriately formal or mechanical."
+    },
+    {
+     "id": "u22-l1-i7",
+     "type": "gap",
+     "text": "Rewrite formally: 'lots of young people' becomes 'a ___ number of young people'.",
+     "answer": [
+      "large",
+      "considerable",
+      "significant",
+      "substantial",
+      "growing"
+     ],
+     "limit": "ONE WORD",
+     "why": "*A large / considerable / significant number of* is the formal equivalent."
+    },
+    {
+     "id": "u22-l1-i8",
+     "type": "gap",
+     "text": "Rewrite formally: 'kids' becomes ___.",
+     "answer": [
+      "children",
+      "young people"
+     ],
+     "limit": "ONE OR TWO WORDS",
+     "why": "*Children* is the neutral-formal word; *kids* is informal."
+    },
+    {
+     "id": "u22-l1-i9",
+     "type": "gap",
+     "text": "Rewrite formally: 'It's a really big deal' becomes 'It is a matter of considerable ___'.",
+     "answer": [
+      "importance",
+      "significance",
+      "concern"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Of considerable importance* is formal and precise."
+    },
+    {
+     "id": "u22-l1-i10",
+     "type": "pick",
+     "q": "Which feature is a mistake in Task 2?",
+     "options": [
+      "Using *I believe* in the introduction to state your position.",
+      "Writing *don't* and *isn't*.",
+      "Using the passive to report others' views.",
+      "Using precise quantifiers like *a minority*."
+     ],
+     "answer": 1,
+     "why": "Contractions are inappropriate in academic writing. Stating your own view with *I believe* is perfectly acceptable in Task 2."
+    }
+   ]
+  },
+  {
+   "id": "u22-l2",
+   "title": "Idioms: where they belong",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u22-l2-i1",
+     "type": "card",
+     "title": "Idioms in Speaking: natural, not decorative",
+     "body": [
+      "The band descriptors for Lexical Resource in Speaking mention 'idiomatic language' from band 7 upwards. What examiners reward is idiomatic *usage*: natural phrasal verbs, collocations and fixed expressions used in the right place (*it's not my cup of tea*, *I'm in two minds*, *it takes a while to get used to*).",
+      "What they do not reward is a memorised idiom pushed into an answer where it does not fit. *It was raining cats and dogs* or *It was a piece of cake* are widely taught, rarely used by native speakers, and examiners hear them dozens of times a day."
+     ],
+     "list": [
+      "Natural in Speaking: *I'm in two minds about it*, *it's not really my thing*, *I've got a lot on at the moment*, *it was a bit of an eye-opener*, *it costs an arm and a leg* (used sparingly), *off the top of my head*",
+      "Overused and dated: *raining cats and dogs*, *a piece of cake*, *once in a blue moon* (in every answer), *as fit as a fiddle*, *over the moon*"
+     ],
+     "tip": "Use an idiom only if you would genuinely say it to a friend in English, and only if it fits the meaning exactly."
+    },
+    {
+     "id": "u22-l2-i2",
+     "type": "card",
+     "title": "Idioms in Writing: mostly avoid",
+     "body": [
+      "In Task 2, idioms usually lower the register and often sound like clichés. *A double-edged sword*, *the tip of the iceberg*, *a hot potato* and *at the end of the day* are best replaced by precise literal language.",
+      "Some fixed expressions are fully acceptable in academic writing because they are neutral: *in the long run*, *on the whole*, *by and large*, *a vicious circle*, *come at a cost*, *the root cause*. These are collocations rather than colourful idioms."
+     ],
+     "examples": [
+      {
+       "text": "Social media is a double-edged sword.",
+       "note": "Cliché in an essay."
+      },
+      {
+       "text": "Social media brings clear benefits but also carries significant risks.",
+       "note": "Precise and neutral."
+      },
+      {
+       "text": "Poverty and poor health can form a vicious circle.",
+       "note": "A neutral fixed expression, perfectly acceptable in Writing."
+      }
+     ]
+    },
+    {
+     "id": "u22-l2-i3",
+     "type": "select",
+     "q": "Where would each expression be appropriate?",
+     "options": [
+      "A  Natural in Speaking",
+      "B  Acceptable in both Speaking and Writing",
+      "C  Best avoided (cliché or overused)"
+     ],
+     "rows": [
+      {
+       "label": "I'm in two minds about it.",
+       "answer": 0
+      },
+      {
+       "label": "in the long run",
+       "answer": 1
+      },
+      {
+       "label": "It was raining cats and dogs.",
+       "answer": 2
+      },
+      {
+       "label": "It's not really my thing.",
+       "answer": 0
+      },
+      {
+       "label": "a vicious circle",
+       "answer": 1
+      },
+      {
+       "label": "Every cloud has a silver lining.",
+       "answer": 2
+      },
+      {
+       "label": "off the top of my head",
+       "answer": 0
+      },
+      {
+       "label": "the root cause",
+       "answer": 1
+      }
+     ],
+     "why": "Conversational idioms suit Speaking; neutral fixed expressions work anywhere; proverbs and textbook idioms sound memorised in both papers."
+    },
+    {
+     "id": "u22-l2-i4",
+     "type": "pick",
+     "q": "Which Part 1 answer uses idiomatic language most naturally? Q: 'Do you enjoy cooking?'",
+     "options": [
+      "Cooking is a piece of cake and I am over the moon when I do it.",
+      "Not really, to be honest. It's not my thing. I can throw something together, but I'd rather someone else did it.",
+      "Once in a blue moon I cook, and it costs an arm and a leg, and it's raining cats and dogs.",
+      "I enjoy cooking very much because it is enjoyable."
+     ],
+     "answer": 1,
+     "why": "B uses natural, current expressions (*not my thing*, *throw something together*) that fit the meaning exactly. A and C pile up textbook idioms; D has no idiomatic language at all."
+    },
+    {
+     "id": "u22-l2-i5",
+     "type": "pick",
+     "q": "Which is the best replacement in a Task 2 essay for 'Pollution is just the tip of the iceberg'?",
+     "options": [
+      "Pollution is only the most visible part of a much larger problem.",
+      "Pollution is the cherry on the cake.",
+      "Pollution is a whole other kettle of fish.",
+      "Pollution is no walk in the park."
+     ],
+     "answer": 0,
+     "why": "A says the same thing in precise, neutral language suited to academic writing. The other options swap one idiom for another, often with the wrong meaning."
+    },
+    {
+     "id": "u22-l2-i6",
+     "type": "gap",
+     "text": "Q: 'Would you like to live abroad?' A: 'I'm in two ___ about it, really. I'd love the experience, but I'd miss my family.'",
+     "answer": [
+      "minds"
+     ],
+     "limit": "ONE WORD",
+     "why": "*In two minds* means undecided, a natural spoken idiom."
+    },
+    {
+     "id": "u22-l2-i7",
+     "type": "gap",
+     "text": "Part 2: 'Moving to London was a real eye-___. I hadn't realised how expensive everything would be.'",
+     "answer": [
+      "opener"
+     ],
+     "limit": "ONE WORD",
+     "why": "*An eye-opener* is something that reveals surprising information."
+    },
+    {
+     "id": "u22-l2-i8",
+     "type": "gap",
+     "text": "Task 2: 'Low wages and poor housing can trap families in a vicious ___.'",
+     "answer": [
+      "circle",
+      "cycle"
+     ],
+     "limit": "ONE WORD",
+     "why": "*A vicious circle / cycle* is a neutral fixed expression acceptable in academic writing."
+    },
+    {
+     "id": "u22-l2-i9",
+     "type": "pick",
+     "q": "Which sentence uses an idiom with the wrong meaning?",
+     "options": [
+      "Learning to drive took a while, but once I got the hang of it, I loved it.",
+      "My exam was a real eye-opener, so I passed it easily.",
+      "I've got a lot on at the moment, so I haven't been to the gym.",
+      "Off the top of my head, I'd say about twenty people came."
+     ],
+     "answer": 1,
+     "why": "*An eye-opener* means a surprising revelation, not something easy. The other idioms are used accurately."
+    }
+   ]
+  },
+  {
+   "id": "u22-l3",
+   "title": "Phrasal verbs and Latinate verbs",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u22-l3-i1",
+     "type": "card",
+     "title": "Two vocabularies for the same meaning",
+     "body": [
+      "English often has a phrasal verb of Germanic origin and a single-word verb of Latin or French origin for similar meanings: *find out / discover*, *set up / establish*, *cut down on / reduce*, *put off / postpone*, *bring about / cause*.",
+      "Phrasal verbs are not informal by nature, but many are more conversational. In Speaking, phrasal verbs sound natural and fluent; replacing them all with Latinate verbs makes you sound stiff. In Writing, many neutral phrasal verbs are perfectly acceptable (*carry out research*, *set up a business*), but very colloquial ones (*mess up*, *get by*) should be replaced."
+     ],
+     "list": [
+      "find out / **discover**, **ascertain** (formal)",
+      "set up / **establish**",
+      "cut down on / **reduce**",
+      "put off / **postpone**, **defer**",
+      "look into / **investigate**",
+      "bring about / **cause**, **effect**",
+      "get rid of / **eliminate**, **dispose of**",
+      "keep up with / **keep pace with**"
+     ]
+    },
+    {
+     "id": "u22-l3-i2",
+     "type": "card",
+     "title": "Choosing well",
+     "body": [
+      "In Task 2, prefer the single-word verb when it is more precise or when the phrasal verb is informal (*mess up*, *get round*). Keep the phrasal verb when it is the normal neutral term (*carry out*, *set up*, *phase out*) or when the Latinate alternative would sound pompous.",
+      "In Speaking, do the opposite: phrasal verbs show natural control. *We put the meeting off till Friday* sounds natural; *We postponed the meeting until Friday* sounds like a written announcement, though neither is wrong."
+     ],
+     "examples": [
+      {
+       "text": "Governments should get rid of fossil fuel subsidies.",
+       "note": "Acceptable but conversational."
+      },
+      {
+       "text": "Governments should phase out fossil fuel subsidies.",
+       "note": "Neutral phrasal verb, precise: gradually."
+      },
+      {
+       "text": "Governments should eliminate fossil fuel subsidies.",
+       "note": "Formal, precise: entirely."
+      }
+     ]
+    },
+    {
+     "id": "u22-l3-i3",
+     "type": "select",
+     "q": "Choose the best verb for a Task 2 essay.",
+     "options": [
+      "A  investigate",
+      "B  establish",
+      "C  reduce",
+      "D  postpone",
+      "E  eliminate"
+     ],
+     "rows": [
+      {
+       "label": "Governments should ___ (cut down on) their reliance on imported energy.",
+       "answer": 2
+      },
+      {
+       "label": "It is far easier to ___ (set up) a small business online than it once was.",
+       "answer": 1
+      },
+      {
+       "label": "The council plans to ___ (look into) the causes of the flooding.",
+       "answer": 0
+      },
+      {
+       "label": "The decision was ___ (put off) until more data was available.",
+       "answer": 3
+      },
+      {
+       "label": "New technology could ___ (get rid of) the need for manual checks entirely.",
+       "answer": 4
+      }
+     ],
+     "why": "Each single-word verb is more formal and precise than the phrasal verb in brackets. Note *was postponed* for the passive."
+    },
+    {
+     "id": "u22-l3-i4",
+     "type": "pick",
+     "q": "Which sentence sounds most natural in Speaking Part 1?",
+     "options": [
+      "I endeavoured to ascertain the time of the film.",
+      "I tried to find out what time the film started.",
+      "I attempted to discover the commencement time of the film.",
+      "I sought to determine the film's start."
+     ],
+     "answer": 1,
+     "why": "B uses a natural phrasal verb (*find out*) and everyday words. The others are absurdly formal for casual speech."
+    },
+    {
+     "id": "u22-l3-i5",
+     "type": "pick",
+     "q": "Which phrasal verb is acceptable in a formal essay?",
+     "options": [
+      "Scientists carried out a series of experiments.",
+      "The government totally messed up the reform.",
+      "Families can barely get by on one salary.",
+      "Politicians often try to wriggle out of their promises."
+     ],
+     "answer": 0,
+     "why": "*Carry out* is the standard neutral verb with *experiments*, *research* and *surveys*. The others are colloquial."
+    },
+    {
+     "id": "u22-l3-i6",
+     "type": "gap",
+     "text": "Speaking: 'I've been meaning to take ___ a new hobby, maybe climbing.'",
+     "answer": [
+      "up"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Take up* a hobby means start it: natural and neutral."
+    },
+    {
+     "id": "u22-l3-i7",
+     "type": "gap",
+     "text": "Writing: 'Many countries plan to ___ out petrol cars by 2035.'",
+     "answer": [
+      "phase"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Phase out* means gradually stop using, a neutral phrasal verb common in formal writing."
+    },
+    {
+     "id": "u22-l3-i8",
+     "type": "gap",
+     "text": "Writing: 'Wages have failed to keep ___ with inflation.'",
+     "answer": [
+      "pace",
+      "up"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Keep pace with* (more formal) or *keep up with* (neutral)."
+    },
+    {
+     "id": "u22-l3-i9",
+     "type": "gap",
+     "text": "Writing: 'The committee will ___ the matter before making a recommendation.' (= look into)",
+     "answer": [
+      "investigate",
+      "examine",
+      "consider",
+      "review"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Investigate* or *examine* is the formal single-word equivalent of *look into*."
+    },
+    {
+     "id": "u22-l3-i10",
+     "type": "order",
+     "q": "Order this natural spoken answer.",
+     "items": [
+      "To be honest, I keep putting it off,",
+      "but I really need to sort out",
+      "all the stuff in my garage",
+      "before we move house."
+     ],
+     "why": "Phrasal verbs (*put off*, *sort out*) and *stuff* are natural in Speaking, where they signal relaxed fluency."
+    }
+   ]
+  }
+ ]
+}

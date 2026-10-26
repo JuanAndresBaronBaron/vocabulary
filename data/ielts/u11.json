@@ -1,0 +1,478 @@
+{
+ "format": 1,
+ "id": "u11",
+ "n": 11,
+ "block": "writing",
+ "title": "Task 1: graphs and tables",
+ "summary": "After this unit you can write a band 9 overview, group and compare features, and describe data with precise, accurate language.",
+ "lessons": [
+  {
+   "id": "u11-l1",
+   "title": "The overview and accurate data language",
+   "kind": "learn",
+   "minutes": 25,
+   "items": [
+    {
+     "id": "u11-l1-i1",
+     "type": "card",
+     "title": "What Task 1 is really testing",
+     "body": [
+      "Task 1 asks you to *summarise* a visual by **selecting and reporting the main features** and making comparisons where relevant. It is not a description of every number, and it is not an essay: no opinions, no causes, no predictions beyond what the chart shows.",
+      "Examiners score four criteria equally: Task Achievement, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. For Task Achievement the single biggest separator between band 7 and band 9 is a **clear overview** that states the most important trends or differences without numbers.",
+      "Aim for 170-200 words in about 20 minutes. Longer answers rarely score higher; they usually contain more slips and more trivial detail."
+     ],
+     "list": [
+      "Introduction: one sentence paraphrasing what the visual shows (what, where, when, units).",
+      "Overview: two sentences on the big picture, no figures.",
+      "Body paragraph 1: one group of features, with selected data.",
+      "Body paragraph 2: the other group, with selected data and comparisons."
+     ],
+     "tip": "Write the overview straight after the introduction. If you run out of time, a missing conclusion costs nothing; a missing overview caps Task Achievement at band 5."
+    },
+    {
+     "id": "u11-l1-i2",
+     "type": "card",
+     "title": "Writing the overview",
+     "body": [
+      "Ask two questions before writing: *What is the overall direction?* (up, down, stable, converging) and *What stands out?* (the largest category, a reversal, an exception). The answers are your overview.",
+      "Keep it general. Figures belong in the body paragraphs. A band 9 overview is often only two sentences, but every word in it is a genuine summary of the whole visual."
+     ],
+     "examples": [
+      {
+       "text": "Overall, car use remained by far the most common way of commuting, although its share fell steadily, while cycling grew from a marginal option into the second most popular mode.",
+       "note": "Direction plus the striking change. No numbers."
+      },
+      {
+       "text": "In general, the museums that attracted the most visitors in 2012 were not necessarily those that grew fastest over the decade.",
+       "note": "An overview for a table: a relationship, not a list."
+      },
+      {
+       "text": "Overall, cycling increased from 4% to 24%.",
+       "note": "Weak: this is a detail with figures, not an overview."
+      }
+     ]
+    },
+    {
+     "id": "u11-l1-i3",
+     "type": "card",
+     "title": "Selecting and grouping",
+     "body": [
+      "With four or more categories you cannot describe each line separately and still compare. Group features that behave alike: *the two categories that rose*, *the three that declined*, *the largest and the smallest*.",
+      "Choose the paragraph split that makes comparison easy. For a line graph, it is often 'rising categories' versus 'falling categories'; for a table, it can be 'the largest values' versus 'the rest', or one year versus the other.",
+      "Every number you quote should support a comparison. 'Rail rose from 8% to 13%' is fine; listing 1990, 1995, 2000 and 2005 values for every line is not."
+     ]
+    },
+    {
+     "id": "u11-l1-i4",
+     "type": "card",
+     "title": "Precise data language",
+     "body": [
+      "Band 9 lexis is precise rather than showy. Choose verbs and nouns that match the size and shape of the change, and vary the grammar: verb + adverb (*rose sharply*), adjective + noun (*a sharp rise*), and phrases such as *accounted for*, *a threefold increase*, *respectively*."
+     ],
+     "list": [
+      "**rose sharply / climbed steeply**: a large, fast increase",
+      "**edged up / crept up**: a very small increase",
+      "**plateaued / levelled off**: stopped changing after a rise or fall",
+      "**fluctuated around**: went up and down without a clear trend",
+      "**accounted for / made up**: a share of a total (*cars accounted for 62% of journeys*)",
+      "**a threefold increase / tripled**: multiplied by three",
+      "**respectively**: matches two lists in order (*41% and 24% respectively*)",
+      "**peaked at / reached a high of**: the highest point",
+      "**bottomed out at / reached a low of**: the lowest point"
+     ],
+     "examples": [
+      {
+       "text": "The share of commuters who cycled tripled between 2000 and 2015.",
+       "note": "Grammatically simple, lexically exact."
+      },
+      {
+       "text": "By 2020, cars and bicycles accounted for 41% and 24% of journeys respectively.",
+       "note": "respectively saves a whole sentence."
+      }
+     ]
+    },
+    {
+     "id": "u11-l1-i5",
+     "type": "card",
+     "title": "Approximations and accuracy",
+     "body": [
+      "Real charts rarely give exact values, so use controlled approximation: *just under a quarter*, *roughly two thirds*, *almost double*, *a little over 400,000*. Do not invent precision the chart does not show.",
+      "Never explain why something happened (*because petrol became expensive*) and never judge (*a worrying fall*). These are the two most common ways strong writers lose Task Achievement in Task 1."
+     ],
+     "examples": [
+      {
+       "text": "just over 60% (= 62%), roughly a fifth (= 19-21%), nearly half (= 47-49%)"
+      },
+      {
+       "text": "The number of visitors almost doubled, from 230,000 to around 440,000.",
+       "note": "almost doubled = slightly under 2x"
+      }
+     ],
+     "tip": "Fractions and percentages are both fine. Mix them for flexibility, but never at the cost of accuracy: 41% is 'just over two fifths', not 'nearly half'."
+    },
+    {
+     "id": "u11-l1-i6",
+     "type": "pick",
+     "q": "A line graph shows the percentage of commuters in a city using four modes of transport, 1990-2020. Car use falls from 62% to 41%; cycling rises from 4% to 24%; bus use falls from 20% to 12%; rail rises from 8% to 11%. Which is the best overview?",
+     "options": [
+      "Overall, car use fell from 62% to 41% while cycling rose from 4% to 24%.",
+      "Overall, the car remained the dominant mode of commuting despite a steady decline, while cycling saw the most dramatic growth, overtaking the bus to become the second most common choice.",
+      "Overall, it is clear that the city's policies to encourage cycling were successful.",
+      "Overall, there were many changes in how people travelled to work over the thirty years."
+     ],
+     "answer": 1,
+     "why": "Option B summarises direction and the most striking feature with no figures. A is detail with numbers, C gives a cause and an opinion, and D is too vague to summarise anything."
+    },
+    {
+     "id": "u11-l1-i7",
+     "type": "pick",
+     "q": "Which sentence describes the change from 230,000 to 440,000 most accurately?",
+     "options": [
+      "The figure doubled.",
+      "The figure almost doubled.",
+      "The figure rose threefold.",
+      "The figure increased slightly."
+     ],
+     "answer": 1,
+     "why": "Double 230,000 would be 460,000, so 440,000 is *almost* double. 'Doubled' overstates it, and 'slightly' badly understates a 91% rise."
+    },
+    {
+     "id": "u11-l1-i8",
+     "type": "gap",
+     "text": "After rising steadily for a decade, the share of rail journeys ___ at around 13% between 2015 and 2018.",
+     "answer": [
+      "plateaued",
+      "levelled off",
+      "stabilised",
+      "stabilized",
+      "flattened out"
+     ],
+     "limit": "ONE OR TWO WORDS",
+     "why": "*Plateaued* (or *levelled off*) describes a line that stops rising and stays flat."
+    },
+    {
+     "id": "u11-l1-i9",
+     "type": "gap",
+     "text": "In 2020, cars and bicycles accounted for 41% and 24% of all commuting journeys ___.",
+     "answer": [
+      "respectively"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Respectively* links the two figures to the two categories in the order given."
+    },
+    {
+     "id": "u11-l1-i10",
+     "type": "gap",
+     "text": "Between 2000 and 2020, cycling saw a nearly fivefold ___, from 5% to 24% of journeys.",
+     "answer": [
+      "increase",
+      "rise"
+     ],
+     "limit": "ONE WORD",
+     "why": "*A fivefold increase / rise*: the noun follows the adjective *fivefold*. 5% to 24% is just under five times."
+    },
+    {
+     "id": "u11-l1-i11",
+     "type": "gap",
+     "text": "The proportion of commuters taking the bus fell from a fifth in 1990 to ___ under an eighth by 2020.",
+     "answer": [
+      "just",
+      "slightly",
+      "a little",
+      "fractionally"
+     ],
+     "limit": "ONE OR TWO WORDS",
+     "why": "One eighth is 12.5%, so 12% is *just under* an eighth. Approximations must point in the right direction."
+    },
+    {
+     "id": "u11-l1-i12",
+     "type": "select",
+     "q": "Each sentence describes a chart in which: cars 62% to 41%, bicycles 4% to 24%, buses 20% to 12%, rail 8% to 11% (1990 to 2020). Decide what is wrong with each one.",
+     "options": [
+      "A  Accurate",
+      "B  Inaccurate comparison or figure",
+      "C  Gives a cause, opinion or prediction"
+     ],
+     "rows": [
+      {
+       "label": "Rail was the least popular mode throughout the period.",
+       "answer": 1
+      },
+      {
+       "label": "Cycling overtook the bus as the second most common mode by 2020.",
+       "answer": 0
+      },
+      {
+       "label": "Thanks to new cycle lanes, cycling grew sixfold.",
+       "answer": 2
+      },
+      {
+       "label": "Car use declined by roughly a third over the period.",
+       "answer": 0
+      },
+      {
+       "label": "Bus use is likely to keep falling in the next decade.",
+       "answer": 2
+      },
+      {
+       "label": "Car use halved between 1990 and 2020.",
+       "answer": 1
+      }
+     ],
+     "why": "Rail (8%) was more popular than cycling (4%) in 1990, so it was not always the least popular. A fall from 62% to 41% is about a third, not half. Causes ('thanks to new cycle lanes') and predictions ('likely to keep falling') are not in the chart."
+    },
+    {
+     "id": "u11-l1-i13",
+     "type": "order",
+     "q": "Put the parts of this Task 1 response in the correct order.",
+     "items": [
+      "The graph illustrates how the proportion of commuters using four modes of transport in a British city changed between 1990 and 2020.",
+      "Overall, the car remained the most common choice despite a steady decline, whereas cycling grew from a marginal option into the second most popular.",
+      "Car use stood at just over 60% in 1990 and fell gradually to 41% by the end of the period, while the share of bus passengers almost halved, from a fifth to 12%.",
+      "In contrast, cycling, which accounted for only 4% of journeys in 1990, climbed steeply after 2000 to reach almost a quarter in 2020."
+     ],
+     "why": "Introduction (paraphrase), overview (no figures), then two body paragraphs grouping declining modes and the rising mode. 'In contrast' signals the second group."
+    },
+    {
+     "id": "u11-l1-i14",
+     "type": "pick",
+     "q": "Which sentence would an examiner consider the most natural and precise?",
+     "options": [
+      "The percentage of car users experienced a dramatic plummet to 41%.",
+      "The percentage of commuters who drove fell steadily to 41%.",
+      "The car users' percentage went down very much to 41%.",
+      "The percentage of car was decreased to 41%."
+     ],
+     "answer": 1,
+     "why": "B is precise and accurate ('steadily' matches a gradual fall). A is inflated ('a dramatic plummet' is redundant and exaggerated), C is vague, and D has errors (*of car*, passive *was decreased*)."
+    },
+    {
+     "id": "u11-l1-i15",
+     "type": "pick",
+     "q": "A table shows that Museum X had 520,000 visitors in 2012 and 860,000 in 2022. Which comparison is accurate?",
+     "options": [
+      "Visitor numbers rose by roughly two thirds.",
+      "Visitor numbers almost doubled.",
+      "Visitor numbers rose by 860,000.",
+      "Visitor numbers rose by about a third."
+     ],
+     "answer": 0,
+     "why": "The rise is 340,000, which is about 65% of 520,000, so 'roughly two thirds' is right. 'Almost doubled' would need about 1,000,000."
+    }
+   ]
+  },
+  {
+   "id": "u11-l2",
+   "title": "Practice: a line graph",
+   "kind": "practice",
+   "minutes": 30,
+   "items": [
+    {
+     "id": "u11-l2-i1",
+     "type": "card",
+     "title": "Planning a line graph in four minutes",
+     "body": [
+      "Spend the first three or four minutes looking, not writing. Find the highest and lowest lines at the start and at the end, any line that crosses another, and any point where a trend changes direction.",
+      "Then decide your grouping. With four lines, a common band 9 split is 'the categories that fell' and 'the categories that rose', with crossings mentioned where they happen."
+     ],
+     "list": [
+      "Introduction: paraphrase the title (what, where, when, unit).",
+      "Overview: the dominant category and the most dramatic change.",
+      "Body 1: the falling lines, with start and end figures and the shape of the fall.",
+      "Body 2: the rising lines, including the crossing point."
+     ],
+     "tip": "Check the units. 'Percentage of commuters' is not 'number of commuters': write *the share / proportion of commuters*, never *the number of cars*."
+    },
+    {
+     "id": "u11-l2-i2",
+     "type": "writing",
+     "task": 1,
+     "prompt": "The graph below shows the percentage of commuters using four different modes of transport to travel to work in a British city between 1990 and 2020.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.",
+     "visual": {
+      "kind": "line",
+      "title": "Percentage of commuters by mode of transport in a British city, 1990-2020",
+      "unit": "%",
+      "x": [
+       "1990",
+       "1995",
+       "2000",
+       "2005",
+       "2010",
+       "2015",
+       "2020"
+      ],
+      "series": [
+       {
+        "name": "Car",
+        "values": [
+         62,
+         64,
+         63,
+         58,
+         52,
+         47,
+         41
+        ]
+       },
+       {
+        "name": "Bus",
+        "values": [
+         20,
+         18,
+         15,
+         14,
+         14,
+         13,
+         12
+        ]
+       },
+       {
+        "name": "Bicycle",
+        "values": [
+         4,
+         4,
+         5,
+         8,
+         13,
+         18,
+         24
+        ]
+       },
+       {
+        "name": "Rail",
+        "values": [
+         8,
+         8,
+         9,
+         10,
+         11,
+         13,
+         11
+        ]
+       }
+      ]
+     },
+     "minutes": 20,
+     "minWords": 150,
+     "plan": [
+      "Paraphrase: share of commuters, four modes, British city, 1990-2020.",
+      "Overview: car still dominant but falling; cycling the big riser, overtakes bus.",
+      "Body 1: car (62, peak 64, down to 41) and bus (20 to 12).",
+      "Body 2: bicycle (4, flat, then steep rise to 24) and rail (8, peak 13, 11)."
+     ],
+     "model": {
+      "text": [
+       "The line graph illustrates how the share of commuters in a British city who travelled to work by car, bus, bicycle and train changed over the thirty years from 1990.",
+       "Overall, the car remained by far the most common means of getting to work, although its dominance was steadily eroded. The most striking development was the growth of cycling, which rose from a marginal option to the second most popular mode, overtaking the bus in the process.",
+       "In 1990, just over three fifths of commuters drove to work, a figure that edged up to 64% in 1995 before falling continuously to 41% by 2020, a decline of roughly a third. Bus use followed a similar downward path but at a more modest pace: having accounted for a fifth of journeys at the start of the period, it fell to 15% by 2000 and then drifted down to 12%.",
+       "Cycling, by contrast, was the least common mode in 1990, at only 4%, and changed little for a decade. After 2000, however, it climbed steeply, overtaking rail around 2010 and the bus shortly afterwards, and by 2020 almost a quarter of commuters cycled, a sixfold increase on the original figure. Rail use grew gradually from 8% to a peak of 13% in 2015, before slipping back to 11% in the final five years."
+      ],
+      "notes": [
+       "The overview identifies the two key features (car dominance in decline, the rise of cycling) without any figures.",
+       "Grouping by direction (falling modes, then rising modes) makes comparison natural and avoids a line-by-line list.",
+       "Data language is precise and varied: *edged up*, *drifted down*, *climbed steeply*, *a sixfold increase*, *slipping back*.",
+       "Approximations are accurate: 62% is 'just over three fifths', 62% to 41% is 'roughly a third' lower.",
+       "No causes or opinions are given, even though the trend invites speculation about cycle lanes or fuel prices.",
+       "Cohesion comes from structure and reference (*a figure that*, *in the process*, *by contrast*) rather than a string of linkers."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "u11-l3",
+   "title": "Practice: a table",
+   "kind": "practice",
+   "minutes": 30,
+   "items": [
+    {
+     "id": "u11-l3-i1",
+     "type": "card",
+     "title": "Tables: find the story before you write",
+     "body": [
+      "A table gives you numbers without a shape, so the danger is listing them row by row. Before writing, rank the rows, calculate the rough size of each change, and look for a relationship between columns.",
+      "In this task, notice that every museum that grew also had a higher share of overseas visitors than the museums that shrank. You must not say *why* (that would be speculation), but you can report the pattern: *the two museums with the highest share of overseas visitors were also those that grew most*."
+     ],
+     "list": [
+      "Rank: which was largest in 2012 and in 2022? Did the ranking change?",
+      "Direction: which rose, which fell?",
+      "Size: roughly how much (by a third, almost doubled, fell by a third)?",
+      "Third column: how does it relate to the others?"
+     ],
+     "tip": "Round sensibly: '860' in a column headed 'thousands' is 860,000 visitors. Write the unit in full at least once."
+    },
+    {
+     "id": "u11-l3-i2",
+     "type": "writing",
+     "task": 1,
+     "prompt": "The table below shows the number of visitors to five museums in a European city in 2012 and 2022, and the percentage of visitors in 2022 who came from overseas.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.",
+     "visual": {
+      "kind": "table",
+      "title": "Visitors to five museums in a European city, 2012 and 2022",
+      "head": [
+       "Museum",
+       "Visitors 2012 (thousands)",
+       "Visitors 2022 (thousands)",
+       "Overseas visitors 2022 (%)"
+      ],
+      "rows": [
+       [
+        "Natural History Museum",
+        "690",
+        "720",
+        "35"
+       ],
+       [
+        "Museum of Modern Art",
+        "520",
+        "860",
+        "41"
+       ],
+       [
+        "Maritime Museum",
+        "410",
+        "380",
+        "12"
+       ],
+       [
+        "City History Museum",
+        "230",
+        "310",
+        "26"
+       ],
+       [
+        "Toy and Childhood Museum",
+        "140",
+        "95",
+        "8"
+       ]
+      ]
+     },
+     "minutes": 20,
+     "minWords": 150,
+     "plan": [
+      "Paraphrase: visitors to five museums, 2012 and 2022, plus share from overseas.",
+      "Overview: three grew, Modern Art fastest and now top; the growers all have higher overseas shares.",
+      "Body 1: the growers (Natural History, Modern Art, City History) with sizes of change.",
+      "Body 2: the decliners (Maritime, Toy) plus the overseas column compared."
+     ],
+     "model": {
+      "text": [
+       "The table compares annual visitor numbers at five museums in a European city in 2012 and 2022, and also shows what proportion of each museum's visitors in 2022 came from abroad.",
+       "Overall, three of the five museums attracted more visitors over the decade, with the Museum of Modern Art growing far faster than any other and overtaking the Natural History Museum as the most visited. There is also a clear pattern in the final column: all three museums that grew drew a larger share of their visitors from overseas than the two that declined.",
+       "In 2012, the Natural History Museum was the most popular, with 690,000 visitors, followed by the Museum of Modern Art at 520,000. Ten years later, the latter had risen by about two thirds to 860,000, while the former grew only slightly, to 720,000. The City History Museum also expanded considerably, from 230,000 to 310,000, an increase of around a third.",
+       "The remaining two museums lost visitors. Attendance at the Maritime Museum dipped from 410,000 to 380,000, and the Toy and Childhood Museum, already the smallest, saw its figure fall by roughly a third to 95,000. As for overseas visitors, they made up 41% of the total at the Museum of Modern Art, 35% at the Natural History Museum and just over a quarter at the City History Museum, compared with 12% at the Maritime Museum and only 8% at the Toy and Childhood Museum."
+      ],
+      "notes": [
+       "The overview reports both the main change (the ranking reversal at the top) and the relationship between columns, without figures.",
+       "Paragraphs group museums by direction (growth versus decline) instead of going row by row.",
+       "Changes are expressed as proportions (*about two thirds*, *around a third*) as well as raw figures, which shows real analysis of the data.",
+       "Reference (*the latter*, *the former*, *the remaining two museums*) keeps the text cohesive without heavy linkers.",
+       "The writer notes the pattern in overseas visitors but does not speculate about why it exists, which keeps the response within Task 1."
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

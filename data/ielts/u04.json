@@ -1,0 +1,593 @@
+{
+ "format": 1,
+ "id": "u04",
+ "n": 4,
+ "block": "listening",
+ "title": "Part 2: maps and monologues",
+ "summary": "After this unit you can follow a single speaker through a site plan, a set of choices or a list of matches without being caught by paraphrase and rejected options.",
+ "lessons": [
+  {
+   "id": "u04-l1",
+   "title": "How Part 2 works",
+   "kind": "learn",
+   "minutes": 22,
+   "items": [
+    {
+     "id": "u04-l1-i1",
+     "type": "card",
+     "title": "What Part 2 is like",
+     "body": [
+      "Part 2 is a **monologue** in an everyday context: a guide showing visitors round a site, a manager briefing new volunteers, a radio presenter introducing a local event. There is no second speaker to slow things down or repeat information.",
+      "Because one person talks continuously, answers can come close together and the speaker rarely spells things out. It is usually split into two sections, with different question types in each."
+     ]
+    },
+    {
+     "id": "u04-l1-i2",
+     "type": "card",
+     "title": "The question types",
+     "body": [
+      "**Map or plan labelling**: match places on a plan to letters. **Multiple choice**: one answer from three, or two from five. **Matching**: match a list of items (people, days, stalls) to a set of options. **Note or sentence completion** also appears.",
+      "Unlike Part 1, multiple-choice options in Part 2 are almost always **paraphrased**. If an option repeats a word you hear, be suspicious: it is often a distractor."
+     ]
+    },
+    {
+     "id": "u04-l1-i3",
+     "type": "card",
+     "title": "Maps and plans: the language of position",
+     "body": [
+      "Before the recording starts, orient yourself: find the entrance, the 'You are here' point and the compass. Speakers describe routes from where the listener is standing, so keep a finger on the plan and move it as they talk.",
+      "Learn the phrases that fix a position precisely, and notice when a speaker updates the plan: 'the café *used to be* by the entrance, but it's now…'."
+     ],
+     "list": [
+      "straight ahead / at the far end / across from / opposite",
+      "on your left as you come in / just past / beyond",
+      "in the corner / alongside / next to / between X and Y",
+      "north of / to the east of / on the far bank",
+      "the first turning on the right / where the path forks"
+     ]
+    },
+    {
+     "id": "u04-l1-i4",
+     "type": "card",
+     "title": "Multiple choice: the paraphrase test",
+     "body": [
+      "The correct option is expressed in different words from the recording; wrong options are often built from words the speaker actually says, attached to the wrong idea.",
+      "Listen for the speaker's final position. 'People assume X, and that's partly true, but really it was Y' gives you three ideas and one answer."
+     ],
+     "examples": [
+      {
+       "text": "'The closure wasn't really about money, whatever the papers said. Nobody wanted to run it any more.'",
+       "note": "Correct option: a lack of people willing to manage it. Distractor: financial problems."
+      }
+     ]
+    },
+    {
+     "id": "u04-l1-i5",
+     "type": "card",
+     "title": "Matching: one list, many mentions",
+     "body": [
+      "In a matching task the speaker usually goes through the items in order (the rows), but the options can be mentioned in any order and some are never used. Expect each row to be discussed with at least one option mentioned and rejected.",
+      "Write a quick letter next to each row as soon as you are sure, and do not wait for the speaker to confirm everything twice: Part 2 moves on."
+     ]
+    },
+    {
+     "id": "u04-l1-i6",
+     "type": "listening",
+     "title": "Drill: a plan",
+     "part": 2,
+     "context": "A receptionist is giving directions inside a building. The plan shows a corridor leading north from reception, with doors on both sides.",
+     "speakers": [
+      {
+       "id": "g",
+       "name": "Speaker",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "g",
+       "t": "From reception, head straight down the main corridor. You'll pass the lifts on your right."
+      },
+      {
+       "s": "g",
+       "t": "The library is the second door on the left, directly opposite the lifts. The first door on the left is a staff room, so don't go in there."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u04-l1-i6-q1",
+         "type": "pick",
+         "q": "Where is the library?",
+         "options": [
+          "A  first door on the left",
+          "B  second door on the left, opposite the lifts",
+          "C  second door on the right, next to the lifts"
+         ],
+         "answer": 1,
+         "why": "\"The second door on the left, directly opposite the lifts\". The first door on the left is the staff room."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u04-l1-i7",
+     "type": "listening",
+     "title": "Drill: hearing past the first reason",
+     "part": 2,
+     "context": "A radio presenter is talking about a local event.",
+     "speakers": [
+      {
+       "id": "g",
+       "name": "Guide",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "g",
+       "t": "A lot of you have been asking why last Saturday's open-air concert was called off. The forecast was dreadful, and of course we all assumed that was it."
+      },
+      {
+       "s": "g",
+       "t": "But actually the organisers were ready to go ahead under cover. The real problem was that the main performer had lost her voice, and there simply wasn't time to find a replacement."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u04-l1-i7-q1",
+         "type": "pick",
+         "q": "Why was the concert cancelled?",
+         "options": [
+          "A  The weather was poor.",
+          "B  There was no suitable shelter.",
+          "C  A singer was unwell."
+         ],
+         "answer": 2,
+         "why": "The weather is what \"we all assumed\"; \"the real problem was that the main performer had lost her voice\": paraphrased as being unwell."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u04-l1-i8",
+     "type": "listening",
+     "title": "Drill: matching",
+     "part": 2,
+     "context": "A market manager describes some of the stalls.",
+     "speakers": [
+      {
+       "id": "g",
+       "name": "Speaker",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "g",
+       "t": "At the market this weekend, Rosa's stall, which used to sell cheese, has switched entirely to bread. Next to her, the Patels have their spices as usual, though they've added some cookbooks too."
+      },
+      {
+       "s": "g",
+       "t": "And Tom Hale, who many of you know for his honey, is selling cheese this week while his bees recover from a bad winter."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "What does each stallholder sell this weekend? Choose A-E.",
+       "items": [
+        {
+         "id": "u04-l1-i8-q1",
+         "type": "select",
+         "q": "Choose the correct letter, A-E, for each stallholder.",
+         "options": [
+          "A  bread",
+          "B  cheese",
+          "C  honey",
+          "D  spices and cookbooks",
+          "E  vegetables"
+         ],
+         "rows": [
+          {
+           "label": "Rosa",
+           "answer": 0
+          },
+          {
+           "label": "the Patels",
+           "answer": 3
+          },
+          {
+           "label": "Tom Hale",
+           "answer": 1
+          }
+         ],
+         "why": "Rosa \"used to sell cheese\" but has switched to bread; the Patels sell spices plus cookbooks; Tom is known for honey but \"is selling cheese this week\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u04-l1-i9",
+     "type": "pick",
+     "q": "An option repeats a distinctive word you clearly heard in the recording. What should you assume?",
+     "options": [
+      "It is almost certainly correct.",
+      "It may well be a distractor; check the meaning, not the word.",
+      "It should be ignored completely."
+     ],
+     "answer": 1,
+     "why": "In Part 2 the right option is usually **paraphrased**; repeated words are a common way of building distractors."
+    },
+    {
+     "id": "u04-l1-i10",
+     "type": "pick",
+     "q": "A speaker says, 'The toilets used to be by the gate, but they've been moved to the far end of the car park.' Where are the toilets now?",
+     "options": [
+      "by the gate",
+      "at the far end of the car park",
+      "it is unclear"
+     ],
+     "answer": 1,
+     "why": "'Used to be' marks the old position; the current one is \"the far end of the car park\"."
+    }
+   ]
+  },
+  {
+   "id": "u04-l2",
+   "title": "Practice: a full Part 2",
+   "kind": "practice",
+   "minutes": 12,
+   "items": [
+    {
+     "id": "u04-l2-i1",
+     "type": "listening",
+     "title": "Hallam Bridge Mill",
+     "part": 2,
+     "context": "You will hear a guide welcoming visitors to a museum in a former textile mill. First, you have some time to look at questions 1 to 5.",
+     "speakers": [
+      {
+       "id": "g",
+       "name": "Guide",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "g",
+       "t": "Good morning, everyone, and welcome to Hallam Bridge Mill. I'm Jenny, and I'll be giving you a quick introduction before you explore on your own. You're standing just inside the main entrance, and as you can see, the old mill buildings are arranged round this cobbled courtyard."
+      },
+      {
+       "s": "g",
+       "t": "Let me start by pointing out where everything is. The building immediately to your right, which was once the counting house where the wages were paid, is now our shop. You'll pass it again on your way out, so there's no need to stop there now."
+      },
+      {
+       "s": "g",
+       "t": "The long building straight ahead of you, right across the far end of the courtyard, is the weaving shed, and that's the heart of the museum. Behind the weaving shed, right on the riverbank, is the engine house. It had to be beside the river, because the original engine needed a constant supply of water. You can get to it through the back door of the weaving shed."
+      },
+      {
+       "s": "g",
+       "t": "Now, some of you may have visited before, when the café was just here on the left by the entrance. That space is now the toilets and baby-changing room. The café has moved to the far end of the courtyard, also on the left, into what used to be the stables, and it's a much nicer space."
+      },
+      {
+       "s": "g",
+       "t": "Families with younger children will want the children's workshop. That's not on the main site at all. Go round behind the engine house and cross the footbridge, and it's in the old dye house on the far bank. On the right-hand side of the courtyard, beyond the shop, is our office, which isn't open to the public."
+      },
+      {
+       "s": "g",
+       "t": "Now a little history. The mill was built in eighteen twenty-two and employed over four hundred people at its peak. People often assume it closed because of cheap imports from abroad. Competition certainly played a part, and profits had been falling for years, but what actually finished it off was the great flood of nineteen sixty-eight, which wrecked the machinery. The owners simply couldn't afford to replace it."
+      },
+      {
+       "s": "g",
+       "t": "When you go into the weaving shed, you'll see thirty looms. I should be honest with you: these aren't the mill's own looms. The originals were sold for scrap after the flood, and these came from a mill in Lancashire. But every single one of them is in working order, and we run them for a few minutes at eleven and at three each day, so do try to be there for that."
+      },
+      {
+       "s": "g",
+       "t": "The engine house is open all day and you don't need to book, though you might prefer to go at a quiet time. The engine is extremely loud when it's running, so ear defenders are provided at the door, and you must wear them whenever the engine is in motion. That's a strict rule, I'm afraid, for your own protection."
+      },
+      {
+       "s": "g",
+       "t": "The café, as well as serving lunches, is known for its cakes. Most of the fruit and herbs they use come from the mill's own kitchen garden, which our volunteers have restored over the last five years. Do note that it closes at four, an hour before the rest of the museum."
+      },
+      {
+       "s": "g",
+       "t": "Finally, if the weather holds, I'd recommend finishing your visit with the riverside walk. It starts by the footbridge and follows the old mill race for about a mile. You'll see the weir and the remains of the original water wheel, and it's a lovely, peaceful way to end the day. Right, enjoy your visit."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Label the plan below. The plan shows the mill site with the main entrance at the bottom (south) and a courtyard in the middle. A: on your left just inside the entrance. B: on the left at the far end of the courtyard. C: on your right just inside the entrance. D: on the right at the far end of the courtyard. E: the long building straight ahead, across the north end of the courtyard. F: behind building E, beside the river. G: on the far side of the river, reached by a footbridge.",
+       "items": [
+        {
+         "id": "u04-l2-i1-q1",
+         "type": "select",
+         "q": "Choose the correct letter, A-G, for each place.",
+         "options": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+         ],
+         "rows": [
+          {
+           "label": "Shop",
+           "answer": 2
+          },
+          {
+           "label": "Weaving shed",
+           "answer": 4
+          },
+          {
+           "label": "Engine house",
+           "answer": 5
+          },
+          {
+           "label": "Café",
+           "answer": 1
+          },
+          {
+           "label": "Children's workshop",
+           "answer": 6
+          }
+         ],
+         "why": "Shop: \"immediately to your right\" (C). Weaving shed: \"straight ahead… across the far end\" (E). Engine house: \"behind the weaving shed, right on the riverbank\" (F). Café: moved from A to \"the far end of the courtyard, also on the left\" (B). Workshop: across the footbridge \"on the far bank\" (G)."
+        }
+       ]
+      },
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u04-l2-i1-q2",
+         "type": "pick",
+         "q": "What was the main reason the mill closed?",
+         "options": [
+          "A  competition from overseas",
+          "B  falling profits",
+          "C  damage caused by water"
+         ],
+         "answer": 2,
+         "why": "Imports and falling profits \"played a part\", \"but what actually finished it off was the great flood\"."
+        },
+        {
+         "id": "u04-l2-i1-q3",
+         "type": "pick",
+         "q": "What does the guide say about the looms?",
+         "options": [
+          "A  They are the mill's original machines.",
+          "B  They can still be operated.",
+          "C  They were built in the local area."
+         ],
+         "answer": 1,
+         "why": "They came from Lancashire, not the mill, but \"every single one of them is in working order\"."
+        },
+        {
+         "id": "u04-l2-i1-q4",
+         "type": "pick",
+         "q": "Visitors to the engine house must",
+         "options": [
+          "A  wear hearing protection when the engine runs.",
+          "B  book a time in advance.",
+          "C  be accompanied by a guide."
+         ],
+         "answer": 0,
+         "why": "\"You don't need to book\"; \"you must wear them [ear defenders] whenever the engine is in motion\"."
+        },
+        {
+         "id": "u04-l2-i1-q5",
+         "type": "pick",
+         "q": "What does the guide say about the café?",
+         "options": [
+          "A  It stays open later than the museum.",
+          "B  It uses produce grown on site.",
+          "C  It only serves cakes."
+         ],
+         "answer": 1,
+         "why": "\"Most of the fruit and herbs they use come from the mill's own kitchen garden.\" It closes an hour earlier, and it also serves lunches."
+        },
+        {
+         "id": "u04-l2-i1-q6",
+         "type": "pick",
+         "q": "The guide suggests ending the visit by",
+         "options": [
+          "A  watching the looms run.",
+          "B  walking along the river.",
+          "C  visiting the shop."
+         ],
+         "answer": 1,
+         "why": "\"I'd recommend finishing your visit with the riverside walk.\""
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u04-l3",
+   "title": "Test: a full Part 2",
+   "kind": "test",
+   "minutes": 15,
+   "timed": 900,
+   "items": [
+    {
+     "id": "u04-l3-i1",
+     "type": "listening",
+     "title": "Volunteering at Saltmere Point",
+     "part": 2,
+     "context": "You will hear the manager of a coastal nature reserve talking to a group of new volunteers. First, you have some time to look at questions 1 to 5.",
+     "speakers": [
+      {
+       "id": "g",
+       "name": "Speaker",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "g",
+       "t": "Hello, everyone, and thank you all for coming. My name's David Ashworth and I manage the Saltmere Point reserve. This morning I'll tell you who's who, what to expect on your first day, and a few practical things you'll need to know."
+      },
+      {
+       "s": "g",
+       "t": "First, the team, because you'll need to know who to go to for what. If you need to change one of your shifts, please don't come to me. Gill in the office keeps the rota, and she's the only person who can swap shifts round. Her number's on the noticeboard."
+      },
+      {
+       "s": "g",
+       "t": "If you come across an injured bird or animal, which does happen fairly often on the shoreline, don't try to handle it yourself. Phone Owen, our senior warden. He's trained for that, and he'll either come himself or send someone. Ben in the visitor centre often gets asked about injured animals by the public, but he'll just pass the message on to Owen, so it's quicker to go straight to him."
+      },
+      {
+       "s": "g",
+       "t": "Some of you have said you'd like to help with school visits. That's all organised by Priya, our education officer. She runs a short training session before you work with children, and you'll need to have completed that first."
+      },
+      {
+       "s": "g",
+       "t": "Anything visitors hand in, keys, phones, a surprising number of single gloves, should go to Ben at the visitor centre. He logs everything and keeps it for a month."
+      },
+      {
+       "s": "g",
+       "t": "And if you ever have a concern about safety, a broken handrail, say, or a path that's become dangerous, I'd like you to tell me directly. It used to be Owen's responsibility, but with the size of the reserve now, safety issues come to me."
+      },
+      {
+       "s": "g",
+       "t": "Now, your first day. There are two things everybody has to do before anything else. You must watch the safety video in the visitor centre, which takes about twenty minutes, and you need to sign the volunteer agreement, which Gill will give you. You won't be given a uniform on the first day, by the way. Those take a couple of weeks to order. And although we'd love you to learn the names of the common birds, nobody's going to test you on day one."
+      },
+      {
+       "s": "g",
+       "t": "We'll pair you with an experienced volunteer for your first few shifts, but you don't need to arrange that. We'll do it for you."
+      },
+      {
+       "s": "g",
+       "t": "A few practical points. Some of you will be keen to see the bird hide on the eastern lagoon. Unfortunately, it was damaged in the winter storms and it'll be closed for repairs until March. The western hide is open as usual."
+      },
+      {
+       "s": "g",
+       "t": "You'll be outside in all weathers, so please wear proper boots. In particular, the lower path along the saltmarsh floods at high tide, sometimes quite quickly, so always check the tide times on the board by the gate before you set off."
+      },
+      {
+       "s": "g",
+       "t": "On the plus side, while you're on shift, the café gives volunteers free drinks, tea, coffee, that sort of thing. Food isn't included, I'm afraid, but you do get ten per cent off."
+      },
+      {
+       "s": "g",
+       "t": "One more thing about the saltmarsh: please keep to the marked paths at all times between April and July. That's the nesting season, and some of our ground-nesting birds are very easily disturbed. If a bird flies up calling loudly as you approach, you're probably too close to a nest, so back away quietly."
+      },
+      {
+       "s": "g",
+       "t": "Finally, at the end of each shift, please fill in the wildlife log. Even if you think you saw nothing special, the records help us track changes over the years. Right, any questions before we head outside?"
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Who should volunteers contact about each of the following? Choose the correct letter, A-E.",
+       "items": [
+        {
+         "id": "u04-l3-i1-q1",
+         "type": "select",
+         "q": "Choose A-E for each issue.",
+         "options": [
+          "A  David (manager)",
+          "B  Gill (office)",
+          "C  Owen (senior warden)",
+          "D  Priya (education officer)",
+          "E  Ben (visitor centre)"
+         ],
+         "rows": [
+          {
+           "label": "changing a shift",
+           "answer": 1
+          },
+          {
+           "label": "an injured animal",
+           "answer": 2
+          },
+          {
+           "label": "helping with school groups",
+           "answer": 3
+          },
+          {
+           "label": "lost property",
+           "answer": 4
+          },
+          {
+           "label": "a safety concern",
+           "answer": 0
+          }
+         ],
+         "why": "Shifts: \"Gill… is the only person who can swap shifts\". Injured animals: \"Phone Owen\" (Ben only passes messages on). Schools: \"organised by Priya\". Lost property: \"should go to Ben\". Safety: \"It used to be Owen's responsibility… safety issues come to me\" (David)."
+        }
+       ]
+      },
+      {
+       "instr": "Choose TWO letters, A-E.",
+       "items": [
+        {
+         "id": "u04-l3-i1-q2",
+         "type": "multi",
+         "q": "Which TWO things must volunteers do on their first day?",
+         "options": [
+          "A  collect a uniform",
+          "B  watch a video",
+          "C  learn to identify common birds",
+          "D  sign a document",
+          "E  choose a partner"
+         ],
+         "answer": [
+          1,
+          3
+         ],
+         "why": "\"You must watch the safety video… and you need to sign the volunteer agreement.\" Uniforms take weeks, there is no bird test, and partners are arranged for you."
+        }
+       ]
+      },
+      {
+       "instr": "Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.",
+       "items": [
+        {
+         "id": "u04-l3-i1-q3",
+         "type": "gap",
+         "text": "Eastern hide closed for repairs until ___",
+         "answer": [
+          "March"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"It'll be closed for repairs until March.\""
+        },
+        {
+         "id": "u04-l3-i1-q4",
+         "type": "gap",
+         "text": "The ___ path floods at high tide.",
+         "answer": [
+          "lower"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"The lower path along the saltmarsh floods at high tide.\""
+        },
+        {
+         "id": "u04-l3-i1-q5",
+         "type": "gap",
+         "text": "Volunteers on shift get free ___ in the café.",
+         "answer": [
+          "drinks"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"The café gives volunteers free drinks\"; food is only discounted."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

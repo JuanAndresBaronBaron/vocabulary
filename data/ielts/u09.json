@@ -1,0 +1,584 @@
+{
+ "format": 1,
+ "id": "u09",
+ "n": 9,
+ "block": "reading",
+ "title": "Completion and multiple choice",
+ "summary": "After this unit you can complete sentences, summaries, notes and flow charts within the word limit, and eliminate multiple-choice distractors for a clear reason.",
+ "lessons": [
+  {
+   "id": "u09-l1",
+   "title": "Strategy: completion and multiple choice",
+   "kind": "learn",
+   "minutes": 26,
+   "items": [
+    {
+     "id": "u09-l1-i1",
+     "type": "card",
+     "title": "Sentence completion: grammar first",
+     "body": [
+      "The words you write must come **from the passage**, unchanged, and must make the sentence grammatically correct. Before searching, decide what the gap needs: a noun, a plural, an adjective, a verb form.",
+      "The sentences follow the order of the passage. Locate the area with an anchor word, then read closely for the paraphrase of the sentence stem."
+     ],
+     "tip": "Check the limit every time. NO MORE THAN TWO WORDS means 'fully shielded' is fine and 'fully shielded lamp' is wrong, even if the meaning is perfect."
+    },
+    {
+     "id": "u09-l1-i2",
+     "type": "card",
+     "title": "Summary completion: two versions",
+     "body": [
+      "In one version you take words **from the passage**; in the other you choose from a **box of words**. With a box, the words are usually *not* the same as the passage: you match meaning, so 'the main obstacle is cost' gives you *expensive*.",
+      "A summary may cover the whole passage or only one section. Read the summary first to see which part of the text it condenses, and use the words around each gap to predict its type."
+     ]
+    },
+    {
+     "id": "u09-l1-i3",
+     "type": "card",
+     "title": "Notes, tables and flow charts",
+     "body": [
+      "These condense the passage into a skeleton. Headings and row labels tell you where to look; a flow chart usually follows the order of a process exactly.",
+      "Answers are often nouns. Spelling counts, and so do plurals: if the passage says 'samples' and your gap needs the plural, a missing -s costs the mark."
+     ]
+    },
+    {
+     "id": "u09-l1-i4",
+     "type": "card",
+     "title": "Multiple choice: the stem is the question",
+     "body": [
+      "Read the stem carefully: 'The writer mentions X in order to…' is a question about purpose, not content. Then find the place in the passage *before* reading the options in detail, so the options do not shape what you look for.",
+      "Wrong options are usually built in three ways: true but not an answer to the question; using words from the passage but distorting the meaning; or going further than the passage (a 'may' turned into 'has proved'). Eliminate each option for a reason you can name."
+     ],
+     "examples": [
+      {
+       "text": "Passage: 'The results were encouraging but based on a small sample.'",
+       "note": "Wrong option: 'The results were conclusive.' Right option: 'The results need further confirmation.'"
+      }
+     ]
+    },
+    {
+     "id": "u09-l1-i5",
+     "type": "reading",
+     "title": "Drill: the return of the tram",
+     "minutes": 8,
+     "paragraphs": [
+      {
+       "label": null,
+       "text": "For much of the twentieth century, trams seemed a technology of the past. Many British cities removed their tram networks in the 1950s and 1960s, replacing them with buses, which were cheaper to run and did not need tracks. Trams were widely seen as slow, noisy and an obstacle to the growing number of private cars. By the 1960s only a handful of British towns, most famously Blackpool, still had a tram service."
+      },
+      {
+       "label": null,
+       "text": "Since the 1990s, however, several cities have built new tram systems. Modern trams are quieter and more comfortable than their predecessors and produce no exhaust fumes in the street. Because they run on fixed routes, they give passengers and investors a sense of permanence that buses cannot. Property developers in particular tend to favour sites near tram stops, knowing that the line is unlikely to be moved. Planners also value the fact that a single tram can carry far more passengers than a bus, which makes trams well suited to busy routes into city centres. Many new systems also share streets with pedestrians, helping to make city centres more pleasant places to be."
+      },
+      {
+       "label": null,
+       "text": "The main obstacle is cost. Laying track involves digging up streets and moving pipes and cables, and construction can disrupt businesses for months. For this reason, some cities have turned to cheaper alternatives, such as guided buses or 'trackless trams' that follow markings painted on the road. Whether these can match the appeal of a real tram line remains to be seen, but they are likely to become more common where budgets are tight."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the sentences below. Choose ONE WORD ONLY from the passage for each answer.",
+       "items": [
+        {
+         "id": "u09-l1-i5-q1",
+         "type": "gap",
+         "text": "In the mid-twentieth century, trams were often replaced by ___.",
+         "answer": [
+          "buses"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Cities removed trams, \"replacing them with buses\"."
+        },
+        {
+         "id": "u09-l1-i5-q2",
+         "type": "gap",
+         "text": "Fixed routes give a feeling of ___ that buses lack.",
+         "answer": [
+          "permanence"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"They give passengers and investors a sense of permanence that buses cannot.\""
+        }
+       ]
+      },
+      {
+       "instr": "Complete the summary using the list of words, A-F, below.",
+       "items": [
+        {
+         "id": "u09-l1-i5-q3",
+         "type": "select",
+         "q": "Summary: Modern tram systems are popular with property (1) ___ because lines are rarely moved, but construction is (2) ___ and can disrupt local trade. Cheaper options include buses that follow (3) ___ on the road.",
+         "options": [
+          "A  passengers",
+          "B  developers",
+          "C  expensive",
+          "D  quick",
+          "E  markings",
+          "F  tracks"
+         ],
+         "rows": [
+          {
+           "label": "Gap 1",
+           "answer": 1
+          },
+          {
+           "label": "Gap 2",
+           "answer": 2
+          },
+          {
+           "label": "Gap 3",
+           "answer": 4
+          }
+         ],
+         "why": "\"Property developers… favour sites near tram stops\"; \"The main obstacle is cost\" (expensive); trackless trams \"follow markings painted on the road\". F is a trap: the point is that they do *not* need tracks."
+        }
+       ]
+      },
+      {
+       "instr": "Choose the correct letter, A, B, C or D.",
+       "items": [
+        {
+         "id": "u09-l1-i5-q4",
+         "type": "pick",
+         "q": "What does the writer say about trackless trams?",
+         "options": [
+          "A  They are more popular than real trams.",
+          "B  They have proved unreliable.",
+          "C  Their success is not yet certain.",
+          "D  They cost as much as tram lines."
+         ],
+         "answer": 2,
+         "why": "\"Whether these can match the appeal of a real tram line remains to be seen.\""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u09-l1-i6",
+     "type": "pick",
+     "q": "A summary uses a box of words. What should you expect?",
+     "options": [
+      "The words appear exactly in the passage.",
+      "The words may be paraphrases of the passage.",
+      "Any grammatically correct word will do."
+     ],
+     "answer": 1,
+     "why": "With a word box you match **meaning**; the options are often synonyms of the passage's words."
+    },
+    {
+     "id": "u09-l1-i7",
+     "type": "pick",
+     "q": "An option says the research 'has proved' something; the passage says it 'suggests' it. The option is",
+     "options": [
+      "correct",
+      "wrong: it overstates the passage",
+      "not mentioned"
+     ],
+     "answer": 1,
+     "why": "Turning a tentative claim into a certain one is a classic distractor."
+    }
+   ]
+  },
+  {
+   "id": "u09-l2",
+   "title": "Practice: a full passage",
+   "kind": "practice",
+   "minutes": 22,
+   "items": [
+    {
+     "id": "u09-l2-i1",
+     "type": "reading",
+     "title": "Building tall with timber",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "For more than a century, the tallest buildings in the world have been made of steel and concrete. Wood, by contrast, has been associated with low-rise houses, and in many countries building regulations limited timber structures to a few storeys, largely because of fears about fire. In the last two decades that has begun to change. The shift has been driven partly by changes to building codes, which in a number of countries now permit taller timber structures provided that strict fire-safety conditions are met. Buildings of eighteen storeys and more, with structures made largely of wood, have been completed in Europe and North America, and architects have published designs for timber towers far taller still."
+      },
+      {
+       "label": "B",
+       "text": "What has made this possible is not ordinary timber but a family of engineered wood products. The best known is cross-laminated timber, usually abbreviated to CLT, which was developed in Austria and Germany in the 1990s. It is made by gluing layers of boards together, with the grain of each layer at right angles to the one below. The result is a large, flat panel that is strong in both directions and far more stable than a single piece of wood, which tends to swell, shrink and warp as its moisture content changes. Panels can be manufactured to precise dimensions in a factory, with openings for windows and doors already cut."
+      },
+      {
+       "label": "C",
+       "text": "This prefabrication brings several practical advantages. Because the panels arrive on site ready to be lifted into position, construction is faster than with concrete, which must be poured and left to harden, and it is considerably quieter, an important consideration in crowded city centres. Timber is also much lighter than concrete, so a timber building needs smaller foundations, which can make it possible to build on ground that would not support a heavier structure, or to add extra storeys on top of existing buildings."
+      },
+      {
+       "label": "D",
+       "text": "The argument that has attracted most attention, however, is environmental. The production of cement, the key ingredient of concrete, is responsible for a significant share of global carbon dioxide emissions, and steel-making is also energy-intensive. Trees, on the other hand, absorb carbon dioxide as they grow, and much of that carbon remains locked in the wood for as long as the building stands. Advocates argue that replacing concrete and steel with timber could turn buildings from a source of emissions into a means of storing carbon. Critics respond that the benefit depends entirely on how forests are managed: if trees are not replaced, or if forests are cleared to meet demand, the gains could disappear. There is also the question of what happens at the end of a building's life: timber can sometimes be reused or recycled, although practice in this area is still limited."
+      },
+      {
+       "label": "E",
+       "text": "Fire remains the question that every timber project must answer. Intuitively, a wooden building seems more dangerous than a concrete one, yet large timber elements behave differently from the thin pieces of wood used in a domestic fire. When a thick panel burns, its surface turns to charcoal, and this layer of char insulates the wood beneath it and slows the spread of the fire into the structure. Engineers can calculate how quickly the char will form and make panels thick enough to keep their strength for a required period. Even so, most tall timber buildings also include sprinkler systems and encase some of the wood in fire-resistant boards, and insurers in some countries remain cautious."
+      },
+      {
+       "label": "F",
+       "text": "Other challenges are less dramatic but no less real. Wood is vulnerable to moisture, so panels must be protected from rain during construction and the finished building carefully detailed to keep water out. Timber floors can transmit sound more readily than concrete ones, which means additional layers are often needed to prevent residents from hearing their neighbours. And because the technology is relatively new, there are fewer engineers and builders with experience of it, which can add to costs and slow the approval of projects."
+      },
+      {
+       "label": "G",
+       "text": "For these reasons, many recent tall buildings are not purely timber but hybrids, in which a concrete core containing the lifts and stairs is combined with wooden floors and walls. Such compromises may disappoint those who hoped for a wholly wooden skyline, but they allow designers to use each material where it performs best. Some designers also point to a less measurable benefit: people seem to respond positively to exposed wood, and several developers report that residents and office workers value the warmth of timber interiors. Whether timber will ever rival concrete in the construction of the very tallest towers is uncertain. What seems clear is that it is no longer confined to the suburbs."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 1-5. Complete the summary below. Choose ONE WORD ONLY from the passage for each answer.",
+       "items": [
+        {
+         "id": "u09-l2-i1-q1",
+         "type": "gap",
+         "text": "Cross-laminated timber is made by gluing layers of ___ together.",
+         "answer": [
+          "boards"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph B: \"gluing layers of boards together\"."
+        },
+        {
+         "id": "u09-l2-i1-q2",
+         "type": "gap",
+         "text": "The ___ of each layer runs at right angles to the next.",
+         "answer": [
+          "grain"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph B: \"with the grain of each layer at right angles to the one below\"."
+        },
+        {
+         "id": "u09-l2-i1-q3",
+         "type": "gap",
+         "text": "Unlike a single piece of wood, a panel does not easily swell, shrink or ___.",
+         "answer": [
+          "warp"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph B: a single piece of wood \"tends to swell, shrink and warp\"."
+        },
+        {
+         "id": "u09-l2-i1-q4",
+         "type": "gap",
+         "text": "Panels are made in a ___ with openings already cut.",
+         "answer": [
+          "factory"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph B: \"manufactured to precise dimensions in a factory\"."
+        },
+        {
+         "id": "u09-l2-i1-q5",
+         "type": "gap",
+         "text": "Because timber is lighter, buildings need smaller ___.",
+         "answer": [
+          "foundations"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph C: \"a timber building needs smaller foundations\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 6-9. Choose the correct letter, A, B, C or D.",
+       "items": [
+        {
+         "id": "u09-l2-i1-q6",
+         "type": "pick",
+         "q": "Why were timber buildings traditionally limited in height?",
+         "options": [
+          "A  Wood was too expensive.",
+          "B  There were concerns about fire.",
+          "C  Timber was not strong enough.",
+          "D  There was a shortage of wood."
+         ],
+         "answer": 1,
+         "why": "Paragraph A: regulations limited timber structures \"largely because of fears about fire\"."
+        },
+        {
+         "id": "u09-l2-i1-q7",
+         "type": "pick",
+         "q": "According to paragraph C, one advantage of timber construction is that it",
+         "options": [
+          "A  produces less noise.",
+          "B  requires fewer workers.",
+          "C  uses cheaper materials.",
+          "D  needs no foundations."
+         ],
+         "answer": 0,
+         "why": "Paragraph C: construction \"is considerably quieter\". Foundations are smaller, not absent."
+        },
+        {
+         "id": "u09-l2-i1-q8",
+         "type": "pick",
+         "q": "What point do critics make about the environmental case for timber?",
+         "options": [
+          "A  Trees release carbon as they grow.",
+          "B  It depends on how forests are looked after.",
+          "C  Cement production has become cleaner.",
+          "D  Timber buildings do not last long."
+         ],
+         "answer": 1,
+         "why": "Paragraph D: \"the benefit depends entirely on how forests are managed\"."
+        },
+        {
+         "id": "u09-l2-i1-q9",
+         "type": "pick",
+         "q": "What does the writer say about fire in large timber buildings?",
+         "options": [
+          "A  The danger has been completely removed.",
+          "B  The charred surface helps to protect the inner wood.",
+          "C  Sprinklers are no longer necessary.",
+          "D  Insurers have accepted the technology everywhere."
+         ],
+         "answer": 1,
+         "why": "Paragraph E: the char \"insulates the wood beneath it\". Sprinklers are still used, and insurers \"in some countries remain cautious\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 10-13. Complete the notes below. Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+       "items": [
+        {
+         "id": "u09-l2-i1-q10",
+         "type": "gap",
+         "text": "Moisture: panels must be protected from ___ while building is in progress.",
+         "answer": [
+          "rain"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph F: \"panels must be protected from rain during construction\"."
+        },
+        {
+         "id": "u09-l2-i1-q11",
+         "type": "gap",
+         "text": "Noise: timber floors can let ___ through more easily than concrete.",
+         "answer": [
+          "sound"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph F: \"Timber floors can transmit sound more readily than concrete ones\"."
+        },
+        {
+         "id": "u09-l2-i1-q12",
+         "type": "gap",
+         "text": "Skills: a lack of experienced engineers can increase ___.",
+         "answer": [
+          "costs"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph F: fewer experienced engineers \"can add to costs\"."
+        },
+        {
+         "id": "u09-l2-i1-q13",
+         "type": "gap",
+         "text": "Hybrid buildings: a ___ holds the lifts and stairs.",
+         "answer": [
+          "concrete core"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph G: \"a concrete core containing the lifts and stairs\"."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u09-l3",
+   "title": "Test: a full passage",
+   "kind": "test",
+   "minutes": 20,
+   "timed": 1200,
+   "items": [
+    {
+     "id": "u09-l3-i1",
+     "type": "reading",
+     "title": "Ice cores: archives of ancient air",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "The ice sheets of Antarctica and Greenland are, among other things, the finest archives of past climate on Earth. Each year, snow falls on their surface and, in the coldest regions, never melts. Over time it is buried by later snowfalls and gradually compressed, first into a granular material called firn and eventually, at depths of several tens of metres, into solid ice. In the process, small pockets of air become sealed inside the ice as bubbles. Those bubbles are samples of the atmosphere as it was when they were trapped, and by drilling down through the ice, scientists can recover a record that stretches back hundreds of thousands of years. Tree rings, cave formations and ocean sediments also record past climates, but none of them preserves samples of the ancient atmosphere itself."
+      },
+      {
+       "label": "B",
+       "text": "Drilling an ice core is a slow and demanding business. A hollow drill, lowered on a cable, cuts a cylinder of ice a few metres long, which is then brought to the surface, measured and logged before the drill descends again. Keeping the borehole open is itself a challenge, since the weight of the surrounding ice slowly squeezes it closed, and it is usually filled with a special fluid to prevent this. In the deepest projects this cycle is repeated thousands of times over several field seasons, often at research stations where summer temperatures remain far below freezing. The longest continuous record yet recovered, from a site in East Antarctica, covers roughly 800,000 years."
+      },
+      {
+       "label": "C",
+       "text": "Once at the surface, the cores are cut into sections and transported, still frozen, to laboratories where they are stored at temperatures well below zero. Here the real work begins. Scientists release the air from the bubbles, usually by crushing or melting small samples in a sealed container, and measure its composition. This allows them to determine the concentration of gases such as carbon dioxide and methane in the ancient atmosphere directly, rather than inferring it from other evidence. Because contamination by modern air would ruin a measurement, the work is carried out with great care, and results from different laboratories are compared to check their consistency."
+      },
+      {
+       "label": "D",
+       "text": "The ice itself contains a different kind of information. Water molecules come in slightly different forms, or isotopes, which differ in weight. The proportion of heavier to lighter forms in snow depends on the temperature at the time it fell, so by measuring that ratio along the length of a core, researchers can reconstruct how temperatures changed. In regions with heavy snowfall, the core may also show annual layers, rather like the rings of a tree, which can be counted to date the ice. In drier regions the layers are too thin to distinguish, and ages must be estimated using models of how the ice has accumulated and flowed."
+      },
+      {
+       "label": "E",
+       "text": "Ice cores also preserve traces of particular events. Major volcanic eruptions leave layers of ash or of sulphur compounds that can sometimes be matched to eruptions known from historical records, providing fixed points that help to date the core. Dust blown from distant deserts is more abundant in the ice during cold, dry periods, while some chemical traces reveal changes in the extent of sea ice. Even traces of ancient pollution can be detected: lead released by metal smelting in Roman times, for example, has been identified in Greenland ice. Taken together, these signals make ice cores unusually rich sources of information about the climate system as a whole."
+      },
+      {
+       "label": "F",
+       "text": "The most widely cited finding from ice cores concerns the relationship between greenhouse gases and temperature. Over the glacial cycles of the past several hundred thousand years, carbon dioxide and temperature have risen and fallen closely together. During ice ages, concentrations of carbon dioxide were low; during the warmer periods between them, they were higher. Present-day concentrations, however, are well above anything recorded in the ice cores, and they have risen far faster than in any of the natural changes the cores preserve. For many climate scientists, this comparison is one of the clearest illustrations of how unusual current changes are."
+      },
+      {
+       "label": "G",
+       "text": "The archive is not inexhaustible. As the climate warms, some mountain glaciers, which hold shorter but valuable records of regional climate, are melting, and with them the information they contain. In response, an international project has begun to collect cores from threatened glaciers and store them in a specially built cave in Antarctica, where they can be kept frozen for future scientists using techniques that do not yet exist. It is an unusual form of conservation: preserving not a species or a landscape, but a record of the air."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 1-4. Choose the correct letter, A, B, C or D.",
+       "items": [
+        {
+         "id": "u09-l3-i1-q1",
+         "type": "pick",
+         "q": "What happens to snow on the coldest parts of the ice sheets?",
+         "options": [
+          "A  It melts each summer and refreezes.",
+          "B  It is compressed over time into ice.",
+          "C  It is blown away by strong winds.",
+          "D  It forms bubbles on the surface."
+         ],
+         "answer": 1,
+         "why": "Paragraph A: snow is \"gradually compressed, first into… firn and eventually… into solid ice\"."
+        },
+        {
+         "id": "u09-l3-i1-q2",
+         "type": "pick",
+         "q": "The writer describes the drilling process in paragraph B as",
+         "options": [
+          "A  dangerous.",
+          "B  quick but expensive.",
+          "C  slow and repetitive.",
+          "D  recently automated."
+         ],
+         "answer": 2,
+         "why": "Paragraph B: \"a slow and demanding business\"; the cycle \"is repeated thousands of times\"."
+        },
+        {
+         "id": "u09-l3-i1-q3",
+         "type": "pick",
+         "q": "Why is the analysis of air bubbles particularly valuable?",
+         "options": [
+          "A  It is cheaper than other methods.",
+          "B  It gives a direct measurement of past gases.",
+          "C  It shows the age of the ice precisely.",
+          "D  It reveals past temperatures."
+         ],
+         "answer": 1,
+         "why": "Paragraph C: gas concentrations are determined \"directly, rather than inferring it from other evidence\"."
+        },
+        {
+         "id": "u09-l3-i1-q4",
+         "type": "pick",
+         "q": "How is ice from drier regions dated?",
+         "options": [
+          "A  by counting annual layers",
+          "B  by matching volcanic eruptions only",
+          "C  by using models of accumulation and flow",
+          "D  by measuring dust"
+         ],
+         "answer": 2,
+         "why": "Paragraph D: in drier regions \"ages must be estimated using models of how the ice has accumulated and flowed\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 5-9. Complete the flow chart below. Choose ONE WORD ONLY from the passage for each answer.",
+       "items": [
+        {
+         "id": "u09-l3-i1-q5",
+         "type": "gap",
+         "text": "A hollow drill on a ___ cuts a cylinder of ice.",
+         "answer": [
+          "cable"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph B: \"A hollow drill, lowered on a cable\"."
+        },
+        {
+         "id": "u09-l3-i1-q6",
+         "type": "gap",
+         "text": "Each section is measured and ___ at the surface.",
+         "answer": [
+          "logged"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph B: \"measured and logged before the drill descends again\"."
+        },
+        {
+         "id": "u09-l3-i1-q7",
+         "type": "gap",
+         "text": "Cores are transported to laboratories while still ___.",
+         "answer": [
+          "frozen"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph C: \"transported, still frozen, to laboratories\"."
+        },
+        {
+         "id": "u09-l3-i1-q8",
+         "type": "gap",
+         "text": "Air is released by crushing or ___ small samples.",
+         "answer": [
+          "melting"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph C: \"usually by crushing or melting small samples\"."
+        },
+        {
+         "id": "u09-l3-i1-q9",
+         "type": "gap",
+         "text": "The ratio of heavier and lighter ___ in the ice shows past temperatures.",
+         "answer": [
+          "isotopes"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph D: water molecules come in \"isotopes\"; their ratio reflects temperature."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 10-13. Complete the summary using the list of words, A-H, below.",
+       "items": [
+        {
+         "id": "u09-l3-i1-q10",
+         "type": "select",
+         "q": "Summary: Volcanic eruptions leave layers that act as fixed (10) ___ for dating. More desert dust appears in the ice during (11) ___ periods. Over past glacial cycles, carbon dioxide and temperature changed (12) ___, but today's levels have risen far more (13) ___ than in any natural change recorded.",
+         "options": [
+          "A  points",
+          "B  warm",
+          "C  cold",
+          "D  together",
+          "E  separately",
+          "F  slowly",
+          "G  rapidly",
+          "H  eruptions"
+         ],
+         "rows": [
+          {
+           "label": "Gap 10",
+           "answer": 0
+          },
+          {
+           "label": "Gap 11",
+           "answer": 2
+          },
+          {
+           "label": "Gap 12",
+           "answer": 3
+          },
+          {
+           "label": "Gap 13",
+           "answer": 6
+          }
+         ],
+         "why": "E: \"providing fixed points\"; dust is more abundant \"during cold, dry periods\". F: CO2 and temperature \"have risen and fallen closely together\" and have now risen \"far faster\": rapidly."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

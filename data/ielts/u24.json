@@ -1,0 +1,1626 @@
+{
+ "format": 1,
+ "id": "u24",
+ "n": 24,
+ "block": "mock",
+ "title": "Mock test 2",
+ "summary": "After this unit you have sat a complete second mock exam under timed conditions and can compare your Writing and Speaking with band 9 models.",
+ "lessons": [
+  {
+   "id": "u24-l1",
+   "title": "Listening test",
+   "kind": "test",
+   "minutes": 40,
+   "timed": 2400,
+   "items": [
+    {
+     "id": "u24-l1-i1",
+     "type": "card",
+     "title": "Before you start",
+     "body": [
+      "This is a full Listening paper: four parts, forty questions, about forty minutes. In the real exam you hear each recording once only, so play each part straight through without pausing or replaying.",
+      "Check spelling and word limits carefully. A correct answer that breaks the word limit, or is misspelt, scores zero."
+     ],
+     "tip": "Read ahead: use the pauses to look at the next set of questions and predict the type of answer (a number, a name, a noun)."
+    },
+    {
+     "id": "u24-l1-i2",
+     "type": "listening",
+     "title": "Urban beekeeping course",
+     "part": 1,
+     "context": "You will hear a man phoning a community project to ask about a beekeeping course. First, you have some time to look at questions 1 to 10.",
+     "speakers": [
+      {
+       "id": "h",
+       "name": "Helen",
+       "voice": "f"
+      },
+      {
+       "id": "d",
+       "name": "Daniel",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "h",
+       "t": "Good morning, Rooftop Bees community project, Helen speaking."
+      },
+      {
+       "s": "d",
+       "t": "Oh, hello. I'm ringing about the beginners' beekeeping course. I saw it mentioned somewhere and wondered if there were still places."
+      },
+      {
+       "s": "h",
+       "t": "There are, yes. The next course starts in April. Can I give you a few details first?"
+      },
+      {
+       "s": "d",
+       "t": "Please. How long does it run for?"
+      },
+      {
+       "s": "h",
+       "t": "It used to be an eight-week course, but people found that a bit much, so now it's six weeks. One session a week."
+      },
+      {
+       "s": "d",
+       "t": "Six weeks. And which day is it?"
+      },
+      {
+       "s": "h",
+       "t": "We had it on Tuesday evenings last year, but the library needed the room back, so this year it's on Wednesday evenings, from half past six until eight."
+      },
+      {
+       "s": "d",
+       "t": "Wednesdays are fine for me. Is it at the library, then?"
+      },
+      {
+       "s": "h",
+       "t": "It is, but not inside. You meet on the roof of the library building. That's where the hives are. There's a lift up from the main entrance, and someone will meet you there on the first evening."
+      },
+      {
+       "s": "d",
+       "t": "On the roof. That's quite something. And what's the cost?"
+      },
+      {
+       "s": "h",
+       "t": "It's eighty-five pounds for the whole course. That was reduced from ninety-five this year, thanks to a grant from the council. And that includes hiring a protective suit and gloves, so you don't need to buy any equipment."
+      },
+      {
+       "s": "d",
+       "t": "That's very reasonable. Is there anything I need to bring?"
+      },
+      {
+       "s": "h",
+       "t": "Just a notebook, really. There's a lot to take in, and people find it useful to write things down. We provide all the handouts, and tea and biscuits, of course."
+      },
+      {
+       "s": "d",
+       "t": "Great. Are there any restrictions, health-wise? I've never been stung, as far as I know."
+      },
+      {
+       "s": "h",
+       "t": "Well, the course isn't suitable for anyone with an allergy to bee stings, so if you're not sure, it's worth checking with your doctor. Otherwise there's no age limit for adults, and you don't need to be especially fit, though there are a few steps from the lift to the hives."
+      },
+      {
+       "s": "d",
+       "t": "OK. I'd like to book a place, then."
+      },
+      {
+       "s": "h",
+       "t": "Lovely. Can I take your name?"
+      },
+      {
+       "s": "d",
+       "t": "Yes, it's Daniel Okafor. That's O-K-A-F-O-R."
+      },
+      {
+       "s": "h",
+       "t": "O-K-A-F-O-R. Thank you. And your address?"
+      },
+      {
+       "s": "d",
+       "t": "Fourteen Kelmscott Road. That's K-E-L-M-S-C-O-T-T."
+      },
+      {
+       "s": "h",
+       "t": "Kelmscott with a double T at the end. Lovely. And can I ask how you heard about the course? We're trying to find out which publicity works."
+      },
+      {
+       "s": "d",
+       "t": "Let me think. I thought it was a poster in the library, but no, actually it was a podcast. A local one about gardening. They had one of your volunteers on."
+      },
+      {
+       "s": "h",
+       "t": "Oh, that'll be Graham. He'll be pleased. Now, one more thing. Before the course starts, we run a free taster session on a Saturday morning, so you can see the hives and meet the bees before you commit to anything."
+      },
+      {
+       "s": "d",
+       "t": "That sounds sensible. When is it?"
+      },
+      {
+       "s": "h",
+       "t": "The one on the second of March is already full, I'm afraid, but there's another on Saturday the ninth of March, at ten o'clock. Shall I put you down for that?"
+      },
+      {
+       "s": "d",
+       "t": "Yes, please. The ninth is perfect."
+      },
+      {
+       "s": "h",
+       "t": "Done. I'll send you a confirmation email with directions and a map of the roof garden."
+      },
+      {
+       "s": "d",
+       "t": "Thanks very much, Helen. I'm really looking forward to it."
+      },
+      {
+       "s": "h",
+       "t": "You're welcome. See you on the ninth."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the notes below. Write ONE WORD AND/OR A NUMBER for each answer.",
+       "items": [
+        {
+         "id": "u24-l1-i2-q1",
+         "type": "gap",
+         "text": "Course length: ___ weeks",
+         "answer": [
+          "6",
+          "six"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "'It used to be an eight-week course... now it's six weeks.' Eight is the distractor."
+        },
+        {
+         "id": "u24-l1-i2-q2",
+         "type": "gap",
+         "text": "Sessions: ___ evenings, 6.30-8.00",
+         "answer": [
+          "Wednesday",
+          "Wednesdays"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "'We had it on Tuesday evenings last year... this year it's on Wednesday evenings.'"
+        },
+        {
+         "id": "u24-l1-i2-q3",
+         "type": "gap",
+         "text": "Meeting point: the ___ of the library building",
+         "answer": [
+          "roof"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "'You meet on the roof of the library building.'"
+        },
+        {
+         "id": "u24-l1-i2-q4",
+         "type": "gap",
+         "text": "Cost: £___ (includes suit and gloves)",
+         "answer": [
+          "85",
+          "eighty-five",
+          "eighty five"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "'It's eighty-five pounds... reduced from ninety-five.'"
+        },
+        {
+         "id": "u24-l1-i2-q5",
+         "type": "gap",
+         "text": "Bring: a ___",
+         "answer": [
+          "notebook"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "'Just a notebook, really.' Handouts and refreshments are provided."
+        },
+        {
+         "id": "u24-l1-i2-q6",
+         "type": "gap",
+         "text": "Not suitable for anyone with an ___ to stings",
+         "answer": [
+          "allergy"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "'The course isn't suitable for anyone with an allergy to bee stings.'"
+        },
+        {
+         "id": "u24-l1-i2-q7",
+         "type": "gap",
+         "text": "Name: Daniel ___",
+         "answer": [
+          "Okafor"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "Spelt out: 'O-K-A-F-O-R.'"
+        },
+        {
+         "id": "u24-l1-i2-q8",
+         "type": "gap",
+         "text": "Address: 14 ___ Road",
+         "answer": [
+          "Kelmscott"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "Spelt out: 'K-E-L-M-S-C-O-T-T.'"
+        },
+        {
+         "id": "u24-l1-i2-q9",
+         "type": "gap",
+         "text": "Heard about the course from: a ___",
+         "answer": [
+          "podcast"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "'I thought it was a poster... but no, actually it was a podcast.'"
+        },
+        {
+         "id": "u24-l1-i2-q10",
+         "type": "gap",
+         "text": "Free taster session: Saturday ___ March, 10 am",
+         "answer": [
+          "9",
+          "9th",
+          "ninth"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "'The one on the second of March is already full... another on Saturday the ninth of March.'"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u24-l1-i3",
+     "type": "listening",
+     "title": "Tour of Skerry Point Lighthouse",
+     "part": 2,
+     "context": "You will hear a guide talking to a group of visitors at a lighthouse. First, you have some time to look at questions 11 to 20.",
+     "speakers": [
+      {
+       "id": "g",
+       "name": "Guide",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "g",
+       "t": "Good afternoon, everyone, and welcome to Skerry Point Lighthouse. My name's Alan, and I'll be giving you a short introduction before you explore the site on your own. I'll try to keep it brief, because I can see the sun's out and you'll want to make the most of it."
+      },
+      {
+       "s": "g",
+       "t": "First, a little history. The tower you can see behind me was completed in 1854, and for more than a century it was looked after by teams of keepers who lived here with their families. Automation came gradually. The work to install automatic equipment began in 1982, and people often assume that's when the keepers left, but in fact the last two keepers stayed on until 1995 to monitor the new system. Since then the light has been controlled remotely from a centre on the mainland."
+      },
+      {
+       "s": "g",
+       "t": "Now, many visitors ask what happened to the keepers' cottages, the white buildings along the cliff. You might expect them to be the café, but the café is actually in the old fog-signal building. The cottages have been restored and are now let out as holiday accommodation, so please respect the privacy of the guests staying there."
+      },
+      {
+       "s": "g",
+       "t": "If you'd like to climb the tower, and I'd recommend it, there's no need to book in advance; just go to the door at the base. Children of any age are welcome as long as they're with an adult. The one thing we do insist on is flat shoes, because the stairs are steep and the metal steps can be slippery. There are a hundred and twelve of them, by the way, so take your time."
+      },
+      {
+       "s": "g",
+       "t": "And a word about the famous lens. Until last year, the original glass lens was on display in the museum room downstairs, and you'll see the empty case there. It's currently on loan to a university, where specialists are cleaning and repairing it. We expect it back next spring."
+      },
+      {
+       "s": "g",
+       "t": "Right, let me tell you what you'll find around the site. If you look at the plan in your leaflet, you'll see the fog-signal building nearest the car park. As well as the café, it has a wonderful collection of photographs of shipwrecks along this coast, some going back to the eighteen-sixties."
+      },
+      {
+       "s": "g",
+       "t": "Next to it is the old oil store, where paraffin for the lamp used to be kept. It smells a lot better now, I promise. We've turned it into an activity area for children, with dressing-up clothes and a model lighthouse they can build."
+      },
+      {
+       "s": "g",
+       "t": "Further along is the engine room. The big engines that drove the fog horn have gone, but we've kept the original clockwork mechanism that rotated the lens, and you can see it working every hour, on the hour."
+      },
+      {
+       "s": "g",
+       "t": "At the top of the tower, of course, is the gallery, the narrow balcony that runs around the lantern. From there, on a clear day, you can watch the colony of grey seals on the rocks below. Bring binoculars if you have them."
+      },
+      {
+       "s": "g",
+       "t": "Down at the bottom of the cliff path is the boathouse. People sometimes think there's a lifeboat station there, but the lifeboat moved to the harbour years ago. Instead, there's a small cinema where we show a twenty-minute film about the keepers, made with interviews from some of the families who lived here."
+      },
+      {
+       "s": "g",
+       "t": "Finally, the keepers' garden, behind the cottages. The keepers grew their own vegetables because supplies could be cut off for weeks in bad weather. Today it's home to our shop, in a converted greenhouse, selling crafts made by people from the local villages. That's the last stop, so you can pick up a souvenir on your way out."
+      },
+      {
+       "s": "g",
+       "t": "OK, that's all from me. Enjoy your visit, and please do ask any of the staff in blue jackets if you have questions."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u24-l1-i3-q1",
+         "type": "pick",
+         "q": "The last keepers left the lighthouse in",
+         "options": [
+          "1854.",
+          "1982.",
+          "1995."
+         ],
+         "answer": 2,
+         "why": "'People often assume that's when the keepers left, but in fact the last two keepers stayed on until 1995.' 1982 is when automation work began."
+        },
+        {
+         "id": "u24-l1-i3-q2",
+         "type": "pick",
+         "q": "The keepers' cottages are now used as",
+         "options": [
+          "a café.",
+          "holiday accommodation.",
+          "a museum."
+         ],
+         "answer": 1,
+         "why": "'The cottages... are now let out as holiday accommodation.' The café is in the fog-signal building."
+        },
+        {
+         "id": "u24-l1-i3-q3",
+         "type": "pick",
+         "q": "Visitors who want to climb the tower must",
+         "options": [
+          "book in advance.",
+          "be over twelve years old.",
+          "wear flat shoes."
+         ],
+         "answer": 2,
+         "why": "'There's no need to book... Children of any age are welcome... The one thing we do insist on is flat shoes.'"
+        },
+        {
+         "id": "u24-l1-i3-q4",
+         "type": "pick",
+         "q": "The original lens is currently",
+         "options": [
+          "in the museum room.",
+          "at a university.",
+          "back in the tower."
+         ],
+         "answer": 1,
+         "why": "'It's currently on loan to a university, where specialists are cleaning and repairing it.' Only the empty case is in the museum room."
+        }
+       ]
+      },
+      {
+       "instr": "What can visitors find at each of the following places? Choose SIX answers from the box.",
+       "items": [
+        {
+         "id": "u24-l1-i3-q5",
+         "type": "select",
+         "q": "Choose the correct letter, A-G, for each place.",
+         "options": [
+          "A  photographs of shipwrecks",
+          "B  a lifeboat station",
+          "C  a children's activity area",
+          "D  the original clockwork mechanism",
+          "E  views of a seal colony",
+          "F  a shop selling local crafts",
+          "G  a film about the keepers"
+         ],
+         "rows": [
+          {
+           "label": "Fog-signal building",
+           "answer": 0
+          },
+          {
+           "label": "Oil store",
+           "answer": 2
+          },
+          {
+           "label": "Engine room",
+           "answer": 3
+          },
+          {
+           "label": "Gallery",
+           "answer": 4
+          },
+          {
+           "label": "Boathouse",
+           "answer": 6
+          },
+          {
+           "label": "Keepers' garden",
+           "answer": 5
+          }
+         ],
+         "why": "Fog-signal building: 'photographs of shipwrecks'. Oil store: 'an activity area for children'. Engine room: 'the original clockwork mechanism'. Gallery: 'the colony of grey seals'. Boathouse: 'the lifeboat moved... Instead... a film about the keepers' (B is the distractor). Garden: 'our shop... selling crafts'."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u24-l1-i4",
+     "type": "listening",
+     "title": "Survey of public drinking fountains",
+     "part": 3,
+     "context": "You will hear two geography students, Maya and Tom, discussing their project with their tutor, Dr Reid. First, you have some time to look at questions 21 to 30.",
+     "speakers": [
+      {
+       "id": "r",
+       "name": "Dr Reid",
+       "voice": "f"
+      },
+      {
+       "id": "m",
+       "name": "Maya",
+       "voice": "f"
+      },
+      {
+       "id": "t",
+       "name": "Tom",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "r",
+       "t": "Come in, both of you. So, you've finished collecting data on the city's drinking fountains. How did it go?"
+      },
+      {
+       "s": "m",
+       "t": "Better than we expected, actually. We mapped all the public fountains in the city centre, and we found forty-three in total, although only twenty-nine of them were actually working."
+      },
+      {
+       "s": "t",
+       "t": "Which was the most surprising thing for me. We assumed the broken ones would be the old Victorian fountains, but most of those were fine. It was the modern steel ones, installed about ten years ago, that had mostly stopped working."
+      },
+      {
+       "s": "r",
+       "t": "Interesting. Do you know why?"
+      },
+      {
+       "s": "t",
+       "t": "We asked the council. Apparently the old ones were built with very simple mechanisms that are easy to repair, whereas the modern ones need specialist parts, and there's no budget to replace them."
+      },
+      {
+       "s": "r",
+       "t": "That would be worth a paragraph in your discussion. Now, you also observed how people used them. What did you find there?"
+      },
+      {
+       "s": "m",
+       "t": "We watched each working fountain for an hour, at different times of day. The thing we hadn't anticipated was how many people used them to refill bottles rather than drinking directly. It was well over half."
+      },
+      {
+       "s": "t",
+       "t": "And the busiest location wasn't the main square, as we'd predicted. It was the fountain by the bus station. We think it's because people are waiting there with nothing else to do."
+      },
+      {
+       "s": "r",
+       "t": "Careful there. Did you collect any evidence for that explanation?"
+      },
+      {
+       "s": "t",
+       "t": "Not directly. I suppose it's just a guess."
+      },
+      {
+       "s": "r",
+       "t": "Then present it as a possible explanation, and say how it could be tested. You could, for example, count how many users at that fountain had just got off a bus or were about to catch one. That's perfectly acceptable at this level, as long as you're honest about it."
+      },
+      {
+       "s": "m",
+       "t": "That's a good idea. We could even do that next term if we extend the project."
+      },
+      {
+       "s": "r",
+       "t": "Exactly. What about the interviews? How did you choose who to speak to?"
+      },
+      {
+       "s": "t",
+       "t": "We tried to approach every third person who used a fountain, so we weren't just picking people who looked friendly. It didn't always work, because people were in a hurry."
+      },
+      {
+       "s": "m",
+       "t": "We spoke to sixty-two users. The main complaint wasn't hygiene, which we'd expected. Most people said the problem was simply that they didn't know where the fountains were. Several said they'd use them much more if they were marked on maps or signposted."
+      },
+      {
+       "s": "r",
+       "t": "That's a useful finding for your recommendations. Right, let's look at the draft report section by section. I've read it, and overall it's in good shape, but there are a few things to change. The introduction first."
+      },
+      {
+       "s": "t",
+       "t": "We were worried it was too short."
+      },
+      {
+       "s": "r",
+       "t": "Actually, I think it's rather long. You spend a page on the history of water supply in the nineteenth century, which is interesting but not really your focus. Cut it to half a page."
+      },
+      {
+       "s": "m",
+       "t": "OK, we'll shorten it. What about the methodology?"
+      },
+      {
+       "s": "r",
+       "t": "That's very clear. I wouldn't change anything there."
+      },
+      {
+       "s": "t",
+       "t": "Great. I did wonder whether we should move some of the methodology to the appendix, to save words."
+      },
+      {
+       "s": "r",
+       "t": "No, I'd keep it all where it is. It's the part that shows your results can be trusted."
+      },
+      {
+       "s": "t",
+       "t": "OK. And the map? We weren't sure whether it should go in the main text."
+      },
+      {
+       "s": "r",
+       "t": "It's essential to the argument, so keep it in the main text, but it's hard to read at the moment. You need more data on it: show which fountains are broken and how many users each one had."
+      },
+      {
+       "s": "m",
+       "t": "So add the usage figures to the map. Fine."
+      },
+      {
+       "s": "r",
+       "t": "Then the interview quotations. You've included about twenty, which breaks up the flow. Choose the four or five best ones for the text, and put the full set in the appendix."
+      },
+      {
+       "s": "t",
+       "t": "That makes sense. And the recommendations?"
+      },
+      {
+       "s": "r",
+       "t": "At the moment they're separate from the conclusion, but they repeat a lot of the same points. I'd merge the two into a single final section."
+      },
+      {
+       "s": "m",
+       "t": "Combine the recommendations with the conclusion. OK. Thank you, that's really helpful."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u24-l1-i4-q1",
+         "type": "pick",
+         "q": "How many working fountains did the students find?",
+         "options": [
+          "twenty-nine",
+          "forty-three",
+          "sixty-two"
+         ],
+         "answer": 0,
+         "why": "'We found forty-three in total, although only twenty-nine of them were actually working.' Sixty-two is the number of people interviewed."
+        },
+        {
+         "id": "u24-l1-i4-q2",
+         "type": "pick",
+         "q": "Most of the broken fountains were",
+         "options": [
+          "Victorian fountains.",
+          "modern steel fountains.",
+          "fountains in the main square."
+         ],
+         "answer": 1,
+         "why": "'We assumed the broken ones would be the old Victorian fountains, but most of those were fine. It was the modern steel ones.'"
+        },
+        {
+         "id": "u24-l1-i4-q3",
+         "type": "pick",
+         "q": "What surprised Maya about how people used the fountains?",
+         "options": [
+          "Most people avoided them at night.",
+          "More than half the users refilled bottles.",
+          "Children used them more than adults."
+         ],
+         "answer": 1,
+         "why": "'The thing we hadn't anticipated was how many people used them to refill bottles... It was well over half.'"
+        },
+        {
+         "id": "u24-l1-i4-q4",
+         "type": "pick",
+         "q": "What does Dr Reid advise about the explanation for the bus station result?",
+         "options": [
+          "Remove it from the report.",
+          "Collect more data before the deadline.",
+          "Present it as a possibility that could be tested."
+         ],
+         "answer": 2,
+         "why": "'Then present it as a possible explanation, and say how it could be tested.'"
+        },
+        {
+         "id": "u24-l1-i4-q5",
+         "type": "pick",
+         "q": "According to the interviews, the main problem with the fountains was",
+         "options": [
+          "poor hygiene.",
+          "a lack of information about their location.",
+          "the taste of the water."
+         ],
+         "answer": 1,
+         "why": "'The main complaint wasn't hygiene... they didn't know where the fountains were.'"
+        }
+       ]
+      },
+      {
+       "instr": "What does Dr Reid suggest for each section of the report? Choose FIVE answers from the box.",
+       "items": [
+        {
+         "id": "u24-l1-i4-q6",
+         "type": "select",
+         "q": "Choose the correct letter, A-E, for each section.",
+         "options": [
+          "A  shorten it",
+          "B  add more data",
+          "C  move part of it to the appendix",
+          "D  leave it unchanged",
+          "E  combine it with another section"
+         ],
+         "rows": [
+          {
+           "label": "Introduction",
+           "answer": 0
+          },
+          {
+           "label": "Methodology",
+           "answer": 3
+          },
+          {
+           "label": "Map of fountain locations",
+           "answer": 1
+          },
+          {
+           "label": "Interview quotations",
+           "answer": 2
+          },
+          {
+           "label": "Recommendations",
+           "answer": 4
+          }
+         ],
+         "why": "Introduction: 'Cut it to half a page.' Methodology: 'I wouldn't change anything.' Map: 'You need more data on it.' Quotations: 'put the full set in the appendix.' Recommendations: 'merge the two into a single final section.'"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u24-l1-i5",
+     "type": "listening",
+     "title": "Ice houses before refrigeration",
+     "part": 4,
+     "context": "You will hear part of a lecture on the history of food preservation. First, you have some time to look at questions 31 to 40.",
+     "speakers": [
+      {
+       "id": "l",
+       "name": "Lecturer",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "l",
+       "t": "Good morning. Today I want to look at a technology that was once common across Europe and has now almost vanished from memory: the ice house. Before mechanical refrigeration arrived in the late nineteenth century, the only way to have ice in summer was to collect it in winter and store it, and the ice house was the building designed to do that."
+      },
+      {
+       "s": "l",
+       "t": "Let's start with the basic principle. Ice melts when heat reaches it, so an ice house is essentially a large insulated container. The most common design was a deep pit, often egg-shaped or conical, dug into the ground and lined with brick or stone. Building underground made sense because the temperature of the soil a few metres down stays remarkably constant throughout the year, so the ice was protected from the summer heat. Many were built into the side of a hill, or covered with a mound of earth, which provided further insulation."
+      },
+      {
+       "s": "l",
+       "t": "Now, you might think the biggest enemy of stored ice was warm air, but in fact it was water. Melting ice produces water, and if that water collects at the bottom of the pit, it speeds up the melting of the ice above it. So the floor of a well-designed ice house had a drain, usually leading to a soakaway or a nearby stream, to carry the meltwater away. Without effective drainage, a whole winter's harvest could be lost within weeks."
+      },
+      {
+       "s": "l",
+       "t": "The entrance was another weak point. Every time the door was opened, warm air came in. So builders typically constructed a long passage with two or even three doors, one after the other, which acted rather like an airlock. And entrances were usually placed on the north side, away from direct sunlight."
+      },
+      {
+       "s": "l",
+       "t": "Where did the ice come from? In Britain, most of it was cut from frozen lakes and ponds on country estates during the coldest weeks of winter. Workers would break the ice into blocks and drag it to the ice house, where it was packed tightly in layers. Between the layers they spread straw, which was cheap and plentiful and acted as an excellent insulator. In some areas sawdust was used instead, especially near timber yards."
+      },
+      {
+       "s": "l",
+       "t": "How long did the ice last? That depended very much on the design and on the weather. In a well-built ice house, a good harvest could last through the summer and well into the autumn, and in exceptional cases into a second year. In a poor one, or after a mild winter when the ponds barely froze, supplies might run out by June. Estate owners therefore kept careful records, and some even had ice brought in from neighbouring estates when their own stocks failed."
+      },
+      {
+       "s": "l",
+       "t": "As you can imagine, the quality of this ice was not high. Pond ice contained mud, leaves and all sorts of other things, so it was rarely put directly into drinks. Instead, it was mainly used for cooling: chilling wine bottles, preserving fish and meat, and, for wealthy households, making ice cream and other frozen desserts, which became fashionable in the eighteenth century."
+      },
+      {
+       "s": "l",
+       "t": "In the nineteenth century the trade changed dramatically. Merchants began importing large quantities of much clearer ice, cut from lakes in Norway and North America and shipped across the Atlantic and the North Sea. This ice was stored in large commercial ice wells in cities such as London, and sold to fishmongers, butchers and hospitals. For a time, ice became a genuine industry rather than a luxury for the few."
+      },
+      {
+       "s": "l",
+       "t": "The decline, when it came, was rapid. Mechanical refrigeration, which produced ice in factories using compressed gases, was cheaper, cleaner and available all year round. By the early twentieth century most private ice houses had fallen out of use. Many were filled in, and others were converted into storage for wine or garden tools."
+      },
+      {
+       "s": "l",
+       "t": "So why should we care about them today? Partly for historical reasons, of course. But researchers interested in low-energy cooling have begun to study ice houses again, because they show how far good design can reduce the need for power. The principles of insulation, drainage and careful control of air flow are exactly those that engineers are now applying to buildings in hot climates. In other words, an old technology may have something to teach us about a very modern problem."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the notes below. Write ONE WORD ONLY for each answer.",
+       "items": [
+        {
+         "id": "u24-l1-i5-q1",
+         "type": "gap",
+         "text": "Design: typically a deep pit lined with brick or ___",
+         "answer": [
+          "stone"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Dug into the ground and lined with brick or stone.'"
+        },
+        {
+         "id": "u24-l1-i5-q2",
+         "type": "gap",
+         "text": "Underground location useful because the ___ of the soil stays constant",
+         "answer": [
+          "temperature"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'The temperature of the soil a few metres down stays remarkably constant.'"
+        },
+        {
+         "id": "u24-l1-i5-q3",
+         "type": "gap",
+         "text": "Biggest threat to the ice: ___",
+         "answer": [
+          "water",
+          "meltwater"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'You might think the biggest enemy... was warm air, but in fact it was water.' Warm air is the distractor."
+        },
+        {
+         "id": "u24-l1-i5-q4",
+         "type": "gap",
+         "text": "Floor needed a ___ to remove meltwater",
+         "answer": [
+          "drain"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'The floor of a well-designed ice house had a drain.'"
+        },
+        {
+         "id": "u24-l1-i5-q5",
+         "type": "gap",
+         "text": "Entrance passage with several doors worked like an ___",
+         "answer": [
+          "airlock"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Two or even three doors... which acted rather like an airlock.'"
+        },
+        {
+         "id": "u24-l1-i5-q6",
+         "type": "gap",
+         "text": "Entrances usually faced ___",
+         "answer": [
+          "north"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Entrances were usually placed on the north side, away from direct sunlight.'"
+        },
+        {
+         "id": "u24-l1-i5-q7",
+         "type": "gap",
+         "text": "Layers of ice separated by ___ (or sometimes sawdust)",
+         "answer": [
+          "straw"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Between the layers they spread straw... In some areas sawdust was used instead.'"
+        },
+        {
+         "id": "u24-l1-i5-q8",
+         "type": "gap",
+         "text": "Pond ice rarely put in drinks because it contained mud and ___",
+         "answer": [
+          "leaves"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Pond ice contained mud, leaves and all sorts of other things.'"
+        },
+        {
+         "id": "u24-l1-i5-q9",
+         "type": "gap",
+         "text": "19th century: clearer ice imported from Norway and North America for fishmongers, butchers and ___",
+         "answer": [
+          "hospitals"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Sold to fishmongers, butchers and hospitals.'"
+        },
+        {
+         "id": "u24-l1-i5-q10",
+         "type": "gap",
+         "text": "Today, ice houses are studied by those interested in low-___ cooling",
+         "answer": [
+          "energy"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Researchers interested in low-energy cooling have begun to study ice houses again.'"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u24-l2",
+   "title": "Reading test",
+   "kind": "test",
+   "minutes": 60,
+   "timed": 3600,
+   "items": [
+    {
+     "id": "u24-l2-i1",
+     "type": "card",
+     "title": "Before you start",
+     "body": [
+      "This is a full Academic Reading paper: three passages of increasing difficulty and forty questions in sixty minutes. There is no extra time for transferring answers, so answer as you go.",
+      "Aim for roughly 17, 20 and 23 minutes on the three passages. If a question is taking too long, make your best guess and move on."
+     ]
+    },
+    {
+     "id": "u24-l2-i2",
+     "type": "reading",
+     "title": "The day the clocks agreed",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": null,
+       "text": "For most of human history, time was a local affair. Noon was the moment the sun stood highest in the sky, and since the sun reaches that point at different moments in different places, every town kept its own time. A traveller moving west from London would find that midday arrived a little later in each town along the way: Reading was a few minutes behind the capital, Bristol about ten minutes, and Plymouth more than a quarter of an hour. Public clocks, usually on churches or town halls, were set by sundials or by astronomical observations, and nobody saw any reason to coordinate them. When the fastest way to travel between cities was a horse-drawn coach that took the best part of a day, a difference of ten minutes was of no practical importance."
+      },
+      {
+       "label": null,
+       "text": "The railways changed that. By the 1840s trains could cover in a few hours journeys that had once taken days, and the companies that ran them faced a genuine problem. A timetable that listed departures in local time at each station was confusing for passengers and dangerous for operations: on lines where trains ran in both directions on a single track, a misunderstanding about the time could lead to a collision. The solution was to choose one time and apply it along the whole line. In November 1840 the Great Western Railway, which ran from London to Bristol, began using London time at all its stations, and it is generally credited as the first company to do so. Others followed, and in 1847 the body that coordinated Britain's railway companies recommended that they all adopt Greenwich time, the time kept at the Royal Observatory in Greenwich, east London. Within a couple of years most had done so."
+      },
+      {
+       "label": null,
+       "text": "Not everyone was pleased. In many towns, railway time was seen as an imposition by distant London interests, and local authorities continued to keep their own time for years. The result was that two times could be in use in the same town: one at the station and another on the church clock. Some places found ingenious compromises. The clock on the Corn Exchange in Bristol was fitted with two minute hands, one showing local time and the other London time, and it still displays both today. Elsewhere, the confusion produced stories, some probably exaggerated, of travellers missing trains because they had trusted the wrong clock."
+      },
+      {
+       "label": null,
+       "text": "Technology helped to settle the matter. The electric telegraph, whose wires had been strung alongside many railway lines, made it possible to send a time signal from one place to hundreds of others almost instantly. From 1852 the Royal Observatory transmitted signals along the telegraph network, so that clocks in post offices and stations across the country could be checked against Greenwich every day. Once accurate London time was available everywhere, the argument for keeping local time grew weaker. By the late 1850s the great majority of public clocks in Britain showed Greenwich time, yet it was not until 1880 that Parliament passed a law making it the legal time throughout Great Britain. Until then, a court could in principle decide that an appointment made for ten o'clock meant ten o'clock local time."
+      },
+      {
+       "label": null,
+       "text": "The problem was far greater in larger countries. In the United States, which spans more than fifty degrees of longitude, each railway company set its own time, usually based on the local time of its headquarters or of a major city it served. By the early 1880s there were dozens of different railway times in use, and a large station might display several clocks showing different times for different companies. On 18 November 1883 the railways took matters into their own hands and adopted a system of standard time zones, each roughly one hour wide. Because many towns had to adjust their clocks around midday, the occasion became known as 'the day of two noons'. Remarkably, this was a private arrangement among companies; the federal government did not make the time zones law until 1918."
+      },
+      {
+       "label": null,
+       "text": "The following year, delegates from twenty-five countries met in Washington DC at the International Meridian Conference, where they agreed that the meridian passing through Greenwich should serve as the zero point for measuring longitude worldwide. The choice partly reflected practical reality: a large share of the world's shipping already used charts based on Greenwich. Not every nation accepted the decision with enthusiasm. France abstained from the vote and continued to use Paris time for more than a quarter of a century, until it adopted Greenwich-based time in 1911."
+      },
+      {
+       "label": null,
+       "text": "Today, when phones update their clocks automatically and atomic clocks keep time to within a tiny fraction of a second, it is easy to forget that standard time is a relatively recent invention. It was not imposed by scientists or governments in the first instance, but grew out of the very practical needs of an industry whose trains could suddenly outrun the sun."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Do the following statements agree with the information given in the passage? Choose TRUE, FALSE or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u24-l2-i2-q1",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Before the railways, clocks in Bristol were around ten minutes behind those in London.",
+         "answer": "T",
+         "why": "'Reading was a few minutes behind the capital, Bristol about ten minutes.'"
+        },
+        {
+         "id": "u24-l2-i2-q2",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The Great Western Railway is believed to have been the first railway company to use London time at all its stations.",
+         "answer": "T",
+         "why": "'It is generally credited as the first company to do so.'"
+        },
+        {
+         "id": "u24-l2-i2-q3",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Railway time was quickly accepted by local authorities across Britain.",
+         "answer": "F",
+         "why": "'Local authorities continued to keep their own time for years.'"
+        },
+        {
+         "id": "u24-l2-i2-q4",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The Corn Exchange clock in Bristol was the first public clock to show two different times.",
+         "answer": "NG",
+         "why": "The passage says the clock has two minute hands and still shows both times, but says nothing about whether it was the first to do so."
+        },
+        {
+         "id": "u24-l2-i2-q5",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The telegraph network was originally built in order to distribute time signals.",
+         "answer": "NG",
+         "why": "The passage says telegraph wires ran 'alongside many railway lines' and were later used for time signals, but it does not say why the network was built."
+        },
+        {
+         "id": "u24-l2-i2-q6",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "A law making Greenwich time official throughout Great Britain was passed in the 1840s.",
+         "answer": "F",
+         "why": "'It was not until 1880 that Parliament passed a law making it the legal time.'"
+        },
+        {
+         "id": "u24-l2-i2-q7",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "In the United States, standard time zones were introduced by the railways before they became a legal requirement.",
+         "answer": "T",
+         "why": "The railways adopted zones in 1883; 'the federal government did not make the time zones law until 1918.'"
+        }
+       ]
+      },
+      {
+       "instr": "Complete the sentences below. Choose ONE WORD ONLY from the passage for each answer.",
+       "items": [
+        {
+         "id": "u24-l2-i2-q8",
+         "type": "gap",
+         "text": "Before the railways, noon in each town was the moment when the ___ was highest in the sky.",
+         "answer": [
+          "sun"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Noon was the moment the sun stood highest in the sky.'"
+        },
+        {
+         "id": "u24-l2-i2-q9",
+         "type": "gap",
+         "text": "On single-track lines, a misunderstanding about the time could cause a ___.",
+         "answer": [
+          "collision"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'A misunderstanding about the time could lead to a collision.'"
+        },
+        {
+         "id": "u24-l2-i2-q10",
+         "type": "gap",
+         "text": "In many towns, railway time was regarded as an ___ by London interests.",
+         "answer": [
+          "imposition"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Railway time was seen as an imposition by distant London interests.'"
+        },
+        {
+         "id": "u24-l2-i2-q11",
+         "type": "gap",
+         "text": "A large American station might have several ___ showing the times of different companies.",
+         "answer": [
+          "clocks"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'A large station might display several clocks showing different times for different companies.'"
+        },
+        {
+         "id": "u24-l2-i2-q12",
+         "type": "gap",
+         "text": "Greenwich was chosen partly because much of the world's ___ already used charts based on it.",
+         "answer": [
+          "shipping"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'A large share of the world's shipping already used charts based on Greenwich.'"
+        },
+        {
+         "id": "u24-l2-i2-q13",
+         "type": "gap",
+         "text": "France kept using ___ time until 1911.",
+         "answer": [
+          "Paris"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'France abstained from the vote and continued to use Paris time... until... 1911.'"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u24-l2-i3",
+     "type": "reading",
+     "title": "Keepers of the light",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "For two centuries, the lighthouse keeper occupied a curious place in the popular imagination: part public servant, part hermit, the solitary figure tending a lamp on a storm-lashed rock. The reality was rather less romantic and considerably more demanding. Keepers usually worked in teams of three or four, on shifts that ensured the light was watched through every hour of darkness. Their duties included trimming wicks and later maintaining paraffin burners, polishing the great glass lenses until they were free of every smear, winding the clockwork that turned the lens, sounding fog signals when visibility fell, and recording weather observations. On remote rock stations, men spent several weeks at a time on duty before being relieved by boat, weather permitting, and storms could delay a relief by days or even weeks. Families usually lived ashore, in cottages built by the lighthouse authority, and saw the keeper only between shifts. It was a life of routine rather than drama, in which the greatest virtue was reliability."
+      },
+      {
+       "label": "B",
+       "text": "The case for replacing them with machines was made long before it became technically possible. Keepers were expensive: they had to be paid, housed, supplied and transported, and on offshore stations the cost of a single relief voyage could be considerable. Lighthouse authorities also faced the uncomfortable fact that the main cause of failures was human. A keeper who fell asleep, fell ill or misjudged the onset of fog could, at least in theory, put ships at risk. Machines, it was argued, did not tire."
+      },
+      {
+       "label": "C",
+       "text": "Yet the transition proved slow, and for good reasons. The early automatic systems of the late nineteenth and early twentieth centuries were suitable only for small lights in sheltered places. One widely used invention, the sun valve, switched a gas-powered light on at dusk and off at dawn by responding to daylight, which allowed unattended beacons to burn for months. The device was considered so significant that its Swedish inventor was awarded a Nobel Prize. But the large lights that guarded dangerous coasts needed far more power, and the equipment that produced it, from engines to fog horns, required constant attention. Until reliable electricity could be supplied to remote sites, and until faults could be detected from a distance, the keeper remained indispensable."
+      },
+      {
+       "label": "D",
+       "text": "Those conditions were met gradually in the second half of the twentieth century. Mains electricity or diesel generators replaced paraffin; electric motors replaced clockwork; and, crucially, telemetry allowed a control centre on the mainland to monitor a lighthouse's systems and be alerted the moment anything went wrong. Many stations were fitted with duplicate lamps that rotated into position automatically if the main one failed. In most European countries, automation was largely complete by the end of the century, and in Britain the last keepers left their posts in the late 1990s. In several cases the final departure was marked by a small ceremony, reflecting a sense that a long tradition was ending."
+      },
+      {
+       "label": "E",
+       "text": "The consequences were not entirely those that had been predicted. The savings in wages were real, but they were partly offset by the cost of new equipment and of maintenance teams who now travelled between stations, often by helicopter. More significantly, some argued that something intangible had been lost. Keepers had been more than lamp attendants: they were trained observers who reported ships in difficulty, contributed to weather forecasts and, on occasion, took part in rescues. A remark attributed to one retired keeper captures the feeling: 'A machine can tell you the lamp is lit. It can't tell you there's a fishing boat in trouble a mile off the point.'"
+      },
+      {
+       "label": "F",
+       "text": "Satellite navigation has since raised a more fundamental question: are lighthouses needed at all? Most commercial vessels now fix their position electronically to within a few metres, and some authorities have reduced the range of their lights or discontinued minor ones. Mariners' organisations, however, have consistently argued that visual aids remain essential. Electronic systems can fail, be jammed or give false readings, and small craft such as fishing boats and yachts may carry only basic equipment. A light on a headland is a check that requires no power on board and no signal from space."
+      },
+      {
+       "label": "G",
+       "text": "Meanwhile, the buildings themselves have found new lives. Keepers' cottages have been converted into holiday accommodation, towers opened to visitors, and redundant stations sold to private owners, who must usually agree to preserve their historic character. Some lighthouses now house scientific instruments, such as equipment for monitoring sea level or bird migration. In a sense, they have returned to their original purpose of watching the sea, only this time with no one living inside."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "The passage has seven paragraphs, A-G. Choose the correct heading for paragraphs B-G from the list of headings.",
+       "items": [
+        {
+         "id": "u24-l2-i3-q1",
+         "type": "select",
+         "q": "Choose the correct heading, i-ix, for each paragraph.",
+         "options": [
+          "i  The arguments for automation",
+          "ii  Why early automatic systems could not replace keepers",
+          "iii  The technologies that finally made keepers unnecessary",
+          "iv  Gains and losses that nobody expected",
+          "v  A challenge to the very purpose of lighthouses",
+          "vi  New uses for old buildings",
+          "vii  The romantic image of the keeper",
+          "viii  Famous rescues by lighthouse keepers",
+          "ix  Why governments ignored mariners' views"
+         ],
+         "rows": [
+          {
+           "label": "Paragraph B",
+           "answer": 0
+          },
+          {
+           "label": "Paragraph C",
+           "answer": 1
+          },
+          {
+           "label": "Paragraph D",
+           "answer": 2
+          },
+          {
+           "label": "Paragraph E",
+           "answer": 3
+          },
+          {
+           "label": "Paragraph F",
+           "answer": 4
+          },
+          {
+           "label": "Paragraph G",
+           "answer": 5
+          }
+         ],
+         "why": "B lists costs and human error as reasons to automate. C explains why early systems only suited small lights. D describes electricity, motors and telemetry. E: 'The consequences were not entirely those that had been predicted' (rescues are mentioned only in passing, so viii is a distractor). F asks 'are lighthouses needed at all?'. G describes cottages, tours and scientific instruments."
+        }
+       ]
+      },
+      {
+       "instr": "Choose the correct letter, A, B, C or D.",
+       "items": [
+        {
+         "id": "u24-l2-i3-q2",
+         "type": "pick",
+         "q": "According to paragraph B, one argument for automation was that",
+         "options": [
+          "keepers frequently fell asleep on duty.",
+          "most failures were caused by people rather than equipment.",
+          "keepers refused to work on offshore stations.",
+          "relief voyages were often cancelled because of weather."
+         ],
+         "answer": 1,
+         "why": "'The main cause of failures was human.' A is wrong: falling asleep could put ships at risk 'at least in theory'; it is not described as frequent."
+        },
+        {
+         "id": "u24-l2-i3-q3",
+         "type": "pick",
+         "q": "The sun valve",
+         "options": [
+          "supplied electricity to large coastal lights.",
+          "allowed small lights to operate without attention for long periods.",
+          "detected faults and reported them to the mainland.",
+          "replaced the fog horns on dangerous coasts."
+         ],
+         "answer": 1,
+         "why": "It 'switched a gas-powered light on at dusk and off at dawn... which allowed unattended beacons to burn for months', but only for 'small lights in sheltered places'."
+        },
+        {
+         "id": "u24-l2-i3-q4",
+         "type": "pick",
+         "q": "Mariners' organisations believe that lighthouses",
+         "options": [
+          "should be replaced by satellite systems.",
+          "are now mainly of historic interest.",
+          "provide a check that does not depend on electronic equipment.",
+          "are only useful to large commercial ships."
+         ],
+         "answer": 2,
+         "why": "'A light on a headland is a check that requires no power on board and no signal from space.'"
+        }
+       ]
+      },
+      {
+       "instr": "Complete the summary below. Choose ONE WORD ONLY from the passage for each answer.",
+       "items": [
+        {
+         "id": "u24-l2-i3-q5",
+         "type": "gap",
+         "text": "In the later twentieth century, paraffin gave way to electricity, and clockwork was replaced by electric ___.",
+         "answer": [
+          "motors"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Electric motors replaced clockwork.'"
+        },
+        {
+         "id": "u24-l2-i3-q6",
+         "type": "gap",
+         "text": "A system known as ___ allowed a mainland centre to monitor each lighthouse.",
+         "answer": [
+          "telemetry"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Telemetry allowed a control centre on the mainland to monitor a lighthouse's systems.'"
+        },
+        {
+         "id": "u24-l2-i3-q7",
+         "type": "gap",
+         "text": "Many stations had ___ lamps that moved into place if the main lamp failed.",
+         "answer": [
+          "duplicate"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Many stations were fitted with duplicate lamps that rotated into position automatically.'"
+        },
+        {
+         "id": "u24-l2-i3-q8",
+         "type": "gap",
+         "text": "After automation, maintenance teams often reached stations by ___.",
+         "answer": [
+          "helicopter"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "'Maintenance teams who now travelled between stations, often by helicopter.'"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u24-l2-i4",
+     "type": "reading",
+     "title": "The hidden majority",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "A handful of fertile soil contains more living organisms than there are people on Earth. That claim, a staple of popular science writing, is one of the few that is, if anything, an understatement. A single gram of healthy topsoil may hold billions of bacterial cells and, by some estimates, many thousands of distinct bacterial species, alongside fungi, protists, nematodes and viruses. Yet for most of the twentieth century soil was treated by agricultural science chiefly as a physical and chemical medium: a store of water and nutrients into which fertiliser could be poured. Its organisms were acknowledged but, with a few celebrated exceptions, rarely studied as a community."
+      },
+      {
+       "label": "B",
+       "text": "The reason was partly methodological. Microbiologists traditionally identified bacteria by growing them on nutrient plates in the laboratory, but it had long been noticed that the number of colonies that grew was a tiny fraction of the cells visible under a microscope. This discrepancy, sometimes called the 'great plate count anomaly', meant that the vast majority of soil microbes were, in effect, invisible to science. Only when DNA sequencing became cheap enough to apply to whole soil samples, around the turn of the millennium, could researchers begin to catalogue what was there without first having to culture it. The results were humbling. Many of the most abundant groups turned out to belong to lineages that had never been grown in a laboratory at all."
+      },
+      {
+       "label": "C",
+       "text": "Some of the functions of soil microbes had been understood for more than a century. The ability of certain bacteria living in the root nodules of peas, beans and clover to convert nitrogen from the air into a form plants can use was described in the late nineteenth century, and it explains why farmers had long benefited from rotating legumes with other crops. Similarly, the partnership between plant roots and mycorrhizal fungi, whose fine threads extend far into the soil and supply water and minerals in exchange for sugars from the plant, is now known to involve the great majority of land plants. What sequencing added was a sense of scale and of complexity: these were not isolated relationships but parts of a dense web of interactions whose rules are only beginning to be understood."
+      },
+      {
+       "label": "D",
+       "text": "One area of particular interest is carbon. Soils hold more carbon than the atmosphere and all the world's vegetation combined, and microbes are central to whether that carbon stays underground or returns to the air. When they decompose dead plant material, microbes release carbon dioxide; but some of the carbon they process ends up in stable compounds, including the remains of microbial cells themselves, that can persist for centuries. This has prompted a lively debate about whether farming practices could be adjusted to encourage microbial communities that store more carbon. Dr Lena Hartmann, a soil ecologist at a Northern European research institute, is cautious. 'We can measure gains in soil carbon on experimental plots,' she says, 'but scaling those results up to whole regions, and proving that the carbon stays put, is a different matter entirely.'"
+      },
+      {
+       "label": "E",
+       "text": "Others see more immediate promise in agriculture. A number of companies now sell microbial products, mixtures of bacteria or fungi intended to boost crop growth or protect plants from disease. Field results have been mixed. Professor Arturo Medina, who has run trials of such products for a decade, believes the problem lies in the assumption that one mixture will suit every field. 'Introducing a few strains into a soil that already contains thousands is like adding a handful of newcomers to a crowded city,' he argues. 'Whether they thrive depends entirely on local conditions, and most of the time the residents win.' He suggests that farmers would gain more by managing conditions that favour the beneficial microbes already present, for example by reducing ploughing and keeping living roots in the ground through the winter."
+      },
+      {
+       "label": "F",
+       "text": "That view is broadly shared by Dr Kwame Asante, who studies soils in long-term farming experiments, some of which have continued on the same plots for more than a hundred years. His work suggests that soil communities respond slowly to change but that the effects accumulate. 'In the first few seasons after a change of practice, you often see very little,' he says. 'Farmers understandably lose patience. But after ten or twenty years the differences in microbial diversity can be striking.' He is critical of research funding cycles, which typically last three to five years and, in his view, reward short experiments that are almost guaranteed to miss the most important effects."
+      },
+      {
+       "label": "G",
+       "text": "There are also warnings against overstatement. Dr Sofia Lindqvist, a microbiologist, argues that enthusiasm for the 'soil microbiome' has sometimes outrun the evidence. 'Finding a gene in a soil sample tells you the organism was there, not that it was doing anything,' she points out. Much of the DNA in soil, she notes, comes from dead or dormant cells, which makes it dangerously easy to draw conclusions about activity from data that only show presence. She does not dispute the importance of the field, but believes that new methods for measuring what microbes are actually doing will matter more over the next decade than simply cataloguing more species."
+      },
+      {
+       "label": "H",
+       "text": "It is hard not to see in this story a broader lesson about the limits of what we choose to measure. For decades, soil was judged by what could easily be quantified, its nutrient content and its texture, while the living system that produced much of its fertility went largely unexamined. It would be a mistake to swing to the opposite extreme and treat microbes as a solution to every agricultural problem. But a science of soil that ignores most of what lives in it is, at best, incomplete."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Do the following statements agree with the views of the writer? Choose YES, NO or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u24-l2-i4-q1",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "The popular claim about the number of organisms in a handful of soil exaggerates the true figure.",
+         "answer": "N",
+         "why": "The writer calls it 'one of the few that is, if anything, an understatement'."
+        },
+        {
+         "id": "u24-l2-i4-q2",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Nineteenth-century discoveries about nitrogen-fixing bacteria were of no practical relevance to farmers.",
+         "answer": "N",
+         "why": "The writer says the discovery 'explains why farmers had long benefited from rotating legumes with other crops', so it was directly relevant to farming practice."
+        },
+        {
+         "id": "u24-l2-i4-q3",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "DNA sequencing showed that soil life was more complex than scientists had realised.",
+         "answer": "Y",
+         "why": "'The results were humbling' and 'What sequencing added was a sense of scale and of complexity.'"
+        },
+        {
+         "id": "u24-l2-i4-q4",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Microbial products for crops are likely to become more popular with farmers.",
+         "answer": "NG",
+         "why": "The writer reports that field results 'have been mixed' and gives Medina's view, but makes no prediction about future popularity."
+        },
+        {
+         "id": "u24-l2-i4-q5",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "It would be wrong to regard microbes as the answer to all agricultural problems.",
+         "answer": "Y",
+         "why": "'It would be a mistake to swing to the opposite extreme and treat microbes as a solution to every agricultural problem.'"
+        }
+       ]
+      },
+      {
+       "instr": "Match each statement with the correct researcher, A-D. You may use any letter more than once.",
+       "items": [
+        {
+         "id": "u24-l2-i4-q6",
+         "type": "select",
+         "q": "Choose the correct letter, A-D.",
+         "options": [
+          "A  Lena Hartmann",
+          "B  Arturo Medina",
+          "C  Kwame Asante",
+          "D  Sofia Lindqvist"
+         ],
+         "rows": [
+          {
+           "label": "Microbes added to a field usually fail to compete with those already living there.",
+           "answer": 1
+          },
+          {
+           "label": "Typical research projects are too short to detect the most important changes.",
+           "answer": 2
+          },
+          {
+           "label": "Evidence that an organism is present does not prove it is active.",
+           "answer": 3
+          },
+          {
+           "label": "Results from small experimental areas may not apply to much larger ones.",
+           "answer": 0
+          },
+          {
+           "label": "Measuring microbial activity will be more useful than identifying more species.",
+           "answer": 3
+          }
+         ],
+         "why": "Medina: 'most of the time the residents win'. Asante: funding cycles 'reward short experiments that are almost guaranteed to miss the most important effects'. Lindqvist: 'tells you the organism was there, not that it was doing anything' and new methods for 'what microbes are actually doing will matter more'. Hartmann: 'scaling those results up to whole regions... is a different matter'."
+        }
+       ]
+      },
+      {
+       "instr": "Choose the correct letter, A, B, C or D.",
+       "items": [
+        {
+         "id": "u24-l2-i4-q7",
+         "type": "pick",
+         "q": "The 'great plate count anomaly' refers to",
+         "options": [
+          "the failure of DNA sequencing to detect most microbes.",
+          "the gap between the number of cells seen under a microscope and the number that grew in the laboratory.",
+          "the unusually large number of species found in a gram of soil.",
+          "errors made when counting bacteria under a microscope."
+         ],
+         "answer": 1,
+         "why": "'The number of colonies that grew was a tiny fraction of the cells visible under a microscope. This discrepancy, sometimes called the great plate count anomaly...'"
+        },
+        {
+         "id": "u24-l2-i4-q8",
+         "type": "pick",
+         "q": "According to paragraph C, mycorrhizal fungi",
+         "options": [
+          "supply plants with water and minerals in return for sugars.",
+          "convert nitrogen from the air for plants.",
+          "were first discovered through DNA sequencing.",
+          "are found only on peas, beans and clover."
+         ],
+         "answer": 0,
+         "why": "'Supply water and minerals in exchange for sugars from the plant.' Nitrogen fixation is carried out by bacteria in root nodules."
+        },
+        {
+         "id": "u24-l2-i4-q9",
+         "type": "pick",
+         "q": "What does paragraph D say about carbon in soil?",
+         "options": [
+          "Soils store less carbon than the world's vegetation.",
+          "All the carbon that microbes process eventually returns to the air.",
+          "Some carbon processed by microbes can remain in the soil for centuries.",
+          "Changes in farming have been shown to raise carbon storage across whole regions."
+         ],
+         "answer": 2,
+         "why": "'Some of the carbon they process ends up in stable compounds... that can persist for centuries.' D is contradicted by Hartmann's caution about scaling up."
+        },
+        {
+         "id": "u24-l2-i4-q10",
+         "type": "pick",
+         "q": "What is the writer's main purpose in paragraph H?",
+         "options": [
+          "to call for more funding for soil research",
+          "to draw a general lesson about what science chooses to measure",
+          "to argue that microbes can solve most problems in farming",
+          "to summarise the views of each researcher"
+         ],
+         "answer": 1,
+         "why": "'It is hard not to see in this story a broader lesson about the limits of what we choose to measure.'"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u24-l3",
+   "title": "Writing test",
+   "kind": "test",
+   "minutes": 60,
+   "timed": 3600,
+   "items": [
+    {
+     "id": "u24-l3-i1",
+     "type": "card",
+     "title": "Before you start",
+     "body": [
+      "Two tasks in sixty minutes. Spend about twenty minutes on Task 1 and forty on Task 2, which carries twice the weight. Leave three minutes at the end of each task to check your writing.",
+      "Model answers and notes appear when you finish."
+     ]
+    },
+    {
+     "id": "u24-l3-i2",
+     "type": "writing",
+     "task": 1,
+     "prompt": "The diagram below shows how sea salt is produced by solar evaporation.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.",
+     "visual": {
+      "kind": "process",
+      "title": "Sea salt production by solar evaporation",
+      "cycle": false,
+      "steps": [
+       {
+        "label": "Seawater intake",
+        "note": "pumped in at high tide"
+       },
+       {
+        "label": "Evaporation ponds",
+        "note": "sun and wind; several months; brine becomes more concentrated"
+       },
+       {
+        "label": "Crystallisation pans",
+        "note": "salt crystals form; leftover liquid (bittern) returned to sea"
+       },
+       {
+        "label": "Harvesting",
+        "note": "raked by hand or machine"
+       },
+       {
+        "label": "Washing",
+        "note": "in brine; mud and impurities removed"
+       },
+       {
+        "label": "Drying heaps",
+        "note": "salt drains and dries in open air"
+       },
+       {
+        "label": "Sieving",
+        "note": "sorted by grain size"
+       },
+       {
+        "label": "Packaging",
+        "note": "fine: table salt; coarse: industry and road gritting"
+       }
+      ]
+     },
+     "minutes": 20,
+     "minWords": 150,
+     "model": {
+      "text": [
+       "The diagram illustrates the process by which salt is extracted from seawater using the heat of the sun and the action of the wind.",
+       "Overall, the process involves eight main stages, beginning with the intake of seawater and ending with the packaging of salt for different markets. It relies largely on natural evaporation over several months, followed by a shorter mechanical phase in which the salt is harvested, cleaned and prepared for sale.",
+       "First, seawater is pumped at high tide into a series of large, shallow ponds. There it is left exposed to the sun and wind, which gradually evaporate the water, and as it flows slowly from one pond to the next, it becomes an increasingly concentrated brine. This stage typically takes several months. The brine is then transferred to crystallisation pans, where salt crystals form on the floor, while the remaining liquid, known as bittern, is returned to the sea.",
+       "Once the crystals have formed, they are raked up and harvested, either by hand or by machine, and washed in brine to remove mud and other impurities. The washed salt is piled into large heaps, where it is left to drain and dry in the open air. Finally, it is sieved into different grain sizes and packaged, with finer grades sold as table salt and coarser grades used by industry and for treating icy roads."
+      ],
+      "notes": [
+       "The overview identifies the number of stages, the start and end points and the key contrast between a long natural phase and a short mechanical one.",
+       "Every stage is included, together with the branch (bittern returned to the sea) and the two end uses.",
+       "Passive forms dominate but are varied with active clauses (*the sun and wind... evaporate the water*), relative clauses and time clauses (*Once the crystals have formed*).",
+       "Sequencing is achieved mainly through grammar and reference (*There*, *This stage*, *The washed salt*) rather than numbered linkers.",
+       "Vocabulary is precise and appropriate: *concentrated brine*, *impurities*, *drain*, *grain sizes*."
+      ]
+     }
+    },
+    {
+     "id": "u24-l3-i3",
+     "type": "writing",
+     "task": 2,
+     "prompt": "Some people believe that every child should be taught first aid at school and that it should be a compulsory subject.\n\nTo what extent do you agree or disagree?\n\nWrite at least 250 words.",
+     "minutes": 40,
+     "minWords": 250,
+     "model": {
+      "text": [
+       "Most people will, at some point, be present when someone collapses, chokes or is badly injured, and what happens in the first few minutes can determine whether that person survives. For this reason, I strongly agree that first aid should be taught to every child, although I would argue that it is best treated as a compulsory element of existing lessons rather than as a separate subject.",
+       "The central argument is simple: basic first aid saves lives, and schools are the only institution that reaches almost every young person. Skills such as recognising a heart attack, performing chest compressions or placing an unconscious person in the recovery position can be learnt in a few hours, yet most adults have never been taught them. When an emergency occurs at home or in the street, the people present are far more likely to be family members or passers-by than trained professionals. A population in which most people have these skills is therefore one in which far fewer deaths occur while waiting for an ambulance.",
+       "There are also benefits beyond emergencies. Learning first aid teaches children to stay calm, to take responsibility and to act rather than watch, qualities that are valuable in many situations. It can also remove the fear and hesitation that prevent bystanders from helping, which is often a greater obstacle than a lack of knowledge.",
+       "The main objection is that the curriculum is already crowded, and that adding a new subject would take time from academic learning. This concern is reasonable, but it is an argument about format rather than principle. First aid does not require weekly lessons for years; a few sessions each year, built into physical education or science, and refreshed as pupils grow older, would be enough to make the skills stick.",
+       "In conclusion, given how little time it requires and how much it can achieve, first aid training should be guaranteed for every child, ideally woven into the existing timetable rather than taught as a stand-alone subject."
+      ],
+      "notes": [
+       "The position is clear and nuanced from the first paragraph (strong agreement with the aim, a reservation about the format) and is maintained throughout.",
+       "Each paragraph develops one idea: the life-saving argument, wider benefits, and the main objection answered.",
+       "The counter-argument is acknowledged fairly and answered with a precise distinction (*format rather than principle*).",
+       "Lexis is precise and natural: *recovery position*, *chest compressions*, *passers-by*, *make the skills stick*, *woven into the existing timetable*.",
+       "Cohesion is achieved largely through reference and logical progression, with no memorised phrases."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "u24-l4",
+   "title": "Speaking test",
+   "kind": "practice",
+   "minutes": 15,
+   "items": [
+    {
+     "id": "u24-l4-i1",
+     "type": "card",
+     "title": "Before you start",
+     "body": [
+      "Record yourself answering each part as if the examiner were in front of you: about four to five minutes for Part 1, one minute's preparation and up to two minutes' speaking for Part 2, and four to five minutes for Part 3.",
+      "Then listen back and compare with the models. Focus on one thing to improve each time: extending answers, narrative tenses, hedging, or pronunciation."
+     ]
+    },
+    {
+     "id": "u24-l4-i2",
+     "type": "speaking",
+     "part": 1,
+     "topic": "Time and punctuality",
+     "questions": [
+      "Do you wear a watch?",
+      "Are you good at being on time?",
+      "Is punctuality important in your culture?",
+      "What time of day do you work best?"
+     ],
+     "prep": 0,
+     "talk": 30,
+     "model": {
+      "text": [
+       "I do, yes, though mostly out of habit. My phone tells me the time perfectly well, but I like being able to glance at my wrist in a meeting without looking as if I'm checking my messages.",
+       "Pretty good, I'd say. I'm usually a few minutes early, partly because I hate the feeling of rushing. The one exception is getting up in the morning; I'm hopeless at that.",
+       "It depends on the situation. For work or a train, being on time is non-negotiable. With friends, though, ten minutes either way doesn't really matter, as long as you send a message.",
+       "Mornings, definitely, once I'm actually awake. I do my best thinking before lunch, and by about four o'clock my concentration starts to drift."
+      ],
+      "notes": [
+       "Each answer opens directly and adds a reason, a contrast or a personal detail.",
+       "Natural spoken features (*I'd say*, *though*, *I'm hopeless at that*) support fluency.",
+       "Precise everyday collocations: *out of habit*, *non-negotiable*, *my concentration starts to drift*."
+      ]
+     },
+     "phrases": [
+      "mostly out of habit",
+      "I'm hopeless at that",
+      "non-negotiable",
+      "ten minutes either way",
+      "my concentration starts to drift"
+     ]
+    },
+    {
+     "id": "u24-l4-i3",
+     "type": "speaking",
+     "part": 2,
+     "topic": "Being late",
+     "cue": {
+      "task": "Describe a time when you were late for something important.",
+      "bullets": [
+       "what the occasion was",
+       "why you were late",
+       "what happened as a result"
+      ],
+      "close": "and explain how you felt about being late."
+     },
+     "prep": 60,
+     "talk": 120,
+     "model": {
+      "text": [
+       "I'd like to talk about the time I was late for my own job interview, which is still slightly painful to remember.",
+       "It was about five years ago. I'd applied for a position at a design consultancy in another city, and the interview was at nine in the morning. I'd planned everything carefully: I'd booked a train that would get me there with more than an hour to spare, and I'd even printed a map from the station to the office. What I hadn't planned for was a signal failure just outside the city. The train sat there for nearly fifty minutes, and of course there was no phone signal either, so I couldn't let anyone know.",
+       "By the time I arrived, it was twenty past nine. I ran most of the way from the station, arrived out of breath and, frankly, convinced that I'd blown it. The receptionist was very kind, though. She told me they'd seen the news about the trains and had already moved me to the end of the morning, so in the end I had time to calm down, have a glass of water and go over my notes.",
+       "The interview actually went well, and I got the job. But I felt awful about it at the time, because I take punctuality quite seriously, and being late for something that important felt like a terrible first impression. Looking back, what I learnt was that people are usually more understanding than you expect, as long as the reason is genuine. I still leave far too much time for every journey, though."
+      ],
+      "notes": [
+       "The talk follows a clear arc (careful preparation, a setback, an unexpected resolution, reflection) and covers every prompt.",
+       "Narrative tenses are precise: past perfect for earlier plans (*I'd booked*, *I'd even printed*), past simple for events, and a cleft for contrast (*What I hadn't planned for was...*).",
+       "Spoken idiomatic language is natural and appropriate: *with more than an hour to spare*, *convinced that I'd blown it*, *out of breath*.",
+       "The reflection discusses a general idea about people and punctuality, a natural bridge to Part 3."
+      ]
+     },
+     "phrases": [
+      "with more than an hour to spare",
+      "What I hadn't planned for was...",
+      "convinced that I'd blown it",
+      "Looking back, what I learnt was..."
+     ]
+    },
+    {
+     "id": "u24-l4-i4",
+     "type": "speaking",
+     "part": 3,
+     "topic": "Time and punctuality in society",
+     "questions": [
+      "Why are some cultures more relaxed about time than others?",
+      "Has mobile technology made people less punctual?",
+      "Are flexible working hours a good idea?",
+      "How can children be taught to value punctuality?",
+      "How might attitudes to time change in the future?"
+     ],
+     "prep": 0,
+     "talk": 60,
+     "model": {
+      "text": [
+       "I think culture plays a big part, but so does the kind of economy a place has. Where people work in factories or on trains, time has to be precise, because everyone depends on everyone else. In more rural or informal settings, the rhythm is often set by the task rather than the clock, so being exactly on time matters less.",
+       "In some ways, yes. Because we can send a message saying we're running ten minutes late, I suspect people feel less guilty about it than they used to. On the other hand, phones also make it much easier to plan journeys accurately, so in practice it may balance out.",
+       "I'd say it's mostly positive, as long as it's flexible. Working from home has shown that a lot of jobs don't really need everyone to start at nine. What matters is that people are available for the meetings that genuinely require them, and that's a kind of punctuality too.",
+       "Probably by example, more than anything. If parents are always rushing in at the last minute, children absorb that. Schools help by being strict about start times, but I think it works best when children understand why it matters, that other people are waiting, rather than just fearing a punishment.",
+       "It wouldn't surprise me if we became more relaxed about start times but stricter about deadlines. Work is increasingly judged by results rather than hours, so the question won't be when you arrived, but whether the job was done."
+      ],
+      "notes": [
+       "Each answer takes a position, explains it and adds a qualification or example, without drifting into a story.",
+       "Hedging and speculation are varied and precise (*I suspect*, *it may balance out*, *It wouldn't surprise me if*).",
+       "Abstract ideas are expressed clearly in natural spoken language (*the rhythm is set by the task rather than the clock*).",
+       "Comparison across time is handled accurately (*than they used to*, *Work is increasingly judged by...*)."
+      ]
+     },
+     "phrases": [
+      "the rhythm is set by the task rather than the clock",
+      "it may balance out",
+      "as long as it's flexible",
+      "children absorb that",
+      "judged by results rather than hours"
+     ]
+    }
+   ]
+  }
+ ]
+}

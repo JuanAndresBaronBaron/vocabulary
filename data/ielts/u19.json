@@ -1,0 +1,505 @@
+{
+ "format": 1,
+ "id": "u19",
+ "n": 19,
+ "block": "speaking",
+ "title": "Pronunciation for band 9",
+ "summary": "After this unit you can place stress correctly in academic word families, use weak forms and connected speech, and use stress, chunking and intonation to carry meaning.",
+ "lessons": [
+  {
+   "id": "u19-l1",
+   "title": "Word stress in academic word families",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u19-l1-i1",
+     "type": "card",
+     "title": "Why word stress matters at band 9",
+     "body": [
+      "Pronunciation at band 9 is about being 'effortless to understand' and using the full range of features flexibly. A misplaced word stress is one of the few pronunciation errors that genuinely stops a listener: *eCOnomy* said as *ecoNOmy* can make a fluent speaker momentarily unintelligible.",
+      "Spanish has fairly predictable stress, often on the second-last syllable, and nearly full vowels in every syllable. English stress moves within word families, and unstressed vowels usually reduce to the weak vowel schwa /ə/. Getting both right is what makes speech sound effortless."
+     ],
+     "tip": "When you learn an academic word, learn its stress pattern at the same time. Mark it in your notes: phoTOgraphy, photoGRAPHic."
+    },
+    {
+     "id": "u19-l1-i2",
+     "type": "card",
+     "title": "Suffixes that move the stress",
+     "body": [
+      "Many suffixes pull the stress to a fixed position. Learn these rules and you can predict most academic words.",
+      "In the IPA, the mark ˈ comes before the stressed syllable, and ˌ before a weaker, secondary stress."
+     ],
+     "list": [
+      "**-ic, -ical**: stress the syllable just before: *ecoNOMic*, *photoGRAPHic* (not *phoTOgraphic*)",
+      "**-ion**: stress the syllable just before: *eduCAtion*, *poliTIcian*",
+      "**-ity**: stress the syllable just before: *PUBlic* becomes *pubLIcity*",
+      "**-ogy, -graphy, -ometry**: stress the syllable before: *techNOlogy*, *phoTOgraphy*",
+      "**-ee, -eer, -ese**: stress the suffix itself: *employEE*, *engiNEER*, *JapanESE*"
+     ]
+    },
+    {
+     "id": "u19-l1-i3",
+     "type": "card",
+     "title": "Nouns and verbs that look the same",
+     "body": [
+      "Many two-syllable words are stressed on the first syllable as nouns and on the second as verbs. This matters whenever you talk about trends and data, in Part 3 especially."
+     ],
+     "examples": [
+      {
+       "text": "There was an increase in demand. Demand began to increase.",
+       "note": "noun ˈincrease, verb inˈcrease"
+      },
+      {
+       "text": "She broke the record. They record every lecture.",
+       "note": "noun ˈrecord, verb reˈcord"
+      },
+      {
+       "text": "Exports fell. They export grain.",
+       "note": "noun ˈexport, verb exˈport"
+      }
+     ]
+    },
+    {
+     "id": "u19-l1-i4",
+     "type": "say",
+     "text": "photograph, photography, photographic",
+     "ipa": "/ˈfəʊtəɡrɑːf  fəˈtɒɡrəfi  ˌfəʊtəˈɡræfɪk/",
+     "tip": "The stress moves: PHO-to-graph, pho-TO-gra-phy, pho-to-GRAPH-ic. Notice how the first vowel weakens to /ə/ in photography."
+    },
+    {
+     "id": "u19-l1-i5",
+     "type": "say",
+     "text": "economy, economic, economist",
+     "ipa": "/ɪˈkɒnəmi  ˌiːkəˈnɒmɪk  ɪˈkɒnəmɪst/",
+     "tip": "e-CON-o-my and e-CON-o-mist share a stress; e-co-NOM-ic follows the -ic rule."
+    },
+    {
+     "id": "u19-l1-i6",
+     "type": "say",
+     "text": "analyse, analysis, analytical",
+     "ipa": "/ˈænəlaɪz  əˈnæləsɪs  ˌænəˈlɪtɪkl/",
+     "tip": "AN-a-lyse, a-NAL-y-sis, an-a-LYT-i-cal. The first vowel is full /æ/ only when stressed."
+    },
+    {
+     "id": "u19-l1-i7",
+     "type": "say",
+     "text": "politics, political, politician",
+     "ipa": "/ˈpɒlətɪks  pəˈlɪtɪkl  ˌpɒləˈtɪʃn/",
+     "tip": "POL-i-tics, po-LIT-i-cal, pol-i-TI-cian. In political the first vowel reduces to /ə/."
+    },
+    {
+     "id": "u19-l1-i8",
+     "type": "say",
+     "text": "public, publicity; technology, technological",
+     "ipa": "/ˈpʌblɪk  pʌbˈlɪsəti  tekˈnɒlədʒi  ˌteknəˈlɒdʒɪkl/",
+     "tip": "The -ity and -ical suffixes pull the stress onto the syllable just before them."
+    },
+    {
+     "id": "u19-l1-i9",
+     "type": "say",
+     "text": "There was a sharp increase in prices, so the council decided to increase the fees.",
+     "ipa": "/ðə wəz ə ˈʃɑːp ˈɪŋkriːs ɪn ˈpraɪsɪz | səʊ ðə ˈkaʊnsl dɪˈsaɪdɪd tʊ ɪnˈkriːs ðə ˈfiːz/",
+     "tip": "Noun INcrease, verb inCREASE in the same sentence."
+    },
+    {
+     "id": "u19-l1-i10",
+     "type": "pick",
+     "q": "Where is the main stress in *democratic*?",
+     "options": [
+      "DEmocratic",
+      "deMOcratic",
+      "demoCRAtic",
+      "democraTIC"
+     ],
+     "answer": 2,
+     "why": "Words ending in -ic are stressed on the syllable before: /ˌdeməˈkrætɪk/. Compare deMOcracy /dɪˈmɒkrəsi/."
+    },
+    {
+     "id": "u19-l1-i11",
+     "type": "pick",
+     "q": "Which word has a different stress pattern from the others?",
+     "options": [
+      "photography",
+      "economy",
+      "technology",
+      "politician"
+     ],
+     "answer": 3,
+     "why": "phoTOgraphy, eCOnomy and techNOlogy are all stressed on the second syllable; poliTIcian is stressed on the third, before -ion."
+    },
+    {
+     "id": "u19-l1-i12",
+     "type": "pick",
+     "q": "In 'Exports rose by ten per cent', how is *exports* stressed?",
+     "options": [
+      "EXports (noun)",
+      "exPORTS (verb)"
+     ],
+     "answer": 0,
+     "why": "Here *exports* is a noun (the subject), so it is stressed on the first syllable: /ˈekspɔːts/."
+    },
+    {
+     "id": "u19-l1-i13",
+     "type": "select",
+     "q": "Choose the stressed syllable in each word.",
+     "options": [
+      "A  first syllable",
+      "B  second syllable",
+      "C  third syllable"
+     ],
+     "rows": [
+      {
+       "label": "analysis",
+       "answer": 1
+      },
+      {
+       "label": "analyse",
+       "answer": 0
+      },
+      {
+       "label": "publicity",
+       "answer": 1
+      },
+      {
+       "label": "economic",
+       "answer": 2
+      },
+      {
+       "label": "photograph",
+       "answer": 0
+      },
+      {
+       "label": "employee",
+       "answer": 2
+      }
+     ],
+     "why": "a-NAL-y-sis, AN-a-lyse, pub-LIC-i-ty, e-co-NOM-ic, PHO-to-graph, em-ploy-EE (-ee takes the stress)."
+    }
+   ]
+  },
+  {
+   "id": "u19-l2",
+   "title": "Weak forms and connected speech",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u19-l2-i1",
+     "type": "card",
+     "title": "Weak forms: the secret of natural rhythm",
+     "body": [
+      "English is stress-timed: stressed syllables come at roughly regular intervals, and the small grammar words in between are squeezed. Words like *a, the, of, to, for, and, can, was, were, have, them* are normally pronounced in their **weak form**, with the vowel reduced to /ə/ or dropped.",
+      "Speakers who pronounce every word in full sound careful and slightly robotic, even when every sound is correct. Using weak forms is one of the clearest signs of band 8-9 pronunciation."
+     ],
+     "list": [
+      "of: /əv/ or /ə/ (a cup of tea /ə ˈkʌp əv ˈtiː/)",
+      "to: /tə/ before consonants (want to go /ˈwɒnt tə ˈɡəʊ/)",
+      "for: /fə/ (for a while /fər ə ˈwaɪl/)",
+      "can: /kən/ (I can swim /aɪ kən ˈswɪm/)",
+      "was: /wəz/ (it was late /ɪt wəz ˈleɪt/)",
+      "them: /ðəm/ (tell them /ˈtel ðəm/)"
+     ],
+     "tip": "Grammar words keep their strong form when stressed for contrast or at the end of a sentence: 'Yes, I *can*.' /ˈjes aɪ ˈkæn/."
+    },
+    {
+     "id": "u19-l2-i2",
+     "type": "card",
+     "title": "Linking, elision and assimilation",
+     "body": [
+      "In connected speech, words run together. Three processes matter most for intelligibility and naturalness."
+     ],
+     "list": [
+      "**Linking**: a final consonant joins the next vowel (*an_apple*), and British speakers pronounce a written final r before a vowel, the linking /r/ (*far_away* /ˌfɑːr əˈweɪ/). Many also add an intrusive /r/ where there is no letter r (*the idea_of it* /ðiː aɪˈdɪər əv ɪt/).",
+      "**Elision**: /t/ and /d/ between consonants often disappear (*next door* /ˌneks ˈdɔː/, *last night* /ˌlɑːs ˈnaɪt/).",
+      "**Assimilation**: sounds change to suit their neighbours (*ten people* /ˌtem ˈpiːpl/, *would you* /ˈwʊdʒu/)."
+     ]
+    },
+    {
+     "id": "u19-l2-i3",
+     "type": "say",
+     "text": "I was going to ask for a cup of tea.",
+     "ipa": "/aɪ wəz ˈɡəʊɪŋ tʊ ˈɑːsk fər ə ˈkʌp əv ˈtiː/",
+     "tip": "Only four words are stressed: GO-, ASK, CUP, TEA. *Was*, *for*, *a* and *of* are weak. Note the linking /r/ in *for a*."
+    },
+    {
+     "id": "u19-l2-i4",
+     "type": "say",
+     "text": "There are some of them in the box.",
+     "ipa": "/ðər ə ˈsʌm əv ðəm ɪn ðə ˈbɒks/",
+     "tip": "Listen for how short *there are* becomes: /ðər ə/. *Of them* is /əv ðəm/."
+    },
+    {
+     "id": "u19-l2-i5",
+     "type": "say",
+     "text": "I can speak French, but I can't write it.",
+     "ipa": "/aɪ kən ˈspiːk ˈfrentʃ | bət aɪ ˈkɑːnt ˈraɪt ɪt/",
+     "tip": "Weak *can* /kən/ versus strong *can't* /kɑːnt/: the vowel difference carries the meaning."
+    },
+    {
+     "id": "u19-l2-i6",
+     "type": "say",
+     "text": "Yes, I can. And so can she.",
+     "ipa": "/ˈjes aɪ ˈkæn | ən ˈsəʊ kæn ˈʃiː/",
+     "tip": "At the end of a phrase *can* takes its strong form /kæn/."
+    },
+    {
+     "id": "u19-l2-i7",
+     "type": "say",
+     "text": "We met last night next door to the station.",
+     "ipa": "/wi ˈmet ˌlɑːs ˈnaɪt ˌneks ˈdɔː tə ðə ˈsteɪʃn/",
+     "tip": "Elision: the /t/ disappears in *last night* and *next door*."
+    },
+    {
+     "id": "u19-l2-i8",
+     "type": "say",
+     "text": "Would you mind if ten people joined us?",
+     "ipa": "/ˈwʊdʒu ˈmaɪnd ɪf ˌtem ˈpiːpl ˈdʒɔɪnd əs/",
+     "tip": "Assimilation: *would you* becomes /ˈwʊdʒu/, and the /n/ in *ten* becomes /m/ before /p/."
+    },
+    {
+     "id": "u19-l2-i9",
+     "type": "say",
+     "text": "The idea of it is far easier than the reality.",
+     "ipa": "/ðiː aɪˈdɪər əv ɪt ɪz ˌfɑːr ˈiːziə ðən ðə riˈæləti/",
+     "tip": "Intrusive /r/ after *idea* and linking /r/ after *far*: both join a vowel to the next vowel, a key feature of British English."
+    },
+    {
+     "id": "u19-l2-i10",
+     "type": "pick",
+     "q": "In 'I'd like a glass of water', how is *of* normally pronounced?",
+     "options": [
+      "/ɒv/, full vowel",
+      "/əv/, weak form",
+      "/ɒf/",
+      "It is silent"
+     ],
+     "answer": 1,
+     "why": "Unstressed *of* is /əv/ (or even /ə/ in fast speech). The full form /ɒv/ is used only for emphasis or at the end of a phrase."
+    },
+    {
+     "id": "u19-l2-i11",
+     "type": "pick",
+     "q": "In which sentence is *to* most likely to have a strong form /tuː/?",
+     "options": [
+      "I want to leave.",
+      "She's going to call.",
+      "Who did you give it to?",
+      "It's hard to say."
+     ],
+     "answer": 2,
+     "why": "Prepositions at the end of a sentence take their strong form: *to* /tuː/. Before a verb, *to* is weak /tə/."
+    },
+    {
+     "id": "u19-l2-i12",
+     "type": "select",
+     "q": "Which connected-speech process is shown?",
+     "options": [
+      "A  Linking or intrusive /r/",
+      "B  Elision",
+      "C  Assimilation"
+     ],
+     "rows": [
+      {
+       "label": "law and order /ˌlɔːr ən ˈɔːdə/",
+       "answer": 0
+      },
+      {
+       "label": "handbag /ˈhæmbæɡ/",
+       "answer": 2
+      },
+      {
+       "label": "first time /ˌfɜːs ˈtaɪm/",
+       "answer": 1
+      },
+      {
+       "label": "ten boys /ˌtem ˈbɔɪz/",
+       "answer": 2
+      },
+      {
+       "label": "mostly /ˈməʊsli/",
+       "answer": 1
+      },
+      {
+       "label": "media attention /ˌmiːdiər əˈtenʃn/",
+       "answer": 0
+      }
+     ],
+     "why": "Linking and intrusive /r/ join a vowel to a vowel (*law and order* and *media attention* have no written r: intrusive). Elision drops /t/ or /d/ between consonants. Assimilation changes /n/ to /m/ before /b/ or /p/ (and /d/ is lost in *handbag*)."
+    }
+   ]
+  },
+  {
+   "id": "u19-l3",
+   "title": "Sentence stress, chunking and intonation",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u19-l3-i1",
+     "type": "card",
+     "title": "Sentence stress carries meaning",
+     "body": [
+      "In a neutral sentence, content words (nouns, main verbs, adjectives, adverbs) are stressed, and the last important word carries the main stress, the **nucleus**. Moving the nucleus changes the meaning, usually to show contrast or correction.",
+      "This is a powerful tool in Part 3: stressing the right word lets you contrast ideas without extra words."
+     ],
+     "examples": [
+      {
+       "text": "I didn't say she *stole* it.",
+       "note": "...I said she borrowed it."
+      },
+      {
+       "text": "I didn't say *she* stole it.",
+       "note": "...someone else did."
+      },
+      {
+       "text": "It's not that people are less *patient*; they're less *used* to waiting.",
+       "note": "Contrastive stress makes the distinction clear."
+      }
+     ]
+    },
+    {
+     "id": "u19-l3-i2",
+     "type": "card",
+     "title": "Chunking: speaking in thought groups",
+     "body": [
+      "Fluent speakers divide speech into **thought groups** (tone units), each with one main stress, separated by tiny pauses. Chunking in the right places makes complex sentences easy to follow; pausing in the wrong places (between an article and its noun, for example) makes even simple sentences hard to process.",
+      "Chunk boundaries normally fall between clauses and after long subjects or introductory phrases. In IPA transcriptions here, | marks a boundary."
+     ],
+     "examples": [
+      {
+       "text": "The students who had revised | passed easily.",
+       "note": "Defining clause: no pause after 'students'."
+      },
+      {
+       "text": "The students, | who had revised, | passed easily.",
+       "note": "Non-defining: pauses around the extra information. All the students had revised."
+      }
+     ]
+    },
+    {
+     "id": "u19-l3-i3",
+     "type": "card",
+     "title": "Intonation for meaning and attitude",
+     "body": [
+      "Three tones do most of the work. A **fall** signals completeness or certainty. A **rise** signals a yes/no question or that more is coming. A **fall-rise** signals reservation, contrast or an unfinished thought: *It's a good idea... in theory.*",
+      "The fall-rise is especially useful in Part 3 for hedging: it tells the examiner you are qualifying what you say."
+     ],
+     "list": [
+      "Fall: *I think it's a positive change.* (certain)",
+      "Rise: *Do you mean in cities?* (genuine question)",
+      "Fall-rise: *Well, it's cheaper...* (but there's a problem)",
+      "Lists: rises on each item, fall on the last: *cost, convenience, and time.*"
+     ]
+    },
+    {
+     "id": "u19-l3-i4",
+     "type": "say",
+     "text": "I didn't say she stole it; I said she borrowed it.",
+     "ipa": "/aɪ ˈdɪdnt seɪ ʃi ˈstəʊl ɪt | aɪ ˈsed ʃi ˈbɒrəʊd ɪt/",
+     "tip": "Put the main stress on *stole* and *borrowed* to create the contrast."
+    },
+    {
+     "id": "u19-l3-i5",
+     "type": "say",
+     "text": "It's not that people are less patient; they're just less used to waiting.",
+     "ipa": "/ɪts ˈnɒt ðət ˈpiːpl ə les ˈpeɪʃnt | ðeə dʒəst les ˈjuːst tə ˈweɪtɪŋ/",
+     "tip": "Contrastive stress on *patient* and *used*. A short pause at the semicolon."
+    },
+    {
+     "id": "u19-l3-i6",
+     "type": "say",
+     "text": "The government, which had promised lower taxes, raised them within a year.",
+     "ipa": "/ðə ˈɡʌvənmənt | wɪtʃ əd ˈprɒmɪst ˈləʊə ˈtæksɪz | ˈreɪzd ðəm wɪðɪn ə ˈjɪə/",
+     "tip": "Three thought groups. The middle one is extra information, said slightly lower and faster."
+    },
+    {
+     "id": "u19-l3-i7",
+     "type": "say",
+     "text": "Well, it's cheaper, in theory...",
+     "ipa": "/ˈwel | ɪts ˈtʃiːpə | ɪn ˈθɪəri/",
+     "tip": "Use a fall-rise on *cheaper* and *theory* to signal reservation without saying 'but'."
+    },
+    {
+     "id": "u19-l3-i8",
+     "type": "say",
+     "text": "The main reasons are cost, convenience and time.",
+     "ipa": "/ðə ˈmeɪn ˈriːznz ə ˈkɒst | kənˈviːniəns | ən ˈtaɪm/",
+     "tip": "Rise on *cost* and *convenience*, fall on *time* to show the list is complete."
+    },
+    {
+     "id": "u19-l3-i9",
+     "type": "pick",
+     "q": "'I didn't buy the *red* car.' What does the speaker imply?",
+     "options": [
+      "Someone else bought the red car.",
+      "The speaker bought a car of a different colour.",
+      "The speaker rented the red car.",
+      "The speaker bought a red bicycle."
+     ],
+     "answer": 1,
+     "why": "Stress on *red* contrasts the colour: the speaker bought a car, but not the red one."
+    },
+    {
+     "id": "u19-l3-i10",
+     "type": "pick",
+     "q": "Where is the most natural chunk boundary? 'Most of the people I spoke to at the conference were surprisingly optimistic.'",
+     "options": [
+      "Most of the | people I spoke to at the conference were surprisingly optimistic.",
+      "Most of the people I spoke to at the conference | were surprisingly optimistic.",
+      "Most of the people I spoke | to at the conference were surprisingly optimistic.",
+      "Most of the people I spoke to at the | conference were surprisingly optimistic."
+     ],
+     "answer": 1,
+     "why": "The boundary falls after the long subject, before the verb. The other options split a phrase in the middle."
+    },
+    {
+     "id": "u19-l3-i11",
+     "type": "pick",
+     "q": "A candidate says 'It's a good idea' with a fall-rise on *idea*. What does the examiner hear?",
+     "options": [
+      "Complete agreement",
+      "A question",
+      "Reservation: it's a good idea, but...",
+      "Anger"
+     ],
+     "answer": 2,
+     "why": "A fall-rise signals an implied 'but', a natural way to hedge in speech."
+    },
+    {
+     "id": "u19-l3-i12",
+     "type": "select",
+     "q": "Which tone is most natural?",
+     "options": [
+      "A  Fall",
+      "B  Rise",
+      "C  Fall-rise"
+     ],
+     "rows": [
+      {
+       "label": "Stating a firm conclusion: 'So, on balance, it's a positive change.'",
+       "answer": 0
+      },
+      {
+       "label": "Checking: 'You mean in rural areas?'",
+       "answer": 1
+      },
+      {
+       "label": "Hedging: 'It might work... in some cities.'",
+       "answer": 2
+      },
+      {
+       "label": "The last item of a list: '...and transport.'",
+       "answer": 0
+      },
+      {
+       "label": "A non-final list item: 'Housing, ...'",
+       "answer": 1
+      }
+     ],
+     "why": "Falls signal completion and certainty; rises signal questions and incompleteness; fall-rises signal reservation."
+    }
+   ]
+  }
+ ]
+}

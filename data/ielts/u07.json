@@ -1,0 +1,595 @@
+{
+ "format": 1,
+ "id": "u07",
+ "n": 7,
+ "block": "reading",
+ "title": "True, False, Not Given",
+ "summary": "After this unit you can decide TRUE, FALSE or NOT GIVEN with confidence, using qualifiers and the difference between contradiction and silence.",
+ "lessons": [
+  {
+   "id": "u07-l1",
+   "title": "Strategy: TRUE, FALSE, NOT GIVEN",
+   "kind": "learn",
+   "minutes": 28,
+   "items": [
+    {
+     "id": "u07-l1-i1",
+     "type": "card",
+     "title": "What the question really asks",
+     "body": [
+      "TRUE/FALSE/NOT GIVEN tests whether a statement matches **the information in the passage**, not the world. Your own knowledge is irrelevant; a statement can be true in reality and NOT GIVEN in the text.",
+      "**TRUE**: the passage says the same thing, usually in different words. **FALSE**: the passage says something that makes the statement impossible. **NOT GIVEN**: the passage does not say enough to decide either way."
+     ]
+    },
+    {
+     "id": "u07-l1-i2",
+     "type": "card",
+     "title": "The decision test",
+     "body": [
+      "Ask two questions in order. First: *does the passage confirm the statement?* If yes, TRUE. If not: *does the passage contradict it?* If yes, FALSE. If neither, NOT GIVEN.",
+      "The commonest band 7 error is choosing FALSE because the passage gives *different* information. Different is not the same as contradictory. If the passage says a museum opened in 1850 and the statement says it was the city's first museum, the date tells you nothing about 'first': NOT GIVEN."
+     ],
+     "tip": "Before writing FALSE, find the words in the passage that make the statement impossible. If you cannot point to them, the answer is probably NOT GIVEN."
+    },
+    {
+     "id": "u07-l1-i3",
+     "type": "card",
+     "title": "Qualifiers decide the answer",
+     "body": [
+      "Many statements turn on one small word. **All / some / most / few**, **always / usually / sometimes / never**, **the first / the only / the main**, **proved / suggested / claimed**: a mismatch in any of these makes a TRUE statement FALSE.",
+      "The same is true of verbs of certainty. 'Scientists have shown' versus a passage that says 'scientists suspect' is a contradiction about the strength of the evidence: FALSE."
+     ],
+     "examples": [
+      {
+       "text": "Passage: 'Some species may benefit.' Statement: 'All species will benefit.'",
+       "note": "FALSE"
+      },
+      {
+       "text": "Passage: 'The method is thought to date from the 1300s.' Statement: 'The method certainly dates from the 1300s.'",
+       "note": "FALSE"
+      },
+      {
+       "text": "Passage: 'The method dates from the 1300s.' Statement: 'The method was invented in Italy.'",
+       "note": "NOT GIVEN"
+      }
+     ]
+    },
+    {
+     "id": "u07-l1-i4",
+     "type": "card",
+     "title": "Facts, not opinions",
+     "body": [
+      "TRUE/FALSE/NOT GIVEN is used for **factual** information. When a question asks about the writer's **views or claims**, the labels change to YES/NO/NOT GIVEN (Unit 10). The logic is the same, but you are matching an opinion, not a fact.",
+      "Watch for reported opinion inside factual passages. 'Critics complained that coffee houses encouraged idleness' is a fact about what critics said; it is *not* a statement that coffee houses did encourage idleness. 'Coffee houses encouraged idleness' would be NOT GIVEN."
+     ]
+    },
+    {
+     "id": "u07-l1-i5",
+     "type": "card",
+     "title": "A routine that saves time",
+     "body": [
+      "The statements follow the order of the passage. Locate each one with a distinctive anchor (a name, a date, a technical term), then read the sentence before and after carefully. Do not reread the whole passage for each question.",
+      "If you cannot find a statement at all after a reasonable search, and the next statement is easy to locate, the missing one is often NOT GIVEN: its information sits in the gap between two answers you have found."
+     ]
+    },
+    {
+     "id": "u07-l1-i6",
+     "type": "reading",
+     "title": "Drill: the coffee house",
+     "minutes": 7,
+     "paragraphs": [
+      {
+       "label": null,
+       "text": "The first coffee houses in England opened in the 1650s, and within a few decades they had become a fixture of city life. For the price of a cup, a customer could sit for hours, read the newspapers provided by the owner and join conversations with strangers. News, rumour and argument circulated freely, and a well-informed customer could learn more about trade, politics and science in an afternoon than from weeks of private reading. Some historians have called them 'penny universities', because the talk could be as instructive as a lecture."
+      },
+      {
+       "label": null,
+       "text": "The atmosphere was famously democratic, at least by the standards of the time. Customers of different ranks shared the same benches, and a common rule held that any man might sit wherever he found a space. Women, however, were generally excluded as customers, although a number of coffee houses were owned or run by women."
+      },
+      {
+       "label": null,
+       "text": "Particular coffee houses attracted particular trades. Merchants and ship owners gathered in some, writers and scientists in others, and a number of later financial institutions are said to have grown out of the business conducted at their tables. Not everyone approved. Critics complained that they encouraged idleness and political gossip, and at one point the government attempted to close them, an order that was withdrawn within days after widespread protest."
+      },
+      {
+       "label": null,
+       "text": "By the late eighteenth century their popularity was fading. Private clubs, which could exclude unwanted company, took over some of their social role, and tea was becoming the more fashionable drink in middle-class homes. Many coffee houses closed or became taverns and eating houses, though a handful survived under new names into the following century."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Do the following statements agree with the information given in the passage? Write TRUE, FALSE or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u07-l1-i6-q1",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The first English coffee houses opened in the 1650s.",
+         "answer": "T",
+         "why": "\"The first coffee houses in England opened in the 1650s.\""
+        },
+        {
+         "id": "u07-l1-i6-q2",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Customers had to buy their own newspapers.",
+         "answer": "F",
+         "why": "Customers read \"the newspapers provided by the owner\": a direct contradiction."
+        },
+        {
+         "id": "u07-l1-i6-q3",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Coffee houses were more popular in London than in other cities.",
+         "answer": "NG",
+         "why": "The passage mentions \"city life\" but makes no comparison between London and other cities."
+        },
+        {
+         "id": "u07-l1-i6-q4",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "A government order to close coffee houses was quickly reversed.",
+         "answer": "T",
+         "why": "The order \"was withdrawn within days after widespread protest\"."
+        },
+        {
+         "id": "u07-l1-i6-q5",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Coffee houses declined because coffee became too expensive.",
+         "answer": "NG",
+         "why": "The passage gives two causes (private clubs and the fashion for tea) but says nothing about the price of coffee. Giving other reasons does not contradict this one, so the answer is NOT GIVEN, not FALSE."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u07-l1-i7",
+     "type": "reading",
+     "title": "Drill: the hedgehog's decline",
+     "minutes": 7,
+     "paragraphs": [
+      {
+       "label": null,
+       "text": "Surveys carried out by volunteer groups over the past two decades suggest that hedgehogs have become markedly less common in the British countryside. The picture in towns is more mixed: in some suburban areas numbers appear to have stabilised, perhaps because gardens offer a patchwork of food and shelter that intensively farmed land no longer does."
+      },
+      {
+       "label": null,
+       "text": "Several causes have been proposed. The removal of hedgerows has reduced the places where hedgehogs can nest and forage, and pesticides have cut the supply of the beetles and caterpillars on which they feed. Badgers, which compete with hedgehogs for food and will also eat them, have increased in some areas, although researchers caution that the two species have coexisted for a very long time and the relationship is not a simple one."
+      },
+      {
+       "label": null,
+       "text": "In towns, the main obstacle is movement. A hedgehog may travel a kilometre or more in a night, but fences and walls divide gardens into sealed boxes. Roads are another hazard, and large numbers are killed by traffic every year. Conservation groups now encourage householders to cut small holes at the base of fences to create 'hedgehog highways'. Whether such schemes reverse the decline in the long term is not yet known."
+      },
+      {
+       "label": null,
+       "text": "Not all the news is discouraging. Hedgehogs breed readily when conditions allow, and in areas where hedges have been replanted and field margins left uncultivated, local surveys have occasionally recorded small recoveries. Volunteers also run rescue centres that care for injured or underweight animals over the winter before releasing them in spring."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Do the following statements agree with the information given in the passage? Write TRUE, FALSE or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u07-l1-i7-q1",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Hedgehog numbers in the countryside have fallen considerably in recent decades.",
+         "answer": "T",
+         "why": "Surveys suggest hedgehogs \"have become markedly less common in the British countryside\"."
+        },
+        {
+         "id": "u07-l1-i7-q2",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Hedgehog numbers are falling in all suburban areas.",
+         "answer": "F",
+         "why": "\"In some suburban areas numbers appear to have stabilised\": the qualifier *all* makes the statement false."
+        },
+        {
+         "id": "u07-l1-i7-q3",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Researchers agree that badgers are the main reason for the decline.",
+         "answer": "F",
+         "why": "Researchers \"caution… the relationship is not a simple one\"; the passage lists badgers as one of several proposed causes."
+        },
+        {
+         "id": "u07-l1-i7-q4",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Hedgehogs usually travel further at night in summer than in winter.",
+         "answer": "NG",
+         "why": "The passage says they may travel a kilometre or more in a night but makes no seasonal comparison."
+        },
+        {
+         "id": "u07-l1-i7-q5",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "'Hedgehog highways' have been shown to reverse the decline.",
+         "answer": "F",
+         "why": "\"Whether such schemes reverse the decline in the long term is not yet known\": so it has not been shown."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u07-l1-i8",
+     "type": "pick",
+     "q": "Passage: 'The bridge was completed in 1890.' Statement: 'The bridge was the longest in the country when it opened.' What is the answer?",
+     "options": [
+      "TRUE",
+      "FALSE",
+      "NOT GIVEN"
+     ],
+     "answer": 2,
+     "why": "The date says nothing about length, so the passage neither confirms nor contradicts the statement: NOT GIVEN."
+    },
+    {
+     "id": "u07-l1-i9",
+     "type": "pick",
+     "q": "Passage: 'Some researchers believe the drug may slow the disease.' Statement: 'The drug has been proved to slow the disease.' What is the answer?",
+     "options": [
+      "TRUE",
+      "FALSE",
+      "NOT GIVEN"
+     ],
+     "answer": 1,
+     "why": "'Some researchers believe… may' contradicts 'has been proved': the passage says the evidence is not conclusive. FALSE."
+    }
+   ]
+  },
+  {
+   "id": "u07-l2",
+   "title": "Practice: a full passage",
+   "kind": "practice",
+   "minutes": 22,
+   "items": [
+    {
+     "id": "u07-l2-i1",
+     "type": "reading",
+     "title": "The science of forgetting",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "In the 1880s a German psychologist, Hermann Ebbinghaus, set out to measure something that had never been measured: the rate at which we forget. His method was laborious and, by modern standards, peculiar. Rather than test other people, he tested himself, memorising long lists of meaningless syllables such as 'DAX' and 'BOK' and recording how much he could recall after intervals ranging from twenty minutes to a month. He chose nonsense syllables deliberately, reasoning that real words would trigger associations and make the results harder to interpret."
+      },
+      {
+       "label": "B",
+       "text": "The pattern he found has been reproduced many times since. Forgetting is fastest immediately after learning and then slows down: a large proportion of new material is lost within the first day, but what survives the first few days tends to be retained far longer. Plotted on a graph, the result is a steep drop that gradually levels off, a shape now known as the forgetting curve. Ebbinghaus also noticed that relearning a list he had apparently forgotten took less time than learning it originally, which suggested that the memory had not vanished entirely but had become inaccessible."
+      },
+      {
+       "label": "C",
+       "text": "For much of the twentieth century, psychologists argued about *why* we forget. One view held that memories simply fade with time, like ink exposed to sunlight. The rival view, which gained ground from the 1950s onwards, emphasised **interference**: memories compete with one another, so that new learning disrupts the recall of older material, and old learning gets in the way of new. A person who has moved house may repeatedly give their old address, not because the new one has decayed, but because the old one keeps intruding. Most researchers now accept that both processes may play a part, although interference is far easier to demonstrate in the laboratory. The decay view has proved surprisingly difficult to test, because it is almost impossible to arrange for time to pass without anything else happening: a person waiting between learning and recall is still thinking, talking and taking in new information."
+      },
+      {
+       "label": "D",
+       "text": "Whatever its causes, forgetting can be slowed. One of the most robust findings in the psychology of learning is the **spacing effect**: material reviewed in several sessions spread out over time is remembered much better than the same material studied for the same total time in a single block. Students who cram the night before an examination may perform reasonably well the next morning, but they tend to forget most of what they learned within weeks. Spaced review, by contrast, produces memories that last. Why spacing works is still debated. One explanation is that a gap between sessions allows some forgetting to occur, so that each review requires more effort to retrieve the material, and this effort itself strengthens the memory. Another is that studying in different sessions links the material to a wider variety of contexts, providing more cues for later recall. Whatever the mechanism, the practical implication is clear, yet surveys of students consistently find that most still prefer to concentrate their studying shortly before a test."
+      },
+      {
+       "label": "E",
+       "text": "A second, related finding concerns the value of testing. Reading a text several times gives a comforting sense of familiarity, but familiarity is not the same as the ability to recall. Experiments have repeatedly found that trying to retrieve information, by answering questions or writing down what one remembers, strengthens memory more than rereading does, even when no feedback is given. In one experiment at a Dutch university in 2018, students who spent half their revision time testing themselves recalled noticeably more a week later than those who spent all of it rereading, although the self-testing group rated their own learning as *less* effective. Effortful recall, it seems, feels less productive precisely because it is harder."
+      },
+      {
+       "label": "F",
+       "text": "Sleep also appears to matter. During sleep, and particularly during certain deep stages, the brain seems to replay recent experiences and integrate them with existing knowledge, a process known as consolidation. People who sleep after learning generally remember more than those who stay awake for the same period, and some studies suggest that a short daytime nap can produce a measurable benefit."
+      },
+      {
+       "label": "G",
+       "text": "None of this means that forgetting is simply a failure. A memory system that kept everything would be overwhelmed with trivial detail: where you parked the car last Tuesday, the exact wording of every conversation. Many researchers now regard forgetting as an active and useful process that clears away information unlikely to be needed and allows general patterns to emerge from particular experiences. Tellingly, the very small number of people documented as having an exceptional ability to recall the events of their lives in detail do not necessarily experience it as a gift; some describe being unable to escape unpleasant memories. The aim of a good learner, in this view, is not to stop forgetting but to influence what is forgotten."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 1-8. Do the following statements agree with the information given in the passage? Write TRUE, FALSE or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u07-l2-i1-q1",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Ebbinghaus used other people as the subjects of his memory experiments.",
+         "answer": "F",
+         "why": "Paragraph A: \"Rather than test other people, he tested himself.\""
+        },
+        {
+         "id": "u07-l2-i1-q2",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Ebbinghaus chose meaningless syllables to avoid the influence of associations.",
+         "answer": "T",
+         "why": "Paragraph A: real words \"would trigger associations and make the results harder to interpret\"."
+        },
+        {
+         "id": "u07-l2-i1-q3",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Later researchers have generally been unable to repeat Ebbinghaus's findings.",
+         "answer": "F",
+         "why": "Paragraph B: \"The pattern he found has been reproduced many times since.\""
+        },
+        {
+         "id": "u07-l2-i1-q4",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Ebbinghaus found that forgotten lists were quicker to relearn than to learn the first time.",
+         "answer": "T",
+         "why": "Paragraph B: \"relearning a list he had apparently forgotten took less time than learning it originally\"."
+        },
+        {
+         "id": "u07-l2-i1-q5",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The decay theory of forgetting was first proposed in the 1950s.",
+         "answer": "NG",
+         "why": "Paragraph C says the *interference* view gained ground from the 1950s; it gives no date for the decay theory."
+        },
+        {
+         "id": "u07-l2-i1-q6",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Most researchers today believe that interference is the only cause of forgetting.",
+         "answer": "F",
+         "why": "Paragraph C: \"Most researchers now accept that both processes may play a part.\""
+        },
+        {
+         "id": "u07-l2-i1-q7",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Students who cram usually forget most of what they learned within a few weeks.",
+         "answer": "T",
+         "why": "Paragraph D: \"they tend to forget most of what they learned within weeks\"."
+        },
+        {
+         "id": "u07-l2-i1-q8",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "In the 2018 study, students who tested themselves were aware that their method was more effective.",
+         "answer": "F",
+         "why": "Paragraph E: they \"rated their own learning as *less* effective\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 9-11. Complete the sentences below. Choose ONE WORD ONLY from the passage for each answer.",
+       "items": [
+        {
+         "id": "u07-l2-i1-q9",
+         "type": "gap",
+         "text": "Reading a text many times creates a feeling of ___, which is different from being able to recall it.",
+         "answer": [
+          "familiarity"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph E: \"a comforting sense of familiarity, but familiarity is not the same as the ability to recall\"."
+        },
+        {
+         "id": "u07-l2-i1-q10",
+         "type": "gap",
+         "text": "The brain's integration of recent experiences with existing knowledge during sleep is called ___.",
+         "answer": [
+          "consolidation"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph F: \"a process known as consolidation\"."
+        },
+        {
+         "id": "u07-l2-i1-q11",
+         "type": "gap",
+         "text": "Some studies suggest that even a brief ___ during the day can improve memory.",
+         "answer": [
+          "nap"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph F: \"a short daytime nap can produce a measurable benefit\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 12-13. Choose the correct letter, A, B, C or D.",
+       "items": [
+        {
+         "id": "u07-l2-i1-q12",
+         "type": "pick",
+         "q": "The example of a person who has moved house is used to illustrate",
+         "options": [
+          "A  how memories fade over time.",
+          "B  how older memories can disrupt newer ones.",
+          "C  why addresses are difficult to remember.",
+          "D  why interference is hard to study."
+         ],
+         "answer": 1,
+         "why": "Paragraph C: they give the old address \"not because the new one has decayed, but because the old one keeps intruding\": old learning disrupting new."
+        },
+        {
+         "id": "u07-l2-i1-q13",
+         "type": "pick",
+         "q": "What is the main point of the final paragraph?",
+         "options": [
+          "A  Forgetting is a sign of a poor memory.",
+          "B  Trivial details are impossible to remember.",
+          "C  Forgetting can serve a useful purpose.",
+          "D  Learners should try to remember everything."
+         ],
+         "answer": 2,
+         "why": "Paragraph G calls forgetting \"an active and useful process\" and says the aim is \"to influence what is forgotten\"."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u07-l3",
+   "title": "Test: a full passage",
+   "kind": "test",
+   "minutes": 20,
+   "timed": 1200,
+   "items": [
+    {
+     "id": "u07-l3-i1",
+     "type": "reading",
+     "title": "The optical telegraph",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "Long before the electric telegraph, a message could cross France in a matter of hours. In the 1790s the engineer Claude Chappe and his brothers developed a system of signalling towers, each topped with a mast carrying a movable crossbar and two smaller arms. By setting the arms at different angles, an operator could display dozens of distinct positions, each standing for a letter, a number or, using a code book, a whole word or phrase. An operator in the next tower, several kilometres away, would read the signal through a telescope and reproduce it for the tower beyond. Chappe is said to have experimented with several other designs before settling on this one, including a system based on synchronised clocks and another using panels that could be turned to show black or white faces."
+      },
+      {
+       "label": "B",
+       "text": "The first line, linking Paris with Lille in the north, came into service in 1794, during a period of war. Its value was quickly demonstrated: news of a French military success near the northern border is said to have reached Paris within about an hour, a journey that would have taken a rider on horseback the best part of a day. The government, recognising the strategic advantage, extended the network in every direction. At its height it comprised more than five hundred stations and reached most of the country's major cities."
+      },
+      {
+       "label": "C",
+       "text": "The system had obvious limitations. It could only operate in daylight, and fog, rain or haze could stop it altogether. Its capacity was small, since each signal had to be set, observed and repeated along the line, and every tower required trained staff. Above all, it was expensive. The French network was run by the state and used almost entirely for official business; private messages were forbidden for most of its history, partly out of fear that it might be used to manipulate financial markets. Errors could also creep in at any point along the chain. An operator who misread a signal passed the mistake on to every tower beyond, and the recipient at the end of the line had little means of detecting it. To reduce this risk, operators were trained to repeat signals exactly without attempting to interpret them, and in many cases they did not know the meaning of the codes they relayed."
+      },
+      {
+       "label": "D",
+       "text": "Other countries developed their own versions. In Britain, the Admiralty adopted a design in which messages were sent by opening and closing a set of wooden shutters, and a chain of stations linked London with the naval base at Deal on the Kent coast. Sweden built a network of its own using a similar principle. These systems differed in their mechanics, but all relied on the same basic idea: a visible signal, relayed from hilltop to hilltop by human observers."
+      },
+      {
+       "label": "E",
+       "text": "Historians have sometimes treated these optical telegraphs as an engineering curiosity, a clever but doomed precursor to the real thing. That judgement is perhaps unfair. The optical networks introduced many of the ideas on which later telecommunications depended, including standardised codes, procedures for confirming that a message had been received correctly and the notion that information, rather than physical objects, could be sent across a country at speed. They also raised questions that still sound familiar: who should control a communications network, and whether ordinary citizens should be allowed to use it. There is also an argument that the networks shaped the states that built them. By allowing a central government to learn of events in distant provinces within hours, they strengthened the hand of the capital over the regions, a pattern that later communications technologies would repeat."
+      },
+      {
+       "label": "F",
+       "text": "The decline, when it came, was swift. Electric telegraphy, developed in several countries during the 1830s and 1840s, could operate at night and in any weather, carried far more traffic and needed far fewer staff. France was relatively slow to abandon its optical system, which had served the state well and in which a great deal had been invested, but by the 1850s it too was converting to electric lines. Within a few years the towers had fallen silent. Some were adapted for other uses, as homes, storehouses or bell towers, while many others were simply abandoned and left to decay."
+      },
+      {
+       "label": "G",
+       "text": "Traces of them survive. In parts of France, restored towers have been opened to visitors, and the names of roads and hills in several countries still refer to the telegraphs that once stood there. For those who study the history of communication, these sites are a reminder that the desire to send messages faster than a person can travel is far older than the technologies we now associate with it."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 1-9. Do the following statements agree with the information given in the passage? Write TRUE, FALSE or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u07-l3-i1-q1",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Each position of the arms on a Chappe tower could represent a complete word.",
+         "answer": "T",
+         "why": "Paragraph A: each position could stand for \"a letter, a number or, using a code book, a whole word or phrase\"."
+        },
+        {
+         "id": "u07-l3-i1-q2",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Operators used telescopes to read signals from neighbouring towers.",
+         "answer": "T",
+         "why": "Paragraph A: the operator \"would read the signal through a telescope\"."
+        },
+        {
+         "id": "u07-l3-i1-q3",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The Paris to Lille line was built during peacetime.",
+         "answer": "F",
+         "why": "Paragraph B: it came into service in 1794, \"during a period of war\"."
+        },
+        {
+         "id": "u07-l3-i1-q4",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The French network eventually reached every town in the country.",
+         "answer": "F",
+         "why": "Paragraph B: it \"reached most of the country's major cities\", not every town."
+        },
+        {
+         "id": "u07-l3-i1-q5",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The system could operate in light rain but not in fog.",
+         "answer": "F",
+         "why": "Paragraph C: \"fog, rain or haze could stop it altogether\"."
+        },
+        {
+         "id": "u07-l3-i1-q6",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Private citizens were allowed to send messages on the French network for most of its existence.",
+         "answer": "F",
+         "why": "Paragraph C: \"private messages were forbidden for most of its history\"."
+        },
+        {
+         "id": "u07-l3-i1-q7",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The British system was faster than the French one.",
+         "answer": "NG",
+         "why": "Paragraph D describes the British shutter design but makes no comparison of speed."
+        },
+        {
+         "id": "u07-l3-i1-q8",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The Swedish network had more stations than the British one.",
+         "answer": "NG",
+         "why": "Paragraph D mentions that Sweden built a network \"of its own\" but gives no figures for either country's number of stations."
+        },
+        {
+         "id": "u07-l3-i1-q9",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "France converted to electric telegraphy later than some other countries.",
+         "answer": "T",
+         "why": "Paragraph F: \"France was relatively slow to abandon its optical system\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 10-13. Complete the summary below. Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+       "items": [
+        {
+         "id": "u07-l3-i1-q10",
+         "type": "gap",
+         "text": "Some historians regard optical telegraphs as merely an engineering ___.",
+         "answer": [
+          "curiosity"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph E: \"treated these optical telegraphs as an engineering curiosity\"."
+        },
+        {
+         "id": "u07-l3-i1-q11",
+         "type": "gap",
+         "text": "In fact, they pioneered ideas such as ___ and methods of checking that messages had arrived correctly.",
+         "answer": [
+          "standardised codes",
+          "standardized codes"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph E: \"including standardised codes, procedures for confirming that a message had been received correctly\"."
+        },
+        {
+         "id": "u07-l3-i1-q12",
+         "type": "gap",
+         "text": "Electric telegraphs carried much more traffic and required fewer ___.",
+         "answer": [
+          "staff"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph F: electric telegraphy \"carried far more traffic and needed far fewer staff\"."
+        },
+        {
+         "id": "u07-l3-i1-q13",
+         "type": "gap",
+         "text": "Today, some ___ in France can be visited by the public.",
+         "answer": [
+          "restored towers"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph G: \"restored towers have been opened to visitors\"."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

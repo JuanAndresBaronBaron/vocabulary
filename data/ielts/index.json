@@ -1,0 +1,241 @@
+{
+ "format": 1,
+ "blocks": [
+  {
+   "id": "start",
+   "title": "Start here",
+   "units": [
+    1,
+    2
+   ]
+  },
+  {
+   "id": "listening",
+   "title": "Listening",
+   "units": [
+    3,
+    4,
+    5,
+    6
+   ]
+  },
+  {
+   "id": "reading",
+   "title": "Reading",
+   "units": [
+    7,
+    8,
+    9,
+    10
+   ]
+  },
+  {
+   "id": "writing",
+   "title": "Writing",
+   "units": [
+    11,
+    12,
+    13,
+    14,
+    15
+   ]
+  },
+  {
+   "id": "speaking",
+   "title": "Speaking",
+   "units": [
+    16,
+    17,
+    18,
+    19
+   ]
+  },
+  {
+   "id": "language",
+   "title": "C2 language",
+   "units": [
+    20,
+    21,
+    22
+   ]
+  },
+  {
+   "id": "mock",
+   "title": "Mock tests",
+   "units": [
+    23,
+    24
+   ]
+  }
+ ],
+ "units": [
+  {
+   "id": "u01",
+   "n": 1,
+   "block": "start",
+   "title": "The exam and the bands",
+   "available": true
+  },
+  {
+   "id": "u02",
+   "n": 2,
+   "block": "start",
+   "title": "Diagnostic test",
+   "available": true
+  },
+  {
+   "id": "u03",
+   "n": 3,
+   "block": "listening",
+   "title": "Part 1: forms and details",
+   "available": true
+  },
+  {
+   "id": "u04",
+   "n": 4,
+   "block": "listening",
+   "title": "Part 2: maps and monologues",
+   "available": true
+  },
+  {
+   "id": "u05",
+   "n": 5,
+   "block": "listening",
+   "title": "Part 3: academic discussions",
+   "available": true
+  },
+  {
+   "id": "u06",
+   "n": 6,
+   "block": "listening",
+   "title": "Part 4: lectures",
+   "available": true
+  },
+  {
+   "id": "u07",
+   "n": 7,
+   "block": "reading",
+   "title": "True, False, Not Given",
+   "available": true
+  },
+  {
+   "id": "u08",
+   "n": 8,
+   "block": "reading",
+   "title": "Matching headings and information",
+   "available": true
+  },
+  {
+   "id": "u09",
+   "n": 9,
+   "block": "reading",
+   "title": "Completion and multiple choice",
+   "available": true
+  },
+  {
+   "id": "u10",
+   "n": 10,
+   "block": "reading",
+   "title": "Writer's views at speed",
+   "available": true
+  },
+  {
+   "id": "u11",
+   "n": 11,
+   "block": "writing",
+   "title": "Task 1: graphs and tables",
+   "available": true
+  },
+  {
+   "id": "u12",
+   "n": 12,
+   "block": "writing",
+   "title": "Task 1: processes and maps",
+   "available": true
+  },
+  {
+   "id": "u13",
+   "n": 13,
+   "block": "writing",
+   "title": "Task 2: opinion and discussion",
+   "available": true
+  },
+  {
+   "id": "u14",
+   "n": 14,
+   "block": "writing",
+   "title": "Task 2: problems and two-part questions",
+   "available": true
+  },
+  {
+   "id": "u15",
+   "n": 15,
+   "block": "writing",
+   "title": "Band 9 craft",
+   "available": true
+  },
+  {
+   "id": "u16",
+   "n": 16,
+   "block": "speaking",
+   "title": "Part 1: the interview",
+   "available": true
+  },
+  {
+   "id": "u17",
+   "n": 17,
+   "block": "speaking",
+   "title": "Part 2: the long turn",
+   "available": true
+  },
+  {
+   "id": "u18",
+   "n": 18,
+   "block": "speaking",
+   "title": "Part 3: the discussion",
+   "available": true
+  },
+  {
+   "id": "u19",
+   "n": 19,
+   "block": "speaking",
+   "title": "Pronunciation for band 9",
+   "available": true
+  },
+  {
+   "id": "u20",
+   "n": 20,
+   "block": "language",
+   "title": "Collocation and precision",
+   "available": true
+  },
+  {
+   "id": "u21",
+   "n": 21,
+   "block": "language",
+   "title": "Advanced grammar",
+   "available": true
+  },
+  {
+   "id": "u22",
+   "n": 22,
+   "block": "language",
+   "title": "Register and idiom",
+   "available": true
+  },
+  {
+   "id": "u23",
+   "n": 23,
+   "block": "mock",
+   "title": "Mock test 1",
+   "available": true
+  },
+  {
+   "id": "u24",
+   "n": 24,
+   "block": "mock",
+   "title": "Mock test 2",
+   "available": true
+  }
+ ]
+}

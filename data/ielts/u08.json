@@ -1,0 +1,523 @@
+{
+ "format": 1,
+ "id": "u08",
+ "n": 8,
+ "block": "reading",
+ "title": "Matching headings and information",
+ "summary": "After this unit you can match headings to main ideas, locate specific information in any paragraph, and link statements to the right people.",
+ "lessons": [
+  {
+   "id": "u08-l1",
+   "title": "Strategy: matching tasks",
+   "kind": "learn",
+   "minutes": 28,
+   "items": [
+    {
+     "id": "u08-l1-i1",
+     "type": "card",
+     "title": "Matching headings: the main idea, not a detail",
+     "body": [
+      "A heading summarises what a whole paragraph is *about*. The trap is a heading that matches a single striking detail: a paragraph about the high cost of a project may mention a famous architect, but 'A famous designer' is not its heading.",
+      "Read the paragraph's first and last sentences, then skim the middle to confirm. Ask: if I had to explain this paragraph in five words, what would I say? Then find the heading that says that."
+     ],
+     "tip": "Do headings before other questions on the same passage: they force you to understand the structure, which makes the remaining questions faster."
+    },
+    {
+     "id": "u08-l1-i2",
+     "type": "card",
+     "title": "Eliminating headings",
+     "body": [
+      "There are always more headings than paragraphs. Cross out any heading you use, and treat headings that repeat a striking word from the passage with suspicion: the right heading is usually a **paraphrase** of the main idea.",
+      "If two headings both seem to fit, look for a qualifier. 'Early problems' and 'Problems that were never solved' differ precisely in what the paragraph says about time."
+     ]
+    },
+    {
+     "id": "u08-l1-i3",
+     "type": "card",
+     "title": "Matching information to paragraphs",
+     "body": [
+      "'Which paragraph contains…?' asks about a **specific detail**: an example, a reason, a comparison, a reference to a number. The details are *not* in passage order, and the instructions often say a paragraph may be used more than once.",
+      "Notice the type of information each item asks for. 'A reference to a cost', 'an example of', 'a prediction about' tell you what to scan for. A paragraph that discusses the topic without containing that *type* of information is wrong."
+     ]
+    },
+    {
+     "id": "u08-l1-i4",
+     "type": "card",
+     "title": "Matching features: names and statements",
+     "body": [
+      "You match statements to people, places, dates or theories. First underline every occurrence of each name in the passage; names can reappear several paragraphs apart, often as 'she' or 'the researcher'.",
+      "The statements paraphrase what each person said or believes. Watch for one person reporting or rejecting another's view: 'Lowe accepts that congestion is a problem' does not mean that Lowe *proposed* the ban."
+     ]
+    },
+    {
+     "id": "u08-l1-i5",
+     "type": "reading",
+     "title": "Drill: a four-day week",
+     "minutes": 8,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "When a group of fourteen small firms in a northern English city agreed to trial a four-day working week, few of their managers expected it to last. Staff would keep their full salaries but work thirty-two hours instead of forty, and the firms would measure whether output held up. Most managers privately predicted that it would not, and that the trial would be quietly abandoned after the six months were over."
+      },
+      {
+       "label": "B",
+       "text": "The early weeks were difficult. Meetings that had always filled an hour had to be cut to twenty minutes, and some teams found that tasks simply spilled over into the fifth day. Several managers reported that they spent more time, not less, planning work. One described the first month as 'like trying to fit a week's shopping into a smaller bag: you have to decide what you really need'."
+      },
+      {
+       "label": "C",
+       "text": "By the end of the trial, however, eleven of the fourteen firms reported that output had stayed the same or risen slightly. Sickness absence fell, and staff surveys showed large improvements in reported wellbeing. Two firms had found the change unworkable, mainly because their customers expected staff to be available five days a week, and a third was undecided."
+      },
+      {
+       "label": "D",
+       "text": "What the trial cannot show is whether the gains will last. Enthusiasm for a new arrangement can itself raise productivity for a while, an effect that may fade once the novelty has worn off. The researchers who monitored the trial have recommended that the firms continue to collect data for at least two more years before drawing firm conclusions."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct heading for each paragraph from the list of headings below.",
+       "items": [
+        {
+         "id": "u08-l1-i5-q1",
+         "type": "select",
+         "q": "Choose the correct heading, i-vi, for each paragraph.",
+         "options": [
+          "i  Unanswered questions about the long term",
+          "ii  Mostly positive results",
+          "iii  Low expectations at the outset",
+          "iv  Customers welcome the change",
+          "v  Growing pains in the first weeks",
+          "vi  Why salaries were reduced"
+         ],
+         "rows": [
+          {
+           "label": "Paragraph A",
+           "answer": 2
+          },
+          {
+           "label": "Paragraph B",
+           "answer": 4
+          },
+          {
+           "label": "Paragraph C",
+           "answer": 1
+          },
+          {
+           "label": "Paragraph D",
+           "answer": 0
+          }
+         ],
+         "why": "A: \"few of their managers expected it to last\". B: \"The early weeks were difficult\". C: eleven of fourteen firms maintained output. D: \"cannot show… whether the gains will last\". iv is wrong (customers caused problems) and vi contradicts the passage (salaries were kept)."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u08-l1-i6",
+     "type": "reading",
+     "title": "Drill: who said what?",
+     "minutes": 8,
+     "paragraphs": [
+      {
+       "label": null,
+       "text": "Plans to close the centre of the market town of Ashby Vale to private cars have divided opinion. Councillor Ruth Adeyemi, who proposed the scheme, argues that the narrow medieval streets were never designed for traffic and that the town's air quality has worsened noticeably over the past decade. She points to towns abroad that have pedestrianised their centres and seen footfall rise. The council's own survey found that a majority of residents who live within the town centre support the idea, although support was much weaker among those living further out."
+      },
+      {
+       "label": null,
+       "text": "Not everyone is convinced. Peter Lowe, who chairs the local traders' association, accepts that congestion is a problem but fears that older customers from surrounding villages, who rely on cars, will simply shop elsewhere. He would prefer a compromise in which cars are excluded only at weekends, when the town is busiest with visitors. Several of his members, he adds, have already seen trade fall during recent roadworks, and they cannot afford a second difficult year."
+      },
+      {
+       "label": null,
+       "text": "Dr Clare Whitby, a transport researcher at a nearby university, believes both sides are overlooking the bus network. In her view, the success of pedestrian schemes depends less on banning cars than on providing a frequent, reliable alternative, and Ashby Vale's buses currently run only once an hour. Without investment in public transport, she warns, a ban could harm the town's economy, whereas with it, the benefits described by the councillor are achievable. A public consultation will run until the end of the year."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Match each statement with the correct person, A, B or C.",
+       "items": [
+        {
+         "id": "u08-l1-i6-q1",
+         "type": "select",
+         "q": "Choose A, B or C. You may use any letter more than once.",
+         "options": [
+          "A  Ruth Adeyemi",
+          "B  Peter Lowe",
+          "C  Clare Whitby"
+         ],
+         "rows": [
+          {
+           "label": "Restrictions should apply only on certain days.",
+           "answer": 1
+          },
+          {
+           "label": "Better public transport is essential for a car ban to work.",
+           "answer": 2
+          },
+          {
+           "label": "Pollution in the town has increased in recent years.",
+           "answer": 0
+          },
+          {
+           "label": "Some shoppers may go to other towns instead.",
+           "answer": 1
+          }
+         ],
+         "why": "Lowe wants cars excluded \"only at weekends\" and fears customers \"will simply shop elsewhere\". Whitby says success depends on \"a frequent, reliable alternative\". Adeyemi says air quality \"has worsened noticeably\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u08-l1-i7",
+     "type": "pick",
+     "q": "A paragraph discusses the rising cost of a dam and mentions that its engineer later became famous. Which heading is most likely correct?",
+     "options": [
+      "A celebrated engineer",
+      "A project that went over budget",
+      "The history of dam building"
+     ],
+     "answer": 1,
+     "why": "The main idea is the cost; the engineer is a **detail**."
+    },
+    {
+     "id": "u08-l1-i8",
+     "type": "pick",
+     "q": "In 'Which paragraph contains…?' questions, the answers usually",
+     "options": [
+      "follow the order of the paragraphs.",
+      "do not follow the order of the paragraphs.",
+      "all come from different paragraphs."
+     ],
+     "answer": 1,
+     "why": "Matching information items are **not** in passage order, and a paragraph may be used more than once."
+    }
+   ]
+  },
+  {
+   "id": "u08-l2",
+   "title": "Practice: a full passage",
+   "kind": "practice",
+   "minutes": 22,
+   "items": [
+    {
+     "id": "u08-l2-i1",
+     "type": "reading",
+     "title": "The rise of coworking",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "On a weekday morning in a converted warehouse near the centre of a large European city, a hundred or so people are at work. A graphic designer shares a long table with a software developer and a man who runs an online tea business; along the wall, a start-up of six people occupies a glass-walled room, and in the kitchen two strangers are discussing a grant application over coffee. None of them work for the same organisation. They are members of a coworking space, a type of workplace that barely existed twenty years ago. The term is usually traced to the mid-2000s, when a handful of shared offices opened for freelancers in a few cities; today such spaces number in the thousands worldwide, from small community-run rooms above shops to multi-storey buildings operated by international chains."
+      },
+      {
+       "label": "B",
+       "text": "The first coworking spaces were a response to a problem that the growth of freelance and remote work had created: loneliness. Working from home offered freedom from commuting and office politics, but many people found it isolating, and the boundary between work and domestic life became difficult to maintain. Cafés, the obvious alternative, had serious drawbacks. They were often noisy, internet connections were unreliable, and buying a steady stream of drinks to justify occupying a table quickly became expensive. Coworking offered something in between: a professional environment and the company of other people, without an employer."
+      },
+      {
+       "label": "C",
+       "text": "The business model behind coworking is simpler than its image might suggest, and considerably more precarious. Operators typically take long leases on buildings and then rent out desks and rooms to members on short, flexible terms, profiting from the difference. Members can choose a 'hot desk', taking any free seat each day, or pay more for a dedicated desk of their own. The arrangement works well when demand is high, but because members can leave at a month's notice while the operator remains committed to a lease lasting years, the business is highly exposed to an economic downturn. Several well-known operators have run into serious financial difficulty for precisely this reason."
+      },
+      {
+       "label": "D",
+       "text": "Much of the marketing of coworking emphasises community, and many spaces employ managers whose job is partly to introduce members to one another and to organise talks, breakfasts and social events. The sociologist Hanna Kervinen, who spent two years observing members of three coworking spaces, found that people valued this atmosphere highly and frequently cited chance conversations as a reason for joining. Yet the number of members who had actually collaborated with someone they met there was small. 'People like the idea of a community around them,' she concludes, 'even if they rarely make use of it. The sense of possibility is what they are paying for.'"
+      },
+      {
+       "label": "E",
+       "text": "In recent years the membership of coworking spaces has changed. Large corporations, which once regarded them as places for freelancers and start-ups, now rent space for entire teams, attracted by the flexibility of short contracts and by the belief that a lively, informal setting will appeal to younger employees. The urban economist Marcus Oyelaran sees this as part of a wider shift in the relationship between workers and organisations. When employees of different firms share the same space, and freelancers sit beside salaried staff, he argues, the sense of belonging to a single employer may gradually weaken, with consequences for loyalty that companies have barely begun to consider."
+      },
+      {
+       "label": "F",
+       "text": "The physical design of coworking spaces has also evolved. Early spaces were almost entirely open-plan, which the architect Lise Dahl attributes less to any theory of collaboration than to cost: open floors are cheap to fit out and allow the maximum number of desks. Members soon discovered the disadvantages. Telephone calls and video meetings disturbed those around them, and people doing work that required concentration struggled to find it. Newer spaces are therefore divided into zones: soundproofed booths for calls, silent areas where conversation is discouraged, and social areas where noise is expected. Dahl regards this as an overdue recognition that different kinds of work need different environments."
+      },
+      {
+       "label": "G",
+       "text": "The most recent development is geographical. As remote working has become more widespread, demand has grown for coworking spaces not in city centres but in suburbs and small towns, close to where people live. A member can avoid a long commute while still leaving the house each morning and working among other people. Oyelaran predicts that such local spaces could bring life back to struggling high streets, as workers who would once have spent their lunch money in the city centre spend it closer to home instead. Whether this proves true will depend on whether enough people choose to pay for a desk when their own kitchen table is free."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 1-6. The passage has seven paragraphs, A-G. Choose the correct heading for paragraphs B-G from the list of headings below.",
+       "items": [
+        {
+         "id": "u08-l2-i1-q1",
+         "type": "select",
+         "q": "Choose the correct heading, i-ix, for each paragraph.",
+         "options": [
+          "i  The rising cost of city-centre offices",
+          "ii  A remedy for working alone",
+          "iii  A business with built-in risk",
+          "iv  An atmosphere valued more than it is used",
+          "v  Corporate tenants and changing loyalties",
+          "vi  Space for different ways of working",
+          "vii  Government support for freelancers",
+          "viii  Moving closer to home",
+          "ix  Why cafés became more popular"
+         ],
+         "rows": [
+          {
+           "label": "Paragraph B",
+           "answer": 1
+          },
+          {
+           "label": "Paragraph C",
+           "answer": 2
+          },
+          {
+           "label": "Paragraph D",
+           "answer": 3
+          },
+          {
+           "label": "Paragraph E",
+           "answer": 4
+          },
+          {
+           "label": "Paragraph F",
+           "answer": 5
+          },
+          {
+           "label": "Paragraph G",
+           "answer": 7
+          }
+         ],
+         "why": "B: coworking as a response to \"loneliness\". C: the model is \"highly exposed to an economic downturn\". D: people value community but rarely collaborate. E: corporations rent space; loyalty may weaken. F: zones for calls, silence and socialising. G: spaces \"close to where people live\". ix is a distractor: B explains why cafés were *unsatisfactory*."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 7-10. Which paragraph contains the following information? You may use any letter more than once.",
+       "items": [
+        {
+         "id": "u08-l2-i1-q2",
+         "type": "select",
+         "q": "Choose the correct paragraph, A-G.",
+         "options": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+         ],
+         "rows": [
+          {
+           "label": "an indication of how widespread coworking has become",
+           "answer": 0
+          },
+          {
+           "label": "a reason why working in cafés could be costly",
+           "answer": 1
+          },
+          {
+           "label": "a reference to companies that have faced financial problems",
+           "answer": 2
+          },
+          {
+           "label": "an example of a facility designed to contain noise",
+           "answer": 5
+          }
+         ],
+         "why": "A: spaces \"number in the thousands worldwide\". B: \"buying a steady stream of drinks… quickly became expensive\". C: \"several well-known operators have run into serious financial difficulty\". F: \"soundproofed booths for calls\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 11-13. Match each statement with the correct person, A, B or C. You may use any letter more than once.",
+       "items": [
+        {
+         "id": "u08-l2-i1-q3",
+         "type": "select",
+         "q": "Choose A, B or C.",
+         "options": [
+          "A  Hanna Kervinen",
+          "B  Marcus Oyelaran",
+          "C  Lise Dahl"
+         ],
+         "rows": [
+          {
+           "label": "Shared workplaces may reduce employees' attachment to their company.",
+           "answer": 1
+          },
+          {
+           "label": "Economic considerations explain the layout of early coworking spaces.",
+           "answer": 2
+          },
+          {
+           "label": "Local coworking spaces could benefit town-centre businesses.",
+           "answer": 1
+          }
+         ],
+         "why": "Oyelaran: \"the sense of belonging to a single employer may gradually weaken\" and local spaces \"could bring life back to struggling high streets\". Dahl attributes open-plan design \"to cost\"."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u08-l3",
+   "title": "Test: a full passage",
+   "kind": "test",
+   "minutes": 20,
+   "timed": 1200,
+   "items": [
+    {
+     "id": "u08-l3-i1",
+     "type": "reading",
+     "title": "Rewilding the uplands",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "Driving through the uplands of northern Britain, most visitors see a landscape they regard as natural: open moorland, sheep grazing on bare hillsides, the occasional stone wall. To many ecologists, however, these hills are anything but natural. They are the product of centuries of human activity, above all of grazing, which prevents trees from regenerating and keeps the land in a state of what some call 'ecological arrest'. It is against this background that the idea of rewilding has gained ground: the restoration of natural processes, and sometimes of missing species, with as little ongoing human management as possible. The word itself is relatively new, and its meaning is still disputed: for some it implies large areas left entirely to nature, for others a modest relaxation of control on part of a farm."
+      },
+      {
+       "label": "B",
+       "text": "Rewilding differs from traditional conservation in an important respect. Conventional nature reserves are often managed intensively to maintain a particular habitat, such as a heather moor or a wildflower meadow, in a fixed condition. Rewilding, by contrast, is less concerned with a specific end point. Its advocates argue that the aim should be to allow natural processes, such as the regeneration of woodland or the flooding of rivers, to shape the landscape, accepting that the result may be unpredictable. 'We are not trying to recreate a particular moment in the past,' says the ecologist Fiona Lennox, who has advised several upland projects. 'We are trying to give nature back the capacity to change.'"
+      },
+      {
+       "label": "C",
+       "text": "On the Carrow Valley estate, which stopped grazing sheep on most of its land fifteen years ago, the results are already visible. Birch and willow have spread across slopes that were bare, and the number of bird species recorded on the estate has more than doubled. Lennox is cautious about attributing every change to the end of grazing: a run of mild winters and a decline in the local deer population have probably played a part. Nevertheless, she regards Carrow as evidence that recovery can be rapid once pressure on the land is removed."
+      },
+      {
+       "label": "D",
+       "text": "The most controversial element of rewilding is the reintroduction of animals. Beavers, which were hunted to extinction in Britain several centuries ago, have now been returned to a number of sites, where their dams slow the flow of streams, create wetlands and, some studies suggest, reduce flooding downstream. Their return has been welcomed by many, but some landowners complain that beavers fell valuable trees and flood farmland. Proposals to reintroduce larger animals, such as the lynx, have met even stronger resistance, particularly from sheep farmers concerned about their livestock. Supporters of the lynx point out that it rarely attacks sheep in the European countries where it already lives and that it could help to control deer, but opponents reply that conditions in Britain's open, sheep-dominated hills are very different."
+      },
+      {
+       "label": "E",
+       "text": "Farmers' objections go beyond particular species. For Gareth Price, who represents hill farmers in the region, rewilding risks treating upland communities as an obstacle to be removed. Hill farming, he points out, has shaped the culture and economy of these areas for generations, and a landscape without farms may also be a landscape without schools, shops and young families. He does not oppose all change, and supports schemes that pay farmers to plant trees along streams, but he insists that decisions about the uplands should be made with the people who live there rather than imposed by distant organisations."
+      },
+      {
+       "label": "F",
+       "text": "Economic arguments are invoked on both sides. Hill farming in many areas depends heavily on public subsidy, and some economists argue that the same money could deliver greater public benefit if it were spent on storing carbon, reducing flood risk and improving water quality. The economist Tomas Ruiz has calculated that, on some estates, income from nature tourism and carbon schemes could eventually match that from sheep. He stresses, however, that such income is uncertain and often benefits landowners more than local workers, and that a sudden withdrawal of farming support could cause real hardship."
+      },
+      {
+       "label": "G",
+       "text": "Increasingly, the debate is moving away from a stark choice between farming and wilderness. Some projects now describe their aims as 'nature recovery' rather than rewilding, a change of language intended to reassure farmers, and combine areas of natural regeneration with lower-intensity grazing using cattle or hardy breeds, whose feeding habits create a more varied habitat than sheep alone. Lennox welcomes the shift, though she worries that compromise could become an excuse for doing very little. The uplands, she notes, are among the few places where there is enough space to let nature take the lead; it would be a pity to waste the opportunity."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 1-6. The passage has seven paragraphs, A-G. Choose the correct heading for paragraphs B-G from the list of headings below.",
+       "items": [
+        {
+         "id": "u08-l3-i1-q1",
+         "type": "select",
+         "q": "Choose the correct heading, i-ix, for each paragraph.",
+         "options": [
+          "i  A landscape shaped by people",
+          "ii  Processes rather than fixed goals",
+          "iii  Early signs of recovery, cautiously interpreted",
+          "iv  Divided opinions on returning species",
+          "v  The rising number of visitors",
+          "vi  A plea to involve local communities",
+          "vii  Weighing the financial case",
+          "viii  Towards a middle way",
+          "ix  The extinction of the lynx"
+         ],
+         "rows": [
+          {
+           "label": "Paragraph B",
+           "answer": 1
+          },
+          {
+           "label": "Paragraph C",
+           "answer": 2
+          },
+          {
+           "label": "Paragraph D",
+           "answer": 3
+          },
+          {
+           "label": "Paragraph E",
+           "answer": 5
+          },
+          {
+           "label": "Paragraph F",
+           "answer": 6
+          },
+          {
+           "label": "Paragraph G",
+           "answer": 7
+          }
+         ],
+         "why": "B: rewilding is \"less concerned with a specific end point\". C: results at Carrow, but Lennox \"is cautious about attributing every change\". D: reintroductions welcomed by some, resisted by others. E: Price wants decisions made \"with the people who live there\". F: subsidies, tourism and carbon income. G: moving \"away from a stark choice\". i fits A, which is not asked."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 7-9. Match each statement with the correct person, A, B or C. You may use any letter more than once.",
+       "items": [
+        {
+         "id": "u08-l3-i1-q2",
+         "type": "select",
+         "q": "Choose A, B or C.",
+         "options": [
+          "A  Fiona Lennox",
+          "B  Gareth Price",
+          "C  Tomas Ruiz"
+         ],
+         "rows": [
+          {
+           "label": "The financial benefits of rewilding may not reach ordinary employees.",
+           "answer": 2
+          },
+          {
+           "label": "Some improvements may have causes other than the removal of sheep.",
+           "answer": 0
+          },
+          {
+           "label": "Paying farmers to plant trees beside rivers is a positive step.",
+           "answer": 1
+          }
+         ],
+         "why": "Ruiz: such income \"often benefits landowners more than local workers\". Lennox: mild winters and fewer deer \"have probably played a part\". Price \"supports schemes that pay farmers to plant trees along streams\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 10-13. Which paragraph contains the following information? You may use any letter more than once.",
+       "items": [
+        {
+         "id": "u08-l3-i1-q3",
+         "type": "select",
+         "q": "Choose the correct paragraph, A-G.",
+         "options": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+         ],
+         "rows": [
+          {
+           "label": "a concern that a compromise might lead to inaction",
+           "answer": 6
+          },
+          {
+           "label": "an example of an animal whose activity may protect areas from floods",
+           "answer": 3
+          },
+          {
+           "label": "a figure showing an increase in wildlife on one site",
+           "answer": 2
+          },
+          {
+           "label": "a description of how conventional reserves are managed",
+           "answer": 1
+          }
+         ],
+         "why": "G: compromise \"could become an excuse for doing very little\". D: beaver dams \"reduce flooding downstream\". C: bird species \"more than doubled\". B: reserves \"managed intensively\" to keep a habitat in a fixed condition."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

@@ -1,0 +1,574 @@
+{
+ "format": 1,
+ "id": "u06",
+ "n": 6,
+ "block": "listening",
+ "title": "Part 4: lectures",
+ "summary": "After this unit you can follow a five-minute academic lecture without a break and complete strict one-word notes accurately.",
+ "lessons": [
+  {
+   "id": "u06-l1",
+   "title": "How Part 4 works",
+   "kind": "learn",
+   "minutes": 22,
+   "items": [
+    {
+     "id": "u06-l1-i1",
+     "type": "card",
+     "title": "What Part 4 is like",
+     "body": [
+      "Part 4 is a lecture or academic talk by one speaker, about four to five minutes long, on a topic such as history, ecology, technology or psychology. There is **no break in the middle**: you read all ten questions at the start and then listen straight through.",
+      "Most Part 4 tasks are **note completion** with a strict limit, often ONE WORD ONLY. The notes follow the structure of the lecture, so the headings are your map."
+     ]
+    },
+    {
+     "id": "u06-l1-i2",
+     "type": "card",
+     "title": "Predict the grammar, not just the topic",
+     "body": [
+      "Before the lecture begins, read each gap and decide what kind of word fits: a noun or adjective, singular or plural, a process or a material. 'Early lamps were made from ___' needs a material noun; 'The results were surprisingly ___' needs an adjective.",
+      "This prediction is what lets you hear the answer as a word you are waiting for, rather than one more word in a stream."
+     ],
+     "examples": [
+      {
+       "text": "Notes: 'caused by the use of ___ in construction'",
+       "note": "Expect an uncountable or plural noun: a material."
+      },
+      {
+       "text": "Notes: 'the process became more ___'",
+       "note": "Expect an adjective or comparative."
+      }
+     ]
+    },
+    {
+     "id": "u06-l1-i3",
+     "type": "card",
+     "title": "Signposting in lectures",
+     "body": [
+      "Lecturers announce structure: 'I'll begin by…', 'Turning now to…', 'The second factor is…', 'Let me give you an example', 'To sum up…'. These phrases tell you which heading of the notes you have reached.",
+      "Listen especially for the phrases that introduce a *key* word: 'what's known as', 'the term for this is', 'this is called'. The word after them is very often an answer."
+     ],
+     "list": [
+      "Moving on to… / Turning now to… / Let's now consider…",
+      "What's known as… / This is referred to as…",
+      "The main reason is… / Crucially… / What matters here is…",
+      "So, to recap…"
+     ]
+    },
+    {
+     "id": "u06-l1-i4",
+     "type": "card",
+     "title": "Paraphrase between notes and speech",
+     "body": [
+      "The notes rarely repeat the lecturer's sentence. 'Cities retain heat after sunset' in the notes may be 'the heat is released slowly through the night' in the lecture. Listen for meaning, then write the exact word you hear.",
+      "Never change the word's form to fit your own idea of the sentence. If the speaker says 'reflective', do not write 'reflection'. If the notes need a different form, you have probably got the wrong word."
+     ]
+    },
+    {
+     "id": "u06-l1-i5",
+     "type": "card",
+     "title": "Staying in step for five minutes",
+     "body": [
+      "Part 4 tests concentration. If you lose one answer, the next heading will bring you back, but only if you are reading ahead. Keep your eyes one gap ahead of the speaker.",
+      "Answers can be very close together, sometimes two in one sentence, and some sentences contain words that would fit a gap but describe something else. Check that your word answers the *question in the notes*, not just that it was said."
+     ]
+    },
+    {
+     "id": "u06-l1-i6",
+     "type": "listening",
+     "title": "Drill: a key term",
+     "part": 4,
+     "context": "A lecturer is talking about language learning.",
+     "speakers": [
+      {
+       "id": "l",
+       "name": "Lecturer",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "l",
+       "t": "Children don't learn words one at a time from definitions. Instead, they often grasp the meaning of a new word after hearing it just once or twice in context."
+      },
+      {
+       "s": "l",
+       "t": "This remarkable ability is what's known as fast mapping, and it's been studied since the late nineteen-seventies."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the note. Write ONE WORD ONLY.",
+       "items": [
+        {
+         "id": "u06-l1-i6-q1",
+         "type": "gap",
+         "text": "Learning a word after one or two exposures: 'fast ___'",
+         "answer": [
+          "mapping"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "The signpost \"what's known as\" introduces the term \"fast mapping\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u06-l1-i7",
+     "type": "listening",
+     "title": "Drill: a word that fits but is wrong",
+     "part": 4,
+     "context": "A lecturer is talking about early lighting.",
+     "speakers": [
+      {
+       "id": "l",
+       "name": "Lecturer",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "l",
+       "t": "Most people imagine that Roman lamps burned wax, and candles certainly existed."
+      },
+      {
+       "s": "l",
+       "t": "But the everyday lamp in most Roman homes was a small clay vessel that burned olive oil, which was cheap and widely available."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the note. Write ONE WORD ONLY.",
+       "items": [
+        {
+         "id": "u06-l1-i7-q1",
+         "type": "gap",
+         "text": "Everyday Roman lamps burned olive ___",
+         "answer": [
+          "oil"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Wax is what \"most people imagine\"; the lamps \"burned olive oil\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u06-l1-i8",
+     "type": "listening",
+     "title": "Drill: grammar prediction",
+     "part": 4,
+     "context": "A lecturer is talking about bridge design.",
+     "speakers": [
+      {
+       "id": "l",
+       "name": "Lecturer",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "l",
+       "t": "The earliest suspension bridges were often unstable in high winds."
+      },
+      {
+       "s": "l",
+       "t": "Engineers gradually learned to make the deck much stiffer, which reduced the dangerous twisting movements."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the note. Write ONE WORD ONLY.",
+       "items": [
+        {
+         "id": "u06-l1-i8-q1",
+         "type": "gap",
+         "text": "Later decks were made ___ to reduce twisting.",
+         "answer": [
+          "stiffer"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "The gap needs a comparative adjective: \"make the deck much stiffer\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u06-l1-i9",
+     "type": "pick",
+     "q": "The notes say: 'Material used: ___'. Which kind of word should you expect?",
+     "options": [
+      "a verb",
+      "a noun",
+      "an adverb"
+     ],
+     "answer": 1,
+     "why": "'Material used' must be followed by a **noun** naming a material."
+    },
+    {
+     "id": "u06-l1-i10",
+     "type": "pick",
+     "q": "You hear 'this is referred to as thermal mass'. What does the signpost tell you?",
+     "options": [
+      "A key term follows, likely an answer.",
+      "The lecturer is changing topic.",
+      "An example is about to be given."
+     ],
+     "answer": 0,
+     "why": "Phrases like 'referred to as' introduce **key terms**, which are frequent answers."
+    }
+   ]
+  },
+  {
+   "id": "u06-l2",
+   "title": "Practice: a full Part 4",
+   "kind": "practice",
+   "minutes": 12,
+   "items": [
+    {
+     "id": "u06-l2-i1",
+     "type": "listening",
+     "title": "Urban heat islands",
+     "part": 4,
+     "context": "You will hear part of a lecture on urban climate. First, you have some time to look at questions 1 to 10.",
+     "speakers": [
+      {
+       "id": "l",
+       "name": "Lecturer",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "l",
+       "t": "Good morning. Today I want to look at one of the most familiar features of urban climate, the so-called urban heat island. Put simply, this is the tendency of a city to be warmer than the countryside around it. It's not a new observation. In the early nineteenth century, the amateur meteorologist Luke Howard, who's better known for giving us the names of the clouds, recorded temperatures in London and noticed that the city was consistently warmer than the surrounding area."
+      },
+      {
+       "s": "l",
+       "t": "What's perhaps less well known is when the difference is greatest. You might expect it to be in the middle of a hot summer afternoon. In fact, the gap between city and countryside is usually largest at night, particularly on calm, clear nights. During the day, the countryside heats up too. It's after sunset that the city stays warm while the fields around it cool down."
+      },
+      {
+       "s": "l",
+       "t": "So why does this happen? I'll go through four main causes. The first is the materials that cities are built from. Asphalt, concrete and brick absorb a great deal of energy from the sun during the day. They have what's called high thermal mass, which means they store heat and release it slowly through the night. Dark surfaces are particularly effective at this. Scientists describe a surface's ability to reflect sunlight as its albedo, and a black road has a very low albedo, so it absorbs most of the energy that falls on it."
+      },
+      {
+       "s": "l",
+       "t": "The second cause is the lack of vegetation. In the countryside, plants release water vapour through their leaves, and soil releases moisture too. This process, evaporation from soil and transpiration from plants, together known as evapotranspiration, uses energy and so has a cooling effect. Replace fields with roofs and car parks, and you lose much of that natural air conditioning."
+      },
+      {
+       "s": "l",
+       "t": "Third, there's the shape of the city itself. Tall buildings on either side of a narrow street create what are often called urban canyons. These canyons trap heat in two ways. They reflect sunlight back and forth between the walls, so more of it is absorbed, and at night they block the view of the open sky, so heat can't escape upwards as easily."
+      },
+      {
+       "s": "l",
+       "t": "The fourth cause is heat produced directly by human activity: vehicles, industry, and, increasingly, air conditioning units, which of course cool the inside of a building by pumping heat outside. There's an uncomfortable feedback loop there. The hotter the city, the more air conditioning is used, and the more waste heat is released into the streets."
+      },
+      {
+       "s": "l",
+       "t": "Why does any of this matter? Partly because of comfort and energy use, but mainly because of health. During heatwaves, the fact that cities don't cool down at night is particularly dangerous, because people's bodies don't get a chance to recover. Elderly people and those with heart or lung conditions are especially at risk."
+      },
+      {
+       "s": "l",
+       "t": "Let's turn now to what cities can do. The simplest measure is probably what's known as a cool roof. That just means covering a roof with a white or reflective coating, so that it reflects sunlight rather than absorbing it. It's cheap and can make a building noticeably cooler inside."
+      },
+      {
+       "s": "l",
+       "t": "A more ambitious approach is the green roof, where a roof is covered with soil and plants. Green roofs cool through evapotranspiration, and they have other benefits: they hold rainwater, which reduces the risk of flooding, and they can provide a habitat for insects. Their drawback is weight. Many older buildings simply can't support them without being strengthened."
+      },
+      {
+       "s": "l",
+       "t": "Then there are street trees. Trees provide shade, which is often the single most effective way of making a street feel cooler to the people walking along it. They also cool the air through evapotranspiration. But they need space, both above ground and below it for their roots, and in many old city centres that space is full of pipes and cables."
+      },
+      {
+       "s": "l",
+       "t": "Finally, some cities are experimenting with lighter-coloured paving, sometimes called cool pavements. Early results are promising, although there's one complication researchers have noticed: a highly reflective pavement can bounce heat back up onto pedestrians, so the street surface is cooler but the person walking on it isn't necessarily more comfortable. So no single measure is enough, and the most effective strategies combine several. In the next lecture, we'll look at some case studies of cities that have tried to do just that."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the notes below. Write ONE WORD ONLY for each answer.",
+       "items": [
+        {
+         "id": "u06-l2-i1-q1",
+         "type": "gap",
+         "text": "Luke Howard, better known for naming ___, found London warmer than the surrounding area.",
+         "answer": [
+          "clouds"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Howard is \"better known for giving us the names of the clouds\"."
+        },
+        {
+         "id": "u06-l2-i1-q2",
+         "type": "gap",
+         "text": "The temperature difference is usually greatest at ___.",
+         "answer": [
+          "night"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Not a summer afternoon: \"the gap… is usually largest at night\"."
+        },
+        {
+         "id": "u06-l2-i1-q3",
+         "type": "gap",
+         "text": "Cause 1: building materials with high thermal ___ store heat.",
+         "answer": [
+          "mass"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"They have what's called high thermal mass.\""
+        },
+        {
+         "id": "u06-l2-i1-q4",
+         "type": "gap",
+         "text": "A surface's ability to reflect sunlight is its ___.",
+         "answer": [
+          "albedo"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Scientists describe a surface's ability to reflect sunlight as its albedo.\""
+        },
+        {
+         "id": "u06-l2-i1-q5",
+         "type": "gap",
+         "text": "Cause 3: urban ___ trap heat between tall buildings.",
+         "answer": [
+          "canyons"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"What are often called urban canyons\"; the plural is needed."
+        },
+        {
+         "id": "u06-l2-i1-q6",
+         "type": "gap",
+         "text": "Cause 4: waste heat, increasingly from air ___ units.",
+         "answer": [
+          "conditioning"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Increasingly, air conditioning units.\""
+        },
+        {
+         "id": "u06-l2-i1-q7",
+         "type": "gap",
+         "text": "Main concern: ___, especially during heatwaves.",
+         "answer": [
+          "health"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Comfort and energy are \"partly\" the reason, \"but mainly because of health\"."
+        },
+        {
+         "id": "u06-l2-i1-q8",
+         "type": "gap",
+         "text": "Cool roofs: a white or ___ coating.",
+         "answer": [
+          "reflective"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"A white or reflective coating.\""
+        },
+        {
+         "id": "u06-l2-i1-q9",
+         "type": "gap",
+         "text": "Green roofs: main drawback is their ___.",
+         "answer": [
+          "weight"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Their drawback is weight.\""
+        },
+        {
+         "id": "u06-l2-i1-q10",
+         "type": "gap",
+         "text": "Street trees: their ___ is often the most effective cooling for pedestrians.",
+         "answer": [
+          "shade"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Trees provide shade, which is often the single most effective way of making a street feel cooler.\""
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u06-l3",
+   "title": "Test: a full Part 4",
+   "kind": "test",
+   "minutes": 15,
+   "timed": 900,
+   "items": [
+    {
+     "id": "u06-l3-i1",
+     "type": "listening",
+     "title": "The science of sourdough",
+     "part": 4,
+     "context": "You will hear part of a lecture on food science. First, you have some time to look at questions 1 to 10.",
+     "speakers": [
+      {
+       "id": "l",
+       "name": "Lecturer",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "l",
+       "t": "In today's session I want to use a very ordinary food, bread, to illustrate some of the principles of fermentation we've been discussing. In particular, I want to talk about sourdough, which until fairly recently was simply how bread was made."
+      },
+      {
+       "s": "l",
+       "t": "Let's start with a little history. Bread raised by fermentation has been made for thousands of years. There's good evidence that leavened bread was being baked in ancient Egypt, and for most of the time since then, bakers relied on what we'd now call a starter: a mixture of flour and water in which microorganisms are allowed to grow, part of which is kept back from each batch to begin the next. It was only in the nineteenth century that commercially produced baker's yeast became widely available, and within a few generations it had largely replaced the old methods, because it was quicker and far more predictable."
+      },
+      {
+       "s": "l",
+       "t": "So what's actually living in a sourdough starter? There are two main groups of organisms. The first is wild yeasts. Like baker's yeast, these feed on sugars in the flour and produce carbon dioxide, which is the gas that makes the dough rise, along with a small amount of alcohol, most of which evaporates during baking."
+      },
+      {
+       "s": "l",
+       "t": "The second group, and this is what makes sourdough different, is bacteria, specifically lactic acid bacteria. They produce lactic acid and also some acetic acid, which is the acid found in vinegar. These acids are responsible for the characteristic sour taste. In a healthy starter, the bacteria actually outnumber the yeasts many times over."
+      },
+      {
+       "s": "l",
+       "t": "Now, you might ask where these organisms come from. A common belief is that they're mainly captured from the air in the baker's kitchen. Research suggests the picture is more complicated. The flour itself carries many of them, and the baker's own hands are another significant source. Studies comparing starters from different bakers have found that the microbes in a starter can resemble those on the hands of the person who made it."
+      },
+      {
+       "s": "l",
+       "t": "Let's turn now to why the slow fermentation matters, beyond flavour. There are three effects I want to highlight. First, the acidity helps preserve the bread. Sourdough tends to resist mould for longer than bread made with baker's yeast alone, and it goes stale more slowly."
+      },
+      {
+       "s": "l",
+       "t": "Second, the long fermentation changes the structure of the dough. Enzymes in the flour have more time to work, and that contributes to the open texture and the thick, dark crust that many people associate with this kind of bread."
+      },
+      {
+       "s": "l",
+       "t": "Third, there's nutrition. Wholegrain flour contains a compound called phytic acid, which binds to minerals such as iron and zinc and makes them harder for the body to absorb. During a long sourdough fermentation, much of the phytic acid is broken down, so more of those minerals become available. I'd add a note of caution here, though. You'll often read claims that sourdough is suitable for people with coeliac disease. It isn't. The fermentation may reduce some of the gluten, but nowhere near enough to make it safe for them."
+      },
+      {
+       "s": "l",
+       "t": "Finally, a word about why sourdough has come back into fashion. Part of it is taste, of course. But many small bakeries have also discovered that sourdough fits their business. The ingredients are cheap, just flour, water and salt, and the long fermentation can be scheduled overnight, so the bakers aren't working against the clock in the same way. And customers are prepared to pay more for a loaf that takes over a day to make, which isn't something you can say about most foods."
+      },
+      {
+       "s": "l",
+       "t": "Maintaining a starter does require some discipline. It has to be fed regularly with fresh flour and water, otherwise the yeast and bacteria run out of food and the balance between them changes. Bakers who go on holiday sometimes ask a neighbour to look after it, a bit like a pet. Some starters are said to be decades old, though since the population of microbes is constantly renewing itself, what's really being kept alive is less a set of organisms than a stable community. Next week we'll look at how similar principles apply in cheese-making."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the notes below. Write ONE WORD ONLY for each answer.",
+       "items": [
+        {
+         "id": "u06-l3-i1-q1",
+         "type": "gap",
+         "text": "Baker's yeast replaced older methods because it was faster and more ___.",
+         "answer": [
+          "predictable"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"It was quicker and far more predictable.\""
+        },
+        {
+         "id": "u06-l3-i1-q2",
+         "type": "gap",
+         "text": "Wild yeasts produce carbon dioxide and a little ___.",
+         "answer": [
+          "alcohol"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Carbon dioxide… along with a small amount of alcohol.\""
+        },
+        {
+         "id": "u06-l3-i1-q3",
+         "type": "gap",
+         "text": "Acetic acid is also found in ___.",
+         "answer": [
+          "vinegar"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Acetic acid, which is the acid found in vinegar.\""
+        },
+        {
+         "id": "u06-l3-i1-q4",
+         "type": "gap",
+         "text": "In a healthy starter, there are far more ___ than yeasts.",
+         "answer": [
+          "bacteria"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"The bacteria actually outnumber the yeasts many times over.\""
+        },
+        {
+         "id": "u06-l3-i1-q5",
+         "type": "gap",
+         "text": "Sources of microbes: the flour and the baker's ___, not mainly the air.",
+         "answer": [
+          "hands"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "The air is \"a common belief\"; research points to the flour and \"the baker's own hands\"."
+        },
+        {
+         "id": "u06-l3-i1-q6",
+         "type": "gap",
+         "text": "Effect 1: bread resists ___ and stales more slowly.",
+         "answer": [
+          "mould",
+          "mold"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Sourdough tends to resist mould for longer.\" (US spelling *mold* is also accepted in the exam.)"
+        },
+        {
+         "id": "u06-l3-i1-q7",
+         "type": "gap",
+         "text": "Effect 2: ___ have longer to act, giving an open texture and dark crust.",
+         "answer": [
+          "enzymes"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Enzymes in the flour have more time to work.\""
+        },
+        {
+         "id": "u06-l3-i1-q8",
+         "type": "gap",
+         "text": "Effect 3: long fermentation breaks down phytic acid, so more iron and ___ can be absorbed.",
+         "answer": [
+          "zinc"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Phytic acid \"binds to minerals such as iron and zinc\"; once it is broken down, \"more of those minerals become available\"."
+        },
+        {
+         "id": "u06-l3-i1-q9",
+         "type": "gap",
+         "text": "Popular with bakeries: ingredients are ___, and fermentation can run overnight.",
+         "answer": [
+          "cheap"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"The ingredients are cheap, just flour, water and salt.\""
+        },
+        {
+         "id": "u06-l3-i1-q10",
+         "type": "gap",
+         "text": "A starter must be ___ regularly with flour and water.",
+         "answer": [
+          "fed"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"It has to be fed regularly with fresh flour and water.\""
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

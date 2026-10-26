@@ -440,6 +440,7 @@ function adultHtml(){
     ${window.vocabCalls && typeof vocabCalls.adultHtml === "function" ? vocabCalls.adultHtml() : ""}
     ${window.vocabHunter && typeof vocabHunter.adultHtml === "function" ? vocabHunter.adultHtml() : ""}
     ${window.vocabTech && typeof vocabTech.adultHtml === "function" ? vocabTech.adultHtml() : ""}
+    ${window.vocabIelts && typeof vocabIelts.adultHtml === "function" ? vocabIelts.adultHtml() : ""}
     ${window.vocabMailbox && typeof vocabMailbox.mediaHtml === "function" ? vocabMailbox.mediaHtml() : ""}
     <section class="st-sec" aria-labelledby="aj-c-h"><h3 class="st-h" id="aj-c-h">Créditos</h3><div class="st-g ics">
       <p class="st-cred">${credits()}</p>

@@ -1,0 +1,1716 @@
+{
+ "format": 1,
+ "id": "u23",
+ "n": 23,
+ "block": "mock",
+ "title": "Mock test 1",
+ "summary": "After this unit you have taken a complete IELTS Academic test under exam conditions and know your band in each paper.",
+ "lessons": [
+  {
+   "id": "u23-l1",
+   "title": "Listening test",
+   "kind": "test",
+   "minutes": 40,
+   "timed": 2400,
+   "items": [
+    {
+     "id": "u23-l1-i1",
+     "type": "card",
+     "title": "Mock Listening test",
+     "body": [
+      "Four parts, forty questions, about thirty minutes of recordings. Each recording plays once. Read the questions for each part before you play it, write as you listen and check spelling at the end. This is the real thing: no pausing."
+     ]
+    },
+    {
+     "id": "u23-l1-i2",
+     "type": "listening",
+     "title": "Booking a kayaking trip",
+     "part": 1,
+     "context": "Part 1. You will hear a man phoning a company to book a sea kayaking trip. First, you have some time to look at questions 1 to 6.",
+     "speakers": [
+      {
+       "id": "a",
+       "name": "Anna",
+       "voice": "f"
+      },
+      {
+       "id": "d",
+       "name": "Daniel",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "a",
+       "t": "Good morning, Coastline Kayak Tours, Anna speaking."
+      },
+      {
+       "s": "d",
+       "t": "Hi there. I'd like to book one of your guided trips for next month, if you've got space."
+      },
+      {
+       "s": "a",
+       "t": "Of course. Have you had a look at the trips on our website?"
+      },
+      {
+       "s": "d",
+       "t": "I have. We were thinking of the Island Trip, the one that goes round the lighthouse."
+      },
+      {
+       "s": "a",
+       "t": "Ah, I should warn you that the Island Trip is for experienced paddlers only. It's about four hours on open water. Have any of your group kayaked before?"
+      },
+      {
+       "s": "d",
+       "t": "Not really. Just once on a lake."
+      },
+      {
+       "s": "a",
+       "t": "In that case I'd recommend the Seal Bay trip. It stays inside the bay, so the water's much calmer, and you've got a very good chance of seeing seals on the rocks."
+      },
+      {
+       "s": "d",
+       "t": "That sounds perfect, actually. Seal Bay, then."
+      },
+      {
+       "s": "a",
+       "t": "Lovely. What date were you thinking of?"
+      },
+      {
+       "s": "d",
+       "t": "We arrive on the fifteenth of August, so any day after that. The sixteenth?"
+      },
+      {
+       "s": "a",
+       "t": "The sixteenth is fully booked, I'm afraid, and so is the seventeenth. The eighteenth has plenty of space."
+      },
+      {
+       "s": "d",
+       "t": "The eighteenth's fine. We're there all week."
+      },
+      {
+       "s": "a",
+       "t": "And how many people?"
+      },
+      {
+       "s": "d",
+       "t": "It was going to be four, but my brother can't come now, so it's three: two adults and my daughter."
+      },
+      {
+       "s": "a",
+       "t": "Three. And how old is your daughter? The minimum age for Seal Bay is ten."
+      },
+      {
+       "s": "d",
+       "t": "She's twelve. She'll be thirteen in September, but she's twelve at the moment."
+      },
+      {
+       "s": "a",
+       "t": "That's fine. Can I have a name for the booking?"
+      },
+      {
+       "s": "d",
+       "t": "Daniel Pelham. That's P-E-L-H-A-M."
+      },
+      {
+       "s": "a",
+       "t": "Thank you. And where are you staying while you're here? We like to know in case the weather changes and we need to contact you."
+      },
+      {
+       "s": "d",
+       "t": "We've rented a cottage at Treloar Farm. That's T-R-E-L-O-A-R."
+      },
+      {
+       "s": "a",
+       "t": "Oh, I know it. Just outside the village. Right, let me tell you about the arrangements on the day. Where we meet is important, because people often go to the wrong place."
+      },
+      {
+       "s": "d",
+       "t": "Not the harbour café, then? That's where I assumed."
+      },
+      {
+       "s": "a",
+       "t": "No. A lot of people go there, but we actually meet at the old lifeboat station, at the far end of the harbour. It's got a blue door, you can't miss it."
+      },
+      {
+       "s": "d",
+       "t": "The old lifeboat station. And what time?"
+      },
+      {
+       "s": "a",
+       "t": "The trip starts at ten, but please arrive twenty minutes early so we can fit everyone with buoyancy aids and do the safety briefing. Our website says fifteen, but that's out of date. Twenty is what we ask now."
+      },
+      {
+       "s": "d",
+       "t": "Twenty minutes, fine. Do we need to bring anything?"
+      },
+      {
+       "s": "a",
+       "t": "We provide wetsuits, buoyancy aids and waterproof jackets. You'll need a change of clothes for afterwards, and please wear old trainers. People think bare feet will be fine, but the rocks on the beach are very sharp."
+      },
+      {
+       "s": "d",
+       "t": "Old trainers, got it. And the price?"
+      },
+      {
+       "s": "a",
+       "t": "It's forty-five pounds for each adult and thirty for under-sixteens. So for the three of you that comes to one hundred and twenty pounds."
+      },
+      {
+       "s": "d",
+       "t": "That's fine. Can I pay by card now?"
+      },
+      {
+       "s": "a",
+       "t": "Yes. Oh, and one thing I should mention: if we have to cancel because of the weather, which does happen a few times each summer, you can either have a full refund or move to another day."
+      },
+      {
+       "s": "d",
+       "t": "That's good to know. The forecast looked a bit mixed, actually."
+      },
+      {
+       "s": "a",
+       "t": "We'll let you know by eight o'clock that morning at the latest. So, shall I take your card details?"
+      },
+      {
+       "s": "d",
+       "t": "Yes, please."
+      },
+      {
+       "s": "a",
+       "t": "Lovely. I'll take the details and email you a confirmation."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 1-6. Complete the form below. Write ONE WORD AND/OR A NUMBER for each answer.",
+       "items": [
+        {
+         "id": "u23-l1-i2-q1",
+         "type": "gap",
+         "text": "Trip: ___ Bay",
+         "answer": [
+          "Seal"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "The Island Trip is for experienced paddlers; Anna recommends \"the Seal Bay trip\"."
+        },
+        {
+         "id": "u23-l1-i2-q2",
+         "type": "gap",
+         "text": "Date: ___ August",
+         "answer": [
+          "18th",
+          "18",
+          "eighteenth"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "The 16th and 17th are full; \"The eighteenth has plenty of space.\""
+        },
+        {
+         "id": "u23-l1-i2-q3",
+         "type": "gap",
+         "text": "Number of people: ___",
+         "answer": [
+          "3",
+          "three"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"It was going to be four… so it's three.\""
+        },
+        {
+         "id": "u23-l1-i2-q4",
+         "type": "gap",
+         "text": "Age of child: ___",
+         "answer": [
+          "12",
+          "twelve"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "She will be thirteen in September, but \"she's twelve at the moment\"."
+        },
+        {
+         "id": "u23-l1-i2-q5",
+         "type": "gap",
+         "text": "Surname: ___",
+         "answer": [
+          "Pelham"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"P-E-L-H-A-M.\""
+        },
+        {
+         "id": "u23-l1-i2-q6",
+         "type": "gap",
+         "text": "Accommodation: cottage at ___ Farm",
+         "answer": [
+          "Treloar"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"T-R-E-L-O-A-R.\""
+        }
+       ]
+      },
+      {
+       "instr": "Questions 7-10. Complete the notes below. Write NO MORE THAN TWO WORDS AND/OR A NUMBER for each answer.",
+       "items": [
+        {
+         "id": "u23-l1-i2-q7",
+         "type": "gap",
+         "text": "Meeting point: the old ___",
+         "answer": [
+          "lifeboat station"
+         ],
+         "limit": "NO MORE THAN TWO WORDS AND/OR A NUMBER",
+         "why": "Not the harbour café: \"we actually meet at the old lifeboat station\"."
+        },
+        {
+         "id": "u23-l1-i2-q8",
+         "type": "gap",
+         "text": "Arrive ___ minutes before the start",
+         "answer": [
+          "20",
+          "twenty"
+         ],
+         "limit": "NO MORE THAN TWO WORDS AND/OR A NUMBER",
+         "why": "Fifteen is \"out of date. Twenty is what we ask now.\""
+        },
+        {
+         "id": "u23-l1-i2-q9",
+         "type": "gap",
+         "text": "Wear: ___",
+         "answer": [
+          "old trainers",
+          "trainers"
+         ],
+         "limit": "NO MORE THAN TWO WORDS AND/OR A NUMBER",
+         "why": "\"Please wear old trainers\"; bare feet are rejected because of sharp rocks."
+        },
+        {
+         "id": "u23-l1-i2-q10",
+         "type": "gap",
+         "text": "Total cost: £___",
+         "answer": [
+          "120",
+          "one hundred and twenty"
+         ],
+         "limit": "NO MORE THAN TWO WORDS AND/OR A NUMBER",
+         "why": "Two adults at £45 and one child at £30: \"one hundred and twenty pounds\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u23-l1-i3",
+     "type": "listening",
+     "title": "The new Central Library",
+     "part": 2,
+     "context": "Part 2. You will hear the manager of a public library talking to visitors about its renovation. First, you have some time to look at questions 11 to 15.",
+     "speakers": [
+      {
+       "id": "m",
+       "name": "Manager",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "m",
+       "t": "Good afternoon, everyone, and welcome to the newly reopened Central Library. My name's Helen Grant and I'm the library manager. After eighteen months of building work, I'm delighted to show you what we've done. I'll start with a quick guide to the ground floor, and then tell you about some of our new services."
+      },
+      {
+       "s": "m",
+       "t": "We're standing just inside the main entrance. Immediately to your right is something many of you asked for in our consultation: a café. It has windows onto the square, and you're welcome to take library books in there, though we do ask you to be careful with the coffee."
+      },
+      {
+       "s": "m",
+       "t": "Regular visitors will remember that the children's library used to be just here on the left, by the entrance. That space now holds the self-service machines for borrowing and returning books. The children's library has moved to the far left-hand corner of the building, as far from the street as possible. It's quieter there, and parents told us they felt it was safer away from the doors."
+      },
+      {
+       "s": "m",
+       "t": "In the middle of the floor, under the glass roof, you'll see our new computer area, with forty computers available free of charge, plus printers and a scanner. Straight ahead, in the middle of the far wall, is the local history room. That holds our collection of maps, old newspapers and photographs of the town, and staff there can help you trace your family history."
+      },
+      {
+       "s": "m",
+       "t": "And if you need somewhere silent to work, the quiet study area is in the far right-hand corner. We've put it there because it's the furthest point from the café, and the walls have been specially insulated against noise. The newspapers and magazines are halfway along the left-hand wall, and the toilets and lifts are halfway along the wall on the right."
+      },
+      {
+       "s": "m",
+       "t": "Now let me tell you about what's new beyond the building itself. We've introduced a number of services this year. Perhaps the most popular so far has been our tool library. For a small annual fee, members can borrow things like drills, ladders and gardening equipment, just as they would borrow a book. The other service I'd particularly like to mention is our home delivery scheme. Volunteers bring books to people who can't easily get to the library, because of illness or disability, for example. We had hoped to start a film club as well, but that's had to be postponed until next year, and the evening language classes we used to run are, sadly, no longer possible because of staffing."
+      },
+      {
+       "s": "m",
+       "t": "Some of you have asked about opening hours. We now open on Sundays, from eleven until four, which we haven't done for many years. To make that possible, we close an hour earlier on Saturdays than we used to. Weekday hours are unchanged."
+      },
+      {
+       "s": "m",
+       "t": "The renovation cost just over four million pounds. Most of the money came from a national heritage fund, because the building is over a hundred years old. The council contributed about a quarter of the cost, and a local fundraising campaign paid for the furniture in the children's library."
+      },
+      {
+       "s": "m",
+       "t": "One thing I'm particularly proud of is how much of the original building we've kept. The architects were asked to preserve the Victorian reading room ceiling, and you can see that it's been beautifully restored. What's entirely new is the roof garden, which will open to the public in the spring once the plants have had time to establish themselves."
+      },
+      {
+       "s": "m",
+       "t": "Finally, we're keen to hear what you think. There are feedback cards on every desk, but the easiest way to get in touch is through the short survey on our website. We read every response. Thank you, and enjoy exploring."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 11-15. Label the plan below. The plan shows the ground floor of the library, with the entrance at the bottom (south). A: immediately to the left of the entrance. B: halfway along the left (west) wall. C: the far left (north-west) corner. D: the centre of the floor. E: the middle of the far (north) wall. F: the far right (north-east) corner. G: immediately to the right of the entrance. H: halfway along the right (east) wall.",
+       "items": [
+        {
+         "id": "u23-l1-i3-q1",
+         "type": "select",
+         "q": "Choose the correct letter, A-H, for each place.",
+         "options": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G",
+          "H"
+         ],
+         "rows": [
+          {
+           "label": "Café",
+           "answer": 6
+          },
+          {
+           "label": "Children's library",
+           "answer": 2
+          },
+          {
+           "label": "Computer area",
+           "answer": 3
+          },
+          {
+           "label": "Local history room",
+           "answer": 4
+          },
+          {
+           "label": "Quiet study area",
+           "answer": 5
+          }
+         ],
+         "why": "Café: \"immediately to your right\" (G). Children's library: moved from A to \"the far left-hand corner\" (C). Computers: \"in the middle of the floor\" (D). Local history: \"the middle of the far wall\" (E). Quiet study: \"the far right-hand corner\" (F)."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 16-17. Choose TWO letters, A-E.",
+       "items": [
+        {
+         "id": "u23-l1-i3-q2",
+         "type": "multi",
+         "q": "Which TWO new services does the library now offer?",
+         "options": [
+          "A  a film club",
+          "B  lending of tools",
+          "C  evening language classes",
+          "D  delivering books to people's homes",
+          "E  a homework club"
+         ],
+         "answer": [
+          1,
+          3
+         ],
+         "why": "The \"tool library\" and the \"home delivery scheme\" are running. The film club is postponed, language classes have ended, and no homework club is mentioned."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 18-20. Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u23-l1-i3-q3",
+         "type": "pick",
+         "q": "What change has been made to opening hours?",
+         "options": [
+          "A  The library now opens on Sundays.",
+          "B  Weekday hours are longer.",
+          "C  The library opens later on Saturdays."
+         ],
+         "answer": 0,
+         "why": "\"We now open on Sundays\"; it closes earlier, not opens later, on Saturdays, and weekday hours are unchanged."
+        },
+        {
+         "id": "u23-l1-i3-q4",
+         "type": "pick",
+         "q": "Most of the money for the renovation came from",
+         "options": [
+          "A  the local council.",
+          "B  a national fund.",
+          "C  local fundraising."
+         ],
+         "answer": 1,
+         "why": "\"Most of the money came from a national heritage fund\"; the council paid about a quarter."
+        },
+        {
+         "id": "u23-l1-i3-q5",
+         "type": "pick",
+         "q": "What does the manager say about the roof garden?",
+         "options": [
+          "A  It is part of the original building.",
+          "B  It is not yet open.",
+          "C  It was paid for by local people."
+         ],
+         "answer": 1,
+         "why": "It \"will open to the public in the spring\". The original feature is the reading room ceiling."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u23-l1-i4",
+     "type": "listening",
+     "title": "A car-free town centre",
+     "part": 3,
+     "context": "Part 3. You will hear two students, Ella and Kofi, discussing a case study with their tutor, Dr Shaw. First, you have some time to look at questions 21 to 24.",
+     "speakers": [
+      {
+       "id": "s",
+       "name": "Dr Shaw",
+       "voice": "m"
+      },
+      {
+       "id": "e",
+       "name": "Ella",
+       "voice": "f"
+      },
+      {
+       "id": "k",
+       "name": "Kofi",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "s",
+       "t": "So, you're doing your case study on Marlbury and its car-free centre. Why Marlbury, out of all the towns that have tried this?"
+      },
+      {
+       "s": "e",
+       "t": "We looked at a few. Some of the big cities have done it, but they've got underground systems and huge bus networks, so it's hard to apply the lessons anywhere else."
+      },
+      {
+       "s": "k",
+       "t": "Marlbury's a typical market town, about forty thousand people, and it banned cars from the centre eight years ago. So there's enough time to see the long-term effects, and the results are relevant to lots of other towns."
+      },
+      {
+       "s": "s",
+       "t": "Good reasoning. What was the main aim of the scheme when it was introduced? I've seen different accounts."
+      },
+      {
+       "s": "e",
+       "t": "So have we. The newspapers at the time made it all about pollution, but when you read the council's original documents, the main concern was road safety. There'd been a series of accidents involving pedestrians on the high street."
+      },
+      {
+       "s": "k",
+       "t": "Air quality was mentioned, but it was definitely secondary."
+      },
+      {
+       "s": "s",
+       "t": "Interesting. That's worth making a point of. And how did local businesses react?"
+      },
+      {
+       "s": "k",
+       "t": "Badly at first. There was a petition with over two thousand signatures, mostly from shopkeepers who thought they'd lose customers who drove in."
+      },
+      {
+       "s": "e",
+       "t": "But by about the third year, most of them had changed their minds. Footfall went up, and the empty shops started filling. The traders' association actually campaigned against reopening the street when the council considered it."
+      },
+      {
+       "s": "s",
+       "t": "What about the people who found it hardest, elderly residents, disabled people?"
+      },
+      {
+       "s": "k",
+       "t": "That's the weakest part of the scheme, in our view. They introduced a shuttle bus, but it only runs every half an hour and not at all on Sundays. Several people we spoke to said they'd stopped going into town."
+      },
+      {
+       "s": "s",
+       "t": "Has the council done anything in response?"
+      },
+      {
+       "s": "e",
+       "t": "They're reviewing the shuttle timetable this year, apparently, and there's been talk of electric buggies for people with mobility problems. But nothing's actually been decided."
+      },
+      {
+       "s": "s",
+       "t": "Then you should make that point carefully: promised improvements aren't the same as results."
+      },
+      {
+       "s": "s",
+       "t": "That's an important finding. Now, what do you see as the main reasons the scheme succeeded overall?"
+      },
+      {
+       "s": "e",
+       "t": "We think two things made the difference. First, the council spent a lot on the streets themselves: new paving, trees, benches. It became somewhere people wanted to be."
+      },
+      {
+       "s": "k",
+       "t": "And second, they built a large car park on the edge of the centre, just five minutes' walk away. People could still drive into town; they just couldn't drive through it."
+      },
+      {
+       "s": "e",
+       "t": "Some people say the market was the key, because they moved it into the high street, but it was already doing well before the change."
+      },
+      {
+       "s": "k",
+       "t": "And the cycle lanes were nice, but cycling's still only a tiny share of journeys."
+      },
+      {
+       "s": "s",
+       "t": "Fine. Now let's talk about your sources. You've used several kinds of data. How reliable are they?"
+      },
+      {
+       "s": "e",
+       "t": "The council's traffic counts are the most useful. They go back fifteen years, so we can compare before and after."
+      },
+      {
+       "s": "s",
+       "t": "And the business survey by the chamber of commerce?"
+      },
+      {
+       "s": "k",
+       "t": "We're a bit wary of that. The chamber campaigned for the scheme, so they had an interest in showing it worked. The questions are quite leading."
+      },
+      {
+       "s": "s",
+       "t": "Fair. What about the air quality figures?"
+      },
+      {
+       "s": "e",
+       "t": "They're good data, but there's only one monitoring station, and it was moved halfway through the period. So the readings before and after aren't really comparable."
+      },
+      {
+       "s": "s",
+       "t": "And your own interviews?"
+      },
+      {
+       "s": "k",
+       "t": "Really interesting, but we only managed eleven, so we can't generalise from them. We'll use them for quotations to illustrate points."
+      },
+      {
+       "s": "s",
+       "t": "Good. Make sure each of those judgements is in the methodology section. Anything else?"
+      },
+      {
+       "s": "e",
+       "t": "Just the national census figures on car ownership. They're reliable, but they're from three years ago."
+      },
+      {
+       "s": "s",
+       "t": "That's fine as long as you say so."
+      },
+      {
+       "s": "k",
+       "t": "Will do. We're aiming to send you a draft of the findings chapter by the end of next month."
+      },
+      {
+       "s": "s",
+       "t": "Good. Concentrate on the evidence, and keep the recommendations short. I look forward to reading it."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 21-24. Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u23-l1-i4-q1",
+         "type": "pick",
+         "q": "Why did the students choose Marlbury for their case study?",
+         "options": [
+          "A  It was the first town to ban cars.",
+          "B  Its experience is relevant to many other towns.",
+          "C  It has an excellent public transport system."
+         ],
+         "answer": 1,
+         "why": "\"The results are relevant to lots of other towns\"; big cities with large transport systems were rejected as hard to apply elsewhere."
+        },
+        {
+         "id": "u23-l1-i4-q2",
+         "type": "pick",
+         "q": "According to the council's documents, the main aim of the scheme was to",
+         "options": [
+          "A  reduce pollution.",
+          "B  improve safety.",
+          "C  attract shoppers."
+         ],
+         "answer": 1,
+         "why": "Newspapers stressed pollution, \"but… the main concern was road safety\"."
+        },
+        {
+         "id": "u23-l1-i4-q3",
+         "type": "pick",
+         "q": "How did most local shopkeepers feel after three years?",
+         "options": [
+          "A  They still opposed the scheme.",
+          "B  They supported the scheme.",
+          "C  They wanted cars allowed at weekends."
+         ],
+         "answer": 1,
+         "why": "\"Most of them had changed their minds\"; the traders' association campaigned against reopening the street."
+        },
+        {
+         "id": "u23-l1-i4-q4",
+         "type": "pick",
+         "q": "What do the students see as the main weakness of the scheme?",
+         "options": [
+          "A  The cost of the new paving.",
+          "B  Poor provision for people with limited mobility.",
+          "C  The location of the car park."
+         ],
+         "answer": 1,
+         "why": "\"That's the weakest part of the scheme\": the shuttle bus is infrequent, and elderly and disabled people stopped going into town."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 25-26. Choose TWO letters, A-E.",
+       "items": [
+        {
+         "id": "u23-l1-i4-q5",
+         "type": "multi",
+         "q": "Which TWO factors do the students think made the scheme successful?",
+         "options": [
+          "A  moving the market",
+          "B  improving the street environment",
+          "C  building cycle lanes",
+          "D  a car park close to the centre",
+          "E  a free shuttle bus"
+         ],
+         "answer": [
+          1,
+          3
+         ],
+         "why": "\"Two things made the difference\": new paving, trees and benches, and \"a large car park on the edge of the centre\". The market was already successful; cycling is a \"tiny share\"; the shuttle bus is a weakness."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 27-30. What do the students say about each source? Choose the correct letter, A-F.",
+       "items": [
+        {
+         "id": "u23-l1-i4-q6",
+         "type": "select",
+         "q": "Choose A-F for each source.",
+         "options": [
+          "A  It may be biased.",
+          "B  It is the most useful source.",
+          "C  It is based on too few people.",
+          "D  Changes in method make comparison difficult.",
+          "E  It is not recent.",
+          "F  It was difficult to obtain."
+         ],
+         "rows": [
+          {
+           "label": "the business survey",
+           "answer": 0
+          },
+          {
+           "label": "the air quality figures",
+           "answer": 3
+          },
+          {
+           "label": "the students' interviews",
+           "answer": 2
+          },
+          {
+           "label": "the census figures",
+           "answer": 4
+          }
+         ],
+         "why": "Business survey: the chamber \"had an interest in showing it worked\". Air quality: the station \"was moved halfway through\". Interviews: \"only… eleven\". Census: \"from three years ago\". B describes the traffic counts, which are not asked about."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u23-l1-i5",
+     "type": "listening",
+     "title": "How migrating birds find their way",
+     "part": 4,
+     "context": "Part 4. You will hear part of a lecture on animal behaviour. First, you have some time to look at questions 31 to 40.",
+     "speakers": [
+      {
+       "id": "l",
+       "name": "Lecturer",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "l",
+       "t": "Today I want to look at one of the great puzzles of animal behaviour: how migrating birds find their way. Every year, billions of birds travel thousands of kilometres between their breeding and wintering grounds, and many return to exactly the same nest site, sometimes to the same tree. Some, like many songbirds, make the journey alone and at night. So how do they do it? The short answer is that birds use not one system but several, and they seem to be able to switch between them depending on the conditions."
+      },
+      {
+       "s": "l",
+       "t": "Let's start with the sun. In the nineteen-fifties, researchers showed that caged starlings, which became restless at migration time, oriented themselves in a particular direction when they could see the sun. When the apparent position of the sun was shifted using mirrors, the birds changed direction accordingly. But the sun moves across the sky during the day, so to use it as a compass a bird must also know what time it is. In other words, the sun compass depends on the bird's internal clock. If you shift a bird's clock by keeping it under artificial light for several days, it makes predictable errors in direction."
+      },
+      {
+       "s": "l",
+       "t": "Many species migrate at night, however, and for them the stars are important. Some of the most elegant experiments in this field were carried out in a planetarium, where researchers could control what the birds saw. They found that young birds of one North American species did not inherit a map of particular constellations. Instead, they learned to identify the point around which the night sky appears to rotate, which in the northern hemisphere is close to the Pole Star. Birds raised under an artificial sky that rotated around a different star simply treated that star as north."
+      },
+      {
+       "s": "l",
+       "t": "The third system is the one that most fascinates researchers: the magnetic sense. Experiments with European robins in the nineteen-sixties showed that birds kept in a cage with no view of the sky could still orient themselves correctly, and that altering the magnetic field around the cage changed the direction they chose. Interestingly, the robins' compass does not work like ours. It doesn't distinguish north from south by polarity. Instead, it seems to detect the angle at which the field lines meet the Earth's surface, which tells the bird whether it is heading towards the pole or towards the equator. Exactly how birds sense the field is still debated. One leading theory involves chemical reactions in the eye, which would mean that birds may, in some sense, see the magnetic field."
+      },
+      {
+       "s": "l",
+       "t": "Then there is smell. For a long time, birds were thought to have a poor sense of smell, but we now know that this isn't true. Homing pigeons whose sense of smell has been blocked are much less successful at finding their way home from unfamiliar places, and some seabirds appear to use odours carried on the wind to locate feeding areas and their nesting colonies across vast stretches of open ocean."
+      },
+      {
+       "s": "l",
+       "t": "Finally, there are landmarks. Close to the end of a journey, birds certainly use familiar features such as coastlines, rivers and mountain ranges, and many migratory routes follow them. Some researchers have also suggested that birds may detect very low-frequency sound, generated by waves or wind over mountains, though the evidence for this is still limited."
+      },
+      {
+       "s": "l",
+       "t": "A key question is how much of this is learned and how much is inherited. A famous experiment in the Netherlands in the nineteen-fifties gives us a clue. Thousands of starlings were caught during their autumn migration and transported several hundred kilometres to the south before being released. The adult birds corrected their course and reached their usual wintering grounds. The young birds, making their first migration, did not. They continued to fly in the same direction as before and ended up in an entirely different region. This suggests that first-time migrants rely on an inherited programme, something like 'fly south-west for so many weeks', while experienced birds have developed a true map that allows them to work out where they are."
+      },
+      {
+       "s": "l",
+       "t": "This has important implications for conservation. If young birds follow a fixed programme, they may be poorly equipped to cope when the places they rely on change, for example when stopover sites where they rest and feed are lost to development. And artificial light at night is known to disorientate migrating birds, particularly in bad weather, when they may be drawn towards illuminated buildings. Some cities now turn off unnecessary lighting in tall buildings during peak migration periods, a simple measure that appears to save large numbers of birds. In the next lecture we'll look at how tracking technology is transforming what we know about these journeys."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 31-40. Complete the notes below. Write ONE WORD ONLY for each answer.",
+       "items": [
+        {
+         "id": "u23-l1-i5-q1",
+         "type": "gap",
+         "text": "Birds use several systems and can ___ between them.",
+         "answer": [
+          "switch"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"They seem to be able to switch between them.\""
+        },
+        {
+         "id": "u23-l1-i5-q2",
+         "type": "gap",
+         "text": "Sun compass: researchers moved the sun's apparent position with ___.",
+         "answer": [
+          "mirrors"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"The apparent position of the sun was shifted using mirrors.\""
+        },
+        {
+         "id": "u23-l1-i5-q3",
+         "type": "gap",
+         "text": "Using the sun requires an internal ___.",
+         "answer": [
+          "clock"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"The sun compass depends on the bird's internal clock.\""
+        },
+        {
+         "id": "u23-l1-i5-q4",
+         "type": "gap",
+         "text": "Star compass: studied in a ___.",
+         "answer": [
+          "planetarium"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Carried out in a planetarium.\""
+        },
+        {
+         "id": "u23-l1-i5-q5",
+         "type": "gap",
+         "text": "Young birds learn the point around which the sky appears to ___.",
+         "answer": [
+          "rotate"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"The point around which the night sky appears to rotate.\""
+        },
+        {
+         "id": "u23-l1-i5-q6",
+         "type": "gap",
+         "text": "Magnetic sense: early experiments used European ___.",
+         "answer": [
+          "robins"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Experiments with European robins in the nineteen-sixties.\""
+        },
+        {
+         "id": "u23-l1-i5-q7",
+         "type": "gap",
+         "text": "The bird's compass detects the ___ of the field lines, not their polarity.",
+         "answer": [
+          "angle"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"It seems to detect the angle at which the field lines meet the Earth's surface.\""
+        },
+        {
+         "id": "u23-l1-i5-q8",
+         "type": "gap",
+         "text": "One theory: magnetic detection involves chemical reactions in the ___.",
+         "answer": [
+          "eye"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"One leading theory involves chemical reactions in the eye.\""
+        },
+        {
+         "id": "u23-l1-i5-q9",
+         "type": "gap",
+         "text": "Smell: some ___ use wind-borne odours to find food and colonies.",
+         "answer": [
+          "seabirds"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"Some seabirds appear to use odours carried on the wind.\""
+        },
+        {
+         "id": "u23-l1-i5-q10",
+         "type": "gap",
+         "text": "Conservation: young birds may suffer when ___ sites are lost.",
+         "answer": [
+          "stopover"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "\"When stopover sites where they rest and feed are lost to development.\""
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u23-l2",
+   "title": "Reading test",
+   "kind": "test",
+   "minutes": 60,
+   "timed": 3600,
+   "items": [
+    {
+     "id": "u23-l2-i1",
+     "type": "card",
+     "title": "Mock Reading test",
+     "body": [
+      "Three passages, forty questions, sixty minutes, with no extra time to transfer answers. Passages get harder as you go: aim for about 17, 20 and 23 minutes. Never leave a blank."
+     ]
+    },
+    {
+     "id": "u23-l2-i2",
+     "type": "reading",
+     "title": "The story of the pencil",
+     "minutes": 17,
+     "paragraphs": [
+      {
+       "label": null,
+       "text": "Few objects are as familiar, or as little considered, as the pencil. It is cheap, reliable and almost infinitely forgiving: a mark can be made, rubbed out and made again. Yet its history involves a remarkable geological accident, a century of smuggling and guarded mines, and an ingenious solution devised under the pressure of war. It also involves a persistent misunderstanding, because the material at the heart of every pencil has never been lead."
+      },
+      {
+       "label": null,
+       "text": "The story begins in the sixteenth century in Borrowdale, a valley in what is now the county of Cumbria in north-west England. There, a deposit of unusually pure graphite was discovered. According to local tradition, shepherds were the first to make use of it, marking their sheep with lumps of the soft, black substance. Graphite is a form of carbon, but at the time nobody knew that. Because it left a grey mark similar to that made by lead, which had been used for writing and ruling lines since Roman times, it was taken to be a kind of lead and was known as 'black lead' or 'plumbago'. The name 'graphite', from a Greek word meaning 'to write', was not introduced until the late eighteenth century, by which time the misunderstanding had become fixed in everyday language."
+      },
+      {
+       "label": null,
+       "text": "Borrowdale graphite proved valuable for more than writing. It could withstand very high temperatures, and it was used to line the moulds in which cannonballs were cast, giving them a smoother finish. Its military importance, combined with the fact that no comparable deposit had been found anywhere else, made it a strategic resource. The mine was opened only for limited periods so that the market would not be flooded, and guards were posted to prevent theft. Even so, workers smuggled graphite out, and a flourishing black market developed. In the eighteenth century an Act of Parliament made stealing it a serious criminal offence."
+      },
+      {
+       "label": null,
+       "text": "The first pencils were simply sticks of graphite, sawn from the solid mineral and wrapped in string or sheepskin to keep the user's fingers clean. Craftsmen later began to insert the sticks into hollowed-out pieces of wood, and the familiar wooden pencil was born. For two centuries, the best pencils in Europe depended on Borrowdale graphite, because the graphite found elsewhere was too impure and crumbly to be cut into sticks."
+      },
+      {
+       "label": null,
+       "text": "This dependence became a serious problem for France in the 1790s, when war with Britain cut off its supply. The French government asked Nicolas-Jacques Conté, a scientist and inventor, to find an alternative. His solution, patented in 1795, was to grind impure graphite into a powder, mix it with clay and water, form the mixture into thin rods and fire them in a kiln. The method had an unexpected advantage. By varying the proportion of clay, Conté could make the pencil harder or softer: more clay produced a harder pencil with a lighter line, more graphite a softer one with a darker line. The process is still the basis of pencil manufacture today, and it freed pencil-making from its reliance on a single English valley."
+      },
+      {
+       "label": null,
+       "text": "Other refinements followed. Manufacturers developed systems for grading hardness, the most widespread of which uses the letter H for hard and B for black, with HB in the middle. Woods were chosen for their ability to be sharpened cleanly; cedar became the preferred material because it is soft, straight-grained and does not splinter easily. Many pencils were given a six-sided shape, which is more comfortable to hold for some users and, just as importantly, stops the pencil rolling off a sloping desk."
+      },
+      {
+       "label": null,
+       "text": "The eraser has its own history. In 1770 the English scientist Joseph Priestley noted that a substance from South America, which he called 'rubber' for exactly this reason, was excellent at removing pencil marks. Before that, people had used pieces of bread. Attaching an eraser to the end of the pencil itself came considerably later, and the practice has never been universal: many pencils sold in Europe still have no eraser at all."
+      },
+      {
+       "label": null,
+       "text": "Today, billions of pencils are made every year, and despite repeated predictions of its decline, and although it is no longer the everyday writing tool it once was, the pencil has survived the arrival of the typewriter, the ballpoint pen and the computer. Its advantages are hard to beat. Carpenters, artists and engineers continue to favour it for particular tasks. It works at any angle and in any temperature, it does not leak or dry out, and its marks are permanent enough to last for centuries yet easy to remove when a mistake is made. The graphite deposit at Borrowdale, meanwhile, has long since been exhausted."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 1-7. Do the following statements agree with the information given in the passage? Write TRUE, FALSE or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u23-l2-i2-q1",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Pencils once contained small amounts of lead.",
+         "answer": "F",
+         "why": "Paragraph 1: \"the material at the heart of every pencil has never been lead\"."
+        },
+        {
+         "id": "u23-l2-i2-q2",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Shepherds are said to have been the first users of Borrowdale graphite.",
+         "answer": "T",
+         "why": "Paragraph 2: \"According to local tradition, shepherds were the first to make use of it.\""
+        },
+        {
+         "id": "u23-l2-i2-q3",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The term 'graphite' was in use before the sixteenth century.",
+         "answer": "F",
+         "why": "Paragraph 2: the name \"was not introduced until the late eighteenth century\"."
+        },
+        {
+         "id": "u23-l2-i2-q4",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Borrowdale graphite was used in the production of weapons.",
+         "answer": "T",
+         "why": "Paragraph 3: it lined \"the moulds in which cannonballs were cast\"."
+        },
+        {
+         "id": "u23-l2-i2-q5",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "The Borrowdale mine was worked continuously to meet demand.",
+         "answer": "F",
+         "why": "Paragraph 3: \"The mine was opened only for limited periods so that the market would not be flooded.\""
+        },
+        {
+         "id": "u23-l2-i2-q6",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Most of the smuggled graphite was sold abroad.",
+         "answer": "NG",
+         "why": "Paragraph 3 mentions smuggling and a black market but says nothing about where the graphite was sold."
+        },
+        {
+         "id": "u23-l2-i2-q7",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Conté was a soldier in the French army.",
+         "answer": "NG",
+         "why": "Paragraph 5 calls him \"a scientist and inventor\"; there is no information about military service, so the statement is neither confirmed nor contradicted."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 8-13. Complete the notes below. Choose ONE WORD ONLY from the passage for each answer.",
+       "items": [
+        {
+         "id": "u23-l2-i2-q8",
+         "type": "gap",
+         "text": "Early pencils: graphite sticks wrapped in string or ___",
+         "answer": [
+          "sheepskin"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph 4: \"wrapped in string or sheepskin\"."
+        },
+        {
+         "id": "u23-l2-i2-q9",
+         "type": "gap",
+         "text": "Conté's method: powdered graphite mixed with ___ and water, then fired",
+         "answer": [
+          "clay"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph 5: \"mix it with clay and water\"."
+        },
+        {
+         "id": "u23-l2-i2-q10",
+         "type": "gap",
+         "text": "More graphite gives a softer pencil and a ___ line",
+         "answer": [
+          "darker"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph 5: \"more graphite a softer one with a darker line\"."
+        },
+        {
+         "id": "u23-l2-i2-q11",
+         "type": "gap",
+         "text": "Preferred wood: ___",
+         "answer": [
+          "cedar"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph 6: \"cedar became the preferred material\"."
+        },
+        {
+         "id": "u23-l2-i2-q12",
+         "type": "gap",
+         "text": "Six-sided shape prevents ___ off a desk",
+         "answer": [
+          "rolling"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph 6: it \"stops the pencil rolling off a sloping desk\"."
+        },
+        {
+         "id": "u23-l2-i2-q13",
+         "type": "gap",
+         "text": "Before rubber, marks were removed with ___",
+         "answer": [
+          "bread"
+         ],
+         "limit": "ONE WORD ONLY",
+         "why": "Paragraph 7: \"Before that, people had used pieces of bread.\""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u23-l2-i3",
+     "type": "reading",
+     "title": "Sleep across the animal kingdom",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "Every animal that scientists have studied closely appears to sleep, or to enter a state that closely resembles sleep. Mammals and birds do it, as do reptiles, fish and insects; fruit flies, which have been used extensively in sleep research, show periods of inactivity during which they are harder to rouse, and if they are deprived of this rest they compensate by resting more afterwards. The universality of sleep is puzzling, because a sleeping animal is vulnerable. It cannot feed, mate or watch for predators. Whatever sleep provides must be valuable enough to outweigh these risks."
+      },
+      {
+       "label": "B",
+       "text": "Perhaps the most striking evidence that sleep is fundamental comes from an animal without a brain. In a study published in 2017, researchers examined a species of upside-down jellyfish, which spends most of its time lying on the sea floor, pulsing rhythmically. At night, the pulsing slowed, the jellyfish responded more slowly to stimulation, and when kept awake by pulses of water, it was less active the following day. These are the standard behavioural criteria for sleep. If a creature with only a simple network of nerves sleeps, then sleep may have arisen very early in the history of animal life, long before brains evolved."
+      },
+      {
+       "label": "C",
+       "text": "Some animals have found ingenious ways to reconcile the need for sleep with the demands of their environment. Dolphins, which must surface regularly to breathe, sleep with one half of the brain at a time. While one hemisphere shows the slow electrical waves characteristic of deep sleep, the other remains awake, and the eye connected to the waking half often stays open. After a period the two halves swap roles. This arrangement, known as unihemispheric sleep, allows the animal to keep swimming, to breathe and to remain alert to danger. Several species of bird can do something similar. Fur seals, which divide their time between land and sea, show a particularly flexible pattern: on land they sleep much like other mammals, but in the water they switch largely to sleeping with one hemisphere at a time."
+      },
+      {
+       "label": "D",
+       "text": "Birds that fly for long periods raise an obvious question: can they sleep in the air? For frigatebirds, which can stay aloft over the ocean for weeks at a time, the answer appears to be yes. Researchers who fitted the birds with small devices to record their brain activity found that they did sleep during flight, sometimes with one hemisphere and sometimes with both, but only in bursts lasting a few seconds and for a total of less than an hour a day. On land, the same birds slept for more than twelve hours a day. Flight, it seems, allows sleep but not much of it."
+      },
+      {
+       "label": "E",
+       "text": "The amount of sleep animals need varies enormously, and the reasons are not fully understood. Giraffes, which are large and vulnerable to predators when lying down, sleep relatively little, often in short periods totalling a few hours a day. Some bats, by contrast, are estimated to sleep for around twenty hours a day. One proposed explanation links sleep to diet: animals whose food is low in energy, such as grass, need to spend many hours eating, leaving less time for sleep. Another emphasises the risk of predation. Neither explanation accounts for all the variation, and it is likely that several factors are involved. Domestic and captive animals add a further complication, since their sleep is shaped by human routines and the absence of predators as well as by biology."
+      },
+      {
+       "label": "F",
+       "text": "The function of sleep remains one of the central questions of biology. One long-standing theory holds that sleep conserves energy, since metabolism slows during rest. Another emphasises the brain: during sleep, recently acquired memories appear to be strengthened and reorganised, and people who sleep after learning generally remember more. A more recent proposal, based on experiments with mice published in 2013, suggests that sleep allows the brain to clear away waste products that accumulate during waking hours, because the flow of fluid through brain tissue increases markedly during sleep. These theories are not mutually exclusive, and sleep may well serve several purposes at once."
+      },
+      {
+       "label": "G",
+       "text": "What is clear is that sleep cannot simply be dispensed with. Animals deprived of it show impaired performance and, if deprivation continues, serious harm to health. In humans, even modest but persistent shortfalls are associated with an increased risk of accidents, weakened immunity and a range of long-term health problems. The jellyfish and the frigatebird, in their different ways, suggest that evolution has found it easier to work around the need for sleep than to eliminate it."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 14-17. The passage has seven paragraphs, A-G. Which paragraph contains the following information? You may use any letter more than once.",
+       "items": [
+        {
+         "id": "u23-l2-i3-q1",
+         "type": "select",
+         "q": "Choose the correct paragraph, A-G.",
+         "options": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+         ],
+         "rows": [
+          {
+           "label": "a reference to the dangers that sleeping animals face",
+           "answer": 0
+          },
+          {
+           "label": "a suggestion that sleep may have evolved before brains",
+           "answer": 1
+          },
+          {
+           "label": "a possible link between what an animal eats and how long it sleeps",
+           "answer": 4
+          },
+          {
+           "label": "a mention of the effects of insufficient sleep on human health",
+           "answer": 6
+          }
+         ],
+         "why": "A: a sleeping animal \"is vulnerable\" and cannot watch for predators. B: sleep \"may have arisen… long before brains evolved\". E: \"One proposed explanation links sleep to diet.\" G: shortfalls in humans are linked to accidents and weakened immunity."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 18-21. Match each statement with the correct animal, A-E.",
+       "items": [
+        {
+         "id": "u23-l2-i3-q2",
+         "type": "select",
+         "q": "Choose the correct letter, A-E.",
+         "options": [
+          "A  dolphins",
+          "B  frigatebirds",
+          "C  giraffes",
+          "D  jellyfish",
+          "E  bats"
+         ],
+         "rows": [
+          {
+           "label": "show sleep-like behaviour despite having no brain",
+           "answer": 3
+          },
+          {
+           "label": "often keep one eye open while sleeping",
+           "answer": 0
+          },
+          {
+           "label": "sleep much less when travelling than when on land",
+           "answer": 1
+          },
+          {
+           "label": "may spend most of the day asleep",
+           "answer": 4
+          }
+         ],
+         "why": "Jellyfish have no brain (B). Dolphins: \"the eye connected to the waking half often stays open\" (C). Frigatebirds: under an hour in flight, over twelve on land (D). Bats: \"around twenty hours a day\" (E)."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 22-26. Complete the summary below. Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+       "items": [
+        {
+         "id": "u23-l2-i3-q3",
+         "type": "gap",
+         "text": "Fruit flies deprived of rest make up for it by ___ afterwards.",
+         "answer": [
+          "resting more"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph A: \"they compensate by resting more afterwards\"."
+        },
+        {
+         "id": "u23-l2-i3-q4",
+         "type": "gap",
+         "text": "Dolphins need to stay partly awake because they must regularly ___ to breathe.",
+         "answer": [
+          "surface"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph C: dolphins \"must surface regularly to breathe\"."
+        },
+        {
+         "id": "u23-l2-i3-q5",
+         "type": "gap",
+         "text": "Their sleep pattern is called ___.",
+         "answer": [
+          "unihemispheric sleep"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph C: \"known as unihemispheric sleep\"."
+        },
+        {
+         "id": "u23-l2-i3-q6",
+         "type": "gap",
+         "text": "One theory states that sleep conserves energy because ___ slows down.",
+         "answer": [
+          "metabolism"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph F: \"metabolism slows during rest\"."
+        },
+        {
+         "id": "u23-l2-i3-q7",
+         "type": "gap",
+         "text": "A 2013 study suggests that during sleep the brain clears away ___.",
+         "answer": [
+          "waste products"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph F: sleep \"allows the brain to clear away waste products\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u23-l2-i4",
+     "type": "reading",
+     "title": "The limits of equivalence",
+     "minutes": 23,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "Every translator knows the experience: a sentence that is perfectly clear in the original refuses to come across intact. The difficulty is rarely a missing word. Dictionaries will usually supply something. It is that the word supplied carries a different set of associations, belongs to a different register, or sits within a different web of grammatical expectations. The popular image of translation as the substitution of equivalent words, as though languages were codes for a shared set of meanings, survives largely because most people never have to do it."
+      },
+      {
+       "label": "B",
+       "text": "Linguists have long recognised that languages divide up experience in different ways. Some distinguish between kinds of snow or rice that others lump together; some oblige their speakers to mark whether information was witnessed directly or heard from others; some have no grammatical tense at all and rely on context to locate events in time. It does not follow, as some enthusiasts have claimed, that speakers of different languages inhabit incommensurable mental worlds. People routinely express ideas for which their language has no single word, and children acquire whatever distinctions their language requires without apparent difficulty. But it does follow that a translation cannot be judged simply by whether each element of the original has a counterpart in the result."
+      },
+      {
+       "label": "C",
+       "text": "The notion of equivalence has accordingly been refined. Translation theorists distinguish between formal equivalence, which keeps as close as possible to the structure and wording of the source, and dynamic or functional equivalence, which aims to produce in the new reader the effect the original produced in its first readers. The distinction is useful, though it is sometimes presented as a choice between fidelity and freedom, a framing that seems to me unhelpful. A translation that follows the original word for word may be faithful to its surface while betraying its tone; one that departs from the wording may be the more faithful to what the author was trying to do."
+      },
+      {
+       "label": "D",
+       "text": "Literary translation makes these tensions especially visible. A poem's meaning is inseparable from its sound, its rhythm and the associations of individual words, none of which survive transfer into another language unchanged. Translators of verse must decide which features to preserve and which to sacrifice: rhyme or sense, metre or idiom, the strangeness of the original or the naturalness of the result. There is no correct answer, which is why great poems are retranslated in every generation. Each version reveals something that others have missed, and none is final."
+      },
+      {
+       "label": "E",
+       "text": "It might be supposed that technical and commercial texts escape these difficulties, and to a degree they do. A safety instruction or a contract clause has a purpose that can be specified, and success can be measured by whether the purpose is achieved. Yet even here, equivalence is less straightforward than it appears. Legal concepts are embedded in particular systems of law, and a term that seems to have an obvious counterpart may carry quite different obligations. Marketing material must be adapted, sometimes radically, to a new culture's sense of humour, politeness or taste. The translator of such texts is often doing something closer to rewriting than to transfer."
+      },
+      {
+       "label": "F",
+       "text": "The rise of machine translation has given these old debates new urgency. Modern systems, trained on vast quantities of existing translations, produce fluent and often accurate results, and for many purposes they are entirely adequate. It would be foolish to pretend otherwise. What they do less reliably is make the kinds of judgement described above: recognising irony, choosing between registers, noticing when a literal rendering is technically correct but culturally tone-deaf. Their very fluency can be misleading, since a smooth sentence invites trust in a way that a clumsy one does not, and errors of meaning are harder to spot when the surface is polished."
+      },
+      {
+       "label": "G",
+       "text": "None of this means that the human translator is irreplaceable in every context; for routine texts the economics are already decisive. But it does suggest that we should be wary of the assumption, encouraged by the success of automated systems, that translation is fundamentally a matter of finding equivalents. If anything, the limits of machine translation have clarified what the human translator contributes: not a better dictionary, but an interpretation. Every translation is a reading of the original, shaped by the translator's understanding of its purpose and its audience, and the best translations are those that make their interpretive choices with full awareness that they are choices."
+      },
+      {
+       "label": "H",
+       "text": "This is not a counsel of despair. That perfect equivalence is unattainable does not mean that translation fails; it means that its success must be measured differently. A translation should be judged not by whether it reproduces the original, which no translation can, but by whether it gives its readers a faithful and illuminating access to it. On that measure, translation is one of the most remarkable things that language allows us to do, precisely because it is not mechanical."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Questions 27-32. Do the following statements agree with the claims of the writer? Write YES, NO or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u23-l2-i4-q1",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "The common view of translation persists because few people have direct experience of translating.",
+         "answer": "Y",
+         "why": "Paragraph A: the popular image \"survives largely because most people never have to do it\"."
+        },
+        {
+         "id": "u23-l2-i4-q2",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Differences between languages mean that their speakers cannot understand each other's ideas.",
+         "answer": "N",
+         "why": "Paragraph B: \"It does not follow… that speakers of different languages inhabit incommensurable mental worlds.\""
+        },
+        {
+         "id": "u23-l2-i4-q3",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Presenting translation as a choice between fidelity and freedom is helpful.",
+         "answer": "N",
+         "why": "Paragraph C: \"a framing that seems to me unhelpful\"."
+        },
+        {
+         "id": "u23-l2-i4-q4",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Older translations of poems are generally better than recent ones.",
+         "answer": "NG",
+         "why": "Paragraph D says each version reveals something and none is final, but makes no comparison between older and newer translations."
+        },
+        {
+         "id": "u23-l2-i4-q5",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Machine translation is sufficient for many purposes.",
+         "answer": "Y",
+         "why": "Paragraph F: \"for many purposes they are entirely adequate. It would be foolish to pretend otherwise.\""
+        },
+        {
+         "id": "u23-l2-i4-q6",
+         "type": "tfng",
+         "mode": "ynng",
+         "statement": "Human translators will remain necessary for all types of text.",
+         "answer": "N",
+         "why": "Paragraph G: \"None of this means that the human translator is irreplaceable in every context; for routine texts the economics are already decisive.\""
+        }
+       ]
+      },
+      {
+       "instr": "Questions 33-36. Choose the correct letter, A, B, C or D.",
+       "items": [
+        {
+         "id": "u23-l2-i4-q7",
+         "type": "pick",
+         "q": "In paragraph B, the examples of snow, rice and tense are used to show that",
+         "options": [
+          "A  some languages are more precise than others.",
+          "B  languages organise experience differently.",
+          "C  children find some languages hard to learn.",
+          "D  translation between some languages is impossible."
+         ],
+         "answer": 1,
+         "why": "\"Languages divide up experience in different ways\" is the claim the examples illustrate. The writer explicitly rejects the stronger conclusion in D."
+        },
+        {
+         "id": "u23-l2-i4-q8",
+         "type": "pick",
+         "q": "What does the writer suggest about a word-for-word translation?",
+         "options": [
+          "A  It is always the most faithful.",
+          "B  It may misrepresent the tone of the original.",
+          "C  It is suitable only for poetry.",
+          "D  It is the aim of functional equivalence."
+         ],
+         "answer": 1,
+         "why": "Paragraph C: it \"may be faithful to its surface while betraying its tone\"."
+        },
+        {
+         "id": "u23-l2-i4-q9",
+         "type": "pick",
+         "q": "According to paragraph E, translating marketing material",
+         "options": [
+          "A  is easier than translating contracts.",
+          "B  can involve substantial adaptation.",
+          "C  should be done by machines.",
+          "D  requires legal knowledge."
+         ],
+         "answer": 1,
+         "why": "Marketing material \"must be adapted, sometimes radically\"; the translator is doing \"something closer to rewriting\"."
+        },
+        {
+         "id": "u23-l2-i4-q10",
+         "type": "pick",
+         "q": "Why does the writer consider the fluency of machine translation a potential problem?",
+         "options": [
+          "A  It makes the output too informal.",
+          "B  It may hide errors by encouraging trust.",
+          "C  It is achieved by copying human translations.",
+          "D  It makes texts longer."
+         ],
+         "answer": 1,
+         "why": "Paragraph F: \"a smooth sentence invites trust… and errors of meaning are harder to spot when the surface is polished\"."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 37-40. Complete each sentence with the correct ending, A-G.",
+       "items": [
+        {
+         "id": "u23-l2-i4-q11",
+         "type": "select",
+         "q": "Choose the correct ending, A-G, for each sentence.",
+         "options": [
+          "A  is shaped by an interpretation of the original.",
+          "B  has a purpose that can be clearly defined.",
+          "C  should reproduce every element of the source.",
+          "D  depends on sound and rhythm as well as meaning.",
+          "E  is a reason to abandon translation.",
+          "F  should be judged by the access it gives readers to the original.",
+          "G  is rarely retranslated."
+         ],
+         "rows": [
+          {
+           "label": "The meaning of a poem",
+           "answer": 3
+          },
+          {
+           "label": "A safety instruction",
+           "answer": 1
+          },
+          {
+           "label": "Every translation",
+           "answer": 0
+          },
+          {
+           "label": "A successful translation",
+           "answer": 5
+          }
+         ],
+         "why": "D: \"A poem's meaning is inseparable from its sound, its rhythm\". E: a safety instruction \"has a purpose that can be specified\". G: \"Every translation is a reading of the original\". H: judged \"by whether it gives its readers a faithful and illuminating access to it\"."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u23-l3",
+   "title": "Writing test",
+   "kind": "test",
+   "minutes": 60,
+   "timed": 3600,
+   "items": [
+    {
+     "id": "u23-l3-i1",
+     "type": "card",
+     "title": "Mock Writing test",
+     "body": [
+      "Two tasks in sixty minutes. Spend about 20 minutes on Task 1 and 40 on Task 2, which counts twice as much. Plan before you write, and leave two or three minutes to check."
+     ]
+    },
+    {
+     "id": "u23-l3-i2",
+     "type": "writing",
+     "task": 1,
+     "prompt": "You should spend about 20 minutes on this task.\n\nThe graph below shows the main mode of travel used by commuters in the city of Westhaven between 2000 and 2020.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.",
+     "visual": {
+      "kind": "line",
+      "title": "Main mode of travel to work in Westhaven, 2000-2020 (% of commuters)",
+      "unit": "%",
+      "x": [
+       "2000",
+       "2005",
+       "2010",
+       "2015",
+       "2020"
+      ],
+      "series": [
+       {
+        "name": "Car",
+        "values": [
+         62,
+         58,
+         52,
+         47,
+         41
+        ]
+       },
+       {
+        "name": "Bus",
+        "values": [
+         18,
+         17,
+         16,
+         15,
+         14
+        ]
+       },
+       {
+        "name": "Rail",
+        "values": [
+         12,
+         14,
+         16,
+         18,
+         21
+        ]
+       },
+       {
+        "name": "Bicycle",
+        "values": [
+         5,
+         8,
+         12,
+         16,
+         20
+        ]
+       }
+      ]
+     },
+     "minutes": 20,
+     "minWords": 150,
+     "plan": [
+      "Paraphrase the question in one sentence.",
+      "Overview: the two or three biggest trends.",
+      "Body 1: the falling modes, with key figures.",
+      "Body 2: the rising modes, including any crossing point."
+     ],
+     "model": {
+      "text": [
+       "The line graph shows how the proportions of commuters in Westhaven who travelled to work mainly by car, bus, rail and bicycle changed over the twenty years from 2000 to 2020.",
+       "Overall, the car remained the most common way of getting to work throughout the period, but its dominance was steadily eroded, while rail and especially cycling grew considerably in popularity. Bus use declined slightly.",
+       "In 2000, almost two thirds of commuters (62%) relied mainly on the car, a figure that fell at every five-year interval to reach 41% by 2020. Bus travel followed a similar, though far gentler, downward path, slipping from 18% to 14% over the same period.",
+       "The two remaining modes moved in the opposite direction. The share of people commuting by rail rose gradually from 12% to 21%. Cycling showed the most dramatic change: just 5% of commuters cycled to work in 2000, but this proportion quadrupled to 20%, overtaking the bus in 2015 and drawing almost level with rail by the end of the period.",
+       "Taken together, these trends suggest a marked shift away from road-based motor transport, with the combined share of rail and cycling rising from 17% to 41%, exactly matching that of the car in 2020."
+      ],
+      "notes": [
+       "A clear overview in the second paragraph identifies the key trends (the car remains dominant but declines; rail and cycling grow; buses fall slightly) without detail.",
+       "Data are selected rather than listed: start and end points, the rate of change, and the significant crossing point (cycling overtaking buses in 2015).",
+       "Grouping the falling modes and then the rising modes gives a logical structure that makes comparison easy.",
+       "Precise, varied language for change: 'steadily eroded', 'slipping from', 'quadrupled', 'drawing almost level with', 'a far gentler downward path'.",
+       "The final comparison (rail plus cycling equalling the car at 41%) is an accurate, insightful observation drawn only from the data, with no speculation about causes."
+      ]
+     }
+    },
+    {
+     "id": "u23-l3-i3",
+     "type": "writing",
+     "task": 2,
+     "prompt": "You should spend about 40 minutes on this task.\n\nIn many countries, museums and art galleries are now free for everyone to enter.\n\nDo the advantages of this outweigh the disadvantages?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.",
+     "minutes": 40,
+     "minWords": 250,
+     "plan": [
+      "Position: advantages outweigh disadvantages.",
+      "Paragraph 2: the disadvantages, stated fairly.",
+      "Paragraph 3: the main advantage (access for those who would be excluded).",
+      "Paragraph 4: further advantages (public ownership; wider economic benefit).",
+      "Conclusion: weigh and restate."
+     ],
+     "model": {
+      "text": [
+       "In a number of countries, national museums and galleries have abolished admission charges, so that anyone can walk in off the street and spend an afternoon among paintings, fossils or ancient manuscripts without paying. While this policy has real costs, I believe its advantages are considerably greater.",
+       "The disadvantages are essentially financial. Museums are expensive to run, and every pound not collected at the door must be found elsewhere, whether from taxation, private sponsors or the sale of coffee and souvenirs. In practice, free entry may leave institutions more exposed to cuts in public funding, and some argue that it is unfair for taxpayers who never visit to subsidise those who do, particularly tourists. There is also a risk that popular museums become overcrowded, which can detract from the experience of every visitor.",
+       "However, these problems are manageable, whereas the benefits of free access go to the heart of what museums are for. Charges, even modest ones, discourage precisely the people who stand to gain most: families on low incomes, students, and those who have never felt that such places were meant for them. When entry is free, a museum ceases to be a planned and paid-for outing and becomes somewhere one can drop into for twenty minutes to see a single painting. Such casual, repeated visits are arguably how a lasting interest in art or history is formed.",
+       "Moreover, the collections in national museums are, in a meaningful sense, already owned by the public, often acquired with public money or donated for the nation's benefit. Charging people to see what is theirs sits uneasily with that principle. Free entry can also bring wider economic gains, since visitors who pay nothing at the door often spend money in cafés, shops and surrounding businesses.",
+       "On balance, then, while free admission places a genuine burden on public finances, this is a price worth paying for institutions that are open to everyone, not only to those who can afford a ticket."
+      ],
+      "notes": [
+       "The question asks whether advantages outweigh disadvantages, and the essay answers it directly in the introduction and conclusion, with a clear, consistent position.",
+       "The disadvantages are presented fairly and specifically (funding exposure, fairness to non-visitors, overcrowding) before being weighed, which makes the judgement convincing.",
+       "Each body paragraph is built around one controlling idea and developed with explanation rather than lists of points.",
+       "Cohesion is achieved through reference and logical framing ('These problems are manageable, whereas…', 'Such casual, repeated visits') rather than mechanical linkers.",
+       "Precise collocation and natural register: 'go to the heart of', 'sits uneasily with', 'drop into', 'detract from the experience', 'a price worth paying'.",
+       "A wide range of complex structures, including relative and participle clauses, nominalisation and concessive structures, used without error."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "u23-l4",
+   "title": "Speaking practice",
+   "kind": "practice",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u23-l4-i1",
+     "type": "card",
+     "title": "Mock Speaking test",
+     "body": [
+      "Answer each question aloud as if the examiner were in front of you, recording yourself if you can. Part 1 answers should take about 20-30 seconds, the Part 2 talk up to two minutes after one minute's preparation, and Part 3 answers around a minute. Then compare your answers with the models."
+     ]
+    },
+    {
+     "id": "u23-l4-i2",
+     "type": "speaking",
+     "part": 1,
+     "topic": "Your neighbourhood",
+     "questions": [
+      "Can you describe the neighbourhood where you live?",
+      "What do you like most about living there?",
+      "How has your neighbourhood changed in recent years?",
+      "Would you like to live there in the future?"
+     ],
+     "prep": 0,
+     "talk": 30,
+     "model": {
+      "text": [
+       "Oh, it's a fairly quiet residential area on the edge of the city centre. Mostly terraced houses, a couple of parks, and a high street with the usual mix of cafés and small shops. It's not exactly glamorous, but it's got a nice, settled feel to it.",
+       "I'd say the best thing is that you can do almost everything on foot. I can walk to the station in ten minutes, and there's a fantastic bakery round the corner, which is probably a bit dangerous for me, to be honest.",
+       "Not much, actually. A few years ago the old cinema was turned into flats, which people were quite upset about, and a lot of the independent shops have been replaced by chains. But on the whole it's stayed pretty much the same.",
+       "In the long run, probably not. It's ideal for where I am in life at the moment, but if I had a family I think I'd want a bit more space and a garden, so I might look further out."
+      ],
+      "notes": [
+       "Each answer is direct, then extended with a reason or example, which is exactly the right length for Part 1 (around 20-30 seconds).",
+       "Natural spoken features: 'Oh,', 'to be honest', 'not exactly glamorous', 'pretty much the same', 'In the long run'.",
+       "Precise vocabulary for the topic without sounding rehearsed: 'terraced houses', 'residential area', 'replaced by chains', 'a settled feel'.",
+       "A range of grammar used naturally: present perfect for change, a second conditional ('if I had a family, I'd want…'), passives ('was turned into flats')."
+      ]
+     }
+    },
+    {
+     "id": "u23-l4-i3",
+     "type": "speaking",
+     "part": 1,
+     "topic": "Music",
+     "questions": [
+      "How often do you listen to music?",
+      "What kind of music do you enjoy?",
+      "Did you learn to play an instrument when you were younger?",
+      "Do you think children should learn to play a musical instrument?"
+     ],
+     "prep": 0,
+     "talk": 30,
+     "model": {
+      "text": [
+       "Pretty much every day, yes, usually on my commute or when I'm cooking. I find it really helps me switch off at the end of the day.",
+       "It depends on my mood, really. I listen to a lot of jazz, but I've also got a bit of a soft spot for eighties pop, which my friends never let me forget.",
+       "I had piano lessons for a few years as a child, but I gave up when I was about twelve, which I now slightly regret. I can still pick out a tune, but that's about it.",
+       "I think so, yes. Music's one of those things that's genuinely good for children: it teaches discipline and concentration, and it's something they can enjoy for the rest of their lives, even if they never become very good at it."
+      ],
+      "notes": [
+       "Answers are concise but never minimal: each adds a personal detail that makes the response sound authentic.",
+       "Idiomatic but unforced language: 'switch off', 'a soft spot for', 'never let me forget', 'pick out a tune'.",
+       "The final answer moves smoothly from personal to general, which is good practice for Part 3."
+      ]
+     }
+    },
+    {
+     "id": "u23-l4-i4",
+     "type": "speaking",
+     "part": 2,
+     "topic": "A skill learned as an adult",
+     "cue": {
+      "task": "Describe a skill you learned as an adult.",
+      "bullets": [
+       "what the skill was",
+       "how you learned it",
+       "what difficulties you had",
+       "and explain why learning this skill was important to you."
+      ],
+      "close": "You will have one minute to prepare. You can make notes. Then talk for one to two minutes."
+     },
+     "prep": 60,
+     "talk": 120,
+     "model": {
+      "text": [
+       "I'd like to talk about learning to swim properly, which is something I only did in my late twenties. I could sort of keep myself afloat as a child, but I'd never really learned, and I was quite embarrassed about it.",
+       "What happened was that a friend invited me on a holiday that involved quite a lot of sea swimming, and I realised I'd either have to admit I couldn't swim or do something about it. So I signed up for an adult beginners' course at my local pool. It was one evening a week for about ten weeks, with a really patient instructor and about six other people, all of us in roughly the same boat, so to speak.",
+       "The hardest part, honestly, wasn't the technique. It was the breathing. I had this deep-seated panic about putting my face in the water, and for the first few weeks I just couldn't relax. The instructor had us doing these very simple exercises, just blowing bubbles, really, until it stopped feeling threatening. And then quite suddenly, around week five, something clicked, and I managed a whole length of front crawl without stopping.",
+       "I think the reason it meant so much to me is that it was the first time in years I'd been a complete beginner at something. As an adult you get used to being reasonably competent, and it was humbling, but also oddly liberating, to be really bad at something and gradually improve. And the holiday was wonderful, by the way. I spent most of it in the sea."
+      ],
+      "notes": [
+       "The talk covers every bullet point naturally, without announcing each one, and fills the full two minutes.",
+       "It has a clear narrative arc (the background, the course, the difficulty, the breakthrough, the reflection), which gives coherence without sounding scripted.",
+       "Precise, idiomatic vocabulary: 'keep myself afloat', 'deep-seated panic', 'something clicked', 'humbling, but also oddly liberating'.",
+       "Natural spoken markers ('What happened was', 'honestly', 'so to speak', 'by the way') and a range of past forms, including past perfect ('I'd never really learned').",
+       "The final reflection answers 'explain why' with genuine insight, which lifts the talk beyond a simple story."
+      ]
+     },
+     "phrases": [
+      "What happened was…",
+      "The hardest part, honestly, was…",
+      "Something clicked",
+      "It was humbling but oddly liberating"
+     ]
+    },
+    {
+     "id": "u23-l4-i5",
+     "type": "speaking",
+     "part": 3,
+     "topic": "Learning skills in adulthood",
+     "questions": [
+      "Is it harder to learn new skills as an adult than as a child?",
+      "How has the way adults learn new skills changed in recent years?",
+      "Should employers be responsible for training their workers?",
+      "What are the advantages and disadvantages of teaching yourself a skill online?",
+      "How do you think adult education will change in the future?"
+     ],
+     "prep": 0,
+     "talk": 60,
+     "model": {
+      "text": [
+       "I think in some ways it is, but not for the reasons people usually give. There's a common idea that adults' brains are less flexible, and that may be true for things like accent in a foreign language. But I'd say the bigger obstacles are practical and psychological: adults have less free time, and they're often far more afraid of looking foolish than children are.",
+       "Well, there's clearly a lot more demand for flexibility. Careers aren't as linear as they used to be, and someone might retrain two or three times in their working life. So online courses, part-time study and short professional qualifications have become far more common, and I think employers increasingly expect people to keep updating their skills.",
+       "To some extent, yes. Employers benefit directly from a more skilled workforce, so it seems reasonable for them to contribute, whether that's paying for courses or allowing time off to study. But I wouldn't want it to depend entirely on employers, because then people in insecure or low-paid jobs, who arguably need retraining most, would be the least likely to get it.",
+       "It's a mixed picture, I think. The internet has made an enormous amount of knowledge freely available, which is a huge advantage. On the other hand, the sheer volume of information can be overwhelming, and there's a lot to be said for the structure and feedback you get from a good teacher. Self-taught learners can end up with quite patchy knowledge.",
+       "I suspect the line between education and work will blur even further. Rather than front-loading education into the first twenty years of life, people will probably dip in and out of learning throughout their careers. Whether that's liberating or exhausting will depend a lot on how well it's supported."
+      ],
+      "notes": [
+       "Each answer opens with a clear position and then develops it with reasons, examples or a qualification, which is the core of Part 3.",
+       "The speaker challenges assumptions ('not for the reasons people usually give') and weighs both sides, showing the flexibility of thought examiners reward at bands 8-9.",
+       "Abstract, precise vocabulary used naturally: 'linear careers', 'front-loading education', 'patchy knowledge', 'dip in and out of'.",
+       "Hedging is natural and varied: 'I'd say', 'arguably', 'to some extent', 'I suspect', 'It's a mixed picture'.",
+       "Complex structures (relative clauses, conditionals, cleft-style emphasis) appear without strain or error."
+      ]
+     },
+     "phrases": [
+      "Not for the reasons people usually give",
+      "It's a mixed picture",
+      "To some extent",
+      "There's a lot to be said for…"
+     ]
+    }
+   ]
+  }
+ ]
+}

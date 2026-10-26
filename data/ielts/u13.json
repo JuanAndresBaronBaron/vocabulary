@@ -1,0 +1,305 @@
+{
+ "format": 1,
+ "id": "u13",
+ "n": 13,
+ "block": "writing",
+ "title": "Task 2: opinion and discussion",
+ "summary": "After this unit you can answer every part of an opinion or discussion question with a clear position, fully developed paragraphs and convincing examples.",
+ "lessons": [
+  {
+   "id": "u13-l1",
+   "title": "Answering the question you were asked",
+   "kind": "learn",
+   "minutes": 25,
+   "items": [
+    {
+     "id": "u13-l1-i1",
+     "type": "card",
+     "title": "Read the question exactly",
+     "body": [
+      "At band 7 and above, the most common Task Achievement problem is not language: it is an essay that answers a *slightly different* question. Underline the topic, the specific claim, and every instruction word, then make sure each part is answered.",
+      "'Some people think *all* young people should do a year of community service' is not the same as 'community service is good'. Your answer must deal with *all*, *young people* and *a year*, not with volunteering in general."
+     ],
+     "list": [
+      "**To what extent do you agree or disagree?** One clear position (fully, partly, not at all), argued throughout.",
+      "**Discuss both views and give your own opinion.** Both views explained fairly, plus your own view, stated clearly.",
+      "**Do the advantages outweigh the disadvantages?** A comparison and a verdict, not two lists.",
+      "**What are the causes...? What can be done...?** Two questions: both must be answered in comparable depth."
+     ],
+     "tip": "Before you plan, rewrite the question in your own words in one sentence. If you cannot, you have not understood it yet."
+    },
+    {
+     "id": "u13-l1-i2",
+     "type": "card",
+     "title": "A clear position, from start to finish",
+     "body": [
+      "Band 9 requires 'a fully developed position'. The examiner should know your view from the introduction, see it supported in every body paragraph, and find it confirmed in the conclusion. Changing your mind halfway through, or only revealing your view at the end, lowers Task Achievement.",
+      "A partial position is perfectly acceptable, as long as it is precise: *I agree that X is true in the case of Y, but not in the case of Z*. 'There are advantages and disadvantages' is not a position."
+     ],
+     "examples": [
+      {
+       "text": "While a minimum lifespan for new buildings would reduce waste, I believe a fixed hundred-year rule would be too blunt an instrument.",
+       "note": "Clear, qualified position in the introduction."
+      },
+      {
+       "text": "In my opinion, this is a complex issue with many sides.",
+       "note": "Not a position: it commits to nothing."
+      }
+     ]
+    },
+    {
+     "id": "u13-l1-i3",
+     "type": "card",
+     "title": "One paragraph, one central idea",
+     "body": [
+      "Each body paragraph should develop a single central idea: a clear topic sentence, then explanation, then a supporting example or consequence, and finally (optionally) a link back to the question. Two half-developed ideas in one paragraph are weaker than one fully developed idea.",
+      "'Developed' means the reader understands *why* the claim is true and *what follows from it*. Ask yourself 'so what?' after each sentence until you reach the consequence that matters to the question."
+     ],
+     "list": [
+      "Topic sentence: the claim.",
+      "Explanation: why it is true, or how it works.",
+      "Example: a specific, plausible case.",
+      "Consequence or link: why this matters for the question."
+     ]
+    },
+    {
+     "id": "u13-l1-i4",
+     "type": "card",
+     "title": "Examples that support, not decorate",
+     "body": [
+      "An example earns its place only if it makes the argument more convincing. Specific and plausible is better than famous or statistical: you do not need (and should not invent) precise statistics.",
+      "Avoid 'For example, in my country...' followed by a general statement that is not actually an example. A real example has a specific case in it."
+     ],
+     "examples": [
+      {
+       "text": "For instance, a hospital built in the 1970s may be structurally sound today yet entirely unsuited to modern equipment.",
+       "note": "Specific, plausible, and it supports the claim that durability is not the same as usefulness."
+      },
+      {
+       "text": "For example, according to research, 87% of buildings are demolished too early.",
+       "note": "Invented statistic: it damages credibility rather than adding it."
+      }
+     ]
+    },
+    {
+     "id": "u13-l1-i5",
+     "type": "card",
+     "title": "Conclusions",
+     "body": [
+      "A conclusion restates your position in fresh words and briefly pulls the main reasons together. It does not introduce a new argument, and it does not need a dramatic final sentence or a prediction.",
+      "Two or three sentences are enough. 'In conclusion' is fine; you do not need anything more elaborate."
+     ]
+    },
+    {
+     "id": "u13-l1-i6",
+     "type": "pick",
+     "q": "Question: 'Some people believe that all new buildings should be required by law to last at least one hundred years. To what extent do you agree or disagree?' Which thesis answers it most directly?",
+     "options": [
+      "Buildings are very important in modern cities, and their design affects everyone.",
+      "Although longer-lasting buildings would reduce construction waste, I disagree that a legal hundred-year minimum should apply to all new buildings, since many structures serve needs that change far more quickly.",
+      "There are both advantages and disadvantages to making buildings last longer.",
+      "In this essay I will discuss the advantages and disadvantages of old buildings."
+     ],
+     "answer": 1,
+     "why": "B engages with the precise claim (*by law*, *all*, *a hundred years*) and takes a clear, qualified position. A is off-topic, C is not a position, and D answers a different question."
+    },
+    {
+     "id": "u13-l1-i7",
+     "type": "pick",
+     "q": "'Discuss both views and give your own opinion.' Which plan fulfils the task best?",
+     "options": [
+      "Body 1: view A. Body 2: view B. Conclusion: 'Both views have merit.'",
+      "Body 1: view A. Body 2: view B. Conclusion: my opinion, stated for the first time.",
+      "Introduction states my view. Body 1: the view I disagree with, explained fairly. Body 2: the view I support, with reasons. Conclusion restates my view.",
+      "Body 1 and Body 2: reasons for my view only."
+     ],
+     "answer": 2,
+     "why": "C presents both views and makes the writer's position clear throughout. A gives no opinion, B leaves it too late, and D ignores the other view."
+    },
+    {
+     "id": "u13-l1-i8",
+     "type": "select",
+     "q": "Decide whether each sentence would work as a supporting example in a Task 2 essay.",
+     "options": [
+      "A  Effective: specific and plausible",
+      "B  Ineffective: invented statistic or authority",
+      "C  Ineffective: too general to be an example"
+     ],
+     "rows": [
+      {
+       "label": "For example, many people in my country have different opinions about this.",
+       "answer": 2
+      },
+      {
+       "label": "A recent Oxford study found that 64% of teenagers cannot read joined-up handwriting.",
+       "answer": 1
+      },
+      {
+       "label": "A child who takes notes by hand in a history lesson has to choose what to write down, and that choice is itself a form of understanding.",
+       "answer": 0
+      },
+      {
+       "label": "For instance, technology is changing everything in modern life.",
+       "answer": 2
+      },
+      {
+       "label": "A small bakery forced to pay a new packaging tax might simply pass the cost on to its customers.",
+       "answer": 0
+      }
+     ],
+     "why": "Effective examples describe a particular, believable case. Invented statistics attributed to real institutions undermine credibility, and generalisations dressed as examples add nothing."
+    },
+    {
+     "id": "u13-l1-i9",
+     "type": "order",
+     "q": "Put these sentences in order to form a well-developed body paragraph.",
+     "items": [
+      "The strongest objection to a hundred-year rule is that the function of a building often changes faster than its structure wears out.",
+      "Offices, hospitals and schools are shaped by technologies and working practices that may look very different in thirty years.",
+      "A hospital built in the 1970s, for instance, may still be structurally sound yet have corridors too narrow for modern equipment.",
+      "Requiring such buildings to be built for a century would therefore raise their cost without guaranteeing that they remain useful."
+     ],
+     "why": "Topic sentence (claim), explanation (why), example (specific case), consequence ('therefore') that links back to the question."
+    },
+    {
+     "id": "u13-l1-i10",
+     "type": "pick",
+     "q": "Which conclusion is most appropriate for an essay that partly agrees with the statement?",
+     "options": [
+      "In conclusion, buildings will probably be very different in the future, and we should all think carefully about this.",
+      "In conclusion, while durability should certainly be encouraged, a blanket hundred-year requirement would impose high costs on buildings whose purpose is likely to change; a more flexible approach would achieve the same goal with fewer drawbacks.",
+      "In conclusion, I strongly agree with the statement.",
+      "In conclusion, another important point is that old buildings are often more beautiful."
+     ],
+     "answer": 1,
+     "why": "B restates the partial position in new words and summarises the reasoning. A drifts into a vague prediction, C contradicts a partial position, and D introduces a new argument."
+    },
+    {
+     "id": "u13-l1-i11",
+     "type": "pick",
+     "q": "A question asks whether 'the advantages of working from home outweigh the disadvantages'. Which essay would score highest for Task Achievement?",
+     "options": [
+      "One that lists four advantages and four disadvantages in equal detail.",
+      "One that explains the main advantages and disadvantages and argues clearly that one side is weightier, with reasons.",
+      "One that discusses only the advantages because the writer agrees with them.",
+      "One that explains why working from home became popular."
+     ],
+     "answer": 1,
+     "why": "'Outweigh' requires a comparison and a verdict. A has no verdict, C ignores half the question, and D answers a causes question."
+    }
+   ]
+  },
+  {
+   "id": "u13-l2",
+   "title": "Practice: an opinion essay",
+   "kind": "practice",
+   "minutes": 45,
+   "items": [
+    {
+     "id": "u13-l2-i1",
+     "type": "card",
+     "title": "Planning an opinion essay in five minutes",
+     "body": [
+      "Decide your position first, then choose the two strongest reasons for it, and, if you hold a partial view, the main concession. Each becomes one paragraph. Write the thesis sentence in full before you start the essay.",
+      "A four-paragraph essay (introduction, two body paragraphs, conclusion) of 280-320 words is enough for band 9 if each body paragraph is fully developed."
+     ],
+     "list": [
+      "Introduction: paraphrase the issue in one sentence; state your position in the next.",
+      "Body 1: the concession or the strongest point on the other side, and why it is limited.",
+      "Body 2: your main reason, fully developed with an example.",
+      "Conclusion: your position restated, with the key reason."
+     ],
+     "tip": "'To what extent' invites a nuanced answer. A partial view is often easier to argue convincingly than total agreement, but only if it is precise."
+    },
+    {
+     "id": "u13-l2-i2",
+     "type": "writing",
+     "task": 2,
+     "prompt": "Some people believe that all new buildings should be required by law to last for at least one hundred years.\n\nTo what extent do you agree or disagree?\n\nWrite at least 250 words.",
+     "minutes": 40,
+     "minWords": 250,
+     "plan": [
+      "Position: agree with durability as an aim; disagree with a universal legal 100-year rule.",
+      "Body 1: case for long life (embodied energy, valued housing); works for homes and civic buildings.",
+      "Body 2: 'all' is the problem: function changes faster than structure (1970s hospital).",
+      "Short paragraph: alternative, reward adaptability and reuse.",
+      "Conclusion: restate the qualified position."
+     ],
+     "model": {
+      "text": [
+       "The construction and demolition of buildings generate an enormous amount of waste, so it is not surprising that some people would like the law to insist on durability. While I agree that new buildings should be made to last far longer than many are at present, I believe that a legal minimum of a hundred years for every building would be too rigid to work.",
+       "There is a strong case for building to last. A structure that stands for a century spreads the energy and materials used to build it over many more years of use than one that is torn down after thirty. Durable buildings also tend to be better maintained and more highly valued, which helps to explain why many towns still treasure housing built two or three generations ago. For homes and public buildings such as libraries or town halls, whose basic purpose changes little over time, a long design life is therefore both sensible and achievable.",
+       "The problem lies with the word *all*. The function of many buildings changes much faster than their structure wears out. Hospitals, laboratories and factories are shaped by technology and working practices that may be unrecognisable within a few decades. A hospital built in the 1970s, for instance, may still be structurally sound yet have corridors and wards that cannot accommodate modern equipment. Forcing such buildings to be engineered for a century would raise their cost considerably without ensuring that they remain useful, and might even discourage owners from replacing facilities that genuinely need it.",
+       "A more effective approach would be to reward adaptability rather than mere longevity, for example by requiring designs that allow interiors to be reconfigured, or that make materials easy to recover and reuse when a building does come down.",
+       "In conclusion, although longer-lasting buildings are clearly desirable, a single hundred-year rule would ignore how differently buildings are used. Encouraging durable and adaptable design would achieve the same environmental goal far more sensibly."
+      ],
+      "notes": [
+       "The position is clear and qualified from the introduction (agree with the aim, disagree with the universal rule) and is maintained to the end.",
+       "The essay engages with the exact wording of the question, especially *all* and *by law*, rather than writing about old buildings in general.",
+       "Each body paragraph develops one central idea with explanation, a specific example and a consequence.",
+       "The short fourth paragraph offers an alternative, which strengthens the argument without introducing an unrelated topic.",
+       "Lexis is precise and natural (*spread the energy... over*, *engineered for a century*, *reward adaptability rather than mere longevity*) with no memorised phrases.",
+       "Complex structures (relative clauses, participle phrases, conditionals) are used accurately and only where they serve the meaning."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "u13-l3",
+   "title": "Practice: a discussion essay",
+   "kind": "practice",
+   "minutes": 45,
+   "items": [
+    {
+     "id": "u13-l3-i1",
+     "type": "card",
+     "title": "Planning a 'discuss both views' essay",
+     "body": [
+      "This task has three parts: view A, view B and your opinion. The simplest band 9 structure gives one body paragraph to each view and states your own position in the introduction and conclusion. Present the view you reject fairly and in its strongest form; then explain why you find the other view more persuasive.",
+      "You may also agree partly with both. If so, say exactly which part of each view you accept."
+     ],
+     "list": [
+      "Introduction: the debate in one sentence; your view in the next.",
+      "Body 1: the view you find less convincing, explained at its best.",
+      "Body 2: the view you support, with your reasons and an example.",
+      "Conclusion: your opinion restated, perhaps with a condition."
+     ],
+     "tip": "Use reporting language to keep views apart: *Those who favour... argue that...*, *From this perspective...*, *My own view is that...*. It keeps the reader certain whose opinion is whose."
+    },
+    {
+     "id": "u13-l3-i2",
+     "type": "writing",
+     "task": 2,
+     "prompt": "Some people think that schools should continue to teach children to write by hand, while others believe that the time would be better spent teaching typing and other digital skills.\n\nDiscuss both views and give your own opinion.\n\nWrite at least 250 words.",
+     "minutes": 40,
+     "minWords": 250,
+     "plan": [
+      "Position: keep teaching handwriting, but less time on perfecting it.",
+      "Body 1: digital skills view (adult writing is typed; search, files, online safety; opportunity cost).",
+      "Body 2: handwriting view (letter recognition, selective note-taking, exams).",
+      "Short paragraph: both, sequenced by age.",
+      "Conclusion: keep handwriting, efficiently, alongside digital skills."
+     ],
+     "model": {
+      "text": [
+       "As more and more writing takes place on screens, schools face a genuine choice about how to use limited lesson time. Some argue that handwriting is becoming obsolete and should give way to keyboard and digital skills, while others insist that it still deserves a central place. In my view, handwriting should continue to be taught, although the time devoted to perfecting it could reasonably be reduced.",
+       "Those who favour digital skills make a practical case. Most of the writing that today's children will do as adults, from emails to reports, will be typed, and fast, accurate typing is a real advantage both in education and at work. Beyond typing, pupils need to learn how to search for reliable information, organise files and work safely online, and every hour spent practising joined-up letters is an hour not spent on these. From this perspective, insisting on neat handwriting resembles teaching a skill for a world that no longer exists.",
+       "However, I find the argument for handwriting more persuasive, because its value lies less in the finished page than in what it does for learning. Forming letters by hand helps young children to recognise them, which supports early reading. Older pupils who take notes by hand cannot transcribe everything, so they have to decide what matters and put it into their own words, a process that is itself a form of understanding. Handwriting also remains essential in situations where devices are unavailable or inappropriate, including many examinations.",
+       "That said, the two aims need not compete. Schools could teach legible handwriting thoroughly in the early years, then shift the emphasis towards typing and digital literacy as pupils grow older, without insisting on elaborate penmanship.",
+       "In conclusion, while digital skills are undoubtedly essential, handwriting offers cognitive benefits that typing does not replace, so it should remain part of the curriculum, taught efficiently alongside the skills that the modern world demands."
+      ],
+      "notes": [
+       "All three parts of the task are covered: each view has its own fully developed paragraph, and the writer's opinion is stated in the introduction and conclusion.",
+       "The opposing view is presented fairly and in its strongest form before being answered, which shows a mature, balanced argument.",
+       "Reporting language (*Those who favour*, *From this perspective*, *However, I find*) keeps the voices distinct without mechanical linking.",
+       "Examples are specific and plausible (note-taking forcing selection, examinations) rather than invented statistics.",
+       "The position is nuanced but precise: keep handwriting, reduce time spent on perfecting it.",
+       "Vocabulary is precise and appropriately academic (*obsolete*, *transcribe*, *legible*, *cognitive benefits*) without being forced."
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

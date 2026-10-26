@@ -1,0 +1,299 @@
+{
+ "format": 1,
+ "id": "u14",
+ "n": 14,
+ "block": "writing",
+ "title": "Task 2: problems and two-part questions",
+ "summary": "After this unit you can answer both parts of problem, solution and direct two-part questions in balanced depth, with specific solutions and clear verdicts.",
+ "lessons": [
+  {
+   "id": "u14-l1",
+   "title": "Problems, solutions and two-part questions",
+   "kind": "learn",
+   "minutes": 25,
+   "items": [
+    {
+     "id": "u14-l1-i1",
+     "type": "card",
+     "title": "Questions with two jobs",
+     "body": [
+      "Many Task 2 questions ask two separate things: *What are the causes? What can be done?*, *What problems does this cause? How can they be solved?*, or a direct pair such as *Why is this happening? Is it a positive or negative development?*",
+      "Both parts carry equal weight. An essay that analyses causes brilliantly but gives one vague sentence on solutions cannot reach band 7 for Task Achievement, however good the language. Plan one body paragraph for each part and make them comparable in length and depth."
+     ],
+     "tip": "Copy the two questions into your plan as headings. When you finish each paragraph, check it against its heading."
+    },
+    {
+     "id": "u14-l1-i2",
+     "type": "card",
+     "title": "Making solutions specific",
+     "body": [
+      "Weak solutions are slogans: *the government should take action*, *people should be more aware*. A band 9 solution says **who** should do **what**, **how** it would work, and ideally **which problem** it addresses.",
+      "Link each solution back to a cause or problem you identified. That link is what makes the essay feel like one argument rather than two lists."
+     ],
+     "examples": [
+      {
+       "text": "The government should do something about it.",
+       "note": "A slogan: who, what and how are all missing."
+      },
+      {
+       "text": "Councils could offer reduced business rates for the first three years to anyone opening a shop in a vacant high-street unit, which would address the high costs that drive small traders away.",
+       "note": "Who (councils), what (reduced rates), how (first three years, vacant units), linked to a cause (high costs)."
+      }
+     ]
+    },
+    {
+     "id": "u14-l1-i3",
+     "type": "card",
+     "title": "Causes and effects without exaggeration",
+     "body": [
+      "Causal language must be precise and appropriately cautious. Few social trends have a single cause, so hedge where the evidence is uncertain and choose verbs that match the strength of the link."
+     ],
+     "list": [
+      "Strong link: *X leads to / results in / causes Y*",
+      "Contributing factor: *X contributes to / plays a part in / is partly responsible for Y*",
+      "Probable link: *X is likely to / tends to / may well lead to Y*",
+      "Noun forms: *a major cause of*, *one consequence of this is*, *the knock-on effect is*"
+     ],
+     "examples": [
+      {
+       "text": "The decline of seaside holidays has contributed to high unemployment in many coastal towns.",
+       "note": "Contributed to: a factor, not the sole cause."
+      },
+      {
+       "text": "Cheap foreign holidays have destroyed every coastal town.",
+       "note": "Overgeneralised and exaggerated."
+      }
+     ]
+    },
+    {
+     "id": "u14-l1-i4",
+     "type": "card",
+     "title": "Direct two-part questions",
+     "body": [
+      "Questions like *Why is this happening? Is it a positive or negative development?* need a direct answer to each question. For the second part, give a clear verdict; 'it has both positive and negative sides' is acceptable only if you then say which side is weightier, or under what conditions it is positive.",
+      "Answer both questions briefly in the introduction, so the examiner sees from the start that you have understood the task."
+     ],
+     "examples": [
+      {
+       "text": "This trend is driven mainly by cost and a growing reluctance to accumulate possessions, and on balance I consider it a positive development, provided that rental services are fairly regulated.",
+       "note": "One sentence answers both questions, with a condition."
+      }
+     ]
+    },
+    {
+     "id": "u14-l1-i5",
+     "type": "pick",
+     "q": "Question: 'Many coastal towns that once depended on fishing or seaside holidays are now in decline. What problems does this cause, and what measures could be taken to revive them?' Which plan fulfils the task?",
+     "options": [
+      "Body 1: why fishing declined. Body 2: why seaside holidays declined.",
+      "Body 1: problems caused by the decline (jobs, young people leaving, empty buildings). Body 2: measures linked to those problems.",
+      "Body 1: problems. Conclusion: the government should help.",
+      "Body 1: the history of seaside holidays. Body 2: my favourite coastal town."
+     ],
+     "answer": 1,
+     "why": "B answers both questions in balanced paragraphs and links measures to problems. A answers a causes question that was not asked, C gives solutions only a token sentence, and D is off-topic."
+    },
+    {
+     "id": "u14-l1-i6",
+     "type": "select",
+     "q": "Classify each sentence as a solution in a problem/solution essay.",
+     "options": [
+      "A  Specific: who, what and how",
+      "B  Vague slogan"
+     ],
+     "rows": [
+      {
+       "label": "Something must be done to help these towns.",
+       "answer": 1
+      },
+      {
+       "label": "Regional universities could open satellite campuses in coastal towns, bringing young people and spending into the area year-round.",
+       "answer": 0
+      },
+      {
+       "label": "People need to change their attitudes.",
+       "answer": 1
+      },
+      {
+       "label": "Improving rail links to the nearest city would allow residents to commute to jobs without leaving the town.",
+       "answer": 0
+      },
+      {
+       "label": "Authorities should take serious action as soon as possible.",
+       "answer": 1
+      }
+     ],
+     "why": "Specific solutions name an agent, an action and a mechanism. Slogans name none of these and cannot be developed."
+    },
+    {
+     "id": "u14-l1-i7",
+     "type": "gap",
+     "text": "The closure of the fish market ___ to a sharp rise in local unemployment.",
+     "answer": [
+      "led",
+      "contributed"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Led to* or *contributed to*: both take *to*. *Caused* would not fit because it takes a direct object."
+    },
+    {
+     "id": "u14-l1-i8",
+     "type": "gap",
+     "text": "The loss of jobs has had a knock-on ___ on local shops, which depend on residents' spending.",
+     "answer": [
+      "effect",
+      "impact"
+     ],
+     "limit": "ONE WORD",
+     "why": "*A knock-on effect* is a natural collocation for an indirect consequence."
+    },
+    {
+     "id": "u14-l1-i9",
+     "type": "pick",
+     "q": "Which sentence hedges appropriately?",
+     "options": [
+      "Remote working will definitely save every coastal town.",
+      "Remote working may well help some coastal towns, as it allows people to earn city salaries while living by the sea.",
+      "Remote working is maybe possibly a solution.",
+      "Remote working is the only solution."
+     ],
+     "answer": 1,
+     "why": "*May well help some* is cautious but still committed, and the reason makes it convincing. A and D overclaim, and C stacks hedges until it says nothing."
+    },
+    {
+     "id": "u14-l1-i10",
+     "type": "pick",
+     "q": "'Why is this happening? Is it a positive or negative development?' Which introduction answers both parts?",
+     "options": [
+      "Nowadays, renting is becoming more popular than ever before in many countries around the world.",
+      "More people are renting items rather than buying them, and this essay will discuss the reasons and whether it is good or bad.",
+      "The growing preference for renting rather than owning goods is largely driven by cost and concern about waste, and I regard it as a broadly positive trend, as long as rental companies are properly regulated.",
+      "There are many reasons why people rent things, and it has advantages and disadvantages."
+     ],
+     "answer": 2,
+     "why": "C answers both questions concisely and takes a position. A and B only announce the topic, and D takes no position."
+    },
+    {
+     "id": "u14-l1-i11",
+     "type": "order",
+     "q": "Order this body paragraph, which proposes a measure and links it to a problem.",
+     "items": [
+      "One of the most damaging effects of decline is the departure of young people, who leave to study or work elsewhere and rarely return.",
+      "An effective response would be for regional universities and colleges to open campuses in coastal towns.",
+      "This would bring students, staff and their spending into the area throughout the year, not just in summer.",
+      "Over time, graduates who have built connections locally would be more likely to stay and start businesses."
+     ],
+     "why": "Problem, specific measure, how it works, longer-term consequence. Each sentence builds on the one before."
+    }
+   ]
+  },
+  {
+   "id": "u14-l2",
+   "title": "Practice: a problem and solution essay",
+   "kind": "practice",
+   "minutes": 45,
+   "items": [
+    {
+     "id": "u14-l2-i1",
+     "type": "card",
+     "title": "Planning problems and measures",
+     "body": [
+      "Brainstorm two or three problems, then choose the two that are most serious and most clearly connected to the situation. For each, think of one realistic measure. Pairing problems with measures gives your essay a single logical thread.",
+      "You can also organise by pairs: problem 1 + measure 1 in one paragraph, problem 2 + measure 2 in the next. Both structures work; choose the one that keeps the two parts balanced."
+     ],
+     "list": [
+      "Introduction: the situation; a one-sentence answer to both questions.",
+      "Body 1: two main problems, developed (jobs and population; physical decline).",
+      "Body 2: measures, each linked to a problem.",
+      "Conclusion: summary of problems and the most promising measures."
+     ],
+     "tip": "Avoid the temptation to write about causes. The question asks about problems and measures; why the towns declined is background, worth half a sentence at most."
+    },
+    {
+     "id": "u14-l2-i2",
+     "type": "writing",
+     "task": 2,
+     "prompt": "Many coastal towns that once depended on fishing or seaside holidays are now in decline.\n\nWhat problems does this cause, and what measures could be taken to revive these towns?\n\nWrite at least 250 words.",
+     "minutes": 40,
+     "minWords": 250,
+     "plan": [
+      "Answer: problems are economic and social; solutions need year-round activity.",
+      "Body 1: seasonal, low-paid work; young people leave; ageing population; physical decay.",
+      "Body 2: university campuses; digital and transport links for remote work; converting empty buildings.",
+      "Conclusion: summary of problems and best remedies."
+     ],
+     "model": {
+      "text": [
+       "In many countries, towns that once thrived on fishing fleets or summer visitors are now marked by empty shops and shrinking populations. This decline creates serious economic and social problems, but I believe these can be tackled if investment is directed at year-round activity rather than at reviving the past.",
+       "The most immediate problem is the loss of stable employment. When fishing or tourism declines, the jobs that remain tend to be seasonal and poorly paid, so many families struggle financially for much of the year. This, in turn, drives young people away: those who leave to study or find work elsewhere rarely return, and the population left behind is older and more dependent on health and social services. A further consequence is physical decay. Hotels, piers and shopfronts that are no longer profitable fall into disrepair, and the sense of neglect discourages the very investment that might reverse the decline.",
+       "Several measures could help. First, since the core difficulty is that activity is concentrated in a few summer months, towns need sources of work that do not depend on the weather. Regional universities and colleges could open campuses in coastal towns, bringing students, staff and spending throughout the year; graduates who build connections locally are more likely to stay and start businesses. Second, better digital and transport links would allow people to work remotely for employers based in cities, which would attract younger residents without requiring large companies to relocate. Finally, empty seafront buildings could be converted into affordable workspaces or homes, with councils offering grants for restoration, so that the decay that deters investors is turned into an opportunity.",
+       "In conclusion, the decline of coastal towns leads to insecure work, an ageing population and physical neglect. The most promising remedies are those that create year-round activity, such as education, improved connections and the reuse of empty buildings."
+      ],
+      "notes": [
+       "Both questions are answered in balanced, fully developed paragraphs, and the introduction answers both briefly.",
+       "Problems are linked causally (*This, in turn, drives...*, *A further consequence...*), showing analysis rather than a list.",
+       "Each measure is specific (who, what, how) and explicitly tied to a problem identified earlier.",
+       "The essay stays on the question: causes of the decline are only mentioned in passing.",
+       "Lexis is precise and well collocated: *fall into disrepair*, *a sense of neglect*, *year-round activity*, *affordable workspaces*.",
+       "Sequencers (*First*, *Second*, *Finally*) are used only where a genuine list exists, which is natural rather than mechanical."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "u14-l3",
+   "title": "Practice: a direct two-part question",
+   "kind": "practice",
+   "minutes": 45,
+   "items": [
+    {
+     "id": "u14-l3-i1",
+     "type": "card",
+     "title": "Planning a 'why' and 'positive or negative' essay",
+     "body": [
+      "The first question needs explanation: two or three reasons, developed. The second needs evaluation: a verdict with justification. Give one body paragraph to each, and make your verdict clear in both the introduction and the conclusion.",
+      "A conditional verdict ('positive, as long as...') is often the most convincing, because it shows you have weighed the drawbacks."
+     ],
+     "list": [
+      "Introduction: the trend; a short answer to both questions.",
+      "Body 1: reasons (cost, values, technology), developed.",
+      "Body 2: evaluation: benefits, the main drawback, and why benefits outweigh it.",
+      "Conclusion: verdict restated with its condition."
+     ],
+     "tip": "Don't let the 'why' paragraph turn into a list of advantages. Reasons explain why people do something; advantages evaluate the result. Keep the two apart."
+    },
+    {
+     "id": "u14-l3-i2",
+     "type": "writing",
+     "task": 2,
+     "prompt": "Increasingly, people are choosing to rent everyday items such as tools, clothing and furniture rather than buy them.\n\nWhy is this happening? Is it a positive or negative development?\n\nWrite at least 250 words.",
+     "minutes": 40,
+     "minWords": 250,
+     "plan": [
+      "Answer: cost, attitudes, apps; positive if regulated.",
+      "Body 1: reasons (income and space, environmental attitudes, convenience of apps).",
+      "Body 2: positive (waste, durability incentive, access); risk (exploitation, dependence) manageable.",
+      "Conclusion: verdict with condition."
+     ],
+     "model": {
+      "text": [
+       "Renting was once associated mainly with homes and cars, but people are now hiring everything from power drills to evening dresses. This shift is driven largely by cost, changing attitudes to ownership and the ease of online services, and I regard it as a positive development, provided that rental businesses are properly regulated.",
+       "The most obvious reason is financial. Housing costs absorb a growing share of many people's income, particularly in cities, and paying a small fee to use a carpet cleaner once a year makes more sense than buying one that will sit in a cupboard. Living space is also limited, so owning fewer things is a practical advantage. At the same time, attitudes have changed: many younger people, conscious of the environmental cost of consumption, are reluctant to accumulate possessions. Finally, smartphone apps have made renting almost as convenient as buying, allowing users to find, book and return items with very little effort.",
+       "On balance, this trend is beneficial. Most obviously, it reduces waste: a single well-made tool shared by dozens of households replaces dozens of cheap ones that would eventually be thrown away, and manufacturers that rent out their products have an incentive to make them durable and repairable. It also widens access, since people on modest incomes can use high-quality items they could never afford to buy. The main concern is that rental companies could exploit customers through hidden charges or strict penalties for minor damage, and that dependence on renting leaves people with little to fall back on. However, these risks can be managed through clear consumer protection rules, and they do not outweigh the environmental and social gains.",
+       "In conclusion, the rise of renting reflects economic pressure, a shift in values and new technology. As long as customers are protected from unfair practices, it is a welcome change that makes better use of the goods we already produce."
+      ],
+      "notes": [
+       "Both questions are answered directly in the introduction and developed in separate paragraphs of similar depth.",
+       "Reasons (why) are kept distinct from evaluation (positive or negative), which avoids a common source of confusion.",
+       "The verdict is clear and conditional, and the main counter-argument is acknowledged and answered rather than ignored.",
+       "Specific, plausible illustrations (a carpet cleaner used once a year, a shared tool replacing many cheap ones) make the argument concrete.",
+       "Cohesion relies on referencing and logical progression (*This shift*, *At the same time*, *these risks*) rather than formulaic linkers.",
+       "Sentence structures are varied and accurate, including participle clauses and conditionals used naturally."
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

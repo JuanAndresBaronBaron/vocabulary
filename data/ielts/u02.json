@@ -1,0 +1,776 @@
+{
+ "format": 1,
+ "id": "u02",
+ "n": 2,
+ "block": "start",
+ "title": "Diagnostic test",
+ "summary": "After this unit you know your starting level in Listening, Reading and Writing, and which skills need the most work.",
+ "lessons": [
+  {
+   "id": "u02-l1",
+   "title": "Listening diagnostic",
+   "kind": "test",
+   "minutes": 25,
+   "timed": 1500,
+   "items": [
+    {
+     "id": "u02-l1-i1",
+     "type": "card",
+     "title": "How this diagnostic works",
+     "body": [
+      "You will hear one Part 1 and one Part 3 recording, 20 questions in all. Each recording plays once. Read the questions before you press play, and write answers as you listen. Your score is scaled to a 40-question band."
+     ]
+    },
+    {
+     "id": "u02-l1-i2",
+     "type": "listening",
+     "title": "Pottery course enquiry",
+     "part": 1,
+     "context": "You will hear a woman phoning an arts centre to ask about a pottery course. First, you have some time to look at questions 1 to 6.",
+     "speakers": [
+      {
+       "id": "t",
+       "name": "Tom",
+       "voice": "m"
+      },
+      {
+       "id": "h",
+       "name": "Helen",
+       "voice": "f"
+      }
+     ],
+     "script": [
+      {
+       "s": "t",
+       "t": "Good morning, Riverside Arts Centre, Tom speaking. How can I help?"
+      },
+      {
+       "s": "h",
+       "t": "Oh, hello. I'm ringing about your pottery courses. I picked up a leaflet a while ago and I've only just got round to calling."
+      },
+      {
+       "s": "t",
+       "t": "No problem at all. We've got two beginners' groups this term. Have you done any pottery before?"
+      },
+      {
+       "s": "h",
+       "t": "A little at school, but that's ancient history. I'd say I'm a complete beginner."
+      },
+      {
+       "s": "t",
+       "t": "Right. Then it's either the Tuesday group or the Thursday group. Both run in the evening, seven till nine."
+      },
+      {
+       "s": "h",
+       "t": "Tuesday would suit me best, actually."
+      },
+      {
+       "s": "t",
+       "t": "Ah, I'm afraid Tuesday's full. I've just checked the list and there's a waiting list of four already. Thursday still has spaces, though."
+      },
+      {
+       "s": "h",
+       "t": "Thursday it is, then. When does that one start?"
+      },
+      {
+       "s": "t",
+       "t": "The Tuesday group starts on the seventh of September, and Thursday's a week later, so the fourteenth."
+      },
+      {
+       "s": "h",
+       "t": "The fourteenth. Lovely. And what does it cost?"
+      },
+      {
+       "s": "t",
+       "t": "The tuition fee for the term is one hundred and sixty-five pounds. On top of that there's a materials charge of twenty pounds, which covers your clay, the glazes and the firing. So one hundred and eighty-five pounds in total."
+      },
+      {
+       "s": "h",
+       "t": "That's reasonable. Do I need to bring anything? An apron, or special tools?"
+      },
+      {
+       "s": "t",
+       "t": "No, we provide aprons and all the tools. The one thing people always forget is a towel. Your hands get very messy and the paper ones run out, so do bring a towel."
+      },
+      {
+       "s": "h",
+       "t": "Good to know. Shall I give you my details?"
+      },
+      {
+       "s": "t",
+       "t": "Yes, please. Your name first."
+      },
+      {
+       "s": "h",
+       "t": "It's Helen Marsden. That's M-A-R-S-D-E-N."
+      },
+      {
+       "s": "t",
+       "t": "Thanks. And your postcode?"
+      },
+      {
+       "s": "h",
+       "t": "B-S-seven, four-Q-D."
+      },
+      {
+       "s": "t",
+       "t": "BS7 4QD. And can I ask how you heard about the course? We're trying to work out which publicity works."
+      },
+      {
+       "s": "h",
+       "t": "I think it was a poster in the café on the high street. Oh, no, sorry, it was the library newsletter. The poster was for something else."
+      },
+      {
+       "s": "t",
+       "t": "The library newsletter, great, that's useful. Was there anything else you wanted to ask?"
+      },
+      {
+       "s": "h",
+       "t": "Actually, yes. Is there parking near the centre?"
+      },
+      {
+       "s": "t",
+       "t": "There's the car park at the front. During the day it's pay-and-display, but after six it's free, so for an evening class you won't pay anything. We did once have a system where you booked a space in advance, but that was dropped years ago."
+      },
+      {
+       "s": "h",
+       "t": "Perfect. And is the class very large? I don't mind, I'm just curious."
+      },
+      {
+       "s": "t",
+       "t": "Twelve at most, with one tutor. A lot of people sign up to make presents for friends and family, Christmas especially."
+      },
+      {
+       "s": "h",
+       "t": "Everyone assumes that's why I'm doing it! Honestly, I just need something to help me switch off after work. My job's very screen-based, and I want to do something with my hands."
+      },
+      {
+       "s": "t",
+       "t": "Well, clay's very good for that. It's hard to think about emails when you're covered in it."
+      },
+      {
+       "s": "h",
+       "t": "That's the idea. So what happens next? Do I need to pay now?"
+      },
+      {
+       "s": "t",
+       "t": "Not over the phone. I'll email you the registration form this afternoon. Fill that in and send it back with the payment, and your place is confirmed. The timetable and a map are already on our website, so you don't need me to send those."
+      },
+      {
+       "s": "h",
+       "t": "Brilliant. Thank you so much, Tom."
+      },
+      {
+       "s": "t",
+       "t": "My pleasure. See you on the fourteenth."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Complete the form below. Write ONE WORD AND/OR A NUMBER for each answer.",
+       "items": [
+        {
+         "id": "u02-l1-i2-q1",
+         "type": "gap",
+         "text": "Course day: ___ evening, 7 to 9 pm",
+         "answer": [
+          "Thursday"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "Tuesday is mentioned first but rejected: \"Tuesday's full… Thursday still has spaces\"."
+        },
+        {
+         "id": "u02-l1-i2-q2",
+         "type": "gap",
+         "text": "Start date: ___ September",
+         "answer": [
+          "14th",
+          "14",
+          "fourteenth",
+          "the fourteenth"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "The 7th is the Tuesday group's start date; Thursday is \"a week later, so the fourteenth\"."
+        },
+        {
+         "id": "u02-l1-i2-q3",
+         "type": "gap",
+         "text": "Total cost, including materials: £___",
+         "answer": [
+          "185",
+          "one hundred and eighty-five"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "£165 is the tuition only; with £20 for materials it is \"one hundred and eighty-five pounds in total\"."
+        },
+        {
+         "id": "u02-l1-i2-q4",
+         "type": "gap",
+         "text": "Bring: a ___",
+         "answer": [
+          "towel"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "Aprons and tools are provided; \"do bring a towel\"."
+        },
+        {
+         "id": "u02-l1-i2-q5",
+         "type": "gap",
+         "text": "Name: Helen ___",
+         "answer": [
+          "Marsden"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "Spelt out: \"M-A-R-S-D-E-N\"."
+        },
+        {
+         "id": "u02-l1-i2-q6",
+         "type": "gap",
+         "text": "Postcode: ___",
+         "answer": [
+          "BS7 4QD",
+          "BS74QD"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"B-S-seven, four-Q-D\", confirmed as BS7 4QD."
+        },
+        {
+         "id": "u02-l1-i2-q7",
+         "type": "gap",
+         "text": "Heard about the course from: the library ___",
+         "answer": [
+          "newsletter"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "The poster is a correction distractor: \"Oh, no, sorry, it was the library newsletter\"."
+        }
+       ]
+      },
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u02-l1-i2-q8",
+         "type": "pick",
+         "q": "What does Tom say about parking?",
+         "options": [
+          "A  It is free in the evening.",
+          "B  It must be booked in advance.",
+          "C  It is only available at the back."
+         ],
+         "answer": 0,
+         "why": "\"After six it's free\". Booking in advance \"was dropped years ago\"."
+        },
+        {
+         "id": "u02-l1-i2-q9",
+         "type": "pick",
+         "q": "Why does Helen want to do the course?",
+         "options": [
+          "A  to make presents",
+          "B  to relax after work",
+          "C  to meet new people"
+         ],
+         "answer": 1,
+         "why": "Presents are what \"everyone assumes\"; her reason is \"something to help me switch off after work\"."
+        },
+        {
+         "id": "u02-l1-i2-q10",
+         "type": "pick",
+         "q": "What will Tom send Helen?",
+         "options": [
+          "A  a timetable",
+          "B  a registration form",
+          "C  a map"
+         ],
+         "answer": 1,
+         "why": "\"I'll email you the registration form\"; the timetable and map \"are already on our website\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u02-l1-i3",
+     "type": "listening",
+     "title": "Urban beekeeping project",
+     "part": 3,
+     "context": "You will hear two students, Maya and Daniel, discussing their research project on urban beekeeping with their tutor, Dr Reeve. First, you have some time to look at questions 11 to 14.",
+     "speakers": [
+      {
+       "id": "r",
+       "name": "Dr Reeve",
+       "voice": "f"
+      },
+      {
+       "id": "m",
+       "name": "Maya",
+       "voice": "f"
+      },
+      {
+       "id": "d",
+       "name": "Daniel",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "r",
+       "t": "Come in, both of you. So, the beekeeping project. Remind me how you settled on that topic? I seem to remember suggesting something on allotments."
+      },
+      {
+       "s": "m",
+       "t": "You did, and we did look at allotments, but there's already a huge literature on them. In the end it came down to Daniel's uncle."
+      },
+      {
+       "s": "d",
+       "t": "He's kept bees on a flat roof in the city centre for about ten years, so I've grown up hearing about it, and he put us in touch with the local beekeepers' association. That made it feel manageable."
+      },
+      {
+       "s": "r",
+       "t": "A personal connection is a perfectly good reason, as long as you stay critical. Now, the questionnaire. How did that go?"
+      },
+      {
+       "s": "d",
+       "t": "We were worried about the response rate at first, but in the end we got sixty-two replies out of about ninety, which is fine. The real problem was question four."
+      },
+      {
+       "s": "m",
+       "t": "We asked how many hives people had, but some people counted every box in a stack as a hive and others counted the whole stack as one. So the numbers just aren't comparable."
+      },
+      {
+       "s": "r",
+       "t": "That's a classic wording problem, and you should say so openly in the limitations section. What about the honey yields? Your draft says urban hives produce more honey than rural ones."
+      },
+      {
+       "s": "m",
+       "t": "We were quite excited about that."
+      },
+      {
+       "s": "r",
+       "t": "I can see why, but I'd be cautious. Those are figures people reported from memory, and only fifteen of your respondents gave a number at all. It may well be true, but your data can't show it. I wouldn't call it surprising or new; I'd call it unreliable."
+      },
+      {
+       "s": "d",
+       "t": "Fair enough. We'll present it as something worth testing rather than a finding."
+      },
+      {
+       "s": "r",
+       "t": "Good. And the interviews?"
+      },
+      {
+       "s": "m",
+       "t": "We did six. They were really rich, but they took far longer to transcribe than we expected."
+      },
+      {
+       "s": "d",
+       "t": "We thought about cutting them down, but we both agreed they're the strongest part of the project, so we'd rather lose something else."
+      },
+      {
+       "s": "r",
+       "t": "I agree. How did you choose who to interview, by the way?"
+      },
+      {
+       "s": "m",
+       "t": "Mostly through the association. We tried to get a mix: two people who'd only started in the last year, two with more than ten years' experience, and two who run beekeeping courses."
+      },
+      {
+       "s": "d",
+       "t": "Although, to be honest, all six were men over fifty, which we only noticed afterwards."
+      },
+      {
+       "s": "r",
+       "t": "Then that goes in the limitations section too. It doesn't invalidate what they told you, but readers need to know. Now, you also asked respondents what they saw as the main challenges for city beekeepers. Which came up most?"
+      },
+      {
+       "s": "m",
+       "t": "We thought it'd be complaints from neighbours, but hardly anyone mentioned that. The two big ones were finding enough flowering plants nearby, especially in late summer, and disease. Varroa mites came up again and again."
+      },
+      {
+       "s": "d",
+       "t": "Cost was mentioned by a few people, and so was the time it takes, but nowhere near as often."
+      },
+      {
+       "s": "r",
+       "t": "Interesting. Right, let's go through the structure section by section and decide what to do with each part. The literature review?"
+      },
+      {
+       "s": "m",
+       "t": "It's nearly three thousand words. We know it's too long."
+      },
+      {
+       "s": "r",
+       "t": "It is. Keep the key studies and cut it by about a third. Then the methods section."
+      },
+      {
+       "s": "d",
+       "t": "That's quite short at the moment."
+      },
+      {
+       "s": "r",
+       "t": "It needs more detail, I'm afraid. Someone should be able to repeat your study from it: how you found respondents, when the questionnaire was open, that sort of thing."
+      },
+      {
+       "s": "m",
+       "t": "OK. What about the full questionnaire responses? We've got all those tables in the middle of chapter three."
+      },
+      {
+       "s": "r",
+       "t": "Nobody reads twelve tables in a row. Summarise them in the text and put the tables themselves in an appendix."
+      },
+      {
+       "s": "d",
+       "t": "And the interview chapter?"
+      },
+      {
+       "s": "r",
+       "t": "Leave it exactly as it is. It's well written and the quotations are well chosen. Don't touch it."
+      },
+      {
+       "s": "m",
+       "t": "That's a relief. And the recommendations? We had them as a separate chapter."
+      },
+      {
+       "s": "r",
+       "t": "They're only a page long, so I'd merge them with the conclusion. They'll have more impact there."
+      },
+      {
+       "s": "d",
+       "t": "Makes sense. Thanks, Dr Reeve."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u02-l1-i3-q1",
+         "type": "pick",
+         "q": "Why did the students choose urban beekeeping as their topic?",
+         "options": [
+          "A  Their tutor suggested it.",
+          "B  One of them has a family link with it.",
+          "C  There was plenty of published research on it."
+         ],
+         "answer": 1,
+         "why": "The tutor suggested allotments, which had \"a huge literature\"; \"it came down to Daniel's uncle\", who keeps bees."
+        },
+        {
+         "id": "u02-l1-i3-q2",
+         "type": "pick",
+         "q": "What was the main problem with the questionnaire?",
+         "options": [
+          "A  Too few people replied.",
+          "B  One question was interpreted in different ways.",
+          "C  It was sent to the wrong people."
+         ],
+         "answer": 1,
+         "why": "The response rate turned out \"fine\"; the problem was question four, where people counted hives differently."
+        },
+        {
+         "id": "u02-l1-i3-q3",
+         "type": "pick",
+         "q": "What does Dr Reeve say about the finding on honey yields?",
+         "options": [
+          "A  It is surprising.",
+          "B  It is already well known.",
+          "C  It is not well supported."
+         ],
+         "answer": 2,
+         "why": "\"I wouldn't call it surprising or new; I'd call it unreliable\": the figures were reported from memory by only fifteen people."
+        },
+        {
+         "id": "u02-l1-i3-q4",
+         "type": "pick",
+         "q": "What do the students agree about the interviews?",
+         "options": [
+          "A  They should be shortened.",
+          "B  They are the best part of the project.",
+          "C  They should be transcribed again."
+         ],
+         "answer": 1,
+         "why": "Cutting them was considered and rejected: \"they're the strongest part of the project\"."
+        }
+       ]
+      },
+      {
+       "instr": "Choose TWO letters, A-E.",
+       "items": [
+        {
+         "id": "u02-l1-i3-q5",
+         "type": "multi",
+         "q": "Which TWO challenges did respondents mention most often?",
+         "options": [
+          "A  complaints from neighbours",
+          "B  a shortage of flowering plants",
+          "C  the cost of equipment",
+          "D  disease",
+          "E  lack of time"
+         ],
+         "answer": [
+          1,
+          3
+         ],
+         "why": "\"The two big ones were finding enough flowering plants… and disease.\" Neighbours were \"hardly\" mentioned; cost and time \"nowhere near as often\"."
+        }
+       ]
+      },
+      {
+       "instr": "What does Dr Reeve advise the students to do with each section? Choose the correct letter, A-F, for each section.",
+       "items": [
+        {
+         "id": "u02-l1-i3-q6",
+         "type": "select",
+         "q": "Choose A-F for each section.",
+         "options": [
+          "A  shorten it",
+          "B  add more detail",
+          "C  move it to an appendix",
+          "D  combine it with another section",
+          "E  add more visuals",
+          "F  leave it unchanged"
+         ],
+         "rows": [
+          {
+           "label": "Literature review",
+           "answer": 0
+          },
+          {
+           "label": "Methods",
+           "answer": 1
+          },
+          {
+           "label": "Questionnaire tables",
+           "answer": 2
+          },
+          {
+           "label": "Interview chapter",
+           "answer": 5
+          }
+         ],
+         "why": "Literature review: \"cut it by about a third\". Methods: \"needs more detail\". Tables: \"put the tables… in an appendix\". Interviews: \"Leave it exactly as it is\". Recommendations (merge, D) is not asked about; nobody suggests visuals (E)."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u02-l2",
+   "title": "Reading diagnostic",
+   "kind": "test",
+   "minutes": 20,
+   "timed": 1200,
+   "items": [
+    {
+     "id": "u02-l2-i1",
+     "type": "reading",
+     "title": "The return of the night sky",
+     "minutes": 20,
+     "paragraphs": [
+      {
+       "label": "A",
+       "text": "For almost all of human history, the night sky was a shared inheritance. Farmers timed their sowing by the rising of particular stars, sailors steered by them, and every culture wove the constellations into its stories. Today that inheritance has quietly vanished for most people. A widely cited atlas of artificial sky brightness, published in 2016, estimated that roughly a third of humanity can no longer see the Milky Way from where they live. In large cities a clear night may reveal only a few dozen stars, and many children grow up without ever seeing the faint band of our own galaxy."
+      },
+      {
+       "label": "B",
+       "text": "The cause is not darkness lost so much as light misdirected. Astronomers distinguish several forms of light pollution. **Glare** is the excessive brightness that makes it harder, not easier, to see; **light trespass** is light that spills where it is not wanted, such as into a bedroom; and **skyglow** is the diffuse brightening of the night sky over populated areas, produced when light emitted upwards or sideways is scattered by molecules and particles in the atmosphere. Skyglow is the most insidious, because it travels: the glow of a large city can be seen from dozens of kilometres away, washing out the sky over countryside that has no lights of its own."
+      },
+      {
+       "label": "C",
+       "text": "For a long time the problem was regarded as a concern only for astronomers, whose observatories were steadily relocated to remote mountaintops. That view has changed as biologists have documented the effects of artificial light on wildlife. Many nocturnal insects are drawn to lamps and circle them until they die of exhaustion or are eaten, and some researchers suspect this contributes to the decline in insect numbers reported in many regions, although its share relative to habitat loss and pesticides remains difficult to measure. Newly hatched sea turtles, which instinctively crawl towards the brighter horizon over the sea, can be led inland by beachfront lighting. Migrating birds, many of which travel at night, may become disorientated around brightly lit buildings."
+      },
+      {
+       "label": "D",
+       "text": "Humans are not exempt. Our internal body clock is set largely by light, and exposure to light in the evening, particularly at the blue end of the spectrum, suppresses the release of melatonin, a hormone associated with sleep. The evidence that outdoor lighting in particular damages human health is more contested than the laboratory findings might suggest, since people's exposure at night is dominated by indoor lighting and screens. Nevertheless, several public health bodies now recommend that street lighting be designed with human sleep in mind."
+      },
+      {
+       "label": "E",
+       "text": "Ironically, one of the most celebrated advances in lighting has complicated matters. Light-emitting diodes, or LEDs, use far less electricity than the sodium lamps that once gave city streets their orange tint, and many local authorities have replaced their street lights to cut energy bills and carbon emissions. Yet early LED street lights were often a cold, bluish white, and shorter wavelengths scatter more readily in the atmosphere, adding disproportionately to skyglow. Because the new lamps were also cheap to run, some places installed more of them, or left them brighter than before, so that savings in energy were partly offset by an increase in the amount of light."
+      },
+      {
+       "label": "F",
+       "text": "None of this means returning cities to darkness. Lighting engineers increasingly argue that the solution lies in using light more intelligently: fully shielded fittings that direct light downwards to where it is needed, warmer colour temperatures, lower intensities and timers or motion sensors that dim lamps in the small hours. When an over-lit car park or street is redesigned this way, the result is often better visibility, because glare is reduced. In one small northern town studied by a team led by the lighting researcher Ilse Marten, street lights were dimmed by half after midnight; residents' surveys before and after the change found no increase in reported fear of crime, and the town's energy costs for street lighting fell noticeably."
+      },
+      {
+       "label": "G",
+       "text": "There are also signs that dark skies are becoming valued as a resource. Some rural areas have sought recognition as dark-sky parks or reserves, committing to control lighting in return for a label that attracts visitors who want to see the stars. For communities that have little else to market, the night itself has become an asset. Whether such schemes can make any impression on the glow of the world's expanding cities is another question; but they suggest that the loss of the stars, unlike many environmental problems, is one that could be reversed almost overnight, simply by turning the lights the right way."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Do the following statements agree with the information given in the passage? Write TRUE, FALSE or NOT GIVEN.",
+       "items": [
+        {
+         "id": "u02-l2-i1-q1",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "According to a 2016 estimate, about one in three people cannot see the Milky Way from their homes.",
+         "answer": "T",
+         "why": "Paragraph A: \"roughly a third of humanity can no longer see the Milky Way from where they live\"."
+        },
+        {
+         "id": "u02-l2-i1-q2",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Skyglow is mainly caused by light trespassing into private homes.",
+         "answer": "F",
+         "why": "Paragraph B defines light trespass and skyglow as different things: skyglow is produced when light emitted upwards or sideways \"is scattered by molecules and particles in the atmosphere\"."
+        },
+        {
+         "id": "u02-l2-i1-q3",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Scientists have shown that artificial light is the main cause of falling insect numbers.",
+         "answer": "F",
+         "why": "Paragraph C says only that \"some researchers suspect\" it contributes and that its share \"remains difficult to measure\" compared with habitat loss and pesticides."
+        },
+        {
+         "id": "u02-l2-i1-q4",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Most observatories built since the 1950s have been located on mountains.",
+         "answer": "NG",
+         "why": "Paragraph C says observatories were \"relocated to remote mountaintops\", but gives no date or proportion."
+        },
+        {
+         "id": "u02-l2-i1-q5",
+         "type": "tfng",
+         "mode": "tfng",
+         "statement": "Indoor lighting and screens account for most of the light people are exposed to at night.",
+         "answer": "T",
+         "why": "Paragraph D: \"people's exposure at night is dominated by indoor lighting and screens\"."
+        }
+       ]
+      },
+      {
+       "instr": "The passage has seven paragraphs, A-G. Which paragraph contains the following information?",
+       "items": [
+        {
+         "id": "u02-l2-i1-q6",
+         "type": "select",
+         "q": "Choose the correct paragraph, A-G, for each statement.",
+         "options": [
+          "A",
+          "B",
+          "C",
+          "D",
+          "E",
+          "F",
+          "G"
+         ],
+         "rows": [
+          {
+           "label": "an explanation of why a more efficient technology did not reduce light pollution as much as expected",
+           "answer": 4
+          },
+          {
+           "label": "a reference to the economic benefits some areas gain from protecting darkness",
+           "answer": 6
+          },
+          {
+           "label": "examples of ways in which traditional societies made practical use of the stars",
+           "answer": 0
+          },
+          {
+           "label": "evidence that reduced lighting did not make people feel less safe",
+           "answer": 5
+          }
+         ],
+         "why": "E: savings \"partly offset by an increase in the amount of light\". G: dark-sky labels attract visitors, \"the night itself has become an asset\". A: farmers timed sowing, sailors steered. F: \"no increase in reported fear of crime\"."
+        }
+       ]
+      },
+      {
+       "instr": "Complete the sentences below. Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+       "items": [
+        {
+         "id": "u02-l2-i1-q7",
+         "type": "gap",
+         "text": "Sea turtle hatchlings naturally move towards the ___ over the sea.",
+         "answer": [
+          "brighter horizon"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph C: turtles \"instinctively crawl towards the brighter horizon over the sea\"."
+        },
+        {
+         "id": "u02-l2-i1-q8",
+         "type": "gap",
+         "text": "Evening light from the blue end of the spectrum reduces the body's release of ___.",
+         "answer": [
+          "melatonin"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph D: such light \"suppresses the release of melatonin\"."
+        },
+        {
+         "id": "u02-l2-i1-q9",
+         "type": "gap",
+         "text": "Older street lights using ___ gave many cities an orange colour.",
+         "answer": [
+          "sodium lamps"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph E: \"the sodium lamps that once gave city streets their orange tint\"."
+        },
+        {
+         "id": "u02-l2-i1-q10",
+         "type": "gap",
+         "text": "Engineers recommend ___ fittings that send light downwards.",
+         "answer": [
+          "fully shielded",
+          "shielded"
+         ],
+         "limit": "NO MORE THAN TWO WORDS",
+         "why": "Paragraph F: \"fully shielded fittings that direct light downwards\"."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u02-l3",
+   "title": "Writing diagnostic",
+   "kind": "test",
+   "minutes": 40,
+   "timed": 2400,
+   "items": [
+    {
+     "id": "u02-l3-i1",
+     "type": "writing",
+     "task": 2,
+     "prompt": "Write about the following topic:\n\nSome people believe that the main purpose of a university education is to prepare students for employment, rather than to pursue knowledge for its own sake.\n\nTo what extent do you agree or disagree?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience. Write at least 250 words.",
+     "minutes": 40,
+     "minWords": 250,
+     "plan": [
+      "Decide your position before you write: here, partial disagreement.",
+      "Paragraph 2: the strongest case for employment.",
+      "Paragraph 3: why depth of knowledge is itself what makes graduates employable.",
+      "Paragraph 4: a wider social argument.",
+      "Conclusion: restate the position precisely."
+     ],
+     "model": {
+      "text": [
+       "It is often argued that, at a time of high tuition fees and an uncertain job market, universities owe it to their students to prepare them for work rather than to pursue knowledge for its own sake. I accept that graduates need to be employable, but I believe that framing the two aims as rivals misunderstands both what universities are for and what employers actually value.",
+       "The case for a vocational focus is not without force. Students who borrow heavily to fund a degree reasonably expect it to improve their prospects, and in fields such as medicine, engineering or law, a course that ignored professional standards would be failing in its basic duty. Work placements, practical projects and contact with industry can also make abstract material more meaningful, and many students learn better when they can see where a subject leads.",
+       "However, a university that trained students only for the jobs that exist today would be preparing them for a labour market that may not exist by the time they reach the middle of their careers. Specific technical skills date quickly; the capacity to analyse an unfamiliar problem, weigh evidence and write a clear argument does not. These are precisely the habits of mind cultivated by studying a discipline in depth, whether that discipline is history, physics or philosophy, and they are the qualities employers most often say they cannot find. In this sense, the pursuit of knowledge for its own sake is not a luxury that competes with employability but one of its foundations.",
+       "There is also a wider cost to an exclusively vocational model. Much of the research that has transformed economies, from the mathematics behind modern computing to the basic biology underpinning new vaccines, was undertaken with no commercial application in view. A society that asks its universities to justify every course by its immediate market value risks losing exactly the curiosity-driven work from which unexpected benefits emerge.",
+       "In conclusion, while universities should certainly help students move into employment, through placements and careers advice for instance, they should not reshape their teaching around the narrow demands of current employers. The most useful thing a university can give its graduates is an education that will still be useful long after the first job has been left behind."
+      ],
+      "notes": [
+       "The position (partial disagreement, rejecting the either/or framing) is stated in the introduction and held consistently to the conclusion, which fully satisfies Task Response.",
+       "The opposing view is given genuine weight in paragraph two before being answered, which makes the argument more persuasive and shows nuance.",
+       "Each body paragraph develops one central idea with concrete support (dated technical skills; curiosity-driven research leading to computing and vaccines).",
+       "Cohesion relies on reference and logic ('In this sense', 'These are precisely the habits', 'There is also a wider cost') rather than a string of mechanical linkers.",
+       "Precise, natural collocations: 'owe it to their students', 'not without force', 'habits of mind', 'curiosity-driven work', 'reshape their teaching around'.",
+       "A wide range of structures (cleft-like emphasis, participle clauses, conditionals, relative clauses) with no errors."
+      ]
+     }
+    }
+   ]
+  }
+ ]
+}

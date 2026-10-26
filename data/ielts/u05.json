@@ -1,0 +1,801 @@
+{
+ "format": 1,
+ "id": "u05",
+ "n": 5,
+ "block": "listening",
+ "title": "Part 3: academic discussions",
+ "summary": "After this unit you can track several speakers in an academic discussion, tell suggestions from decisions, and match opinions accurately.",
+ "lessons": [
+  {
+   "id": "u05-l1",
+   "title": "How Part 3 works",
+   "kind": "learn",
+   "minutes": 22,
+   "items": [
+    {
+     "id": "u05-l1-i1",
+     "type": "card",
+     "title": "What Part 3 is like",
+     "body": [
+      "Part 3 is an academic conversation between two to four speakers: students planning an assignment, or students discussing their work with a tutor. The topics are university-level but you need no specialist knowledge.",
+      "The difficulty is not vocabulary but **interaction**: people suggest, disagree, change their minds and agree on something different from what was first proposed. You must track who thinks what, and what they finally decide."
+     ]
+    },
+    {
+     "id": "u05-l1-i2",
+     "type": "card",
+     "title": "The question types",
+     "body": [
+      "**Multiple choice** (often about opinions or reasons), **choose TWO from five**, **matching** (opinions to speakers, comments to sources, tasks to people) and sometimes **sentence or flow-chart completion**.",
+      "Questions often ask what the speakers *agree*, *decide*, or what one of them *thinks*. These words matter: a suggestion that is rejected is not a decision, and what Ben thinks is not necessarily what Amy thinks."
+     ]
+    },
+    {
+     "id": "u05-l1-i3",
+     "type": "card",
+     "title": "Signals of agreement and disagreement",
+     "body": [
+      "Academic speakers are polite, so disagreement is often soft. 'I see what you mean, but…', 'I'm not sure that's quite right', 'Possibly, although…' all signal that the previous idea is being rejected or qualified.",
+      "Agreement is just as important to catch, because it marks the final answer: 'Fair enough', 'That makes sense', 'Let's go with that', 'I'm happy with that'."
+     ],
+     "list": [
+      "Soft disagreement: I take your point, but… / I'm not entirely convinced / Wouldn't it be better to…?",
+      "Agreement: Exactly / You're right / I'd go along with that / OK, let's do that",
+      "Changing your mind: Actually, now that you say that… / On second thoughts…"
+     ]
+    },
+    {
+     "id": "u05-l1-i4",
+     "type": "card",
+     "title": "Choose TWO: count the ideas",
+     "body": [
+      "In 'Which TWO…?' questions, several options are usually mentioned. Some are mentioned and rejected, some are mentioned by only one speaker who is then contradicted, and some are not mentioned at all.",
+      "Tick an option only when the speakers clearly accept it. If you have three ticks at the end, ask which one was qualified ('it helped a bit, but not really')."
+     ]
+    },
+    {
+     "id": "u05-l1-i5",
+     "type": "card",
+     "title": "Matching opinions to sources or speakers",
+     "body": [
+      "When you match comments to items (books, studies, methods), the speakers discuss the items in the order of the rows, but the evaluative words are paraphrased. 'It's a bit dated' might match 'contains old information'; 'hard going' matches 'difficult to read'.",
+      "Write single-letter notes in the margin as you listen and decide later; Part 3 moves too fast to deliberate."
+     ]
+    },
+    {
+     "id": "u05-l1-i6",
+     "type": "listening",
+     "title": "Drill: the final decision",
+     "part": 3,
+     "context": "Two students are planning a presentation.",
+     "speakers": [
+      {
+       "id": "a",
+       "name": "Amy",
+       "voice": "f"
+      },
+      {
+       "id": "b",
+       "name": "Ben",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "a",
+       "t": "Shall we start with the statistics? It grabs people's attention."
+      },
+      {
+       "s": "b",
+       "t": "Maybe, but Dr Lee said last time that we jumped straight into numbers. What about opening with a short case study?"
+      },
+      {
+       "s": "a",
+       "t": "Hmm. Yes, that's fair. A case study first, then the figures."
+      },
+      {
+       "s": "b",
+       "t": "Great."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u05-l1-i6-q1",
+         "type": "pick",
+         "q": "How will the students begin their presentation?",
+         "options": [
+          "A  with statistics",
+          "B  with a case study",
+          "C  with a question to the audience"
+         ],
+         "answer": 1,
+         "why": "Amy suggests statistics but accepts Ben's idea: \"A case study first, then the figures.\""
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u05-l1-i7",
+     "type": "listening",
+     "title": "Drill: who thinks what",
+     "part": 3,
+     "context": "Two students are discussing a journal article.",
+     "speakers": [
+      {
+       "id": "a",
+       "name": "Amy",
+       "voice": "f"
+      },
+      {
+       "id": "b",
+       "name": "Ben",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "b",
+       "t": "I found the Hartley article really persuasive, actually."
+      },
+      {
+       "s": "a",
+       "t": "Did you? The argument's clear enough, but the sample was tiny. Twelve people. I don't think we can rely on it."
+      },
+      {
+       "s": "b",
+       "t": "Well, I suppose that's true. We'd better mention it but not build on it."
+      },
+      {
+       "s": "a",
+       "t": "Agreed."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u05-l1-i7-q1",
+         "type": "pick",
+         "q": "What do the students finally agree about the Hartley article?",
+         "options": [
+          "A  It is very persuasive.",
+          "B  Its argument is unclear.",
+          "C  Its evidence is limited."
+         ],
+         "answer": 2,
+         "why": "Ben first finds it persuasive, but both accept Amy's point that \"the sample was tiny\": the evidence is limited. Its argument is said to be \"clear enough\"."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u05-l1-i8",
+     "type": "listening",
+     "title": "Drill: choose TWO",
+     "part": 3,
+     "context": "Two students are discussing a field trip.",
+     "speakers": [
+      {
+       "id": "a",
+       "name": "Amy",
+       "voice": "f"
+      },
+      {
+       "id": "b",
+       "name": "Ben",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "a",
+       "t": "What did you think was most useful about the trip?"
+      },
+      {
+       "s": "b",
+       "t": "Talking to the farmers, definitely. And seeing the soil samples being taken. The lecture on the coach was interesting, but I'd heard most of it before."
+      },
+      {
+       "s": "a",
+       "t": "Same here. And the samples were the bit I'll actually use in my essay, along with the interviews. The museum visit was a bit rushed, wasn't it?"
+      },
+      {
+       "s": "b",
+       "t": "Totally."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose TWO letters, A-E.",
+       "items": [
+        {
+         "id": "u05-l1-i8-q1",
+         "type": "multi",
+         "q": "Which TWO parts of the trip do both students find most useful?",
+         "options": [
+          "A  the talk on the coach",
+          "B  talking to farmers",
+          "C  the museum visit",
+          "D  watching samples being collected",
+          "E  the guided walk"
+         ],
+         "answer": [
+          1,
+          3
+         ],
+         "why": "Both value the farmers (\"the interviews\") and the soil samples. The coach lecture covered things already known, the museum was \"rushed\" and no walk is mentioned."
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "id": "u05-l1-i9",
+     "type": "pick",
+     "q": "A speaker says, 'I take your point, but I'm not sure it's practical.' What is she doing?",
+     "options": [
+      "agreeing fully",
+      "politely disagreeing",
+      "changing the subject"
+     ],
+     "answer": 1,
+     "why": "'I take your point, but…' is a typical **soft disagreement**."
+    },
+    {
+     "id": "u05-l1-i10",
+     "type": "pick",
+     "q": "A question asks what the students *decide*. Which should you listen for?",
+     "options": [
+      "the first suggestion made",
+      "the point both speakers finally accept",
+      "the tutor's personal opinion"
+     ],
+     "answer": 1,
+     "why": "A decision is the option the speakers **finally agree** on; first suggestions are often rejected."
+    }
+   ]
+  },
+  {
+   "id": "u05-l2",
+   "title": "Practice: a full Part 3",
+   "kind": "practice",
+   "minutes": 12,
+   "items": [
+    {
+     "id": "u05-l2-i1",
+     "type": "listening",
+     "title": "A presentation on food packaging",
+     "part": 3,
+     "context": "You will hear two students, Leah and Sam, discussing their presentation on the history of food packaging with their tutor, Dr Collins. First, you have some time to look at questions 1 to 4.",
+     "speakers": [
+      {
+       "id": "c",
+       "name": "Dr Collins",
+       "voice": "m"
+      },
+      {
+       "id": "l",
+       "name": "Leah",
+       "voice": "f"
+      },
+      {
+       "id": "s",
+       "name": "Sam",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "c",
+       "t": "Right, Leah, Sam, you wanted to talk about the packaging presentation. How's it coming along?"
+      },
+      {
+       "s": "l",
+       "t": "Pretty well, I think. We've got most of the content. We're less sure about how to structure it."
+      },
+      {
+       "s": "c",
+       "t": "Let's start with your angle. When you first came to see me you were going to focus on plastics."
+      },
+      {
+       "s": "s",
+       "t": "We were, but almost everyone in the group is doing something on plastics and the environment. So we've gone back further and we're looking at how packaging changed the way people shop and eat."
+      },
+      {
+       "s": "c",
+       "t": "Good. That's a much less crowded field. What's your starting point?"
+      },
+      {
+       "s": "l",
+       "t": "The early nineteenth century, when food was first preserved in sealed containers. There was a French confectioner, Nicolas Appert, who developed a method of sealing food in glass jars and heating them, and not long afterwards tin cans appeared in Britain."
+      },
+      {
+       "s": "s",
+       "t": "The thing I find fascinating is that the early cans were so heavy and thick that they often had to be opened with a hammer and chisel. The can opener came decades later."
+      },
+      {
+       "s": "c",
+       "t": "That's a nice detail. Audiences remember that kind of thing. Now, what about sources? Where's most of your material coming from?"
+      },
+      {
+       "s": "l",
+       "t": "We started with general histories, but they don't go into much depth. The most useful thing so far has been the archive of old shop advertisements at the city museum."
+      },
+      {
+       "s": "s",
+       "t": "I'd say the interviews with my grandparents were just as good, actually. They remember shops before supermarkets, when you took your own containers."
+      },
+      {
+       "s": "l",
+       "t": "They were great, but it's only two people. The adverts cover a hundred years."
+      },
+      {
+       "s": "s",
+       "t": "OK, fair enough. The archive's been the main source."
+      },
+      {
+       "s": "c",
+       "t": "I'd agree with that. Personal memories are a lovely way to bring it to life, but use them as illustration, not evidence. Now, how long is the presentation?"
+      },
+      {
+       "s": "l",
+       "t": "Twenty minutes, plus questions. That's where we're struggling. We've got far too much."
+      },
+      {
+       "s": "c",
+       "t": "What are you thinking of cutting?"
+      },
+      {
+       "s": "s",
+       "t": "I wondered about the section on labelling laws, but Leah thinks it's essential."
+      },
+      {
+       "s": "l",
+       "t": "It is, though. It's the only part that explains why packaging started carrying information as well as food."
+      },
+      {
+       "s": "c",
+       "t": "I'm with Leah there. I'd shorten the part on the history of glass instead. It's interesting, but it's not really what your presentation is about."
+      },
+      {
+       "s": "s",
+       "t": "Fine by me. That's the bit I found hardest to write anyway."
+      },
+      {
+       "s": "l",
+       "t": "Should we still mention the glass at all, though? Appert's jars were glass."
+      },
+      {
+       "s": "c",
+       "t": "Yes, a sentence or two to set the scene, then move on. Don't give it three slides."
+      },
+      {
+       "s": "c",
+       "t": "What else did you want to ask?"
+      },
+      {
+       "s": "l",
+       "t": "Visuals. We were going to show lots of photos of old packaging."
+      },
+      {
+       "s": "c",
+       "t": "Photos are good, but there are two things that tend to work especially well in this sort of talk. One is a timeline, so the audience can see where they are. The other is real objects, if you can get hold of any. Pass round an old tin and people wake up immediately. I wouldn't bother with video clips; they always take longer than you think, and the sound rarely works in that room. And please keep text on slides to a minimum."
+      },
+      {
+       "s": "s",
+       "t": "My grandmother's got some old biscuit tins. I'll bring those."
+      },
+      {
+       "s": "c",
+       "t": "Perfect. Now, who's doing what on the day?"
+      },
+      {
+       "s": "l",
+       "t": "I'll introduce it and do the early history, because I've done most of the reading on that."
+      },
+      {
+       "s": "s",
+       "t": "And I'll take over for the twentieth century and supermarkets."
+      },
+      {
+       "s": "c",
+       "t": "Who's handling questions at the end?"
+      },
+      {
+       "s": "l",
+       "t": "We thought we'd both do that, depending on the topic."
+      },
+      {
+       "s": "c",
+       "t": "Sensible. And the handout?"
+      },
+      {
+       "s": "s",
+       "t": "I'll do that. I'm better at layout than Leah is."
+      },
+      {
+       "s": "l",
+       "t": "That's true, sadly. And I'll send you the slides by Friday so you can check the references."
+      },
+      {
+       "s": "c",
+       "t": "Great. I look forward to it."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u05-l2-i1-q1",
+         "type": "pick",
+         "q": "Why did the students change the focus of their presentation?",
+         "options": [
+          "A  Their tutor advised them to.",
+          "B  Other students had chosen a similar topic.",
+          "C  They could not find enough information on plastics."
+         ],
+         "answer": 1,
+         "why": "\"Almost everyone in the group is doing something on plastics\", so they chose a \"less crowded field\"."
+        },
+        {
+         "id": "u05-l2-i1-q2",
+         "type": "pick",
+         "q": "What point does Sam make about early tin cans?",
+         "options": [
+          "A  They were difficult to open.",
+          "B  They were expensive to produce.",
+          "C  They were invented in France."
+         ],
+         "answer": 0,
+         "why": "\"They often had to be opened with a hammer and chisel.\" It was Appert's jars, not cans, that were French."
+        },
+        {
+         "id": "u05-l2-i1-q3",
+         "type": "pick",
+         "q": "The students agree that their main source has been",
+         "options": [
+          "A  general histories.",
+          "B  interviews with relatives.",
+          "C  historical advertisements."
+         ],
+         "answer": 2,
+         "why": "General histories lack depth; Sam suggests the interviews but accepts Leah's point: \"The archive's been the main source.\""
+        },
+        {
+         "id": "u05-l2-i1-q4",
+         "type": "pick",
+         "q": "Which section does Dr Collins advise them to reduce?",
+         "options": [
+          "A  labelling laws",
+          "B  the history of glass",
+          "C  supermarkets"
+         ],
+         "answer": 1,
+         "why": "Sam wanted to cut labelling, but the tutor agrees with Leah and says: \"I'd shorten the part on the history of glass.\""
+        }
+       ]
+      },
+      {
+       "instr": "Choose TWO letters, A-E.",
+       "items": [
+        {
+         "id": "u05-l2-i1-q5",
+         "type": "multi",
+         "q": "Which TWO types of visual does Dr Collins recommend?",
+         "options": [
+          "A  photographs",
+          "B  a timeline",
+          "C  video clips",
+          "D  actual objects",
+          "E  slides with detailed text"
+         ],
+         "answer": [
+          1,
+          3
+         ],
+         "why": "Photos are merely \"good\"; the two that \"work especially well\" are \"a timeline\" and \"real objects\". Video and heavy text are discouraged."
+        }
+       ]
+      },
+      {
+       "instr": "Who will be responsible for each task? Choose A, B or C.",
+       "items": [
+        {
+         "id": "u05-l2-i1-q6",
+         "type": "select",
+         "q": "Choose A, B or C for each task.",
+         "options": [
+          "A  Leah",
+          "B  Sam",
+          "C  both students"
+         ],
+         "rows": [
+          {
+           "label": "the introduction",
+           "answer": 0
+          },
+          {
+           "label": "answering questions",
+           "answer": 2
+          },
+          {
+           "label": "the handout",
+           "answer": 1
+          },
+          {
+           "label": "sending the slides",
+           "answer": 0
+          }
+         ],
+         "why": "Leah: \"I'll introduce it\". Questions: \"we'd both do that\". Handout: Sam, \"I'll do that\". Slides: Leah, \"I'll send you the slides by Friday\"."
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u05-l3",
+   "title": "Test: a full Part 3",
+   "kind": "test",
+   "minutes": 15,
+   "timed": 900,
+   "items": [
+    {
+     "id": "u05-l3-i1",
+     "type": "listening",
+     "title": "Noise in the university library",
+     "part": 3,
+     "context": "You will hear two students, Nadia and Josh, discussing a research project on noise in a university library. First, you have some time to look at questions 1 to 3.",
+     "speakers": [
+      {
+       "id": "n",
+       "name": "Nadia",
+       "voice": "f"
+      },
+      {
+       "id": "j",
+       "name": "Josh",
+       "voice": "m"
+      }
+     ],
+     "script": [
+      {
+       "s": "n",
+       "t": "So, Josh, we need to get the method section finished before we see Professor Grant on Thursday. Shall we go over what we actually did?"
+      },
+      {
+       "s": "j",
+       "t": "Good idea. Remind me why we picked the library in the first place. I know it was your idea."
+      },
+      {
+       "s": "n",
+       "t": "Partly because it's the building everyone complains about. But mainly because of the refurbishment last year. They knocked down most of the walls on the second floor to make it open-plan, so we can compare that floor with the third floor, which still has the old layout."
+      },
+      {
+       "s": "j",
+       "t": "Right. A natural experiment. And we measured noise with the noise monitor app first."
+      },
+      {
+       "s": "n",
+       "t": "We did, but the readings were all over the place, depending on whose phone it was. So we borrowed a proper noise monitor from the engineering department, and those are the figures we're using. The app readings can go in an appendix, if anywhere."
+      },
+      {
+       "s": "j",
+       "t": "Did we say anything about where we put it? Professor Grant will ask."
+      },
+      {
+       "s": "n",
+       "t": "We need to. We kept it at the same three points on each floor: near the entrance, in the middle, and by the windows at the far end. And always at desk height, so it measured roughly what someone sitting there would hear."
+      },
+      {
+       "s": "j",
+       "t": "OK, I'll add a diagram of the positions. That'll be clearer than describing it."
+      },
+      {
+       "s": "j",
+       "t": "And the main finding was that the open-plan floor was louder, which is hardly surprising."
+      },
+      {
+       "s": "n",
+       "t": "Not on average, though, which is what surprised me. The average levels were almost the same on both floors. What was different was the peaks. On the open-plan floor you get sudden bursts of noise, someone laughing or a phone going off, and those carry right across the space."
+      },
+      {
+       "s": "j",
+       "t": "And that's what people found most distracting, according to the questionnaire. Not the general hum, but the unpredictable noises."
+      },
+      {
+       "s": "n",
+       "t": "Exactly. Now, we asked people to rate a list of noise sources. What came out top?"
+      },
+      {
+       "s": "j",
+       "t": "I expected phones, but conversations were the clear winner. Especially conversations you can half hear. People said they couldn't stop themselves trying to follow them."
+      },
+      {
+       "s": "n",
+       "t": "And footsteps were a big one too, because of the new wooden floor. Keyboards hardly registered, which I didn't expect. And people seemed fairly tolerant of the air conditioning."
+      },
+      {
+       "s": "j",
+       "t": "So conversations and footsteps, then. OK. Now, Professor Grant said the method section should take the reader through our procedure step by step. Shall we sketch it out?"
+      },
+      {
+       "s": "n",
+       "t": "Yes. Step one was the pilot study. We tried the questionnaire on a small group first, ten students from our own course."
+      },
+      {
+       "s": "j",
+       "t": "And that showed the questions were far too long, so we cut them down."
+      },
+      {
+       "s": "n",
+       "t": "Then step two, we recorded noise levels at fixed points on each floor. How often was it?"
+      },
+      {
+       "s": "j",
+       "t": "Every fifteen minutes. We originally planned every thirty, but we'd have missed most of the peaks."
+      },
+      {
+       "s": "n",
+       "t": "Right, every fifteen minutes, over two weeks. Step three was handing out the questionnaire. We left copies on desks at first, but hardly anyone filled them in, so we ended up approaching students in person."
+      },
+      {
+       "s": "j",
+       "t": "Which worked much better. We got a hundred and forty responses in the end."
+      },
+      {
+       "s": "n",
+       "t": "Then step four, we did follow-up interviews with eight students who'd said they were willing. We chose them to include people who used each floor regularly."
+      },
+      {
+       "s": "j",
+       "t": "And the last step was the analysis. We compared the noise data with the questionnaire answers, floor by floor."
+      },
+      {
+       "s": "n",
+       "t": "One thing we should flag up is the timing. It was exam season, so the library was much busier than usual, and people were probably more sensitive to noise than they would be in, say, October."
+      },
+      {
+       "s": "j",
+       "t": "Good point. We should put that in the limitations. I'll draft that section tonight, and you can do the method?"
+      },
+      {
+       "s": "n",
+       "t": "Deal."
+      }
+     ],
+     "sets": [
+      {
+       "instr": "Choose the correct letter, A, B or C.",
+       "items": [
+        {
+         "id": "u05-l3-i1-q1",
+         "type": "pick",
+         "q": "Why did the students choose the library for their study?",
+         "options": [
+          "A  Many students had complained about it.",
+          "B  Its layout had recently been changed on one floor.",
+          "C  It was the busiest building on campus."
+         ],
+         "answer": 1,
+         "why": "Complaints were \"partly\" the reason, \"but mainly because of the refurbishment\" that made one floor open-plan, allowing a comparison."
+        },
+        {
+         "id": "u05-l3-i1-q2",
+         "type": "pick",
+         "q": "Which noise data are the students using in their report?",
+         "options": [
+          "A  readings from a phone app",
+          "B  readings from borrowed equipment",
+          "C  a mixture of both"
+         ],
+         "answer": 1,
+         "why": "App readings were unreliable; \"those are the figures we're using\" refers to the noise monitor borrowed from engineering."
+        },
+        {
+         "id": "u05-l3-i1-q3",
+         "type": "pick",
+         "q": "What did the students find about the open-plan floor?",
+         "options": [
+          "A  It had a higher average noise level.",
+          "B  It had more sudden loud noises.",
+          "C  It was quieter than they expected."
+         ],
+         "answer": 1,
+         "why": "\"The average levels were almost the same… What was different was the peaks.\""
+        }
+       ]
+      },
+      {
+       "instr": "Choose TWO letters, A-E.",
+       "items": [
+        {
+         "id": "u05-l3-i1-q4",
+         "type": "multi",
+         "q": "Which TWO noise sources did respondents find most distracting?",
+         "options": [
+          "A  mobile phones",
+          "B  conversations",
+          "C  keyboards",
+          "D  footsteps",
+          "E  air conditioning"
+         ],
+         "answer": [
+          1,
+          3
+         ],
+         "why": "Josh expected phones, but \"conversations were the clear winner\" and \"footsteps were a big one too\". Keyboards \"hardly registered\"; people were \"fairly tolerant\" of air conditioning."
+        }
+       ]
+      },
+      {
+       "instr": "Complete the flow chart below. Write ONE WORD AND/OR A NUMBER for each answer.",
+       "items": [
+        {
+         "id": "u05-l3-i1-q5",
+         "type": "gap",
+         "text": "Step 1: a ___ study with ten students from the same course",
+         "answer": [
+          "pilot"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"Step one was the pilot study… ten students from our own course.\""
+        },
+        {
+         "id": "u05-l3-i1-q6",
+         "type": "gap",
+         "text": "Step 2: noise recorded at fixed points every ___ minutes for two weeks",
+         "answer": [
+          "15",
+          "fifteen"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "Thirty minutes was the original plan, rejected: \"Every fifteen minutes.\""
+        },
+        {
+         "id": "u05-l3-i1-q7",
+         "type": "gap",
+         "text": "Step 3: questionnaires given to students in ___",
+         "answer": [
+          "person"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "Leaving copies on desks failed, \"so we ended up approaching students in person\"."
+        },
+        {
+         "id": "u05-l3-i1-q8",
+         "type": "gap",
+         "text": "Step 4: follow-up ___ with eight volunteers",
+         "answer": [
+          "interviews"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"We did follow-up interviews with eight students.\""
+        },
+        {
+         "id": "u05-l3-i1-q9",
+         "type": "gap",
+         "text": "Limitation: data collected during ___ season",
+         "answer": [
+          "exam"
+         ],
+         "limit": "ONE WORD AND/OR A NUMBER",
+         "why": "\"It was exam season, so the library was much busier than usual.\""
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

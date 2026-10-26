@@ -1,0 +1,364 @@
+{
+ "format": 1,
+ "id": "u18",
+ "n": 18,
+ "block": "speaking",
+ "title": "Part 3: the discussion",
+ "summary": "After this unit you can discuss abstract and speculative questions with clear reasons, examples, careful hedging and accurate comparisons across time.",
+ "lessons": [
+  {
+   "id": "u18-l1",
+   "title": "Discussing abstract ideas",
+   "kind": "learn",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u18-l1-i1",
+     "type": "card",
+     "title": "What changes in Part 3",
+     "body": [
+      "Part 3 lasts four to five minutes and moves from your personal story in Part 2 to general, abstract questions on the same theme: society, trends, comparisons, causes, the future. The examiner is now testing whether you can **discuss ideas**, not just describe experiences.",
+      "The examiner may challenge you, ask you to compare, or push you to speculate. This is not a sign you are doing badly; it is how they find your ceiling. Band 9 candidates handle these questions with developed, well-reasoned answers of 30-60 seconds."
+     ],
+     "list": [
+      "Opinion: *Do you think older people have less to teach the young than in the past?*",
+      "Comparison: *How is learning different now from your parents' generation?*",
+      "Speculation: *How might tourism change over the next twenty years?*",
+      "Cause and effect: *Why do some people find it harder to be patient nowadays?*",
+      "Evaluation: *Is it better to learn a skill from a teacher or by yourself?*"
+     ]
+    },
+    {
+     "id": "u18-l1-i2",
+     "type": "card",
+     "title": "Giving reasons and examples",
+     "body": [
+      "A developed answer usually has three moves: a clear position, a reason, and an example or consequence. Then you can add a qualification (*That said...*) to show you can see complexity.",
+      "Move from the general to the specific and back again. A short concrete example (*my own parents, for instance...*) makes an abstract point convincing, but don't let it turn into another Part 2 story."
+     ],
+     "examples": [
+      {
+       "text": "I think they still have a great deal to teach, but perhaps not in the areas we traditionally assumed. Technical knowledge goes out of date quickly, so a grandparent probably can't teach you much about computers. What they can offer is perspective: they've lived through several economic crises, for instance, and that tends to make them much calmer about setbacks than younger people are.",
+       "note": "Position, qualification, reason, example."
+      }
+     ]
+    },
+    {
+     "id": "u18-l1-i3",
+     "type": "card",
+     "title": "Hedging and speculation",
+     "body": [
+      "Abstract questions rarely have certain answers, so careful speakers hedge. Hedging is not weakness; at band 9 it shows precision about how sure you are."
+     ],
+     "list": [
+      "**Tentative opinion**: *I'd say*, *I suspect*, *My sense is that*, *I tend to think*",
+      "**Probability**: *It's quite likely that*, *There's a good chance*, *I doubt whether*",
+      "**Generalising carefully**: *on the whole*, *by and large*, *in many cases*, *to some extent*",
+      "**Speculating about the future**: *I can imagine a situation where*, *It wouldn't surprise me if*, *We may well see*"
+     ],
+     "tip": "Don't stack hedges (*maybe perhaps it might possibly be*). One well-chosen hedge per claim is enough."
+    },
+    {
+     "id": "u18-l1-i4",
+     "type": "card",
+     "title": "Comparing past, present and future; buying time",
+     "body": [
+      "Many Part 3 questions invite comparison across time. Mix tenses accurately: *used to* and *would* for the past, present perfect for change up to now (*has become*), present simple for general truths, and modal or future forms for speculation.",
+      "When you need a moment to think, use natural phrases that sound like genuine reflection, not stock fillers. Never say *That's a good question* to every question: it becomes a tic."
+     ],
+     "examples": [
+      {
+       "text": "Hmm, I haven't really thought about that before, but...",
+       "note": "Honest and natural."
+      },
+      {
+       "text": "That's a difficult one. I suppose it depends on...",
+       "note": "Signals complexity, then starts answering."
+      },
+      {
+       "text": "Well, if you'd asked me ten years ago I'd have said..., but now...",
+       "note": "Buys time and sets up a time comparison."
+      }
+     ]
+    },
+    {
+     "id": "u18-l1-i5",
+     "type": "pick",
+     "q": "Q: 'Why do you think some people prefer to learn skills from videos rather than from a teacher?' Which answer is best developed?",
+     "options": [
+      "Because videos are free.",
+      "Videos are good and teachers are also good. Both have advantages.",
+      "I suspect cost is a big part of it, since an online tutorial is usually free, but flexibility matters too: you can pause, rewind and practise at two in the morning if you want to. That said, I think people sometimes underestimate what they lose, which is someone who can spot their mistakes.",
+      "That's a good question. That's a very good question. I think people like videos."
+     ],
+     "answer": 2,
+     "why": "C gives two reasons with explanation and a qualification. A is undeveloped, B says nothing specific, and D relies on fillers."
+    },
+    {
+     "id": "u18-l1-i6",
+     "type": "select",
+     "q": "Choose the function of each phrase.",
+     "options": [
+      "A  Hedging an opinion",
+      "B  Speculating about the future",
+      "C  Buying time naturally",
+      "D  Adding a qualification"
+     ],
+     "rows": [
+      {
+       "label": "It wouldn't surprise me if more cities banned short-term rentals.",
+       "answer": 1
+      },
+      {
+       "label": "I tend to think young people are more patient than we give them credit for.",
+       "answer": 0
+      },
+      {
+       "label": "Hmm, that's a tricky one. Let me think...",
+       "answer": 2
+      },
+      {
+       "label": "That said, it's not true in every case.",
+       "answer": 3
+      },
+      {
+       "label": "We may well see a return to more local holidays.",
+       "answer": 1
+      },
+      {
+       "label": "By and large, people seem happier when they travel more slowly.",
+       "answer": 0
+      }
+     ],
+     "why": "Speculation looks forward with modals or *it wouldn't surprise me if*; hedges soften a claim; time-buying phrases are honest pauses; qualifications limit a claim you have just made."
+    },
+    {
+     "id": "u18-l1-i7",
+     "type": "gap",
+     "text": "Q: 'Has tourism changed in your country?' A: 'Enormously. People ___ to go to the same beach every summer, whereas now they want something different every year.'",
+     "answer": [
+      "used"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Used to* contrasts a past habit with the present."
+    },
+    {
+     "id": "u18-l1-i8",
+     "type": "gap",
+     "text": "Over the last twenty years, the way people book holidays ___ changed almost beyond recognition.",
+     "answer": [
+      "has"
+     ],
+     "limit": "ONE WORD",
+     "why": "Present perfect (*has changed*) for change over a period continuing up to now (*over the last twenty years*)."
+    },
+    {
+     "id": "u18-l1-i9",
+     "type": "gap",
+     "text": "I ___ whether people will ever travel as much as they did before; the costs are rising too quickly.",
+     "answer": [
+      "doubt"
+     ],
+     "limit": "ONE WORD",
+     "why": "*I doubt whether* is a natural way to express low probability."
+    },
+    {
+     "id": "u18-l1-i10",
+     "type": "pick",
+     "q": "Which answer hedges appropriately?",
+     "options": [
+      "All young people are impatient. Everyone knows this.",
+      "Maybe perhaps possibly some young people might be a bit impatient, perhaps.",
+      "I'd say young people are, on the whole, less used to waiting, simply because so much is available instantly, but I don't think that makes them inherently less patient.",
+      "Young people are impatient 100%."
+     ],
+     "answer": 2,
+     "why": "C uses one hedge (*I'd say*, *on the whole*) for each claim and then distinguishes habit from character. A and D overgeneralise; B stacks hedges until the answer means nothing."
+    },
+    {
+     "id": "u18-l1-i11",
+     "type": "pick",
+     "q": "The examiner asks a question you have never thought about. What should you do?",
+     "options": [
+      "Say 'I don't know' and wait for the next question.",
+      "Acknowledge it naturally, then reason your way to a position aloud.",
+      "Switch to a topic you have prepared.",
+      "Repeat the question word for word slowly."
+     ],
+     "answer": 1,
+     "why": "Thinking aloud with natural markers (*I haven't really considered that, but I suppose...*) shows exactly the flexible, extended discourse examiners want."
+    }
+   ]
+  },
+  {
+   "id": "u18-l2",
+   "title": "Practice: generations and travel",
+   "kind": "practice",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u18-l2-i1",
+     "type": "speaking",
+     "part": 3,
+     "topic": "Learning between generations",
+     "questions": [
+      "Do you think older people have as much to teach young people as they did in the past?",
+      "How much contact do young people in your country have with older generations?",
+      "Can older people learn from younger people too?",
+      "Do you think housing schemes that bring old and young people together will become more common?",
+      "What could be done to encourage more learning between generations?"
+     ],
+     "prep": 0,
+     "talk": 60,
+     "model": {
+      "text": [
+       "I think they still have a great deal to teach, but perhaps not in the areas we traditionally assumed. Technical knowledge dates very quickly, so my grandfather couldn't teach me much about software. What older people can offer is perspective: they've lived through crises and changes that we've only read about, and that often makes them far calmer about setbacks.",
+       "Hmm, I'd say less than it used to. In the past, families tended to live closer together, and children would spend a lot of time with grandparents almost by default. Now people move for work, so those everyday conversations happen over a video call once a week, if at all, and a lot of that informal learning gets lost.",
+       "Definitely, and I think it's underrated. Both my parents learnt to use their phones properly from my younger brother, not from any course. And it can be good for the relationship, because it reverses the usual roles for a moment, which I suspect both sides quite enjoy.",
+       "It wouldn't surprise me if they became more common. Some cities already have schemes where students live rent-free with older people in exchange for company and a bit of help around the house. That kind of arrangement seems to solve two problems at once: loneliness and housing costs.",
+       "That's a difficult one. I suppose schools could do more, but I'm wary of turning everything into a formal programme. The best intergenerational learning tends to happen when people are doing something together, cooking or fixing something, rather than when someone sets out to teach."
+      ],
+      "notes": [
+       "Each answer opens with a clear position and develops it with a reason and a concrete example.",
+       "Time comparisons are handled with precise grammar (*would spend*, *used to*, *Now people move*).",
+       "Hedging and speculation are natural and varied (*I'd say*, *I suspect*, *It wouldn't surprise me if*, *I'm wary of*).",
+       "Time-buying phrases (*Hmm*, *That's a difficult one. I suppose...*) sound like genuine thought and lead straight into an answer.",
+       "Abstract vocabulary is used precisely (*perspective*, *intergenerational learning*, *reverses the usual roles*)."
+      ]
+     },
+     "phrases": [
+      "perhaps not in the areas we traditionally assumed",
+      "almost by default",
+      "it reverses the usual roles",
+      "solve two problems at once",
+      "I'm wary of..."
+     ]
+    },
+    {
+     "id": "u18-l2-i2",
+     "type": "speaking",
+     "part": 3,
+     "topic": "Tourism and expectations",
+     "questions": [
+      "Why do you think famous tourist sites are sometimes disappointing?",
+      "Is tourism always good for the places people visit?",
+      "How do you think tourism will change in the future?",
+      "How are holidays different now from in your parents' generation?",
+      "Why do some people prefer to visit unusual places?"
+     ],
+     "prep": 0,
+     "talk": 60,
+     "model": {
+      "text": [
+       "I think social media has a lot to do with it. People see the same five photographs of a place before they go, so they arrive wanting to recreate them, and they end up queueing for a picture rather than actually looking around. Less famous places don't come with that baggage, so you experience them more on their own terms.",
+       "Mostly, but not always. It brings money and jobs, obviously, but in some cities it's pushed rents up so far that locals can no longer afford to live in the centre. I'd say it's positive as long as the numbers are managed, and that's the hard part.",
+       "I suspect we'll see a shift towards slower, more local travel, partly because of cost and partly because people are more aware of the environmental impact of flying. Having said that, people have been predicting the end of cheap flights for years, and it hasn't happened yet, so I wouldn't bet on it.",
+       "In my parents' day, a holiday was a fixed event: the same place, the same two weeks every year, booked months in advance through an agent. Now it's much more spontaneous. People book a weekend away on their phone on a Thursday night. There's more choice, but I'm not sure people relax as much.",
+       "I think it's partly about curiosity and partly about status, if I'm honest. Saying you've been somewhere unusual has become a kind of social currency, whereas a generation ago just going abroad was impressive in itself."
+      ],
+      "notes": [
+       "The answers combine personal perspective with general analysis, never slipping back into Part 2 storytelling.",
+       "Balanced evaluation (*Mostly, but not always*; *as long as*) shows the ability to discuss complexity.",
+       "Future speculation is hedged and then challenged (*Having said that... I wouldn't bet on it*), a sophisticated discourse move.",
+       "Idiomatic language suits the spoken register (*come with that baggage*, *on their own terms*, *social currency*).",
+       "Past-present comparison is clear and grammatically accurate."
+      ]
+     },
+     "phrases": [
+      "has a lot to do with it",
+      "on their own terms",
+      "as long as the numbers are managed",
+      "Having said that...",
+      "I wouldn't bet on it",
+      "a kind of social currency"
+     ]
+    }
+   ]
+  },
+  {
+   "id": "u18-l3",
+   "title": "Practice: learning and patience",
+   "kind": "practice",
+   "minutes": 20,
+   "items": [
+    {
+     "id": "u18-l3-i1",
+     "type": "speaking",
+     "part": 3,
+     "topic": "Teaching yourself",
+     "questions": [
+      "Is it better to learn a skill from a teacher or by yourself?",
+      "What is the hardest part of teaching yourself something?",
+      "How has the internet changed the way people learn new skills?",
+      "Should schools spend more time teaching students how to learn?",
+      "Do you think qualifications will become less important in the future?"
+     ],
+     "prep": 0,
+     "talk": 60,
+     "model": {
+      "text": [
+       "It depends on the skill. For something practical like coding or cooking, the internet probably has everything you need. But for anything where small errors become bad habits, a musical instrument, say, or a sport, I think a teacher is worth a great deal, because they can see things you can't see yourself.",
+       "Motivation, mainly. When you're paying a teacher and someone's expecting you on Tuesday, you turn up. When it's just you and a video, it's very easy to tell yourself you'll do it tomorrow, and tomorrow never comes.",
+       "Hugely. My parents would have needed a library, a class or someone who knew how to do it. Now you can learn almost anything for free, at any hour. The downside is the sheer quantity: knowing which source to trust has become a skill in itself.",
+       "Partly, yes. I think schools are still quite focused on content, whereas the most useful thing they could teach is how to learn: how to practise, how to deal with frustration, how to check your own progress. Those habits outlast any particular subject.",
+       "I'd like to think so. Employers are already starting to care more about what you can do than where you learnt it, and that would probably accelerate if there were reliable ways of testing skills directly. Whether traditional qualifications disappear, though, I doubt it. They're too embedded."
+      ],
+      "notes": [
+       "Answers are qualified with *It depends* followed by a precise distinction, which is far stronger than a vague 'it depends'.",
+       "Reasoning is explicit and causal (*because they can see things you can't*, *When... When...*).",
+       "A second conditional and a past modal (*would have needed*) appear naturally in comparison and speculation.",
+       "Abstract nouns are well controlled (*motivation*, *quantity*, *habits outlast any particular subject*).",
+       "The final answer combines optimism with doubt, showing nuanced speculation."
+      ]
+     },
+     "phrases": [
+      "It depends on the skill",
+      "a musical instrument, say",
+      "tomorrow never comes",
+      "a skill in itself",
+      "Those habits outlast...",
+      "They're too embedded"
+     ]
+    },
+    {
+     "id": "u18-l3-i2",
+     "type": "speaking",
+     "part": 3,
+     "topic": "Patience and waiting",
+     "questions": [
+      "Do you think people are less patient than they used to be?",
+      "How can parents teach children to be patient?",
+      "Has technology made us better or worse at waiting?",
+      "What kinds of jobs require the most patience?",
+      "Will people become even less patient in the future?"
+     ],
+     "prep": 0,
+     "talk": 60,
+     "model": {
+      "text": [
+       "I'd say we're less used to waiting rather than less patient by nature. When films, food and information all arrive instantly, any delay feels unusual, so it's more irritating. But put people in a situation where waiting is normal, like fishing or gardening, and many of them are perfectly patient.",
+       "Mostly through example, I think. Children watch how adults react to queues and delays. If a parent loses their temper every time a website is slow, the child learns that waiting is a kind of injustice. I suppose activities with a slow payoff, learning an instrument or growing plants, can help as well.",
+       "In some ways, yes. Technology has removed a lot of pointless waiting, like queueing at the bank, and that's a genuine improvement. The risk is that we lose the ability to tolerate the waiting that can't be removed, like recovering from an illness or building a career.",
+       "Probably jobs where results take years to appear: scientific research, teaching, medicine to some extent. A teacher may never see what becomes of most of their students, which must require a particular kind of patience.",
+       "I suspect so, though not necessarily in a bad way. Services will keep getting faster, so expectations will keep rising. But it wouldn't surprise me if there was a counter-movement too; you can already see it in the popularity of things like slow cooking and long walking holidays."
+      ],
+      "notes": [
+       "The first answer reframes the question with a precise distinction (*less used to waiting rather than less patient by nature*), a hallmark of band 9 discussion.",
+       "Examples are brief and illustrative rather than full stories, which keeps the focus on general ideas.",
+       "Concession and contrast are handled smoothly (*In some ways, yes... The risk is that...*).",
+       "Speculation is careful and two-sided, ending with a supported prediction (*you can already see it in...*).",
+       "Natural, precise collocations: *lose their temper*, *a slow payoff*, *tolerate the waiting*, *a counter-movement*."
+      ]
+     },
+     "phrases": [
+      "less used to X rather than less Y by nature",
+      "a slow payoff",
+      "a genuine improvement",
+      "the risk is that...",
+      "a counter-movement"
+     ]
+    }
+   ]
+  }
+ ]
+}

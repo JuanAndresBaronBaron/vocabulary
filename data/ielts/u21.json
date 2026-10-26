@@ -1,0 +1,582 @@
+{
+ "format": 1,
+ "id": "u21",
+ "n": 21,
+ "block": "language",
+ "title": "Advanced grammar",
+ "summary": "After this unit you can use inversion, cleft sentences, nominalisation, participle clauses, mixed conditionals and hedging accurately and only where they serve your meaning.",
+ "lessons": [
+  {
+   "id": "u21-l1",
+   "title": "Emphasis: inversion and cleft sentences",
+   "kind": "learn",
+   "minutes": 25,
+   "items": [
+    {
+     "id": "u21-l1-i1",
+     "type": "card",
+     "title": "Range means choice, not decoration",
+     "body": [
+      "Examiners reward 'a wide range of structures' only when those structures are accurate and appropriate. A sentence such as *Not only does pollution harm health, but it also...* is impressive once in an essay; four inversions in 300 words sound forced.",
+      "Think of emphatic structures as tools for specific jobs: highlighting a contrast, foregrounding new information, or stressing how rare or late something is."
+     ]
+    },
+    {
+     "id": "u21-l1-i2",
+     "type": "card",
+     "title": "Negative and restrictive inversion",
+     "body": [
+      "After a negative or restrictive expression at the start of a clause, English inverts the subject and auxiliary, as in a question. This is formal and emphatic, appropriate in Writing Task 2 and occasionally in Part 3."
+     ],
+     "list": [
+      "**Not only** does X..., **but** Y also...",
+      "**Never** / **Rarely** / **Seldom** has / have...",
+      "**Only when / Only after / Only if** X, **does / will** Y...",
+      "**Not until** X **did** Y...",
+      "**Under no circumstances / On no account** should...",
+      "**No sooner** had X... **than** Y...",
+      "**Little** did they know / realise..."
+     ],
+     "examples": [
+      {
+       "text": "Only when public transport is reliable will people give up their cars.",
+       "note": "The inversion comes in the main clause, after the 'only when' clause."
+      },
+      {
+       "text": "Rarely has a single policy divided public opinion so sharply.",
+       "note": "Present perfect: auxiliary 'has' moves before the subject."
+      }
+     ],
+     "tip": "Do not invert after 'only' when it modifies the subject: 'Only three people came' is correct with no inversion."
+    },
+    {
+     "id": "u21-l1-i3",
+     "type": "card",
+     "title": "Cleft sentences",
+     "body": [
+      "Cleft sentences split one idea into two clauses to put the focus where you want it. They are useful in both Writing and Speaking because they sound natural rather than showy."
+     ],
+     "list": [
+      "**It-cleft**: *It is the cost, not the distance, that deters most commuters.*",
+      "**What-cleft**: *What concerns me most is the effect on young people.*",
+      "**All-cleft**: *All that most people want is a reliable bus service.*",
+      "**The reason / thing / place...**: *The reason this matters is that...*"
+     ],
+     "examples": [
+      {
+       "text": "What many critics overlook is that the scheme pays for itself.",
+       "note": "Focuses on 'that the scheme pays for itself'."
+      },
+      {
+       "text": "It was only in the 1990s that the problem was widely recognised.",
+       "note": "Emphasises the time."
+      }
+     ]
+    },
+    {
+     "id": "u21-l1-i4",
+     "type": "gap",
+     "text": "Not only ___ the new scheme reduce congestion, but it will also raise revenue for public transport.",
+     "answer": [
+      "will"
+     ],
+     "limit": "ONE WORD",
+     "why": "After *Not only* the auxiliary comes before the subject: *will the new scheme reduce*."
+    },
+    {
+     "id": "u21-l1-i5",
+     "type": "gap",
+     "text": "Rarely ___ a government policy proved so popular so quickly.",
+     "answer": [
+      "has"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Rarely has* + subject + past participle: inversion with the present perfect."
+    },
+    {
+     "id": "u21-l1-i6",
+     "type": "gap",
+     "text": "Only when the true costs are made clear ___ consumers change their behaviour.",
+     "answer": [
+      "will",
+      "do",
+      "can"
+     ],
+     "limit": "ONE WORD",
+     "why": "The inversion follows the *only when* clause: *will consumers change*."
+    },
+    {
+     "id": "u21-l1-i7",
+     "type": "gap",
+     "text": "___ concerns me most is the impact on rural communities.",
+     "answer": [
+      "What"
+     ],
+     "limit": "ONE WORD",
+     "why": "A *what*-cleft puts the focus on the final phrase: *the impact on rural communities*."
+    },
+    {
+     "id": "u21-l1-i8",
+     "type": "gap",
+     "text": "It is the cost of housing, rather than wages, ___ drives young people away from cities.",
+     "answer": [
+      "that",
+      "which"
+     ],
+     "limit": "ONE WORD",
+     "why": "*It is X that...* is the structure of an it-cleft."
+    },
+    {
+     "id": "u21-l1-i9",
+     "type": "pick",
+     "q": "Which sentence is correct?",
+     "options": [
+      "Not until the 1980s people began to recycle on a large scale.",
+      "Not until the 1980s did people begin to recycle on a large scale.",
+      "Not until the 1980s did people began to recycle on a large scale.",
+      "Not until the 1980s people did begin to recycle on a large scale."
+     ],
+     "answer": 1,
+     "why": "*Not until* + time phrase triggers inversion: *did people begin* (the main verb returns to its base form after *did*)."
+    },
+    {
+     "id": "u21-l1-i10",
+     "type": "pick",
+     "q": "Which sentence is correct?",
+     "options": [
+      "Only three countries have signed the agreement.",
+      "Only have three countries signed the agreement.",
+      "Only three countries did have signed the agreement."
+     ],
+     "answer": 0,
+     "why": "No inversion is needed when *only* modifies the subject (*only three countries*). Inversion follows *only* + adverbial (*only then, only when*)."
+    },
+    {
+     "id": "u21-l1-i11",
+     "type": "select",
+     "q": "Which structure has been used?",
+     "options": [
+      "A  Negative inversion",
+      "B  It-cleft",
+      "C  What-cleft",
+      "D  No special structure"
+     ],
+     "rows": [
+      {
+       "label": "Seldom do we stop to consider where our food comes from.",
+       "answer": 0
+      },
+      {
+       "label": "It was the lack of funding that ended the project.",
+       "answer": 1
+      },
+      {
+       "label": "What the data shows is a steady decline.",
+       "answer": 2
+      },
+      {
+       "label": "The data shows a steady decline.",
+       "answer": 3
+      },
+      {
+       "label": "No sooner had the law been passed than companies found ways round it.",
+       "answer": 0
+      },
+      {
+       "label": "It is in small towns that the effect is most visible.",
+       "answer": 1
+      }
+     ],
+     "why": "Inversions begin with a negative or restrictive adverbial and invert the auxiliary. Clefts begin with *It is/was... that* or *What...is*."
+    },
+    {
+     "id": "u21-l1-i12",
+     "type": "order",
+     "q": "Order the parts to make an emphatic sentence.",
+     "items": [
+      "Under no circumstances",
+      "should",
+      "patient data",
+      "be sold to private companies."
+     ],
+     "why": "*Under no circumstances* + inverted modal (*should patient data*) + bare infinitive (*be sold*)."
+    },
+    {
+     "id": "u21-l1-i13",
+     "type": "pick",
+     "q": "Which version sounds most natural in a Part 3 answer?",
+     "options": [
+      "Seldom have I been asked such a question, nor shall I answer it hastily.",
+      "What I'd say is that it really depends on the kind of job.",
+      "Never would I have been thinking that.",
+      "Not only it depends, but also it varies."
+     ],
+     "answer": 1,
+     "why": "A *what*-cleft (*What I'd say is...*) is common and natural in speech. A sounds theatrical, C is ungrammatical, and D has incorrect word order."
+    }
+   ]
+  },
+  {
+   "id": "u21-l2",
+   "title": "Economy: nominalisation and participle clauses",
+   "kind": "learn",
+   "minutes": 25,
+   "items": [
+    {
+     "id": "u21-l2-i1",
+     "type": "card",
+     "title": "Nominalisation: ideas as nouns",
+     "body": [
+      "Academic English often turns verbs and adjectives into nouns. This lets one sentence treat a whole event as a single *thing* that can then be the subject of a new claim. It is a key tool for cohesion (summarising the previous sentence) and for concise, objective writing.",
+      "Overuse makes prose heavy and vague, so use it when it helps the argument move forward."
+     ],
+     "examples": [
+      {
+       "text": "Prices rose sharply, and so people bought less. / The sharp rise in prices led to a fall in consumption.",
+       "note": "Two clauses compressed into one; the cause becomes a noun phrase subject."
+      },
+      {
+       "text": "The factory closed, which meant hundreds lost their jobs. / The closure of the factory cost hundreds of jobs."
+      },
+      {
+       "text": "The failure of the scheme to reach rural areas was its main weakness.",
+       "note": "A noun phrase packed with information."
+      }
+     ]
+    },
+    {
+     "id": "u21-l2-i2",
+     "type": "card",
+     "title": "Participle clauses",
+     "body": [
+      "Participle clauses replace a full clause with *-ing*, *-ed* or *having + -ed* forms. They are concise and give writing a fluent, mature rhythm. The subject of the participle must be the same as the subject of the main clause, otherwise you produce a *dangling participle*."
+     ],
+     "list": [
+      "Present participle (active, simultaneous): *Living in a small flat, I rarely buy furniture.*",
+      "Past participle (passive): *Built in the 1960s, the estate now needs extensive repairs.*",
+      "Perfect participle (earlier action): *Having failed twice, the council changed its approach.*",
+      "After conjunctions: *When asked about costs, the minister declined to comment.*",
+      "Reduced relative: *Students living on campus pay less for transport.*"
+     ],
+     "examples": [
+      {
+       "text": "Walking to the station, the rain started.",
+       "note": "Dangling: the rain was not walking."
+      },
+      {
+       "text": "Walking to the station, I was caught in the rain.",
+       "note": "Correct: 'I' was walking."
+      }
+     ]
+    },
+    {
+     "id": "u21-l2-i3",
+     "type": "gap",
+     "text": "The ___ of a sugar tax has led to a measurable fall in soft-drink sales. (introduce)",
+     "answer": [
+      "introduction"
+     ],
+     "limit": "ONE WORD",
+     "why": "Nominalisation: *introduce* becomes *the introduction of*."
+    },
+    {
+     "id": "u21-l2-i4",
+     "type": "gap",
+     "text": "The government's ___ to act sooner made the crisis worse. (fail)",
+     "answer": [
+      "failure"
+     ],
+     "limit": "ONE WORD",
+     "why": "*Fail* becomes *failure*; *the government's failure to act* is a compact noun phrase subject."
+    },
+    {
+     "id": "u21-l2-i5",
+     "type": "gap",
+     "text": "___ in 1874, the bridge is still in daily use.",
+     "answer": [
+      "Built",
+      "Constructed",
+      "Completed",
+      "Opened"
+     ],
+     "limit": "ONE WORD",
+     "why": "A past participle clause (passive meaning): *Having been built* is also possible but heavier."
+    },
+    {
+     "id": "u21-l2-i6",
+     "type": "gap",
+     "text": "___ failed to reach an agreement, the two sides agreed to meet again in a month.",
+     "answer": [
+      "Having"
+     ],
+     "limit": "ONE WORD",
+     "why": "A perfect participle (*Having failed*) shows the failure happened before the main action."
+    },
+    {
+     "id": "u21-l2-i7",
+     "type": "gap",
+     "text": "Students ___ part-time jobs often find it hard to keep up with reading.",
+     "answer": [
+      "with",
+      "holding",
+      "doing",
+      "having"
+     ],
+     "limit": "ONE WORD",
+     "why": "A reduced relative clause: *Students (who are) holding part-time jobs*. *With* also works."
+    },
+    {
+     "id": "u21-l2-i8",
+     "type": "pick",
+     "q": "Which sentence is correct?",
+     "options": [
+      "Having finished the report, the computer crashed.",
+      "Having finished the report, she sent it to her manager.",
+      "Having finish the report, she sent it to her manager.",
+      "Finished the report, she sent it to her manager."
+     ],
+     "answer": 1,
+     "why": "B is correct: *she* is the person who finished. A is a dangling participle (the computer didn't finish the report), C has the wrong verb form, and D needs *Having finished*."
+    },
+    {
+     "id": "u21-l2-i9",
+     "type": "pick",
+     "q": "Which version uses nominalisation most effectively?",
+     "options": [
+      "Because people are increasingly aware of plastic pollution, they buy fewer bottled drinks.",
+      "Growing awareness of plastic pollution has reduced demand for bottled drinks.",
+      "The awareness is growing, the bottled drinks are reduced.",
+      "People are aware, so pollution of plastic is less bought."
+     ],
+     "answer": 1,
+     "why": "B compresses the cause into a noun phrase (*growing awareness of plastic pollution*) and the effect into another (*demand for bottled drinks*)."
+    },
+    {
+     "id": "u21-l2-i10",
+     "type": "select",
+     "q": "Is each participle clause correct?",
+     "options": [
+      "A  Correct",
+      "B  Dangling or incorrect"
+     ],
+     "rows": [
+      {
+       "label": "Looking out of the window, the mountains were beautiful.",
+       "answer": 1
+      },
+      {
+       "label": "Looking out of the window, we could see the mountains.",
+       "answer": 0
+      },
+      {
+       "label": "Asked about the delay, the spokesperson apologised.",
+       "answer": 0
+      },
+      {
+       "label": "Once opened, the medicine should be used within a month.",
+       "answer": 0
+      },
+      {
+       "label": "Being a rainy day, we stayed at home.",
+       "answer": 1
+      },
+      {
+       "label": "Having been warned twice, the club was fined.",
+       "answer": 0
+      }
+     ],
+     "why": "The implied subject of the participle must match the main subject. The mountains were not looking; *Being a rainy day* needs *It being a rainy day* or *As it was a rainy day*."
+    },
+    {
+     "id": "u21-l2-i11",
+     "type": "order",
+     "q": "Order the parts to make a concise sentence.",
+     "items": [
+      "Faced with rising costs,",
+      "many small farms",
+      "have been forced",
+      "to sell their land."
+     ],
+     "why": "A past participle clause (*Faced with*) whose implied subject is *many small farms*."
+    }
+   ]
+  },
+  {
+   "id": "u21-l3",
+   "title": "Stance: mixed conditionals, hedging and distancing",
+   "kind": "learn",
+   "minutes": 25,
+   "items": [
+    {
+     "id": "u21-l3-i1",
+     "type": "card",
+     "title": "Mixed conditionals",
+     "body": [
+      "Mixed conditionals link different times. They are natural in Task 2 and Part 3 when you discuss how past decisions affect the present, or how a present situation would have changed the past."
+     ],
+     "list": [
+      "Past condition, present result: *If cities had invested in trams decades ago, traffic would be much lighter today.*",
+      "Present condition, past result: *If I were more organised, I wouldn't have missed the deadline.*",
+      "Inverted, formal: *Had governments acted earlier, the problem would be far smaller now.*",
+      "Alternatives to *if*: *provided that*, *as long as*, *on condition that*, *unless*, *otherwise*, *but for*"
+     ],
+     "examples": [
+      {
+       "text": "But for the new bypass, the town centre would still be gridlocked.",
+       "note": "But for + noun = if it were not / had not been for."
+      },
+      {
+       "text": "Were the tax to be abolished, prices would fall.",
+       "note": "Formal inverted second conditional."
+      }
+     ]
+    },
+    {
+     "id": "u21-l3-i2",
+     "type": "card",
+     "title": "Hedging and distancing",
+     "body": [
+      "Academic writing avoids claiming more than the evidence supports. **Hedging** softens a claim (*may, tend to, appears to, to some extent*). **Distancing** reports a claim without endorsing it, often with the passive: *It is often claimed that...*, *X is thought to...*, *X is said to have...*.",
+      "Hedging is precise, not vague. *Remote work may reduce productivity for some employees* is a careful, defensible claim; *Maybe remote work is maybe bad* is not."
+     ],
+     "list": [
+      "Modals: *may, might, could, would*",
+      "Verbs: *appear to, seem to, tend to, suggest, indicate*",
+      "Adverbs: *arguably, possibly, largely, generally, to some extent*",
+      "Distancing passives: *It is widely believed that...*, *Coffee is thought to reduce...*, *The scheme is reported to have cost...*"
+     ]
+    },
+    {
+     "id": "u21-l3-i3",
+     "type": "gap",
+     "text": "If the council ___ built more housing in the 2000s, rents would not be so high now.",
+     "answer": [
+      "had"
+     ],
+     "limit": "ONE WORD",
+     "why": "Past condition (*had built*) with a present result (*would not be*): a mixed conditional."
+    },
+    {
+     "id": "u21-l3-i4",
+     "type": "gap",
+     "text": "___ the government acted earlier, the crisis would be far less severe today.",
+     "answer": [
+      "Had"
+     ],
+     "limit": "ONE WORD",
+     "why": "Inverted conditional: *Had the government acted* = *If the government had acted*."
+    },
+    {
+     "id": "u21-l3-i5",
+     "type": "gap",
+     "text": "But ___ the volunteers, the library would have closed years ago.",
+     "answer": [
+      "for"
+     ],
+     "limit": "ONE WORD",
+     "why": "*But for* + noun means 'if it had not been for'."
+    },
+    {
+     "id": "u21-l3-i6",
+     "type": "gap",
+     "text": "Regular exercise is widely ___ to reduce the risk of heart disease.",
+     "answer": [
+      "believed",
+      "thought",
+      "known",
+      "considered",
+      "accepted"
+     ],
+     "limit": "ONE WORD",
+     "why": "Distancing passive: *X is widely believed to...* reports the claim without personal endorsement."
+    },
+    {
+     "id": "u21-l3-i7",
+     "type": "gap",
+     "text": "The project is reported to ___ cost twice its original budget.",
+     "answer": [
+      "have"
+     ],
+     "limit": "ONE WORD",
+     "why": "Perfect infinitive (*to have cost*) because the cost happened before the report."
+    },
+    {
+     "id": "u21-l3-i8",
+     "type": "pick",
+     "q": "Which sentence hedges most appropriately for an academic claim?",
+     "options": [
+      "Social media causes depression in all teenagers.",
+      "Heavy social media use appears to be associated with lower well-being in some teenagers.",
+      "Social media maybe could perhaps sometimes be bad.",
+      "Everybody knows social media is terrible."
+     ],
+     "answer": 1,
+     "why": "B limits the claim (*heavy use*, *some teenagers*) and uses a careful verb (*appears to be associated with*). A and D overclaim; C piles up hedges vaguely."
+    },
+    {
+     "id": "u21-l3-i9",
+     "type": "pick",
+     "q": "Which sentence is a correct mixed conditional?",
+     "options": [
+      "If I had learnt to drive at eighteen, I would have a lot more freedom now.",
+      "If I learnt to drive at eighteen, I would have had more freedom now.",
+      "If I would have learnt to drive, I had more freedom now.",
+      "If I have learnt to drive, I would have more freedom now."
+     ],
+     "answer": 0,
+     "why": "Past condition (*had learnt*) + present result (*would have... now*). The others mix forms incorrectly."
+    },
+    {
+     "id": "u21-l3-i10",
+     "type": "select",
+     "q": "What is the main function of each sentence?",
+     "options": [
+      "A  Hedging a claim",
+      "B  Distancing (reporting without endorsing)",
+      "C  Mixed conditional",
+      "D  Firm, unhedged claim"
+     ],
+     "rows": [
+      {
+       "label": "It has been suggested that four-day weeks raise productivity.",
+       "answer": 1
+      },
+      {
+       "label": "Four-day weeks may raise productivity in some sectors.",
+       "answer": 0
+      },
+      {
+       "label": "If we had adopted a four-day week earlier, we would be seeing the benefits now.",
+       "answer": 2
+      },
+      {
+       "label": "The four-day week raises productivity in every case.",
+       "answer": 3
+      },
+      {
+       "label": "The scheme is said to have saved millions.",
+       "answer": 1
+      },
+      {
+       "label": "To some extent, longer weekends tend to improve morale.",
+       "answer": 0
+      }
+     ],
+     "why": "Hedging softens the writer's own claim; distancing reports others' claims; mixed conditionals link past and present."
+    },
+    {
+     "id": "u21-l3-i11",
+     "type": "order",
+     "q": "Order the parts to make a well-hedged sentence.",
+     "items": [
+      "It could be argued",
+      "that the policy has,",
+      "to some extent,",
+      "achieved its aims."
+     ],
+     "why": "*It could be argued that* distances; *to some extent* limits the claim. Both are typical of careful academic writing."
+    }
+   ]
+  }
+ ]
+}
