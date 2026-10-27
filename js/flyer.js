@@ -216,6 +216,11 @@ const CSS = `
 .fl-veh small{font:600 .8rem/1.25 var(--f-text);color:var(--label2,#4b5563);text-align:center}
 .fl-veh.last{box-shadow:0 0 0 4px #FCD34D,0 8px 20px rgba(0,0,0,.25)}
 .fl-veh:focus-visible{outline:3px solid #fff;outline-offset:3px}
+/* el avión fuera del tema Soldados: en oscuro, con candado */
+.fl-veh.off{background:rgba(15,23,42,.72);color:rgba(255,255,255,.78);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.28);cursor:not-allowed}
+.fl-veh.off svg{filter:grayscale(1);opacity:.6}
+.fl-veh .fl-lock{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:12px;background:#fff;color:#0b2545;font-weight:700;text-align:left}
+.fl-veh .fl-lock svg{width:14px;height:14px;flex:none;filter:none;opacity:1}
 @media (max-width:380px){.fl-act{width:56px;height:56px}.fl-acts{gap:6px}}
 @media (prefers-reduced-motion: reduce){.fl-bird{transition:none}.fl-bird svg,.fl-wl,.fl-wr,.fl-fire,.fl-obj .fl-tag{animation:none}.fl-plus,.fl-boom{animation-duration:.01s}.fl-lvl,.fl-radio{transition:none}}`;
 function css(){
@@ -246,11 +251,12 @@ async function start(app, api, mode){
     return {t, opts, ok: opts.indexOf(t)};
   });
   rounds.slice(0, 4).forEach(r => { if(r.t.img){ const im = new Image(); im.src = pic(r.t.img); } });
-  const lastVeh = vehGet() || "jet";
+  const lastVeh = MIL ? vehGet() || "jet" : "bird";
+  const JET_OFF = "El avión de combate se activa con el tema Soldados";
   const run = api.mount(app, `<div class="gm fl" id="fl">
     ${api.topHtml(ID, `<span class="gm-pill gm-lives" id="gm-lives" role="img" aria-label="${LIVES} vidas">${`<i>${IC("heart", "fill", 18)}${IC("heart", "bold", 18)}</i>`.repeat(LIVES)}</span><span class="gm-pill" title="Monedas">${IC("coin", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
     <div class="fl-card" aria-live="polite"><span class="fl-pic" id="fl-pic"></span>
-      <div class="fl-txt"><span class="fl-lab" id="fl-lab">Vuela a la puerta de…</span><span class="fl-es" id="fl-es">${MIL ? "¡Elige tu nave!" : "¡Prepárate!"}</span><span class="fl-ans" id="fl-ans" lang="${esc(code)}"></span></div></div>
+      <div class="fl-txt"><span class="fl-lab" id="fl-lab">Vuela a la puerta de…</span><span class="fl-es" id="fl-es">¡Elige tu nave!</span><span class="fl-ans" id="fl-ans" lang="${esc(code)}"></span></div></div>
     <div class="fl-stage" id="fl-stage" style="background-image:url('${esc(scene.img)}')" aria-label="La calle de ${esc(scene.city)}">
       <div class="fl-road" id="fl-road"></div>
       <div class="fl-bird" id="fl-bird">${BIRD}</div>
@@ -266,7 +272,8 @@ async function start(app, api, mode){
       <span class="fl-mp" title="Puntos de misión">${IC("medal", "fill", 16)}<b id="fl-mp">0</b></span>
       <div class="fl-pick" id="fl-pick" hidden><h2>¿Con qué vuelas hoy?</h2><div class="fl-pick-r">
         <button type="button" class="fl-veh${lastVeh !== "jet" ? " last" : ""}" data-veh="bird">${BIRD}Pajarito<small>Vuela por la puerta buena</small></button>
-        <button type="button" class="fl-veh${lastVeh === "jet" ? " last" : ""}" data-veh="jet">${JET}Avión de combate<small>Dispara, bombardea y ayuda a los soldados</small></button></div></div>
+        ${MIL ? `<button type="button" class="fl-veh${lastVeh === "jet" ? " last" : ""}" data-veh="jet">${JET}Avión de combate<small>Dispara, bombardea y ayuda a los soldados</small></button>`
+          : `<button type="button" class="fl-veh off" data-veh="jet" aria-disabled="true">${JET}Avión de combate<small class="fl-lock">${IC("lock", "bold", 14)}Se activa con el tema Soldados</small></button>`}</div></div>
     </div></div>`, mode);
   const root = run.root, stage = root.querySelector("#fl-stage"), road = root.querySelector("#fl-road"), bird = root.querySelector("#fl-bird");
   const esEl = root.querySelector("#fl-es"), picEl = root.querySelector("#fl-pic"), ans = root.querySelector("#fl-ans"), radioEl = root.querySelector("#fl-radio");
@@ -589,17 +596,23 @@ async function start(app, api, mode){
   requestAnimationFrame(() => { if(live()) measure(); });
   last = performance.now();
   run.raf = requestAnimationFrame(frame);
-  /* elegir la nave (después de la explicación); con el teclado, 1 o 2 */
-  function choose(v, auto){
-    const pk = root.querySelector("#fl-pick"); if(!pk || (pk.hidden && !auto) || !live() || started) return;
+  /* elegir la nave (después de la explicación); con el teclado, 1 o 2. Fuera del tema Soldados el avión sale en oscuro
+     y al tocarlo solo avisa */
+  function choose(v){
+    const pk = root.querySelector("#fl-pick"); if(!pk || pk.hidden || !live() || started) return;
+    if(v === "jet" && !MIL){
+      api.haptic("selection");
+      try{ if(window.M && typeof M.toast === "function") M.toast(`${JET_OFF}. Elígelo en Juegos, arriba en «Tema».`, {icon: IC("lock", "bold", 20)}); }catch(e){}
+      return;
+    }
     pk.hidden = true;
-    jet = MIL && v === "jet";
-    if(!auto) vehSet(v);
+    jet = v === "jet";
+    if(MIL) vehSet(v);
     root.classList.toggle("fl-jet", jet);
     bird.innerHTML = jet ? JET : BIRD;
     root.querySelector("#fl-acts").hidden = !jet;
     root.querySelector("#fl-lab").textContent = jet ? "Objetivo: la palabra…" : "Vuela a la puerta de…";
-    if(!auto) api.haptic("selection");
+    api.haptic("selection");
     started = true; last = performance.now(); measure();
     api.keys(run, kb);
     round();
@@ -607,7 +620,6 @@ async function start(app, api, mode){
   }
   root.querySelectorAll(".fl-veh").forEach(b => { b.onclick = () => choose(b.dataset.veh); });
   api.intro(run, ID, () => {
-    if(!MIL){ choose("bird", true); return; }
     const pk = root.querySelector("#fl-pick"); pk.hidden = false;
     api.keys(run, e => {
       if(e.key === "1" || e.key === "2"){ e.preventDefault(); choose(e.key === "1" ? "bird" : "jet"); }

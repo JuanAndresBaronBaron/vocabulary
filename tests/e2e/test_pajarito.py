@@ -25,7 +25,7 @@ def _keys(lang="english", topic=None):
 
 
 def _open(page, lang="english", veh="bird", topic=None):
-    """abre el juego; con veh="jet" (o topic="militar") el tema es «Soldados» y se elige la nave"""
+    """abre el juego y elige la nave; con veh="jet" el tema es «Soldados» (fuera de él el avión está en oscuro)"""
     if veh == "jet" and not topic:
         topic = "militar"
     C.seed(page, _keys(lang, topic), "#/juegos")
@@ -36,9 +36,8 @@ def _open(page, lang="english", veh="bird", topic=None):
     if go.count():
         go.click()
     page.wait_for_function("() => !document.querySelector('.gm-intro')")
-    if topic == "militar":
-        page.wait_for_selector("#fl-pick:not([hidden])", timeout=4000)
-        page.click(f'.fl-veh[data-veh="{veh}"]')
+    page.wait_for_selector("#fl-pick:not([hidden])", timeout=4000)
+    page.click(f'.fl-veh[data-veh="{veh}"]')
     page.wait_for_selector(".fl-gate", timeout=6000)
 
 
@@ -207,11 +206,33 @@ def test_jet_mission():
 
 def test_topic_words_and_soldiers_apart():
     """El pajarito juega con el tema elegido (Colores: las puertas son colores de data/colores.json) y sin nada de
-    soldados (ni elegir nave ni radio). «Misión por radio» solo sale con el tema «Soldados»; ese tema da palabras de la
-    jerga del ejército (radio, órdenes, campamento, rangos) también en Memoria."""
+    soldados: el avión sale en oscuro con «Se activa con el tema Soldados» y tocarlo solo avisa. «Misión por radio» sale
+    en oscuro con candado y su aviso, y tocarla no la abre; con el tema «Soldados» se enciende, y ese tema da palabras de
+    la jerga del ejército (radio, órdenes, campamento, rangos) también en Memoria."""
     page = C.new_page("phone")
     try:
-        _open(page, "english", "bird", "colores")
+        C.seed(page, _keys("english", "colores"), "#/juegos/pajarito")
+        page.wait_for_selector("#fl-stage", timeout=8000)
+        go = page.locator(".gm-intro .gm-go")
+        if go.count():
+            go.click()
+        page.wait_for_selector("#fl-pick:not([hidden])", timeout=4000)
+        jet = page.locator('.fl-veh[data-veh="jet"]')
+        assert "off" in jet.get_attribute("class") and jet.get_attribute("aria-disabled") == "true"
+        assert "Se activa con el tema Soldados" in jet.text_content()
+        assert page.evaluate("getComputedStyle(document.querySelector('.fl-veh.off svg')).filter").startswith("grayscale")
+        page.wait_for_timeout(300)
+        C.shot(page, "phone-avion-bloqueado", SHOTS, full_page=False)
+        jet.click(force=True)   # aria-disabled: Playwright no la toca sin force, el niño sí
+        page.wait_for_selector(".m-toast", timeout=3000)
+        assert "tema Soldados" in page.locator(".m-toast").text_content()
+        assert page.locator("#fl-pick:not([hidden])").count() == 1 and page.locator(".fl-gate").count() == 0
+        page.keyboard.press("2")
+        page.wait_for_timeout(200)
+        assert page.locator(".fl-gate").count() == 0
+        page.click('.fl-veh[data-veh="bird"]')
+        page.wait_for_selector(".fl-gate", timeout=6000)
+        assert page.evaluate("localStorage.getItem('flyer:veh')") is None
         words = page.evaluate("[...document.querySelectorAll('.fl-gate b')].map(b => b.textContent)")
         cols = page.evaluate("""async () => { const d = await (await fetch('data/colores.json')).json();
           return d.rows.map(r => r.l && r.l.english && r.l.english.word).filter(Boolean); }""")
@@ -219,13 +240,36 @@ def test_topic_words_and_soldiers_apart():
         assert page.locator("#fl-pick:not([hidden])").count() == 0 and page.locator("#fl-acts:not([hidden])").count() == 0
         assert page.evaluate("document.querySelector('#fl-bird svg').getAttribute('viewBox')") == "0 0 120 100"
         C.goto(page, "#/juegos")
-        assert page.locator('.gm-card[data-g="soldados"]').is_hidden()
+        sol = page.locator('.gm-card[data-g="soldados"]')
+        assert sol.is_visible() and "gm-off" in sol.get_attribute("class") and sol.get_attribute("aria-disabled") == "true"
+        assert "Se activa con el tema Soldados" in sol.locator(".gm-lockb").text_content()
+        assert sol.locator(".gm-lockb").is_visible()
+        sol.scroll_into_view_if_needed()
+        page.wait_for_timeout(300)
+        C.shot(page, "phone-mision-bloqueada", SHOTS, full_page=False)
+        page.wait_for_function("() => !document.querySelector('.m-toast')", timeout=8000)
+        sol.click(force=True)
+        page.wait_for_selector(".m-toast", timeout=3000)
+        assert "tema Soldados" in page.locator(".m-toast").text_content()
+        page.wait_for_timeout(300)
+        assert page.evaluate("location.hash") == "#/juegos"
         assert page.locator('.gm-card[data-g="pajarito"]').is_visible()
+        # el aviso cabe dentro de la tarjeta (360 px) y el lector de pantalla lo dice
+        fit = page.evaluate("""() => { const c = document.querySelector('.gm-card[data-g="soldados"]'), b = c.querySelector('.gm-lockb');
+          const r = c.getBoundingClientRect(), q = b.getBoundingClientRect(), t = c.querySelector('.gm-ct').getBoundingClientRect();
+          return {inside: q.left >= r.left && q.right <= r.right + .5 && q.bottom <= r.bottom + .5, clip: b.scrollWidth > b.clientWidth + 1,
+            below: q.top >= t.bottom - .5, aria: c.getAttribute('aria-label')}; }""")
+        assert fit["inside"] and not fit["clip"] and fit["below"], fit
+        assert fit["aria"].startswith("Se activa con el tema Soldados."), fit
+        # un enlace directo a «Misión por radio» fuera de su tema vuelve al menú
+        C.goto(page, "#/juegos/soldados")
+        page.wait_for_function("() => location.hash === '#/juegos' && document.querySelector('#gm-cards')", timeout=6000)
         # elegir «Soldados» en la hoja de temas: sale «Misión por radio»
         page.click("#gm-tpill")
         page.click('#gm-tp-s [data-tp="militar"]')
         page.wait_for_function("() => !document.getElementById('gm-tp-s').open", timeout=3000)
-        assert page.locator('.gm-card[data-g="soldados"]').is_visible()
+        assert page.locator('.gm-card[data-g="soldados"]:not(.gm-off)').is_visible()
+        assert not page.locator('.gm-card[data-g="soldados"] .gm-lockb').is_visible()
         page.click('.gm-card[data-g="memoria"]')
         go = page.locator(".gm-intro .gm-go")
         page.wait_for_selector(".gm-intro, .gm-mem, #gm-board", timeout=8000)

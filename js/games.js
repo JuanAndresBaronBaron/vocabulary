@@ -22,7 +22,8 @@
         api = {mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml,
         dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla), topicPool(g, need, fit) → {tp, name, P,
         mil} (las palabras del tema elegido, para los juegos con def.topic: true)}. def.show(tema) → false esconde la
-        tarjeta con ese tema (los juegos de soldados solo salen con el tema «Soldados», "militar").
+        tarjeta (en oscuro, con candado y el aviso def.off) con ese tema (los juegos de soldados solo se activan con el
+        tema «Soldados», "militar").
         Tarjeta que solo lleva a otra pantalla (el Buzón, js/mailbox.js): def = {t, sub, img, href: "#/…", line() → el
         texto de abajo} sin start: sin estrellas, récord ni vistazo, y #/juegos/<id> va a su href. */
 (() => {
@@ -417,7 +418,15 @@ const CSS = `
 .gm-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:12px;margin:0 0 24px}
 /* en el ordenador, 4 columnas como mucho: con 6, las tarjetas bajaban de 170 px y el récord no cabía */
 @media (min-width:1000px){.gm-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.gm-card[hidden]{display:none}
+/* un juego que no se activa con este tema (def.show): en oscuro, con candado y su aviso; tocarlo explica por qué
+   (sin relleno: más oscura que las demás en los dos temas; el aviso va donde estaba el récord) */
+.gm-card.gm-off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--sep)}
+.gm-card.gm-off .gm-ci{filter:grayscale(1);opacity:.5}
+.gm-lockb{display:none;box-sizing:border-box;margin-top:auto;width:100%;align-items:center;gap:6px;padding:6px 10px;border-radius:12px;
+  background:var(--label);color:var(--bg);font:700 var(--fs-min)/1.25 var(--f-text)}
+.gm-lockb .ico,.gm-lockb svg{flex:none}
+.gm-off .gm-lockb{display:flex}
+.gm-off .gm-cr,.gm-off .gm-new{display:none}
 .gm-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:184px;padding:16px;border-radius:var(--r-card);
   background:var(--card);color:var(--label);text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
 .gm-ci{width:64px;height:64px;margin:0 0 8px;pointer-events:none}
@@ -828,7 +837,17 @@ const isLink = id => !!GAMES[id] && typeof GAMES[id].start !== "function" && typ
 const usesTopic = g => !!GAMES[g] && (!!GAMES[g].topic || (!GAMES[g].start && !GAMES[g].words && !GAMES[g].href));
 /* ¿sale su tarjeta con el tema elegido? (def.show(tema), p. ej. los juegos de soldados solo con «Soldados») */
 const shown = id => { const f = GAMES[id] && GAMES[id].show; try{ return typeof f !== "function" || !!f(topicId()); }catch(e){ return true; } };
-function paintCards(){ document.querySelectorAll("#gm-cards .gm-card[data-g]").forEach(c => { c.hidden = !shown(c.dataset.g); }); }
+const offMsg = id => (GAMES[id] && GAMES[id].off) || "Se activa con otro tema";
+const offToast = id => toast(`${offMsg(id)}. Elígelo arriba, en «Tema».`, IC("lock", "bold", 20));
+/* apagada: aria-disabled y el aviso al principio de su nombre, para que el lector de pantalla diga por qué */
+function paintCards(){
+  document.querySelectorAll("#gm-cards .gm-card[data-g]").forEach(c => {
+    const on = shown(c.dataset.g), name = c.dataset.al != null ? c.dataset.al : (c.dataset.al = c.getAttribute("aria-label") || "");
+    c.classList.toggle("gm-off", !on);
+    if(on){ c.removeAttribute("aria-disabled"); c.setAttribute("aria-label", name); }
+    else{ c.setAttribute("aria-disabled", "true"); c.setAttribute("aria-label", `${sent(offMsg(c.dataset.g))} ${name}`); }
+  });
+}
 function linkHtml(id){
   const G0 = GAMES[id]; let line = "";
   try{ line = typeof G0.line === "function" ? String(G0.line() || "") : ""; }catch(e){ console.error(e); }
@@ -847,6 +866,7 @@ function cardHtml(id, b){
     ${fresh ? `<span class="gm-new" aria-hidden="true">Nuevo</span>` : ""}
     <img class="gm-ci" src="${esc(G0.img)}" alt="" width="64" height="64" draggable="false">
     <b class="gm-ct">${esc(G0.t)}</b><small class="gm-cs">${esc(G0.sub)}</small>
+    ${G0.show ? `<span class="gm-lockb" aria-hidden="true">${IC("lock", "bold", 14)}${esc(offMsg(id))}</span>` : ""}
     <span class="gm-cr" aria-hidden="true">${starsHtml(st, 18)}<span class="gm-rt">${esc(rec)}</span></span></a>`;
 }
 const pillHtml = tp => `<span>Tema:</span> <b>${esc(topicName(tp))}</b>${IC("caret-down", "bold", 16)}`;
@@ -856,14 +876,19 @@ async function menu(){
   clearGest();
   app.innerHTML = `<div class="gm gm-menu" id="gm-menu">
     <div class="gm-bar"><button type="button" class="glass-btn gm-tpill" id="gm-tpill" aria-haspopup="dialog">${pillHtml(topicId())}</button></div>
-    <div class="gm-cards" id="gm-cards">${Object.keys(GAMES).map(id => cardHtml(id, best[id]).replace(/^<a /, shown(id) ? "<a " : "<a hidden ")).join("")}</div>
+    <div class="gm-cards" id="gm-cards">${Object.keys(GAMES).map(id => cardHtml(id, best[id])).join("")}</div>
   </div>`;
   $("#gm-tpill").onclick = e => openTopics(e.currentTarget);
   const cards = [...app.querySelectorAll(".gm-card")];
   /* tocar = jugar (el enlace); dentro del toque se desbloquea la voz para que la partida pueda hablar (iOS) */
-  $("#gm-cards").addEventListener("click", e => { if(e.target.closest(".gm-card")) unlockVoice(); });
+  $("#gm-cards").addEventListener("click", e => {
+    const c = e.target.closest(".gm-card"); if(!c) return;
+    if(c.classList.contains("gm-off")){ e.preventDefault(); haptic("selection"); offToast(c.dataset.g); return; }
+    unlockVoice();
+  });
+  paintCards();
   /* mantener pulsado = vistazo (cómo se juega y el récord) */
-  if(window.G && typeof window.G.hold === "function") cards.filter(c => !isLink(c.dataset.g)).forEach(c => GEST.push(window.G.hold(c, {onHold: () => { haptic("selection"); peek(c.dataset.g, c); }})));
+  if(window.G && typeof window.G.hold === "function") cards.filter(c => !isLink(c.dataset.g)).forEach(c => GEST.push(window.G.hold(c, {onHold: () => { haptic("selection"); if(c.classList.contains("gm-off")) offToast(c.dataset.g); else peek(c.dataset.g, c); }})));
   /* la pista del vistazo (una por pantalla y sesión, 3 veces como mucho; nunca en partida). Sale debajo de la primera
      tarjeta, sobre la parte de arriba (el dibujo) de la fila siguiente: no tapa ni la pastilla del tema ni ningún récord */
   setTimeout(() => {
@@ -956,6 +981,8 @@ function peek(id, from){
 /* ---------- arranque de un juego ---------- */
 async function play(g, withIntro){
   const my = NAV, app = $("#app"), G0 = GAMES[g];
+  /* un enlace directo a un juego que no se activa con este tema: de vuelta al menú, con el aviso */
+  if(!shown(g)){ offToast(g); location.replace("#/juegos"); return; }
   const mode = !withIntro ? "" : !introSeen(g) ? "full" : tappedNow(g) ? "" : "ready";
   app.innerHTML = `<div class="gm"><p class="gm-wait">Preparando el juego…</p></div>`;
   if(typeof G0.start === "function"){   /* un juego de otro módulo (vocabGames.register) */

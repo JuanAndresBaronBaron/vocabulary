@@ -338,7 +338,8 @@ compartida no responde).
 - `test_pajarito.py` (`js/flyer.js`, «Pajarito volador»): la tarjeta en Juegos, la ciudad de cada idioma (Londres,
   París, Copenhague), 3 puertas con palabras, el pajarito ≥ 96 px y la calle hasta abajo en 360 y 390 px, mover con
   toque, flechas y teclas, acertar (+1) y fallar (−1 corazón) hasta el resultado con récord, la pausa que para las
-  puertas y capturas en `capturas/pajarito`.
+  puertas, el avión de combate con el tema «Soldados» (disparar, ayuda, bomba, radio), y fuera de ese tema el avión y
+  «Misión por radio» en oscuro con candado y su aviso (tocarlos solo avisa); capturas en `capturas/pajarito`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

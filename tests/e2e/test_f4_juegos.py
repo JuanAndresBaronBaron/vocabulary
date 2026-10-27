@@ -262,7 +262,7 @@ def test_menu_cards_and_topic_sheet():
     try:
         _open(page)
         m = page.evaluate("""() => { const app = document.getElementById('app'), t = app.textContent;
-          const cards = [...app.querySelectorAll('.gm-card:not(.gm-link):not([hidden])')].map(c => { const cs = getComputedStyle(c);   /* las de juego (sin las que solo llevan a otra pantalla, F5) */
+          const cards = [...app.querySelectorAll('.gm-card:not(.gm-link):not(.gm-off)')].map(c => { const cs = getComputedStyle(c);   /* las de juego (sin las que solo llevan a otra pantalla, F5) */
             return {g: c.dataset.g, r: cs.borderTopLeftRadius, bg: cs.backgroundColor, on: c.querySelectorAll('.gm-st i.on').length,
               onColor: (c.querySelector('.gm-st i.on') ? getComputedStyle(c.querySelector('.gm-st i.on')).color : null),
               offColor: (c.querySelector('.gm-st i:not(.on)') ? getComputedStyle(c.querySelector('.gm-st i:not(.on)')).color : null),
@@ -273,7 +273,7 @@ def test_menu_cards_and_topic_sheet():
             pill: document.getElementById('gm-tpill').textContent.replace(/\\s+/g, ' ').trim()}; }""")
         if m["fox"] or m["inicio"] or m["prueba"] or m["tpanel"]:
             probs.append(f"quedan piezas viejas en el menú: {m}")
-        if [c["g"] for c in m["cards"]] != CARDS:   # soldados (js/army.js) solo sale con el tema «Soldados»
+        if [c["g"] for c in m["cards"]] != CARDS:   # soldados (js/army.js) sale en oscuro (.gm-off) fuera del tema «Soldados»
             probs.append(f"tarjetas: {[c['g'] for c in m['cards']]}")
         best = page.evaluate(_BEST)
         for c in m["cards"]:
