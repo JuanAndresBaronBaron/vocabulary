@@ -20,7 +20,9 @@
         register: def = {t, sub, how, img, words (texto en lugar del tema), rec(best) → texto del récord, fresh (chip
         «Nuevo» en su tarjeta hasta la primera partida), start(app, api, intro)}; start monta el juego con
         api = {mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml,
-        dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla)}.
+        dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla), topicPool(g, need, fit) → {tp, name, P,
+        mil} (las palabras del tema elegido, para los juegos con def.topic: true)}. def.show(tema) → false esconde la
+        tarjeta con ese tema (los juegos de soldados solo salen con el tema «Soldados», "militar").
         Tarjeta que solo lleva a otra pantalla (el Buzón, js/mailbox.js): def = {t, sub, img, href: "#/…", line() → el
         texto de abajo} sin start: sin estrellas, récord ni vistazo, y #/juegos/<id> va a su href. */
 (() => {
@@ -48,8 +50,12 @@ const TOPICS = [
   ["w25", "1F3C3", "Moverse", 0], ["w01", "1F9D1-200D-1F91D-200D-1F9D1", "Personas", 0], ["w32", "1F600", "Emociones", 0], ["w31", "1F440", "Cómo son las cosas", 0],
   ["w29", "1F504", "Cambios", 0], ["w16", "1F52C", "Ciencia", 0], ["w26", "1F4AC", "Hablar", 0], ["w08", "1F4C5", "Días y horas", 0],
   ["w20", "1F4AD", "Sentimientos", 0], ["w10", "1F3EB", "El colegio", 0], ["w11", "1F4BC", "Trabajos", 0], ["w12", "1F6D2", "Compras", 0],
-  ["nacionalidades", "1F30E", "Nacionalidades", 0],
+  ["nacionalidades", "1F30E", "Nacionalidades", 0], ["militar", "1FA96", "Soldados", 0],
 ];
+/* «Soldados»: no es un documento de Palabras sino la jerga del ejército de cada idioma (data/army/<ab>.json de js/army.js:
+   radio, órdenes y campamento con su dibujo, y los rangos con su insignia). Con este tema salen además los juegos de
+   soldados (def.show de vocabGames.register) */
+const MIL = "militar";
 const W3000 = t => /^w\d+$/.test(t[0]);
 const START = (a, b) => b[3] - a[3];   /* los de empezar, primero (sort estable: el resto, en su orden) */
 const MIS_INFO = [MIS, "2B50", "Mis palabras", 1];
@@ -310,7 +316,25 @@ async function rowsFor(src){
   const doc = await getDoc(src);
   return doc.rows.map(r => ({r, d: src}));
 }
+async function milPool(){
+  const L = lang, ab = {english: "en", "français": "fr", dansk: "da"}[L] || "en";
+  const r = await fetch(`data/army/${ab}.json`); if(!r.ok) throw new Error(`data/army/${ab}.json ${r.status}`);
+  const A = await r.json(), sw = new Set(), se = new Set(), out = [];
+  const add = (k, word, es, img, ipa) => {
+    word = String(word || "").trim(); es = String(es || "").trim();
+    if(!word || !es || !img || sw.has(word.toLowerCase()) || se.has(es.toLowerCase())) return;
+    sw.add(word.toLowerCase()); se.add(es.toLowerCase());
+    out.push({k: MIL + "|" + k, es, word, img, doc: MIL, ipa: String(ipa || "")});
+  };
+  for(const t of A.terms || []) if(t && t.cat !== "alfabeto" && typeof t.img === "string") add(t.id, t.w, t.es, t.img, t.ipa);
+  const VA = window.vocabArmy;
+  if(VA && typeof VA.insignia === "function") (A.ranks || []).forEach((rk, i) => {
+    if(i > 0 && rk) add(rk.id, rk.w, rk.es, "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 48" width="160" height="192">${VA.insignia(L, i).replace(/^<svg[^>]*>|<\/svg>$/g, "")}</svg>`), rk.ipa);
+  });
+  return out;
+}
 async function pool(src){
+  if(src === MIL) return milPool();
   const L = lang, sw = new Set(), se = new Set(), si = new Set(), out = [];
   for(const {r, d} of await rowsFor(src)){
     const x = r && r.es && r.img && r.l && r.l[L];
@@ -320,7 +344,7 @@ async function pool(src){
     const kw = word.toLowerCase(), ke = es.toLowerCase();
     if(sw.has(kw) || se.has(ke) || si.has(r.img)) continue;
     sw.add(kw); se.add(ke); si.add(r.img);
-    out.push({k: d + "|" + r.es, es, word, img: r.img, doc: d});
+    out.push({k: d + "|" + r.es, es, word, img: r.img, doc: d, ipa: x.ipa || ""});
   }
   return out;
 }
@@ -393,6 +417,7 @@ const CSS = `
 .gm-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:12px;margin:0 0 24px}
 /* en el ordenador, 4 columnas como mucho: con 6, las tarjetas bajaban de 170 px y el récord no cabía */
 @media (min-width:1000px){.gm-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.gm-card[hidden]{display:none}
 .gm-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:184px;padding:16px;border-radius:var(--r-card);
   background:var(--card);color:var(--label);text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
 .gm-ci{width:64px;height:64px;margin:0 0 8px;pointer-events:none}
@@ -799,6 +824,11 @@ const recLine = (g, b) => b && typeof b === "object" && GAMES[g].rec ? GAMES[g].
 const sent = t => /[.?!…]$/.test(t) ? t : t + ".";
 /* tarjeta que solo lleva a otra pantalla (register con href y sin start) */
 const isLink = id => !!GAMES[id] && typeof GAMES[id].start !== "function" && typeof GAMES[id].href === "string";
+/* ¿juega con el tema elegido? (los de aquí y los de otros módulos con def.topic) */
+const usesTopic = g => !!GAMES[g] && (!!GAMES[g].topic || (!GAMES[g].start && !GAMES[g].words && !GAMES[g].href));
+/* ¿sale su tarjeta con el tema elegido? (def.show(tema), p. ej. los juegos de soldados solo con «Soldados») */
+const shown = id => { const f = GAMES[id] && GAMES[id].show; try{ return typeof f !== "function" || !!f(topicId()); }catch(e){ return true; } };
+function paintCards(){ document.querySelectorAll("#gm-cards .gm-card[data-g]").forEach(c => { c.hidden = !shown(c.dataset.g); }); }
 function linkHtml(id){
   const G0 = GAMES[id]; let line = "";
   try{ line = typeof G0.line === "function" ? String(G0.line() || "") : ""; }catch(e){ console.error(e); }
@@ -826,7 +856,7 @@ async function menu(){
   clearGest();
   app.innerHTML = `<div class="gm gm-menu" id="gm-menu">
     <div class="gm-bar"><button type="button" class="glass-btn gm-tpill" id="gm-tpill" aria-haspopup="dialog">${pillHtml(topicId())}</button></div>
-    <div class="gm-cards" id="gm-cards">${Object.keys(GAMES).map(id => cardHtml(id, best[id])).join("")}</div>
+    <div class="gm-cards" id="gm-cards">${Object.keys(GAMES).map(id => cardHtml(id, best[id]).replace(/^<a /, shown(id) ? "<a " : "<a hidden ")).join("")}</div>
   </div>`;
   $("#gm-tpill").onclick = e => openTopics(e.currentTarget);
   const cards = [...app.querySelectorAll(".gm-card")];
@@ -845,7 +875,7 @@ async function menu(){
   if(topicId() === MIS){
     const n = await countMis();
     if(!here(my)) return;
-    if(n < MIS_MIN){ store.set("games:topic", "animales"); paintPill(); }
+    if(n < MIS_MIN){ store.set("games:topic", "animales"); paintPill(); paintCards(); }
   }
 }
 /* la hoja de temas: «Mis palabras» primero y luego los temas; tocar uno lo elige (✓), se guarda y la hoja se cierra */
@@ -893,7 +923,7 @@ function chooseTopic(id, d){
     if(on && !ok) r.insertAdjacentHTML("beforeend", IC("check", "bold", 20, "gm-tp-ok"));
     else if(!on && ok) ok.remove();
   });
-  paintPill();
+  paintPill(); paintCards();
   setTimeout(() => sheetClose(d), RM() ? 120 : 260);
   return true;
 }
@@ -1002,7 +1032,7 @@ function finish(run, g, o){
   try{ if(typeof updFocus === "function") updFocus(); }catch(e){}
   award(coins, "", false, run.root.querySelector("#gm-plus"));
   bus.emit("game-done", Object.assign({game: g, score: o.score, stars: o.stars}, g === "memoria" ? {tries: o.tries} : {},
-    GAMES[g] && !GAMES[g].start && !GAMES[g].words && CUR_TP ? {tp: CUR_TP} : {}));   /* tp: el tema de la partida */
+    usesTopic(g) && CUR_TP ? {tp: CUR_TP} : {}));   /* tp: el tema de la partida */
   snd("fanfare");
   /* las estrellas salen de una en una, cada una con una nota más aguda */
   for(let i = 0; i < o.stars; i++) later(run, () => note(i + 2), RM() ? 120 : 200 + (i + 1) * 280);
@@ -1554,7 +1584,22 @@ function letras(app, P, mode){
 }
 
 /* ---------- juegos de otros módulos ---------- */
-const API = Object.freeze({mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml, dotsHtml, nm,
+/* las palabras del tema elegido para un juego de otro módulo (def.topic): las mismas reglas que play() (Mis palabras
+   sin bastantes vuelve a Animales; un tema con menos de need, también, con un aviso). fit filtra las que le sirven */
+async function topicPool(g, need, fit){
+  let tp = hashTopic() || topicId(), P = [];
+  if(tp === MIS && (await countMis()) < MIS_MIN) tp = "animales";
+  const ok = A => fit ? A.filter(fit) : A;
+  try{ P = ok(await pool(tp)); }catch(e){ P = []; }
+  if(P.length < need && tp !== "animales"){
+    try{ P = ok(await pool("animales")); }catch(e){ P = []; }
+    if(here(NAV, g)) toast(`${topicName(tp)} tiene pocas palabras para este juego. ¡Jugamos con Animales!`);
+    tp = "animales";
+  }
+  CUR_TP = tp;
+  return {tp, name: topicName(tp), P, mil: tp === MIL};
+}
+const API = Object.freeze({mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml, dotsHtml, nm, topicPool,
   nav: () => NAV, here: (my, g) => here(my, g), kbd: () => KBD});
 function register(id, def){
   if(typeof id !== "string" || !/^[a-z][a-z0-9-]*$/.test(id) || GAMES[id] || !def || !def.t || !def.img) return false;
@@ -1573,7 +1618,7 @@ Object.assign(window.vocabGames = window.vocabGames || {}, {
   /* el dibujo de una palabra tal como sale en los juegos (los árboles de familia recortados de img/fam2/) */
   pic: src => picSrc(src),
   /* para los atajos de Hoy (js/shortcuts.js): un juego (topic: si se juega con un tema) y un tema */
-  meta: id => GAMES[id] ? {id, t: GAMES[id].t, img: GAMES[id].img, topic: !GAMES[id].start && !GAMES[id].words} : null,
+  meta: id => GAMES[id] ? {id, t: GAMES[id].t, img: GAMES[id].img, topic: usesTopic(id)} : null,
   topic: id => isTopic(id) ? {id, name: topicName(id), img: topicImg(id)} : null,
 });
 Object.defineProperty(window.vocabGames, "paused", {configurable: true, enumerable: true, get: () => !!(RUN && RUN.paused)});

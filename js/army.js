@@ -674,6 +674,7 @@ const reg = W.vocabGames && typeof vocabGames.register === "function" && vocabGa
   t: "Misión por radio", sub: "Órdenes del sargento", img: "img/games/soldados.png",
   how: "El sargento te da una orden por radio. Escúchala y toca el dibujo que significa lo mismo.",
   words: "Palabras de soldados",
+  show: tp => tp === "militar",   /* solo con el tema «Soldados» de Juegos */
   rec: b => `${Number.isFinite(+b.score) ? +b.score : 0} de ${ROUNDS}`,
   start,
 });

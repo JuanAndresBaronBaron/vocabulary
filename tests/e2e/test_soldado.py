@@ -51,6 +51,7 @@ def _keys(lang="english", own=True, wear=True, seen=None, maps=None, coins=None)
     if coins is not None:
         g["coins"] = coins
     k["lang"] = lang
+    k["games:topic"] = "militar"   # «Misión por radio» solo sale en Juegos con el tema «Soldados»
     for L, v in (seen or {}).items():
         k["army:" + L] = v
     for L, v in (maps or {}).items():

@@ -5,8 +5,11 @@
      deslizando a los lados o con ← → (1 2 3). Al pasar suena la palabra y se ve con su IPA.
      Acierto: la puerta en verde, una moneda más y chispas. Fallo: se pierde un corazón (3), la buena se pone verde y
      suena (sin sonido triste). Cada 5 aciertos sube de nivel y todo llega más deprisa.
-     Acaba a las 15 palabras o sin corazones. Estrellas por aciertos (13+ ★★★, 9+ ★★, si no ★).
-   Al empezar se elige la nave (se recuerda en "flyer:veh", solo de este aparato):
+     Acaba a las 15 palabras (o las que tenga el tema) o sin corazones. Estrellas por aciertos (todas menos 2 ★★★,
+     el 60 % ★★, si no ★).
+   Las palabras son las del tema elegido en Juegos (api.topicPool, como Memoria o Globos). Con el tema «Soldados»
+     (la jerga del ejército) se elige además la nave al empezar (se recuerda en "flyer:veh", solo de este aparato);
+     con los demás temas se vuela siempre con el pajarito, sin nada de soldados:
      · Pajarito: lo de arriba, sin nada más.
      · Avión de combate («misión»): además de cruzar la puerta, puede derribar la palabra buena con «Fuego» (Espacio).
        Derribar una mala cuenta como fallo. Por el aire llegan drones (obstáculos): se esquivan o se derriban; chocar
@@ -17,8 +20,8 @@
        con su español y su IPA, y la voz lo dice.
    Usa de games.js lo de los demás juegos: tarjeta del menú, récord, explicación la primera vez, «?», pausa (el
      reloj del juego se para) y finish() (récord en "games:best".pajarito, monedas con award desde «+N»).
-   Datos: data/party.json (words {id: {es, img, english|français|dansk: [palabra, IPA]}}), el mismo de js/party.js,
-     y data/army/<ab>.json (terms con id roger, copy, over, out, again, att, march y los del campamento). */
+   Datos: las del tema (games.js) y, con «Soldados», data/army/<ab>.json (terms con id roger, copy, over, out, again,
+     att, march y los del campamento) para la radio y las cajas de ayuda. */
 (() => {
 "use strict";
 
@@ -79,12 +82,6 @@ const BOMB = `<svg viewBox="0 0 30 40" aria-hidden="true" focusable="false"><pat
 const ICO_BOMB = `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><circle cx="11" cy="14" r="7.5" fill="currentColor"/><path d="M15 8 L18 5 M18 5 q2-2 4 0" stroke="currentColor" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`;
 const ICO_BOX = `<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true" focusable="false"><path d="M3 10 Q12 -2 21 10Z" fill="currentColor"/><path d="M4 10 L10 15 M20 10 L14 15" stroke="currentColor" stroke-width="1.8"/><rect x="8" y="14" width="8" height="8" rx="1.5" fill="currentColor"/></svg>`;
 
-let DATA = null;
-function load(){
-  if(!DATA) DATA = fetch("data/party.json").then(r => { if(!r.ok) throw new Error("data/party.json " + r.status); return r.json(); })
-    .catch(e => { DATA = null; throw e; });
-  return DATA;
-}
 const ARMY = {};
 function loadArmy(ab){
   if(!ARMY[ab]) ARMY[ab] = fetch(`data/army/${ab}.json`).then(r => { if(!r.ok) throw new Error(`data/army/${ab}.json ${r.status}`); return r.json(); })
@@ -92,19 +89,8 @@ function loadArmy(ab){
   return ARMY[ab];
 }
 const pic = src => (window.vocabGames && typeof vocabGames.pic === "function") ? vocabGames.pic(src) : src;
-/* las palabras del idioma: con dibujo y cortas (que quepan en una puerta) */
-function wordsOf(D, L){
-  const out = [], seen = new Set();
-  for(const [id, x] of Object.entries((D && D.words) || {})){
-    const l = x && x[L];
-    if(!l || typeof l[0] !== "string" || typeof x.es !== "string") continue;
-    const w = l[0].trim(), es = x.es.trim();
-    if(!w || !es || [...w].length > MAX_LEN || seen.has(w.toLowerCase()) || seen.has("es:" + es.toLowerCase())) continue;
-    seen.add(w.toLowerCase()); seen.add("es:" + es.toLowerCase());
-    out.push({id, es, word: w, ipa: l[1] || "", img: typeof x.img === "string" && /^img\/[\w.\-\/]+\.png$/.test(x.img) ? x.img : null});
-  }
-  return out;
-}
+/* palabras que caben en una puerta */
+const fits = x => x && typeof x.word === "string" && x.word.trim() && [...x.word].length <= MAX_LEN && typeof x.es === "string" && x.es.trim();
 /* la jerga del ejército del idioma: {id: {w, es, ipa}} (vacío si no carga: el juego sigue sin radio) */
 function termsOf(A){
   const out = {};
@@ -241,11 +227,12 @@ async function start(app, api, mode){
   const my = api.nav();
   css();
   const L = lang, ab = AB[L] || "en";
-  let D = null, A = null;
-  await Promise.all([load().then(d => { D = d; }, () => {}), loadArmy(ab).then(a => { A = a; }, () => {})]);
+  let TP = {P: [], mil: false, name: ""}, A = null;
+  try{ TP = await api.topicPool(ID, 6, fits); }catch(e){}
+  if(TP.mil) try{ A = await loadArmy(ab); }catch(e){ A = null; }
   if(!api.here(my, ID) || lang !== L) return;
-  const P = wordsOf(D, L), T = termsOf(A);
-  if(P.length < 12){
+  const P = TP.P, T = termsOf(A), MIL = TP.mil, N = Math.min(ROUNDS, P.length);
+  if(P.length < 6){
     app.innerHTML = `<div class="gm"><div class="gm-empty"><p>Este juego todavía no tiene palabras en ${esc(api.nm())}.</p>
       <a class="glass-btn" href="#/juegos">${IC("caret-left", "bold", 18)}Juegos</a></div></div>`;
     return;
@@ -253,17 +240,17 @@ async function start(app, api, mode){
   const code = LANGS[L].code, scene = SCENES[L] || SCENES.english;
   /* las rondas: 15 palabras distintas (con dibujo primero) y 2 puertas falsas para cada una */
   const pool = shuffle(P.filter(x => x.img)).concat(shuffle(P.filter(x => !x.img)));
-  const rounds = pool.slice(0, ROUNDS).map(t => {
+  const rounds = pool.slice(0, N).map(t => {
     const others = shuffle(P.filter(x => x !== t && x.word.toLowerCase() !== t.word.toLowerCase())).slice(0, 2);
     const opts = shuffle([t, ...others]);
     return {t, opts, ok: opts.indexOf(t)};
   });
   rounds.slice(0, 4).forEach(r => { if(r.t.img){ const im = new Image(); im.src = pic(r.t.img); } });
-  const lastVeh = vehGet();
+  const lastVeh = vehGet() || "jet";
   const run = api.mount(app, `<div class="gm fl" id="fl">
     ${api.topHtml(ID, `<span class="gm-pill gm-lives" id="gm-lives" role="img" aria-label="${LIVES} vidas">${`<i>${IC("heart", "fill", 18)}${IC("heart", "bold", 18)}</i>`.repeat(LIVES)}</span><span class="gm-pill" title="Monedas">${IC("coin", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
     <div class="fl-card" aria-live="polite"><span class="fl-pic" id="fl-pic"></span>
-      <div class="fl-txt"><span class="fl-lab" id="fl-lab">Vuela a la puerta de…</span><span class="fl-es" id="fl-es">¡Elige tu nave!</span><span class="fl-ans" id="fl-ans" lang="${esc(code)}"></span></div></div>
+      <div class="fl-txt"><span class="fl-lab" id="fl-lab">Vuela a la puerta de…</span><span class="fl-es" id="fl-es">${MIL ? "¡Elige tu nave!" : "¡Prepárate!"}</span><span class="fl-ans" id="fl-ans" lang="${esc(code)}"></span></div></div>
     <div class="fl-stage" id="fl-stage" style="background-image:url('${esc(scene.img)}')" aria-label="La calle de ${esc(scene.city)}">
       <div class="fl-road" id="fl-road"></div>
       <div class="fl-bird" id="fl-bird">${BIRD}</div>
@@ -397,7 +384,7 @@ async function start(app, api, mode){
     gates.forEach(g => g.remove());
     gates = R.opts.map((x, i) => {
       const g = document.createElement("div");
-      g.className = "fl-gate"; g.dataset.i = i;
+      g.className = "fl-gate"; g.dataset.i = i; g.flOk = i === R.ok;   /* flOk: para las pruebas */
       g.innerHTML = `<b lang="${esc(code)}" style="font-size:${gateFs(x.word)}rem">${esc(x.word)}</b><i></i>`;
       stage.insertBefore(g, bird);
       return g;
@@ -436,7 +423,7 @@ async function start(app, api, mode){
   function after(){
     if(!live() || ended) return;
     r++;
-    if(lives <= 0 || r >= ROUNDS){ end(); return; }
+    if(lives <= 0 || r >= N){ end(); return; }
     if(res[res.length - 1] && hits % PER_LEVEL === 0 && level < SPEED.length + 2){
       level++;
       const lv = root.querySelector("#fl-lv"); if(lv){ lv.textContent = level; api.bump(lv.parentNode); }
@@ -452,14 +439,14 @@ async function start(app, api, mode){
   function end(){
     if(ended) return;
     ended = true; phase = "wait";
-    const stars = score >= 13 ? 3 : score >= 9 ? 2 : 1;
+    const stars = score >= N - 2 ? 3 : score >= Math.ceil(N * .6) ? 2 : 1;
     const seen = new Set(), words = [];
     rounds.slice(0, res.length).forEach((o, i) => { if(!seen.has(o.t.word)){ seen.add(o.t.word); words.push({word: o.t.word, es: o.t.es, img: o.t.img, miss: !res[i]}); } });
     const extra = jet ? ` Ayuda entregada: ${stats.aid} · barricadas: ${stats.foe} · drones: ${stats.drone}.` : "";
     api.finish(run, ID, {score, stars, words: words.sort((a, b) => b.miss - a.miss),
       line: (lives <= 0 ? `¡Pasaste ${score} puerta${score === 1 ? "" : "s"} por ${scene.city}! La próxima llegas más lejos.`
-        : score === ROUNDS ? (jet ? `¡Misión cumplida! Las ${ROUNDS} palabras en ${scene.city}.` : `¡Las ${ROUNDS} puertas! Eres el rey del cielo de ${scene.city}.`)
-        : jet ? `Misión cumplida: ${score} de ${ROUNDS} palabras en ${scene.city}.` : `¡Pasaste ${score} de ${ROUNDS} puertas por ${scene.city}!`) + extra});
+        : score === N ? (jet ? `¡Misión cumplida! Las ${N} palabras en ${scene.city}.` : `¡Las ${N} puertas! Eres el rey del cielo de ${scene.city}.`)
+        : jet ? `Misión cumplida: ${score} de ${N} palabras en ${scene.city}.` : `¡Pasaste ${score} de ${N} puertas por ${scene.city}!`) + extra});
   }
   /* ---------- armas y ayuda (solo el avión) ---------- */
   function fire(){
@@ -603,15 +590,16 @@ async function start(app, api, mode){
   last = performance.now();
   run.raf = requestAnimationFrame(frame);
   /* elegir la nave (después de la explicación); con el teclado, 1 o 2 */
-  function choose(v){
-    const pk = root.querySelector("#fl-pick"); if(!pk || pk.hidden || !live()) return;
+  function choose(v, auto){
+    const pk = root.querySelector("#fl-pick"); if(!pk || (pk.hidden && !auto) || !live() || started) return;
     pk.hidden = true;
-    jet = v === "jet"; vehSet(v);
+    jet = MIL && v === "jet";
+    if(!auto) vehSet(v);
     root.classList.toggle("fl-jet", jet);
     bird.innerHTML = jet ? JET : BIRD;
     root.querySelector("#fl-acts").hidden = !jet;
     root.querySelector("#fl-lab").textContent = jet ? "Objetivo: la palabra…" : "Vuela a la puerta de…";
-    api.haptic("selection");
+    if(!auto) api.haptic("selection");
     started = true; last = performance.now(); measure();
     api.keys(run, kb);
     round();
@@ -619,6 +607,7 @@ async function start(app, api, mode){
   }
   root.querySelectorAll(".fl-veh").forEach(b => { b.onclick = () => choose(b.dataset.veh); });
   api.intro(run, ID, () => {
+    if(!MIL){ choose("bird", true); return; }
     const pk = root.querySelector("#fl-pick"); pk.hidden = false;
     api.keys(run, e => {
       if(e.key === "1" || e.key === "2"){ e.preventDefault(); choose(e.key === "1" ? "bird" : "jet"); }
@@ -631,10 +620,10 @@ async function start(app, api, mode){
 
 const reg = window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(ID, {
   t: "Pajarito volador", sub: "Pajarito o avión de combate", img: "img/games/pajarito.png",
-  how: "Arriba sale una palabra. Ve a la puerta que la dice en el idioma: toca la puerta, tu lado o desliza. Con el avión de combate también puedes dispararle, esquivar o derribar drones, bombardear barricadas y lanzar ayuda a los soldados.",
-  words: "Vuela por Londres, París o Copenhague",
+  how: "Arriba sale una palabra del tema. Ve a la puerta que la dice en el idioma: toca la puerta, tu lado o desliza. Con el tema Soldados puedes volar en avión de combate: dispara, esquiva drones, bombardea barricadas y lanza ayuda a los soldados.",
+  topic: true,
   fresh: true,
-  rec: b => `${Number.isFinite(+b.score) ? +b.score : 0} de ${ROUNDS} palabras`,
+  rec: b => `${Number.isFinite(+b.score) ? +b.score : 0} palabras`,
   start,
 });
 if(!reg) console.warn("[flyer] no se pudo añadir a Juegos");
