@@ -51,12 +51,16 @@ const TOPICS = [
   ["w25", "1F3C3", "Moverse", 0], ["w01", "1F9D1-200D-1F91D-200D-1F9D1", "Personas", 0], ["w32", "1F600", "Emociones", 0], ["w31", "1F440", "Cómo son las cosas", 0],
   ["w29", "1F504", "Cambios", 0], ["w16", "1F52C", "Ciencia", 0], ["w26", "1F4AC", "Hablar", 0], ["w08", "1F4C5", "Días y horas", 0],
   ["w20", "1F4AD", "Sentimientos", 0], ["w10", "1F3EB", "El colegio", 0], ["w11", "1F4BC", "Trabajos", 0], ["w12", "1F6D2", "Compras", 0],
-  ["nacionalidades", "1F30E", "Nacionalidades", 0], ["militar", "1FA96", "Soldados", 0],
+  ["nacionalidades", "1F30E", "Nacionalidades", 0], ["militar", "1FA96", "Soldados", 0], ["programadores", "1F9D1-200D-1F4BB", "Programadores", 0],
 ];
-/* «Soldados»: no es un documento de Palabras sino la jerga del ejército de cada idioma (data/army/<ab>.json de js/army.js:
-   radio, órdenes y campamento con su dibujo, y los rangos con su insignia). Con este tema salen además los juegos de
-   soldados (def.show de vocabGames.register) */
+/* «Jergas de oficios»: su propia sección en la hoja de temas (no son los nombres de los oficios, que van en
+   «Profesiones», sino cómo hablan los que los hacen). «Soldados» no es un documento de Palabras sino la jerga del ejército
+   de cada idioma (data/army/<ab>.json de js/army.js: radio, órdenes y campamento con su dibujo, y los rangos con su
+   insignia); con él salen además los juegos de soldados (def.show de vocabGames.register). «Programadores» es
+   data/programadores.json (fuera del índice: no sale en Aprender) */
 const MIL = "militar";
+const JERGAS = {militar: "Cómo hablan los soldados", programadores: "Cómo hablan los programadores"};
+const JERGA = t => Object.prototype.hasOwnProperty.call(JERGAS, t[0]);
 const W3000 = t => /^w\d+$/.test(t[0]);
 const START = (a, b) => b[3] - a[3];   /* los de empezar, primero (sort estable: el resto, en su orden) */
 const MIS_INFO = [MIS, "2B50", "Mis palabras", 1];
@@ -930,7 +934,8 @@ function openTopics(from){
     <p class="gm-tp-sub">Los juegos usan sus dibujos y sus palabras en ${esc(nm())}.</p>
     <div role="radiogroup" aria-labelledby="gm-tp-t">
       <section class="st-sec"><div class="st-g" id="gm-tp-mis">${misRow(MIS_LANG === lang ? MIS_N : null)}</div></section>
-      <section class="st-sec" aria-labelledby="gm-tp-h1"><h3 class="st-h" id="gm-tp-h1">Temas</h3><div class="st-g">${TOPICS.filter(t => !W3000(t)).sort(START).map(t => row(t)).join("")}</div></section>
+      <section class="st-sec" aria-labelledby="gm-tp-h1"><h3 class="st-h" id="gm-tp-h1">Temas</h3><div class="st-g">${TOPICS.filter(t => !W3000(t) && !JERGA(t)).sort(START).map(t => row(t)).join("")}</div></section>
+      <section class="st-sec" aria-labelledby="gm-tp-h3"><h3 class="st-h" id="gm-tp-h3">Jergas de oficios</h3><div class="st-g">${TOPICS.filter(JERGA).map(t => row(t, `<small>${esc(JERGAS[t[0]])}</small>`)).join("")}</div></section>
       <section class="st-sec" aria-labelledby="gm-tp-h2"><h3 class="st-h" id="gm-tp-h2">Las 3000</h3><div class="st-g">${TOPICS.filter(W3000).sort(START).map(t => row(t)).join("")}</div></section>
     </div>`;
   sheetOpen(d, from);

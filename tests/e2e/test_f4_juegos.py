@@ -303,7 +303,7 @@ def test_menu_cards_and_topic_sheet():
             checked: rows.filter(r => r.getAttribute('aria-checked') === 'true').map(r => r.dataset.tp), title: d.querySelector('h2').textContent,
             heads: [...d.querySelectorAll('.st-h')].map(h => h.textContent), blur: getComputedStyle(d).backdropFilter}; }""")
         if not sh["modal"] or sh["first"] != "mis" or not sh["radio"] or sh["checked"] != ["animales"] or sh["n"] < 20 or sh["blur"] not in ("none", "") \
-                or sh["heads"] != ["Temas", "Las 3000"]:
+                or sh["heads"] != ["Temas", "Jergas de oficios", "Las 3000"]:
             probs.append(f"hoja de temas: {sh}")
         page.locator('#gm-tp-s [data-tp="colores"]').click()
         page.wait_for_function("() => !document.getElementById('gm-tp-s').open", timeout=3000)

@@ -278,3 +278,59 @@ def test_topic_words_and_soldiers_apart():
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
+
+
+def test_jargon_section_programadores():
+    """La hoja de temas tiene «Jergas de oficios» (Soldados y Programadores, cada uno con «Cómo hablan…») aparte de
+    «Temas». data/programadores.json trae la jerga en inglés, francés y danés con IPA y un dibujo que existe. Con
+    «Programadores» el pajarito juega con esas palabras (en francés también), el avión y la misión siguen apagados, y
+    Memoria arranca sin errores."""
+    doc = json.loads((C.ROOT / "data" / "programadores.json").read_text(encoding="utf-8"))
+    rows = [r for r in doc["rows"] if "es" in r]
+    assert len(rows) >= 24, len(rows)
+    for r in rows:
+        assert (C.ROOT / r["img"]).is_file(), r["img"]
+        for lang in ("english", "français", "dansk"):
+            x = r["l"][lang]
+            assert x["word"] and x["ipa"].startswith("/") and x["ipa"].endswith("/") and x["ex"] and x["ex_es"], (r["es"], lang)
+    page = C.new_page("phone")
+    try:
+        C.seed(page, _keys("english"), "#/juegos")
+        page.wait_for_selector("#gm-tpill", timeout=8000)
+        page.click("#gm-tpill")
+        page.wait_for_selector("dialog#gm-tp-s[open]", timeout=3000)
+        sec = page.evaluate("""() => [...document.querySelectorAll('#gm-tp-s .st-sec')].map(s => ({h: (s.querySelector('.st-h') || {}).textContent || '',
+          tp: [...s.querySelectorAll('[data-tp]')].map(r => r.dataset.tp), sub: [...s.querySelectorAll('[data-tp] small')].map(x => x.textContent)}))""")
+        jer = next(s for s in sec if s["h"] == "Jergas de oficios")
+        assert jer["tp"] == ["militar", "programadores"], jer
+        assert jer["sub"] == ["Cómo hablan los soldados", "Cómo hablan los programadores"], jer
+        temas = next(s for s in sec if s["h"] == "Temas")
+        assert "militar" not in temas["tp"] and "programadores" not in temas["tp"] and "profesiones" in temas["tp"], temas
+        page.locator("#gm-tp-h3").scroll_into_view_if_needed()
+        page.wait_for_timeout(500)
+        C.shot(page, "phone-jergas-de-oficios", SHOTS, full_page=False)
+        page.click('#gm-tp-s [data-tp="programadores"]')
+        page.wait_for_function("() => !document.getElementById('gm-tp-s').open", timeout=3000)
+        assert "Programadores" in page.locator("#gm-tpill").text_content()
+        assert "gm-off" in page.locator('.gm-card[data-g="soldados"]').get_attribute("class")
+        page.click('.gm-card[data-g="memoria"]')
+        page.wait_for_selector(".gm-intro, .gm-mem, #gm-board", timeout=8000)
+        go = page.locator(".gm-intro .gm-go")
+        if go.count():
+            assert "Programadores" in page.locator(".gm-intro-tp").text_content()
+            go.click()
+        page.wait_for_selector(".gm-mc", timeout=8000)
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+    for lang in ("english", "français"):
+        page = C.new_page("phone")
+        try:
+            _open(page, lang, "bird", "programadores")
+            assert page.locator('.fl-veh[data-veh="jet"].off').count() == 1
+            words = page.evaluate("[...document.querySelectorAll('.fl-gate b')].map(b => b.textContent)")
+            mine = [r["l"][lang]["word"] for r in rows]
+            assert words and all(any(w in m or m.endswith(w) for m in mine) for w in words), (words, mine)
+            assert not C.errors(page), C.errors(page)
+        finally:
+            page.context.close()

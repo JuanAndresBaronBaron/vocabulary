@@ -1796,7 +1796,7 @@ let rv = null;
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v32", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v33", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/party.js", "data/party.json", "img/games/impostor.png", "img/games/ordenar.png", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
@@ -1818,7 +1818,7 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "data/stories/fr/play.json", "data/stories/fr/colours.json", "data/stories/fr/cake.json", "data/stories/fr/night.json",
   "data/stories/da/play.json", "data/stories/da/colours.json", "data/stories/da/cake.json", "data/stories/da/night.json",
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
-  "js/army.js", "data/army/en.json", "data/army/fr.json", "data/army/da.json", "img/games/soldados.png",
+  "js/army.js", "data/army/en.json", "data/army/fr.json", "data/army/da.json", "img/games/soldados.png", "data/programadores.json", "img/om_1F7E6.png",
   "js/tech-boot.js", "js/tech.js", "js/tech-lesson.js",
   "js/tech-pages.js",
   "js/flyer.js", "img/games/pajarito.png", "img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg",
@@ -3010,38 +3010,38 @@ renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
 document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmCss(); bus.emit("boot"); route(); });
 </script>
 <!-- ?v= es la VERSION de sw.js (se sube con ella): así una versión nueva no sale con módulos viejos de la caché HTTP -->
-<script src="js/motion.js?v=32"></script>
-<script src="js/gestures.js?v=32"></script>
-<script src="js/keys.js?v=32"></script>
-<script src="js/ctxmenu.js?v=32"></script>
-<script src="js/lesson.js?v=32"></script>
-<script src="js/learn.js?v=32"></script>
-<script src="js/sfx.js?v=32"></script>
-<script src="js/shop.js?v=32"></script>
-<script src="js/farm.js?v=32"></script>
-<script src="js/games.js?v=32"></script>
-<script src="js/lince.js?v=32"></script>
-<script src="js/party.js?v=32"></script>
-<script src="js/buddy.js?v=32"></script>
-<script src="js/album.js?v=32"></script>
-<script src="js/rewards.js?v=32"></script>
-<script src="js/army.js?v=32"></script>
-<script src="js/flyer.js?v=32"></script>
-<script src="js/save.js?v=32"></script>
-<script src="js/sync.js?v=32"></script>
-<script src="js/gate.js?v=32"></script>
-<script src="js/settings.js?v=32"></script>
-<script src="js/review.js?v=32"></script>
-<script src="js/season.js?v=32"></script>
-<script src="js/shortcuts.js?v=32"></script>
-<script src="js/mailbox.js?v=32"></script>
-<script src="js/phrases.js?v=32"></script>
-<script src="js/parrot.js?v=32"></script>
-<script src="js/calls.js?v=32"></script>
-<script src="js/stories.js?v=32"></script>
-<script src="js/hunter-boot.js?v=32"></script>
-<script src="js/ielts-boot.js?v=32"></script>
-<script src="js/tech-boot.js?v=32"></script>
-<script src="js/navmotion.js?v=32"></script>
+<script src="js/motion.js?v=33"></script>
+<script src="js/gestures.js?v=33"></script>
+<script src="js/keys.js?v=33"></script>
+<script src="js/ctxmenu.js?v=33"></script>
+<script src="js/lesson.js?v=33"></script>
+<script src="js/learn.js?v=33"></script>
+<script src="js/sfx.js?v=33"></script>
+<script src="js/shop.js?v=33"></script>
+<script src="js/farm.js?v=33"></script>
+<script src="js/games.js?v=33"></script>
+<script src="js/lince.js?v=33"></script>
+<script src="js/party.js?v=33"></script>
+<script src="js/buddy.js?v=33"></script>
+<script src="js/album.js?v=33"></script>
+<script src="js/rewards.js?v=33"></script>
+<script src="js/army.js?v=33"></script>
+<script src="js/flyer.js?v=33"></script>
+<script src="js/save.js?v=33"></script>
+<script src="js/sync.js?v=33"></script>
+<script src="js/gate.js?v=33"></script>
+<script src="js/settings.js?v=33"></script>
+<script src="js/review.js?v=33"></script>
+<script src="js/season.js?v=33"></script>
+<script src="js/shortcuts.js?v=33"></script>
+<script src="js/mailbox.js?v=33"></script>
+<script src="js/phrases.js?v=33"></script>
+<script src="js/parrot.js?v=33"></script>
+<script src="js/calls.js?v=33"></script>
+<script src="js/stories.js?v=33"></script>
+<script src="js/hunter-boot.js?v=33"></script>
+<script src="js/ielts-boot.js?v=33"></script>
+<script src="js/tech-boot.js?v=33"></script>
+<script src="js/navmotion.js?v=33"></script>
 </body>
 </html>

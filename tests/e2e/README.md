@@ -339,7 +339,8 @@ compartida no responde).
   París, Copenhague), 3 puertas con palabras, el pajarito ≥ 96 px y la calle hasta abajo en 360 y 390 px, mover con
   toque, flechas y teclas, acertar (+1) y fallar (−1 corazón) hasta el resultado con récord, la pausa que para las
   puertas, el avión de combate con el tema «Soldados» (disparar, ayuda, bomba, radio), y fuera de ese tema el avión y
-  «Misión por radio» en oscuro con candado y su aviso (tocarlos solo avisa); capturas en `capturas/pajarito`.
+  «Misión por radio» en oscuro con candado y su aviso (tocarlos solo avisa), y la sección «Jergas de oficios» de la hoja
+  de temas (Soldados y Programadores, `data/programadores.json`); capturas en `capturas/pajarito`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.
