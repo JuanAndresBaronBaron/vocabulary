@@ -7,8 +7,17 @@
   "radio": "Palabras de radio",
   "ordenes": "Órdenes de formación",
   "campamento": "El campamento",
+  "personas": "Personas",
+  "vehiculos": "Vehículos",
+  "lugares": "Lugares",
+  "mision": "Misiones",
   "alfabeto": "Alfabeto OTAN",
   "rangos": "Rangos"
+ },
+ "levels": {
+  "1": "Básico",
+  "2": "Intermedio",
+  "3": "Avanzado"
  },
  "sources": {
   "legion": "Légion étrangère, Contracts & career within the Legion: https://www.legion-recrute.com/en/contracts-career-within-legion",
@@ -190,7 +199,8 @@
    "ex": "Reçu, j'arrive.",
    "exEs": "Recibido, ya voy.",
    "img": "img/om_1F44D.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "over",
@@ -201,7 +211,8 @@
    "ex": "Vous êtes prêts ? À vous.",
    "exEs": "¿Están listos? Cambio.",
    "img": "img/om_1F504.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "out",
@@ -212,7 +223,8 @@
    "ex": "Merci. Terminé.",
    "exEs": "Gracias. Corto y cierro.",
    "img": "img/om_1F44B.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "copy",
@@ -223,7 +235,8 @@
    "ex": "Bien reçu, je viens.",
    "exEs": "Entendido, voy.",
    "img": "img/om_1F442.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "again",
@@ -234,7 +247,8 @@
    "ex": "Je n'entends pas. Répétez.",
    "exEs": "No te oigo. Repite.",
    "img": "img/om_1F501.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "check",
@@ -245,7 +259,56 @@
    "ex": "Je te reçois cinq sur cinq.",
    "exEs": "Te oigo perfecto.",
    "img": "img/om_1F4E1.png",
-   "src": "larousse"
+   "src": "larousse",
+   "lvl": 2
+  },
+  {
+   "id": "standby",
+   "cat": "radio",
+   "lvl": 2,
+   "w": "Attendez",
+   "ipa": "/a.tɑ̃.de/",
+   "es": "Espere",
+   "ex": "Attendez, je regarde la carte.",
+   "exEs": "Espere, estoy mirando el mapa.",
+   "img": "img/om_23F3.png",
+   "src": "dic"
+  },
+  {
+   "id": "yes",
+   "cat": "radio",
+   "lvl": 2,
+   "w": "Affirmatif",
+   "ipa": "/a.fiʁ.ma.tif/",
+   "es": "Sí (por radio)",
+   "ex": "Tu es au camp ? Affirmatif.",
+   "exEs": "¿Estás en el campamento? Sí.",
+   "img": "img/om_2705.png",
+   "src": "dic"
+  },
+  {
+   "id": "no",
+   "cat": "radio",
+   "lvl": 2,
+   "w": "Négatif",
+   "ipa": "/ne.ɡa.tif/",
+   "es": "No (por radio)",
+   "ex": "Tu vois le camion ? Négatif.",
+   "exEs": "¿Ves el camión? No.",
+   "img": "img/om_274C.png",
+   "src": "dic"
+  },
+  {
+   "id": "mayday",
+   "cat": "radio",
+   "lvl": 3,
+   "w": "Mayday",
+   "ipa": "/mɛ.dɛ/",
+   "es": "¡Socorro! (emergencia)",
+   "ex": "Mayday, mayday ! Nous avons besoin d'aide.",
+   "exEs": "¡Socorro, socorro! Necesitamos ayuda.",
+   "img": "img/om_1F198.png",
+   "src": "dic"
   },
   {
    "id": "att",
@@ -256,7 +319,8 @@
    "ex": "Section, garde-à-vous !",
    "exEs": "¡Sección, firmes!",
    "img": "img/om_1F9CD.png",
-   "src": "larousse"
+   "src": "larousse",
+   "lvl": 1
   },
   {
    "id": "ease",
@@ -267,7 +331,8 @@
    "ex": "Repos, les légionnaires.",
    "exEs": "Descansen, legionarios.",
    "img": "img/army/at-ease.svg",
-   "src": "larousse"
+   "src": "larousse",
+   "lvl": 1
   },
   {
    "id": "salute",
@@ -278,7 +343,8 @@
    "ex": "Saluez le drapeau !",
    "exEs": "¡Saluden a la bandera!",
    "img": "img/om_1FAE1.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "march",
@@ -289,7 +355,8 @@
    "ex": "Section, en avant, marche !",
    "exEs": "¡Sección, de frente, mar!",
    "img": "img/om_1F6B6.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "halt",
@@ -300,7 +367,80 @@
    "ex": "Section, halte !",
    "exEs": "¡Sección, alto!",
    "img": "img/om_270B.png",
-   "src": "larousse"
+   "src": "larousse",
+   "lvl": 1
+  },
+  {
+   "id": "wakeup",
+   "cat": "ordenes",
+   "lvl": 1,
+   "w": "Debout !",
+   "ipa": "/də.bu/",
+   "es": "¡Arriba! (a despertarse)",
+   "ex": "Debout ! Il est six heures.",
+   "exEs": "¡Arriba! Son las seis.",
+   "img": "img/om_23F0.png",
+   "src": "dic"
+  },
+  {
+   "id": "fallin",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "Rassemblement !",
+   "ipa": "/ʁa.sɑ̃.blə.mɑ̃/",
+   "es": "¡A formar!",
+   "ex": "Section, rassemblement !",
+   "exEs": "¡Sección, a formar!",
+   "img": "img/om_1F4CF.png",
+   "src": "dic"
+  },
+  {
+   "id": "dismissed",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "Rompez !",
+   "ipa": "/ʁɔ̃.pe/",
+   "es": "¡Rompan filas!",
+   "ex": "Bon travail aujourd'hui. Rompez !",
+   "exEs": "Buen trabajo hoy. ¡Rompan filas!",
+   "img": "img/om_1F3C3.png",
+   "src": "dic"
+  },
+  {
+   "id": "left",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "À gauche, gauche !",
+   "ipa": "/a ɡoʃ ɡoʃ/",
+   "es": "¡Izquierda, ar! (girar)",
+   "ex": "Section, à gauche, gauche !",
+   "exEs": "¡Sección, izquierda, ar!",
+   "img": "img/om_2B05.png",
+   "src": "dic"
+  },
+  {
+   "id": "right",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "À droite, droite !",
+   "ipa": "/a dʁwat dʁwat/",
+   "es": "¡Derecha, ar! (girar)",
+   "ex": "Section, à droite, droite !",
+   "exEs": "¡Sección, derecha, ar!",
+   "img": "img/om_27A1.png",
+   "src": "dic"
+  },
+  {
+   "id": "about",
+   "cat": "ordenes",
+   "lvl": 3,
+   "w": "Demi-tour, droite !",
+   "ipa": "/də.mi.tuʁ dʁwat/",
+   "es": "¡Media vuelta, ar!",
+   "ex": "Section, demi-tour, droite !",
+   "exEs": "¡Sección, media vuelta, ar!",
+   "img": "img/om_1F503.png",
+   "src": "dic"
   },
   {
    "id": "helmet",
@@ -313,7 +453,8 @@
    "ex": "Mets ton casque.",
    "exEs": "Ponte el casco.",
    "img": "img/om_1FA96.png",
-   "src": "corpus"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "boots",
@@ -326,7 +467,8 @@
    "exEs": "Mis botas tienen barro.",
    "img": "img/om_1F97E.png",
    "note": "Solo en plural.",
-   "src": "larousse"
+   "src": "larousse",
+   "lvl": 1
   },
   {
    "id": "tent",
@@ -339,20 +481,8 @@
    "ex": "Nous dormons sous la tente.",
    "exEs": "Dormimos en la tienda de campaña.",
    "img": "img/om_26FA.png",
-   "src": "corpus"
-  },
-  {
-   "id": "compass",
-   "cat": "campamento",
-   "w": "la boussole",
-   "ipa": "/bu.sɔl/",
-   "g": "f",
-   "pl": "les boussoles",
-   "es": "brújula",
-   "ex": "La boussole montre le nord.",
-   "exEs": "La brújula señala el norte.",
-   "img": "img/om_1F9ED.png",
-   "src": "dic"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "map",
@@ -365,20 +495,8 @@
    "ex": "Regarde la carte.",
    "exEs": "Mira el mapa.",
    "img": "img/om_1F5FA.png",
-   "src": "corpus"
-  },
-  {
-   "id": "binoculars",
-   "cat": "campamento",
-   "w": "les jumelles",
-   "ipa": "/ʒy.mɛl/",
-   "g": "f",
-   "es": "prismáticos",
-   "ex": "Avec les jumelles, je vois loin.",
-   "exEs": "Con los prismáticos veo lejos.",
-   "img": "img/army/binoculars.svg",
-   "note": "Solo en plural.",
-   "src": "dic"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "rucksack",
@@ -391,7 +509,8 @@
    "ex": "Mon sac à dos est lourd.",
    "exEs": "Mi mochila pesa.",
    "img": "img/om_1F392.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "torch",
@@ -404,7 +523,8 @@
    "ex": "Allume la lampe de poche.",
    "exEs": "Enciende la linterna.",
    "img": "img/om_1F526.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "bottle",
@@ -417,7 +537,8 @@
    "ex": "Bois à ta gourde.",
    "exEs": "Bebe de tu cantimplora.",
    "img": "img/army/canteen.svg",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "radio",
@@ -430,7 +551,92 @@
    "ex": "La radio est allumée.",
    "exEs": "La radio está encendida.",
    "img": "img/om_1F4FB.png",
-   "src": "corpus"
+   "src": "corpus",
+   "lvl": 1
+  },
+  {
+   "id": "headgear",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "le képi",
+   "ipa": "/ke.pi/",
+   "g": "m",
+   "pl": "les képis",
+   "es": "quepis (gorra de la Legión)",
+   "ex": "Le légionnaire porte le képi blanc.",
+   "exEs": "El legionario lleva el quepis blanco.",
+   "img": "img/om_1F9E2.png",
+   "src": "tenues"
+  },
+  {
+   "id": "gloves",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "les gants",
+   "ipa": "/ɡɑ̃/",
+   "g": "m",
+   "es": "guantes",
+   "ex": "Mets tes gants, il fait froid.",
+   "exEs": "Ponte los guantes, hace frío.",
+   "note": "Casi siempre en plural.",
+   "img": "img/om_1F9E4.png",
+   "src": "dic"
+  },
+  {
+   "id": "campfire",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "le feu de camp",
+   "ipa": "/fø d(ə) kɑ̃/",
+   "g": "m",
+   "pl": "les feux de camp",
+   "es": "fogata",
+   "ex": "Nous chantons autour du feu de camp.",
+   "exEs": "Cantamos alrededor de la fogata.",
+   "img": "img/om_1F525.png",
+   "src": "dic"
+  },
+  {
+   "id": "flag",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "le drapeau",
+   "ipa": "/dʁa.po/",
+   "g": "m",
+   "pl": "les drapeaux",
+   "es": "bandera",
+   "ex": "Nous saluons le drapeau chaque matin.",
+   "exEs": "Saludamos a la bandera cada mañana.",
+   "img": "img/om_1F6A9.png",
+   "src": "dic"
+  },
+  {
+   "id": "compass",
+   "cat": "campamento",
+   "w": "la boussole",
+   "ipa": "/bu.sɔl/",
+   "g": "f",
+   "pl": "les boussoles",
+   "es": "brújula",
+   "ex": "La boussole montre le nord.",
+   "exEs": "La brújula señala el norte.",
+   "img": "img/om_1F9ED.png",
+   "src": "dic",
+   "lvl": 2
+  },
+  {
+   "id": "binoculars",
+   "cat": "campamento",
+   "w": "les jumelles",
+   "ipa": "/ʒy.mɛl/",
+   "g": "f",
+   "es": "prismáticos",
+   "ex": "Avec les jumelles, je vois loin.",
+   "exEs": "Con los prismáticos veo lejos.",
+   "img": "img/army/binoculars.svg",
+   "note": "Solo en plural.",
+   "src": "dic",
+   "lvl": 2
   },
   {
    "id": "medal",
@@ -443,6 +649,523 @@
    "ex": "Il a une médaille.",
    "exEs": "Él tiene una medalla.",
    "img": "img/om_1F396.png",
+   "src": "dic",
+   "lvl": 2
+  },
+  {
+   "id": "rations",
+   "cat": "campamento",
+   "lvl": 2,
+   "w": "les rations",
+   "ipa": "/ʁa.sjɔ̃/",
+   "g": "f",
+   "es": "raciones de comida",
+   "ex": "Nous mangeons nos rations sous la tente.",
+   "exEs": "Comemos nuestras raciones en la tienda.",
+   "note": "Casi siempre en plural.",
+   "img": "img/om_1F96B.png",
+   "src": "dic"
+  },
+  {
+   "id": "firstaid",
+   "cat": "campamento",
+   "lvl": 2,
+   "w": "la trousse de secours",
+   "ipa": "/tʁus də s(ə).kuʁ/",
+   "g": "f",
+   "pl": "les trousses de secours",
+   "es": "botiquín",
+   "ex": "La trousse de secours est dans le camion.",
+   "exEs": "El botiquín está en el camión.",
+   "img": "img/om_1FA79.png",
+   "src": "dic"
+  },
+  {
+   "id": "rope",
+   "cat": "campamento",
+   "lvl": 2,
+   "w": "la corde",
+   "ipa": "/kɔʁd/",
+   "g": "f",
+   "pl": "les cordes",
+   "es": "cuerda",
+   "ex": "Attache la tente avec la corde.",
+   "exEs": "Ata la tienda con la cuerda.",
+   "img": "img/om_1FAA2.png",
+   "src": "dic"
+  },
+  {
+   "id": "camo",
+   "cat": "campamento",
+   "lvl": 3,
+   "w": "le camouflage",
+   "ipa": "/ka.mu.flaʒ/",
+   "g": "m",
+   "es": "camuflaje",
+   "ex": "Avec le camouflage, on te voit à peine.",
+   "exEs": "Con el camuflaje casi no se te ve.",
+   "img": "img/om_1F98E.png",
+   "src": "dic"
+  },
+  {
+   "id": "soldier",
+   "cat": "personas",
+   "lvl": 1,
+   "w": "le soldat",
+   "ipa": "/sɔl.da/",
+   "g": "m",
+   "pl": "les soldats",
+   "es": "soldado",
+   "ex": "Le soldat fait son lit tous les matins.",
+   "exEs": "El soldado hace su cama cada mañana.",
+   "img": "img/pj/soldado.png",
+   "src": "dic"
+  },
+  {
+   "id": "guard",
+   "cat": "personas",
+   "lvl": 1,
+   "w": "la sentinelle",
+   "ipa": "/sɑ̃.ti.nɛl/",
+   "g": "f",
+   "pl": "les sentinelles",
+   "es": "guardia (centinela)",
+   "ex": "La sentinelle reste à l'entrée toute la nuit.",
+   "exEs": "El centinela se queda en la entrada toda la noche.",
+   "img": "img/om_1F482.png",
+   "src": "dic"
+  },
+  {
+   "id": "pilot",
+   "cat": "personas",
+   "lvl": 1,
+   "w": "le pilote",
+   "ipa": "/pi.lɔt/",
+   "g": "m",
+   "pl": "les pilotes",
+   "es": "piloto",
+   "ex": "Le pilote conduit l'hélicoptère.",
+   "exEs": "El piloto pilota el helicóptero.",
+   "img": "img/om_1F9D1-200D-2708.png",
+   "src": "dic"
+  },
+  {
+   "id": "buddy",
+   "cat": "personas",
+   "lvl": 2,
+   "w": "le camarade",
+   "ipa": "/ka.ma.ʁad/",
+   "g": "m",
+   "pl": "les camarades",
+   "es": "compañero (amigo del equipo)",
+   "ex": "Reste toujours avec ton camarade.",
+   "exEs": "Quédate siempre con tu compañero.",
+   "img": "img/om_1F91D.png",
+   "src": "dic"
+  },
+  {
+   "id": "recruit",
+   "cat": "personas",
+   "lvl": 2,
+   "w": "la recrue",
+   "ipa": "/ʁə.kʁy/",
+   "g": "f",
+   "pl": "les recrues",
+   "es": "recluta (soldado nuevo)",
+   "ex": "La nouvelle recrue apprend à marcher au pas.",
+   "exEs": "El recluta nuevo aprende a marchar.",
+   "img": "img/om_1F423.png",
+   "src": "dic"
+  },
+  {
+   "id": "medic",
+   "cat": "personas",
+   "lvl": 2,
+   "w": "l'infirmier (m.)",
+   "ipa": "/ɛ̃.fiʁ.mje/",
+   "g": "m",
+   "pl": "les infirmiers",
+   "es": "enfermero militar",
+   "ex": "L'infirmier met un pansement sur mon genou.",
+   "exEs": "El enfermero me pone una tirita en la rodilla.",
+   "img": "img/om_1F9D1-200D-2695.png",
+   "src": "dic"
+  },
+  {
+   "id": "platoon",
+   "cat": "personas",
+   "lvl": 3,
+   "w": "la section",
+   "ipa": "/sɛk.sjɔ̃/",
+   "g": "f",
+   "pl": "les sections",
+   "es": "sección (unos 30 soldados)",
+   "ex": "La section marche vers le camp.",
+   "exEs": "La sección marcha al campamento.",
+   "img": "img/om_1F465.png",
+   "src": "dic"
+  },
+  {
+   "id": "veteran",
+   "cat": "personas",
+   "lvl": 3,
+   "w": "le vétéran",
+   "ipa": "/ve.te.ʁɑ̃/",
+   "g": "m",
+   "pl": "les vétérans",
+   "es": "veterano",
+   "ex": "Le vétéran raconte ses années à la Légion.",
+   "exEs": "El veterano cuenta sus años en la Legión.",
+   "img": "img/om_1F474.png",
+   "src": "dic"
+  },
+  {
+   "id": "truck",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "le camion",
+   "ipa": "/ka.mjɔ̃/",
+   "g": "m",
+   "pl": "les camions",
+   "es": "camión",
+   "ex": "Le camion apporte de l'eau au camp.",
+   "exEs": "El camión lleva agua al campamento.",
+   "img": "img/om_1F69A.png",
+   "src": "dic"
+  },
+  {
+   "id": "heli",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "l'hélicoptère (m.)",
+   "ipa": "/e.li.kɔp.tɛʁ/",
+   "g": "m",
+   "pl": "les hélicoptères",
+   "es": "helicóptero",
+   "ex": "L'hélicoptère se pose à côté des tentes.",
+   "exEs": "El helicóptero aterriza junto a las tiendas.",
+   "img": "img/om_1F681.png",
+   "src": "dic"
+  },
+  {
+   "id": "plane",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "l'avion (m.)",
+   "ipa": "/a.vjɔ̃/",
+   "g": "m",
+   "pl": "les avions",
+   "es": "avión",
+   "ex": "L'avion vole au-dessus des montagnes.",
+   "exEs": "El avión vuela sobre las montañas.",
+   "img": "img/om_2708.png",
+   "src": "dic"
+  },
+  {
+   "id": "ship",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "le navire",
+   "ipa": "/na.viʁ/",
+   "g": "m",
+   "pl": "les navires",
+   "es": "barco",
+   "ex": "Le navire ramène les soldats à la maison.",
+   "exEs": "El barco lleva a los soldados a casa.",
+   "img": "img/om_1F6A2.png",
+   "src": "dic"
+  },
+  {
+   "id": "jeep",
+   "cat": "vehiculos",
+   "lvl": 2,
+   "w": "la jeep",
+   "ipa": "/dʒip/",
+   "g": "f",
+   "pl": "les jeeps",
+   "es": "todoterreno (jeep)",
+   "ex": "La jeep roule dans la boue.",
+   "exEs": "El jeep avanza por el barro.",
+   "img": "img/om_1F699.png",
+   "src": "dic"
+  },
+  {
+   "id": "ambulance",
+   "cat": "vehiculos",
+   "lvl": 2,
+   "w": "l'ambulance (f.)",
+   "ipa": "/ɑ̃.by.lɑ̃s/",
+   "g": "f",
+   "pl": "les ambulances",
+   "es": "ambulancia",
+   "ex": "L'ambulance emmène le soldat à l'hôpital.",
+   "exEs": "La ambulancia lleva al soldado al hospital.",
+   "img": "img/om_1F691.png",
+   "src": "dic"
+  },
+  {
+   "id": "parachute",
+   "cat": "vehiculos",
+   "lvl": 2,
+   "w": "le parachute",
+   "ipa": "/pa.ʁa.ʃyt/",
+   "g": "m",
+   "pl": "les parachutes",
+   "es": "paracaídas",
+   "ex": "La caisse descend avec un parachute.",
+   "exEs": "La caja baja con un paracaídas.",
+   "img": "img/om_1FA82.png",
+   "src": "dic"
+  },
+  {
+   "id": "convoy",
+   "cat": "vehiculos",
+   "lvl": 3,
+   "w": "le convoi",
+   "ipa": "/kɔ̃.vwa/",
+   "g": "m",
+   "pl": "les convois",
+   "es": "convoy (fila de vehículos)",
+   "ex": "Le convoi apporte de la nourriture au village.",
+   "exEs": "El convoy lleva comida al pueblo.",
+   "img": "img/om_1F69B.png",
+   "src": "dic"
+  },
+  {
+   "id": "camp",
+   "cat": "lugares",
+   "lvl": 1,
+   "w": "le camp",
+   "ipa": "/kɑ̃/",
+   "g": "m",
+   "pl": "les camps",
+   "es": "campamento",
+   "ex": "On rentre au camp avant la nuit.",
+   "exEs": "Volvemos al campamento antes de la noche.",
+   "img": "img/om_1F3D5.png",
+   "src": "dic"
+  },
+  {
+   "id": "base",
+   "cat": "lugares",
+   "lvl": 1,
+   "w": "la base",
+   "ipa": "/bɑz/",
+   "g": "f",
+   "pl": "les bases",
+   "es": "base militar",
+   "ex": "L'hélicoptère retourne à la base.",
+   "exEs": "El helicóptero vuelve a la base.",
+   "img": "img/om_1F3F0.png",
+   "src": "dic"
+  },
+  {
+   "id": "barracks",
+   "cat": "lugares",
+   "lvl": 2,
+   "w": "la caserne",
+   "ipa": "/ka.zɛʁn/",
+   "g": "f",
+   "pl": "les casernes",
+   "es": "cuartel",
+   "ex": "Les soldats dorment à la caserne.",
+   "exEs": "Los soldados duermen en el cuartel.",
+   "img": "img/om_1F3E2.png",
+   "src": "dic"
+  },
+  {
+   "id": "border",
+   "cat": "lugares",
+   "lvl": 2,
+   "w": "la frontière",
+   "ipa": "/fʁɔ̃.tjɛʁ/",
+   "g": "f",
+   "pl": "les frontières",
+   "es": "frontera",
+   "ex": "Les sentinelles surveillent la frontière.",
+   "exEs": "Los centinelas vigilan la frontera.",
+   "img": "img/om_1F6C2.png",
+   "src": "dic"
+  },
+  {
+   "id": "checkpoint",
+   "cat": "lugares",
+   "lvl": 3,
+   "w": "le poste de contrôle",
+   "ipa": "/pɔst də kɔ̃.tʁol/",
+   "g": "m",
+   "pl": "les postes de contrôle",
+   "es": "puesto de control",
+   "ex": "Arrête-toi au poste de contrôle et montre ta carte.",
+   "exEs": "Para en el puesto de control y enseña tu tarjeta.",
+   "img": "img/om_1F6A7.png",
+   "src": "dic"
+  },
+  {
+   "id": "hq",
+   "cat": "lugares",
+   "lvl": 3,
+   "w": "le quartier général",
+   "ipa": "/kaʁ.tje ʒe.ne.ʁal/",
+   "g": "m",
+   "pl": "les quartiers généraux",
+   "es": "cuartel general",
+   "ex": "Le général travaille au quartier général.",
+   "exEs": "El general trabaja en el cuartel general.",
+   "img": "img/om_1F3DB.png",
+   "src": "dic"
+  },
+  {
+   "id": "fieldhosp",
+   "cat": "lugares",
+   "lvl": 3,
+   "w": "l'hôpital de campagne (m.)",
+   "ipa": "/o.pi.tal də kɑ̃.paɲ/",
+   "g": "m",
+   "pl": "les hôpitaux de campagne",
+   "es": "hospital de campaña",
+   "ex": "Les médecins travaillent dans un hôpital de campagne.",
+   "exEs": "Los médicos trabajan en un hospital de campaña.",
+   "img": "img/om_1F3E5.png",
+   "src": "dic"
+  },
+  {
+   "id": "mission",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "la mission",
+   "ipa": "/mi.sjɔ̃/",
+   "g": "f",
+   "pl": "les missions",
+   "es": "misión",
+   "ex": "Notre mission : apporter de l'eau au village.",
+   "exEs": "Nuestra misión: llevar agua al pueblo.",
+   "img": "img/om_1F3AF.png",
+   "src": "dic"
+  },
+  {
+   "id": "patrol",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "la patrouille",
+   "ipa": "/pa.tʁuj/",
+   "g": "f",
+   "pl": "les patrouilles",
+   "es": "patrulla",
+   "ex": "La patrouille fait le tour du camp la nuit.",
+   "exEs": "La patrulla da la vuelta al campamento de noche.",
+   "img": "img/om_1F463.png",
+   "src": "dic"
+  },
+  {
+   "id": "rescue",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "le sauvetage",
+   "ipa": "/sov.taʒ/",
+   "g": "m",
+   "pl": "les sauvetages",
+   "es": "rescate",
+   "ex": "L'hélicoptère arrive pour le sauvetage.",
+   "exEs": "El helicóptero llega para el rescate.",
+   "img": "img/om_1F6DF.png",
+   "src": "dic"
+  },
+  {
+   "id": "supplies",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "le ravitaillement",
+   "ipa": "/ʁa.vi.taj.mɑ̃/",
+   "g": "m",
+   "es": "suministros",
+   "ex": "L'avion largue le ravitaillement au camp.",
+   "exEs": "El avión lanza los suministros al campamento.",
+   "img": "img/om_1F4E6.png",
+   "src": "dic"
+  },
+  {
+   "id": "briefing",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "le briefing",
+   "ipa": "/bʁi.fiŋ/",
+   "g": "m",
+   "pl": "les briefings",
+   "es": "reunión para explicar la misión",
+   "ex": "Le capitaine fait un briefing avant la mission.",
+   "exEs": "El capitán explica la misión antes de empezar.",
+   "img": "img/om_1F4CB.png",
+   "src": "dic"
+  },
+  {
+   "id": "objective",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "l'objectif (m.)",
+   "ipa": "/ɔb.ʒɛk.tif/",
+   "g": "m",
+   "pl": "les objectifs",
+   "es": "objetivo",
+   "ex": "Notre objectif, c'est le pont.",
+   "exEs": "Nuestro objetivo es el puente.",
+   "img": "img/om_1F3C1.png",
+   "src": "dic"
+  },
+  {
+   "id": "reinf",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "les renforts",
+   "ipa": "/ʁɑ̃.fɔʁ/",
+   "g": "m",
+   "es": "refuerzos",
+   "ex": "Les renforts arrivent.",
+   "exEs": "Los refuerzos están llegando.",
+   "note": "Casi siempre en plural.",
+   "img": "img/om_1F4AA.png",
+   "src": "dic"
+  },
+  {
+   "id": "recon",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "la reconnaissance",
+   "ipa": "/ʁə.kɔ.nɛ.sɑ̃s/",
+   "g": "f",
+   "pl": "les reconnaissances",
+   "es": "reconocimiento (ir a mirar antes)",
+   "ex": "Deux légionnaires partent en reconnaissance.",
+   "exEs": "Dos legionarios salen de reconocimiento.",
+   "img": "img/om_1F50D.png",
+   "src": "dic"
+  },
+  {
+   "id": "evac",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "l'évacuation (f.)",
+   "ipa": "/e.va.kɥa.sjɔ̃/",
+   "g": "f",
+   "pl": "les évacuations",
+   "es": "evacuación (ir a un sitio seguro)",
+   "ex": "L'évacuation commence à l'aube.",
+   "exEs": "La evacuación empieza al amanecer.",
+   "img": "img/om_1F6AA.png",
+   "src": "dic"
+  },
+  {
+   "id": "ceasefire",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "le cessez-le-feu",
+   "ipa": "/se.se.lə.fø/",
+   "g": "m",
+   "pl": "les cessez-le-feu",
+   "es": "alto el fuego (paz)",
+   "ex": "Après le cessez-le-feu, tout le monde rentre à la maison.",
+   "exEs": "Después del alto el fuego, todos vuelven a casa.",
+   "img": "img/om_1F54A.png",
    "src": "dic"
   },
   {
@@ -455,7 +1178,8 @@
    "ex": "Alfa, c'est la lettre A.",
    "exEs": "Alfa es la letra A.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nB",
@@ -467,7 +1191,8 @@
    "ex": "Bravo, c'est la lettre B.",
    "exEs": "Bravo es la letra B.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nC",
@@ -479,7 +1204,8 @@
    "ex": "Charlie, c'est la lettre C.",
    "exEs": "Charlie es la letra C.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nD",
@@ -491,7 +1217,8 @@
    "ex": "Delta, c'est la lettre D.",
    "exEs": "Delta es la letra D.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nE",
@@ -503,7 +1230,8 @@
    "ex": "Echo, c'est la lettre E.",
    "exEs": "Echo es la letra E.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nF",
@@ -515,7 +1243,8 @@
    "ex": "Foxtrot, c'est la lettre F.",
    "exEs": "Foxtrot es la letra F.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nG",
@@ -527,7 +1256,8 @@
    "ex": "Golf, c'est la lettre G.",
    "exEs": "Golf es la letra G.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nH",
@@ -539,7 +1269,8 @@
    "ex": "Hotel, c'est la lettre H.",
    "exEs": "Hotel es la letra H.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nI",
@@ -551,7 +1282,8 @@
    "ex": "India, c'est la lettre I.",
    "exEs": "India es la letra I.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nJ",
@@ -563,7 +1295,8 @@
    "ex": "Juliett, c'est la lettre J.",
    "exEs": "Juliett es la letra J.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nK",
@@ -575,7 +1308,8 @@
    "ex": "Kilo, c'est la lettre K.",
    "exEs": "Kilo es la letra K.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nL",
@@ -587,7 +1321,8 @@
    "ex": "Lima, c'est la lettre L.",
    "exEs": "Lima es la letra L.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nM",
@@ -599,7 +1334,8 @@
    "ex": "Mike, c'est la lettre M.",
    "exEs": "Mike es la letra M.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nN",
@@ -611,7 +1347,8 @@
    "ex": "November, c'est la lettre N.",
    "exEs": "November es la letra N.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nO",
@@ -623,7 +1360,8 @@
    "ex": "Oscar, c'est la lettre O.",
    "exEs": "Oscar es la letra O.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nP",
@@ -635,7 +1373,8 @@
    "ex": "Papa, c'est la lettre P.",
    "exEs": "Papa es la letra P.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nQ",
@@ -647,7 +1386,8 @@
    "ex": "Quebec, c'est la lettre Q.",
    "exEs": "Quebec es la letra Q.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nR",
@@ -659,7 +1399,8 @@
    "ex": "Romeo, c'est la lettre R.",
    "exEs": "Romeo es la letra R.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nS",
@@ -671,7 +1412,8 @@
    "ex": "Sierra, c'est la lettre S.",
    "exEs": "Sierra es la letra S.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nT",
@@ -683,7 +1425,8 @@
    "ex": "Tango, c'est la lettre T.",
    "exEs": "Tango es la letra T.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nU",
@@ -695,7 +1438,8 @@
    "ex": "Uniform, c'est la lettre U.",
    "exEs": "Uniform es la letra U.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nV",
@@ -707,7 +1451,8 @@
    "ex": "Victor, c'est la lettre V.",
    "exEs": "Victor es la letra V.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nW",
@@ -719,7 +1464,8 @@
    "ex": "Whiskey, c'est la lettre W.",
    "exEs": "Whiskey es la letra W.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nX",
@@ -731,7 +1477,8 @@
    "ex": "X-ray, c'est la lettre X.",
    "exEs": "X-ray es la letra X.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nY",
@@ -743,7 +1490,8 @@
    "ex": "Yankee, c'est la lettre Y.",
    "exEs": "Yankee es la letra Y.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nZ",
@@ -755,7 +1503,8 @@
    "ex": "Zulu, c'est la lettre Z.",
    "exEs": "Zulu es la letra Z.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   }
  ]
 }

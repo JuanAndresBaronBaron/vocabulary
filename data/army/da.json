@@ -7,8 +7,17 @@
   "radio": "Palabras de radio",
   "ordenes": "Órdenes de formación",
   "campamento": "El campamento",
+  "personas": "Personas",
+  "vehiculos": "Vehículos",
+  "lugares": "Lugares",
+  "mision": "Misiones",
   "alfabeto": "Alfabeto OTAN",
   "rangos": "Rangos"
+ },
+ "levels": {
+  "1": "Básico",
+  "2": "Intermedio",
+  "3": "Avanzado"
  },
  "sources": {
   "forsvaret": "Forsvaret, Hærens gradstegn 2025 (nombres de los grados): https://www.forsvaret.dk/globalassets/fko---forsvaret/dokumenter/gradstegn/-plakater_gradstegn_haeren-dk_a2_2025-optimeret-.pdf",
@@ -187,7 +196,8 @@
    "ex": "Forstået, jeg kommer.",
    "exEs": "Entendido, ya voy.",
    "img": "img/om_1F44D.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "over",
@@ -198,7 +208,8 @@
    "ex": "Er du klar? Over.",
    "exEs": "¿Estás listo? Cambio.",
    "img": "img/om_1F504.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "out",
@@ -209,7 +220,8 @@
    "ex": "Tak. Slut.",
    "exEs": "Gracias. Corto y cierro.",
    "img": "img/om_1F44B.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "copy",
@@ -220,7 +232,8 @@
    "ex": "Modtaget, tak.",
    "exEs": "Recibido, gracias.",
    "img": "img/om_1F442.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "again",
@@ -231,6 +244,43 @@
    "ex": "Jeg kan ikke høre dig. Gentag.",
    "exEs": "No te oigo. Repite.",
    "img": "img/om_1F501.png",
+   "src": "dic",
+   "lvl": 1
+  },
+  {
+   "id": "standby",
+   "cat": "radio",
+   "lvl": 2,
+   "w": "Vent",
+   "ipa": "/ˈvɛnˀd/",
+   "es": "Espera",
+   "ex": "Vent, jeg kigger på kortet.",
+   "exEs": "Espera, estoy mirando el mapa.",
+   "img": "img/om_23F3.png",
+   "src": "dic"
+  },
+  {
+   "id": "loud",
+   "cat": "radio",
+   "lvl": 2,
+   "w": "Højt og tydeligt",
+   "ipa": "/ˈhʌjˀd ʌ ˈtyːðəlid/",
+   "es": "Te oigo alto y claro",
+   "ex": "Jeg hører dig højt og tydeligt.",
+   "exEs": "Te oigo alto y claro.",
+   "img": "img/om_1F50A.png",
+   "src": "dic"
+  },
+  {
+   "id": "mayday",
+   "cat": "radio",
+   "lvl": 3,
+   "w": "Mayday",
+   "ipa": "/ˈmɛjˌdɛj/",
+   "es": "¡Socorro! (emergencia)",
+   "ex": "Mayday, mayday! Vi har brug for hjælp.",
+   "exEs": "¡Socorro, socorro! Necesitamos ayuda.",
+   "img": "img/om_1F198.png",
    "src": "dic"
   },
   {
@@ -242,7 +292,8 @@
    "ex": "Giv agt – ret!",
    "exEs": "¡Atención, firmes!",
    "img": "img/om_1F9CD.png",
-   "src": "hokadet"
+   "src": "hokadet",
+   "lvl": 1
   },
   {
    "id": "ease",
@@ -253,7 +304,8 @@
    "ex": "Kommando: rør!",
    "exEs": "Orden: ¡descanso!",
    "img": "img/army/at-ease.svg",
-   "src": "hokadet"
+   "src": "hokadet",
+   "lvl": 1
   },
   {
    "id": "salute",
@@ -264,7 +316,8 @@
    "ex": "Gør honnør for flaget!",
    "exEs": "¡Saluden a la bandera!",
    "img": "img/om_1FAE1.png",
-   "src": "hokadet"
+   "src": "hokadet",
+   "lvl": 1
   },
   {
    "id": "march",
@@ -275,7 +328,8 @@
    "ex": "Deling, fremad march!",
    "exEs": "¡Sección, de frente, mar!",
    "img": "img/om_1F6B6.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "halt",
@@ -286,6 +340,79 @@
    "ex": "Deling, holdt!",
    "exEs": "¡Sección, alto!",
    "img": "img/om_270B.png",
+   "src": "dic",
+   "lvl": 1
+  },
+  {
+   "id": "wakeup",
+   "cat": "ordenes",
+   "lvl": 1,
+   "w": "Vågn op!",
+   "ipa": "/ˈvʌwˀn ˈʌb/",
+   "es": "¡Arriba! (a despertarse)",
+   "ex": "Vågn op! Klokken er seks.",
+   "exEs": "¡Arriba! Son las seis.",
+   "img": "img/om_23F0.png",
+   "src": "dic"
+  },
+  {
+   "id": "fallin",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "Træd an!",
+   "ipa": "/ˈtʁæðˀ ˈanˀ/",
+   "es": "¡A formar!",
+   "ex": "Deling, træd an!",
+   "exEs": "¡Sección, a formar!",
+   "img": "img/om_1F4CF.png",
+   "src": "dic"
+  },
+  {
+   "id": "dismissed",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "Træd af!",
+   "ipa": "/ˈtʁæðˀ ˈæˀ/",
+   "es": "¡Rompan filas!",
+   "ex": "Godt arbejde i dag. Træd af!",
+   "exEs": "Buen trabajo hoy. ¡Rompan filas!",
+   "img": "img/om_1F3C3.png",
+   "src": "dic"
+  },
+  {
+   "id": "left",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "Venstre om!",
+   "ipa": "/ˈvɛnsdʁə ˈʌmˀ/",
+   "es": "¡Izquierda, ar! (girar)",
+   "ex": "Deling, venstre om!",
+   "exEs": "¡Sección, izquierda, ar!",
+   "img": "img/om_2B05.png",
+   "src": "dic"
+  },
+  {
+   "id": "right",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "Højre om!",
+   "ipa": "/ˈhʌjʁə ˈʌmˀ/",
+   "es": "¡Derecha, ar! (girar)",
+   "ex": "Deling, højre om!",
+   "exEs": "¡Sección, derecha, ar!",
+   "img": "img/om_27A1.png",
+   "src": "dic"
+  },
+  {
+   "id": "about",
+   "cat": "ordenes",
+   "lvl": 3,
+   "w": "Omkring!",
+   "ipa": "/ʌmˈkʁeŋˀ/",
+   "es": "¡Media vuelta, ar!",
+   "ex": "Deling, omkring!",
+   "exEs": "¡Sección, media vuelta, ar!",
+   "img": "img/om_1F503.png",
    "src": "dic"
   },
   {
@@ -299,7 +426,8 @@
    "ex": "Tag hjelmen på.",
    "exEs": "Ponte el casco.",
    "img": "img/om_1FA96.png",
-   "src": "corpus"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "boots",
@@ -312,7 +440,8 @@
    "ex": "Mine støvler er mudrede.",
    "exEs": "Mis botas tienen barro.",
    "img": "img/om_1F97E.png",
-   "src": "corpus"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "tent",
@@ -325,20 +454,8 @@
    "ex": "Vi sover i et telt.",
    "exEs": "Dormimos en una tienda de campaña.",
    "img": "img/om_26FA.png",
-   "src": "corpus"
-  },
-  {
-   "id": "compass",
-   "cat": "campamento",
-   "w": "et kompas",
-   "ipa": "/kʰʌmˈpʰas/",
-   "g": "et",
-   "pl": "kompasser",
-   "es": "brújula",
-   "ex": "Kompasset viser nord.",
-   "exEs": "La brújula señala el norte.",
-   "img": "img/om_1F9ED.png",
-   "src": "dic"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "map",
@@ -351,20 +468,8 @@
    "ex": "Se på kortet.",
    "exEs": "Mira el mapa.",
    "img": "img/om_1F5FA.png",
-   "src": "corpus"
-  },
-  {
-   "id": "binoculars",
-   "cat": "campamento",
-   "w": "en kikkert",
-   "ipa": "/ˈkʰiɡɐd/",
-   "g": "en",
-   "pl": "kikkerter",
-   "es": "prismáticos",
-   "ex": "Med kikkerten kan jeg se langt.",
-   "exEs": "Con los prismáticos veo lejos.",
-   "img": "img/army/binoculars.svg",
-   "src": "dic"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "rucksack",
@@ -377,7 +482,8 @@
    "ex": "Min rygsæk er tung.",
    "exEs": "Mi mochila pesa.",
    "img": "img/om_1F392.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "torch",
@@ -390,7 +496,8 @@
    "ex": "Tænd lommelygten.",
    "exEs": "Enciende la linterna.",
    "img": "img/om_1F526.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "bottle",
@@ -403,7 +510,8 @@
    "ex": "Drik af din feltflaske.",
    "exEs": "Bebe de tu cantimplora.",
    "img": "img/army/canteen.svg",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "radio",
@@ -416,7 +524,92 @@
    "ex": "Radioen er tændt.",
    "exEs": "La radio está encendida.",
    "img": "img/om_1F4FB.png",
-   "src": "corpus"
+   "src": "corpus",
+   "lvl": 1
+  },
+  {
+   "id": "headgear",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "en baret",
+   "ipa": "/baˈʁɛd/",
+   "g": "en",
+   "pl": "baretter",
+   "es": "boina",
+   "ex": "Soldaten har en sort baret.",
+   "exEs": "El soldado lleva una boina negra.",
+   "img": "img/om_1F9E2.png",
+   "src": "dic"
+  },
+  {
+   "id": "gloves",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "en handske",
+   "ipa": "/ˈhanˀsgə/",
+   "g": "en",
+   "pl": "handsker",
+   "es": "guante",
+   "ex": "Tag handskerne på, det er koldt.",
+   "exEs": "Ponte los guantes, hace frío.",
+   "img": "img/om_1F9E4.png",
+   "src": "dic"
+  },
+  {
+   "id": "campfire",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "et lejrbål",
+   "ipa": "/ˈlɑjɐˌbɔˀl/",
+   "g": "et",
+   "pl": "lejrbål",
+   "es": "fogata",
+   "ex": "Vi synger rundt om lejrbålet.",
+   "exEs": "Cantamos alrededor de la fogata.",
+   "img": "img/om_1F525.png",
+   "src": "dic"
+  },
+  {
+   "id": "flag",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "et flag",
+   "ipa": "/ˈflæˀj/",
+   "g": "et",
+   "pl": "flag",
+   "es": "bandera",
+   "ex": "Vi hilser på flaget hver morgen.",
+   "exEs": "Saludamos a la bandera cada mañana.",
+   "img": "img/om_1F6A9.png",
+   "src": "dic"
+  },
+  {
+   "id": "compass",
+   "cat": "campamento",
+   "w": "et kompas",
+   "ipa": "/kʰʌmˈpʰas/",
+   "g": "et",
+   "pl": "kompasser",
+   "es": "brújula",
+   "ex": "Kompasset viser nord.",
+   "exEs": "La brújula señala el norte.",
+   "img": "img/om_1F9ED.png",
+   "src": "dic",
+   "lvl": 2
+  },
+  {
+   "id": "binoculars",
+   "cat": "campamento",
+   "w": "en kikkert",
+   "ipa": "/ˈkʰiɡɐd/",
+   "g": "en",
+   "pl": "kikkerter",
+   "es": "prismáticos",
+   "ex": "Med kikkerten kan jeg se langt.",
+   "exEs": "Con los prismáticos veo lejos.",
+   "img": "img/army/binoculars.svg",
+   "src": "dic",
+   "lvl": 2
   },
   {
    "id": "medal",
@@ -429,6 +622,510 @@
    "ex": "Hun har en medalje.",
    "exEs": "Ella tiene una medalla.",
    "img": "img/om_1F396.png",
+   "src": "dic",
+   "lvl": 2
+  },
+  {
+   "id": "rations",
+   "cat": "campamento",
+   "lvl": 2,
+   "w": "en feltration",
+   "ipa": "/ˈfɛldʁaˌɕoˀn/",
+   "g": "en",
+   "pl": "feltrationer",
+   "es": "ración de comida",
+   "ex": "Vi spiser feltrationer i teltet.",
+   "exEs": "Comemos raciones en la tienda.",
+   "img": "img/om_1F96B.png",
+   "src": "dic"
+  },
+  {
+   "id": "firstaid",
+   "cat": "campamento",
+   "lvl": 2,
+   "w": "en førstehjælpskasse",
+   "ipa": "/ˈfœɐ̯sdəˌjɛlbsˌkasə/",
+   "g": "en",
+   "pl": "førstehjælpskasser",
+   "es": "botiquín",
+   "ex": "Førstehjælpskassen er i lastbilen.",
+   "exEs": "El botiquín está en el camión.",
+   "img": "img/om_1FA79.png",
+   "src": "dic"
+  },
+  {
+   "id": "rope",
+   "cat": "campamento",
+   "lvl": 2,
+   "w": "et reb",
+   "ipa": "/ˈʁɛˀb/",
+   "g": "et",
+   "pl": "reb",
+   "es": "cuerda",
+   "ex": "Bind teltet fast med rebet.",
+   "exEs": "Ata la tienda con la cuerda.",
+   "img": "img/om_1FAA2.png",
+   "src": "dic"
+  },
+  {
+   "id": "camo",
+   "cat": "campamento",
+   "lvl": 3,
+   "w": "en camouflage",
+   "ipa": "/kamuˈflæːɕə/",
+   "g": "en",
+   "es": "camuflaje",
+   "ex": "Med camouflage er du svær at se.",
+   "exEs": "Con el camuflaje cuesta verte.",
+   "img": "img/om_1F98E.png",
+   "src": "dic"
+  },
+  {
+   "id": "soldier",
+   "cat": "personas",
+   "lvl": 1,
+   "w": "en soldat",
+   "ipa": "/solˈdæˀd/",
+   "g": "en",
+   "pl": "soldater",
+   "es": "soldado",
+   "ex": "Soldaten reder sin seng hver dag.",
+   "exEs": "El soldado hace su cama cada día.",
+   "img": "img/pj/soldado.png",
+   "src": "dic"
+  },
+  {
+   "id": "guard",
+   "cat": "personas",
+   "lvl": 1,
+   "w": "en vagtpost",
+   "ipa": "/ˈvɑɡdˌpʌsd/",
+   "g": "en",
+   "pl": "vagtposter",
+   "es": "guardia (centinela)",
+   "ex": "Vagtposten står ved porten hele natten.",
+   "exEs": "El guardia vigila la entrada toda la noche.",
+   "img": "img/om_1F482.png",
+   "src": "dic"
+  },
+  {
+   "id": "pilot",
+   "cat": "personas",
+   "lvl": 1,
+   "w": "en pilot",
+   "ipa": "/piˈloˀd/",
+   "g": "en",
+   "pl": "piloter",
+   "es": "piloto",
+   "ex": "Piloten flyver helikopteren.",
+   "exEs": "El piloto pilota el helicóptero.",
+   "img": "img/om_1F9D1-200D-2708.png",
+   "src": "dic"
+  },
+  {
+   "id": "buddy",
+   "cat": "personas",
+   "lvl": 2,
+   "w": "en kammerat",
+   "ipa": "/kaməˈʁɑˀd/",
+   "g": "en",
+   "pl": "kammerater",
+   "es": "compañero (amigo del equipo)",
+   "ex": "Bliv altid hos din kammerat.",
+   "exEs": "Quédate siempre con tu compañero.",
+   "img": "img/om_1F91D.png",
+   "src": "dic"
+  },
+  {
+   "id": "recruit",
+   "cat": "personas",
+   "lvl": 2,
+   "w": "en rekrut",
+   "ipa": "/ʁeˈkʁud/",
+   "g": "en",
+   "pl": "rekrutter",
+   "es": "recluta (soldado nuevo)",
+   "ex": "Den nye rekrut lærer at marchere.",
+   "exEs": "El recluta nuevo aprende a marchar.",
+   "img": "img/om_1F423.png",
+   "src": "dic"
+  },
+  {
+   "id": "platoon",
+   "cat": "personas",
+   "lvl": 3,
+   "w": "en deling",
+   "ipa": "/ˈdeːleŋ/",
+   "g": "en",
+   "pl": "delinger",
+   "es": "sección (unos 30 soldados)",
+   "ex": "Delingen marcherer til lejren.",
+   "exEs": "La sección marcha al campamento.",
+   "img": "img/om_1F465.png",
+   "src": "dic"
+  },
+  {
+   "id": "veteran",
+   "cat": "personas",
+   "lvl": 3,
+   "w": "en veteran",
+   "ipa": "/veteˈʁɑˀn/",
+   "g": "en",
+   "pl": "veteraner",
+   "es": "veterano",
+   "ex": "Veteranen fortæller om sine år i hæren.",
+   "exEs": "El veterano cuenta sus años en el ejército.",
+   "img": "img/om_1F474.png",
+   "src": "dic"
+  },
+  {
+   "id": "truck",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "en lastbil",
+   "ipa": "/ˈlasdˌbiˀl/",
+   "g": "en",
+   "pl": "lastbiler",
+   "es": "camión",
+   "ex": "Lastbilen kører vand ud til lejren.",
+   "exEs": "El camión lleva agua al campamento.",
+   "img": "img/om_1F69A.png",
+   "src": "dic"
+  },
+  {
+   "id": "heli",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "en helikopter",
+   "ipa": "/heliˈkʌbdɐ/",
+   "g": "en",
+   "pl": "helikoptere",
+   "es": "helicóptero",
+   "ex": "Helikopteren lander ved siden af teltene.",
+   "exEs": "El helicóptero aterriza junto a las tiendas.",
+   "img": "img/om_1F681.png",
+   "src": "dic"
+  },
+  {
+   "id": "plane",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "et fly",
+   "ipa": "/ˈflyˀ/",
+   "g": "et",
+   "pl": "fly",
+   "es": "avión",
+   "ex": "Flyet flyver over bjergene.",
+   "exEs": "El avión vuela sobre las montañas.",
+   "img": "img/om_2708.png",
+   "src": "dic"
+  },
+  {
+   "id": "ship",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "et skib",
+   "ipa": "/ˈsgiˀb/",
+   "g": "et",
+   "pl": "skibe",
+   "es": "barco",
+   "ex": "Skibet sejler soldaterne hjem.",
+   "exEs": "El barco lleva a los soldados a casa.",
+   "img": "img/om_1F6A2.png",
+   "src": "dic"
+  },
+  {
+   "id": "jeep",
+   "cat": "vehiculos",
+   "lvl": 2,
+   "w": "en jeep",
+   "ipa": "/ˈdʒiːb/",
+   "g": "en",
+   "pl": "jeeps",
+   "es": "todoterreno (jeep)",
+   "ex": "Jeepen kører gennem mudderet.",
+   "exEs": "El jeep avanza por el barro.",
+   "img": "img/om_1F699.png",
+   "src": "dic"
+  },
+  {
+   "id": "ambulance",
+   "cat": "vehiculos",
+   "lvl": 2,
+   "w": "en ambulance",
+   "ipa": "/ambuˈlaŋsə/",
+   "g": "en",
+   "pl": "ambulancer",
+   "es": "ambulancia",
+   "ex": "Ambulancen kører soldaten på hospitalet.",
+   "exEs": "La ambulancia lleva al soldado al hospital.",
+   "img": "img/om_1F691.png",
+   "src": "dic"
+  },
+  {
+   "id": "parachute",
+   "cat": "vehiculos",
+   "lvl": 2,
+   "w": "en faldskærm",
+   "ipa": "/ˈfalˌsgæɐ̯ˀm/",
+   "g": "en",
+   "pl": "faldskærme",
+   "es": "paracaídas",
+   "ex": "Kassen kommer ned i faldskærm.",
+   "exEs": "La caja baja en paracaídas.",
+   "img": "img/om_1FA82.png",
+   "src": "dic"
+  },
+  {
+   "id": "convoy",
+   "cat": "vehiculos",
+   "lvl": 3,
+   "w": "en konvoj",
+   "ipa": "/kʰʌnˈvʌj/",
+   "g": "en",
+   "pl": "konvojer",
+   "es": "convoy (fila de vehículos)",
+   "ex": "Konvojen bringer mad til landsbyen.",
+   "exEs": "El convoy lleva comida al pueblo.",
+   "img": "img/om_1F69B.png",
+   "src": "dic"
+  },
+  {
+   "id": "camp",
+   "cat": "lugares",
+   "lvl": 1,
+   "w": "en lejr",
+   "ipa": "/ˈlɑjˀɐ/",
+   "g": "en",
+   "pl": "lejre",
+   "es": "campamento",
+   "ex": "Vi går tilbage til lejren, før det bliver mørkt.",
+   "exEs": "Volvemos al campamento antes de que oscurezca.",
+   "img": "img/om_1F3D5.png",
+   "src": "dic"
+  },
+  {
+   "id": "base",
+   "cat": "lugares",
+   "lvl": 1,
+   "w": "en base",
+   "ipa": "/ˈbæːsə/",
+   "g": "en",
+   "pl": "baser",
+   "es": "base militar",
+   "ex": "Helikopteren flyver tilbage til basen.",
+   "exEs": "El helicóptero vuelve a la base.",
+   "img": "img/om_1F3F0.png",
+   "src": "dic"
+  },
+  {
+   "id": "barracks",
+   "cat": "lugares",
+   "lvl": 2,
+   "w": "en kaserne",
+   "ipa": "/kaˈsæɐ̯nə/",
+   "g": "en",
+   "pl": "kaserner",
+   "es": "cuartel",
+   "ex": "Soldaterne sover på kasernen.",
+   "exEs": "Los soldados duermen en el cuartel.",
+   "img": "img/om_1F3E2.png",
+   "src": "dic"
+  },
+  {
+   "id": "border",
+   "cat": "lugares",
+   "lvl": 2,
+   "w": "en grænse",
+   "ipa": "/ˈɡʁanˀsə/",
+   "g": "en",
+   "pl": "grænser",
+   "es": "frontera",
+   "ex": "Vagterne holder øje med grænsen.",
+   "exEs": "Los guardias vigilan la frontera.",
+   "img": "img/om_1F6C2.png",
+   "src": "dic"
+  },
+  {
+   "id": "checkpoint",
+   "cat": "lugares",
+   "lvl": 3,
+   "w": "en kontrolpost",
+   "ipa": "/kʰʌnˈtʁoːlˌpʌsd/",
+   "g": "en",
+   "pl": "kontrolposter",
+   "es": "puesto de control",
+   "ex": "Stop ved kontrolposten, og vis dit kort.",
+   "exEs": "Para en el puesto de control y enseña tu tarjeta.",
+   "img": "img/om_1F6A7.png",
+   "src": "dic"
+  },
+  {
+   "id": "hq",
+   "cat": "lugares",
+   "lvl": 3,
+   "w": "et hovedkvarter",
+   "ipa": "/ˈhoːəðkvɑˌteɐ̯ˀ/",
+   "g": "et",
+   "pl": "hovedkvarterer",
+   "es": "cuartel general",
+   "ex": "Generalen arbejder i hovedkvarteret.",
+   "exEs": "El general trabaja en el cuartel general.",
+   "img": "img/om_1F3DB.png",
+   "src": "dic"
+  },
+  {
+   "id": "fieldhosp",
+   "cat": "lugares",
+   "lvl": 3,
+   "w": "et felthospital",
+   "ipa": "/ˈfɛldhosbiˌtæˀl/",
+   "g": "et",
+   "pl": "felthospitaler",
+   "es": "hospital de campaña",
+   "ex": "Lægerne arbejder på et felthospital.",
+   "exEs": "Los médicos trabajan en un hospital de campaña.",
+   "img": "img/om_1F3E5.png",
+   "src": "dic"
+  },
+  {
+   "id": "mission",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "en mission",
+   "ipa": "/miˈɕoˀn/",
+   "g": "en",
+   "pl": "missioner",
+   "es": "misión",
+   "ex": "Vores mission er at bringe vand til landsbyen.",
+   "exEs": "Nuestra misión es llevar agua al pueblo.",
+   "img": "img/om_1F3AF.png",
+   "src": "dic"
+  },
+  {
+   "id": "patrol",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "en patrulje",
+   "ipa": "/paˈtʁuljə/",
+   "g": "en",
+   "pl": "patruljer",
+   "es": "patrulla",
+   "ex": "Patruljen går rundt om lejren om natten.",
+   "exEs": "La patrulla da vueltas al campamento de noche.",
+   "img": "img/om_1F463.png",
+   "src": "dic"
+  },
+  {
+   "id": "rescue",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "en redning",
+   "ipa": "/ˈʁɛðneŋ/",
+   "g": "en",
+   "pl": "redninger",
+   "es": "rescate",
+   "ex": "Helikopteren kommer til redningen.",
+   "exEs": "El helicóptero viene para el rescate.",
+   "img": "img/om_1F6DF.png",
+   "src": "dic"
+  },
+  {
+   "id": "supplies",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "forsyninger",
+   "ipa": "/fʌˈsyˀneŋɐ/",
+   "g": "en",
+   "es": "suministros",
+   "ex": "Flyet kaster forsyninger ned til lejren.",
+   "exEs": "El avión lanza suministros al campamento.",
+   "note": "Casi siempre en plural.",
+   "img": "img/om_1F4E6.png",
+   "src": "dic"
+  },
+  {
+   "id": "briefing",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "en briefing",
+   "ipa": "/ˈbʁiːfeŋ/",
+   "g": "en",
+   "pl": "briefinger",
+   "es": "reunión para explicar la misión",
+   "ex": "Kaptajnen holder en briefing før missionen.",
+   "exEs": "El capitán explica la misión antes de empezar.",
+   "img": "img/om_1F4CB.png",
+   "src": "dic"
+  },
+  {
+   "id": "objective",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "et mål",
+   "ipa": "/ˈmɔˀl/",
+   "g": "et",
+   "pl": "mål",
+   "es": "objetivo",
+   "ex": "Vores mål er broen.",
+   "exEs": "Nuestro objetivo es el puente.",
+   "img": "img/om_1F3C1.png",
+   "src": "dic"
+  },
+  {
+   "id": "reinf",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "forstærkninger",
+   "ipa": "/fʌˈsdæɐ̯gneŋɐ/",
+   "g": "en",
+   "es": "refuerzos",
+   "ex": "Forstærkningerne er på vej.",
+   "exEs": "Los refuerzos vienen en camino.",
+   "note": "Casi siempre en plural.",
+   "img": "img/om_1F4AA.png",
+   "src": "dic"
+  },
+  {
+   "id": "recon",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "en rekognoscering",
+   "ipa": "/ʁekʌɡnoˈseɐ̯ˀeŋ/",
+   "g": "en",
+   "pl": "rekognosceringer",
+   "es": "reconocimiento (ir a mirar antes)",
+   "ex": "To soldater tager på rekognoscering.",
+   "exEs": "Dos soldados salen de reconocimiento.",
+   "img": "img/om_1F50D.png",
+   "src": "dic"
+  },
+  {
+   "id": "evac",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "en evakuering",
+   "ipa": "/evakuˈeɐ̯ˀeŋ/",
+   "g": "en",
+   "pl": "evakueringer",
+   "es": "evacuación (ir a un sitio seguro)",
+   "ex": "Evakueringen begynder ved daggry.",
+   "exEs": "La evacuación empieza al amanecer.",
+   "img": "img/om_1F6AA.png",
+   "src": "dic"
+  },
+  {
+   "id": "ceasefire",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "en våbenhvile",
+   "ipa": "/ˈvɔːbənˌviːlə/",
+   "g": "en",
+   "pl": "våbenhviler",
+   "es": "alto el fuego (paz)",
+   "ex": "Efter våbenhvilen tager alle hjem.",
+   "exEs": "Después del alto el fuego, todos vuelven a casa.",
+   "img": "img/om_1F54A.png",
    "src": "dic"
   },
   {
@@ -441,7 +1138,8 @@
    "ex": "Alfa er bogstavet A.",
    "exEs": "Alfa es la letra A.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nB",
@@ -453,7 +1151,8 @@
    "ex": "Bravo er bogstavet B.",
    "exEs": "Bravo es la letra B.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nC",
@@ -465,7 +1164,8 @@
    "ex": "Charlie er bogstavet C.",
    "exEs": "Charlie es la letra C.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nD",
@@ -477,7 +1177,8 @@
    "ex": "Delta er bogstavet D.",
    "exEs": "Delta es la letra D.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nE",
@@ -489,7 +1190,8 @@
    "ex": "Echo er bogstavet E.",
    "exEs": "Echo es la letra E.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nF",
@@ -501,7 +1203,8 @@
    "ex": "Foxtrot er bogstavet F.",
    "exEs": "Foxtrot es la letra F.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nG",
@@ -513,7 +1216,8 @@
    "ex": "Golf er bogstavet G.",
    "exEs": "Golf es la letra G.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nH",
@@ -525,7 +1229,8 @@
    "ex": "Hotel er bogstavet H.",
    "exEs": "Hotel es la letra H.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nI",
@@ -537,7 +1242,8 @@
    "ex": "India er bogstavet I.",
    "exEs": "India es la letra I.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nJ",
@@ -549,7 +1255,8 @@
    "ex": "Juliett er bogstavet J.",
    "exEs": "Juliett es la letra J.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nK",
@@ -561,7 +1268,8 @@
    "ex": "Kilo er bogstavet K.",
    "exEs": "Kilo es la letra K.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nL",
@@ -573,7 +1281,8 @@
    "ex": "Lima er bogstavet L.",
    "exEs": "Lima es la letra L.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nM",
@@ -585,7 +1294,8 @@
    "ex": "Mike er bogstavet M.",
    "exEs": "Mike es la letra M.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nN",
@@ -597,7 +1307,8 @@
    "ex": "November er bogstavet N.",
    "exEs": "November es la letra N.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nO",
@@ -609,7 +1320,8 @@
    "ex": "Oscar er bogstavet O.",
    "exEs": "Oscar es la letra O.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nP",
@@ -621,7 +1333,8 @@
    "ex": "Papa er bogstavet P.",
    "exEs": "Papa es la letra P.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nQ",
@@ -633,7 +1346,8 @@
    "ex": "Quebec er bogstavet Q.",
    "exEs": "Quebec es la letra Q.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nR",
@@ -645,7 +1359,8 @@
    "ex": "Romeo er bogstavet R.",
    "exEs": "Romeo es la letra R.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nS",
@@ -657,7 +1372,8 @@
    "ex": "Sierra er bogstavet S.",
    "exEs": "Sierra es la letra S.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nT",
@@ -669,7 +1385,8 @@
    "ex": "Tango er bogstavet T.",
    "exEs": "Tango es la letra T.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nU",
@@ -681,7 +1398,8 @@
    "ex": "Uniform er bogstavet U.",
    "exEs": "Uniform es la letra U.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nV",
@@ -693,7 +1411,8 @@
    "ex": "Victor er bogstavet V.",
    "exEs": "Victor es la letra V.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nW",
@@ -705,7 +1424,8 @@
    "ex": "Whiskey er bogstavet W.",
    "exEs": "Whiskey es la letra W.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nX",
@@ -717,7 +1437,8 @@
    "ex": "X-ray er bogstavet X.",
    "exEs": "X-ray es la letra X.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nY",
@@ -729,7 +1450,8 @@
    "ex": "Yankee er bogstavet Y.",
    "exEs": "Yankee es la letra Y.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nZ",
@@ -741,7 +1463,8 @@
    "ex": "Zulu er bogstavet Z.",
    "exEs": "Zulu es la letra Z.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   }
  ]
 }

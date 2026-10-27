@@ -245,7 +245,10 @@ async function start(app, api, mode){
   const code = LANGS[L].code, scene = SCENES[L] || SCENES.english;
   /* las rondas: 15 palabras distintas (con dibujo primero) y 2 puertas falsas para cada una */
   const pool = shuffle(P.filter(x => x.img)).concat(shuffle(P.filter(x => !x.img)));
-  const rounds = pool.slice(0, N).map(t => {
+  /* con «Soldados», de lo básico a lo avanzado: las rondas van por su nivel (lvl de games.js) */
+  const picked = pool.slice(0, N);
+  if(MIL) picked.sort((a, b) => (a.lvl || 1) - (b.lvl || 1));
+  const rounds = picked.map(t => {
     const others = shuffle(P.filter(x => x !== t && x.word.toLowerCase() !== t.word.toLowerCase())).slice(0, 2);
     const opts = shuffle([t, ...others]);
     return {t, opts, ok: opts.indexOf(t)};

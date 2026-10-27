@@ -16,8 +16,10 @@
      otra hoja abierta). El último rango visto va en "army:<lang>" (inventario PER_LANG de js/save.js). Al comprar el
      soldado, o la primera vez que se mira un idioma, se apunta el rango de ese momento sin fiesta. Nada se escribe al
      arrancar si no tiene el soldado.
-   · Juego «Misión por radio» (vocabGames.register): 8 órdenes por radio, mezclando palabras de radio, órdenes de
-     formación, el campamento, el alfabeto OTAN y los rangos (data/army/<ab>.json "terms" y "ranks"). Suena la orden
+   · Juego «Misión por radio» (vocabGames.register): 8 órdenes por radio, de lo básico a lo avanzado (3 de nivel 1,
+     3 de nivel 2 y 2 de nivel 3: "lvl" de cada término; el alfabeto es 2 y los rangos según su altura), mezclando
+     radio, órdenes de formación, el campamento, personas, vehículos, lugares, misiones, el alfabeto OTAN y los rangos
+     (data/army/<ab>.json "terms" y "ranks"). Suena la orden
      (say(): su audio grabado si lo tiene; si no, la voz del idioma) y el niño toca entre 4 tarjetas grandes el dibujo
      bueno (cada una con su significado en español). Al contestar sale la frase de ejemplo. Estrellas: 7-8 ★★★, 5-6 ★★.
    API: window.vocabArmy = {svg(lang, r), src(lang?, r?), insignia(lang, r, px), rank() → número, info() → {r, per,
@@ -420,21 +422,31 @@ async function celebrate(r){
 }
 
 /* ================================================================ juego «Misión por radio» */
-const CATS = ["radio", "ordenes", "campamento", "alfabeto", "rangos"];
-const PROMPT = {radio: "¿Qué significa por radio?", ordenes: "¿Qué orden es?", campamento: "¿Qué cosa del campamento es?", alfabeto: "¿Qué letra es?", rangos: "¿Qué rango es?"};
+const CATS = ["radio", "ordenes", "campamento", "personas", "vehiculos", "lugares", "mision", "alfabeto", "rangos"];
+const PROMPT = {radio: "¿Qué significa por radio?", ordenes: "¿Qué orden es?", campamento: "¿Qué cosa del campamento es?",
+  personas: "¿Quién es?", vehiculos: "¿Qué vehículo es?", lugares: "¿Qué lugar es?", mision: "¿Qué es en una misión?",
+  alfabeto: "¿Qué letra es?", rangos: "¿Qué rango es?"};
+/* el nivel de cada palabra: 1 básico, 2 intermedio, 3 avanzado ("lvl"; el alfabeto, 2; los rangos, por su altura) */
+const LVL = x => x.cat === "alfabeto" ? 2 : x.cat === "rangos" ? (x.r <= 4 ? 1 : x.r <= 8 ? 2 : 3) : Math.min(3, Math.max(1, Math.round(+x.lvl) || 1));
+const STEPS = [1, 1, 1, 2, 2, 2, 3, 3];   /* de lo básico a lo avanzado */
 function poolOf(d, cat, L){
   if(cat === "rangos") return d.ranks.map((rk, i) => ({id: "r" + i, cat, w: rk.w, ipa: rk.ipa, es: rk.es, ex: rk.ex, exEs: rk.exEs, r: i, img: insignaSrc(L, i)})).filter(x => x.r > 0);
   return (d.terms || []).filter(t => t.cat === cat && t.w && t.es);
 }
 function plan(d, L){
-  const order = shuffle(CATS).concat(shuffle(["radio", "ordenes", "campamento"])).slice(0, ROUNDS);
-  const used = new Set();
-  return order.map(cat => {
-    const pool = poolOf(d, cat, L);
-    if(pool.length < OPTS) return null;
-    const free = pool.filter(x => !used.has(cat + x.id));
-    const t = (free.length ? shuffle(free) : shuffle(pool))[0];
-    used.add(cat + t.id);
+  const pools = {};
+  CATS.forEach(c => { const p = poolOf(d, c, L); if(p.length >= OPTS) pools[c] = p; });
+  const used = new Set(), recent = [];
+  /* cada orden, de una categoría que tenga una palabra libre de ese nivel (y que no haya salido en las 3 anteriores);
+     si ningún nivel queda, cualquiera libre */
+  return STEPS.slice(0, ROUNDS).map(lv => {
+    const free = (c, any) => pools[c].filter(x => (any || LVL(x) === lv) && !used.has(c + x.id));
+    let cats = shuffle(Object.keys(pools).filter(c => free(c).length)), any = false;
+    if(!cats.length){ cats = shuffle(Object.keys(pools).filter(c => free(c, true).length)); any = true; }
+    const cat = cats.find(c => !recent.includes(c)) || cats[0];
+    if(!cat) return null;
+    const pool = pools[cat], t = shuffle(free(cat, any))[0];
+    used.add(cat + t.id); recent.push(cat); if(recent.length > 3) recent.shift();
     const others = shuffle(pool.filter(x => x.id !== t.id && x.es !== t.es)).slice(0, OPTS - 1);
     return {cat, t, opts: shuffle([t, ...others])};
   }).filter(Boolean);
@@ -672,7 +684,7 @@ addEventListener("storage", e => { if(e.key && (e.key === "lang" || e.key.starts
 
 const reg = W.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(GID, {
   t: "Misión por radio", sub: "Órdenes del sargento", img: "img/games/soldados.png",
-  how: "El sargento te da una orden por radio. Escúchala y toca el dibujo que significa lo mismo.",
+  how: "El sargento te da una orden por radio. Escúchala y toca el dibujo que significa lo mismo. Empieza con palabras básicas y termina con las más difíciles.",
   words: "Palabras de soldados",
   show: tp => tp === "militar",   /* solo con el tema «Soldados» de Juegos (con los demás, en oscuro y con este aviso) */
   off: "Se activa con el tema Soldados",

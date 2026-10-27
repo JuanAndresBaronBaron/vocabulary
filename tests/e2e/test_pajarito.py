@@ -334,3 +334,70 @@ def test_jargon_section_programadores():
             assert not C.errors(page), C.errors(page)
         finally:
             page.context.close()
+
+
+COMBATE = [("gimnasio", "Lo que dice el profe en clase"), ("muaythai", "Golpes, clinch y palabras tailandesas"),
+           ("kickboxing", "Golpes, patadas y defensa"), ("lucha", "Derribos y control en el tapiz"),
+           ("jiujitsu", "Posiciones, llaves y palabras brasileñas")]
+
+
+def test_combat_sports_section():
+    """«Deportes de combate» va aparte en la hoja de temas (pedido para la academia de muay thai, kickboxing, lucha y
+    jiu-jitsu): cada deporte con su «qué es». Cada documento trae al menos 15 palabras en inglés, francés y danés con IPA,
+    un dibujo que existe y nada repetido (ni dibujo, ni palabra, ni significado). Con «Muay Thai» el pajarito juega con
+    esas palabras y Memoria arranca sin errores."""
+    docs = {}
+    for tid, _ in COMBATE:
+        doc = json.loads((C.ROOT / "data" / f"{tid}.json").read_text(encoding="utf-8"))
+        rows = [r for r in doc["rows"] if "es" in r]
+        assert doc["id"] == tid and len(rows) >= 15, (tid, len(rows))
+        for key in ("img", "es"):
+            vals = [r[key] for r in rows]
+            assert len(vals) == len(set(vals)), (tid, key)
+        for r in rows:
+            assert (C.ROOT / r["img"]).is_file(), (tid, r["img"])
+            for lang in ("english", "français", "dansk"):
+                x = r["l"][lang]
+                assert x["word"] and x["ipa"].startswith("/") and x["ipa"].endswith("/") and x["ex"] and x["ex_es"], (tid, r["es"], lang)
+        for lang in ("english", "français", "dansk"):
+            ws = [r["l"][lang]["word"] for r in rows]
+            assert len(ws) == len(set(ws)), (tid, lang)
+        docs[tid] = rows
+    page = C.new_page("phone")
+    try:
+        C.seed(page, _keys("english"), "#/juegos")
+        page.wait_for_selector("#gm-tpill", timeout=8000)
+        page.click("#gm-tpill")
+        page.wait_for_selector("dialog#gm-tp-s[open]", timeout=3000)
+        sec = page.evaluate("""() => [...document.querySelectorAll('#gm-tp-s .st-sec')].map(s => ({h: (s.querySelector('.st-h') || {}).textContent || '',
+          tp: [...s.querySelectorAll('[data-tp]')].map(r => r.dataset.tp), sub: [...s.querySelectorAll('[data-tp] small')].map(x => x.textContent)}))""")
+        com = next(s for s in sec if s["h"] == "Deportes de combate")
+        assert com["tp"] == [t for t, _ in COMBATE] and com["sub"] == [x for _, x in COMBATE], com
+        others = [t for s in sec if s["h"] != "Deportes de combate" for t in s["tp"]]
+        assert not set(others) & set(com["tp"]), others
+        page.locator("#gm-tp-h4").scroll_into_view_if_needed()
+        page.wait_for_timeout(500)
+        C.shot(page, "phone-deportes-de-combate", SHOTS, full_page=False)
+        page.click('#gm-tp-s [data-tp="jiujitsu"]')
+        page.wait_for_function("() => !document.getElementById('gm-tp-s').open", timeout=3000)
+        assert "Jiu-jitsu" in page.locator("#gm-tpill").text_content()
+        page.click('.gm-card[data-g="memoria"]')
+        page.wait_for_selector(".gm-intro, .gm-mem, #gm-board", timeout=8000)
+        go = page.locator(".gm-intro .gm-go")
+        if go.count():
+            assert "Jiu-jitsu" in page.locator(".gm-intro-tp").text_content()
+            go.click()
+        page.wait_for_selector(".gm-mc", timeout=8000)
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+    page = C.new_page("phone")
+    try:
+        _open(page, "english", "bird", "muaythai")
+        words = page.evaluate("[...document.querySelectorAll('.fl-gate b')].map(b => b.textContent)")
+        mine = [r["l"]["english"]["word"] for r in docs["muaythai"]]
+        assert words and all(any(w in m or m.endswith(w) for m in mine) for w in words), (words, mine)
+        C.shot(page, "phone-pajarito-muaythai", SHOTS, full_page=False)
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()

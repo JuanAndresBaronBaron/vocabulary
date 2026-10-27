@@ -52,15 +52,21 @@ const TOPICS = [
   ["w29", "1F504", "Cambios", 0], ["w16", "1F52C", "Ciencia", 0], ["w26", "1F4AC", "Hablar", 0], ["w08", "1F4C5", "Días y horas", 0],
   ["w20", "1F4AD", "Sentimientos", 0], ["w10", "1F3EB", "El colegio", 0], ["w11", "1F4BC", "Trabajos", 0], ["w12", "1F6D2", "Compras", 0],
   ["nacionalidades", "1F30E", "Nacionalidades", 0], ["militar", "1FA96", "Soldados", 0], ["programadores", "1F9D1-200D-1F4BB", "Programadores", 0],
+  ["gimnasio", "1F3CB", "En el gimnasio", 0], ["muaythai", "1F1F9-1F1ED", "Muay Thai", 0], ["kickboxing", "1F94A", "Kickboxing", 0],
+  ["lucha", "1F93C", "Lucha", 0], ["jiujitsu", "1F94B", "Jiu-jitsu", 0],
 ];
 /* «Jergas de oficios»: su propia sección en la hoja de temas (no son los nombres de los oficios, que van en
    «Profesiones», sino cómo hablan los que los hacen). «Soldados» no es un documento de Palabras sino la jerga del ejército
-   de cada idioma (data/army/<ab>.json de js/army.js: radio, órdenes y campamento con su dibujo, y los rangos con su
-   insignia); con él salen además los juegos de soldados (def.show de vocabGames.register). «Programadores» es
-   data/programadores.json (fuera del índice: no sale en Aprender) */
+   de cada idioma (data/army/<ab>.json de js/army.js: radio, órdenes, campamento, personas, vehículos, lugares y
+   misiones con su dibujo y su nivel, y los rangos con su insignia); con él salen además los juegos de soldados (def.show de vocabGames.register). «Programadores» es
+   data/programadores.json (fuera del índice: no sale en Aprender). «Deportes de combate» va en otra sección igual:
+   lo que se oye en clase de la academia (data/gimnasio, muaythai, kickboxing, lucha y jiujitsu.json, también fuera del índice) */
 const MIL = "militar";
 const JERGAS = {militar: "Cómo hablan los soldados", programadores: "Cómo hablan los programadores"};
-const JERGA = t => Object.prototype.hasOwnProperty.call(JERGAS, t[0]);
+const COMBATE = {gimnasio: "Lo que dice el profe en clase", muaythai: "Golpes, clinch y palabras tailandesas",
+  kickboxing: "Golpes, patadas y defensa", lucha: "Derribos y control en el tapiz", jiujitsu: "Posiciones, llaves y palabras brasileñas"};
+const OWN = (o, t) => Object.prototype.hasOwnProperty.call(o, t[0]);
+const JERGA = t => OWN(JERGAS, t) || OWN(COMBATE, t);
 const W3000 = t => /^w\d+$/.test(t[0]);
 const START = (a, b) => b[3] - a[3];   /* los de empezar, primero (sort estable: el resto, en su orden) */
 const MIS_INFO = [MIS, "2B50", "Mis palabras", 1];
@@ -325,16 +331,17 @@ async function milPool(){
   const L = lang, ab = {english: "en", "français": "fr", dansk: "da"}[L] || "en";
   const r = await fetch(`data/army/${ab}.json`); if(!r.ok) throw new Error(`data/army/${ab}.json ${r.status}`);
   const A = await r.json(), sw = new Set(), se = new Set(), out = [];
-  const add = (k, word, es, img, ipa) => {
+  /* lvl: 1 básico, 2 intermedio, 3 avanzado (los rangos, por su altura); los juegos que quieran pueden ir de menos a más */
+  const add = (k, word, es, img, ipa, lvl) => {
     word = String(word || "").trim(); es = String(es || "").trim();
     if(!word || !es || !img || sw.has(word.toLowerCase()) || se.has(es.toLowerCase())) return;
     sw.add(word.toLowerCase()); se.add(es.toLowerCase());
-    out.push({k: MIL + "|" + k, es, word, img, doc: MIL, ipa: String(ipa || "")});
+    out.push({k: MIL + "|" + k, es, word, img, doc: MIL, ipa: String(ipa || ""), lvl: Math.min(3, Math.max(1, Math.round(+lvl) || 1))});
   };
-  for(const t of A.terms || []) if(t && t.cat !== "alfabeto" && typeof t.img === "string") add(t.id, t.w, t.es, t.img, t.ipa);
+  for(const t of A.terms || []) if(t && t.cat !== "alfabeto" && typeof t.img === "string") add(t.id, t.w, t.es, t.img, t.ipa, t.lvl);
   const VA = window.vocabArmy;
   if(VA && typeof VA.insignia === "function") (A.ranks || []).forEach((rk, i) => {
-    if(i > 0 && rk) add(rk.id, rk.w, rk.es, "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 48" width="160" height="192">${VA.insignia(L, i).replace(/^<svg[^>]*>|<\/svg>$/g, "")}</svg>`), rk.ipa);
+    if(i > 0 && rk) add(rk.id, rk.w, rk.es, "data:image/svg+xml;charset=utf-8," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 48" width="160" height="192">${VA.insignia(L, i).replace(/^<svg[^>]*>|<\/svg>$/g, "")}</svg>`), rk.ipa, i <= 4 ? 1 : i <= 8 ? 2 : 3);
   });
   return out;
 }
@@ -935,7 +942,8 @@ function openTopics(from){
     <div role="radiogroup" aria-labelledby="gm-tp-t">
       <section class="st-sec"><div class="st-g" id="gm-tp-mis">${misRow(MIS_LANG === lang ? MIS_N : null)}</div></section>
       <section class="st-sec" aria-labelledby="gm-tp-h1"><h3 class="st-h" id="gm-tp-h1">Temas</h3><div class="st-g">${TOPICS.filter(t => !W3000(t) && !JERGA(t)).sort(START).map(t => row(t)).join("")}</div></section>
-      <section class="st-sec" aria-labelledby="gm-tp-h3"><h3 class="st-h" id="gm-tp-h3">Jergas de oficios</h3><div class="st-g">${TOPICS.filter(JERGA).map(t => row(t, `<small>${esc(JERGAS[t[0]])}</small>`)).join("")}</div></section>
+      <section class="st-sec" aria-labelledby="gm-tp-h3"><h3 class="st-h" id="gm-tp-h3">Jergas de oficios</h3><div class="st-g">${TOPICS.filter(t => OWN(JERGAS, t)).map(t => row(t, `<small>${esc(JERGAS[t[0]])}</small>`)).join("")}</div></section>
+      <section class="st-sec" aria-labelledby="gm-tp-h4"><h3 class="st-h" id="gm-tp-h4">Deportes de combate</h3><div class="st-g">${TOPICS.filter(t => OWN(COMBATE, t)).map(t => row(t, `<small>${esc(COMBATE[t[0]])}</small>`)).join("")}</div></section>
       <section class="st-sec" aria-labelledby="gm-tp-h2"><h3 class="st-h" id="gm-tp-h2">Las 3000</h3><div class="st-g">${TOPICS.filter(W3000).sort(START).map(t => row(t)).join("")}</div></section>
     </div>`;
   sheetOpen(d, from);

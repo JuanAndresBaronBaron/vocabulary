@@ -91,8 +91,9 @@ def _rank_now(page):
 # ---------------------------------------------------------------- datos
 def test_data_ranks_terms_and_wiring():
     """data/army/<ab>.json: 13 rangos con palabra, IPA entre barras, plural, significado, insignia y ejemplo con
-    traducción (francés y danés con su género); términos de radio, órdenes (5), campamento (≥10) y el alfabeto OTAN
-    entero y en orden; cada dibujo existe; ninguna palabra de armas, violencia o grosera; cada fuente citada existe.
+    traducción (francés y danés con su género); términos de radio (≥8), órdenes (≥10, con las 5 primeras), campamento
+    (≥18), personas, vehículos, lugares y misiones (≥7 cada una), cada uno con su nivel (1 básico, 2 intermedio, 3
+    avanzado; los tres en cada idioma) y sin dibujos repetidos, y el alfabeto OTAN entero y en orden; cada dibujo existe; ninguna palabra de armas, violencia o grosera; cada fuente citada existe.
     El soldado está en la tienda y en sprites.json; js/army.js, los datos y la tarjeta van en SHELL y OFF_APP;
     "army:" está en PER_LANG de js/save.js; img/pj/soldado.png existe para «Descargar todo»."""
     probs = []
@@ -140,12 +141,22 @@ def test_data_ranks_terms_and_wiring():
             for f in ("w", "es", "ex", "exEs"):
                 if BAD.search(t.get(f) or ""):
                     probs.append(f"{L} {t['id']}: palabra no apta en {f}: {t[f]!r}")
-        if len(cats.get("radio", [])) < 5 or len(cats.get("ordenes", [])) != 5 or len(cats.get("campamento", [])) < 10:
+        if len(cats.get("radio", [])) < 8 or len(cats.get("ordenes", [])) < 10 or len(cats.get("campamento", [])) < 18 \
+                or any(len(cats.get(c, [])) < 7 for c in ("personas", "vehiculos", "lugares", "mision")):
             probs.append(f"{L}: categorías {[(k, len(v)) for k, v in cats.items()]}")
+        # de lo básico a lo avanzado: cada término con su nivel, los tres niveles en cada idioma y nombres para ellos
+        lv = [t.get("lvl") for t in ts]
+        if any(x not in (1, 2, 3) for x in lv) or {1, 2, 3} - set(lv) or d.get("levels") != {"1": "Básico", "2": "Intermedio", "3": "Avanzado"}:
+            probs.append(f"{L}: niveles {sorted(set(map(str, lv)))} {d.get('levels')}")
+        if set(d.get("cats") or {}) < set(cats) | {"rangos"}:
+            probs.append(f"{L}: categorías sin nombre {set(cats) - set(d.get('cats') or {})}")
+        imgs = [t["img"] for t in ts if t.get("img")]
+        if len(imgs) != len(set(imgs)):
+            probs.append(f"{L}: dibujos repetidos {sorted({i for i in imgs if imgs.count(i) > 1})}")
         if [t["w"] for t in cats.get("alfabeto", [])] != nato:
             probs.append(f"{L}: alfabeto OTAN {[t['w'] for t in cats.get('alfabeto', [])]}")
         ids = {t["id"] for t in cats.get("ordenes", [])}
-        if ids != {"att", "ease", "salute", "march", "halt"}:
+        if not {"att", "ease", "salute", "march", "halt"} <= ids:
             probs.append(f"{L}: órdenes {ids}")
         for r in rs:
             for f in ("w", "es", "ex", "exEs"):
@@ -472,6 +483,17 @@ def _answer_of(L, w):
     return None
 
 
+def _lvl_of(L, w):
+    """el nivel de la palabra de una orden (como LVL de js/army.js): el del término, 2 el alfabeto y los rangos por altura"""
+    for t in DATA[L]["terms"]:
+        if t["w"] == w:
+            return 2 if t["cat"] == "alfabeto" else t["lvl"]
+    for i, r in enumerate(DATA[L]["ranks"]):
+        if r["w"] == w:
+            return 1 if i <= 4 else 2 if i <= 8 else 3
+    raise AssertionError(f"{L}: «{w}» no está en los datos")
+
+
 def _play(page, L, miss_at=()):
     """Juega las 8 órdenes; en las rondas de miss_at toca una mala primero. Devuelve lo visto en cada ronda."""
     seen = []
@@ -508,7 +530,8 @@ def test_game_card_rounds_and_reward():
     """La tarjeta «Misión por radio» sale en Jugar con img/games/soldados.png; la partida: 8 órdenes con la palabra, su
     IPA y 4 tarjetas con dibujo de ≥ 120 px (390 px); fallar pone la tarjeta en gris con ✗, marca la buena y deja
     «Seguir»; al final, 2 estrellas con 6 aciertos, award una vez desde «+N» (10 monedas) y el récord en games:best. Se
-    juega igual en francés y danés (alfabeto, rangos y órdenes en su idioma)."""
+    juega igual en francés y danés (alfabeto, rangos y órdenes en su idioma). Las órdenes van de lo básico a lo
+    avanzado: 3 de nivel 1, 3 de nivel 2 y 2 de nivel 3."""
     probs = []
     page = C.new_page("phone")
     try:
@@ -528,6 +551,9 @@ def test_game_card_rounds_and_reward():
             page.locator(".gm-intro .gm-go").click()
             page.wait_for_timeout(300)
         seen = _play(page, "english", miss_at=(2, 5))
+        lv = [_lvl_of("english", r["w"]) for r in seen]
+        if lv != [1, 1, 1, 2, 2, 2, 3, 3]:   # de lo básico a lo avanzado
+            probs.append(f"niveles de las órdenes: {lv} ({[r['w'] for r in seen]})")
         for i, r in enumerate(seen):
             if not r["ipa"] or len(r["cards"]) != 4:
                 probs.append(f"ronda {i + 1}: ipa {r['ipa']!r}, {len(r['cards'])} tarjetas")
@@ -563,7 +589,9 @@ def test_game_card_rounds_and_reward():
             if page.locator(".gm-ready .gm-go, #gm-ready-go").count():
                 page.locator(".gm-ready .gm-go, #gm-ready-go").first.click()
             page.wait_for_timeout(300)
-            _play(page, L)
+            lv = [_lvl_of(L, r["w"]) for r in _play(page, L)]
+            if lv != sorted(lv) or lv[0] != 1 or lv[-1] != 3:
+                probs.append(f"{L}: niveles de las órdenes {lv}")
             page.wait_for_selector("#gm-end", timeout=8000)
             if page.locator(".gm-end-st .gm-es.on").count() != 3:
                 probs.append(f"{L}: sin las 3 estrellas")

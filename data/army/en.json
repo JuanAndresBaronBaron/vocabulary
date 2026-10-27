@@ -7,8 +7,17 @@
   "radio": "Palabras de radio",
   "ordenes": "Órdenes de formación",
   "campamento": "El campamento",
+  "personas": "Personas",
+  "vehiculos": "Vehículos",
+  "lugares": "Lugares",
+  "mision": "Misiones",
   "alfabeto": "Alfabeto OTAN",
   "rangos": "Rangos"
+ },
+ "levels": {
+  "1": "Básico",
+  "2": "Intermedio",
+  "3": "Avanzado"
  },
  "sources": {
   "armymil": "US Army, U.S. Army Ranks: https://www.army.mil/ranks/",
@@ -178,7 +187,8 @@
    "ex": "Roger, I am on my way.",
    "exEs": "Recibido, voy para allá.",
    "img": "img/om_1F44D.png",
-   "src": "usmc"
+   "src": "usmc",
+   "lvl": 1
   },
   {
    "id": "over",
@@ -189,7 +199,8 @@
    "ex": "Are you ready? Over.",
    "exEs": "¿Estás listo? Cambio.",
    "img": "img/om_1F504.png",
-   "src": "usmc"
+   "src": "usmc",
+   "lvl": 1
   },
   {
    "id": "out",
@@ -200,7 +211,8 @@
    "ex": "Thank you. Out.",
    "exEs": "Gracias. Corto y cierro.",
    "img": "img/om_1F44B.png",
-   "src": "usmc"
+   "src": "usmc",
+   "lvl": 1
   },
   {
    "id": "copy",
@@ -212,7 +224,8 @@
    "exEs": "¿Me copias?",
    "img": "img/om_1F442.png",
    "note": "Jerga de radio: la palabra oficial es Roger.",
-   "src": "dictcom"
+   "src": "dictcom",
+   "lvl": 1
   },
   {
    "id": "again",
@@ -223,7 +236,8 @@
    "ex": "I can't hear you. Say again.",
    "exEs": "No te oigo. Repite.",
    "img": "img/om_1F501.png",
-   "src": "usmc"
+   "src": "usmc",
+   "lvl": 1
   },
   {
    "id": "check",
@@ -234,7 +248,68 @@
    "ex": "Radio check, over.",
    "exEs": "¿Me oyes bien? Cambio.",
    "img": "img/om_1F4E1.png",
-   "src": "usmc"
+   "src": "usmc",
+   "lvl": 2
+  },
+  {
+   "id": "standby",
+   "cat": "radio",
+   "lvl": 2,
+   "w": "Stand by",
+   "ipa": "/ˌstænd ˈbaɪ/",
+   "es": "Espera",
+   "ex": "Stand by, I am checking the map.",
+   "exEs": "Espera, estoy mirando el mapa.",
+   "img": "img/om_23F3.png",
+   "src": "dic"
+  },
+  {
+   "id": "loud",
+   "cat": "radio",
+   "lvl": 2,
+   "w": "Loud and clear",
+   "ipa": "/ˌlaʊd ən ˈklɪə/",
+   "es": "Te oigo alto y claro",
+   "ex": "Radio check? I hear you loud and clear.",
+   "exEs": "¿Me oyes bien? Te oigo alto y claro.",
+   "img": "img/om_1F50A.png",
+   "src": "dic"
+  },
+  {
+   "id": "yes",
+   "cat": "radio",
+   "lvl": 2,
+   "w": "Affirmative",
+   "ipa": "/əˈfɜːmətɪv/",
+   "es": "Sí (por radio)",
+   "ex": "Are you at the camp? Affirmative.",
+   "exEs": "¿Estás en el campamento? Sí.",
+   "img": "img/om_2705.png",
+   "src": "dic"
+  },
+  {
+   "id": "no",
+   "cat": "radio",
+   "lvl": 2,
+   "w": "Negative",
+   "ipa": "/ˈneɡətɪv/",
+   "es": "No (por radio)",
+   "ex": "Can you see the truck? Negative.",
+   "exEs": "¿Ves el camión? No.",
+   "img": "img/om_274C.png",
+   "src": "dic"
+  },
+  {
+   "id": "mayday",
+   "cat": "radio",
+   "lvl": 3,
+   "w": "Mayday",
+   "ipa": "/ˈmeɪdeɪ/",
+   "es": "¡Socorro! (emergencia)",
+   "ex": "Mayday, mayday! We need help.",
+   "exEs": "¡Socorro, socorro! Necesitamos ayuda.",
+   "img": "img/om_1F198.png",
+   "src": "dic"
   },
   {
    "id": "att",
@@ -245,7 +320,8 @@
    "ex": "Company, attention!",
    "exEs": "¡Compañía, firmes!",
    "img": "img/om_1F9CD.png",
-   "src": "recruiting"
+   "src": "recruiting",
+   "lvl": 1
   },
   {
    "id": "ease",
@@ -256,7 +332,8 @@
    "ex": "At ease, soldiers.",
    "exEs": "Descansen, soldados.",
    "img": "img/army/at-ease.svg",
-   "src": "recruiting"
+   "src": "recruiting",
+   "lvl": 1
   },
   {
    "id": "salute",
@@ -267,7 +344,8 @@
    "ex": "Salute the captain.",
    "exEs": "Saluda al capitán.",
    "img": "img/om_1FAE1.png",
-   "src": "recruiting"
+   "src": "recruiting",
+   "lvl": 1
   },
   {
    "id": "march",
@@ -278,7 +356,8 @@
    "ex": "Platoon, forward, march!",
    "exEs": "¡Pelotón, de frente, mar!",
    "img": "img/om_1F6B6.png",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "halt",
@@ -289,6 +368,79 @@
    "ex": "Platoon, halt!",
    "exEs": "¡Pelotón, alto!",
    "img": "img/om_270B.png",
+   "src": "dic",
+   "lvl": 1
+  },
+  {
+   "id": "wakeup",
+   "cat": "ordenes",
+   "lvl": 1,
+   "w": "Wake up!",
+   "ipa": "/ˌweɪk ˈʌp/",
+   "es": "¡Arriba! (a despertarse)",
+   "ex": "Wake up! It is six o'clock.",
+   "exEs": "¡Arriba! Son las seis.",
+   "img": "img/om_23F0.png",
+   "src": "dic"
+  },
+  {
+   "id": "fallin",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "Fall in!",
+   "ipa": "/ˌfɔːl ˈɪn/",
+   "es": "¡A formar!",
+   "ex": "Platoon, fall in!",
+   "exEs": "¡Sección, a formar!",
+   "img": "img/om_1F4CF.png",
+   "src": "dic"
+  },
+  {
+   "id": "dismissed",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "Dismissed!",
+   "ipa": "/dɪsˈmɪst/",
+   "es": "¡Rompan filas!",
+   "ex": "Good work today. Dismissed!",
+   "exEs": "Buen trabajo hoy. ¡Rompan filas!",
+   "img": "img/om_1F3C3.png",
+   "src": "dic"
+  },
+  {
+   "id": "left",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "Left, face!",
+   "ipa": "/ˈleft ˈfeɪs/",
+   "es": "¡Izquierda, ar! (girar)",
+   "ex": "Squad, left, face!",
+   "exEs": "¡Escuadra, izquierda, ar!",
+   "img": "img/om_2B05.png",
+   "src": "dic"
+  },
+  {
+   "id": "right",
+   "cat": "ordenes",
+   "lvl": 2,
+   "w": "Right, face!",
+   "ipa": "/ˈraɪt ˈfeɪs/",
+   "es": "¡Derecha, ar! (girar)",
+   "ex": "Squad, right, face!",
+   "exEs": "¡Escuadra, derecha, ar!",
+   "img": "img/om_27A1.png",
+   "src": "dic"
+  },
+  {
+   "id": "about",
+   "cat": "ordenes",
+   "lvl": 3,
+   "w": "About, face!",
+   "ipa": "/əˈbaʊt ˈfeɪs/",
+   "es": "¡Media vuelta, ar!",
+   "ex": "Squad, about, face!",
+   "exEs": "¡Escuadra, media vuelta, ar!",
+   "img": "img/om_1F503.png",
    "src": "dic"
   },
   {
@@ -301,7 +453,8 @@
    "ex": "Put on your helmet.",
    "exEs": "Ponte el casco.",
    "img": "img/om_1FA96.png",
-   "src": "corpus"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "boots",
@@ -312,7 +465,8 @@
    "ex": "My boots are muddy.",
    "exEs": "Mis botas tienen barro.",
    "img": "img/om_1F97E.png",
-   "src": "corpus"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "tent",
@@ -324,19 +478,8 @@
    "ex": "We sleep in a tent.",
    "exEs": "Dormimos en una tienda de campaña.",
    "img": "img/om_26FA.png",
-   "src": "corpus"
-  },
-  {
-   "id": "compass",
-   "cat": "campamento",
-   "w": "compass",
-   "ipa": "/ˈkʌmpəs/",
-   "pl": "compasses",
-   "es": "brújula",
-   "ex": "The compass points north.",
-   "exEs": "La brújula señala el norte.",
-   "img": "img/om_1F9ED.png",
-   "src": "dic"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "map",
@@ -348,18 +491,8 @@
    "ex": "Look at the map.",
    "exEs": "Mira el mapa.",
    "img": "img/om_1F5FA.png",
-   "src": "corpus"
-  },
-  {
-   "id": "binoculars",
-   "cat": "campamento",
-   "w": "binoculars",
-   "ipa": "/bɪˈnɒkjələz/",
-   "es": "prismáticos",
-   "ex": "I can see far with binoculars.",
-   "exEs": "Con los prismáticos veo lejos.",
-   "img": "img/army/binoculars.svg",
-   "src": "dic"
+   "src": "corpus",
+   "lvl": 1
   },
   {
    "id": "rucksack",
@@ -372,7 +505,8 @@
    "exEs": "Mi mochila pesa.",
    "img": "img/om_1F392.png",
    "note": "En EE. UU. también se dice backpack.",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "torch",
@@ -385,7 +519,8 @@
    "exEs": "Enciende la linterna.",
    "img": "img/om_1F526.png",
    "note": "En EE. UU. se dice flashlight.",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "bottle",
@@ -398,7 +533,8 @@
    "exEs": "Bebe de tu cantimplora.",
    "img": "img/army/canteen.svg",
    "note": "En el ejército de EE. UU. se dice canteen.",
-   "src": "dic"
+   "src": "dic",
+   "lvl": 1
   },
   {
    "id": "radio",
@@ -410,7 +546,85 @@
    "ex": "The radio is on.",
    "exEs": "La radio está encendida.",
    "img": "img/om_1F4FB.png",
-   "src": "corpus"
+   "src": "corpus",
+   "lvl": 1
+  },
+  {
+   "id": "headgear",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "beret",
+   "ipa": "/ˈbereɪ/",
+   "pl": "berets",
+   "es": "boina",
+   "ex": "He wears a black beret.",
+   "exEs": "Lleva una boina negra.",
+   "img": "img/om_1F9E2.png",
+   "src": "dic"
+  },
+  {
+   "id": "gloves",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "gloves",
+   "ipa": "/ɡlʌvz/",
+   "es": "guantes",
+   "ex": "Put on your gloves, it is cold.",
+   "exEs": "Ponte los guantes, hace frío.",
+   "note": "Casi siempre en plural (a pair of gloves).",
+   "img": "img/om_1F9E4.png",
+   "src": "dic"
+  },
+  {
+   "id": "campfire",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "campfire",
+   "ipa": "/ˈkæmpfaɪə/",
+   "pl": "campfires",
+   "es": "fogata",
+   "ex": "We sing around the campfire.",
+   "exEs": "Cantamos alrededor de la fogata.",
+   "img": "img/om_1F525.png",
+   "src": "dic"
+  },
+  {
+   "id": "flag",
+   "cat": "campamento",
+   "lvl": 1,
+   "w": "flag",
+   "ipa": "/flæɡ/",
+   "pl": "flags",
+   "es": "bandera",
+   "ex": "We salute the flag every morning.",
+   "exEs": "Saludamos a la bandera cada mañana.",
+   "img": "img/om_1F6A9.png",
+   "src": "dic"
+  },
+  {
+   "id": "compass",
+   "cat": "campamento",
+   "w": "compass",
+   "ipa": "/ˈkʌmpəs/",
+   "pl": "compasses",
+   "es": "brújula",
+   "ex": "The compass points north.",
+   "exEs": "La brújula señala el norte.",
+   "img": "img/om_1F9ED.png",
+   "src": "dic",
+   "lvl": 2
+  },
+  {
+   "id": "binoculars",
+   "cat": "campamento",
+   "w": "binoculars",
+   "ipa": "/bɪˈnɒkjələz/",
+   "es": "prismáticos",
+   "ex": "I can see far with binoculars.",
+   "exEs": "Con los prismáticos veo lejos.",
+   "img": "img/army/binoculars.svg",
+   "src": "dic",
+   "lvl": 2
   },
   {
    "id": "medal",
@@ -422,6 +636,486 @@
    "ex": "She has a medal.",
    "exEs": "Ella tiene una medalla.",
    "img": "img/om_1F396.png",
+   "src": "dic",
+   "lvl": 2
+  },
+  {
+   "id": "rations",
+   "cat": "campamento",
+   "lvl": 2,
+   "w": "rations",
+   "ipa": "/ˈræʃnz/",
+   "es": "raciones de comida",
+   "ex": "We eat our rations in the tent.",
+   "exEs": "Comemos nuestras raciones en la tienda.",
+   "note": "Casi siempre en plural.",
+   "img": "img/om_1F96B.png",
+   "src": "dic"
+  },
+  {
+   "id": "firstaid",
+   "cat": "campamento",
+   "lvl": 2,
+   "w": "first-aid kit",
+   "ipa": "/ˌfɜːst ˈeɪd kɪt/",
+   "pl": "first-aid kits",
+   "es": "botiquín",
+   "ex": "The first-aid kit is in the truck.",
+   "exEs": "El botiquín está en el camión.",
+   "img": "img/om_1FA79.png",
+   "src": "dic"
+  },
+  {
+   "id": "rope",
+   "cat": "campamento",
+   "lvl": 2,
+   "w": "rope",
+   "ipa": "/rəʊp/",
+   "pl": "ropes",
+   "es": "cuerda",
+   "ex": "Tie the tent with the rope.",
+   "exEs": "Ata la tienda con la cuerda.",
+   "img": "img/om_1FAA2.png",
+   "src": "dic"
+  },
+  {
+   "id": "camo",
+   "cat": "campamento",
+   "lvl": 3,
+   "w": "camouflage",
+   "ipa": "/ˈkæməflɑːʒ/",
+   "es": "camuflaje",
+   "ex": "With camouflage, you are hard to see.",
+   "exEs": "Con el camuflaje cuesta verte.",
+   "img": "img/om_1F98E.png",
+   "src": "dic"
+  },
+  {
+   "id": "soldier",
+   "cat": "personas",
+   "lvl": 1,
+   "w": "soldier",
+   "ipa": "/ˈsəʊldʒə/",
+   "pl": "soldiers",
+   "es": "soldado",
+   "ex": "The soldier makes his bed every day.",
+   "exEs": "El soldado hace su cama cada día.",
+   "img": "img/pj/soldado.png",
+   "src": "dic"
+  },
+  {
+   "id": "guard",
+   "cat": "personas",
+   "lvl": 1,
+   "w": "guard",
+   "ipa": "/ɡɑːd/",
+   "pl": "guards",
+   "es": "guardia (centinela)",
+   "ex": "The guard stands at the gate all night.",
+   "exEs": "El guardia vigila la entrada toda la noche.",
+   "img": "img/om_1F482.png",
+   "src": "dic"
+  },
+  {
+   "id": "pilot",
+   "cat": "personas",
+   "lvl": 1,
+   "w": "pilot",
+   "ipa": "/ˈpaɪlət/",
+   "pl": "pilots",
+   "es": "piloto",
+   "ex": "The pilot flies the helicopter.",
+   "exEs": "El piloto pilota el helicóptero.",
+   "img": "img/om_1F9D1-200D-2708.png",
+   "src": "dic"
+  },
+  {
+   "id": "buddy",
+   "cat": "personas",
+   "lvl": 2,
+   "w": "buddy",
+   "ipa": "/ˈbʌdi/",
+   "pl": "buddies",
+   "es": "compañero (amigo del equipo)",
+   "ex": "Stay with your buddy at all times.",
+   "exEs": "Quédate siempre con tu compañero.",
+   "img": "img/om_1F91D.png",
+   "src": "dic"
+  },
+  {
+   "id": "recruit",
+   "cat": "personas",
+   "lvl": 2,
+   "w": "recruit",
+   "ipa": "/rɪˈkruːt/",
+   "pl": "recruits",
+   "es": "recluta (soldado nuevo)",
+   "ex": "The new recruit learns to march.",
+   "exEs": "El recluta nuevo aprende a marchar.",
+   "img": "img/om_1F423.png",
+   "src": "dic"
+  },
+  {
+   "id": "medic",
+   "cat": "personas",
+   "lvl": 2,
+   "w": "medic",
+   "ipa": "/ˈmedɪk/",
+   "pl": "medics",
+   "es": "sanitario (cura a los heridos)",
+   "ex": "The medic puts a plaster on my knee.",
+   "exEs": "El sanitario me pone una tirita en la rodilla.",
+   "img": "img/om_1F9D1-200D-2695.png",
+   "src": "dic"
+  },
+  {
+   "id": "platoon",
+   "cat": "personas",
+   "lvl": 3,
+   "w": "platoon",
+   "ipa": "/pləˈtuːn/",
+   "pl": "platoons",
+   "es": "sección (unos 30 soldados)",
+   "ex": "The platoon marches to the camp.",
+   "exEs": "La sección marcha al campamento.",
+   "img": "img/om_1F465.png",
+   "src": "dic"
+  },
+  {
+   "id": "veteran",
+   "cat": "personas",
+   "lvl": 3,
+   "w": "veteran",
+   "ipa": "/ˈvetərən/",
+   "pl": "veterans",
+   "es": "veterano",
+   "ex": "The veteran tells stories about his years in the army.",
+   "exEs": "El veterano cuenta historias de sus años en el ejército.",
+   "img": "img/om_1F474.png",
+   "src": "dic"
+  },
+  {
+   "id": "truck",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "truck",
+   "ipa": "/trʌk/",
+   "pl": "trucks",
+   "es": "camión",
+   "ex": "The truck carries water to the camp.",
+   "exEs": "El camión lleva agua al campamento.",
+   "img": "img/om_1F69A.png",
+   "src": "dic"
+  },
+  {
+   "id": "heli",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "helicopter",
+   "ipa": "/ˈhelɪkɒptə/",
+   "pl": "helicopters",
+   "es": "helicóptero",
+   "ex": "The helicopter lands next to the tents.",
+   "exEs": "El helicóptero aterriza junto a las tiendas.",
+   "img": "img/om_1F681.png",
+   "src": "dic"
+  },
+  {
+   "id": "plane",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "plane",
+   "ipa": "/pleɪn/",
+   "pl": "planes",
+   "es": "avión",
+   "ex": "The plane flies over the mountains.",
+   "exEs": "El avión vuela sobre las montañas.",
+   "img": "img/om_2708.png",
+   "src": "dic"
+  },
+  {
+   "id": "ship",
+   "cat": "vehiculos",
+   "lvl": 1,
+   "w": "ship",
+   "ipa": "/ʃɪp/",
+   "pl": "ships",
+   "es": "barco",
+   "ex": "The ship takes the soldiers home.",
+   "exEs": "El barco lleva a los soldados a casa.",
+   "img": "img/om_1F6A2.png",
+   "src": "dic"
+  },
+  {
+   "id": "jeep",
+   "cat": "vehiculos",
+   "lvl": 2,
+   "w": "jeep",
+   "ipa": "/dʒiːp/",
+   "pl": "jeeps",
+   "es": "todoterreno (jeep)",
+   "ex": "The jeep drives through the mud.",
+   "exEs": "El jeep avanza por el barro.",
+   "img": "img/om_1F699.png",
+   "src": "dic"
+  },
+  {
+   "id": "ambulance",
+   "cat": "vehiculos",
+   "lvl": 2,
+   "w": "ambulance",
+   "ipa": "/ˈæmbjələns/",
+   "pl": "ambulances",
+   "es": "ambulancia",
+   "ex": "The ambulance takes the soldier to hospital.",
+   "exEs": "La ambulancia lleva al soldado al hospital.",
+   "img": "img/om_1F691.png",
+   "src": "dic"
+  },
+  {
+   "id": "parachute",
+   "cat": "vehiculos",
+   "lvl": 2,
+   "w": "parachute",
+   "ipa": "/ˈpærəʃuːt/",
+   "pl": "parachutes",
+   "es": "paracaídas",
+   "ex": "The box comes down with a parachute.",
+   "exEs": "La caja baja con un paracaídas.",
+   "img": "img/om_1FA82.png",
+   "src": "dic"
+  },
+  {
+   "id": "convoy",
+   "cat": "vehiculos",
+   "lvl": 3,
+   "w": "convoy",
+   "ipa": "/ˈkɒnvɔɪ/",
+   "pl": "convoys",
+   "es": "convoy (fila de vehículos)",
+   "ex": "The convoy brings food to the village.",
+   "exEs": "El convoy lleva comida al pueblo.",
+   "img": "img/om_1F69B.png",
+   "src": "dic"
+  },
+  {
+   "id": "camp",
+   "cat": "lugares",
+   "lvl": 1,
+   "w": "camp",
+   "ipa": "/kæmp/",
+   "pl": "camps",
+   "es": "campamento",
+   "ex": "We go back to camp before dark.",
+   "exEs": "Volvemos al campamento antes de que oscurezca.",
+   "img": "img/om_1F3D5.png",
+   "src": "dic"
+  },
+  {
+   "id": "base",
+   "cat": "lugares",
+   "lvl": 1,
+   "w": "base",
+   "ipa": "/beɪs/",
+   "pl": "bases",
+   "es": "base militar",
+   "ex": "The helicopter flies back to the base.",
+   "exEs": "El helicóptero vuelve a la base.",
+   "img": "img/om_1F3F0.png",
+   "src": "dic"
+  },
+  {
+   "id": "barracks",
+   "cat": "lugares",
+   "lvl": 2,
+   "w": "barracks",
+   "ipa": "/ˈbærəks/",
+   "es": "cuartel",
+   "ex": "The soldiers sleep in the barracks.",
+   "exEs": "Los soldados duermen en el cuartel.",
+   "note": "Igual en singular y en plural.",
+   "img": "img/om_1F3E2.png",
+   "src": "dic"
+  },
+  {
+   "id": "border",
+   "cat": "lugares",
+   "lvl": 2,
+   "w": "border",
+   "ipa": "/ˈbɔːdə/",
+   "pl": "borders",
+   "es": "frontera",
+   "ex": "The guards watch the border.",
+   "exEs": "Los guardias vigilan la frontera.",
+   "img": "img/om_1F6C2.png",
+   "src": "dic"
+  },
+  {
+   "id": "checkpoint",
+   "cat": "lugares",
+   "lvl": 3,
+   "w": "checkpoint",
+   "ipa": "/ˈtʃekpɔɪnt/",
+   "pl": "checkpoints",
+   "es": "puesto de control",
+   "ex": "Stop at the checkpoint and show your card.",
+   "exEs": "Para en el puesto de control y enseña tu tarjeta.",
+   "img": "img/om_1F6A7.png",
+   "src": "dic"
+  },
+  {
+   "id": "hq",
+   "cat": "lugares",
+   "lvl": 3,
+   "w": "headquarters",
+   "ipa": "/ˌhedˈkwɔːtəz/",
+   "es": "cuartel general",
+   "ex": "The general works at headquarters.",
+   "exEs": "El general trabaja en el cuartel general.",
+   "note": "Igual en singular y en plural.",
+   "img": "img/om_1F3DB.png",
+   "src": "dic"
+  },
+  {
+   "id": "fieldhosp",
+   "cat": "lugares",
+   "lvl": 3,
+   "w": "field hospital",
+   "ipa": "/ˈfiːld ˌhɒspɪtl/",
+   "pl": "field hospitals",
+   "es": "hospital de campaña",
+   "ex": "The doctors work in a field hospital.",
+   "exEs": "Los médicos trabajan en un hospital de campaña.",
+   "img": "img/om_1F3E5.png",
+   "src": "dic"
+  },
+  {
+   "id": "mission",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "mission",
+   "ipa": "/ˈmɪʃn/",
+   "pl": "missions",
+   "es": "misión",
+   "ex": "Our mission is to take water to the village.",
+   "exEs": "Nuestra misión es llevar agua al pueblo.",
+   "img": "img/om_1F3AF.png",
+   "src": "dic"
+  },
+  {
+   "id": "patrol",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "patrol",
+   "ipa": "/pəˈtrəʊl/",
+   "pl": "patrols",
+   "es": "patrulla",
+   "ex": "The patrol walks around the camp at night.",
+   "exEs": "La patrulla da vueltas al campamento de noche.",
+   "img": "img/om_1F463.png",
+   "src": "dic"
+  },
+  {
+   "id": "rescue",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "rescue",
+   "ipa": "/ˈreskjuː/",
+   "pl": "rescues",
+   "es": "rescate",
+   "ex": "The helicopter comes for the rescue.",
+   "exEs": "El helicóptero viene para el rescate.",
+   "img": "img/om_1F6DF.png",
+   "src": "dic"
+  },
+  {
+   "id": "supplies",
+   "cat": "mision",
+   "lvl": 2,
+   "w": "supplies",
+   "ipa": "/səˈplaɪz/",
+   "es": "suministros",
+   "ex": "The plane drops supplies to the camp.",
+   "exEs": "El avión lanza suministros al campamento.",
+   "note": "Casi siempre en plural.",
+   "img": "img/om_1F4E6.png",
+   "src": "dic"
+  },
+  {
+   "id": "briefing",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "briefing",
+   "ipa": "/ˈbriːfɪŋ/",
+   "pl": "briefings",
+   "es": "reunión para explicar la misión",
+   "ex": "The captain gives a briefing before the mission.",
+   "exEs": "El capitán explica la misión antes de empezar.",
+   "img": "img/om_1F4CB.png",
+   "src": "dic"
+  },
+  {
+   "id": "objective",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "objective",
+   "ipa": "/əbˈdʒektɪv/",
+   "pl": "objectives",
+   "es": "objetivo",
+   "ex": "Our objective is the bridge.",
+   "exEs": "Nuestro objetivo es el puente.",
+   "img": "img/om_1F3C1.png",
+   "src": "dic"
+  },
+  {
+   "id": "reinf",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "reinforcements",
+   "ipa": "/ˌriːɪnˈfɔːsmənts/",
+   "es": "refuerzos",
+   "ex": "Reinforcements are on the way.",
+   "exEs": "Los refuerzos vienen en camino.",
+   "note": "Casi siempre en plural.",
+   "img": "img/om_1F4AA.png",
+   "src": "dic"
+  },
+  {
+   "id": "recon",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "reconnaissance",
+   "ipa": "/rɪˈkɒnɪsns/",
+   "es": "reconocimiento (ir a mirar antes)",
+   "ex": "Two soldiers go on reconnaissance.",
+   "exEs": "Dos soldados salen de reconocimiento.",
+   "img": "img/om_1F50D.png",
+   "src": "dic"
+  },
+  {
+   "id": "evac",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "evacuation",
+   "ipa": "/ɪˌvækjuˈeɪʃn/",
+   "pl": "evacuations",
+   "es": "evacuación (ir a un sitio seguro)",
+   "ex": "The evacuation starts at dawn.",
+   "exEs": "La evacuación empieza al amanecer.",
+   "img": "img/om_1F6AA.png",
+   "src": "dic"
+  },
+  {
+   "id": "ceasefire",
+   "cat": "mision",
+   "lvl": 3,
+   "w": "ceasefire",
+   "ipa": "/ˈsiːsfaɪə/",
+   "pl": "ceasefires",
+   "es": "alto el fuego (paz)",
+   "ex": "After the ceasefire, everyone goes home.",
+   "exEs": "Después del alto el fuego, todos vuelven a casa.",
+   "img": "img/om_1F54A.png",
    "src": "dic"
   },
   {
@@ -434,7 +1128,8 @@
    "ex": "Alfa is the letter A.",
    "exEs": "Alfa es la letra A.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nB",
@@ -446,7 +1141,8 @@
    "ex": "Bravo is the letter B.",
    "exEs": "Bravo es la letra B.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nC",
@@ -458,7 +1154,8 @@
    "ex": "Charlie is the letter C.",
    "exEs": "Charlie es la letra C.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nD",
@@ -470,7 +1167,8 @@
    "ex": "Delta is the letter D.",
    "exEs": "Delta es la letra D.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nE",
@@ -482,7 +1180,8 @@
    "ex": "Echo is the letter E.",
    "exEs": "Echo es la letra E.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nF",
@@ -494,7 +1193,8 @@
    "ex": "Foxtrot is the letter F.",
    "exEs": "Foxtrot es la letra F.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nG",
@@ -506,7 +1206,8 @@
    "ex": "Golf is the letter G.",
    "exEs": "Golf es la letra G.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nH",
@@ -518,7 +1219,8 @@
    "ex": "Hotel is the letter H.",
    "exEs": "Hotel es la letra H.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nI",
@@ -530,7 +1232,8 @@
    "ex": "India is the letter I.",
    "exEs": "India es la letra I.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nJ",
@@ -542,7 +1245,8 @@
    "ex": "Juliett is the letter J.",
    "exEs": "Juliett es la letra J.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nK",
@@ -554,7 +1258,8 @@
    "ex": "Kilo is the letter K.",
    "exEs": "Kilo es la letra K.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nL",
@@ -566,7 +1271,8 @@
    "ex": "Lima is the letter L.",
    "exEs": "Lima es la letra L.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nM",
@@ -578,7 +1284,8 @@
    "ex": "Mike is the letter M.",
    "exEs": "Mike es la letra M.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nN",
@@ -590,7 +1297,8 @@
    "ex": "November is the letter N.",
    "exEs": "November es la letra N.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nO",
@@ -602,7 +1310,8 @@
    "ex": "Oscar is the letter O.",
    "exEs": "Oscar es la letra O.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nP",
@@ -614,7 +1323,8 @@
    "ex": "Papa is the letter P.",
    "exEs": "Papa es la letra P.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nQ",
@@ -626,7 +1336,8 @@
    "ex": "Quebec is the letter Q.",
    "exEs": "Quebec es la letra Q.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nR",
@@ -638,7 +1349,8 @@
    "ex": "Romeo is the letter R.",
    "exEs": "Romeo es la letra R.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nS",
@@ -650,7 +1362,8 @@
    "ex": "Sierra is the letter S.",
    "exEs": "Sierra es la letra S.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nT",
@@ -662,7 +1375,8 @@
    "ex": "Tango is the letter T.",
    "exEs": "Tango es la letra T.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nU",
@@ -674,7 +1388,8 @@
    "ex": "Uniform is the letter U.",
    "exEs": "Uniform es la letra U.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nV",
@@ -686,7 +1401,8 @@
    "ex": "Victor is the letter V.",
    "exEs": "Victor es la letra V.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nW",
@@ -698,7 +1414,8 @@
    "ex": "Whiskey is the letter W.",
    "exEs": "Whiskey es la letra W.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nX",
@@ -710,7 +1427,8 @@
    "ex": "X-ray is the letter X.",
    "exEs": "X-ray es la letra X.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nY",
@@ -722,7 +1440,8 @@
    "ex": "Yankee is the letter Y.",
    "exEs": "Yankee es la letra Y.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   },
   {
    "id": "nZ",
@@ -734,7 +1453,8 @@
    "ex": "Zulu is the letter Z.",
    "exEs": "Zulu es la letra Z.",
    "img": null,
-   "src": "nato"
+   "src": "nato",
+   "lvl": 2
   }
  ]
 }
