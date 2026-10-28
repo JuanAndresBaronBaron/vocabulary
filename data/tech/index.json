@@ -6,7 +6,8 @@
   {"id": "gcp", "title": "Google Cloud", "short": "GCP", "units": [14, 15, 16, 17, 18, 19, 20, 21, 22]},
   {"id": "java", "title": "Java", "short": "Java", "units": [24, 25, 26, 27, 28]},
   {"id": "extras", "title": "Extras", "short": "Extras", "units": [29, 30]},
-  {"id": "final", "title": "Final", "short": "Final", "units": [31, 32, 33]}
+  {"id": "final", "title": "Final", "short": "Final", "units": [31, 32, 33]},
+  {"id": "livecoding", "title": "Live coding", "short": "Live coding", "units": [34, 35, 36, 37, 38]}
  ],
  "units": [
   {"id": "u01", "n": 1, "block": "integration", "title": "Integration styles", "available": true},
@@ -41,6 +42,11 @@
   {"id": "u30", "n": 30, "block": "extras", "title": "Angular basics", "available": true},
   {"id": "u31", "n": 31, "block": "final", "title": "Your architectures", "available": true},
   {"id": "u32", "n": 32, "block": "final", "title": "Capstone case", "available": true},
-  {"id": "u33", "n": 33, "block": "final", "title": "Mock interview", "available": true}
+  {"id": "u33", "n": 33, "block": "final", "title": "Mock interview", "available": true},
+  {"id": "u34", "n": 34, "block": "livecoding", "title": "CPI hands-on", "available": true},
+  {"id": "u35", "n": 35, "block": "livecoding", "title": "Groovy for CPI", "available": true},
+  {"id": "u36", "n": 36, "block": "livecoding", "title": "SQL and databases", "available": true},
+  {"id": "u37", "n": 37, "block": "livecoding", "title": "Core Java: why it works", "available": true},
+  {"id": "u38", "n": 38, "block": "livecoding", "title": "Pair-coding session", "available": true}
  ]
 }

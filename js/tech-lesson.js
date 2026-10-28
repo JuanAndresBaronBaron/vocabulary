@@ -7,7 +7,8 @@
      js/tech-pages.js). Una pantalla por ítem, la barra de progreso en la línea de la ✕ y el botón principal fijo abajo
      («Check», «Continue», «Next», «Done»). La ✕ (y Esc) y Atrás del navegador preguntan «Stop here?» si ya se hizo algo.
    · #/techmock (pestaña Interview): preparar la entrevista (duración y alcance) y el historial de las últimas.
-   · Los 11 tipos de ítem de SCHEMA.md: card, pick, tf, scenario, match, order, code, diagram, explain, say y story. Tras
+   · Los 12 tipos de ítem de SCHEMA.md: card, pick, tf, scenario, match, order, code, diagram, explain, say, story y why
+     (Live coding: el código, «What happened», la causa y el arreglo). Tras
      contestar, su «why» y el enlace «Source» (data-no-gate). Acierto: verde con ✓ y G.haptic("success"); fallo: gris
      con ✗, sin temblor, sin sonido y sin vibración.
    · Notas al repaso con vocabTech.srs (grade/gradeExplain): 2 a la primera, 1 al segundo intento o con pocos fallos, 0
@@ -40,12 +41,12 @@ const T = W.vocabTech; if(!T || !T.loaded) return;
 const ui = T.ui, fmt = T.fmt;
 const LSK = "tech:ls", DRK = "tech:lsdraft", UIK = "tech:ui", DRAFT_MS = 72 * 36e5;
 const KINDS = ["lesson", "review", "mock", "case"];
-const SCORED = new Set(["pick", "tf", "scenario", "match", "order", "code", "diagram"]);
+const SCORED = new Set(["pick", "tf", "scenario", "match", "order", "code", "diagram", "why"]);
 const STAR = ["Situation", "Task", "Action", "Result", "Lessons learned"];
 const STAR_HINT = {Situation: "Where and when, in one or two sentences", Task: "What you had to achieve, and why it mattered",
   Action: "What you did, step by step. Say “I”, not “we”", Result: "What changed, with a number if you can",
   "Lessons learned": "What you would keep or do differently"};
-const LANG_NAME = {java: "Java", http: "HTTP", json: "JSON", yaml: "YAML", text: "Text", sql: "SQL", ts: "TypeScript"};
+const LANG_NAME = {java: "Java", http: "HTTP", json: "JSON", yaml: "YAML", text: "Text", sql: "SQL", ts: "TypeScript", groovy: "Groovy", xml: "XML"};
 const now = () => Date.now();
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 const $ = (s, r) => (r || D).querySelector(s);
@@ -478,7 +479,7 @@ function filler(root, o){
 const MK_OK = `<span class="tp-lmk tp-lmk-ok" aria-hidden="true">${ico("check", "bold", 20)}</span>`;
 const MK_NO = `<span class="tp-lmk tp-lmk-no" aria-hidden="true">${ico("x", "bold", 20)}</span>`;
 const EYE = {card: "New term", pick: "Choose one", tf: "True or false?", scenario: "Scenario", match: "Match", order: "Put in order",
-  code: "Complete the code", diagram: "Complete the diagram", explain: "Explain it", say: "Say it", story: "Story", flip: "Do you know it?"};
+  code: "Complete the code", diagram: "Complete the diagram", explain: "Explain it", say: "Say it", story: "Story", flip: "Do you know it?", why: "Why?"};
 const eyeOf = (ctx, type) => ctx.eye || `${ctx.re ? "Again · " : ""}${EYE[type] || ""}`;
 /* el enlace «Source»: el src de la unidad, o el source {title, url} / url que traiga el ítem (las preguntas de un caso) */
 function srcOf(ctx, it){
@@ -494,7 +495,7 @@ function verdict(state, msg){
 }
 function feedback(box, o){
   if(!box) return;
-  box.innerHTML = `${verdict(o.ok, o.msg)}${o.why ? `<p class="tp-lwhy">${esc(o.why)}</p>` : ""}${o.src ? `<div class="tp-lsrc">${o.src}</div>` : ""}`;
+  box.innerHTML = `${verdict(o.ok, o.msg)}${o.why ? `<p class="tp-lwhy">${esc(o.why)}</p>` : ""}${o.extra || ""}${o.src ? `<div class="tp-lsrc">${o.src}</div>` : ""}`;
   box.hidden = false;
   showSoon(box);
 }
@@ -977,6 +978,32 @@ R.code = (box, it, ctx) => {
     <div class="tp-lfb" role="status" hidden></div></article>`;
   const F = filler(box, {answers: gaps.map(g => String(g.answer)), chips, blank: i => String(i + 1), name: i => `Gap ${i + 1}`});
   checkFlow(box, it, ctx, F, {partial: r => `${r} of ${gaps.length} gaps right`, hint: "Change the gaps marked ✗ and check again, or show the answer.", answer: "Here's the right code"});
+};
+/* «Why?» (bloque Live coding): el código tal cual, lo que pasó al correrlo y cuatro causas; al elegir, el porqué y el
+   arreglo (it.fix, si lo trae). Se puntúa como pick */
+const preHtml = (text, label) => `<div class="tp-lpre" role="group" aria-label="${esc(label)}" tabindex="0">${String(text || "").split("\n").map(l => `<div class="tp-lln">${esc(l) || " "}</div>`).join("")}</div>`;
+R.why = (box, it, ctx) => {
+  const qid = uid("tp-lq"), opts = Array.isArray(it.options) ? it.options : [], order = mix(opts.map((t, i) => i));
+  const lang = LANG_NAME[it.lang] || String(it.lang || "Code");
+  box.innerHTML = `<article class="tp-litem tp-lwhyi" aria-labelledby="${qid}">
+    <p class="tp-eyebrow">${esc(eyeOf(ctx, "why"))}</p>
+    <h2 class="tp-lq" id="${qid}" tabindex="-1">${esc(it.q)}</h2>
+    <div class="tp-lcb"><span class="tp-badge">${esc(lang)}</span>${preHtml(it.code, `${lang} code`)}</div>
+    <div class="tp-lout"><p class="tp-lout-h">${icon("play", "fill", 14)}<span>What happened</span></p>${preHtml(it.happened, "What happened")}</div>
+    <div class="tp-lopts" role="group" aria-labelledby="${qid}">${order.map((i, k) => optHtml(opts[i], k, i)).join("")}</div>
+    <div class="tp-lfb" role="status" hidden></div></article>`;
+  let done = false;
+  box.querySelector(".tp-lopts").addEventListener("click", e => {
+    const b = e.target.closest(".tp-lopt"); if(!b || done || b.disabled) return;
+    done = true;
+    const ch = +b.dataset.i, ok = ch === it.answer;
+    markOpts(box, it.answer, ch);
+    if(ok){ haptic("success"); okAnim(b); }
+    ctx.answer({g: ok ? 2 : 0});
+    const fix = it.fix ? `<div class="tp-lcb tp-lfix"><span class="tp-badge">${icon("check", "bold", 12)}The fix</span>${preHtml(it.fix, `The fix, ${lang} code`)}</div>` : "";
+    feedback(box.querySelector(".tp-lfb"), {ok, why: it.why, extra: fix, src: srcOf(ctx, it)});
+    ctx.finish(ok);
+  });
 };
 R.diagram = (box, it, ctx) => {
   const slots = (it.nodes || []).filter(n => n.slot);
@@ -1688,6 +1715,14 @@ const STYLE = `
 .tp-lpre:focus-visible{outline-offset:-3px}
 .tp-lln{white-space:pre;min-width:max-content;min-height:1.65em}
 .tp-lln.has-gap{padding:2px 0;white-space:pre-wrap;min-width:0}
+.tp-lout{display:flex;flex-direction:column;gap:6px;padding:10px 0 12px;border-radius:var(--r-md);background:var(--navy);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.14);min-width:0}
+.tp-lout-h{display:flex;align-items:center;gap:6px;margin:0 16px;font:600 var(--fs-note)/1.3 var(--f-text);opacity:.8}
+.tp-lout .tp-lpre{color:inherit}
+.tp-lout .tp-lln{white-space:pre-wrap;min-width:0;overflow-wrap:anywhere}
+.tp-lfix{margin-top:2px;box-shadow:inset 0 0 0 1.5px var(--teal)}
+.tp-lfix>.tp-badge{display:inline-flex;align-items:center;gap:4px}
+.tp-lwhyi .tp-lcb+.tp-lout{margin-top:-4px}
+.tp-lwhyi .tp-lpre .tp-lln{white-space:pre-wrap;min-width:0;overflow-wrap:anywhere;padding-left:2ch;text-indent:-2ch}   /* en el móvil, el código se parte con sangría en vez de esconderse a la derecha */
 .tp-lgap{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-width:56px;min-height:44px;margin:0;padding:0 10px;border:2px dashed var(--brand-tint);border-radius:10px;
   background:var(--brand-soft);color:var(--brand-ink);font:600 var(--fs-note)/1.2 ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono","DejaVu Sans Mono",monospace;vertical-align:middle;
   white-space:normal;overflow-wrap:anywhere;text-align:left;max-width:100%;cursor:pointer}

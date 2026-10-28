@@ -161,7 +161,7 @@ def _spy_reset(page):
 
 
 def _right_index(it):
-    if it["type"] == "pick":
+    if it["type"] in ("pick", "why"):
         return it["answer"]
     if it["type"] == "tf":
         return 1 if it["answer"] else 0
@@ -205,7 +205,7 @@ def _answer(page, ok=True, how="touch", text=None, grade=None):
         page.wait_for_selector("#tp-lyes", timeout=3000)
         _press(page, "#tp-lyes" if ok else "#tp-lno", how if how != "key" else "key")
         return out
-    if t in ("pick", "tf", "scenario"):
+    if t in ("pick", "tf", "scenario", "why"):
         r = _right_index(it)
         n = 2 if t == "tf" else len(it["options"])
         ch = r if ok else next(i for i in range(n) if i != r)
@@ -353,7 +353,7 @@ def _check_answer(page, res, ok, label):
     probs = []
     t, it, fb = res["type"], res["item"], res.get("fb")
     spy = _spy(page)
-    if t in ("pick", "tf", "scenario", "match", "order", "code", "diagram"):
+    if t in ("pick", "tf", "scenario", "match", "order", "code", "diagram", "why"):
         if not fb:
             return [f"{label}: sin veredicto"]
         if ok and not fb["ok"]:
@@ -367,7 +367,7 @@ def _check_answer(page, res, ok, label):
         dock = [b["t"] for b in _dock(page) if b["pri"]]
         if dock != (["Continue"] if ok else ["Next"]):
             probs.append(f"{label}: botón principal {dock}")
-    if ok and t in ("pick", "tf", "scenario", "order", "code", "diagram") and "success" not in spy["hap"]:
+    if ok and t in ("pick", "tf", "scenario", "order", "code", "diagram", "why") and "success" not in spy["hap"]:
         probs.append(f"{label}: bien sin G.haptic('success'): {spy['hap']}")
     if not ok:
         if spy["hap"] and t not in ("match", "order", "code", "diagram") or spy["vib"] and t not in ("match", "order", "code", "diagram"):
@@ -376,10 +376,15 @@ def _check_answer(page, res, ok, label):
             probs.append(f"{label}: fallo con haptic de acierto: {spy}")
         if spy["snd"] or spy["nope"]:
             probs.append(f"{label}: fallo con sonido o temblor: {spy}")
-    if t in ("pick", "tf"):
+    if t in ("pick", "tf", "why"):
         if fb and fb["why"].strip() != it["why"].strip():
             probs.append(f"{label}: why {fb['why']!r}")
-    if t in ("pick", "tf", "scenario"):
+    if t == "why":
+        fix = page.evaluate("() => [...document.querySelectorAll('#tp-lstage .tp-lfb .tp-lfix .tp-lln')].map(l => l.textContent).join('\\n')")
+        norm = lambda v: "\n".join(l.rstrip() for l in v.replace("\u00a0", " ").split("\n")).strip()
+        if norm(it.get("fix") or "") != norm(fix):
+            probs.append(f"{label}: el arreglo no sale tal cual: {fix!r}")
+    if t in ("pick", "tf", "scenario", "why"):
         st = page.evaluate("""([ch, r]) => { const q = i => document.querySelector(`#tp-lstage .tp-lopt[data-i='${i}']`);
           const c = q(ch), g = q(r);
           return {c: c.className, cmk: !!c.querySelector('.tp-lmk-ok, .tp-lmk-no'), cno: !!c.querySelector('.tp-lmk-no'), g: g.className,
@@ -450,7 +455,15 @@ def _check_static(page, t, it, label):
           say: !!document.querySelector('#tp-lstage .tp-lsec [data-say]')})""")
         if x["steps"] != it["template"] or x["dt"] != it["template"] or not x["w"] or not x["say"]:
             probs.append(f"{label}: {x}")
-    if t in ("pick", "scenario"):
+    if t == "why":
+        x = page.evaluate("""() => ({code: [...document.querySelectorAll('#tp-lstage .tp-lcb:not(.tp-lfix) .tp-lln')].map(l => l.textContent).join('\\n'),
+          out: [...document.querySelectorAll('#tp-lstage .tp-lout .tp-lln')].map(l => l.textContent).join('\\n'),
+          h: (document.querySelector('#tp-lstage .tp-lout-h') || {}).textContent || '', badge: (document.querySelector('#tp-lstage .tp-lcb .tp-badge') || {}).textContent || '',
+          eye: (document.querySelector('#tp-lstage .tp-eyebrow') || {}).textContent || ''})""")
+        norm = lambda v: "\n".join(l.rstrip() for l in v.replace("\u00a0", " ").split("\n")).strip()
+        if norm(x["code"]) != norm(it["code"]) or norm(x["out"]) != norm(it["happened"]) or x["h"] != "What happened" or not x["eye"].endswith("Why?"):
+            probs.append(f"{label}: código, «What happened» o título: {x}")
+    if t in ("pick", "scenario", "why"):
         n = page.evaluate("() => document.querySelectorAll('#tp-lstage .tp-lopt').length")
         if n != len(it["options"]):
             probs.append(f"{label}: {n} opciones")
@@ -592,6 +605,77 @@ def test_every_type_right_and_wrong_by_keyboard():
         assert not probs, "\n".join(probs[:30])
     finally:
         page.context.close()
+
+
+# ---------------------------------------------------------------- «Why?» (bloque Live coding, 2026-10-28)
+def _why_lessons():
+    """Las lecciones de u34-u38 con algún ítem «why» (todas las que haya publicadas)."""
+    out = []
+    for n in range(34, 39):
+        if not (TC.DATA / f"u{n}.json").exists():
+            continue
+        out += [l["id"] for _, l in TC.lessons(f"u{n}") if any(it["type"] == "why" for it in l["items"])]
+    return out
+
+
+def test_why_items_right_and_wrong():
+    """«Why?» (Live coding): el código tal cual con su lenguaje, «What happened» con lo que pasó, 4 causas; bien: verde
+    con ✓ y G.haptic("success"); mal: gris con ✗ y la buena en verde; el why, el arreglo (si lo trae) y «Source»; entra
+    en el repaso. Una lección de prácticas de cada unidad de Live coding, con el dedo a 390 y con el teclado a 360 (sin
+    scroll horizontal de la página: el código se desliza dentro de su caja); contraste y paleta en claro y oscuro."""
+    ls = _why_lessons()
+    assert ls, "no hay lecciones con «why» (u34-u38)"
+    tour = [l for l in ls if l.endswith("-l2")] or ls[:2]
+    probs = []
+    for how, kind, scheme, vp in (("touch", "390", "light", None), ("key", "360", "dark", NARROW)):
+        page = _open("#/tech", kind="phone", color_scheme=scheme, **({"viewport": vp} if vp else {}))
+        try:
+            seen = {}
+            plan = _plan_by_type()
+            for lid in tour:
+                TC.goto(page, f"#/techl/lesson/{lid}")
+                page.evaluate(SPY)
+                for _ in range(40):
+                    r = _run(page)
+                    if not r or r["ended"] or not r["step"]:
+                        break
+                    st = r["step"]
+                    t, it = st["type"], st["it"]
+                    if t != "why":
+                        _answer(page, ok=True, how="touch")
+                        if t in ("explain", "flip"):
+                            _wait_next(page, st["k"])
+                            continue
+                        _go_on(page, "touch")
+                        _wait_next(page, st["k"])
+                        continue
+                    ok = plan(0, st)
+                    label = f"{how} {scheme} {st['k']} why {'bien' if ok else 'mal'}"
+                    probs += _check_static(page, t, it, label)
+                    if not st["re"] and not seen:
+                        probs += _screen_audit(page, f"{label} antes")
+                        TC.shot(page, f"why-{kind}-{scheme}", full_page=True)
+                    _spy_reset(page)
+                    res = _answer(page, ok=ok, how=how)
+                    page.wait_for_timeout(60)
+                    probs += _check_answer(page, res, ok, label)
+                    if not st["re"]:
+                        if not seen.get(ok):
+                            probs += _screen_audit(page, f"{label} después")
+                            TC.shot(page, f"why-{kind}-{scheme}-{'bien' if ok else 'mal'}", full_page=True)
+                        seen[ok] = seen.get(ok, 0) + 1
+                    _go_on(page, how)
+                    _wait_next(page, st["k"])
+            if not (seen.get(True) and seen.get(False)):
+                probs.append(f"{how}: «why» no salió bien y mal: {seen}")
+            srs = TC.recs(page, "srs")
+            whys = [it["id"] for lid in tour for _, l in TC.lessons(lid[:3]) if l["id"] == lid for it in l["items"] if it["type"] == "why"]
+            if not all(f"srs/{i}" in srs for i in whys):
+                probs.append(f"{how}: «why» sin entrar en el repaso: {[i for i in whys if f'srs/{i}' not in srs]}")
+            assert not C.errors(page), C.errors(page)
+        finally:
+            page.context.close()
+    assert not probs, "\n".join(probs[:30])
 
 
 def _all_diagrams():

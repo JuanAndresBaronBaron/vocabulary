@@ -1,0 +1,1090 @@
+{
+  "format": 1,
+  "id": "u36",
+  "n": 36,
+  "block": "livecoding",
+  "title": "SQL and databases",
+  "summary": "After this unit you can explain, while you write the query, why it returns too few rows or fails, why an index is not used, how isolation levels and locks stop lost updates, deadlocks and double processing, and which JPA and Spring transaction traps to look for.",
+  "reviewed": "2026-10-28",
+  "versionNotes": [
+    "Every SQL why item was run on PostgreSQL 16.15 and checked against the PostgreSQL 18 documentation (18.6, the current version at docs/current).",
+    "PostgreSQL 18 added B-tree skip scan: a multicolumn index can sometimes help a query with no condition on its leading column. PostgreSQL 16 cannot do this, and the advice to put equality columns first still holds.",
+    "In PostgreSQL 18, EXPLAIN ANALYZE includes buffer information automatically.",
+    "MySQL 8.4 reference: the default isolation level for InnoDB is REPEATABLE READ.",
+    "Spring Framework 7.0.10, Spring Data JPA 4.1.2 and Hibernate ORM 7.1 query language guide, checked on 2026-10-28. The global rollbackOn setting on @EnableTransactionManagement exists since Spring Framework 6.2."
+  ],
+  "terms": [
+    {
+      "id": "t-logical-order",
+      "term": "Logical processing order (of a SELECT)",
+      "ipa": "/ˈlɒdʒɪkl ˈprəʊsesɪŋ ˈɔːdə/",
+      "say": "logical processing order",
+      "def": "The order in which PostgreSQL evaluates a query, which is not the order you write it: FROM and joins, WHERE, GROUP BY and HAVING, the SELECT list, DISTINCT, ORDER BY, then LIMIT and OFFSET.",
+      "example": "Because WHERE runs before the SELECT list, WHERE days_open > 30 fails: the alias days_open does not exist yet.",
+      "src": "s1"
+    },
+    {
+      "id": "t-three-valued-logic",
+      "term": "Three-valued logic (NULL)",
+      "ipa": "/ˌθriː ˈvæljuːd ˈlɒdʒɪk/",
+      "say": "three-valued logic",
+      "def": "In SQL a condition can be true, false or unknown. A comparison with NULL gives unknown, and WHERE keeps only the rows where the condition is true.",
+      "example": "WHERE email = NULL returns no candidates; WHERE email IS NULL returns the candidate who has no email.",
+      "src": "s2"
+    },
+    {
+      "id": "t-window-function",
+      "term": "Window function",
+      "ipa": "/ˈwɪndəʊ ˈfʌŋkʃn/",
+      "say": "window function",
+      "def": "A function that calculates across a set of rows related to the current row, defined with OVER (PARTITION BY ... ORDER BY ...). Unlike an aggregate with GROUP BY, the rows keep their separate identities.",
+      "example": "row_number() OVER (PARTITION BY candidate_id ORDER BY created_at DESC) numbers each candidate's applications, newest first.",
+      "src": "s4"
+    },
+    {
+      "id": "t-composite-index",
+      "term": "Composite (multicolumn) index",
+      "ipa": "/ˈkɒmpəzɪt ˈɪndeks/",
+      "say": "composite index",
+      "def": "A B-tree index on several columns, sorted by the first column, then by the second. Equality conditions on the leading columns plus a range on the next column limit the part of the index that is scanned.",
+      "example": "An index on (requisition_id, created_at) serves WHERE requisition_id = 10 AND created_at >= :since with one narrow scan.",
+      "src": "s6"
+    },
+    {
+      "id": "t-explain",
+      "term": "EXPLAIN and EXPLAIN ANALYZE",
+      "ipa": "/ɪkˈspleɪn ənd ɪkˈspleɪn ˈænəlaɪz/",
+      "say": "explain, and explain analyze",
+      "def": "EXPLAIN shows the plan the planner chose, such as a sequential scan or an index scan, with estimated costs. EXPLAIN ANALYZE really runs the statement and adds the actual times and row counts.",
+      "example": "EXPLAIN ANALYZE showed a Seq Scan on application with a filter on (created_at)::date, so the index on created_at was not used.",
+      "src": "s8"
+    },
+    {
+      "id": "t-acid",
+      "term": "ACID",
+      "ipa": "/ˈæsɪd/",
+      "say": "acid",
+      "def": "The guarantees of a database transaction: atomicity (all or nothing), consistency (constraints still hold), isolation (others do not see unfinished changes) and durability (a committed change survives a crash).",
+      "example": "The hire and the status change are in one transaction, so if the second insert fails, neither change stays in the database.",
+      "src": "s9"
+    },
+    {
+      "id": "t-isolation-level",
+      "term": "Isolation level",
+      "ipa": "/ˌaɪsəˈleɪʃn ˈlevl/",
+      "say": "isolation level",
+      "def": "The setting that decides which effects of concurrent transactions a transaction can see. PostgreSQL offers Read committed (the default), Repeatable read and Serializable; Read uncommitted behaves like Read committed.",
+      "example": "BEGIN ISOLATION LEVEL REPEATABLE READ gives the whole transaction one snapshot, so the same SELECT returns the same rows twice.",
+      "src": "s11"
+    },
+    {
+      "id": "t-mvcc",
+      "term": "MVCC (multiversion concurrency control)",
+      "ipa": "/ˌem viː siː ˈsiː/",
+      "say": "M V C C",
+      "def": "PostgreSQL keeps several versions of a row, so each statement sees a snapshot of the data as it was at some point. Reading never blocks writing and writing never blocks reading.",
+      "example": "A long report on applications keeps running while recruiters update statuses, and neither waits for the other.",
+      "src": "s10"
+    },
+    {
+      "id": "t-lost-update",
+      "term": "Lost update",
+      "ipa": "/ˌlɒst ˈʌpdeɪt/",
+      "say": "lost update",
+      "def": "Two transactions read the same value, each computes a new value in the application, and the second write overwrites the first. One change disappears without any error.",
+      "example": "Two recruiters both read openings_left = 2 and both write 1, although two candidates were hired.",
+      "src": "s11"
+    },
+    {
+      "id": "t-optimistic-locking",
+      "term": "Optimistic locking (version column)",
+      "ipa": "/ˌɒptɪˈmɪstɪk ˈlɒkɪŋ/",
+      "say": "optimistic locking",
+      "def": "No lock is held while a user edits. The UPDATE checks WHERE version = :expected and increments the version, so zero updated rows means that someone else changed the row first.",
+      "example": "UPDATE application SET status = 'Offer', version = version + 1 WHERE id = 102 AND version = 0 returns UPDATE 0 for the slower recruiter.",
+      "src": "s11"
+    },
+    {
+      "id": "t-skip-locked",
+      "term": "SKIP LOCKED",
+      "ipa": "/ˌskɪp ˈlɒkt/",
+      "say": "skip locked",
+      "def": "An option of SELECT ... FOR UPDATE that skips rows another transaction has already locked instead of waiting. It gives an inconsistent view, so it suits queue-like tables with several consumers, not general queries.",
+      "example": "Each payroll export worker claims the next job with FOR UPDATE SKIP LOCKED, so two workers never take the same job and never wait for each other.",
+      "src": "s1"
+    },
+    {
+      "id": "t-n-plus-one",
+      "term": "N+1 selects problem",
+      "ipa": "/ˌen plʌs ˈwʌn/",
+      "say": "N plus one selects",
+      "def": "One query loads a list of N entities, and then one more query runs for each of them when the code reads a lazy association. The database gets N+1 round trips instead of one.",
+      "example": "Listing 50 applications with candidate names sent 1 select on application and 50 selects on candidate until the query used join fetch.",
+      "src": "s17"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u36-l1",
+      "kind": "concepts",
+      "title": "Why the query returns what it returns",
+      "items": [
+        {
+          "id": "u36-l1-i1",
+          "type": "card",
+          "term": "t-logical-order",
+          "src": "s1",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "f",
+                "label": "FROM and JOIN"
+              },
+              {
+                "id": "w",
+                "label": "WHERE"
+              },
+              {
+                "id": "g",
+                "label": "GROUP BY and HAVING"
+              },
+              {
+                "id": "s",
+                "label": "SELECT list and window functions"
+              },
+              {
+                "id": "o",
+                "label": "ORDER BY"
+              },
+              {
+                "id": "l",
+                "label": "LIMIT and OFFSET"
+              }
+            ],
+            "edges": [
+              {
+                "from": "f",
+                "to": "w",
+                "label": "then"
+              },
+              {
+                "from": "w",
+                "to": "g",
+                "label": "then"
+              },
+              {
+                "from": "g",
+                "to": "s",
+                "label": "then"
+              },
+              {
+                "from": "s",
+                "to": "o",
+                "label": "then"
+              },
+              {
+                "from": "o",
+                "to": "l",
+                "label": "then"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u36-l1-i2",
+          "type": "why",
+          "src": "s1",
+          "q": "This should list the applications that have been open for more than 30 days. Why does PostgreSQL reject it?",
+          "lang": "sql",
+          "code": "SELECT id, current_date - created_at::date AS days_open\nFROM application\nWHERE days_open > 30;",
+          "happened": "ERROR:  column \"days_open\" does not exist\nLINE 3: WHERE days_open > 30;",
+          "options": [
+            "WHERE is evaluated before the SELECT list, so the alias days_open does not exist yet when the rows are filtered.",
+            "Subtracting two dates gives an interval, and an interval cannot be compared with the number 30.",
+            "PostgreSQL needs double quotes around an alias, so the filter must be WHERE \"days_open\" > 30.",
+            "An alias can only be used in HAVING, so the filter has to move to a HAVING clause."
+          ],
+          "answer": 0,
+          "why": "PostgreSQL computes FROM and WHERE before the SELECT list, so an output column name works in ORDER BY and GROUP BY but not in WHERE or HAVING. Repeat the expression, or filter in an outer query or CTE.",
+          "fix": "SELECT id, current_date - created_at::date AS days_open\nFROM application\nWHERE current_date - created_at::date > 30;"
+        },
+        {
+          "id": "u36-l1-i3",
+          "type": "card",
+          "term": "t-three-valued-logic",
+          "src": "s2"
+        },
+        {
+          "id": "u36-l1-i4",
+          "type": "why",
+          "src": "s2",
+          "q": "This should list the candidates who have never applied. Why is the result empty?",
+          "lang": "sql",
+          "code": "-- application 104 came from a job board and has candidate_id NULL\nSELECT c.name\nFROM candidate c\nWHERE c.id NOT IN (SELECT a.candidate_id FROM application a);",
+          "happened": "The query returns (0 rows).\nCandidate 4, Dev Patel, has no application at all.",
+          "options": [
+            "The subquery returns a NULL, so for every candidate without a match, NOT IN gives NULL instead of true, and WHERE drops the row.",
+            "NOT IN compares whole rows, so the subquery must also return a.id.",
+            "The subquery is correlated, so it runs once per candidate and always finds that candidate's ID.",
+            "PostgreSQL only allows NOT IN with a list of constants, so the subquery is ignored."
+          ],
+          "answer": 0,
+          "why": "When no value is equal and at least one value in the list is NULL, NOT IN returns NULL, not true. NOT EXISTS only asks whether a matching row exists, so a NULL cannot change its result.",
+          "fix": "SELECT c.name\nFROM candidate c\nWHERE NOT EXISTS (\n  SELECT 1 FROM application a WHERE a.candidate_id = c.id\n);\n-- returns Dev Patel"
+        },
+        {
+          "id": "u36-l1-i5",
+          "type": "pick",
+          "src": "s3",
+          "q": "SELECT count(*), count(email) FROM candidate returns 4 and 3. Why are the two numbers different?",
+          "options": [
+            "count(email) counts only the rows where email is not NULL.",
+            "count(email) counts distinct emails, and two candidates share one address.",
+            "count(*) also counts rows that another transaction has deleted but not committed.",
+            "count(email) skips empty strings as well as NULLs."
+          ],
+          "answer": 0,
+          "why": "count(*) counts input rows, while count(expression) counts only the rows where the expression is not NULL. Distinct values need count(DISTINCT email), and an empty string is a value, not NULL."
+        },
+        {
+          "id": "u36-l1-i6",
+          "type": "why",
+          "src": "s1",
+          "q": "This should list every requisition with its number of hires, with 0 when there are none. Why does it show only one requisition?",
+          "lang": "sql",
+          "code": "SELECT r.title, count(a.id) AS hires\nFROM job_requisition r\nLEFT JOIN application a ON a.requisition_id = r.id\nWHERE a.status = 'Hired'\nGROUP BY r.title;",
+          "happened": "Integration Developer | 1\n(1 row)\nData Engineer and Scrum Master are missing.",
+          "options": [
+            "For requisitions without a hire, the outer join fills a.status with NULL, and WHERE a.status = 'Hired' removes those rows again, so the query acts like an inner join.",
+            "count(a.id) returns NULL for an empty group, and groups with a NULL count are hidden.",
+            "GROUP BY r.title merges requisitions that have similar titles.",
+            "A LEFT JOIN keeps only the rows of application that have no matching requisition."
+          ],
+          "answer": 0,
+          "why": "WHERE runs after the join, and NULL = 'Hired' is not true, so the rows that the LEFT JOIN added are filtered out. A condition on the right-hand table belongs in the ON clause.",
+          "fix": "SELECT r.title, count(a.id) AS hires\nFROM job_requisition r\nLEFT JOIN application a\n  ON a.requisition_id = r.id AND a.status = 'Hired'\nGROUP BY r.title;\n-- Data Engineer 0, Integration Developer 1, Scrum Master 0"
+        },
+        {
+          "id": "u36-l1-i7",
+          "type": "why",
+          "src": "s1",
+          "q": "This should list the requisitions that have at least two applications. Why does PostgreSQL reject it?",
+          "lang": "sql",
+          "code": "SELECT a.requisition_id, a.status, count(*) AS applications\nFROM application a\nGROUP BY a.requisition_id\nHAVING count(*) >= 2;",
+          "happened": "ERROR:  column \"a.status\" must appear in the GROUP BY clause or be used in an aggregate function",
+          "options": [
+            "Each group holds several applications with different statuses, so a.status has no single value for the group.",
+            "HAVING must be written before GROUP BY.",
+            "count(*) is not allowed in HAVING; the clause must use the alias applications.",
+            "The table alias a cannot be used in GROUP BY, so the query must say application.requisition_id."
+          ],
+          "answer": 0,
+          "why": "After GROUP BY, the SELECT list may only use grouped columns, aggregates, or columns that depend on a grouped primary key. Remove status, add it to GROUP BY, or put it inside an aggregate.",
+          "fix": "SELECT a.requisition_id, count(*) AS applications\nFROM application a\nGROUP BY a.requisition_id\nHAVING count(*) >= 2;"
+        },
+        {
+          "id": "u36-l1-i8",
+          "type": "card",
+          "term": "t-mvcc",
+          "src": "s10"
+        },
+        {
+          "id": "u36-l1-i9",
+          "type": "tf",
+          "src": "s9",
+          "statement": "If the third UPDATE in a PostgreSQL transaction fails, a COMMIT keeps the first two updates and loses only the third.",
+          "answer": false,
+          "why": "A transaction is all or nothing. After an error PostgreSQL aborts the whole transaction, and a COMMIT then ends in a ROLLBACK."
+        },
+        {
+          "id": "u36-l1-i10",
+          "type": "match",
+          "src": "s11",
+          "q": "Match each isolation level with what it means in PostgreSQL.",
+          "pairs": [
+            [
+              "Read uncommitted",
+              "Behaves like Read committed, so dirty reads never happen"
+            ],
+            [
+              "Read committed",
+              "The PostgreSQL default: each statement sees the rows committed before that statement began"
+            ],
+            [
+              "Repeatable read",
+              "One snapshot for the whole transaction; phantom reads are not possible in PostgreSQL, and it is the MySQL InnoDB default"
+            ],
+            [
+              "Serializable",
+              "Also prevents serialisation anomalies, so the application must retry on SQLSTATE 40001"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u36-l2",
+      "kind": "practice",
+      "title": "Fix it live: indexes, paging and concurrency",
+      "items": [
+        {
+          "id": "u36-l2-i1",
+          "type": "code",
+          "src": "s4",
+          "lang": "sql",
+          "q": "Complete the query. It must return the latest application of each candidate. Window functions are not allowed in WHERE, so the filter goes in the outer query.",
+          "code": "[[1]] ranked AS (\n  SELECT candidate_id, status, created_at,\n         row_number() OVER ([[2]] candidate_id\n                            ORDER BY created_at [[3]]) AS rn\n  FROM application\n  WHERE candidate_id IS NOT NULL\n)\nSELECT candidate_id, status, created_at\nFROM ranked\nWHERE [[4]];",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "WITH",
+              "decoys": [
+                "AS",
+                "VIEW"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "PARTITION BY",
+              "decoys": [
+                "GROUP BY",
+                "ORDER BY"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "DESC",
+              "decoys": [
+                "ASC",
+                "NULLS FIRST"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "rn = 1",
+              "decoys": [
+                "rn > 1",
+                "rn = 0"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u36-l2-i2",
+          "type": "why",
+          "src": "s7",
+          "q": "The application table has 600,000 rows and an index on created_at. This should find one day's applications quickly. Why does EXPLAIN show a sequential scan?",
+          "lang": "sql",
+          "code": "CREATE INDEX application_created_at_idx ON application (created_at);\n\nEXPLAIN\nSELECT id, status\nFROM application\nWHERE created_at::date = DATE '2025-10-01';",
+          "happened": "Parallel Seq Scan on application\n  Filter: ((created_at)::date = '2025-10-01'::date)",
+          "options": [
+            "The index stores created_at values, but the query filters on created_at::date, an expression the index does not contain, so it is computed for every row.",
+            "The statistics are out of date, and running ANALYZE would make the planner choose the index.",
+            "A B-tree index on a timestamptz column can only help ORDER BY, not WHERE.",
+            "Parallel workers cannot read an index, so the planner had to choose a sequential scan."
+          ],
+          "answer": 0,
+          "why": "An index on a column helps only when the query compares the column itself; a cast or a function such as lower(email) hides it. Here, compare the raw column with a half-open range.",
+          "fix": "SELECT id, status\nFROM application\nWHERE created_at >= DATE '2025-10-01'\n  AND created_at <  DATE '2025-10-02';\n-- Index Scan using application_created_at_idx"
+        },
+        {
+          "id": "u36-l2-i3",
+          "type": "scenario",
+          "src": "s6",
+          "q": "The most frequent query on application is WHERE requisition_id = :id AND created_at >= :since. Which index do you create?",
+          "options": [
+            {
+              "text": "An index on (requisition_id, created_at): the equality column first, then the range column.",
+              "ok": true,
+              "why": "The scan goes straight to one requisition and reads only its entries since :since. Equality on the leading column plus a range on the next one limits the part of the index that is read."
+            },
+            {
+              "text": "An index on (created_at, requisition_id), because dates have more distinct values than requisition IDs.",
+              "ok": false,
+              "why": "With a range on the leading column, the scan reads the entries of every requisition since :since and only checks requisition_id inside that range."
+            },
+            {
+              "text": "An index on created_at only, and let PostgreSQL filter requisition_id afterwards.",
+              "ok": false,
+              "why": "It reads every recent application of every requisition and then throws most of them away."
+            },
+            {
+              "text": "One index on (requisition_id, created_at, status, title, candidate_id) so that every query on the table is covered.",
+              "ok": false,
+              "why": "The PostgreSQL documentation says multicolumn indexes should be used sparingly and that more than three columns are unlikely to help. A wide index also costs space and slows every write."
+            }
+          ]
+        },
+        {
+          "id": "u36-l2-i4",
+          "type": "why",
+          "src": "s1",
+          "q": "A job board reads applications in pages of two, newest first. A new application arrives between page 1 and page 2. Why does application 103 appear on both pages?",
+          "lang": "sql",
+          "code": "-- page 1\nSELECT id, created_at FROM application\nORDER BY created_at DESC\nLIMIT 2 OFFSET 0;\n\n-- application 105 is inserted here\n\n-- page 2\nSELECT id, created_at FROM application\nORDER BY created_at DESC\nLIMIT 2 OFFSET 2;",
+          "happened": "Page 1: 104, 103\nPage 2: 103, 102",
+          "options": [
+            "OFFSET counts positions, not rows: the new row moved every older row down by one place, so position 3 is now application 103.",
+            "PostgreSQL does not guarantee any order with LIMIT, even when there is an ORDER BY.",
+            "The second query read the new row before it was committed, which is a dirty read.",
+            "OFFSET 2 starts at the second row, so page 2 always repeats the last row of page 1."
+          ],
+          "answer": 0,
+          "why": "Each OFFSET query is computed again on the current data, so inserts and deletes between pages move rows across pages. Keyset pagination continues after the last row seen, with a unique sort key.",
+          "fix": "-- page 2: continue after the last row of page 1\nSELECT id, created_at FROM application\nWHERE (created_at, id) < ('2026-10-04 12:00+00', 103)\nORDER BY created_at DESC, id DESC\nLIMIT 2;\n-- returns 102, 101"
+        },
+        {
+          "id": "u36-l2-i5",
+          "type": "code",
+          "src": "s4",
+          "lang": "sql",
+          "q": "Complete the query: one row per day for requisition 10, with the number of applications and a running total. It works because window functions run after GROUP BY.",
+          "code": "SELECT created_at::date AS day,\n       count(*) AS applications,\n       [[1]](count(*)) [[2]] (ORDER BY created_at::date) AS running_total\nFROM application\nWHERE requisition_id = 10\n[[3]] created_at::date\nORDER BY day;",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "sum",
+              "decoys": [
+                "count",
+                "max"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "OVER",
+              "decoys": [
+                "PARTITION",
+                "WITHIN"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "GROUP BY",
+              "decoys": [
+                "PARTITION BY",
+                "ORDER BY"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u36-l2-i6",
+          "type": "why",
+          "src": "s11",
+          "q": "Requisition 10 has openings_left = 2. Two recruiters confirm a hire at the same moment, and each request runs this in its own transaction. Why is the counter wrong?",
+          "lang": "sql",
+          "code": "-- both requests at the same time, Read committed\nBEGIN;\nSELECT openings_left FROM job_requisition WHERE id = 10;  -- both read 2\n-- the Java code computes 2 - 1 = 1\nUPDATE job_requisition SET openings_left = 1 WHERE id = 10;\nCOMMIT;",
+          "happened": "Both transactions commit without an error.\nopenings_left is now 1, but two candidates were hired.",
+          "options": [
+            "Both transactions read 2 before either one wrote, and each wrote its own result, so the second UPDATE overwrote the first: a lost update.",
+            "Read committed allows dirty reads, so one request read a value that was never committed.",
+            "An UPDATE does not lock the row, so the two UPDATEs ran at the same time and one of them was lost.",
+            "The SELECT ran in autocommit mode, outside the transaction, so it saw old data."
+          ],
+          "answer": 0,
+          "why": "The new value was computed in the application from an old read, so the database had nothing to protect. Let the database do the arithmetic, lock the row first with SELECT ... FOR UPDATE, or check a version column.",
+          "fix": "UPDATE job_requisition\nSET openings_left = openings_left - 1\nWHERE id = 10 AND openings_left > 0;\n-- UPDATE 0 means that no opening is left"
+        },
+        {
+          "id": "u36-l2-i7",
+          "type": "order",
+          "src": "s11",
+          "q": "A recruiter edits an application in the browser for five minutes. Put the steps of an optimistic update with a version column in order.",
+          "steps": [
+            "Read the application together with its version, for example version = 3.",
+            "The recruiter changes the status in the UI while no database lock is held.",
+            "Run UPDATE application SET status = :status, version = version + 1 WHERE id = :id AND version = 3.",
+            "Check the updated row count: 1 means that this update won.",
+            "If the count is 0, someone changed the row first: reload it and report a conflict, for example HTTP 409."
+          ]
+        },
+        {
+          "id": "u36-l2-i8",
+          "type": "why",
+          "src": "s1",
+          "q": "Two instances of the payroll export worker run this loop. Each job must reach payroll exactly once. Why did payroll receive hire 100 twice?",
+          "lang": "sql",
+          "code": "BEGIN;\nSELECT id, application_id FROM hire_export\nWHERE status = 'NEW'\nORDER BY id\nLIMIT 1;\n-- the worker calls the payroll API, then:\nUPDATE hire_export SET status = 'SENT' WHERE id = :id;\nCOMMIT;",
+          "happened": "Worker A and worker B both read job 1 (application 100).\nBoth UPDATEs succeed, and payroll creates the employee twice.",
+          "options": [
+            "A plain SELECT takes no row lock, so both workers saw job 1 as NEW before either of them committed.",
+            "LIMIT 1 is applied before ORDER BY, so both workers got the first row in storage order.",
+            "Worker B saw worker A's UPDATE before it was committed, which Read committed allows.",
+            "The UPDATE has no status = 'NEW' condition, so it overwrote a job that was already sent."
+          ],
+          "answer": 0,
+          "why": "Both SELECTs ran before either worker committed, and a plain SELECT locks nothing. FOR UPDATE alone would make worker B wait for worker A; FOR UPDATE SKIP LOCKED lets B take the next free job at once.",
+          "fix": "SELECT id, application_id FROM hire_export\nWHERE status = 'NEW'\nORDER BY id\nLIMIT 1\nFOR UPDATE SKIP LOCKED;\n-- worker B gets job 2 immediately"
+        },
+        {
+          "id": "u36-l2-i9",
+          "type": "why",
+          "src": "s13",
+          "q": "Pub/Sub delivered event evt-42 twice, and two consumer instances handled the copies at the same time. Why did the hire reach payroll twice although the consumer checks first?",
+          "lang": "sql",
+          "code": "BEGIN;\nSELECT count(*) FROM processed_event\nWHERE event_id = 'evt-42';          -- both see 0\nINSERT INTO processed_event (event_id) VALUES ('evt-42');\n-- create the employee in payroll\nCOMMIT;",
+          "happened": "Both transactions commit.\nprocessed_event has two rows for evt-42.",
+          "options": [
+            "Both checks ran before either insert was committed, and nothing in the table forbids a second evt-42 row.",
+            "count(*) ignores rows inserted in the same second, so it returned 0 twice.",
+            "The check needs SELECT ... FOR UPDATE, which would lock the evt-42 row until the end of the transaction.",
+            "Only exactly-once delivery in Pub/Sub can stop this; the database cannot detect duplicates."
+          ],
+          "answer": 0,
+          "why": "A check followed by an insert is a race, and FOR UPDATE cannot lock a row that does not exist yet. A primary key or UNIQUE constraint with INSERT ... ON CONFLICT DO NOTHING lets exactly one consumer insert the row.",
+          "fix": "ALTER TABLE processed_event ADD PRIMARY KEY (event_id);\n\nINSERT INTO processed_event (event_id) VALUES ('evt-42')\nON CONFLICT (event_id) DO NOTHING\nRETURNING event_id;\n-- no row returned: a duplicate, so skip it"
+        },
+        {
+          "id": "u36-l2-i10",
+          "type": "scenario",
+          "src": "s17",
+          "q": "An endpoint lists the 50 applications of a requisition with each candidate's name. Candidate is mapped with @ManyToOne(fetch = FetchType.LAZY). The SQL log shows one select on application and then 50 selects on candidate.",
+          "options": [
+            {
+              "text": "Fetch the candidates in the same query: select a from Application a join fetch a.candidate where a.requisition.id = :id, or @EntityGraph(attributePaths = \"candidate\") on the repository method.",
+              "ok": true,
+              "why": "A fetch join overrides the laziness of the association for this query, so one SQL statement returns the applications and their candidates. This is the N+1 selects problem, and the fix belongs in the query that needs the data."
+            },
+            {
+              "text": "Change the mapping to FetchType.EAGER.",
+              "ok": false,
+              "why": "That loads the candidate in every use of Application, also on screens that never show it. Fix the query that needs the data instead."
+            },
+            {
+              "text": "Add an index on application.candidate_id.",
+              "ok": false,
+              "why": "Each of the 50 queries reads one candidate by its primary key and is already fast. The cost is the number of round trips."
+            },
+            {
+              "text": "Show the list in pages of 10 instead of 50.",
+              "ok": false,
+              "why": "Each page still sends one extra select per row, so the pattern stays the same."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u36-l3",
+      "kind": "interview",
+      "title": "Explain it while you code",
+      "items": [
+        {
+          "id": "u36-l3-i1",
+          "type": "say",
+          "src": "s8",
+          "text": "Before I change anything, let me run EXPLAIN ANALYZE, so we can both see what the planner really does."
+        },
+        {
+          "id": "u36-l3-i2",
+          "type": "why",
+          "src": "s12",
+          "q": "Two requests update the same two applications, each in one transaction, but in a different order. Why does one of them fail?",
+          "lang": "sql",
+          "code": "-- session A\nBEGIN;\nUPDATE application SET status = 'Offer' WHERE id = 100;\n-- session B\nBEGIN;\nUPDATE application SET status = 'Withdrawn' WHERE id = 101;\n-- session A\nUPDATE application SET status = 'Offer' WHERE id = 101;      -- waits\n-- session B\nUPDATE application SET status = 'Withdrawn' WHERE id = 100;  -- waits",
+          "happened": "Session B: ERROR:  deadlock detected\nDETAIL:  Process 4384 waits for ShareLock on transaction 873; blocked by process 4383.\nProcess 4383 waits for ShareLock on transaction 874; blocked by process 4384.\nSession A then commits both updates.",
+          "options": [
+            "Each transaction holds a row lock that the other one needs, so neither can continue; PostgreSQL detects the cycle and aborts one of them.",
+            "PostgreSQL locks the whole application table for an UPDATE, so two transactions can never change it at the same time.",
+            "Read committed does not allow two open transactions to change the same table.",
+            "The second UPDATE in session B waited longer than lock_timeout."
+          ],
+          "answer": 0,
+          "why": "A deadlock is a cycle of waits, and PostgreSQL breaks it by aborting one transaction, which one is hard to predict. Lock rows in a consistent order, for example by id, and retry a transaction that was aborted.",
+          "fix": "BEGIN;\nSELECT id FROM application\nWHERE id IN (100, 101)\nORDER BY id\nFOR UPDATE;   -- every transaction locks in the same order\nUPDATE application SET status = 'Withdrawn' WHERE id IN (100, 101);\nCOMMIT;"
+        },
+        {
+          "id": "u36-l3-i3",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 120,
+          "q": "Walk me through why this NOT IN query returns no rows and how you would prove it.",
+          "model": "First I would look at the subquery, because NOT IN has a well-known trap with NULL. The query asks for candidates whose ID is not in the list of candidate IDs from the application table. One application came from a job board and has no candidate yet, so the list contains a NULL. For a candidate with no application, PostgreSQL compares the ID with every value in the list. It is not equal to any real ID, but the comparison with NULL is unknown. So NOT IN returns NULL, not true, and WHERE drops the row. To prove it, I would count the applications where candidate_id IS NULL, and then run the same query with candidate_id IS NOT NULL inside the subquery. If the missing candidate appears, we have the cause. For the real fix, I prefer NOT EXISTS with a correlated subquery, because it only asks whether a matching row exists, so a NULL cannot change the result.",
+          "keypoints": [
+            {
+              "text": "A NULL in the subquery list",
+              "kw": [
+                "null",
+                "nulls",
+                "is null"
+              ]
+            },
+            {
+              "text": "NOT IN gives unknown, not true",
+              "kw": [
+                "unknown",
+                "not true",
+                "three-valued",
+                "three valued"
+              ]
+            },
+            {
+              "text": "WHERE keeps only rows where the condition is true",
+              "kw": [
+                "where",
+                "drops",
+                "filtered",
+                "removes"
+              ]
+            },
+            {
+              "text": "Prove it: count the NULLs or exclude them and run it again",
+              "kw": [
+                "prove",
+                "count",
+                "is not null",
+                "test"
+              ]
+            },
+            {
+              "text": "Fix it with NOT EXISTS",
+              "kw": [
+                "not exists",
+                "exists",
+                "anti-join",
+                "anti join"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u36-l3-i4",
+          "type": "tf",
+          "src": "s16",
+          "statement": "In a Spring bean, importAll() has no @Transactional and calls this.saveOne(row) for each row. saveOne has @Transactional(propagation = Propagation.REQUIRES_NEW), so each row still commits in its own transaction.",
+          "answer": false,
+          "why": "In the default proxy mode only calls that come in through the proxy are intercepted, so this.saveOne() runs without a transaction. Move saveOne to another bean, or use AspectJ mode."
+        },
+        {
+          "id": "u36-l3-i5",
+          "type": "explain",
+          "src": "s11",
+          "seconds": 150,
+          "q": "Two recruiters hired for the same requisition at the same time, and openings_left went from 2 to 1. Why, and how would you fix it?",
+          "model": "This is a lost update. Both requests read openings_left as 2, both computed 1 in Java, and both wrote 1. Read committed, the PostgreSQL default, does not stop it, because each statement only sees committed data and the second UPDATE simply overwrites the first. There are three fixes, and I choose by the use case. The simplest is to let the database do the arithmetic in one statement: set openings_left to openings_left minus 1 where openings_left is greater than 0. The row lock and the re-check of the WHERE clause make it safe, and zero updated rows means no opening is left. If I must read the value and decide in Java, I lock the row first with SELECT FOR UPDATE and keep that transaction short. For a long edit in a UI, I use optimistic locking with a version column, and report a conflict when no row is updated. Repeatable read would also detect it, but then I must retry after a serialisation failure.",
+          "keypoints": [
+            {
+              "text": "Name it: a lost update caused by read, compute, write",
+              "kw": [
+                "lost update",
+                "overwrite",
+                "overwrites",
+                "overwrote"
+              ]
+            },
+            {
+              "text": "An atomic UPDATE that does the arithmetic in the database",
+              "kw": [
+                "atomic",
+                "one statement",
+                "single statement",
+                "minus 1",
+                "arithmetic"
+              ]
+            },
+            {
+              "text": "SELECT FOR UPDATE to lock the row first",
+              "kw": [
+                "for update",
+                "lock",
+                "row lock",
+                "pessimistic"
+              ]
+            },
+            {
+              "text": "Optimistic locking with a version column",
+              "kw": [
+                "version",
+                "optimistic",
+                "version column"
+              ]
+            },
+            {
+              "text": "Check the updated row count and report a conflict",
+              "kw": [
+                "row count",
+                "zero",
+                "no row",
+                "conflict",
+                "409"
+              ]
+            },
+            {
+              "text": "Repeatable read detects it but needs a retry",
+              "kw": [
+                "repeatable read",
+                "serialisation",
+                "serialization",
+                "retry",
+                "40001"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u36-l3-i6",
+          "type": "scenario",
+          "src": "s18",
+          "q": "A Pub/Sub listener calls applicationService.findHired(), which is @Transactional and returns entities. The listener then reads application.getCandidate().getEmail() to build the payroll message, and the log shows org.hibernate.LazyInitializationException.",
+          "options": [
+            {
+              "text": "Load what the message needs inside the transaction, with join fetch or @EntityGraph(attributePaths = \"candidate\"), and return a DTO instead of entities.",
+              "ok": true,
+              "why": "The exception means that unfetched data was read after the session was closed. Fetching the candidate in the same query also avoids N+1 selects."
+            },
+            {
+              "text": "Change the candidate association to FetchType.EAGER.",
+              "ok": false,
+              "why": "The error goes away, but every query that loads an application now loads its candidate too, even when nobody needs it."
+            },
+            {
+              "text": "Catch LazyInitializationException and send the message without the email.",
+              "ok": false,
+              "why": "This hides the bug and sends incomplete data to payroll."
+            },
+            {
+              "text": "Increase the connection pool size so that the session stays open longer.",
+              "ok": false,
+              "why": "The session closes because the transaction ended, not because the pool is too small."
+            }
+          ]
+        },
+        {
+          "id": "u36-l3-i7",
+          "type": "why",
+          "src": "s15",
+          "q": "If payroll rejects the hire, the status change must be rolled back. Why is the application still saved as Hired?",
+          "lang": "java",
+          "code": "@Service\npublic class HireService {\n\n    private final ApplicationRepository applications;\n    private final PayrollClient payroll;\n\n    public HireService(ApplicationRepository applications, PayrollClient payroll) {\n        this.applications = applications;\n        this.payroll = payroll;\n    }\n\n    @Transactional\n    public void hire(long applicationId) throws PayrollException {\n        Application application = applications.findById(applicationId).orElseThrow();\n        application.setStatus(\"Hired\");\n        payroll.createEmployee(application); // throws PayrollException, a checked exception\n    }\n}",
+          "happened": "PayrollException reaches the controller.\nAfter the request, the application row still has status Hired.",
+          "options": [
+            "By default Spring rolls back only on RuntimeException and Error; PayrollException is checked, so the transaction commits.",
+            "findById returns a detached entity, so setStatus was saved outside the transaction.",
+            "The call comes from another method of the same class, so no transaction was started.",
+            "Hibernate flushed the UPDATE before the exception, and a flushed change cannot be rolled back."
+          ],
+          "answer": 0,
+          "why": "In the default configuration, checked exceptions thrown from a transactional method do not cause a rollback. Add a rollback rule such as rollbackFor, or since Spring Framework 6.2 set rollbackOn = ALL_EXCEPTIONS globally.",
+          "fix": "@Transactional(rollbackFor = PayrollException.class)\npublic void hire(long applicationId) throws PayrollException {\n    // same body\n}"
+        },
+        {
+          "id": "u36-l3-i8",
+          "type": "explain",
+          "src": "s7",
+          "seconds": 150,
+          "q": "There is an index on the column, but EXPLAIN shows a sequential scan. Talk me through what you check.",
+          "model": "I start with EXPLAIN ANALYZE, so I see the real plan with actual row counts and times, not only estimates. Then I compare the WHERE clause with the index definition. The most common cause is that the query does not compare the plain column. A function such as lower of email, or a cast such as created_at to date, means that an index on the raw column cannot be used. The fix is a range on the raw column, or an index on the same expression. A type mismatch does the same: if Java binds a BigDecimal for a bigint column, PostgreSQL casts the column to numeric. For LIKE, a B-tree index helps only when the pattern is anchored at the start, so a pattern that starts with a wildcard always scans. For a composite index, I check that the query has a condition on the leading column. Finally, a sequential scan can be the right choice when the query returns a large part of the table, so I compare the estimated and actual rows.",
+          "keypoints": [
+            {
+              "text": "EXPLAIN ANALYZE for the real plan",
+              "kw": [
+                "explain analyze",
+                "explain",
+                "actual",
+                "plan"
+              ]
+            },
+            {
+              "text": "A function or a cast on the column",
+              "kw": [
+                "function",
+                "lower",
+                "cast",
+                "expression"
+              ]
+            },
+            {
+              "text": "An expression index or a range on the raw column",
+              "kw": [
+                "expression index",
+                "same expression",
+                "range",
+                "raw column"
+              ]
+            },
+            {
+              "text": "A type mismatch from the application",
+              "kw": [
+                "type",
+                "numeric",
+                "bigdecimal",
+                "mismatch",
+                "bigint"
+              ]
+            },
+            {
+              "text": "A leading wildcard in LIKE",
+              "kw": [
+                "like",
+                "wildcard",
+                "anchored",
+                "leading"
+              ]
+            },
+            {
+              "text": "The leading column of a composite index, or too many rows",
+              "kw": [
+                "leading column",
+                "leftmost",
+                "composite",
+                "multicolumn",
+                "large part",
+                "selectivity"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u36-l3-i9",
+          "type": "say",
+          "src": "s2",
+          "text": "I think the NULL in the subquery causes this. Can I add one test row to prove it before I change the query?"
+        },
+        {
+          "id": "u36-l3-i10",
+          "type": "explain",
+          "src": "s1",
+          "seconds": 150,
+          "q": "Several instances of a worker send new hires from a table to payroll. What can go wrong, and how do you make it safe?",
+          "model": "Three things can go wrong: two workers take the same job, the workers block each other, and a job is sent twice after a failure. For the first two, each worker claims a job with SELECT FOR UPDATE SKIP LOCKED, ordered by ID, with a small limit. A plain SELECT takes no lock, so two workers can read the same job, and FOR UPDATE without SKIP LOCKED makes them wait in a line. With SKIP LOCKED, a worker simply takes the next free row. I keep transactions short, because the lock lasts until the commit. For the third problem, I assume at-least-once delivery. The receiving side keeps a table of processed IDs with a primary key and inserts with ON CONFLICT DO NOTHING. If no row comes back, it is a duplicate, and we skip it. A check followed by an insert is not enough, because two consumers can both pass the check. Finally, if a job updates several rows, I lock them in the same order to avoid deadlocks.",
+          "keypoints": [
+            {
+              "text": "Claim jobs with SKIP LOCKED",
+              "kw": [
+                "skip locked"
+              ]
+            },
+            {
+              "text": "A plain SELECT has no lock; FOR UPDATE alone makes workers wait",
+              "kw": [
+                "for update",
+                "no lock",
+                "wait",
+                "block"
+              ]
+            },
+            {
+              "text": "Keep transactions short",
+              "kw": [
+                "short",
+                "commit",
+                "transaction"
+              ]
+            },
+            {
+              "text": "At-least-once delivery, so the consumer is idempotent",
+              "kw": [
+                "at-least-once",
+                "at least once",
+                "duplicate",
+                "idempotent",
+                "twice"
+              ]
+            },
+            {
+              "text": "A unique key with ON CONFLICT DO NOTHING",
+              "kw": [
+                "on conflict",
+                "primary key",
+                "unique",
+                "do nothing"
+              ]
+            },
+            {
+              "text": "A consistent lock order against deadlocks",
+              "kw": [
+                "deadlock",
+                "deadlocks",
+                "same order",
+                "consistent order"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Read a query in the right order",
+        "points": [
+          "Logical order: FROM and joins, WHERE, GROUP BY, HAVING, SELECT list, DISTINCT, ORDER BY, LIMIT and OFFSET.",
+          "An output alias works in ORDER BY and GROUP BY, not in WHERE or HAVING: repeat the expression or use a subquery or CTE.",
+          "Window functions run after GROUP BY and HAVING; they are allowed only in the SELECT list and ORDER BY.",
+          "Filter on row_number() in an outer query or CTE: WITH ranked AS (...) SELECT ... WHERE rn = 1.",
+          "With LIMIT, use an ORDER BY that gives a unique order, or the subset is unpredictable."
+        ]
+      },
+      {
+        "h": "NULL, joins and grouping",
+        "points": [
+          "A comparison with NULL is unknown; WHERE keeps only true rows. Use IS NULL and IS NOT NULL.",
+          "NOT IN with a NULL in the list returns NULL, not true: use NOT EXISTS for an anti-join.",
+          "A LEFT JOIN with a WHERE condition on the right-hand table acts like an inner join: move the condition to ON.",
+          "count(*) counts rows; count(col) counts non-NULL values. Except for count, aggregates of no rows return NULL: use coalesce.",
+          "After GROUP BY, select only grouped columns, aggregates, or columns that depend on a grouped primary key. HAVING filters groups."
+        ]
+      },
+      {
+        "h": "Indexes and EXPLAIN",
+        "points": [
+          "B-tree: <, <=, =, >=, >, BETWEEN, IN, IS NULL, and sorted output.",
+          "LIKE 'abc%' can use a B-tree; LIKE '%abc' cannot. Outside the C locale, a pattern index needs a special operator class.",
+          "A function or cast on the column hides the index: lower(email) needs an index on lower(email); created_at::date needs a range on created_at.",
+          "A type mismatch can cast the column: bigint compared with 42.0 becomes (candidate_id)::numeric and scans.",
+          "Composite index: equality columns first, then the range column. Use multicolumn indexes sparingly.",
+          "EXPLAIN shows the plan; EXPLAIN ANALYZE runs the statement, so wrap an UPDATE in BEGIN and ROLLBACK."
+        ]
+      },
+      {
+        "h": "Transactions and isolation",
+        "points": [
+          "ACID: atomicity, consistency, isolation, durability. Every statement runs in a transaction; after an error, the transaction is aborted.",
+          "MVCC: each statement sees a snapshot; reading never blocks writing and writing never blocks reading.",
+          "PostgreSQL default: Read committed. MySQL InnoDB default: REPEATABLE READ.",
+          "PostgreSQL Read uncommitted behaves like Read committed; its Repeatable read also prevents phantom reads.",
+          "Repeatable read: ERROR: could not serialize access due to concurrent update. Serialisation failures use SQLSTATE 40001: retry the whole transaction."
+        ]
+      },
+      {
+        "h": "Concurrency patterns",
+        "points": [
+          "Lost update: use an atomic UPDATE (SET x = x - 1), SELECT ... FOR UPDATE, or a version column in the WHERE clause.",
+          "Deadlock: PostgreSQL aborts one transaction; lock rows in a consistent order and retry.",
+          "Job queue: SELECT ... FOR UPDATE SKIP LOCKED; plain FOR UPDATE makes the next worker wait.",
+          "Idempotent consumer: a primary key or UNIQUE constraint plus INSERT ... ON CONFLICT DO NOTHING RETURNING.",
+          "ON CONFLICT (col) needs a matching unique index or constraint, otherwise: there is no unique or exclusion constraint matching the ON CONFLICT specification.",
+          "Keyset pagination: WHERE (created_at, id) < (:last_created_at, :last_id) ORDER BY created_at DESC, id DESC LIMIT n."
+        ]
+      },
+      {
+        "h": "JPA and Spring traps",
+        "points": [
+          "N+1 selects: use join fetch in the query or @EntityGraph(attributePaths = ...) on the repository method.",
+          "Hibernate: fetch joins should usually be avoided in limited or paged queries.",
+          "LazyInitializationException: unfetched data read after the session closed. Fetch what you need inside the transaction.",
+          "@Transactional in proxy mode: self-invocation (this.method()) gets no transaction.",
+          "Default rollback: RuntimeException and Error only. Checked exceptions need rollbackFor, or rollbackOn = ALL_EXCEPTIONS since Spring Framework 6.2."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "SELECT - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/sql-select.html",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Subquery Expressions - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/functions-subquery.html",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Aggregate Functions - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/functions-aggregate.html",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Window Functions (tutorial) - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/tutorial-window.html",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Index Types - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/indexes-types.html",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Multicolumn Indexes - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/indexes-multicolumn.html",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Indexes on Expressions - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/indexes-expressional.html",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "EXPLAIN - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/sql-explain.html",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Transactions (tutorial) - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/tutorial-transactions.html",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Concurrency Control: Introduction (MVCC) - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/mvcc-intro.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Transaction Isolation - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/transaction-iso.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Explicit Locking (row-level locks and deadlocks) - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/explicit-locking.html",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "INSERT (ON CONFLICT clause) - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/sql-insert.html",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Transaction Isolation Levels - MySQL 8.4 Reference Manual",
+      "url": "https://dev.mysql.com/doc/refman/8.4/en/innodb-transaction-isolation-levels.html",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Rolling Back a Declarative Transaction - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/rolling-back.html",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "Using @Transactional - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "A Guide to Hibernate Query Language (7.1): association fetching",
+      "url": "https://docs.hibernate.org/orm/7.1/querylanguage/html_single/",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "LazyInitializationException - Hibernate ORM Javadoc",
+      "url": "https://docs.hibernate.org/stable/orm/javadocs/org/hibernate/LazyInitializationException.html",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "JPA Query Methods: Configuring Fetch- and LoadGraphs - Spring Data JPA 4.1.2 reference",
+      "url": "https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html",
+      "official": true
+    }
+  ]
+}

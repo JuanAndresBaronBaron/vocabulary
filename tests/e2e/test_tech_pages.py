@@ -433,8 +433,11 @@ def test_block_cheat_sheet_complete():
         # saltos
         TC.goto(page, "#/techsheet/integration")
         page.locator('[data-jump="tp-sh-ans"]').click()
-        page.wait_for_timeout(900)
-        top = page.evaluate("document.getElementById('tp-sh-ans').getBoundingClientRect().top")
+        for _ in range(30):   # la chuleta es larga: el desplazamiento suave puede tardar más de un segundo
+            page.wait_for_timeout(150)
+            top = page.evaluate("document.getElementById('tp-sh-ans').getBoundingClientRect().top")
+            if 0 <= top < 200:
+                break
         assert 0 <= top < 200, top
         # la cápsula de volver
         TC.goto(page, "#/techunit/u03")

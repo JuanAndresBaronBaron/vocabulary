@@ -1,0 +1,973 @@
+{
+  "format": 1,
+  "id": "u35",
+  "n": 35,
+  "block": "livecoding",
+  "title": "Groovy for CPI",
+  "summary": "After this unit you can write and debug the Script step of an iFlow: use the Message API, parse and build JSON and XML, avoid the Groovy traps that catch Java developers, and fail a message so that the Exception Subprocess handles it.",
+  "reviewed": "2026-10-28",
+  "versionNotes": [
+    "Checked on 2026-10-28. The SAP Help Portal blocks automated reading, so the Cloud Integration pages were read in SAP-docs/btp-integration-suite on GitHub, the source of those Help Portal pages.",
+    "Define a Local Script Step lists Groovy 2.4.21 for Groovy Script step version 1.1 and Groovy 4.0.29 for step version 2.0, and JavaScript (Rhino) 1.7.14. General Scripting Guidelines still says that all supported APIs up to Groovy 2.4.21 are supported; the unit quotes the version table.",
+    "Every Groovy why item was run with Groovy 4.0.24 on Java 21, with a small local stand-in for the Message class and for messageLogFactory, and each fix was run too. The behaviours shown are the same across Groovy 4.0.x; they were not tested on Groovy 2.4.21.",
+    "groovy-lang.org could not be reached, so the Groovy documentation was read in its Asciidoc sources for 4.0.24 in apache/groovy on GitHub, from which the groovy-lang.org pages are built.",
+    "The stand-in cannot show tenant behaviour. The items about MPL property visibility, the Exception Subprocess and binding variables rely on the SAP pages, not on the local runs.",
+    "The JsonSlurper guide lists java.util.LinkedHashMap for JSON objects; in the local runs JsonSlurper returned org.apache.groovy.json.internal.LazyMap, so the unit just says a map.",
+    "unconfirmed: when messageLogFactory.getMessageLog(message) returns null. SAP's samples check for null, so the unit uses ?. without saying when it happens.",
+    "XmlSlurper matching local names when no namespace is declared, and XmlParser not matching a plain name inside a namespace, come from the local runs; the XML guide only shows namespace declarations."
+  ],
+  "terms": [
+    {
+      "id": "t-processdata",
+      "term": "processData function",
+      "ipa": "/ˈprəʊses ˈdeɪtə ˈfʌŋkʃn/",
+      "say": "process data function",
+      "def": "The function that the Script step calls by default: Message processData(Message message). It receives the message, changes it and returns it; another function can be named in the Script Function field.",
+      "example": "processData reads the job application, sets the header candidateId and returns the same message object.",
+      "src": "s1"
+    },
+    {
+      "id": "t-message-api",
+      "term": "Message (Script API)",
+      "ipa": "/ˈmesɪdʒ/",
+      "say": "message",
+      "def": "The interface com.sap.gateway.ip.core.customdev.util.Message that a script uses for the body, headers and exchange properties: getBody, setBody, getHeader(name, type), getHeaders, setHeader, getProperty, setProperty and getBodySize.",
+      "example": "def body = message.getBody(java.lang.String) reads the payload as text, and message.setProperty('status', 'Hired') keeps a value for later steps.",
+      "src": "s3"
+    },
+    {
+      "id": "t-messagelog",
+      "term": "messageLogFactory and MessageLog",
+      "ipa": "/ˈmesɪdʒ lɒɡ ˈfæktəri/",
+      "say": "message log factory",
+      "def": "messageLogFactory is a variable that every script can use. getMessageLog(message) returns the MessageLog of the current message, which adds attachments and properties to the message processing log.",
+      "example": "messageLogFactory.getMessageLog(message)?.addCustomHeaderProperty('applicationId', id) makes the message searchable by its application ID.",
+      "src": "s4"
+    },
+    {
+      "id": "t-groovy-truth",
+      "term": "Groovy truth",
+      "ipa": "/ˈɡruːvi truːθ/",
+      "say": "groovy truth",
+      "def": "The rules Groovy uses to turn any value into true or false. null, false, 0, an empty String and an empty collection or map are false; most other values are true.",
+      "example": "if (score) skips a candidate whose assessment score is 0, because 0 is false.",
+      "src": "s9"
+    },
+    {
+      "id": "t-gstring",
+      "term": "GString",
+      "ipa": "/ˈdʒiː strɪŋ/",
+      "say": "G string",
+      "def": "A double-quoted string with ${...} placeholders. It is not a java.lang.String: its hashCode is different, so it should not be used as a map key. Single-quoted strings never interpolate.",
+      "example": "\"A-${app.id}\" is a GString; \"A-${app.id}\".toString() is the String A-1001.",
+      "src": "s12"
+    },
+    {
+      "id": "t-safe-navigation",
+      "term": "Safe navigation operator (?.)",
+      "ipa": "/seɪf ˌnævɪˈɡeɪʃn ˈɒpəreɪtə/",
+      "say": "safe navigation operator",
+      "def": "An operator that returns null instead of throwing a NullPointerException when the object on its left is null.",
+      "example": "candidate?.address?.city is null when the candidate has no address, instead of failing the message.",
+      "src": "s11"
+    },
+    {
+      "id": "t-gpath",
+      "term": "GPath",
+      "ipa": "/ˈdʒiː pɑːθ/",
+      "say": "G path",
+      "def": "Groovy's dot notation for navigating nested data, such as the result of JsonSlurper, XmlSlurper or XmlParser. On a list, a property access is applied to every element and returns a list.",
+      "example": "json.d.results.candidateId returns [C-1042], a list, even when there is only one result.",
+      "src": "s9"
+    },
+    {
+      "id": "t-closure",
+      "term": "Closure",
+      "ipa": "/ˈkləʊʒə/",
+      "say": "closure",
+      "def": "An anonymous block of code in braces that can take parameters and returns a value, such as the block passed to each, find or collect. A return inside it ends only that call of the closure.",
+      "example": "offers.find { it.status == 'Accepted' } passes a closure to find, which stops at the first accepted offer.",
+      "src": "s13"
+    },
+    {
+      "id": "t-jsonslurper",
+      "term": "JsonSlurper and JsonOutput",
+      "ipa": "/ˈdʒeɪsn ˈslɜːpə ənd ˈdʒeɪsn ˈaʊtpʊt/",
+      "say": "JSON slurper and JSON output",
+      "def": "JsonSlurper parses JSON into maps, lists, Strings, numbers (Integer or BigDecimal), booleans and null. JsonOutput.toJson turns maps, lists and objects back into a JSON String.",
+      "example": "JsonOutput.toJson([candidateId: 'C-1042', status: 'Hired']) gives {\"candidateId\":\"C-1042\",\"status\":\"Hired\"}.",
+      "src": "s14"
+    },
+    {
+      "id": "t-xmlslurper",
+      "term": "XmlSlurper and XmlParser",
+      "ipa": "/ˌeks em ˈel ˈslɜːpə ənd ˌeks em ˈel ˈpɑːzə/",
+      "say": "X M L slurper and X M L parser",
+      "def": "Two Groovy XML parsers. XmlSlurper returns a lazily evaluated GPathResult and suits reading; XmlParser returns Node objects that you can change and read again straight away.",
+      "example": "A script that only reads candidate IDs uses XmlSlurper; a script that adds a source element and then checks it uses XmlParser.",
+      "src": "s15"
+    },
+    {
+      "id": "t-markupbuilder",
+      "term": "MarkupBuilder and StreamingMarkupBuilder",
+      "ipa": "/ˈmɑːkʌp ˌbɪldə/",
+      "say": "markup builder",
+      "def": "Groovy builders that write XML from nested method calls in closures. MarkupBuilder writes to a Writer; the bind method of StreamingMarkupBuilder returns a Writable that can stream the markup.",
+      "example": "xml.Hire { candidate('C-1042') } writes a Hire element with a candidate child that contains C-1042.",
+      "src": "s15"
+    },
+    {
+      "id": "t-binding-variable",
+      "term": "Binding variable",
+      "ipa": "/ˈbaɪndɪŋ ˈveəriəbl/",
+      "say": "binding variable",
+      "def": "A variable assigned in a script without def or a type. In Cloud Integration it stays in memory until the iFlow is undeployed or redeployed and is shared between script executions, so it is not thread-safe.",
+      "example": "candidateId = json.candidateId, written without def, can leak one candidate's ID into another message under load.",
+      "src": "s2"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u35-l1",
+      "kind": "concepts",
+      "title": "The Script step and Groovy's rules",
+      "items": [
+        {
+          "id": "u35-l1-i1",
+          "type": "card",
+          "term": "t-processdata",
+          "src": "s1"
+        },
+        {
+          "id": "u35-l1-i2",
+          "type": "card",
+          "term": "t-message-api",
+          "src": "s3"
+        },
+        {
+          "id": "u35-l1-i3",
+          "type": "card",
+          "term": "t-groovy-truth",
+          "src": "s9"
+        },
+        {
+          "id": "u35-l1-i4",
+          "type": "why",
+          "src": "s9",
+          "lang": "groovy",
+          "q": "The script copies the assessment score into a header and should fail only when the score is missing. Why does it fail for this application?",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\nimport groovy.json.JsonSlurper\n\nMessage processData(Message message) {\n    def json = new JsonSlurper().parse(message.getBody(Reader))\n    def score = json.assessment.score\n    if (!score) {\n        throw new IllegalStateException(\"Assessment score missing for ${json.applicationId}\")\n    }\n    message.setHeader('assessmentScore', score)\n    return message\n}",
+          "happened": "Input: {\"applicationId\":\"A-1001\",\"assessment\":{\"score\":0}}\njava.lang.IllegalStateException: Assessment score missing for A-1001",
+          "options": [
+            "In Groovy the number 0 is false, so !score is true for a real score of 0.",
+            "JsonSlurper returns numbers as Strings, so score is the text \"0\", and !score is true.",
+            "json.assessment.score returns a list, and a list with one element is false.",
+            "getBody(Reader) can be read only once, so JsonSlurper gets an empty document."
+          ],
+          "answer": 0,
+          "why": "Groovy truth treats 0 as false, just like null, an empty String and an empty list. Test for the case you mean, here score == null.",
+          "fix": "    if (score == null) {"
+        },
+        {
+          "id": "u35-l1-i5",
+          "type": "card",
+          "term": "t-gpath",
+          "src": "s9"
+        },
+        {
+          "id": "u35-l1-i6",
+          "type": "why",
+          "src": "s11",
+          "lang": "groovy",
+          "q": "The script routes hires to payroll. The OData V2 response has exactly one result with the status Hired. Why does the message go to the archive?",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\nimport groovy.json.JsonSlurper\n\nMessage processData(Message message) {\n    // OData V2 response: { \"d\": { \"results\": [ ... ] } }\n    def json = new JsonSlurper().parse(message.getBody(Reader))\n    def status = json.d.results.status\n    if (status == 'Hired') {\n        message.setProperty('route', 'payroll')\n    } else {\n        message.setProperty('route', 'archive')\n    }\n    return message\n}",
+          "happened": "Input: {\"d\":{\"results\":[{\"applicationId\":\"A-1001\",\"status\":\"Hired\"}]}}\nroute = archive",
+          "options": [
+            "results is a list, so .status collects the status of every element into a list, and the list [Hired] is not equal to the String Hired.",
+            "== compares references in Groovy, so two different String objects are never equal.",
+            "JsonSlurper keeps the values lazy, so status is still unparsed text when it is compared.",
+            "JsonSlurper drops the d wrapper of OData V2, so json.d is empty."
+          ],
+          "answer": 0,
+          "why": "On a list, GPath applies the property to every element, so json.d.results.status is the same as json.d.results*.status. Take one element, such as results[0], or decide what to do with several results.",
+          "fix": "    def status = json.d.results[0]?.status"
+        },
+        {
+          "id": "u35-l1-i7",
+          "type": "card",
+          "term": "t-gstring",
+          "src": "s12"
+        },
+        {
+          "id": "u35-l1-i8",
+          "type": "why",
+          "src": "s12",
+          "lang": "groovy",
+          "q": "The script builds a map from application ID to status and then looks up the application in the property applicationId. Why is the status null?",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\nimport groovy.json.JsonSlurper\n\nMessage processData(Message message) {\n    def apps = new JsonSlurper().parse(message.getBody(Reader))\n    Map<String, String> statusById = new HashMap<>()\n    apps.each { app -> statusById.put(\"A-${app.id}\", app.status) }\n\n    String key = message.getProperty('applicationId')   // 'A-1001'\n    message.setProperty('status', statusById.get(key))\n    message.setProperty('known', statusById.keySet().join(','))\n    return message\n}",
+          "happened": "Input: [{\"id\":1001,\"status\":\"Hired\"},{\"id\":1002,\"status\":\"Rejected\"}], applicationId = A-1001\nstatus = null, known = A-1001,A-1002",
+          "options": [
+            "The keys are GStrings, whose hashCode differs from the String A-1001, so get finds no entry.",
+            "The type Map<String, String> turns each key into a String without the A- prefix.",
+            "HashMap is not thread-safe, so the entries added inside each are lost.",
+            "app.id is an Integer, so the key becomes A-1001.0."
+          ],
+          "answer": 0,
+          "why": "\"A-${app.id}\" is a GString, and Groovy's documentation says a GString and an equal String have different hashCodes, so GStrings should not be map keys. Call toString() on the key, or build it as a String.",
+          "fix": "    apps.each { app -> statusById.put(\"A-${app.id}\".toString(), app.status) }"
+        },
+        {
+          "id": "u35-l1-i9",
+          "type": "tf",
+          "src": "s12",
+          "statement": "In Groovy, 'Payload for ${applicationId}' in single quotes puts the application ID into the text.",
+          "answer": false,
+          "why": "Single-quoted strings are plain java.lang.String and do not support interpolation, so the text stays as written. Use double quotes to get a GString."
+        },
+        {
+          "id": "u35-l1-i10",
+          "type": "pick",
+          "src": "s14",
+          "q": "JsonSlurper parsed {\"id\":1001,\"startDate\":\"2026-11-02\",\"total\":null} into json. Which line throws an exception?",
+          "options": [
+            "String id = json.id",
+            "def start = json.startDate",
+            "Date start = json.startDate",
+            "Integer total = json.total"
+          ],
+          "answer": 2,
+          "why": "JsonSlurper gives startDate as a String, and Groovy cannot cast a String to Date, so it throws GroovyCastException. Assigning to String calls toString(), and null fits an Integer, though not an int."
+        }
+      ]
+    },
+    {
+      "id": "u35-l2",
+      "kind": "practice",
+      "title": "Debug the script",
+      "items": [
+        {
+          "id": "u35-l2-i1",
+          "type": "match",
+          "src": "s4",
+          "q": "Match each call in a script with what it does.",
+          "pairs": [
+            [
+              "message.getBody(java.io.Reader)",
+              "Reads the body as a stream, without a String copy"
+            ],
+            [
+              "message.getHeader('page', Integer)",
+              "Reads a header converted to the given type"
+            ],
+            [
+              "message.setProperty('status', 'Hired')",
+              "Stores a value that stays inside the iFlow"
+            ],
+            [
+              "messageLog.addAttachmentAsString(name, text, 'text/plain')",
+              "Adds a document on the Attachments tab of the MPL"
+            ],
+            [
+              "messageLog.addCustomHeaderProperty(name, value)",
+              "Adds a name-value pair that you can search for"
+            ],
+            [
+              "messageLog.setStringProperty(name, value)",
+              "Adds a short property, shown only with Debug or Trace"
+            ]
+          ]
+        },
+        {
+          "id": "u35-l2-i2",
+          "type": "why",
+          "src": "s13",
+          "lang": "groovy",
+          "q": "The helper should return the ID of the accepted offer. Why is offerId null although O-2 is accepted?",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\nimport groovy.json.JsonSlurper\n\nString acceptedOfferId(List offers) {\n    offers.each { offer ->\n        if (offer.status == 'Accepted') {\n            return offer.id\n        }\n    }\n    return null\n}\n\nMessage processData(Message message) {\n    def offers = new JsonSlurper().parse(message.getBody(Reader)).offers\n    message.setProperty('offerId', acceptedOfferId(offers))\n    return message\n}",
+          "happened": "Input: {\"offers\":[{\"id\":\"O-1\",\"status\":\"Declined\"},{\"id\":\"O-2\",\"status\":\"Accepted\"}]}\nofferId = null",
+          "options": [
+            "return inside the closure ends only that call of the closure; each ignores the value and goes on, so the method reaches return null.",
+            "each stops after the first element, so O-2 is never checked.",
+            "offer.status is a GString, so == 'Accepted' is always false.",
+            "A method declared to return String cannot return a value read from a Map, so Groovy returns null."
+          ],
+          "answer": 0,
+          "why": "A closure is its own block of code, so return in it ends only that call, and each ignores what the closure returns. Use find, which stops at the first match.",
+          "fix": "String acceptedOfferId(List offers) {\n    offers.find { it.status == 'Accepted' }?.id\n}"
+        },
+        {
+          "id": "u35-l2-i3",
+          "type": "why",
+          "src": "s10",
+          "lang": "groovy",
+          "q": "The script checks that the number of applications matches the property expectedCount, which is \"3\". Why does it fail with 3 applications?",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\nimport groovy.json.JsonSlurper\n\nMessage processData(Message message) {\n    Long expected = message.getProperty('expectedCount') as Long\n    def json = new JsonSlurper().parse(message.getBody(Reader))\n    def actual = json.applications.size()\n    if (!actual.equals(expected)) {\n        throw new IllegalStateException(\"Expected ${expected} applications, got ${actual}\")\n    }\n    return message\n}",
+          "happened": "Input: three applications, expectedCount = \"3\"\njava.lang.IllegalStateException: Expected 3 applications, got 3",
+          "options": [
+            "size() returns an Integer and expected is a Long, and equals is false for different types; Groovy's == would compare the values.",
+            "as Long cannot read the String \"3\" and returns 0.",
+            "equals compares the text \"3\" of the property with the number 3.",
+            "JsonSlurper counts the array lazily, so size() is not ready when equals runs."
+          ],
+          "answer": 0,
+          "why": "Integer.equals(Long) is false even for the same number, as in Java. In Groovy, == means equality and compares numbers by value, so write actual != expected.",
+          "fix": "    if (actual != expected) {"
+        },
+        {
+          "id": "u35-l2-i4",
+          "type": "why",
+          "src": "s11",
+          "lang": "groovy",
+          "q": "The script copies the candidate's city into a header for the onboarding service. Why does it fail for this candidate?",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\nimport groovy.json.JsonSlurper\n\nMessage processData(Message message) {\n    def candidate = new JsonSlurper().parse(message.getBody(Reader)).candidate\n    message.setHeader('city', candidate.address.city)\n    return message\n}",
+          "happened": "Input: {\"candidate\":{\"id\":\"C-1042\",\"address\":null}}\njava.lang.NullPointerException: Cannot get property 'city' on null object",
+          "options": [
+            "address is null for this candidate, and a property access on null throws; ?. would return null instead.",
+            "JsonSlurper turns a JSON null into the String \"null\", which has no city property.",
+            "setHeader does not accept null values.",
+            "JsonSlurper returns a lazy map, which does not support property access."
+          ],
+          "answer": 0,
+          "why": "JsonSlurper turns a JSON null into Groovy null, and reading a property of null throws NullPointerException. The safe navigation operator ?. returns null instead, and ?: adds a default.",
+          "fix": "    message.setHeader('city', candidate?.address?.city ?: 'unknown')"
+        },
+        {
+          "id": "u35-l2-i5",
+          "type": "why",
+          "src": "s15",
+          "lang": "groovy",
+          "q": "The script adds a source element to every job application that has none, then checks that no source is missing. Why does the check fail?",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\nimport groovy.xml.XmlSlurper\nimport groovy.xml.XmlUtil\n\nMessage processData(Message message) {\n    def root = new XmlSlurper().parse(message.getBody(Reader))\n    root.JobApplication.each { app ->\n        if (!app.source.size()) {\n            app.appendNode { source('JobBoard') }\n        }\n    }\n    def missing = root.JobApplication.count { it.source.text() == '' }\n    if (missing) {\n        throw new IllegalStateException(\"${missing} applications without a source\")\n    }\n    message.setBody(XmlUtil.serialize(root))\n    return message\n}",
+          "happened": "Input: two JobApplication elements without a source\njava.lang.IllegalStateException: 2 applications without a source",
+          "options": [
+            "Nodes added with XmlSlurper are not visible until the document is parsed again, so the check still finds no source.",
+            "appendNode adds the element to the root, not to the application.",
+            "count counts every element, whatever the closure returns.",
+            "XmlSlurper ignores appendNode, so the source elements would never reach the receiver either."
+          ],
+          "answer": 0,
+          "why": "XmlSlurper evaluates the document lazily, so new nodes appear only after a new parse, although XmlUtil.serialize writes them. SAP recommends XmlSlurper for read-only parsing and XmlParser for changes in place.",
+          "fix": "import groovy.xml.XmlParser\n...\n    def root = new XmlParser().parse(message.getBody(Reader))\n    root.JobApplication.each { app ->\n        if (!app.source) {\n            app.appendNode('source', 'JobBoard')\n        }\n    }"
+        },
+        {
+          "id": "u35-l2-i6",
+          "type": "why",
+          "src": "s7",
+          "lang": "groovy",
+          "q": "The script should stop hires without a start date, so that the Exception Subprocess alerts HR. Why does the message end as Completed with no alert?",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\nimport groovy.json.JsonSlurper\n\nMessage processData(Message message) {\n    try {\n        def hire = new JsonSlurper().parse(message.getBody(Reader))\n        if (!hire.startDate) {\n            throw new IllegalArgumentException(\"Hire ${hire.applicationId} has no start date\")\n        }\n        message.setProperty('startDate', hire.startDate)\n    } catch (Exception e) {\n        messageLogFactory.getMessageLog(message)?.setStringProperty('validationError', e.message)\n    }\n    return message\n}",
+          "happened": "Input: {\"applicationId\":\"A-1001\",\"startDate\":null}\nprocessData returns normally; the message is Completed and the Exception Subprocess does not run.",
+          "options": [
+            "The script catches its own exception and returns the message, so the iFlow never sees an error.",
+            "An Exception Subprocess handles only errors from adapters, not from Script steps.",
+            "IllegalArgumentException is a checked exception, so Groovy swallows it.",
+            "The exception text is a GString, which Camel cannot read, so it ignores the error."
+          ],
+          "answer": 0,
+          "why": "The Exception Subprocess handles exceptions thrown in the integration process, and this one never leaves the script. Let it propagate, or rethrow it, and read the text in the subprocess with ${exception.message}.",
+          "fix": "    def hire = new JsonSlurper().parse(message.getBody(Reader))\n    if (!hire.startDate) {\n        throw new IllegalArgumentException(\"Hire ${hire.applicationId} has no start date\")\n    }\n    message.setProperty('startDate', hire.startDate)\n    return message"
+        },
+        {
+          "id": "u35-l2-i7",
+          "type": "code",
+          "src": "s2",
+          "lang": "groovy",
+          "q": "Complete the script. It reads a large JSON job application without a String copy, keeps the status for a Router and sends a small JSON body on.",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\nimport groovy.json.JsonSlurper\nimport groovy.json.JsonOutput\n\nMessage [[1]](Message message) {\n    def app = new JsonSlurper().parse(message.getBody([[2]]))\n    message.[[3]]('status', app.status)\n    message.setBody([[4]]([candidateId: app.candidateId, status: app.status]))\n    return message\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "processData",
+              "decoys": [
+                "main",
+                "execute"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "java.io.Reader",
+              "decoys": [
+                "java.lang.String",
+                "java.util.Map"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "setProperty",
+              "decoys": [
+                "setHeader",
+                "setVariable"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "JsonOutput.toJson",
+              "decoys": [
+                "JsonSlurper.parseText",
+                "String.valueOf"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u35-l2-i8",
+          "type": "scenario",
+          "src": "s2",
+          "q": "A script reads a 300 MB XML export of job applications with message.getBody(String) and new XmlSlurper().parseText(body). The worker node runs out of memory.",
+          "options": [
+            {
+              "text": "Read the body with message.getBody(Reader) and pass the reader to new XmlSlurper().parse(reader).",
+              "ok": true,
+              "why": "SAP says parseText(String) needs extra memory and does not scale for large payloads, and that converting the body to a String creates a copy."
+            },
+            {
+              "text": "Switch to XmlParser, because it reads the document lazily.",
+              "ok": false,
+              "why": "XmlSlurper is the lazy one, and both are SAX-based. The memory goes on the String copy and on parseText, not on the choice of parser."
+            },
+            {
+              "text": "Add the body as an MPL attachment to see where it fails.",
+              "ok": false,
+              "why": "That stores another 300 MB copy, and SAP advises against payload attachments because tenant storage is limited."
+            },
+            {
+              "text": "Convert the body to byte[] first, because a byte array needs less memory.",
+              "ok": false,
+              "why": "SAP warns that converting to String or to byte[] both create copies that need extra memory."
+            }
+          ]
+        },
+        {
+          "id": "u35-l2-i9",
+          "type": "scenario",
+          "src": "s2",
+          "q": "Under load, some hires reach payroll with another candidate's ID. The script writes candidateId = json.candidateId without def at the start of processData, and tests with one message always pass.",
+          "options": [
+            {
+              "text": "candidateId is a binding variable, shared between script executions and not thread-safe; declare it with def or a type.",
+              "ok": true,
+              "why": "SAP says binding variables are shared between executions, stay in memory until the iFlow is redeployed and are not thread-safe."
+            },
+            {
+              "text": "JsonSlurper keeps the last parsed document, so create one JsonSlurper for each message.",
+              "ok": false,
+              "why": "A new JsonSlurper is created in the script anyway; the shared state is the variable without def."
+            },
+            {
+              "text": "Set HTTP Session Reuse to None, because the session mixes the requests.",
+              "ok": false,
+              "why": "Session reuse is about authentication on the HTTP connection, not about values inside a script."
+            },
+            {
+              "text": "Move the code to a second Script step, so that each step handles one message at a time.",
+              "ok": false,
+              "why": "Every Script step runs for many messages at the same time; the fix is a local variable."
+            }
+          ]
+        },
+        {
+          "id": "u35-l2-i10",
+          "type": "order",
+          "src": "s2",
+          "q": "A script fails for some messages in production. Put the steps to fix it safely in order.",
+          "steps": [
+            "Get a copy of a failing input without personal data, for example from a test system or an anonymised trace",
+            "Run the script locally in an IDE against that input, with a small stand-in for Message",
+            "Write the fix and a test that fails without it",
+            "Run a static check such as CodeNarc",
+            "Upload the script to the Script step or the Script Collection and deploy",
+            "Send one test message and check the message processing log"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u35-l3",
+      "kind": "interview",
+      "title": "Explain the script while you fix it",
+      "items": [
+        {
+          "id": "u35-l3-i1",
+          "type": "say",
+          "src": "s2",
+          "text": "Let me run this locally with the failing payload first, so that we see the real exception before we change anything."
+        },
+        {
+          "id": "u35-l3-i2",
+          "type": "why",
+          "src": "s13",
+          "lang": "groovy",
+          "q": "A helper builds the XML for payroll with MarkupBuilder. Why does it fail on the status element?",
+          "code": "import groovy.xml.MarkupBuilder\n\nString hireXml(String candidateId, String status) {\n    def writer = new StringWriter()\n    def xml = new MarkupBuilder(writer)\n    xml.Hire {\n        candidate(candidateId)\n        status(status)\n    }\n    return writer.toString()\n}",
+          "happened": "hireXml('C-1042', 'Hired') throws:\ngroovy.lang.MissingMethodException: No signature of method: java.lang.String.call() is applicable for argument types: (String) values: [Hired]",
+          "options": [
+            "Inside the closure, status is the String parameter, so status(status) calls the String instead of creating an element.",
+            "MarkupBuilder needs every element value in a closure, such as status { 'Hired' }.",
+            "status is a reserved word in Groovy, so it cannot be an element name.",
+            "The writer must be flushed before the builder writes the second element."
+          ],
+          "answer": 0,
+          "why": "A parameter or local variable wins over the builder, so status(status) means status.call(status), and a String has no call method. Call the builder explicitly with delegate.status(status), or rename the parameter.",
+          "fix": "        delegate.status(status)"
+        },
+        {
+          "id": "u35-l3-i3",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 120,
+          "q": "This script works with your test message but fails in production for some candidates. Walk me through how you would find out why.",
+          "model": "First I want the real input and the real exception. I take the error text from the message processing log and get a failing payload, ideally from a test system, because I don't want candidates' personal data in an attachment or on my laptop. Then I run the script locally in an IDE with a small stand-in for the Message class, which SAP also recommends over deploying to test. With that input I usually find one of a few Groovy causes. A field is null, so a property access throws and I need the safe navigation operator. A value is 0, an empty String or an empty list, and Groovy truth treats it as false. A path on a list returns a list, not one value. Or a typed variable cannot take the value, for example a String date assigned to a Date. I write the fix with a test for that input, run CodeNarc, deploy and send one message again.",
+          "keypoints": [
+            {
+              "text": "Get the real error and a failing input without personal data",
+              "kw": [
+                "exception",
+                "error",
+                "input",
+                "payload",
+                "personal data",
+                "log"
+              ]
+            },
+            {
+              "text": "Reproduce locally, not by deploying",
+              "kw": [
+                "locally",
+                "ide",
+                "reproduce",
+                "stand-in",
+                "stub",
+                "unit test"
+              ]
+            },
+            {
+              "text": "Null values and safe navigation",
+              "kw": [
+                "null",
+                "safe navigation",
+                "nullpointerexception"
+              ]
+            },
+            {
+              "text": "Groovy truth: 0, empty String and empty list are false",
+              "kw": [
+                "groovy truth",
+                "truth",
+                "zero",
+                "empty",
+                "false"
+              ]
+            },
+            {
+              "text": "Lists and types: a path on a list returns a list",
+              "kw": [
+                "list",
+                "type",
+                "cast",
+                "def",
+                "gpath"
+              ]
+            },
+            {
+              "text": "Fix with a test and redeploy",
+              "kw": [
+                "test",
+                "codenarc",
+                "deploy",
+                "redeploy",
+                "fix"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u35-l3-i4",
+          "type": "tf",
+          "src": "s4",
+          "statement": "A property written with messageLog.setStringProperty appears in the message processing log at log level Info.",
+          "answer": false,
+          "why": "SAP says properties added by the Script step are visible only with Debug or Trace. For a value you must see and search in production, use addCustomHeaderProperty."
+        },
+        {
+          "id": "u35-l3-i5",
+          "type": "explain",
+          "src": "s7",
+          "seconds": 120,
+          "q": "How do you make a Groovy script fail a message so that the Exception Subprocess handles it, and what do you write to the log?",
+          "model": "I throw an exception and I let it leave the script. If I catch it and only log it, processData returns normally, the message ends as Completed and the Exception Subprocess never runs. So I throw, for example, an IllegalArgumentException with a clear text that includes a business key, like the application ID, but no names or email addresses. In the Exception Subprocess I read that text with ${exception.message}, and a script there can get the original exception from the property CamelExceptionCaught. For logging, I keep production light. A custom header property such as the application ID is persisted and searchable. Properties set with setStringProperty only show with Debug or Trace. I avoid payload attachments, because tenant storage is limited and traces and attachments show the content in clear text. If I need more detail, I switch it on with the log level, which a script can read from the property SAP_MPL_LogLevel_Overall.",
+          "keypoints": [
+            {
+              "text": "Throw and let the exception leave the script",
+              "kw": [
+                "throw",
+                "exception",
+                "propagate",
+                "rethrow",
+                "don't catch",
+                "not catch"
+              ]
+            },
+            {
+              "text": "Catching it hides the error: Completed, no subprocess",
+              "kw": [
+                "completed",
+                "swallow",
+                "catch",
+                "returns normally",
+                "never runs"
+              ]
+            },
+            {
+              "text": "A clear message with a business key, no personal data",
+              "kw": [
+                "business key",
+                "application id",
+                "personal data",
+                "message text",
+                "names"
+              ]
+            },
+            {
+              "text": "${exception.message} and CamelExceptionCaught in the subprocess",
+              "kw": [
+                "exception.message",
+                "camelexceptioncaught",
+                "subprocess",
+                "exception subprocess"
+              ]
+            },
+            {
+              "text": "Log lightly: custom header properties, few attachments, log level switch",
+              "kw": [
+                "custom header",
+                "attachment",
+                "attachments",
+                "log level",
+                "debug",
+                "trace",
+                "storage"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u35-l3-i6",
+          "type": "tf",
+          "src": "s1",
+          "statement": "In Cloud Integration, version 2.0 of the Groovy Script step runs Groovy 4.0.29, and version 1.1 runs Groovy 2.4.21.",
+          "answer": true,
+          "why": "This is SAP's version table for the local Script step. Check the step version before you rely on newer Groovy features, such as the === operator from Groovy 3."
+        },
+        {
+          "id": "u35-l3-i7",
+          "type": "why",
+          "src": "s15",
+          "lang": "groovy",
+          "q": "A script was switched from XmlSlurper to XmlParser so that it can change nodes. Why does it now count no hires?",
+          "code": "import com.sap.gateway.ip.core.customdev.util.Message\nimport groovy.xml.XmlParser\n\n// Body:\n// <rc:Applications xmlns:rc=\"http://example.com/recruiting\">\n//   <rc:JobApplication><rc:id>A-1</rc:id><rc:status>Hired</rc:status></rc:JobApplication>\n//   <rc:JobApplication><rc:id>A-2</rc:id><rc:status>Hired</rc:status></rc:JobApplication>\n// </rc:Applications>\nMessage processData(Message message) {\n    def root = new XmlParser().parse(message.getBody(Reader))\n    def hired = root.JobApplication.findAll { it.status.text() == 'Hired' }\n    message.setProperty('hiredCount', hired.size())\n    return message\n}",
+          "happened": "hiredCount = 0\nThe same lookup with XmlSlurper found 2 hires.",
+          "options": [
+            "XmlParser names each node with a QName, so the plain name JobApplication does not match rc:JobApplication; XmlSlurper matched the local name because no namespace was declared.",
+            "XmlParser evaluates the document lazily, so findAll runs before the nodes exist.",
+            "text() returns the text of all child elements, so it is never equal to Hired.",
+            "XmlParser removes the namespace prefixes, so the root element is lost."
+          ],
+          "answer": 0,
+          "why": "With XmlParser, node names are QNames, and a plain String does not match an element in a namespace. Look elements up with a QName of the namespace URI, which also works when the sender uses another prefix.",
+          "fix": "import groovy.namespace.QName\n...\n    def NS = 'http://example.com/recruiting'\n    def root = new XmlParser().parse(message.getBody(Reader))\n    def hired = root[new QName(NS, 'JobApplication')].findAll { it[new QName(NS, 'status')].text() == 'Hired' }"
+        },
+        {
+          "id": "u35-l3-i8",
+          "type": "explain",
+          "src": "s15",
+          "seconds": 120,
+          "q": "XmlSlurper or XmlParser: which one do you use in a Cloud Integration script, and how do you handle a large payload?",
+          "model": "First I check whether I need a script at all. SAP recommends standard steps, such as a message mapping or XPath in a Content Modifier, before parsing XML in Groovy. If I do need a parser, I use XmlSlurper to read, because it is lazy and returns a GPathResult. If I need to change the document and read my changes in the same script, I use XmlParser, because nodes added with XmlSlurper only appear after the document is parsed again. Namespaces are a typical trap. XmlSlurper matches local names unless I declare a namespace, while XmlParser names nodes with QNames, so I look them up with a QName of the namespace URI. For a large payload, I never call getBody(String) and parseText. I pass message.getBody(Reader) to parse, so there is no extra String copy in memory. I also write compact output instead of pretty-printed XML, and I use a StringBuilder when I build text in a loop.",
+          "keypoints": [
+            {
+              "text": "Standard steps first",
+              "kw": [
+                "standard",
+                "mapping",
+                "xpath",
+                "content modifier",
+                "no script"
+              ]
+            },
+            {
+              "text": "XmlSlurper to read, lazy GPathResult",
+              "kw": [
+                "xmlslurper",
+                "slurper",
+                "read",
+                "lazy",
+                "gpathresult"
+              ]
+            },
+            {
+              "text": "XmlParser to change and read again",
+              "kw": [
+                "xmlparser",
+                "parser",
+                "change",
+                "modify",
+                "in place",
+                "node"
+              ]
+            },
+            {
+              "text": "Namespaces: declare or use a QName",
+              "kw": [
+                "namespace",
+                "namespaces",
+                "qname",
+                "prefix",
+                "declarenamespace"
+              ]
+            },
+            {
+              "text": "Large payload: Reader and parse, no String copy",
+              "kw": [
+                "reader",
+                "stream",
+                "streaming",
+                "parse",
+                "memory",
+                "string copy",
+                "parsetext"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u35-l3-i9",
+          "type": "explain",
+          "src": "s10",
+          "seconds": 120,
+          "q": "A colleague with a Java background asks why Groovy behaves differently from Java. Which differences do you warn them about?",
+          "model": "I warn them about a few things that look like Java but are not. First, == in Groovy means equality, not identity. It calls equals, or compareTo for Comparable types, so 3 == 3L is true, while Integer.equals(Long) is still false. For identity, Groovy has is() or ===. Second, Groovy truth: null, 0, an empty String and an empty list are all false, so if (score) is wrong when 0 is a valid score. Third, strings. Double quotes with ${} make a GString, which has a different hashCode from the equal String, so it must not be a map key, and single quotes never interpolate. Fourth, closures: a return inside each only ends that call, so I use find instead. Fifth, a property access on a list returns a list. And finally division: 7 / 2 gives a BigDecimal, so for integer division I use intdiv. I also ask them to declare every variable with def or a type.",
+          "keypoints": [
+            {
+              "text": "== is equality (equals or compareTo), identity is is() or ===",
+              "kw": [
+                "equals",
+                "compareto",
+                "identity",
+                "===",
+                "is()",
+                "equality"
+              ]
+            },
+            {
+              "text": "Groovy truth: 0, empty String and empty list are false",
+              "kw": [
+                "truth",
+                "zero",
+                "empty",
+                "false",
+                "null"
+              ]
+            },
+            {
+              "text": "GString versus String; single quotes do not interpolate",
+              "kw": [
+                "gstring",
+                "hashcode",
+                "map key",
+                "single quotes",
+                "interpolate",
+                "interpolation"
+              ]
+            },
+            {
+              "text": "return inside a closure; use find",
+              "kw": [
+                "closure",
+                "return",
+                "each",
+                "find"
+              ]
+            },
+            {
+              "text": "Lists, division and declarations",
+              "kw": [
+                "list",
+                "intdiv",
+                "bigdecimal",
+                "division",
+                "def",
+                "binding"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u35-l3-i10",
+          "type": "say",
+          "src": "s7",
+          "text": "I'd rather throw here than log and carry on. If the script swallows the error, the message shows Completed and nobody gets an alert."
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "The Script step",
+        "points": [
+          "Default function: Message processData(Message message); change and return the message.",
+          "Another function name goes in the Script Function field, without arguments.",
+          "Groovy Script step 1.1 runs Groovy 2.4.21; step 2.0 runs Groovy 4.0.29.",
+          "Use standard steps first: mapping, XPath in a Content Modifier, splitters, encoders.",
+          "Use the Script API or native Groovy; direct use of open source classes is not supported.",
+          "Test locally in an IDE, not by deploying; check with CodeNarc."
+        ]
+      },
+      {
+        "h": "Message API",
+        "points": [
+          "getBody(java.lang.String), getBody(java.io.Reader), getBody(java.io.InputStream); setBody(...).",
+          "Every String or byte[] copy of the body costs memory; read large bodies with a Reader.",
+          "getHeader(name, type), getHeaders(), setHeader(name, value): headers can reach the receiver.",
+          "getProperty(name), getProperties(), setProperty(name, value): properties stay in the iFlow.",
+          "getBodySize() gives the size of the body in bytes.",
+          "Declare every variable with def or a type: binding variables are shared and not thread-safe."
+        ]
+      },
+      {
+        "h": "Logging without leaking",
+        "points": [
+          "def log = messageLogFactory.getMessageLog(message), then call it with log?.",
+          "addAttachmentAsString(name, text, mediaType): Attachments tab; tenant storage is limited.",
+          "setStringProperty and similar: visible only with Debug or Trace.",
+          "addCustomHeaderProperty(name, value): persisted and searchable in the monitor.",
+          "Log business keys, not names, emails or credentials: traces and attachments show content in clear text.",
+          "Switch extra logging on with the log level, for example the property SAP_MPL_LogLevel_Overall."
+        ]
+      },
+      {
+        "h": "JSON and XML",
+        "points": [
+          "JsonSlurper: objects become maps, arrays lists, numbers Integer or BigDecimal, null stays null.",
+          "JsonOutput.toJson(map) escapes quotes; never build JSON by joining strings.",
+          "XmlSlurper to read (lazy GPathResult); XmlParser to change and read again (Node).",
+          "XmlSlurper: new XmlSlurper().parse(message.getBody(Reader)), not parseText(String).",
+          "Namespaces: XmlSlurper matches local names unless you declare them; XmlParser needs a QName.",
+          "MarkupBuilder or StreamingMarkupBuilder for output; prefer compact output to pretty-printed."
+        ]
+      },
+      {
+        "h": "Groovy traps for Java developers",
+        "points": [
+          "== is equality: equals, or compareTo for Comparable; identity is a.is(b) or ===.",
+          "null, 0, '' and [] are false. Write x == null when 0 or '' are valid values.",
+          "\"A-${id}\" is a GString with another hashCode: not a map key. Single quotes never interpolate.",
+          "return inside each ends only the closure; use find or a for loop.",
+          "a?.b returns null instead of throwing; list.prop returns a list of every element's prop.",
+          "7 / 2 is 3.5 (BigDecimal): use intdiv() for integer division. Date d = 'text' throws GroovyCastException."
+        ]
+      },
+      {
+        "h": "Failing on purpose",
+        "points": [
+          "Throw an exception with a clear text and a business key, and let it leave the script.",
+          "Catching and only logging returns normally: the message is Completed and no subprocess runs.",
+          "In the Exception Subprocess read ${exception.message}; a script there finds the exception in the property CamelExceptionCaught.",
+          "Make sure the error message contains no personal data."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Define a Local Script Step - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-a-local-script-step-03b32eb.md",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "General Scripting Guidelines - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/general-scripting-guidelines-fcbf0f2.md",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Read and Modify Message Header, Message Body, and Exchange Properties - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/read-and-modify-message-header-message-body-and-exchange-properties-5822f32.md",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "Add Information to the Message Processing Log - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/add-information-to-the-message-processing-log-e8e9283.md",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Create MPL Attachments in Scripts - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/create-mpl-attachments-in-scripts-17dba92.md",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Script Example for Exception Handling in HTTP Receiver - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/script-example-for-exception-handling-in-http-receiver-a443efe.md",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Define Exception Subprocess - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-exception-subprocess-690e078.md",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Setting Log Levels - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/setting-log-levels-4e6d3fc.md",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Semantics: The Groovy Truth, GPath expressions, optional typing - Groovy 4.0.24 documentation source (apache/groovy on GitHub)",
+      "url": "https://github.com/apache/groovy/blob/GROOVY_4_0_24/src/spec/doc/core-semantics.adoc",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Differences with Java: behaviour of == - Groovy 4.0.24 documentation source (apache/groovy on GitHub)",
+      "url": "https://github.com/apache/groovy/blob/GROOVY_4_0_24/src/spec/doc/core-differences-java.adoc",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Operators: safe navigation, spread, identity, division - Groovy 4.0.24 documentation source (apache/groovy on GitHub)",
+      "url": "https://github.com/apache/groovy/blob/GROOVY_4_0_24/src/spec/doc/core-operators.adoc",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Syntax: single-quoted strings, GString and String hashCodes - Groovy 4.0.24 documentation source (apache/groovy on GitHub)",
+      "url": "https://github.com/apache/groovy/blob/GROOVY_4_0_24/src/spec/doc/core-syntax.adoc",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Closures - Groovy 4.0.24 documentation source (apache/groovy on GitHub)",
+      "url": "https://github.com/apache/groovy/blob/GROOVY_4_0_24/src/spec/doc/core-closures.adoc",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Processing JSON: JsonSlurper and JsonOutput - Groovy 4.0.24 documentation source (apache/groovy on GitHub)",
+      "url": "https://github.com/apache/groovy/blob/GROOVY_4_0_24/subprojects/groovy-json/src/spec/doc/json-userguide.adoc",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Processing XML: XmlSlurper, XmlParser, MarkupBuilder, StreamingMarkupBuilder - Groovy 4.0.24 documentation source (apache/groovy on GitHub)",
+      "url": "https://github.com/apache/groovy/blob/GROOVY_4_0_24/subprojects/groovy-xml/src/spec/doc/xml-userguide.adoc",
+      "official": true
+    }
+  ]
+}

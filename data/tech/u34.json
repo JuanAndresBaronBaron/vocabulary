@@ -1,0 +1,1066 @@
+{
+  "format": 1,
+  "id": "u34",
+  "n": 34,
+  "block": "livecoding",
+  "title": "CPI hands-on",
+  "summary": "After this unit you can predict what each iFlow step does to the body, the headers and the exchange properties, find out why a header, a route or a split message is missing, and prove the cause with a trace.",
+  "reviewed": "2026-10-28",
+  "versionNotes": [
+    "Checked on 2026-10-28. The SAP Help Portal blocks automated reading, so the Cloud Integration pages were read in SAP-docs/btp-integration-suite on GitHub, the source of those Help Portal pages.",
+    "Apache Camel behaviour (the HTTP response becomes the body, request headers are kept and response headers are added; headers are stored in a case-insensitive map by default) was read in the Apache Camel 4.14 sources on GitHub, because camel.apache.org could not be reached. The SAP pages read do not say which Camel version Cloud Integration runs.",
+    "HTTP receiver adapter as documented on 2026-10-28: Request Headers sends no custom headers by default, and from adapter version 1.19 it contains traceparent by default; Response Headers is * by default. Older adapter versions may behave differently; use Update Version to get the current options.",
+    "The Content Modifier body type Constant or Expression and the 256 KB limit for Expression are taken from the current Define Content Modifier page; older versions of the step may not show the field.",
+    "${in.body} is deprecated and may stop working in a future major Camel release (SAP Note 3383659, as cited by SAP); the unit uses ${body} for new configuration.",
+    "unconfirmed: which route wins when several Router conditions are true. SAP says only that the conditions are executed in order, so no item depends on it.",
+    "unconfirmed: whether Cloud Integration keeps Camel's default case-insensitive header map; the unit relies only on SAP's statement that exchange property names are case-sensitive.",
+    "The fix of the General Splitter item assumes, as in Apache Camel, that each split message carries the exchange properties set before the splitter; the SAP pages read do not state it explicitly."
+  ],
+  "terms": [
+    {
+      "id": "t-exchange",
+      "term": "Exchange (Apache Camel)",
+      "ipa": "/ɪksˈtʃeɪndʒ/",
+      "say": "exchange",
+      "def": "Cloud Integration turns each iFlow into a route for Apache Camel. While a message is processed, Camel keeps it in a container called the exchange: the message (body, headers, attachments) plus an area for exchange properties.",
+      "example": "When a job application arrives over HTTPS, one exchange with its own exchange ID carries it through every step until the flow ends.",
+      "src": "s1"
+    },
+    {
+      "id": "t-header",
+      "term": "Message header",
+      "ipa": "/ˈmesɪdʒ ˌhedə/",
+      "say": "message header",
+      "def": "A name-value pair that is part of the message. A header written in a Content Modifier or a script can leave the flow: an HTTP-based receiver adapter can send it as an HTTP header.",
+      "example": "A Content Modifier sets the header X-Request-Id, and the HTTP receiver lists it in Request Headers so that the onboarding service can log the same correlation ID.",
+      "src": "s2"
+    },
+    {
+      "id": "t-exchange-property",
+      "term": "Exchange property",
+      "ipa": "/ɪksˈtʃeɪndʒ ˌprɒpəti/",
+      "say": "exchange property",
+      "def": "A name-value pair stored on the exchange for the whole processing. It stays inside the integration flow and is never handed over to a receiver. Property names are case-sensitive.",
+      "example": "The flow keeps the application ID in the property applicationId for a Router and an Idempotent Process Call, and payroll never sees it.",
+      "src": "s2"
+    },
+    {
+      "id": "t-allowed-headers",
+      "term": "Allowed Header(s)",
+      "ipa": "/əˌlaʊd ˈhedəz/",
+      "say": "allowed headers",
+      "def": "A field in the runtime configuration of an iFlow that lists the inbound headers the flow keeps. Names are separated by a pipe with no spaces and are read as regular expressions; other headers are removed, apart from those the runtime itself uses.",
+      "example": "Allowed Header(s): X-Request-Id|X-Candidate-Id keeps the two headers that the job board sends with each application.",
+      "src": "s3"
+    },
+    {
+      "id": "t-simple-expression",
+      "term": "Camel Simple expression",
+      "ipa": "/ˈkæml ˈsɪmpl ɪkˈspreʃn/",
+      "say": "camel simple expression",
+      "def": "A short expression in ${...} that is evaluated at runtime, for example ${header.name}, ${property.name}, ${body} or ${date:now:yyyy-MM-dd}. Cloud Integration supports a subset of Camel's Simple language.",
+      "example": "The Entry ID of a Data Store Write is ${property.applicationId}, so each hire is stored under its own application ID.",
+      "src": "s5"
+    },
+    {
+      "id": "t-content-modifier",
+      "term": "Content Modifier",
+      "ipa": "/ˈkɒntent ˈmɒdɪfaɪə/",
+      "say": "content modifier",
+      "def": "A step that creates or deletes headers and exchange properties and can replace the message body. Its entries run from top to bottom, and a value can be a constant, an XPath result, a Simple expression, a header, a property or a variable.",
+      "example": "A Content Modifier reads /JobApplication/status with XPath into a property, and the Router after it uses that property.",
+      "src": "s6"
+    },
+    {
+      "id": "t-router",
+      "term": "Router",
+      "ipa": "/ˈruːtə/",
+      "say": "router",
+      "def": "A step that sends the message down one of several routes. Each route has an XML condition (XPath) or a Non-XML condition (a Simple expression on headers, properties or the exception), and one route is the default route.",
+      "example": "The condition ${property.status} = 'Hired' sends hires to payroll, and the default route archives every other application.",
+      "src": "s7"
+    },
+    {
+      "id": "t-splitter",
+      "term": "General and Iterating Splitter",
+      "ipa": "/ˈdʒenrəl ənd ˈɪtəreɪtɪŋ ˈsplɪtə/",
+      "say": "general and iterating splitter",
+      "def": "Steps that split one message into many. The General Splitter copies the enveloping elements, those above and including the split point, into each new message; the Iterating Splitter does not copy them.",
+      "example": "A batch of 200 job applications becomes 200 messages, one for each application, so that each one can be mapped on its own.",
+      "src": "s8"
+    },
+    {
+      "id": "t-request-reply",
+      "term": "Request Reply",
+      "ipa": "/rɪˈkwest rɪˈplaɪ/",
+      "say": "request reply",
+      "def": "A step that calls a receiver synchronously and waits for the response. The response becomes the message body for the next step.",
+      "example": "After a Request Reply to the assessment vendor, the body is the vendor's JSON answer, not the candidate XML that was sent.",
+      "src": "s10"
+    },
+    {
+      "id": "t-content-enricher",
+      "term": "Content Enricher",
+      "ipa": "/ˈkɒntent ɪnˈrɪtʃə/",
+      "say": "content enricher",
+      "def": "A step that calls a receiver and merges the lookup message with the original message, either with Combine or with Enrich on a key element.",
+      "example": "A Content Enricher adds each requisition's title to 1000 job applications with one lookup call, matched on the requisition ID.",
+      "src": "s11"
+    },
+    {
+      "id": "t-processdirect",
+      "term": "ProcessDirect adapter",
+      "ipa": "/ˈprəʊses dəˈrekt əˈdæptə/",
+      "say": "process direct adapter",
+      "def": "An adapter that passes a message directly from one iFlow to another on the same tenant, with less latency and network overhead than an HTTP call. Many producers can call one consumer; exchange properties are not propagated, and headers only when Allowed Header(s) lets them through.",
+      "example": "Five recruiting iFlows hand their errors to one shared logging iFlow at the address /shared/log.",
+      "src": "s16"
+    },
+    {
+      "id": "t-idempotent-process-call",
+      "term": "Idempotent Process Call",
+      "ipa": "/ˌaɪdɛmˈpəʊtənt ˈprəʊses kɔːl/",
+      "say": "idempotent process call",
+      "def": "A step that runs a local integration process only once for each message ID. It stores the IDs of successful runs, by default for 90 days, and skips or marks duplicates.",
+      "example": "With the Message ID ${property.applicationId}, a hire that the sender retries does not reach payroll a second time.",
+      "src": "s17"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u34-l1",
+      "kind": "concepts",
+      "title": "What travels with the message",
+      "items": [
+        {
+          "id": "u34-l1-i1",
+          "type": "card",
+          "term": "t-exchange",
+          "src": "s1"
+        },
+        {
+          "id": "u34-l1-i2",
+          "type": "card",
+          "term": "t-header",
+          "src": "s2"
+        },
+        {
+          "id": "u34-l1-i3",
+          "type": "card",
+          "term": "t-exchange-property",
+          "src": "s2"
+        },
+        {
+          "id": "u34-l1-i4",
+          "type": "tf",
+          "src": "s2",
+          "statement": "An exchange property set in a Content Modifier reaches the HTTP receiver as an HTTP header.",
+          "answer": false,
+          "why": "Headers can become HTTP headers for HTTP-based receivers, but exchange properties stay inside the integration flow and are never handed over to receivers."
+        },
+        {
+          "id": "u34-l1-i5",
+          "type": "why",
+          "src": "s6",
+          "lang": "text",
+          "q": "A Content Modifier stores the application status in an exchange property, and the Router should send hires to payroll. Why does every message take the default route?",
+          "code": "Content Modifier \"Keep status\"\n  Exchange Property: Create  ApplicationStatus\n    Source Type: XPath  /JobApplication/status\n    Data Type: java.lang.String\n\nRouter \"Hired?\"\n  Route \"To payroll\"\n    Expression Type: Non-XML\n    Condition: ${property.applicationStatus} = 'Hired'\n  Route \"Ignore\"\n    Default Route: selected",
+          "happened": "Every message takes the Ignore route, also when the payload has <status>Hired</status>.",
+          "options": [
+            "Exchange property names are case-sensitive, so applicationStatus is not the property ApplicationStatus and the condition is never true.",
+            "A Non-XML condition can only read headers, so the Router must use ${header.applicationStatus}.",
+            "The XPath returns a node, not a string, so the comparison with 'Hired' always fails.",
+            "The default route is checked first, so it takes every message before the other routes."
+          ],
+          "answer": 0,
+          "why": "SAP notes that exchange property names are case-sensitive, a known behaviour of the Camel framework. ${property.applicationStatus} finds nothing, so the condition is false and the message takes the default route.",
+          "fix": "Condition: ${property.ApplicationStatus} = 'Hired'"
+        },
+        {
+          "id": "u34-l1-i6",
+          "type": "card",
+          "term": "t-allowed-headers",
+          "src": "s3"
+        },
+        {
+          "id": "u34-l1-i7",
+          "type": "why",
+          "src": "s3",
+          "lang": "text",
+          "q": "A job board calls the iFlow over HTTPS and sends two headers that later steps need. Why are both headers gone?",
+          "code": "Runtime Configuration\n  Allowed Header(s): X-Request-Id | X-Candidate-Id\n\nRequest from the job board\n  POST /http/recruiting/applications\n  X-Request-Id: 7f3c2a\n  X-Candidate-Id: C-1042\n  Content-Type: application/xml",
+          "happened": "In the trace, the message has neither X-Request-Id nor X-Candidate-Id after the sender step.",
+          "options": [
+            "The list has spaces around the pipe. SAP says there must be no whitespace, and the entries are read as regular expressions, so neither entry matches a header.",
+            "Header names in Allowed Header(s) must be written in lower case, so X-Request-Id never matches.",
+            "Allowed Header(s) takes only one name; for two or more headers you must enter the wildcard *.",
+            "Cloud Integration always removes inbound HTTP headers, so the job board must send the values in the body."
+          ],
+          "answer": 0,
+          "why": "Allowed Header(s) is a pipe-separated list of regular expressions with no whitespace between the names. With the spaces, the entries do not match the header names, so the runtime removes both headers.",
+          "fix": "Allowed Header(s): X-Request-Id|X-Candidate-Id"
+        },
+        {
+          "id": "u34-l1-i8",
+          "type": "card",
+          "term": "t-simple-expression",
+          "src": "s5"
+        },
+        {
+          "id": "u34-l1-i9",
+          "type": "why",
+          "src": "s6",
+          "lang": "text",
+          "q": "A Content Modifier builds a small JSON request for an assessment vendor from two exchange properties. Why does the vendor receive the placeholders instead of the IDs?",
+          "code": "Content Modifier \"Build request\"\n  Message Body\n    Type: Constant\n    Body:\n      {\n        \"candidateId\": \"${property.candidateId}\",\n        \"requisitionId\": \"${property.requisitionId}\"\n      }",
+          "happened": "The vendor receives {\"candidateId\": \"${property.candidateId}\", \"requisitionId\": \"${property.requisitionId}\"}.",
+          "options": [
+            "The body type is Constant, so the text is used as written; the type must be Expression for ${...} to be resolved.",
+            "Simple expressions in a message body can read headers but not exchange properties.",
+            "The exchange properties are removed before the body is built, so the expressions find nothing.",
+            "The double quotes around each placeholder stop the expression from being evaluated."
+          ],
+          "answer": 0,
+          "why": "SAP says to set the body type to Expression when the payload contains expressions. Constant is the default and is meant for bodies without expressions, so nothing is replaced.",
+          "fix": "Message Body\n  Type: Expression"
+        },
+        {
+          "id": "u34-l1-i10",
+          "type": "match",
+          "src": "s10",
+          "q": "Match each step with what it does to the message.",
+          "pairs": [
+            [
+              "Request Reply",
+              "Calls a receiver and waits; the response becomes the message body"
+            ],
+            [
+              "Content Enricher",
+              "Calls a receiver and merges the lookup message into the original message"
+            ],
+            [
+              "Send",
+              "Calls a receiver when no reply is expected, for example over JMS, SFTP or Mail"
+            ],
+            [
+              "Process Call",
+              "Runs a local integration process of the same iFlow"
+            ],
+            [
+              "ProcessDirect receiver adapter",
+              "Hands the message to another iFlow on the same tenant"
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u34-l2",
+      "kind": "practice",
+      "title": "Debug the iFlow",
+      "items": [
+        {
+          "id": "u34-l2-i1",
+          "type": "why",
+          "src": "s4",
+          "lang": "text",
+          "q": "A Content Modifier sets a correlation header before the HTTP receiver that posts the hire to the onboarding service. Why does the onboarding service not see it?",
+          "code": "Content Modifier \"Correlation\"\n  Message Header: Create  X-Request-Id\n    Source Type: Expression  ${property.requestId}\n\nRequest Reply -> Onboarding (HTTP receiver adapter)\n  Address: https://onboarding.example.com/api/hires\n  Method: POST\n  Header Details\n    Request Headers: traceparent\n    Response Headers: *",
+          "happened": "The onboarding service logs the request without an X-Request-Id header.",
+          "options": [
+            "The HTTP receiver sends only the custom headers listed in Request Headers, and X-Request-Id is not in the list.",
+            "Outbound headers must also be listed in Allowed Header(s) in the runtime configuration.",
+            "Camel drops headers with a hyphen in their name, so the header must be called XRequestId.",
+            "Response Headers set to * replaces the request headers with the headers of the response."
+          ],
+          "answer": 0,
+          "why": "In the current HTTP receiver adapter, Request Headers is a pipe-separated list of the custom headers to send, and by default no custom headers are sent. Allowed Header(s) only decides which inbound headers the flow keeps.",
+          "fix": "Request Headers: traceparent|X-Request-Id"
+        },
+        {
+          "id": "u34-l2-i2",
+          "type": "why",
+          "src": "s15",
+          "lang": "text",
+          "q": "The flow should forward every page of job applications to the data warehouse. Why does the warehouse get only the last page?",
+          "code": "Integration Process\n  Looping Process Call \"Read pages\" -> Local Integration Process \"Read one page\"\n    Expression Type: Non-XML\n    Condition Expression: ${property.hasMore} = 'true'\n    Max. Number of Iterations: 100\n  Request Reply -> Data warehouse (HTTP, POST)\n\nLocal Integration Process \"Read one page\"\n  Request Reply -> Recruiting API (HTTP, GET the next page)\n  Content Modifier: Exchange Property hasMore\n    Source Type: XPath  /page/hasMore/text()",
+          "happened": "The Recruiting API is called 7 times, but the warehouse receives one request that contains only page 7.",
+          "options": [
+            "Each Request Reply response replaces the body, so after the loop the body holds only the last page, and the call to the warehouse is outside the loop.",
+            "The condition is checked before the first call, so the loop runs only for the pages after the first one.",
+            "Max. Number of Iterations keeps only the result of the last iteration when it is higher than the number of pages.",
+            "A Looping Process Call joins the pages only when a Gather step follows it."
+          ],
+          "answer": 0,
+          "why": "The response of a Request Reply becomes the new body, and SAP says that the last response is the payload that leaves the loop. Send each page inside the local integration process, or collect the pages yourself.",
+          "fix": "Local Integration Process \"Read one page\"\n  Request Reply -> Recruiting API (HTTP, GET the next page)\n  Content Modifier: Exchange Property hasMore (XPath /page/hasMore/text())\n  Request Reply -> Data warehouse (HTTP, POST this page)"
+        },
+        {
+          "id": "u34-l2-i3",
+          "type": "why",
+          "src": "s8",
+          "lang": "xml",
+          "q": "A General Splitter creates one message for each application, and a later step needs the requisition ID from the summary. Why is the summary missing?",
+          "code": "<!-- General Splitter, XPath Expression: /Batch/JobApplication -->\n<Batch>\n  <JobApplication><id>A-1</id><status>Hired</status></JobApplication>\n  <JobApplication><id>A-2</id><status>Rejected</status></JobApplication>\n  <RequisitionSummary>\n    <requisitionId>R-77</requisitionId>\n  </RequisitionSummary>\n</Batch>",
+          "happened": "Each split message has <Batch> and one <JobApplication>, but no <RequisitionSummary>.",
+          "options": [
+            "Elements on the same level that follow the split point are not enveloping elements, so the General Splitter leaves them out of every new message.",
+            "The General Splitter never copies the envelope; only the Iterating Splitter keeps the root element and its children.",
+            "The XPath must end with text() so that the splitter also copies the sibling elements.",
+            "RequisitionSummary is dropped because the runtime configuration has no namespace mapping for it."
+          ],
+          "answer": 0,
+          "why": "The General Splitter copies only the enveloping elements, the elements above and including the split point. SAP warns that elements after the split point on the same level are missing in each new message.",
+          "fix": "Content Modifier (before the splitter)\n  Exchange Property: Create  requisitionId\n    Source Type: XPath  /Batch/RequisitionSummary/requisitionId/text()\n    Data Type: java.lang.String"
+        },
+        {
+          "id": "u34-l2-i4",
+          "type": "why",
+          "src": "s7",
+          "lang": "text",
+          "q": "A Router sends hired candidates to payroll and VIP requisitions to a recruiting manager. Why does the Router fail?",
+          "code": "Router \"Route application\"\n  Route \"Payroll\"\n    Expression Type: XML\n    Condition: /JobApplication/status = 'Hired'\n  Route \"Manager\"\n    Expression Type: Non-XML\n    Condition: ${header.priority} = 'VIP'\n  Route \"Archive\"\n    Default Route: selected",
+          "happened": "Message processing fails in the Router step, and no route is taken.",
+          "options": [
+            "The routes mix XML and Non-XML conditions, and SAP says that such a mix makes the evaluation fail.",
+            "A Non-XML condition cannot read a header that was set by a Content Modifier.",
+            "The default route must be the first row of the Routing Condition table.",
+            "An XPath condition needs double quotes around 'Hired'."
+          ],
+          "answer": 0,
+          "why": "The Router evaluates its conditions in order, and SAP says the evaluation fails if XML and Non-XML conditions are combined. Use one condition type for all routes of a Router.",
+          "fix": "Content Modifier: Exchange Property status (XPath /JobApplication/status/text())\nRoute \"Payroll\": Non-XML  ${property.status} = 'Hired'\nRoute \"Manager\": Non-XML  ${header.priority} = 'VIP'"
+        },
+        {
+          "id": "u34-l2-i5",
+          "type": "why",
+          "src": "s18",
+          "lang": "text",
+          "q": "Each hire is stored in a data store under its application ID until payroll confirms it. Why does the Exception Subprocess not handle the error when the same hire arrives twice?",
+          "code": "Data Store Operations: Write\n  Data Store Name: PendingHires\n  Visibility: Integration Flow\n  Entry ID: ${property.applicationId}\n  Overwrite Existing Message: not selected\n\nException Subprocess\n  Error Start -> Script \"Send alert\" -> End Message",
+          "happened": "The second message fails with a DuplicateEntryException, and the Exception Subprocess does not handle it.",
+          "options": [
+            "A Write that fails because the entry already exists cannot be handled by an Exception Subprocess, because the database transaction is rolled back anyway.",
+            "An Exception Subprocess catches only HTTP errors from receiver adapters.",
+            "Only a global data store is covered by exception handling; a local one with Visibility Integration Flow is not.",
+            "A custom Entry ID turns off exception handling; the runtime must generate the ID."
+          ],
+          "answer": 0,
+          "why": "SAP documents that a duplicate key on a Data Store Write cannot be handled by an Exception Subprocess, since the database transaction is rolled back even then. Decide about duplicates before the write.",
+          "fix": "Idempotent Process Call -> Local Integration Process \"Store hire\"\n  Message ID: ${property.applicationId}\n  Skip Process Call for Duplicates: selected\nLocal Integration Process \"Store hire\"\n  Data Store Operations: Write (as before)"
+        },
+        {
+          "id": "u34-l2-i6",
+          "type": "code",
+          "src": "s3",
+          "lang": "text",
+          "q": "Complete the configuration. SuccessFactors sends XML in the namespace http://example.com/recruiting. Hires go to payroll, every other message goes to the archive, and the Exception Subprocess keeps the error text in a header.",
+          "code": "Runtime Configuration\n  Namespace Mapping: [[1]]\n\nRouter \"Hired?\"\n  Route \"Payroll\"\n    Expression Type: [[2]]\n    Condition: /rc:JobApplication/rc:status = 'Hired'\n  Route \"Archive\"\n    [[3]]: selected\n\nException Subprocess\n  Error Start\n  Content Modifier: Message Header errorText\n    Source Type: Expression  [[4]]\n  Error End",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "xmlns:rc=http://example.com/recruiting",
+              "decoys": [
+                "rc=http://example.com/recruiting",
+                "xmlns=http://example.com/recruiting"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "XML",
+              "decoys": [
+                "Non-XML",
+                "Expression"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "Default Route",
+              "decoys": [
+                "Throw Exception",
+                "Terminate Message"
+              ]
+            },
+            {
+              "n": 4,
+              "answer": "${exception.message}",
+              "decoys": [
+                "${property.exception}",
+                "${header.errorText}"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u34-l2-i7",
+          "type": "order",
+          "src": "s20",
+          "q": "The receiver says that a header is missing. Put the steps to prove where it gets lost in order.",
+          "steps": [
+            "Set the log level of the iFlow to Trace in Manage Integration Content",
+            "Send one test message straight away, because Trace expires after 10 minutes by default",
+            "Open the message processing log of that message and its trace",
+            "Check the headers after the sender step against Allowed Header(s)",
+            "Check the headers before the receiver step against Request Headers in the adapter",
+            "Fix one setting, deploy and send the same test message again"
+          ]
+        },
+        {
+          "id": "u34-l2-i8",
+          "type": "scenario",
+          "src": "s21",
+          "q": "A Filter with the XPath /Applications/application/score/text() should return the scores of two applications, 100 and 10. The next step receives a single value. What is going on?",
+          "options": [
+            {
+              "text": "The XPath selects the text nodes, and the Filter returns their text run together, so the result is 10010.",
+              "ok": true,
+              "why": "SAP's own example shows this: text() on two count fields with 100 and 10 gives 10010. Select the elements with Value Type Nodelist if you need them separately."
+            },
+            {
+              "text": "The Filter keeps only the first match, so a Splitter must run before it.",
+              "ok": false,
+              "why": "The Filter returns all matches of the XPath; the problem is that only their text is returned, with nothing between the values."
+            },
+            {
+              "text": "The Filter treats the values as numbers and adds them up.",
+              "ok": false,
+              "why": "The values are not added, which would give 110. Their text is joined into 10010."
+            },
+            {
+              "text": "The XPath needs a namespace mapping, so the Filter returns the original body.",
+              "ok": false,
+              "why": "The payload in this case has no namespace, and the Filter did return a result, just not the one expected."
+            }
+          ]
+        },
+        {
+          "id": "u34-l2-i9",
+          "type": "scenario",
+          "src": "s12",
+          "q": "Each of 1000 job applications in one message needs the title of its requisition from another API. A colleague plans a Request Reply for each application.",
+          "options": [
+            {
+              "text": "Use a Content Enricher with Enrich: one lookup call, matched to each application by the requisition ID.",
+              "ok": true,
+              "why": "SAP points out that for bulk data the Content Enricher needs 1 lookup call instead of 1000, and the matching on the key element is automatic."
+            },
+            {
+              "text": "Loop a Request Reply over the applications, because it keeps the original body and adds the response.",
+              "ok": false,
+              "why": "A Request Reply replaces the body with the response, and the loop still makes 1000 calls."
+            },
+            {
+              "text": "Use a Send step for each application, because it returns the response faster.",
+              "ok": false,
+              "why": "A Send step is for calls where no reply is expected, such as JMS or SFTP, so it cannot fetch the titles."
+            },
+            {
+              "text": "Split the message, call the API for each application and gather the results.",
+              "ok": false,
+              "why": "It works, but it still makes 1000 calls, which SAP describes as much worse for performance than one enrich call."
+            }
+          ]
+        },
+        {
+          "id": "u34-l2-i10",
+          "type": "diagram",
+          "src": "s9",
+          "layout": "flow",
+          "q": "Complete the iFlow. It reads a batch of job applications, maps each application on its own and sends one combined message to the data warehouse.",
+          "nodes": [
+            {
+              "id": "n1",
+              "label": "Timer start event",
+              "slot": false
+            },
+            {
+              "id": "n2",
+              "label": "Request Reply: SuccessFactors query",
+              "slot": false
+            },
+            {
+              "id": "n3",
+              "label": "General Splitter",
+              "slot": true
+            },
+            {
+              "id": "n4",
+              "label": "Message mapping for one application",
+              "slot": false
+            },
+            {
+              "id": "n5",
+              "label": "Gather",
+              "slot": true
+            },
+            {
+              "id": "n6",
+              "label": "Request Reply: data warehouse",
+              "slot": true
+            },
+            {
+              "id": "n7",
+              "label": "End event",
+              "slot": false
+            }
+          ],
+          "edges": [
+            {
+              "from": "n1",
+              "to": "n2",
+              "label": "starts on schedule"
+            },
+            {
+              "from": "n2",
+              "to": "n3",
+              "label": "batch of applications"
+            },
+            {
+              "from": "n3",
+              "to": "n4",
+              "label": "one application"
+            },
+            {
+              "from": "n4",
+              "to": "n5",
+              "label": "mapped application"
+            },
+            {
+              "from": "n5",
+              "to": "n6",
+              "label": "combined message"
+            },
+            {
+              "from": "n6",
+              "to": "n7",
+              "label": "done"
+            }
+          ],
+          "decoys": [
+            "Join",
+            "Send: data warehouse over HTTP",
+            "Router"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u34-l3",
+      "kind": "interview",
+      "title": "Explain it while you fix it",
+      "items": [
+        {
+          "id": "u34-l3-i1",
+          "type": "say",
+          "src": "s20",
+          "text": "Before I change anything, I'd like to see the message at each step, so I'll switch the flow to Trace and send one test message."
+        },
+        {
+          "id": "u34-l3-i2",
+          "type": "why",
+          "src": "s16",
+          "lang": "text",
+          "q": "The hire iFlow sets an exchange property and hands the message to a shared logging iFlow over ProcessDirect. Why is the value missing in the logging iFlow?",
+          "code": "Producer iFlow \"Hires\"\n  Content Modifier: Exchange Property candidateId\n    Source Type: XPath  /JobApplication/candidateId/text()\n  Request Reply -> ProcessDirect receiver, Address /shared/log\n\nConsumer iFlow \"Shared logging\"\n  ProcessDirect sender, Address /shared/log\n  Content Modifier: Message Header logCandidate\n    Source Type: Expression  ${property.candidateId}",
+          "happened": "In the logging iFlow, logCandidate is empty for every message.",
+          "options": [
+            "Exchange properties are not propagated from a producer to a consumer over ProcessDirect, apart from the internal SAP_SAPPASSPORT.",
+            "ProcessDirect works only with a Send step, and a Request Reply drops the properties.",
+            "The consumer must be deployed before the producer, otherwise the properties are lost.",
+            "Property names are converted to lower case when a message moves between iFlows."
+          ],
+          "answer": 0,
+          "why": "SAP documents that ProcessDirect does not propagate exchange properties between producer and consumer flows, except SAP_SAPPASSPORT, and propagates headers only when they are configured in Allowed Header(s). Pass the value as a header and allow it.",
+          "fix": "Producer: Content Modifier: Message Header candidateId (XPath /JobApplication/candidateId/text())\nConsumer: Runtime Configuration, Allowed Header(s): candidateId\nConsumer: logCandidate = ${header.candidateId}"
+        },
+        {
+          "id": "u34-l3-i3",
+          "type": "explain",
+          "src": "s4",
+          "seconds": 120,
+          "q": "The receiver says the X-Request-Id header never arrives. Walk me through how you would find out why, and how you would prove it.",
+          "model": "First I would reproduce it with one test message. I set the log level of the iFlow to Trace, which records the message content for every step but expires after ten minutes by default, so I send the message straight away. In the trace I follow the header step by step. If it is already missing after the sender, the cause is Allowed Header(s) in the runtime configuration: only listed headers are kept, the list is separated by pipes without spaces, and each entry is a regular expression. If the header is still there just before the receiver but the receiver doesn't get it, I look at the HTTP receiver adapter. It sends only the custom headers listed in Request Headers, and by default none. I also check that nobody stored the value in an exchange property, because properties never leave the flow. Then I fix one thing, redeploy and send the same test message again to prove it.",
+          "keypoints": [
+            {
+              "text": "Reproduce with one test message and a trace",
+              "kw": [
+                "trace",
+                "test message",
+                "reproduce",
+                "log level",
+                "message processing log"
+              ]
+            },
+            {
+              "text": "Inbound: Allowed Header(s) keeps only listed headers",
+              "kw": [
+                "allowed headers",
+                "allowed header",
+                "runtime configuration",
+                "inbound",
+                "pipe"
+              ]
+            },
+            {
+              "text": "Outbound: the HTTP adapter's Request Headers list",
+              "kw": [
+                "request headers",
+                "receiver adapter",
+                "http adapter",
+                "custom headers",
+                "outbound"
+              ]
+            },
+            {
+              "text": "Properties never leave the flow",
+              "kw": [
+                "property",
+                "properties",
+                "exchange property",
+                "never leave",
+                "stay inside"
+              ]
+            },
+            {
+              "text": "Change one thing and retest",
+              "kw": [
+                "retest",
+                "send again",
+                "redeploy",
+                "one thing",
+                "prove"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u34-l3-i4",
+          "type": "tf",
+          "src": "s20",
+          "statement": "With the log level Error, a message that fails twice and then succeeds on its last retry shows the status Completed in the monitor.",
+          "answer": false,
+          "why": "With the log level Error, a final successful retry is not recorded, so the status stays Retry or Failed although the message was delivered."
+        },
+        {
+          "id": "u34-l3-i5",
+          "type": "explain",
+          "src": "s10",
+          "seconds": 120,
+          "q": "Why can a Request Reply step break the rest of an iFlow, and when would you use a Content Enricher or a Send step instead?",
+          "model": "A Request Reply calls a receiver synchronously, and the response becomes the new message body. The headers stay, and by default the HTTP adapter adds every response header as well. So if a later step expects the original candidate payload, it suddenly sees the vendor's response, and a mapping or an XPath fails or finds nothing. When I still need the original data, I either save the parts I need in exchange properties before the call, or I use a Content Enricher. It also calls the receiver, but it merges the lookup message into the original message, with Combine or with Enrich on a key element. SAP also points out that for bulk data one enrich call is much better than a call for each item: for 1000 items, it is one lookup instead of 1000. If I don't expect a reply at all, for example when I write to a JMS queue or an SFTP server, I use a Send step.",
+          "keypoints": [
+            {
+              "text": "The response replaces the body",
+              "kw": [
+                "response",
+                "replaces",
+                "new body",
+                "body",
+                "payload"
+              ]
+            },
+            {
+              "text": "Later steps that expect the original payload break",
+              "kw": [
+                "mapping",
+                "xpath",
+                "original",
+                "fails",
+                "breaks"
+              ]
+            },
+            {
+              "text": "Keep what you need in properties before the call",
+              "kw": [
+                "property",
+                "properties",
+                "exchange property",
+                "save",
+                "before the call"
+              ]
+            },
+            {
+              "text": "Content Enricher merges lookup and original",
+              "kw": [
+                "content enricher",
+                "enrich",
+                "combine",
+                "merge",
+                "merges",
+                "lookup",
+                "key element"
+              ]
+            },
+            {
+              "text": "Send when no reply is expected",
+              "kw": [
+                "send",
+                "send step",
+                "no reply",
+                "jms",
+                "sftp",
+                "asynchronous"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u34-l3-i6",
+          "type": "tf",
+          "src": "s4",
+          "statement": "To switch an HTTP receiver from Client Certificate to Basic in each landscape, it is enough to externalise only the Authentication parameter.",
+          "answer": false,
+          "why": "SAP warns against incomplete externalisation: externalise the related attributes too, such as Credential Name and Private Key Alias, or you can choose Basic but cannot name the User Credentials artifact."
+        },
+        {
+          "id": "u34-l3-i7",
+          "type": "why",
+          "src": "s17",
+          "lang": "text",
+          "q": "The hire iFlow should call payroll only once for each application, even when SuccessFactors retries. Why does payroll still get duplicates?",
+          "code": "HTTPS sender (called by SuccessFactors, which retries after a timeout)\n\nIdempotent Process Call \"Once per hire\" -> Local Integration Process \"Call payroll\"\n  Message ID: ${exchangeId}\n  Skip Process Call for Duplicates: selected\n\nLocal Integration Process \"Call payroll\"\n  Request Reply -> Payroll (SOAP)",
+          "happened": "After a timeout, SuccessFactors sends the same hire again, and payroll creates a second record.",
+          "options": [
+            "Each retry is a new exchange with a new exchange ID, so the Message ID is never a duplicate; it must come from the business data, such as the application ID.",
+            "Skip Process Call for Duplicates must be deselected; otherwise duplicates are processed.",
+            "The idempotent repository forgets message IDs after one hour.",
+            "An Idempotent Process Call detects duplicates only for messages from a JMS sender, not from HTTPS."
+          ],
+          "answer": 0,
+          "why": "The Idempotent Process Call compares the Message ID you give it with the IDs it has stored, and ${exchangeId} is new for every incoming call. Use a key that is the same in every retry, and remember that exactly-once still needs an idempotent receiver.",
+          "fix": "Content Modifier: Exchange Property applicationId (XPath /JobApplication/applicationId/text())\nIdempotent Process Call \"Once per hire\"\n  Message ID: ${property.applicationId}"
+        },
+        {
+          "id": "u34-l3-i8",
+          "type": "explain",
+          "src": "s7",
+          "seconds": 120,
+          "q": "A Router sends every message to the default route. Walk me through how you would find the cause.",
+          "model": "I'd start from the data, not from the configuration. I send one known test message, for example an application with the status Hired, and I switch the flow to Trace so that I can see the body, the headers and the properties at the Router. Then I check the condition piece by piece. For a Non-XML condition: is the name exactly right? Exchange property names are case-sensitive, so applicationStatus and ApplicationStatus are two different properties. Is the value really there, and does it look the way I compare it? For an XML condition: does the payload have a namespace? Then the XPath needs a prefix, and the prefix must be mapped in Namespace Mapping in the runtime configuration. I also check that all routes use the same condition type, because a mix of XML and Non-XML makes the evaluation fail. When I have a fix, I change one thing, redeploy and send the same message again.",
+          "keypoints": [
+            {
+              "text": "Use a known test message and a trace",
+              "kw": [
+                "test message",
+                "trace",
+                "known",
+                "reproduce"
+              ]
+            },
+            {
+              "text": "Property names are case-sensitive",
+              "kw": [
+                "case-sensitive",
+                "case sensitive",
+                "name",
+                "property name",
+                "spelling"
+              ]
+            },
+            {
+              "text": "Namespaces need a prefix and a namespace mapping",
+              "kw": [
+                "namespace",
+                "prefix",
+                "namespace mapping",
+                "xpath"
+              ]
+            },
+            {
+              "text": "Do not mix XML and Non-XML conditions",
+              "kw": [
+                "mix",
+                "non-xml",
+                "condition type",
+                "same type"
+              ]
+            },
+            {
+              "text": "Change one thing and resend",
+              "kw": [
+                "one thing",
+                "redeploy",
+                "send again",
+                "resend",
+                "retest"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u34-l3-i9",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 120,
+          "q": "What is the difference between a header and an exchange property, and how do you decide which one to use?",
+          "model": "Both are name-value pairs that travel with the exchange while an iFlow runs. The difference is where they can go. A header is part of the message, so an HTTP-based receiver adapter can turn it into an HTTP header, and SAP warns that large headers can make a receiver reject the call, typically somewhere between 4 and 16 KB. An exchange property stays inside the integration flow and is never sent to a receiver. So my rule is simple. If the receiver needs the value, for example a correlation ID, I use a header and list it in the adapter's Request Headers. If the value is only for my own logic, like a status for a Router or the application ID for an Idempotent Process Call, I use a property. Two details matter in practice: property names are case-sensitive, and inbound headers are kept only if they are in Allowed Header(s). And over ProcessDirect, properties don't travel at all.",
+          "keypoints": [
+            {
+              "text": "A header is part of the message and can reach the receiver",
+              "kw": [
+                "header",
+                "receiver",
+                "http header",
+                "outbound",
+                "part of the message"
+              ]
+            },
+            {
+              "text": "A property stays inside the flow",
+              "kw": [
+                "property",
+                "exchange property",
+                "inside",
+                "stays",
+                "never sent"
+              ]
+            },
+            {
+              "text": "Header size limit of a few KB",
+              "kw": [
+                "size",
+                "4",
+                "16",
+                "kb",
+                "large headers"
+              ]
+            },
+            {
+              "text": "Decide by who needs the value",
+              "kw": [
+                "receiver needs",
+                "own logic",
+                "router",
+                "decide",
+                "rule"
+              ]
+            },
+            {
+              "text": "Case-sensitive names, Allowed Header(s), ProcessDirect",
+              "kw": [
+                "case-sensitive",
+                "allowed headers",
+                "processdirect",
+                "process direct"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u34-l3-i10",
+          "type": "say",
+          "src": "s16",
+          "text": "Let me check one thing first: is this value a header or a property? Properties never leave the iFlow, so the receiver can't see them."
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "What travels with the message",
+        "points": [
+          "An iFlow runs as an Apache Camel route; each message lives in an exchange with its own exchange ID.",
+          "Body and headers belong to the message; exchange properties belong to the exchange and stay inside the flow.",
+          "HTTP-based receivers can send headers as HTTP headers; receivers often reject headers above 4 to 16 KB.",
+          "Exchange property names are case-sensitive. Camel stores headers in a case-insensitive map by default.",
+          "Delete headers the receiver does not need with a Content Modifier before the call."
+        ]
+      },
+      {
+        "h": "Headers in and out",
+        "points": [
+          "Inbound: Allowed Header(s) in the runtime configuration keeps only the listed headers.",
+          "Write the list as a|b|c with no spaces; entries are regular expressions; * allows everything and is a risk.",
+          "Outbound HTTP: Request Headers lists the custom headers to send; by default none (traceparent from version 1.19).",
+          "Use * alone; * mixed with names keeps only the names. No patterns like SAP*. Camel headers are never sent.",
+          "Response Headers is * by default, so the response headers come into the message.",
+          "ProcessDirect: properties do not travel; headers only through Allowed Header(s)."
+        ]
+      },
+      {
+        "h": "Simple expressions and the Content Modifier",
+        "points": [
+          "${header.x}, ${property.x}, ${body}, ${exchangeId}, ${date:now:yyyy-MM-dd HH:mm:ss}.",
+          "${in.body} is deprecated: use ${body}.",
+          "Entries run from top to bottom; use Move Up and Move Down when the order matters.",
+          "Body type Constant is taken as written; choose Expression when the body has ${...}. Expression body: up to 256 KB.",
+          "The Content Modifier does not evaluate comparisons such as ${header.branch} = 'HR'.",
+          "An XPath with a prefix needs Namespace Mapping: xmlns:rc=http://example.com/recruiting."
+        ]
+      },
+      {
+        "h": "Routing, splitting and calling",
+        "points": [
+          "Router: XML (XPath) or Non-XML (Simple) conditions, never mixed; they are evaluated in order; one Default Route.",
+          "General Splitter keeps the enveloping elements; elements after the split point on the same level are lost.",
+          "Iterating Splitter does not copy the envelope. After a Splitter use only Gather; after a Multicast, Join and then Gather.",
+          "Gather does not aggregate headers or properties; an XPath that matches nothing makes it fail.",
+          "Request Reply: the response becomes the body. Content Enricher: Combine or Enrich into the original. Send: no reply (JMS, SFTP, Mail and others).",
+          "Looping Process Call is do-until, sets CamelLoopIndex, stops at Max. Number of Iterations; the last response is the body after the loop."
+        ]
+      },
+      {
+        "h": "State and duplicates",
+        "points": [
+          "Data Store Write: Entry ID up to 255 characters; empty means SapDataStoreId or a generated ID.",
+          "Expiration Period: 30 days by default, 180 at most. Include Message Headers skips Camel* and SAP_* headers.",
+          "A duplicate Entry ID without Overwrite gives DuplicateEntryException, which an Exception Subprocess cannot handle.",
+          "A local variable lives in one iFlow; a global variable is shared by the iFlows of the tenant.",
+          "Idempotent Process Call: Message ID from business data, IDs kept 90 days, one history per flow step; exactly-once still needs an idempotent receiver."
+        ]
+      },
+      {
+        "h": "Errors, logs and security material",
+        "points": [
+          "Exception Subprocess: Error Start, then End Message, Error End or Escalation; read ${exception.message} and ${exception.stacktrace}.",
+          "The main process does not catch exceptions of a local integration process.",
+          "Log levels: None, Error, Info, Debug (24 hours), Trace (10 minutes, content kept 1 hour by default).",
+          "With Error, a final successful retry is not recorded: the status stays Retry or Failed.",
+          "HTTP receiver: Throw Exception on Failure is on by default; Credential Name names a User Credentials artifact deployed on the tenant.",
+          "Externalise all related authentication attributes, not only Authentication."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "The Camel Data Model in a Nutshell - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/the-camel-data-model-in-a-nutshell-d4f8f03.md",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "About Headers and Exchange Properties - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/about-headers-and-exchange-properties-0974c4f.md",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "Specify the Runtime Configuration - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/specify-the-runtime-configuration-0c1c96e.md",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "HTTP Receiver Adapter - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/http-receiver-adapter-2da452e.md",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Using Camel Simple Expression Language - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/using-camel-simple-expression-language-4688083.md",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Define Content Modifier - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-content-modifier-8f04a70.md",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Define Router - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-router-d7fddbd.md",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "General and Iterating Splitter - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/general-and-iterating-splitter-b49d088.md",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Define Gather and Join - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-gather-and-join-94ef1f2.md",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "Define Request Reply - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-request-reply-dc39fdd.md",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Define Content Enricher - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-content-enricher-8827f9f.md",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Content Enricher (integration flow design guidelines) - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/content-enricher-0e7ba7f.md",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Define a Send Step - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-a-send-step-9b83f10.md",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Define Local Integration Process - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-local-integration-process-520341a.md",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "Define Looping Process Call - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-looping-process-call-f58c2ba.md",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "ProcessDirect Adapter - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/processdirect-adapter-7445718.md",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Define Idempotent Process Call - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-idempotent-process-call-84c85d7.md",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Define Data Store Write Operations - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-data-store-write-operations-46260ee.md",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "Define Exception Subprocess - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-exception-subprocess-690e078.md",
+      "official": true
+    },
+    {
+      "id": "s20",
+      "title": "Setting Log Levels - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/setting-log-levels-4e6d3fc.md",
+      "official": true
+    },
+    {
+      "id": "s21",
+      "title": "Define Filter - SAP Integration Suite documentation (SAP-docs source of the SAP Help Portal)",
+      "url": "https://github.com/SAP-docs/btp-integration-suite/blob/main/docs/ISuite_Integrations_APIs/define-filter-733f8dc.md",
+      "official": true
+    },
+    {
+      "id": "s22",
+      "title": "HTTP component, Message Body and Response code - Apache Camel 4.14 documentation (source on GitHub)",
+      "url": "https://github.com/apache/camel/blob/camel-4.14.x/components/camel-http/src/main/docs/http-component.adoc",
+      "official": true
+    },
+    {
+      "id": "s23",
+      "title": "org.apache.camel.Message interface (headers in a CaseInsensitiveMap) - Apache Camel 4.14 source on GitHub",
+      "url": "https://github.com/apache/camel/blob/camel-4.14.x/core/camel-api/src/main/java/org/apache/camel/Message.java",
+      "official": true
+    }
+  ]
+}

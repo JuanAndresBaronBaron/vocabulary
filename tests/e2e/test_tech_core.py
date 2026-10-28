@@ -902,7 +902,7 @@ def test_interview_ready_and_medals():
             best: vocabTech.get('ls', ids[ids.length - 1]).best, medal: !!vocabTech.get('medal', 'integration'),
             m: vocabTech.medals().map(m => [m.id, m.got, m.sub])}; }""", all_ls)
         assert r["a"] == ["integration"] and r["first"] is True and r["b"] == 0 and r["again"] is False and r["best"] == 9 and r["medal"], r
-        assert r["m"][:2] == [["integration", True, "Medal earned"], ["leadership", False, "0 of 9 lessons"]] and len(r["m"]) == 7, r["m"]
+        assert r["m"][:2] == [["integration", True, "Medal earned"], ["leadership", False, "0 of 9 lessons"]] and len(r["m"]) == 8, r["m"]
         page.wait_for_timeout(200)
         assert "Medal earned: Integration!" in _toasts(page), _toasts(page)
         r = page.evaluate("""() => { for (const id of ['u07-l1', 'u07-l2', 'u07-l3']) vocabTech.progress.lessonDone(id, {score: 5, total: 6});
@@ -919,19 +919,19 @@ def test_interview_ready_and_medals():
 
 # ---------------------------------------------------------------- datos
 def test_data_files_validate():
-    """data/tech/index.json (33 unidades, 7 bloques, disponibles = las que tienen fichero) y data/tech/u01-u33.json
+    """data/tech/index.json (38 unidades, 8 bloques, disponibles = las que tienen fichero) y data/tech/u01-u38.json
     pasan las reglas de tools/validate.py (tech_validate.py) y son copias exactas de la carpeta compartida. Nada de Tech
     Prep en data/index.json ni en el shell de sw.js (se pide al usarlo)."""
     bad = TV.check_all()
     assert not bad, json.dumps(bad, indent=1)[:3000]
     files = sorted(p.name for p in TC.DATA.glob("u*.json"))
-    assert files == [f"u{i:02d}.json" for i in range(1, 34)], files
+    assert files == [f"u{i:02d}.json" for i in range(1, 39)], files
     shared = C.Path("/mnt/project-files/tech-prep/content")
     if shared.exists():
         diff = [f for f in files if (shared / f).exists() and (shared / f).read_bytes() != (TC.DATA / f).read_bytes()]
         assert not diff, f"no son copias exactas de la carpeta compartida: {diff}"
     ix = TC.index()
-    assert [u["id"] for u in ix["units"] if u["available"]] == [f"u{i:02d}" for i in range(1, 34)]
+    assert [u["id"] for u in ix["units"] if u["available"]] == [f"u{i:02d}" for i in range(1, 39)]
     kid = (C.REPO / "data" / "index.json").read_text(encoding="utf-8")
     assert "tech" not in kid.lower(), "data/index.json menciona Tech Prep"
     sw = (C.REPO / "sw.js").read_text(encoding="utf-8")

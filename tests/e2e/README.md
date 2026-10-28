@@ -276,6 +276,9 @@ compartida no responde).
   capturas `S1-*.png` en `/mnt/project-files/tech-prep/capturas/S1` (`VOCAB_TECH_CAPTURAS` cambia la carpeta). Con
   `VOCAB_TECH=1`, `routes.py` añade las rutas de Tech Prep (con `"tech": True`) a las pruebas que recorren todas las rutas
   y a `shots.py`.
+- `test_tech_lesson.py::test_why_items_right_and_wrong` (bloque «Live coding», u34-u38, 2026-10-28): el ítem «Why?»
+  (el código tal cual con su lenguaje, «What happened», 4 causas; el why, el arreglo y «Source»; entra en el repaso),
+  bien y mal con el dedo a 390 en claro y con el teclado a 360 en oscuro, sin scroll lateral, con contraste y paleta.
 - `test_update_v23_tech.py` (la actualización desde main 4185280 con sw `vocab-shell-v23` a esta versión en el mismo origen, mirando Tech Prep;
   como `test_update_v22.py`; `VOCAB_BASE23=<copia de ese commit>` o sacada con `git archive`): lo de siempre (primera
   carga ya nueva, sw nuevo con todo `SHELL`, partida y granja iguales, mensaje del Buzón en IndexedDB, IPA, el toque que

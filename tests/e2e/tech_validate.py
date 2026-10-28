@@ -13,10 +13,11 @@ import re
 import sys
 from pathlib import Path
 
-BLOCKS = {"integration", "leadership", "successfactors", "gcp", "java", "extras", "final"}
+BLOCKS = {"integration", "leadership", "successfactors", "gcp", "java", "extras", "final", "livecoding"}
 KINDS_TECH = ["concepts", "practice", "interview"]
 KINDS_LEAD = ["concepts", "stories", "interview"]
-TYPES = {"card", "pick", "scenario", "order", "code", "diagram", "match", "tf", "explain", "say", "story"}
+TYPES = {"card", "pick", "scenario", "order", "code", "diagram", "match", "tf", "explain", "say", "story", "why"}
+LANGS = {"java", "http", "json", "yaml", "text", "sql", "ts", "groovy", "xml"}
 SPANISH = re.compile(r"[¿¡ñ]|\b(el|los|las|una|que|para|con|por|del|tambi[eé]n|cuando|porque|pero)\b", re.I)
 URL = re.compile(r"^https://\S+$")
 
@@ -108,6 +109,7 @@ def check(path):
                 "match": ["q", "pairs"], "tf": ["statement", "answer", "why"],
                 "explain": ["q", "seconds", "model", "keypoints"], "say": ["text"],
                 "story": ["prompt", "template", "model"],
+                "why": ["q", "lang", "code", "happened", "options", "answer", "why"],
             }[t]
             for k in need:
                 if k not in it:
@@ -123,6 +125,18 @@ def check(path):
                     e(f"{iid}: scenario needs 3-4 options, exactly one ok, each with why")
             if t == "order" and not 3 <= len(it.get("steps", [])) <= 7:
                 e(f"{iid}: order needs 3-7 steps")
+            if t in ("code", "why") and it.get("lang") not in LANGS:
+                e(f"{iid}: lang {it.get('lang')} not in {sorted(LANGS)}")
+            if t == "why":
+                if len(it.get("options", [])) != 4 or not isinstance(it.get("answer"), int) or not 0 <= it["answer"] < 4:
+                    e(f"{iid}: why needs 4 options and answer 0-3")
+                code = it.get("code", "")
+                if re.search(r"\[\[\d+\]\]", code) or not 2 <= len(code.split("\n")) <= 25:
+                    e(f"{iid}: why code must have 2-25 lines and no gaps")
+                if not it.get("happened") or len(it["happened"].split("\n")) > 4:
+                    e(f"{iid}: why needs happened (1-4 lines)")
+                if "fix" in it and (not isinstance(it["fix"], str) or not it["fix"].strip() or len(it["fix"].split("\n")) > 10):
+                    e(f"{iid}: why fix must be 1-10 lines of code")
             if t == "code":
                 gaps = it.get("gaps", [])
                 found = sorted(int(n) for n in re.findall(r"\[\[(\d+)\]\]", it.get("code", "")))
@@ -167,7 +181,7 @@ def check(path):
     # crude Spanish detector over all strings
     def walk(o, p=""):
         if isinstance(o, str):
-            if SPANISH.search(o) and p.split(".")[-1] not in ("url", "code"):
+            if SPANISH.search(o) and p.split(".")[-1] not in ("url", "code", "fix"):
                 e(f"possible Spanish at {p}: {o[:60]!r}")
         elif isinstance(o, dict):
             for k, v in o.items():
@@ -181,12 +195,12 @@ def check(path):
 
 # ---------------------------------------------------------------- añadido para la app (no está en tools/validate.py)
 DATA = Path(__file__).resolve().parents[2] / "data" / "tech"
-TITLES = 33   # el temario completo del plan: 33 unidades
+TITLES = 38   # el temario: las 33 del plan y las 5 de «Live coding» (2026-10-28)
 
 
 def check_index(path=DATA / "index.json"):
     """data/tech/index.json: {format:1, blocks:[{id, title, short, units:[n…]}], units:[{id, n, block, title, available}]}.
-    33 unidades u01-u33 en orden, cada una en el bloque que la lista; disponibles = las que tienen fichero."""
+    38 unidades u01-u38 en orden, cada una en el bloque que la lista; disponibles = las que tienen fichero."""
     errs = []
     e = errs.append
     try:
@@ -196,7 +210,7 @@ def check_index(path=DATA / "index.json"):
     if ix.get("format") != 1:
         e("format must be 1")
     blocks, units = ix.get("blocks") or [], ix.get("units") or []
-    order = ["integration", "leadership", "successfactors", "gcp", "java", "extras", "final"]
+    order = ["integration", "leadership", "successfactors", "gcp", "java", "extras", "final", "livecoding"]
     if [b.get("id") for b in blocks] != order:
         e(f"blocks must be {order} in order, got {[b.get('id') for b in blocks]}")
     if len(units) != TITLES:
@@ -228,7 +242,7 @@ def check_index(path=DATA / "index.json"):
         if not u.get("title") or SPANISH.search(u.get("title", "")):
             e(f"unit {u.get('id')}: missing or Spanish title")
     if set(owner) != set(range(1, TITLES + 1)):
-        e("blocks do not cover units 1-33 exactly once")
+        e(f"blocks do not cover units 1-{TITLES} exactly once")
     return errs
 
 

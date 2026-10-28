@@ -1,0 +1,1015 @@
+{
+  "format": 1,
+  "id": "u37",
+  "n": 37,
+  "block": "livecoding",
+  "title": "Core Java: why it works",
+  "summary": "After this unit you can say what a short piece of Java prints or why it fails, from Integer caching, equals and hashCode, BigDecimal and overflow to collections, streams, exceptions and dispatch, and explain the concurrency traps that appear in live coding: lost increments, executors that never stop and exceptions nobody sees.",
+  "reviewed": "2026-10-28",
+  "versionNotes": [
+    "Every Java why item was compiled and run with OpenJDK 21.0.12; the happened lines are the real output. The API facts were checked against the Java SE 25 API documentation.",
+    "The groupingBy null-key message (element cannot be mapped to a null key) and the List.of null checks come from running the code on JDK 21; the Collectors Javadoc does not describe the null-key case.",
+    "Line numbers inside JDK stack traces, such as ArrayList.java:1095, depend on the JDK build.",
+    "ExecutorService.close() exists since Java 19, so try-with-resources on an executor needs Java 19 or later.",
+    "The Java Tutorials pages cited here were written for JDK 8; the behaviour they describe is unchanged in Java 25."
+  ],
+  "terms": [
+    {
+      "id": "t-reference-equality",
+      "term": "Reference equality (== versus equals)",
+      "ipa": "/ˈrefrəns iˈkwɒləti/",
+      "say": "reference equality",
+      "def": "For objects, == checks whether two references point to the same object, while equals checks whether two objects have the same value as the class defines it. Object.equals itself is ==, so a class must override it to compare values.",
+      "example": "new String(\"Hired\") == \"Hired\" is false, but \"Hired\".equals(status) is true.",
+      "src": "s2"
+    },
+    {
+      "id": "t-integer-cache",
+      "term": "Integer cache",
+      "ipa": "/ˈɪntɪdʒə kæʃ/",
+      "say": "integer cache",
+      "def": "Integer.valueOf always caches the values from -128 to 127, and boxed values in that range are the same objects. So == on two boxed Integers can be true for small numbers and false for larger ones.",
+      "example": "Two maps both hold 100 and 1000 for a requisition; == says the 100s are the same and the 1000s are not.",
+      "src": "s1"
+    },
+    {
+      "id": "t-unboxing",
+      "term": "Auto-unboxing",
+      "ipa": "/ˌɔːtəʊ ʌnˈbɒksɪŋ/",
+      "say": "auto-unboxing",
+      "def": "The automatic conversion from a wrapper such as Integer to a primitive such as int, done by calling a method such as intValue(). If the wrapper is null, it throws NullPointerException.",
+      "example": "int score = scores.get(\"cand-2\") throws NullPointerException when the map has no score for that candidate.",
+      "src": "s1"
+    },
+    {
+      "id": "t-equals-hashcode",
+      "term": "equals and hashCode contract",
+      "ipa": "/ˈiːkwəlz ənd ˈhæʃ kəʊd ˈkɒntrækt/",
+      "say": "equals and hash code contract",
+      "def": "If two objects are equal according to equals, they must return the same hashCode, and hashCode must not change while the fields used by equals stay the same. Override both methods together.",
+      "example": "A CandidateKey that overrides only equals breaks HashSet.contains, because equal keys land in different buckets.",
+      "src": "s2"
+    },
+    {
+      "id": "t-consistent-with-equals",
+      "term": "Consistent with equals",
+      "ipa": "/kənˈsɪstənt wɪð ˈiːkwəlz/",
+      "say": "consistent with equals",
+      "def": "A comparator is consistent with equals when it returns 0 exactly for objects that equals calls equal. TreeSet and TreeMap use only the comparator, so different objects that compare as 0 count as one element.",
+      "example": "A TreeSet sorted only by last name keeps one of the two candidates called Garcia.",
+      "src": "s4"
+    },
+    {
+      "id": "t-fail-fast",
+      "term": "Fail-fast iterator",
+      "ipa": "/ˌfeɪl ˈfɑːst ˈɪtəreɪtə/",
+      "say": "fail-fast iterator",
+      "def": "An iterator that throws ConcurrentModificationException when the collection is structurally changed after the iterator was created, other than through the iterator itself. It works on a best-effort basis, so use it only to detect bugs.",
+      "example": "Calling list.remove() inside a for-each loop over the same ArrayList throws ConcurrentModificationException.",
+      "src": "s5"
+    },
+    {
+      "id": "t-unmodifiable-view",
+      "term": "Unmodifiable view versus copy",
+      "ipa": "/ʌnˈmɒdɪfaɪəbl vjuː/",
+      "say": "unmodifiable view",
+      "def": "Collections.unmodifiableList returns a view: callers cannot change it, but changes to the backing list are still visible through it. List.copyOf returns an unmodifiable copy that does not follow later changes.",
+      "example": "A service returns Collections.unmodifiableList(skills); when it later adds a skill, the caller's list shows it too.",
+      "src": "s6"
+    },
+    {
+      "id": "t-lazy-stream",
+      "term": "Lazy, single-use stream",
+      "ipa": "/ˈleɪzi ˌsɪŋɡl ˈjuːs striːm/",
+      "say": "lazy stream",
+      "def": "Intermediate operations such as filter and map only describe the work; nothing runs until a terminal operation such as toList or count. A stream should be operated on only once.",
+      "example": "Calling count() and then toList() on the same stream of hired applications throws IllegalStateException.",
+      "src": "s7"
+    },
+    {
+      "id": "t-suppressed-exception",
+      "term": "Suppressed exception",
+      "ipa": "/səˈprest ɪkˈsepʃn/",
+      "say": "suppressed exception",
+      "def": "In try-with-resources, if the try block throws and closing a resource throws too, the exception from the block is thrown and the one from close is attached to it. You read it with getSuppressed().",
+      "example": "The export failed with send failed for h-7, and getSuppressed() also showed close failed.",
+      "src": "s10"
+    },
+    {
+      "id": "t-overload-override",
+      "term": "Overloading versus overriding",
+      "ipa": "/ˌəʊvəˈləʊdɪŋ ənd ˌəʊvəˈraɪdɪŋ/",
+      "say": "overloading versus overriding",
+      "def": "The compiler chooses between overloaded methods from the declared types of the arguments. An overridden method is chosen at run time from the real class of the object, which is called virtual method invocation.",
+      "example": "route(event) with Event event = new OfferEvent() calls route(Event), but event.channel() runs the OfferEvent version.",
+      "src": "s11"
+    },
+    {
+      "id": "t-invariance",
+      "term": "Generic invariance and wildcards",
+      "ipa": "/ɪnˈveəriəns/",
+      "say": "invariance",
+      "def": "List<Integer> is not a subtype of List<Number>, although Integer is a subtype of Number. A wildcard creates a subtype-like relationship: List<? extends Number> to read numbers, List<? super Integer> to add integers.",
+      "example": "total(List<? extends Number> amounts) accepts both a List<Integer> of bonuses and a List<BigDecimal> of salaries.",
+      "src": "s12"
+    },
+    {
+      "id": "t-visibility-atomicity",
+      "term": "Visibility versus atomicity (volatile)",
+      "ipa": "/ˌvɪzəˈbɪləti ənd ˌætəˈmɪsəti/",
+      "say": "visibility versus atomicity",
+      "def": "A write to a volatile field happens-before every later read of that field, so other threads see it, but volatile does not lock. A compound action such as count++ is still not atomic.",
+      "example": "A volatile hire counter updated by two threads still loses increments; an AtomicInteger does not.",
+      "src": "s13"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u37-l1",
+      "kind": "concepts",
+      "title": "Values, equality and numbers",
+      "items": [
+        {
+          "id": "u37-l1-i1",
+          "type": "card",
+          "term": "t-reference-equality",
+          "src": "s2"
+        },
+        {
+          "id": "u37-l1-i2",
+          "type": "why",
+          "src": "s1",
+          "q": "The job should report a mismatch only when the two systems have different counts for a requisition. Why does it say REQ-2 differs?",
+          "lang": "java",
+          "code": "import java.util.*;\n\npublic class CountCheck {\n    public static void main(String[] args) {\n        Map<String, Integer> sfCount = new HashMap<>();\n        Map<String, Integer> atsCount = new HashMap<>();\n        sfCount.put(\"REQ-1\", 100);   atsCount.put(\"REQ-1\", 100);\n        sfCount.put(\"REQ-2\", 1000);  atsCount.put(\"REQ-2\", 1000);\n        for (String req : List.of(\"REQ-1\", \"REQ-2\")) {\n            System.out.println(req + \" same: \" + (sfCount.get(req) == atsCount.get(req)));\n        }\n    }\n}",
+          "happened": "REQ-1 same: true\nREQ-2 same: false",
+          "options": [
+            "== compares two Integer objects by reference; values from -128 to 127 come from a cache and are the same object, but 1000 is boxed into two different objects.",
+            "HashMap stores numbers above 255 as Long, so the two values have different types.",
+            "The two maps use different hash functions, so the second get returns a copy of the value.",
+            "== compares the int values, but 1000 overflows the Integer cache and becomes negative."
+          ],
+          "answer": 0,
+          "why": "On objects, == checks identity, and only the cached range from -128 to 127 is guaranteed to give the same Integer object. Compare boxed values with equals, or unbox them first.",
+          "fix": "System.out.println(req + \" same: \" + Objects.equals(sfCount.get(req), atsCount.get(req)));\n// REQ-1 same: true\n// REQ-2 same: true"
+        },
+        {
+          "id": "u37-l1-i3",
+          "type": "why",
+          "src": "s1",
+          "q": "This should add up the assessment scores of two candidates. Candidate 2 has not taken the test yet. Why does it crash instead of counting 0?",
+          "lang": "java",
+          "code": "import java.util.*;\n\npublic class ScoreTotal {\n    public static void main(String[] args) {\n        Map<String, Integer> scores = new HashMap<>();\n        scores.put(\"cand-1\", 82);\n        int total = 0;\n        for (String id : List.of(\"cand-1\", \"cand-2\")) {\n            int score = scores.get(id);\n            total += score;\n        }\n        System.out.println(total);\n    }\n}",
+          "happened": "Exception in thread \"main\" java.lang.NullPointerException: Cannot invoke \"java.lang.Integer.intValue()\" because the return value of \"java.util.Map.get(Object)\" is null\n  at ScoreTotal.main(ScoreTotal.java:9)",
+          "options": [
+            "scores.get(\"cand-2\") returns null, and assigning it to an int unboxes it by calling intValue() on null.",
+            "HashMap.get throws NullPointerException when the key is missing.",
+            "List.of rejects \"cand-2\" because it is not a key of the map.",
+            "total += score overflows, and Java reports overflow as NullPointerException."
+          ],
+          "answer": 0,
+          "why": "A missing key gives null, and the hidden unboxing to int calls intValue() on it. Use getOrDefault(id, 0), or keep the value as Integer and check it before use.",
+          "fix": "int score = scores.getOrDefault(id, 0);\n// prints 82"
+        },
+        {
+          "id": "u37-l1-i4",
+          "type": "pick",
+          "src": "s3",
+          "q": "A developer writes status.trim(); on one line and later builds a CSV line of 10,000 candidate IDs with += in a loop. What is the common reason behind both problems in the review?",
+          "options": [
+            "A String cannot change: trim() and += return a new String, so the result must be assigned, and a loop of += creates a new String every time, while a StringBuilder appends to one mutable buffer.",
+            "trim() works only on strings created with new String(...), and += is slow because it is synchronized.",
+            "The JVM caches every String, so trim() changes all copies of the text, and += fills the cache.",
+            "trim() and += work in place, but only after the String is converted with toString()."
+          ],
+          "answer": 0,
+          "why": "Strings are constant: their values cannot be changed after they are created, so status = status.trim() needs the assignment. For many appends in a loop, use a StringBuilder and call toString() once at the end."
+        },
+        {
+          "id": "u37-l1-i5",
+          "type": "card",
+          "term": "t-equals-hashcode",
+          "src": "s2"
+        },
+        {
+          "id": "u37-l1-i6",
+          "type": "why",
+          "src": "s2",
+          "q": "The importer keeps a set of candidates it has already processed. The two keys are equal, so why does the set say it has not seen the candidate?",
+          "lang": "java",
+          "code": "import java.util.*;\n\npublic class Dedup {\n    static final class CandidateKey {\n        private final String id;\n        CandidateKey(String id) { this.id = id; }\n        @Override public boolean equals(Object o) {\n            return o instanceof CandidateKey k && k.id.equals(id);\n        }\n    }\n\n    public static void main(String[] args) {\n        Set<CandidateKey> seen = new HashSet<>();\n        seen.add(new CandidateKey(\"c-42\"));\n        System.out.println(new CandidateKey(\"c-42\").equals(new CandidateKey(\"c-42\")));\n        System.out.println(seen.contains(new CandidateKey(\"c-42\")));\n    }\n}",
+          "happened": "true\nfalse",
+          "options": [
+            "equals is overridden but hashCode is not, so the two equal keys have different identity hash codes and HashSet looks in the wrong bucket.",
+            "HashSet compares elements with ==, so it never calls equals.",
+            "The pattern variable k in instanceof only works for records, so equals returns false inside the set.",
+            "The field id is private, so HashSet cannot read it when it compares keys."
+          ],
+          "answer": 0,
+          "why": "Equal objects must have equal hash codes, and a hash-based collection uses the hash code first and equals only inside the bucket. Override hashCode from the same fields, or use a record.",
+          "fix": "@Override public int hashCode() { return id.hashCode(); }\n// or: record CandidateKey(String id) {}\n// contains(...) now prints true"
+        },
+        {
+          "id": "u37-l1-i7",
+          "type": "why",
+          "src": "s2",
+          "q": "The map stores the recruiter who owns each applicant. The applicant then changes her email. Why can the map no longer find her?",
+          "lang": "java",
+          "code": "import java.util.*;\n\npublic class Owners {\n    static final class Applicant {\n        String email;\n        Applicant(String email) { this.email = email; }\n        @Override public boolean equals(Object o) {\n            return o instanceof Applicant a && a.email.equals(email);\n        }\n        @Override public int hashCode() { return email.hashCode(); }\n    }\n\n    public static void main(String[] args) {\n        Map<Applicant, String> owner = new HashMap<>();\n        Applicant ana = new Applicant(\"ana@example.com\");\n        owner.put(ana, \"recruiter-7\");\n        ana.email = \"ana.ruiz@example.com\";   // the applicant changed her email\n        System.out.println(owner.get(ana));\n        System.out.println(owner.size());\n    }\n}",
+          "happened": "null\n1",
+          "options": [
+            "The key changed after it was stored, so its hash code no longer matches the bucket where the entry was put.",
+            "HashMap copies the key when you call put, so the change to ana is not seen by the map.",
+            "equals and hashCode are inconsistent, because equals uses instanceof.",
+            "HashMap removes an entry automatically when its key changes, but size() is cached."
+          ],
+          "answer": 0,
+          "why": "hashCode depends on email, so after the change the map looks in a different bucket from the one where the entry was stored. Use immutable keys, such as a record with immutable components, and put a new key when the value changes.",
+          "fix": "record ApplicantKey(String email) {}   // final fields, equals and hashCode from email\n\nowner.put(new ApplicantKey(\"ana@example.com\"), \"recruiter-7\");\n// when the email changes: remove the old key and put a new ApplicantKey"
+        },
+        {
+          "id": "u37-l1-i8",
+          "type": "tf",
+          "src": "s19",
+          "statement": "new BigDecimal(\"2.0\").equals(new BigDecimal(\"2.00\")) is true, because both are worth two.",
+          "answer": false,
+          "why": "equals requires the same value and the same representation, so a different scale makes them unequal, while compareTo returns 0. A HashSet keeps both values, but a TreeSet keeps only one."
+        },
+        {
+          "id": "u37-l1-i9",
+          "type": "why",
+          "src": "s19",
+          "q": "The offer service adds an interview fee and a travel fee and checks that the total is exactly 0.3 (thousand euros). Why does the check fail?",
+          "lang": "java",
+          "code": "import java.math.BigDecimal;\n\npublic class Fees {\n    public static void main(String[] args) {\n        double interviewFee = 0.1, travelFee = 0.2;\n        System.out.println(interviewFee + travelFee == 0.3);\n        System.out.println(interviewFee + travelFee);\n        System.out.println(new BigDecimal(0.1));\n    }\n}",
+          "happened": "false\n0.30000000000000004\n0.1000000000000000055511151231257827021181583404541015625",
+          "options": [
+            "0.1 cannot be stored exactly as a binary double, so the sum is a tiny bit more than 0.3, and new BigDecimal(0.1) shows the exact stored value.",
+            "== on double compares references, like == on Double objects.",
+            "Java rounds every double to 17 digits after each addition, and the rounding adds 0.00000000000000004.",
+            "new BigDecimal(0.1) is a bug in the JDK that has been fixed in later versions."
+          ],
+          "answer": 0,
+          "why": "0.1 has no finite binary representation, so double arithmetic is approximate, and the BigDecimal(double) constructor copies that approximation exactly. For money, create BigDecimal from a String or with BigDecimal.valueOf(double), and compare with compareTo.",
+          "fix": "BigDecimal interviewFee = new BigDecimal(\"0.1\");   // or BigDecimal.valueOf(0.1)\nBigDecimal travelFee = new BigDecimal(\"0.2\");\nBigDecimal total = interviewFee.add(travelFee);\nSystem.out.println(total);                                         // 0.3\nSystem.out.println(total.compareTo(new BigDecimal(\"0.3\")) == 0);  // true"
+        },
+        {
+          "id": "u37-l1-i10",
+          "type": "why",
+          "src": "s1",
+          "q": "The storage report should show how many bytes 3,000 CVs of 1 MB each take. The result is stored in a long. Why is it negative?",
+          "lang": "java",
+          "code": "public class CvStorage {\n    public static void main(String[] args) {\n        int cvCount = 3_000;\n        long totalBytes = cvCount * 1024 * 1024;   // 1 MB per CV\n        System.out.println(totalBytes);\n    }\n}",
+          "happened": "-1149239296",
+          "options": [
+            "The multiplication is done in int, because all three operands are int, so it overflows before the result is widened to long.",
+            "A long cannot hold more than 2,147,483,647, so the value wrapped around.",
+            "The underscore in 3_000 makes the literal negative.",
+            "println prints a long as an int unless you call Long.toString first."
+          ],
+          "answer": 0,
+          "why": "Java chooses the type of an expression from its operands, and int arithmetic overflows silently past Integer.MAX_VALUE. Make one operand long, or use Math.multiplyExact to fail with ArithmeticException instead of a wrong number.",
+          "fix": "long totalBytes = cvCount * 1024L * 1024;   // 3145728000\n// or fail loudly instead:\nint checked = Math.multiplyExact(cvCount, 1024 * 1024);  // ArithmeticException: integer overflow"
+        }
+      ]
+    },
+    {
+      "id": "u37-l2",
+      "kind": "practice",
+      "title": "Collections, streams and exceptions that bite",
+      "items": [
+        {
+          "id": "u37-l2-i1",
+          "type": "why",
+          "src": "s5",
+          "q": "This should remove every rejected application from the list. Why does it throw instead?",
+          "lang": "java",
+          "code": "import java.util.*;\n\npublic class Cleanup {\n    public static void main(String[] args) {\n        List<String> statuses = new ArrayList<>(List.of(\"Applied\", \"Rejected\", \"Interview\", \"Rejected\"));\n        for (String status : statuses) {\n            if (status.equals(\"Rejected\")) {\n                statuses.remove(status);\n            }\n        }\n        System.out.println(statuses);\n    }\n}",
+          "happened": "Exception in thread \"main\" java.util.ConcurrentModificationException\n  at java.base/java.util.ArrayList$Itr.checkForComodification(ArrayList.java:1095)",
+          "options": [
+            "The for-each loop uses the list's iterator, and statuses.remove() changes the list behind the iterator's back, so the next call to next() fails.",
+            "ArrayList is not thread-safe, and the for-each loop runs on a separate thread.",
+            "remove(Object) removes every \"Rejected\" at once, so the loop runs past the end of the list.",
+            "List.of creates an immutable list, so remove is not allowed on the copy."
+          ],
+          "answer": 0,
+          "why": "ArrayList iterators are fail-fast: after a structural change that does not go through the iterator, the next call to next() throws. Use removeIf, or Iterator.remove() in an explicit loop.",
+          "fix": "statuses.removeIf(status -> status.equals(\"Rejected\"));\nSystem.out.println(statuses);   // [Applied, Interview]"
+        },
+        {
+          "id": "u37-l2-i2",
+          "type": "why",
+          "src": "s4",
+          "q": "The shortlist should hold three candidates sorted by last name. Why does it hold only two?",
+          "lang": "java",
+          "code": "import java.util.*;\n\npublic class Shortlist {\n    record Candidate(String id, String lastName) {}\n\n    public static void main(String[] args) {\n        Set<Candidate> byName = new TreeSet<>(Comparator.comparing(Candidate::lastName));\n        byName.add(new Candidate(\"c-1\", \"Garcia\"));\n        byName.add(new Candidate(\"c-2\", \"Smith\"));\n        byName.add(new Candidate(\"c-3\", \"Garcia\"));\n        System.out.println(byName.size());\n        System.out.println(byName);\n    }\n}",
+          "happened": "2\n[Candidate[id=c-1, lastName=Garcia], Candidate[id=c-2, lastName=Smith]]",
+          "options": [
+            "The comparator returns 0 for c-1 and c-3 because both are called Garcia, and a TreeSet treats compare() == 0 as the same element.",
+            "The record's equals method says c-1 and c-3 are equal, so the set rejects c-3.",
+            "TreeSet keeps one element per hash bucket, and both Garcias have the same hash code.",
+            "A TreeSet cannot hold records properly, because records do not implement Comparable."
+          ],
+          "answer": 0,
+          "why": "TreeSet uses only compare(), not equals(), so two different objects that compare as 0 are one element for the set. Make the comparator consistent with equals by adding a tiebreaker such as the ID.",
+          "fix": "Set<Candidate> byName = new TreeSet<>(\n    Comparator.comparing(Candidate::lastName).thenComparing(Candidate::id));\n// size 3"
+        },
+        {
+          "id": "u37-l2-i3",
+          "type": "match",
+          "src": "s6",
+          "q": "Match each line of code with what happens when it runs.",
+          "pairs": [
+            [
+              "Arrays.asList(\"c-1\", \"c-2\").add(\"c-3\")",
+              "UnsupportedOperationException: the list has a fixed size"
+            ],
+            [
+              "List.of(\"c-1\", null)",
+              "NullPointerException when the list is created"
+            ],
+            [
+              "Collections.unmodifiableList(source), then source.add(\"c-2\")",
+              "The view shows c-2 as well"
+            ],
+            [
+              "List.copyOf(source), then source.add(\"c-2\")",
+              "The copy still holds only the old elements"
+            ],
+            [
+              "toList() on a stream after count() was called on the same stream",
+              "IllegalStateException: stream has already been operated upon or closed"
+            ],
+            [
+              "groupingBy(Application::source) when one source is null",
+              "NullPointerException: element cannot be mapped to a null key"
+            ]
+          ]
+        },
+        {
+          "id": "u37-l2-i4",
+          "type": "why",
+          "src": "s8",
+          "q": "This should map each candidate to the requisition they applied for. Why does it throw?",
+          "lang": "java",
+          "code": "import java.util.*;\nimport java.util.stream.*;\n\npublic class ReqByCandidate {\n    record Application(String candidateId, String requisitionId) {}\n\n    public static void main(String[] args) {\n        List<Application> apps = List.of(\n            new Application(\"c-1\", \"REQ-1\"),\n            new Application(\"c-2\", \"REQ-1\"),\n            new Application(\"c-1\", \"REQ-2\"));\n        Map<String, String> reqByCandidate = apps.stream()\n            .collect(Collectors.toMap(Application::candidateId, Application::requisitionId));\n        System.out.println(reqByCandidate);\n    }\n}",
+          "happened": "Exception in thread \"main\" java.lang.IllegalStateException: Duplicate key c-1 (attempted merging values REQ-1 and REQ-2)",
+          "options": [
+            "Candidate c-1 has two applications, and toMap without a merge function throws when two elements map to the same key.",
+            "toMap keeps the last value for a duplicate key, but only in a parallel stream.",
+            "Method references to record accessors cannot be used as key mappers.",
+            "List.of rejects two records with the same candidateId, and the error appears later."
+          ],
+          "answer": 0,
+          "why": "toMap(keyMapper, valueMapper) throws IllegalStateException when the keys contain duplicates. Decide what a duplicate means: pass a merge function, or group the values with groupingBy.",
+          "fix": "Map<String, List<String>> reqsByCandidate = apps.stream()\n    .collect(Collectors.groupingBy(Application::candidateId,\n             Collectors.mapping(Application::requisitionId, Collectors.toList())));\n// {c-1=[REQ-1, REQ-2], c-2=[REQ-1]}"
+        },
+        {
+          "id": "u37-l2-i5",
+          "type": "tf",
+          "src": "s7",
+          "statement": "Stream.of(\"c-1\", \"c-2\").filter(id -> id.startsWith(\"c\")).peek(System.out::println); prints both candidate IDs.",
+          "answer": false,
+          "why": "Streams are lazy: without a terminal operation such as toList() or count(), the pipeline never runs, so peek prints nothing. peek exists mainly for debugging, not for doing work."
+        },
+        {
+          "id": "u37-l2-i6",
+          "type": "scenario",
+          "src": "s9",
+          "q": "A service runs findCached(id).orElse(loadFromSuccessFactors(id)). The logs show a SuccessFactors call for every candidate, even for those already in the cache.",
+          "options": [
+            {
+              "text": "Use findCached(id).orElseGet(() -> loadFromSuccessFactors(id)).",
+              "ok": true,
+              "why": "The argument of orElse is evaluated before orElse is even called, so the remote call always runs. orElseGet takes a supplier and calls it only when no value is present."
+            },
+            {
+              "text": "Call findCached(id).get() and catch the exception when the value is missing.",
+              "ok": false,
+              "why": "get() throws NoSuchElementException when there is no value, and the API recommends orElseThrow() instead. It also does not load the missing candidate."
+            },
+            {
+              "text": "Let findCached return null instead of Optional.empty().",
+              "ok": false,
+              "why": "The Optional API says a variable of type Optional should never itself be null, and every caller would need null checks again."
+            },
+            {
+              "text": "Wrap the cached value with Optional.of(...) before calling orElse.",
+              "ok": false,
+              "why": "Optional.of throws NullPointerException for a null value, and it does not change when the argument of orElse is evaluated."
+            }
+          ]
+        },
+        {
+          "id": "u37-l2-i7",
+          "type": "code",
+          "src": "s10",
+          "lang": "java",
+          "q": "Complete the code. IOException is a checked exception, so the compiler forces export() to declare it or catch it. If both send() and close() fail, the caller gets the send() failure and can still read the close() failure.",
+          "code": "static void export(String hireId) [[1]] IOException {\n    try ([[2]] connection = new PayrollConnection()) {   // implements AutoCloseable\n        connection.send(hireId);\n    }\n}\n\ntry {\n    export(\"h-7\");\n} catch (IOException e) {\n    log.warn(\"export failed: \" + e.getMessage());\n    for (Throwable t : e.[[3]]()) {\n        log.warn(\"close also failed: \" + t.getMessage());\n    }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "throws",
+              "decoys": [
+                "throw",
+                "catches"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "var",
+              "decoys": [
+                "new",
+                "static"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "getSuppressed",
+              "decoys": [
+                "getCause",
+                "getStackTrace"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u37-l2-i8",
+          "type": "why",
+          "src": "s10",
+          "q": "main should retry when the export fails, and callPayroll always fails here. Why is retrying h-7 never printed?",
+          "lang": "java",
+          "code": "public class HireExport {\n    static void callPayroll(String hireId) {\n        throw new IllegalStateException(\"Payroll returned 503 for \" + hireId);\n    }\n\n    static String exportHire(String hireId) {\n        String status = \"FAILED\";\n        try {\n            callPayroll(hireId);\n            status = \"SENT\";\n        } finally {\n            System.out.println(\"export \" + hireId + \": \" + status);\n            return status;\n        }\n    }\n\n    public static void main(String[] args) {\n        try {\n            System.out.println(\"result \" + exportHire(\"h-7\"));\n        } catch (IllegalStateException e) {\n            System.out.println(\"retrying h-7\");\n        }\n    }\n}",
+          "happened": "export h-7: FAILED\nresult FAILED\njavac -Xlint:finally also warns: finally clause cannot complete normally",
+          "options": [
+            "The return in the finally block ends the method normally, so the IllegalStateException from the try block is thrown away.",
+            "IllegalStateException is unchecked, so a catch block in main cannot catch it.",
+            "The finally block runs before callPayroll, so the exception is never thrown.",
+            "The exception is kept as a suppressed exception, so main must call getSuppressed() to see it."
+          ],
+          "answer": 0,
+          "why": "When a finally block completes abruptly, for example with return, its result replaces the exception from the try block, and that exception is lost. Use finally only for clean-up, and let the exception reach the caller.",
+          "fix": "static String exportHire(String hireId) {\n    try {\n        callPayroll(hireId);\n        return \"SENT\";\n    } finally {\n        System.out.println(\"export \" + hireId + \" finished\");   // clean-up only, no return\n    }\n}"
+        },
+        {
+          "id": "u37-l2-i9",
+          "type": "why",
+          "src": "s11",
+          "q": "Both lines should print email, because the event is an OfferEvent. Why does the first line print generic?",
+          "lang": "java",
+          "code": "public class Notifier {\n    static class Event { String channel() { return \"generic\"; } }\n    static class OfferEvent extends Event { @Override String channel() { return \"email\"; } }\n\n    static String route(Event e)      { return \"generic\"; }\n    static String route(OfferEvent e) { return \"email\"; }\n\n    public static void main(String[] args) {\n        Event event = new OfferEvent();\n        System.out.println(route(event));\n        System.out.println(event.channel());\n    }\n}",
+          "happened": "generic\nemail",
+          "options": [
+            "The compiler chooses the overload from the declared type Event; only the overridden channel() is chosen at run time from the real class.",
+            "Static methods always run the first matching declaration in the file.",
+            "route is static, so OfferEvent cannot override it, and Java falls back to the superclass version.",
+            "The JVM converts event to its superclass before every method call."
+          ],
+          "answer": 0,
+          "why": "Overload resolution happens at compile time from the declared types of the arguments; javap shows the call compiled as route(Event). An overridden instance method is chosen at run time from the object's class, which is virtual method invocation.",
+          "fix": "// let the object decide at run time instead of overloading on the type\nstatic String route(Event e) { return e.channel(); }   // email"
+        },
+        {
+          "id": "u37-l2-i10",
+          "type": "code",
+          "src": "s12",
+          "lang": "java",
+          "q": "total(List<Number>) does not compile when you pass a List<Integer>: incompatible types: List<Integer> cannot be converted to List<Number>. Complete the signatures so that every call below compiles.",
+          "code": "static double total(List<[[1]] Number> amounts) {        // only reads\n    double sum = 0;\n    for (Number n : amounts) sum += n.doubleValue();\n    return sum;\n}\n\nstatic void addDefaultScore(List<[[2]] Integer> scores) { // only writes\n    scores.add(0);\n}\n\nList<Integer> bonuses = new ArrayList<>(List.of(500, 750));\nList<Number> numbers = new ArrayList<>();\ntotal(bonuses);             // 1250.0\naddDefaultScore(numbers);\naddDefaultScore(bonuses);",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "? extends",
+              "decoys": [
+                "? super",
+                "Object"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "? super",
+              "decoys": [
+                "? extends",
+                "Number"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u37-l3",
+      "kind": "interview",
+      "title": "Concurrency, Spring and thinking aloud",
+      "items": [
+        {
+          "id": "u37-l3-i1",
+          "type": "say",
+          "src": "s13",
+          "text": "Let me run it first, so we can check what it really prints before I explain why."
+        },
+        {
+          "id": "u37-l3-i2",
+          "type": "why",
+          "src": "s13",
+          "q": "Two threads each record 100,000 hires, and the field is volatile. It should print 200000. Why does it not?",
+          "lang": "java",
+          "code": "public class HireCounter {\n    private volatile int hires = 0;\n\n    void recordHire() { hires++; }\n\n    public static void main(String[] args) throws InterruptedException {\n        HireCounter counter = new HireCounter();\n        Runnable work = () -> {\n            for (int i = 0; i < 100_000; i++) counter.recordHire();\n        };\n        Thread a = new Thread(work), b = new Thread(work);\n        a.start(); b.start();\n        a.join(); b.join();\n        System.out.println(counter.hires);\n    }\n}",
+          "happened": "Three runs printed 185433, 183514 and 177558.\nThe result changes from run to run.",
+          "options": [
+            "hires++ is a read, an add and a write; volatile makes each read and write visible, but two threads can still read the same value and write the same result.",
+            "join() returns before the threads finish, so main prints too early.",
+            "Each thread keeps its own cached copy of a volatile field until it ends.",
+            "The JIT compiler removes some loop iterations because their result is never used."
+          ],
+          "answer": 0,
+          "why": "volatile gives visibility, not atomicity or mutual exclusion, so concurrent increments are lost. Use AtomicInteger.incrementAndGet(), a LongAdder, or a synchronized method.",
+          "fix": "private final AtomicInteger hires = new AtomicInteger();\n\nvoid recordHire() { hires.incrementAndGet(); }   // 200000 every run"
+        },
+        {
+          "id": "u37-l3-i3",
+          "type": "tf",
+          "src": "s14",
+          "statement": "Because ConcurrentHashMap is thread-safe, map.put(req, map.getOrDefault(req, 0) + 1) from two threads counts every hire.",
+          "answer": false,
+          "why": "Each call is thread-safe, but getOrDefault and put are two calls, so two threads can read the same old value and one update is lost. Use one map operation, such as merge(req, 1, Integer::sum) or computeIfAbsent(req, k -> new LongAdder()).increment()."
+        },
+        {
+          "id": "u37-l3-i4",
+          "type": "explain",
+          "src": "s13",
+          "seconds": 150,
+          "q": "Your hire counter is wrong under load. Explain why count++ is not thread-safe and how you would fix it.",
+          "model": "Count plus plus looks like one operation, but it is three: read the value, add one, and write it back. If two threads read the same value at the same time, they both write the same result, and one increment is lost. That is a race condition, and the result changes from run to run, so one passing test proves nothing. Making the field volatile does not fix it. Volatile guarantees that a write is visible to later reads in other threads, but it does not lock, so the three steps are still not atomic. For a single counter, I use AtomicInteger and incrementAndGet. LongAdder is another option for a counter that many threads update, and I read the total with sum. For counters per key, for example hires per requisition, I use one ConcurrentHashMap operation such as merge with Integer::sum, not a get followed by a put. If several fields must change together, I use a lock.",
+          "keypoints": [
+            {
+              "text": "Three steps: read, add, write",
+              "kw": [
+                "read",
+                "write",
+                "three",
+                "steps",
+                "atomic"
+              ]
+            },
+            {
+              "text": "A race condition that changes from run to run",
+              "kw": [
+                "race",
+                "race condition",
+                "lost",
+                "run to run"
+              ]
+            },
+            {
+              "text": "volatile gives visibility only",
+              "kw": [
+                "volatile",
+                "visibility",
+                "visible"
+              ]
+            },
+            {
+              "text": "AtomicInteger for one counter",
+              "kw": [
+                "atomicinteger",
+                "incrementandget",
+                "atomic integer"
+              ]
+            },
+            {
+              "text": "LongAdder as an alternative",
+              "kw": [
+                "longadder",
+                "long adder",
+                "sum"
+              ]
+            },
+            {
+              "text": "One ConcurrentHashMap operation per key",
+              "kw": [
+                "merge",
+                "concurrenthashmap",
+                "per key",
+                "computeifabsent"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u37-l3-i5",
+          "type": "scenario",
+          "src": "s15",
+          "q": "A batch job submits all new hires to Executors.newFixedThreadPool(4) and prints All hires submitted. Every hire is sent, but the process never exits, and the scheduler shows the job as still running.",
+          "options": [
+            {
+              "text": "Close the executor when the work is done: try (ExecutorService pool = Executors.newFixedThreadPool(4)) { ... }, or call shutdown() and then awaitTermination().",
+              "ok": true,
+              "why": "The pool's threads stay alive waiting for new tasks, and that keeps the JVM running. Since Java 19, close() starts an orderly shutdown and waits until all submitted tasks have finished."
+            },
+            {
+              "text": "Call System.exit(0) as the last line of main.",
+              "ok": false,
+              "why": "It stops the JVM at once, even while tasks are still sending hires, so some hires can be lost."
+            },
+            {
+              "text": "Call shutdownNow() right after the last submit.",
+              "ok": false,
+              "why": "shutdownNow prevents waiting tasks from starting and tries to stop running ones, so hires still in the queue are never sent."
+            },
+            {
+              "text": "Increase the pool size so that the tasks finish sooner.",
+              "ok": false,
+              "why": "The tasks already finish; the idle pool threads are what keep the process alive."
+            }
+          ]
+        },
+        {
+          "id": "u37-l3-i6",
+          "type": "why",
+          "src": "s16",
+          "q": "The batch must log every failed hire, and sendHire throws for h-7. Why is there no error in the output?",
+          "lang": "java",
+          "code": "import java.util.concurrent.CompletableFuture;\n\npublic class HireBatch {\n    static void sendHire(String hireId) {\n        throw new IllegalStateException(\"Payroll returned 503 for \" + hireId);\n    }\n\n    public static void main(String[] args) throws InterruptedException {\n        CompletableFuture.runAsync(() -> sendHire(\"h-7\"));\n        Thread.sleep(500);\n        System.out.println(\"Batch finished\");\n    }\n}",
+          "happened": "Batch finished\nNo exception and no stack trace are printed, and the exit code is 0.",
+          "options": [
+            "The exception completes the CompletableFuture exceptionally and stays inside it; nobody calls join(), get() or a handler, so nobody sees it.",
+            "runAsync runs the task on a daemon thread, and the JVM stopped it before it could throw.",
+            "Unchecked exceptions thrown inside a lambda are removed by the compiler.",
+            "The common pool logs uncaught exceptions only at debug level."
+          ],
+          "answer": 0,
+          "why": "An exception in an asynchronous task is stored in its future, not thrown to the caller or printed. Keep the futures and join them, or attach whenComplete or exceptionally to log the failure.",
+          "fix": "CompletableFuture<Void> future = CompletableFuture.runAsync(() -> sendHire(\"h-7\"))\n    .whenComplete((result, error) -> {\n        if (error != null) System.out.println(\"failed: \" + error);\n    });\nfuture.join();   // throws CompletionException with the IllegalStateException as its cause"
+        },
+        {
+          "id": "u37-l3-i7",
+          "type": "explain",
+          "src": "s4",
+          "seconds": 120,
+          "q": "Walk me through why this TreeSet holds two candidates instead of three, and how you would prove it.",
+          "model": "The set was built with a comparator on the last name only, and two of the candidates are called Garcia. A TreeSet does not use equals or hashCode at all. It uses only the comparator, and when compare returns zero, the set treats the new element as a duplicate and does not add it. So the second Garcia is dropped silently, without an exception. To prove it, I would print the result of the comparator for the two Garcias and show that it is zero. I would also call contains with a completely different candidate who is called Smith: it returns true, which shows that the set only looks at the name. The fix is to make the comparator consistent with equals, so I add a tiebreaker with thenComparing on the candidate ID. The same rule applies to TreeMap keys, and to BigDecimal, where 2.0 and 2.00 compare as equal.",
+          "keypoints": [
+            {
+              "text": "TreeSet uses only the comparator",
+              "kw": [
+                "comparator",
+                "compare",
+                "compareto"
+              ]
+            },
+            {
+              "text": "compare returns zero, so it is a duplicate",
+              "kw": [
+                "zero",
+                "duplicate",
+                "dropped",
+                "same element"
+              ]
+            },
+            {
+              "text": "equals and hashCode are not used",
+              "kw": [
+                "equals",
+                "hashcode"
+              ]
+            },
+            {
+              "text": "Prove it: print compare or call contains",
+              "kw": [
+                "prove",
+                "contains",
+                "print",
+                "test"
+              ]
+            },
+            {
+              "text": "Fix: a tiebreaker, consistent with equals",
+              "kw": [
+                "thencomparing",
+                "tiebreaker",
+                "consistent with equals",
+                "id"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u37-l3-i8",
+          "type": "explain",
+          "src": "s18",
+          "seconds": 150,
+          "q": "Your service is a Spring singleton. What do you check in it for thread safety, and why might an @Async method called from the same class run synchronously?",
+          "model": "Singleton is the default scope in Spring, so there is one shared instance of the service, and every request thread uses it at the same time. So first I look for mutable instance fields. For example, a field that holds the current candidate, or a plain counter, is shared by all requests, and two requests can overwrite each other's data. A singleton should be stateless: request data lives in local variables and method parameters, and real shared state uses thread-safe types such as AtomicInteger or ConcurrentHashMap. The second check is self-invocation. Annotations such as @Async and @Cacheable work through a proxy. When a method calls this.sendHire(), the call goes to the object itself, not through the proxy, so the advice never runs, and the method runs on the caller's thread. It is the same proxy rule that makes a self-invoked @Transactional method run without a transaction. The best fix is to move the method to another bean.",
+          "keypoints": [
+            {
+              "text": "Singleton: one shared instance for all threads",
+              "kw": [
+                "singleton",
+                "one instance",
+                "shared",
+                "default scope"
+              ]
+            },
+            {
+              "text": "Mutable instance fields are shared state",
+              "kw": [
+                "field",
+                "fields",
+                "mutable",
+                "state",
+                "overwrite"
+              ]
+            },
+            {
+              "text": "Keep the bean stateless",
+              "kw": [
+                "stateless",
+                "local variables",
+                "parameters",
+                "local"
+              ]
+            },
+            {
+              "text": "Annotations work through a proxy",
+              "kw": [
+                "proxy",
+                "proxies",
+                "advice",
+                "aop"
+              ]
+            },
+            {
+              "text": "Self-invocation bypasses the proxy",
+              "kw": [
+                "self-invocation",
+                "self invocation",
+                "this",
+                "bypass",
+                "same class"
+              ]
+            },
+            {
+              "text": "Move the method to another bean",
+              "kw": [
+                "another bean",
+                "separate bean",
+                "other bean",
+                "self injection",
+                "refactor"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u37-l3-i9",
+          "type": "say",
+          "src": "s13",
+          "text": "I expected 200000. The result is lower and changes on every run, which tells me it is a race condition, not a logic bug."
+        },
+        {
+          "id": "u37-l3-i10",
+          "type": "explain",
+          "src": "s2",
+          "seconds": 150,
+          "q": "Two candidate keys are equal, but the HashSet says it does not contain the second one. Walk me through why, and how you would fix it.",
+          "model": "My first suspect is the equals and hashCode contract. A HashSet first uses hashCode to find the bucket, and only then calls equals inside that bucket. The contract says that equal objects must have equal hash codes. If the class overrides equals but not hashCode, two equal keys get different identity hash codes, so contains looks in the wrong bucket and returns false. I would prove it by printing both hash codes next to the result of equals. A similar bug is a key that changes after it was put into a HashMap. If the email in the key changes, its hash code changes too, so the map can no longer find the entry, although size still shows one. The fix for both is an immutable key, with equals and hashCode based on the same fields. In modern Java I use a record, because it generates both methods from its components, as long as those components are immutable too.",
+          "keypoints": [
+            {
+              "text": "HashSet uses hashCode first, then equals",
+              "kw": [
+                "hashcode",
+                "bucket",
+                "hash code",
+                "hash"
+              ]
+            },
+            {
+              "text": "Contract: equal objects have equal hash codes",
+              "kw": [
+                "contract",
+                "equal objects",
+                "equal hash codes",
+                "same hash code"
+              ]
+            },
+            {
+              "text": "equals overridden without hashCode",
+              "kw": [
+                "override",
+                "overrides",
+                "without",
+                "only equals"
+              ]
+            },
+            {
+              "text": "Prove it by printing the hash codes",
+              "kw": [
+                "print",
+                "prove",
+                "test"
+              ]
+            },
+            {
+              "text": "A key that changes after it was stored",
+              "kw": [
+                "mutable",
+                "changes",
+                "changed",
+                "mutated"
+              ]
+            },
+            {
+              "text": "Fix: an immutable key, such as a record",
+              "kw": [
+                "record",
+                "immutable",
+                "final"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Equality and numbers",
+        "points": [
+          "On objects, == compares references and equals compares values; Object.equals itself is ==.",
+          "Integer.valueOf always caches -128 to 127: compare boxed values with equals or Objects.equals, never ==.",
+          "Unboxing null throws NullPointerException: Cannot invoke \"java.lang.Integer.intValue()\". Use getOrDefault.",
+          "String is immutable: write status = status.trim(). Use StringBuilder for many appends in a loop.",
+          "BigDecimal: new BigDecimal(\"0.1\") or BigDecimal.valueOf(0.1), never new BigDecimal(0.1). equals checks value and scale; compareTo checks the value.",
+          "int arithmetic overflows silently, even when the result goes into a long: write 1024L or use Math.multiplyExact."
+        ]
+      },
+      {
+        "h": "equals, hashCode and keys",
+        "points": [
+          "Equal objects must have equal hash codes: override equals and hashCode together, from the same fields.",
+          "HashMap and HashSet use hashCode to find the bucket, then equals inside it.",
+          "Never change a field used by equals while the object is a key; use immutable keys such as records.",
+          "TreeSet and TreeMap use only compare(): make the comparator consistent with equals with thenComparing."
+        ]
+      },
+      {
+        "h": "Collections",
+        "points": [
+          "ArrayList iterators are fail-fast: removing inside for-each throws ConcurrentModificationException. Use removeIf or Iterator.remove().",
+          "Arrays.asList has a fixed size: set works, add and remove throw UnsupportedOperationException.",
+          "List.of, Set.of and Map.of reject null elements with NullPointerException.",
+          "Collections.unmodifiableList is a view: changes to the source show through. List.copyOf is an unmodifiable copy."
+        ]
+      },
+      {
+        "h": "Streams and Optional",
+        "points": [
+          "Streams are lazy: nothing runs without a terminal operation. A stream can be used only once.",
+          "toMap throws IllegalStateException on a duplicate key: add a merge function or use groupingBy.",
+          "groupingBy throws NullPointerException when the classifier returns null.",
+          "Optional is for return values. orElse always evaluates its argument; orElseGet only when empty. Prefer orElseThrow to get()."
+        ]
+      },
+      {
+        "h": "Exceptions and dispatch",
+        "points": [
+          "A checked exception such as IOException must be caught or declared with throws.",
+          "Never return from finally: it discards the exception from the try block. javac -Xlint:finally warns.",
+          "try-with-resources closes resources in the opposite order of creation; exceptions from close are suppressed and readable with getSuppressed().",
+          "Overloading is chosen at compile time from declared types; overriding at run time from the real class.",
+          "List<Integer> is not a List<Number>: use ? extends to read and ? super to write."
+        ]
+      },
+      {
+        "h": "Concurrency and Spring",
+        "points": [
+          "count++ is read, add, write: use AtomicInteger, LongAdder or a lock. volatile gives visibility, not atomicity.",
+          "ConcurrentHashMap: one operation per update, such as merge(key, 1, Integer::sum), not get then put.",
+          "Shut executors down: try-with-resources (Java 19+) or shutdown() plus awaitTermination(); idle pool threads keep the JVM alive.",
+          "CompletableFuture stores its exception: join the futures or add whenComplete or exceptionally.",
+          "Spring beans are singletons by default: keep them stateless.",
+          "Self-invocation (this.method()) bypasses the proxy, so @Async and @Cacheable do not apply; @Transactional is covered in SQL and databases."
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Integer (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Integer.html",
+      "official": true
+    },
+    {
+      "id": "s2",
+      "title": "Object (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Object.html",
+      "official": true
+    },
+    {
+      "id": "s3",
+      "title": "String (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/String.html",
+      "official": true
+    },
+    {
+      "id": "s4",
+      "title": "TreeSet (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/TreeSet.html",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "ArrayList (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/ArrayList.html",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Collection: view and unmodifiable collections (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Collection.html",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Stream (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Stream.html",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Collectors (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/stream/Collectors.html",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "Optional (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/Optional.html",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "The try-with-resources Statement - The Java Tutorials",
+      "url": "https://docs.oracle.com/javase/tutorial/essential/exceptions/tryResourceClose.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "Polymorphism - The Java Tutorials",
+      "url": "https://docs.oracle.com/javase/tutorial/java/IandI/polymorphism.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "Generics, Inheritance, and Subtypes - The Java Tutorials",
+      "url": "https://docs.oracle.com/javase/tutorial/java/generics/inheritance.html",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "java.util.concurrent: Memory Consistency Properties (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/package-summary.html",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "ConcurrentHashMap (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ConcurrentHashMap.html",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "ExecutorService (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/ExecutorService.html",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "CompletableFuture (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/concurrent/CompletableFuture.html",
+      "official": true
+    },
+    {
+      "id": "s17",
+      "title": "Bean Scopes - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/core/beans/factory-scopes.html",
+      "official": true
+    },
+    {
+      "id": "s18",
+      "title": "Understanding AOP Proxies - Spring Framework 7.0.10 reference",
+      "url": "https://docs.spring.io/spring-framework/reference/core/aop/proxying.html",
+      "official": true
+    },
+    {
+      "id": "s19",
+      "title": "BigDecimal (Java SE 25 and JDK 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/math/BigDecimal.html",
+      "official": true
+    }
+  ]
+}

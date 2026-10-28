@@ -1,0 +1,1025 @@
+{
+  "format": 1,
+  "id": "u38",
+  "n": 38,
+  "block": "livecoding",
+  "title": "Pair-coding session",
+  "summary": "After this unit you can run a pair-coding interview like a debugging session: clarify the task, build the simplest version, think aloud, find each bug with one hypothesis at a time, fix the root cause with a regression test, and defend your choices.",
+  "reviewed": "2026-10-28",
+  "versionNotes": [
+    "Every Java why item was compiled and run with OpenJDK 21.0.12, and the test item with the JUnit 6.0.0 console launcher; the happened lines are the real output. The API facts were checked against the Java SE 25 API documentation and the JUnit 6.1.3 API documentation.",
+    "Every SQL why item was run on PostgreSQL 16.15, including UNIQUE NULLS NOT DISTINCT, and checked against the current PostgreSQL documentation (18).",
+    "The split rule (a limit of zero discards trailing empty strings, a negative limit keeps them) was read in the Pattern.split Javadoc, because the String page could not be read in full; String.split was run on JDK 21 and behaves the same way.",
+    "case null in a switch is final since JDK 21 (JEP 441). Line numbers inside JDK stack traces depend on the JDK build.",
+    "The interview advice comes from the employers' own preparation pages: Google's guide for technical internship interviews, Meta's careers blog and Amazon's SDE II page. They are not technical documentation.",
+    "This unit adds no new Cloud Integration facts. Allowed Header(s) and the Idempotent Process Call are only referred to as taught in u34."
+  ],
+  "terms": [
+    {
+      "id": "t-think-aloud",
+      "term": "Thinking aloud",
+      "ipa": "/ˈθɪŋkɪŋ əˈlaʊd/",
+      "say": "thinking aloud",
+      "def": "Saying what you are doing and why while you code: what you try, what you expect and what you have just learned. Interview guides ask you to explain your thought process throughout, because the interviewers judge your reasoning as well as the code.",
+      "example": "I'm thinking aloud here: 250 hires in batches of 100 means the last batch has only 50.",
+      "src": "s1"
+    },
+    {
+      "id": "t-clarifying-question",
+      "term": "Clarifying question",
+      "ipa": "/ˈklærəfaɪɪŋ ˈkwestʃən/",
+      "say": "clarifying question",
+      "def": "A question you ask before you code, to remove a doubt about the input, the output, the limits or the error cases. Ask the ones that change the design, and say your assumptions aloud for the rest.",
+      "example": "When SuccessFactors retries, does it send the same event ID or a new one?",
+      "src": "s1"
+    },
+    {
+      "id": "t-simplest-version",
+      "term": "Simplest working version",
+      "ipa": "/ˈsɪmplɪst ˈwɜːkɪŋ ˈvɜːʃn/",
+      "say": "simplest working version",
+      "def": "A first solution that handles the main case correctly and runs early in the session. You can start with a brute-force version, as long as you then test it and improve it step by step.",
+      "example": "My simplest version stores the event and forwards it in the same request; retries and paging come next.",
+      "src": "s1"
+    },
+    {
+      "id": "t-edge-case",
+      "term": "Edge case",
+      "ipa": "/ˈedʒ keɪs/",
+      "say": "edge case",
+      "def": "An input at the limits of what the code expects: null or missing, empty, one element, a duplicate, the last partial batch, the largest value. Interview guides ask you to check edge cases and make sure that no bad input slips through.",
+      "example": "A line whose last two fields are empty is an edge case for the file parser.",
+      "src": "s3"
+    },
+    {
+      "id": "t-debugging-loop",
+      "term": "Debugging loop",
+      "ipa": "/ˌdiːˈbʌɡɪŋ luːp/",
+      "say": "debugging loop",
+      "def": "A repeatable way to find a bug: reproduce it, read the exact error, form one hypothesis, test it with the smallest check, fix the root cause and add a regression test. The SRE book describes troubleshooting as forming hypotheses and testing them until the root cause is found.",
+      "example": "I'll go round the loop once more: the stub shows the header is missing, so my next hypothesis is about our thread pool.",
+      "src": "s4"
+    },
+    {
+      "id": "t-hypothesis",
+      "term": "Hypothesis",
+      "ipa": "/haɪˈpɒθəsɪs/",
+      "say": "hypothesis",
+      "def": "A possible cause that you state clearly and can test with one quick check. If the check disproves it, you have still learned something: negative results should not be ignored.",
+      "example": "My hypothesis is that the retry got a new event ID; one SELECT on hire_event will tell us.",
+      "src": "s4"
+    },
+    {
+      "id": "t-stack-trace",
+      "term": "Stack trace",
+      "ipa": "/ˈstæk treɪs/",
+      "say": "stack trace",
+      "def": "The list of method calls that were active when an exception was thrown, with the most recent call first. A Caused by section shows the wrapped exception, and a line such as ... 1 more means the remaining frames are the same as the last frames of the trace above it.",
+      "example": "The first line only says IllegalArgumentException; the Caused by section says Invalid date 'NOVEMBER 31'.",
+      "src": "s7"
+    },
+    {
+      "id": "t-mre",
+      "term": "Minimal reproducible example",
+      "ipa": "/ˈmɪnɪml ˌriːprəˈdjuːsəbl ɪɡˈzɑːmpl/",
+      "say": "minimal reproducible example",
+      "def": "The smallest self-contained code, data and steps that still show the bug, with the exact output and the output you expected. PostgreSQL's bug guidelines ask for every step from start-up, including the CREATE TABLE and INSERT statements.",
+      "example": "Instead of the whole service, I reproduced it with one table, 250 generated rows and the replay query.",
+      "src": "s6"
+    },
+    {
+      "id": "t-root-cause",
+      "term": "Root cause",
+      "ipa": "/ˈruːt kɔːz/",
+      "say": "root cause",
+      "def": "The underlying reason for a failure, as opposed to the symptom you see. A fix for the symptom, such as catching the exception, hides the problem; a fix for the root cause stops it from happening.",
+      "example": "The symptom is a 500 error; the root cause is that we accept events without a type.",
+      "src": "s4"
+    },
+    {
+      "id": "t-off-by-one",
+      "term": "Off-by-one error",
+      "ipa": "/ˌɒf baɪ ˈwʌn ˈerə/",
+      "say": "off by one error",
+      "def": "A bug where a loop, an index or a range goes one step too far or stops one step too early, for example <= instead of <, or forgetting that an end index is exclusive. It hides at the edges: the last element, the last partial batch, the last day of a range.",
+      "example": "250 hires in batches of 100: the third batch must end at index 250, not 300.",
+      "src": "s3"
+    },
+    {
+      "id": "t-regression-test",
+      "term": "Regression test",
+      "ipa": "/rɪˈɡreʃn test/",
+      "say": "regression test",
+      "def": "A test that reproduces a bug that was fixed, so that the bug cannot sneak back unnoticed. It should fail before the fix and pass after it; if it never failed, it may not test the bug at all.",
+      "example": "I added a regression test with 250 waiting hires, because the old test with 50 always passed.",
+      "src": "s5"
+    },
+    {
+      "id": "t-trade-off",
+      "term": "Trade-off",
+      "ipa": "/ˈtreɪd ɒf/",
+      "say": "trade-off",
+      "def": "A choice where you gain one quality and lose another, for example a faster response against more moving parts. In a pair-coding interview, name the trade-off of your choice before the interviewer asks.",
+      "example": "Forwarding from a relay makes the endpoint fast, but the hire reaches CPI a few seconds later.",
+      "src": "s1"
+    }
+  ],
+  "lessons": [
+    {
+      "id": "u38-l1",
+      "kind": "concepts",
+      "title": "How a pair-coding interview works",
+      "items": [
+        {
+          "id": "u38-l1-i1",
+          "type": "card",
+          "term": "t-think-aloud",
+          "src": "s1"
+        },
+        {
+          "id": "u38-l1-i2",
+          "type": "card",
+          "term": "t-clarifying-question",
+          "src": "s1"
+        },
+        {
+          "id": "u38-l1-i3",
+          "type": "pick",
+          "src": "s1",
+          "q": "The interviewer says: write an endpoint that receives a SuccessFactors candidate hired event, stores it and forwards it to CPI. Which question matters most before you write the first line?",
+          "options": [
+            "When SuccessFactors retries, does it send the same event ID, or a new one?",
+            "Should the class be called HireController or HireEventController?",
+            "Can I add retries with backoff and a circuit breaker from the start?",
+            "Which Java version will the service run on in production?"
+          ],
+          "answer": 0,
+          "why": "The answer decides the idempotency key, the unique constraint and what a retry does, so it changes the design. Names and the Java version rarely change the first version, and resilience comes after a working base."
+        },
+        {
+          "id": "u38-l1-i4",
+          "type": "card",
+          "term": "t-debugging-loop",
+          "src": "s4",
+          "diagram": {
+            "layout": "flow",
+            "nodes": [
+              {
+                "id": "r",
+                "label": "Reproduce it"
+              },
+              {
+                "id": "e",
+                "label": "Read the exact error"
+              },
+              {
+                "id": "h",
+                "label": "One hypothesis"
+              },
+              {
+                "id": "c",
+                "label": "Smallest check"
+              },
+              {
+                "id": "f",
+                "label": "Fix the root cause"
+              },
+              {
+                "id": "t",
+                "label": "Regression test"
+              }
+            ],
+            "edges": [
+              {
+                "from": "r",
+                "to": "e",
+                "label": "then"
+              },
+              {
+                "from": "e",
+                "to": "h",
+                "label": "then"
+              },
+              {
+                "from": "h",
+                "to": "c",
+                "label": "test it"
+              },
+              {
+                "from": "c",
+                "to": "h",
+                "label": "disproved"
+              },
+              {
+                "from": "c",
+                "to": "f",
+                "label": "confirmed"
+              },
+              {
+                "from": "f",
+                "to": "t",
+                "label": "then"
+              }
+            ]
+          }
+        },
+        {
+          "id": "u38-l1-i5",
+          "type": "card",
+          "term": "t-stack-trace",
+          "src": "s7"
+        },
+        {
+          "id": "u38-l1-i6",
+          "type": "why",
+          "src": "s7",
+          "q": "The service rejects an invalid hire event and logs the exception. Why can nobody tell from the log which field is wrong?",
+          "lang": "java",
+          "code": "import java.time.LocalDate;\nimport java.time.format.DateTimeParseException;\n\npublic class Cause {\n    record HireEvent(String applicationId, String startDate) {}\n\n    static LocalDate startDate(HireEvent event) {\n        try {\n            return LocalDate.parse(event.startDate());\n        } catch (DateTimeParseException e) {\n            throw new IllegalArgumentException(\n                \"Invalid hire event \" + event.applicationId());\n        }\n    }\n\n    public static void main(String[] args) {\n        startDate(new HireEvent(\"A-100\", \"2026-11-31\"));\n    }\n}",
+          "happened": "Exception in thread \"main\" java.lang.IllegalArgumentException: Invalid hire event A-100\n    at Cause.startDate(Cause.java:12)\n    at Cause.main(Cause.java:17)",
+          "options": [
+            "The catch block throws a new exception without passing e as its cause, so the trace has no Caused by section with the parse error.",
+            "LocalDate.parse accepts 2026-11-31 and moves it to 1 December, so there is no parse error to show.",
+            "The JVM leaves out the frames of JDK classes such as java.time, so the parse error is not printed.",
+            "IllegalArgumentException is unchecked, so Java does not record where the original problem came from."
+          ],
+          "answer": 0,
+          "why": "The new exception carries only your message, so the DateTimeParseException with the text Invalid date 'NOVEMBER 31' is lost. Pass e as the cause, and the stack trace shows it in a Caused by section.",
+          "fix": "} catch (DateTimeParseException e) {\n    throw new IllegalArgumentException(\n        \"Invalid startDate in hire event \" + event.applicationId(), e);\n}\n// Caused by: java.time.format.DateTimeParseException:\n//   Text '2026-11-31' could not be parsed: Invalid date 'NOVEMBER 31'"
+        },
+        {
+          "id": "u38-l1-i7",
+          "type": "card",
+          "term": "t-off-by-one",
+          "src": "s3"
+        },
+        {
+          "id": "u38-l1-i8",
+          "type": "why",
+          "src": "s3",
+          "q": "This should send 250 hires to CPI in batches of 100. Why does it send two batches and then fail?",
+          "lang": "java",
+          "code": "import java.util.*;\nimport java.util.stream.*;\n\npublic class Batch {\n    static final int BATCH_SIZE = 100;\n\n    static void sendInBatches(List<String> hires) {\n        for (int i = 0; i < hires.size(); i += BATCH_SIZE) {\n            List<String> batch = hires.subList(i, i + BATCH_SIZE);\n            System.out.println(\"Sending \" + batch.size() + \" hires to CPI\");\n        }\n    }\n\n    public static void main(String[] args) {\n        List<String> hires = IntStream.rangeClosed(1, 250)\n            .mapToObj(n -> \"A-\" + n).toList();\n        sendInBatches(hires);\n    }\n}",
+          "happened": "Sending 100 hires to CPI\nSending 100 hires to CPI\nException in thread \"main\" java.lang.IndexOutOfBoundsException: toIndex = 300",
+          "options": [
+            "The last batch has only 50 hires, but the code always asks for 100, so subList(200, 300) goes past the end of the list.",
+            "The end index of subList is inclusive, so each batch takes 101 hires and the list runs out early.",
+            "toList() returns an unmodifiable list, and subList cannot be called on it.",
+            "The loop condition must be i <= hires.size(), because the loop stops one step too early."
+          ],
+          "answer": 0,
+          "why": "subList throws when the end index is greater than the size, and the last batch is the edge case because 250 is not a multiple of 100. Cap the end index at the size of the list, and test with 250 hires, not only with 200.",
+          "fix": "for (int i = 0; i < hires.size(); i += BATCH_SIZE) {\n    int end = Math.min(i + BATCH_SIZE, hires.size());\n    List<String> batch = hires.subList(i, end);   // last batch: 200 to 250\n    System.out.println(\"Sending \" + batch.size() + \" hires to CPI\");\n}\n// Sending 100, 100, then 50 hires"
+        },
+        {
+          "id": "u38-l1-i9",
+          "type": "why",
+          "src": "s8",
+          "q": "The nightly file has one hire per line: applicationId|candidateId|offerId|startDate. Some hires have no offer and no start date yet. Why does the second line fail?",
+          "lang": "java",
+          "code": "public class Split {\n    // line format: applicationId|candidateId|offerId|startDate\n    static String offerId(String line) {\n        String[] parts = line.split(\"\\\\|\");\n        return parts[2].isEmpty() ? null : parts[2];\n    }\n\n    public static void main(String[] args) {\n        System.out.println(offerId(\"A-100|C-1042|O-7|2026-11-02\"));\n        System.out.println(offerId(\"A-101|C-1043||\"));\n    }\n}",
+          "happened": "O-7\nException in thread \"main\" java.lang.ArrayIndexOutOfBoundsException: Index 2 out of bounds for length 2",
+          "options": [
+            "split without a limit discards trailing empty strings, so A-101|C-1043|| gives only two parts.",
+            "The pipe is special in a regular expression, so the pattern splits the line into single characters.",
+            "Two pipes in a row count as one separator, so the empty offer ID disappears from the middle of the array.",
+            "split stops at the first empty field and drops the rest of the line."
+          ],
+          "answer": 0,
+          "why": "With a limit of zero, which split(regex) uses, trailing empty strings are discarded, so the array is shorter exactly when the last fields are empty. Pass a negative limit to keep them, and add this line to your tests as an edge case.",
+          "fix": "String[] parts = line.split(\"\\\\|\", -1);   // keeps trailing empty strings\n// \"A-101|C-1043||\" gives 4 parts: A-101, C-1043, \"\", \"\"\nreturn parts[2].isEmpty() ? null : parts[2];"
+        },
+        {
+          "id": "u38-l1-i10",
+          "type": "pick",
+          "src": "s4",
+          "q": "The forward to CPI fails with a NullPointerException for some hires, because candidate.email() is null for hires that came from a job board. Which change fixes the root cause, not the symptom?",
+          "options": [
+            "Decide whether email is required for a hire: if it is, reject the event at the boundary with a 400 and a clear message; if not, map a missing email on purpose.",
+            "Wrap the forward in a try/catch for NullPointerException and log a warning.",
+            "Add if (email != null) around the line that fails, so the forward carries on.",
+            "Restart the service, so that the candidate data is loaded again from SuccessFactors."
+          ],
+          "answer": 0,
+          "why": "A try/catch or a null check at the failing line hides the symptom and lets bad data travel further. The root cause is an unclear rule about the input, so decide the rule and enforce it where the data enters."
+        }
+      ]
+    },
+    {
+      "id": "u38-l2",
+      "kind": "practice",
+      "title": "Fix it together",
+      "items": [
+        {
+          "id": "u38-l2-i1",
+          "type": "scenario",
+          "src": "s1",
+          "q": "The interviewer shares an empty Spring Boot project: 'SuccessFactors Recruiting sends a candidate hired event. Store it in PostgreSQL and forward it to our CPI iFlow. We have 45 minutes.' How do you start?",
+          "options": [
+            {
+              "text": "Repeat the task in one sentence, ask two clarifying questions about retries and required fields, then write the simplest version: one endpoint, one insert, one call to CPI and one happy-path test.",
+              "ok": true,
+              "why": "This shows your reasoning, removes the biggest doubts and gives you a working base early. Retries, paging and timeouts become the next steps, and you name them as you go."
+            },
+            {
+              "text": "Start with the full design: an outbox table, a relay, a circuit breaker and retries with backoff, because production needs all of them.",
+              "ok": false,
+              "why": "They may be right later, but without a working base you risk ending the session with nothing that runs. Name them as next steps instead."
+            },
+            {
+              "text": "Code silently for 20 minutes to save time, then explain the finished solution.",
+              "ok": false,
+              "why": "The interviewers want to follow your reasoning while you code, and in silence they cannot give you a hint when you go the wrong way."
+            },
+            {
+              "text": "Ask the interviewer to describe every field of the event and every error case before you write a line.",
+              "ok": false,
+              "why": "Clarifying is good, but a long interview at the start eats your time. Ask the questions that change the design, and say your assumptions for the rest."
+            }
+          ]
+        },
+        {
+          "id": "u38-l2-i2",
+          "type": "why",
+          "src": "s9",
+          "q": "The happy path works. Then the interviewer posts an event from the test system, which has no type field. The endpoint routes events by type, and the switch has a default branch. Why does it answer 500?",
+          "lang": "java",
+          "code": "public class Route {\n    record RecruitingEvent(String eventId, String type, String applicationId) {}\n\n    static String route(RecruitingEvent event) {\n        switch (event.type()) {\n            case \"HIRED\" -> { return \"store and forward to CPI\"; }\n            case \"OFFER_ACCEPTED\" -> { return \"store only\"; }\n            default -> { return \"ignore\"; }\n        }\n    }\n\n    public static void main(String[] args) {\n        System.out.println(route(new RecruitingEvent(\"evt-1\", \"HIRED\", \"A-100\")));\n        // the JSON from the test system has no \"type\" field\n        System.out.println(route(new RecruitingEvent(\"evt-2\", null, \"A-101\")));\n    }\n}",
+          "happened": "store and forward to CPI\nException in thread \"main\" java.lang.NullPointerException: Cannot invoke \"String.hashCode()\" because \"<local1>\" is null\n    at Route.route(Route.java:5)\n    at Route.main(Route.java:15)",
+          "options": [
+            "The type is null, and a switch throws NullPointerException for a null selector before any label is tried; default does not match null.",
+            "A missing JSON field becomes an empty string, and the switch has no case for an empty string.",
+            "The switch calls hashCode() on each case label, and one of the labels is null.",
+            "Arrow labels do not fall through, so a value without its own case has nowhere to go."
+          ],
+          "answer": 0,
+          "why": "Without a case null label, a switch throws NullPointerException for a null selector, and default does not match null; the hashCode() in the message comes from how a String switch is compiled. Java 21 allows case null, but the better fix is to reject an event without a type with a 400 at the boundary.",
+          "fix": "return switch (event.type()) {\n    case \"HIRED\" -> \"store and forward to CPI\";\n    case \"OFFER_ACCEPTED\" -> \"store only\";\n    case null -> throw new IllegalArgumentException(\"type is missing in \" + event.eventId());\n    default -> \"ignore\";\n};\n// better still: validate the event at the boundary and answer 400"
+        },
+        {
+          "id": "u38-l2-i3",
+          "type": "code",
+          "src": "s15",
+          "q": "Next step: store each event once, even when SuccessFactors retries. Complete the table and the insert. The repository treats an empty RETURNING result as a duplicate.",
+          "lang": "sql",
+          "code": "CREATE TABLE hire_event (\n  id             bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,\n  event_id       text [[1]],\n  application_id text NOT NULL,\n  payload        jsonb NOT NULL,\n  received_at    timestamptz NOT NULL DEFAULT now()\n);\n\nINSERT INTO hire_event (event_id, application_id, payload)\nVALUES (:eventId, :applicationId, :payload)\nON CONFLICT [[2]] DO NOTHING\n[[3]] event_id;",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "NOT NULL UNIQUE",
+              "decoys": [
+                "NOT NULL",
+                "NOT NULL INDEX"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "(event_id)",
+              "decoys": [
+                "(application_id, received_at)",
+                "(id)"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "RETURNING",
+              "decoys": [
+                "OUTPUT",
+                "SELECT"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u38-l2-i4",
+          "type": "why",
+          "src": "s15",
+          "q": "The interviewer makes the first call to CPI time out. The endpoint answers 503, SuccessFactors retries, and the service forwards only when the insert returns a row. Why does CPI never get hire A-100?",
+          "lang": "sql",
+          "code": "-- attempt 1\nINSERT INTO hire_event (event_id, application_id, payload)\nVALUES ('evt-77', 'A-100', '{}')\nON CONFLICT (event_id) DO NOTHING\nRETURNING event_id;          -- 1 row: forward to CPI\n-- the call to CPI times out, the endpoint answers 503,\n-- SuccessFactors sends evt-77 again\n\n-- attempt 2\nINSERT INTO hire_event (event_id, application_id, payload)\nVALUES ('evt-77', 'A-100', '{}')\nON CONFLICT (event_id) DO NOTHING\nRETURNING event_id;",
+          "happened": "Attempt 2 returns (0 rows) and INSERT 0 0, so the service answers 200 and skips the forward.\nhire_event has one row for evt-77, and CPI has no hire A-100.",
+          "options": [
+            "The insert was committed before the forward, so the row means received, not delivered, and the retry treats an undelivered hire as a duplicate.",
+            "ON CONFLICT DO NOTHING rolls back the first insert when the second one conflicts, so the hire is lost.",
+            "RETURNING works only for the first statement of a session, so attempt 2 returns nothing although it inserted a row.",
+            "SuccessFactors should send a new event ID on each retry, so that the second insert can succeed."
+          ],
+          "answer": 0,
+          "why": "The unique key stops duplicates, but the code uses the existence of the row as proof of delivery. Store the delivery state as well: forward again while the status is not FORWARDED, or let a relay send the rows that are still RECEIVED.",
+          "fix": "ALTER TABLE hire_event ADD COLUMN status text NOT NULL DEFAULT 'RECEIVED';\n\nINSERT INTO hire_event (event_id, application_id, payload)\nVALUES ('evt-77', 'A-100', '{}')\nON CONFLICT (event_id) DO NOTHING;\nSELECT status FROM hire_event WHERE event_id = 'evt-77';  -- RECEIVED: forward again\n-- after a 2xx from CPI:\nUPDATE hire_event SET status = 'FORWARDED' WHERE event_id = 'evt-77';"
+        },
+        {
+          "id": "u38-l2-i5",
+          "type": "why",
+          "src": "s16",
+          "q": "The interviewer adds a replay job that forwards every hire that is still RECEIVED, 100 at a time. 250 hires were waiting. Why are 100 of them still RECEIVED when the job ends?",
+          "lang": "sql",
+          "code": "-- the job runs this with :offset = 0, 100, 200 ... until a page is empty\nSELECT id, event_id, payload\nFROM hire_event\nWHERE status = 'RECEIVED'\nORDER BY id\nLIMIT 100 OFFSET :offset;\n\n-- for each row: forward to CPI, then\nUPDATE hire_event SET status = 'FORWARDED' WHERE id = :id;",
+          "happened": "Offset 0 forwards 100 hires, offset 100 forwards 50, offset 200 returns no rows.\nThe job stops after 150 hires; ids 101 to 200 are still RECEIVED.",
+          "options": [
+            "Each page removes rows from the filter: after page 1 the first 100 hires are FORWARDED, so OFFSET 100 skips 100 hires that were never sent.",
+            "Without FOR UPDATE, the next SELECT cannot see the updates of page 1 until the whole job ends.",
+            "ORDER BY id is not a unique order, so the pages overlap and some hires are read twice.",
+            "LIMIT is applied before WHERE, so each page takes 100 rows of any status."
+          ],
+          "answer": 0,
+          "why": "OFFSET skips rows of the current result, and the job removes rows from that result while it pages. Page by key instead: remember the last id and ask for id > :last_id; a hire whose forward fails then waits for the next run instead of blocking the loop.",
+          "fix": "SELECT id, event_id, payload\nFROM hire_event\nWHERE status = 'RECEIVED' AND id > :last_id   -- 0 for the first page\nORDER BY id\nLIMIT 100;\n-- next page: :last_id = the highest id of this page\n-- pages of 100, 100 and 50: all 250 hires are FORWARDED"
+        },
+        {
+          "id": "u38-l2-i6",
+          "type": "why",
+          "src": "s11",
+          "q": "To keep the session small, the forward uses the JDK HttpClient. The interviewer stops the CPI stub from answering, and the call should fail fast so that the replay can try later. Why does it hang?",
+          "lang": "java",
+          "code": "HttpClient client = HttpClient.newBuilder()\n    .connectTimeout(Duration.ofSeconds(5))\n    .build();\n\n// the stub accepts the connection but never answers\nHttpRequest request = HttpRequest.newBuilder(cpiUri)\n    .header(\"Content-Type\", \"application/json\")\n    .POST(HttpRequest.BodyPublishers.ofString(hireJson))\n    .build();\n\nHttpResponse<String> response =\n    client.send(request, HttpResponse.BodyHandlers.ofString());\nSystem.out.println(response.statusCode());",
+          "happened": "No exception and no output. A watchdog thread prints still waiting after 30 s, 60 s, 90 s and 120 s.\nThe process is stopped from outside after about two minutes.",
+          "options": [
+            "connectTimeout only limits opening the connection, which worked at once; the request has no timeout, so send waits for the response with no limit.",
+            "connectTimeout applies to each retry, and HttpClient retries a POST again and again until it gets an answer.",
+            "send is asynchronous, so the main thread waits for a future that nobody completes.",
+            "A timeout only starts after the server closes its side of the connection, and the stub never does."
+          ],
+          "answer": 0,
+          "why": "The connect timeout has no effect once a connection exists, and not setting a request timeout is the same as an infinite one. Set timeout() on the request, so send throws HttpTimeoutException and the hire stays RECEIVED for the next run.",
+          "fix": "HttpRequest request = HttpRequest.newBuilder(cpiUri)\n    .timeout(Duration.ofSeconds(10))\n    .header(\"Content-Type\", \"application/json\")\n    .POST(HttpRequest.BodyPublishers.ofString(hireJson))\n    .build();\n// after 10 s: java.net.http.HttpTimeoutException: request timed out"
+        },
+        {
+          "id": "u38-l2-i7",
+          "type": "why",
+          "src": "s12",
+          "q": "The forward now runs on a thread pool, so the endpoint answers quickly. The CPI team says X-Correlation-Id never arrives, so the interviewer points the service at a local stub first. Why is the header missing?",
+          "lang": "java",
+          "code": "static final ThreadLocal<String> CORRELATION_ID = new ThreadLocal<>();\n\n// called by the controller on the request thread\nvoid onHire(String eventId, String json) {\n    CORRELATION_ID.set(eventId);\n    pool.submit(() -> forward(json));\n}\n\nvoid forward(String json) {\n    HttpRequest.Builder b = HttpRequest.newBuilder(cpiUri)\n        .timeout(Duration.ofSeconds(10))\n        .POST(HttpRequest.BodyPublishers.ofString(json));\n    String id = CORRELATION_ID.get();\n    if (id != null) {\n        b.header(\"X-Correlation-Id\", id);\n    }\n    try {\n        client.send(b.build(), HttpResponse.BodyHandlers.discarding());\n    } catch (Exception e) {\n        log.warn(\"Forward failed\", e);\n    }\n}",
+          "happened": "The stub logs: POST /http/hires, X-Correlation-Id = null",
+          "options": [
+            "The pool thread has its own copy of the ThreadLocal, which nobody set, so get() returns null and the header is skipped.",
+            "X-Correlation-Id is missing from Allowed Header(s) in the iFlow, so CPI removes it.",
+            "HttpClient drops custom headers that start with X- unless they are registered on the client first.",
+            "The header is added after POST() in the builder, and headers added after the body are ignored."
+          ],
+          "answer": 0,
+          "why": "Each thread has its own, independently initialised copy of a ThreadLocal, and the value was set on the request thread only. The stub proves that the header is lost inside our service, so read the value on the request thread and pass it to the task.",
+          "fix": "void onHire(String eventId, String json) {\n    CORRELATION_ID.set(eventId);\n    String id = CORRELATION_ID.get();       // read it on the request thread\n    pool.submit(() -> forward(json, id));    // pass the value to the task\n}\n// the stub logs: X-Correlation-Id = evt-77"
+        },
+        {
+          "id": "u38-l2-i8",
+          "type": "code",
+          "src": "s10",
+          "q": "Put the fixes together. forward runs on a pool thread and gets the correlation ID as a parameter. Complete it: fail after 10 seconds without a response, send the header, and mark the hire FORWARDED only for a 2xx answer.",
+          "lang": "java",
+          "code": "void forward(String eventId, String json, String correlationId) {\n    HttpRequest request = HttpRequest.newBuilder(cpiUri)\n        .[[1]](Duration.ofSeconds(10))\n        .header(\"X-Correlation-Id\", [[2]])\n        .header(\"Content-Type\", \"application/json\")\n        .POST(HttpRequest.BodyPublishers.ofString(json))\n        .build();\n    try {\n        HttpResponse<Void> response =\n            client.send(request, HttpResponse.BodyHandlers.discarding());\n        if (response.statusCode() [[3]]) {\n            markForwarded(eventId);\n        } else {\n            log.warn(\"CPI answered {} for {}\", response.statusCode(), eventId);\n        }\n    } catch (IOException e) {             // includes HttpTimeoutException\n        log.warn(\"Forward failed for {}, it stays RECEIVED\", eventId, e);\n    } catch (InterruptedException e) {\n        Thread.currentThread().interrupt();\n    }\n}",
+          "gaps": [
+            {
+              "n": 1,
+              "answer": "timeout",
+              "decoys": [
+                "connectTimeout",
+                "readTimeout"
+              ]
+            },
+            {
+              "n": 2,
+              "answer": "correlationId",
+              "decoys": [
+                "CORRELATION_ID.get()",
+                "UUID.randomUUID().toString()"
+              ]
+            },
+            {
+              "n": 3,
+              "answer": "/ 100 == 2",
+              "decoys": [
+                "!= 500",
+                "> 0"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u38-l2-i9",
+          "type": "order",
+          "src": "s4",
+          "q": "The CPI team says hire A-100 never arrived, and the service log shows no error. Put the steps of the debugging loop in order.",
+          "steps": [
+            "Reproduce it: send the same event to the service, with a local stub in place of CPI.",
+            "Read what really happened: the response code, the service log and the row in hire_event.",
+            "Form one hypothesis, for example: the retry was treated as a duplicate.",
+            "Test it with the smallest check: send the event twice and look at what RETURNING gives.",
+            "Fix the root cause: store a delivery status and forward again while it is not FORWARDED.",
+            "Add a regression test that fails before the fix and passes after it."
+          ]
+        },
+        {
+          "id": "u38-l2-i10",
+          "type": "scenario",
+          "src": "s5",
+          "q": "Before you finish, the interviewer asks: 'Which test do you add for the replay bug?'",
+          "options": [
+            {
+              "text": "Insert 250 RECEIVED hires, run the job against a stub, and assert that all 250 are FORWARDED and the stub got 250 calls.",
+              "ok": true,
+              "why": "With more than one page, the test fails on the OFFSET version and passes on the keyset version, so it really guards against the bug."
+            },
+            {
+              "text": "Insert 50 RECEIVED hires, run the job, and assert that they are FORWARDED.",
+              "ok": false,
+              "why": "50 hires fit on one page, so this test also passes with the bug. It passes for the wrong reason."
+            },
+            {
+              "text": "Mock the repository and verify that the SELECT is called three times.",
+              "ok": false,
+              "why": "It checks how the code works, not what it achieves. The OFFSET version also calls the SELECT three times."
+            },
+            {
+              "text": "No test: the fix is one line, and we have already seen it work.",
+              "ok": false,
+              "why": "A regression test stops the bug from sneaking back, for example when someone brings OFFSET back to make the code shorter."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "u38-l3",
+      "kind": "interview",
+      "title": "Defend your code",
+      "items": [
+        {
+          "id": "u38-l3-i1",
+          "type": "say",
+          "src": "s1",
+          "text": "Let me think out loud for a second. The event can arrive twice, so I want the database, not my code, to decide what a duplicate is."
+        },
+        {
+          "id": "u38-l3-i2",
+          "type": "explain",
+          "src": "s15",
+          "seconds": 120,
+          "q": "Why did you choose a unique constraint instead of checking first?",
+          "model": "Because a check followed by an insert is a race. SuccessFactors can retry while the first request is still running, and two instances of the service can both run the check, both see nothing and both insert. The database is the only place that sees both requests, so I let it decide. It checks the unique constraint on event_id for every insert, and INSERT with ON CONFLICT DO NOTHING and RETURNING tells me in one statement whether this request inserted the row. No row back means a duplicate. Two details matter, and we met both today. First, the key must be right: a NULL in a key column lets duplicates in, because NULLs are distinct by default. Second, the row only proves that we received the event, not that CPI got it, so I keep a status and forward again while it is not FORWARDED.",
+          "keypoints": [
+            {
+              "text": "A check followed by an insert is a race",
+              "kw": [
+                "race",
+                "race condition",
+                "concurrent",
+                "same time",
+                "both"
+              ]
+            },
+            {
+              "text": "The database enforces the unique constraint",
+              "kw": [
+                "database",
+                "constraint",
+                "unique",
+                "atomic",
+                "atomically"
+              ]
+            },
+            {
+              "text": "ON CONFLICT DO NOTHING with RETURNING tells you whether you inserted",
+              "kw": [
+                "on conflict",
+                "do nothing",
+                "returning"
+              ]
+            },
+            {
+              "text": "Choose the key carefully: NULLs are distinct",
+              "kw": [
+                "null",
+                "nulls",
+                "key",
+                "nulls not distinct"
+              ]
+            },
+            {
+              "text": "The row proves receipt, not delivery: keep a status",
+              "kw": [
+                "status",
+                "forwarded",
+                "delivery",
+                "delivered",
+                "received"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u38-l3-i3",
+          "type": "why",
+          "src": "s14",
+          "q": "The interviewer pushes back: 'You said the constraint stops duplicates. A hire that was entered without an offer was retried. Why are there two rows?'",
+          "lang": "sql",
+          "code": "CREATE TABLE hire (\n  id             bigserial PRIMARY KEY,\n  application_id text NOT NULL,\n  offer_id       text,        -- NULL when the recruiter hires without an offer letter\n  UNIQUE (application_id, offer_id)\n);\nINSERT INTO hire (application_id, offer_id) VALUES ('A-100', 'O-7')\nON CONFLICT DO NOTHING;\nINSERT INTO hire (application_id, offer_id) VALUES ('A-100', 'O-7')\nON CONFLICT DO NOTHING;     -- the retry\nINSERT INTO hire (application_id, offer_id) VALUES ('A-200', NULL)\nON CONFLICT DO NOTHING;\nINSERT INTO hire (application_id, offer_id) VALUES ('A-200', NULL)\nON CONFLICT DO NOTHING;     -- the retry\nSELECT application_id, offer_id, count(*) FROM hire GROUP BY 1, 2 ORDER BY 1;",
+          "happened": "The four inserts report INSERT 0 1, INSERT 0 0, INSERT 0 1 and INSERT 0 1.\nA-100 with O-7 has 1 row; A-200 with no offer has 2 rows.",
+          "options": [
+            "By default, two NULLs are not equal in a unique constraint, so (A-200, NULL) never conflicts with another (A-200, NULL).",
+            "ON CONFLICT DO NOTHING without a column list ignores the constraint, so every row is inserted.",
+            "A unique constraint on two columns checks only the first column.",
+            "The retry ran in another transaction, so it could not see the first row yet."
+          ],
+          "answer": 0,
+          "why": "PostgreSQL treats NULLs as distinct in a unique constraint by default, so a NULL in any key column lets duplicates in. Ask what really identifies a hire: if it is the application, make application_id the key; if offer_id must be part of it, use UNIQUE NULLS NOT DISTINCT.",
+          "fix": "-- a hire happens once per application: make that the key\nALTER TABLE hire ADD CONSTRAINT hire_application_uk UNIQUE (application_id);\n-- or, if offer_id really belongs in the key:\n-- UNIQUE NULLS NOT DISTINCT (application_id, offer_id)\n-- now the retry of A-200 reports INSERT 0 0"
+        },
+        {
+          "id": "u38-l3-i4",
+          "type": "say",
+          "src": "s1",
+          "text": "Can I check one assumption? When SuccessFactors retries, does it send the same event ID? That decides which column gets the unique constraint."
+        },
+        {
+          "id": "u38-l3-i5",
+          "type": "why",
+          "src": "s13",
+          "q": "In the running service, a hire without a start date still gets a 500, although the handler for InvalidHireException returns 400. Why does this test pass?",
+          "lang": "java",
+          "code": "class InvalidHireException extends RuntimeException {\n    InvalidHireException(String message) { super(message); }\n}\nrecord HireEvent(String applicationId, LocalDate startDate) {}\n\nstatic void validate(HireEvent e) {\n    if (e.startDate().isBefore(LocalDate.of(2000, 1, 1))) {\n        throw new InvalidHireException(\"startDate is too old\");\n    }\n    if (e.startDate() == null) {\n        throw new InvalidHireException(\"startDate is missing\");\n    }\n}\n\n@Test\nvoid rejectsHireWithoutStartDate() {\n    assertThrows(RuntimeException.class,\n        () -> validate(new HireEvent(\"A-100\", null)));\n}",
+          "happened": "JUnit: rejectsHireWithoutStartDate() passes.\n[ 1 tests successful ]  [ 0 tests failed ]",
+          "options": [
+            "assertThrows also accepts subclasses, and the NullPointerException from startDate().isBefore(...) is a RuntimeException, so the test passes before the null check runs.",
+            "JUnit counts a test that throws a NullPointerException as skipped, and skipped tests are reported as passed.",
+            "assertThrows only checks that the lambda compiles, so validate is never called.",
+            "A record replaces a null LocalDate with LocalDate.MIN, so validate throws startDate is too old."
+          ],
+          "answer": 0,
+          "why": "assertThrows passes for the expected type or any subclass of it, so a very general type hides which exception was really thrown. Expect InvalidHireException and check its message: the test then fails until the null check comes first.",
+          "fix": "InvalidHireException e = assertThrows(InvalidHireException.class,\n    () -> validate(new HireEvent(\"A-100\", null)));\nassertEquals(\"startDate is missing\", e.getMessage());\n// fails now: Unexpected exception type thrown,\n//   expected: <InvalidHireException> but was: <java.lang.NullPointerException>"
+        },
+        {
+          "id": "u38-l3-i6",
+          "type": "explain",
+          "src": "s5",
+          "seconds": 120,
+          "q": "This passes the test. How do you know it is correct?",
+          "model": "Honestly, a green test alone doesn't prove much. We just saw one that passed because it accepted any RuntimeException, and the exception came from the wrong line. So I check three things. First, did I see the test fail before the fix? A regression test should fail while the bug is still there; if it never failed, it may not test the bug at all. Second, does it check the exact outcome, such as the exception type, the message, the status code or the rows in the table, and not just that something happened? Third, does it cover the edge cases we found: a missing field, a retry with the same event ID, and more than one page, so 250 hires instead of 50. A quick extra check is to break the code on purpose and see the test go red. And I say what it doesn't prove yet, for example behaviour under concurrent retries.",
+          "keypoints": [
+            {
+              "text": "See the test fail before the fix",
+              "kw": [
+                "fail",
+                "failed",
+                "red",
+                "before the fix"
+              ]
+            },
+            {
+              "text": "Assert the exact outcome, not just any exception",
+              "kw": [
+                "exact",
+                "specific",
+                "type",
+                "message",
+                "status code"
+              ]
+            },
+            {
+              "text": "Cover the edge cases",
+              "kw": [
+                "edge case",
+                "edge cases",
+                "missing",
+                "retry",
+                "page",
+                "250"
+              ]
+            },
+            {
+              "text": "Break the code on purpose",
+              "kw": [
+                "break",
+                "on purpose",
+                "mutation"
+              ]
+            },
+            {
+              "text": "Say what the test does not prove",
+              "kw": [
+                "doesn't prove",
+                "does not prove",
+                "concurrent",
+                "concurrency",
+                "limits"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u38-l3-i7",
+          "type": "scenario",
+          "src": "s2",
+          "q": "You have been quiet for two minutes, and the test still fails. The interviewer asks: 'What are you thinking?'",
+          "options": [
+            {
+              "text": "Say what you know and your next check: 'The row is there but still RECEIVED, so my hypothesis is that the update never runs. I'll log the response code to check.'",
+              "ok": true,
+              "why": "It turns the silence into a shared debugging step, and the interviewer can confirm your idea or give you a hint."
+            },
+            {
+              "text": "Say 'Give me a minute, I nearly have it' and keep working quietly.",
+              "ok": false,
+              "why": "The interviewer still cannot see your reasoning, and you lose the chance of a useful hint."
+            },
+            {
+              "text": "Rewrite the method from scratch in another style, hoping the bug disappears.",
+              "ok": false,
+              "why": "Without a hypothesis you may hide the bug instead of understanding it, and you lose time."
+            },
+            {
+              "text": "Apologise and ask the interviewer to tell you the answer.",
+              "ok": false,
+              "why": "Asking for help is fine, but ask a specific question about one assumption, so that you still show how you think."
+            }
+          ]
+        },
+        {
+          "id": "u38-l3-i8",
+          "type": "say",
+          "src": "s4",
+          "text": "My first hypothesis is that the value is set on another thread. Let me add one log line to check that before I change anything."
+        },
+        {
+          "id": "u38-l3-i9",
+          "type": "explain",
+          "src": "s4",
+          "seconds": 150,
+          "q": "Walk me through how you found the bug.",
+          "model": "I followed the same loop each time. First I reproduced it: I pointed the service at a local stub instead of CPI and sent one hire event. The stub logged the request without X-Correlation-Id, so I had split the problem in half: the header was lost inside our service, not in the iFlow. Then I read the code path and formed one hypothesis. The ID lives in a ThreadLocal, and the forward runs on a pool thread, where nobody set the value. The smallest check was one log line in forward with the thread name and the value. It printed a pool thread and null, so the hypothesis held. I fixed the root cause, not the symptom: I read the value on the request thread and pass it to the task as a parameter. Finally I added a regression test in which the stub asserts that the header arrives, and I saw it fail before the fix.",
+          "keypoints": [
+            {
+              "text": "Reproduce it with a local stub",
+              "kw": [
+                "reproduce",
+                "reproduced",
+                "stub"
+              ]
+            },
+            {
+              "text": "Split the problem in half: our service or CPI",
+              "kw": [
+                "half",
+                "split",
+                "bisect",
+                "bisection",
+                "inside our service"
+              ]
+            },
+            {
+              "text": "One hypothesis: the ThreadLocal is on another thread",
+              "kw": [
+                "hypothesis",
+                "threadlocal",
+                "thread-local",
+                "thread"
+              ]
+            },
+            {
+              "text": "The smallest check: one log line",
+              "kw": [
+                "log",
+                "log line",
+                "check",
+                "printed"
+              ]
+            },
+            {
+              "text": "Fix the root cause: pass the value as a parameter",
+              "kw": [
+                "root cause",
+                "parameter",
+                "pass"
+              ]
+            },
+            {
+              "text": "A regression test that failed first",
+              "kw": [
+                "regression",
+                "test",
+                "fail"
+              ]
+            }
+          ]
+        },
+        {
+          "id": "u38-l3-i10",
+          "type": "explain",
+          "src": "s16",
+          "seconds": 150,
+          "q": "What changes if the volume goes up ten times?",
+          "model": "Let me put numbers on it first. If a busy day today is 2,000 hires, ten times is 20,000, which is about one event every four seconds on average. But hiring has peaks, for example at the start of a month, so I look for the first bottleneck instead of rewriting everything. The forward to CPI is the slowest step, so I keep the endpoint short: store the event, answer quickly, and let a relay or the replay job send it with a strict timeout. The replay must use keyset paging, because the rows skipped by a large OFFSET still have to be computed. If we run several instances of it, each one takes rows with FOR UPDATE SKIP LOCKED, so two instances never send the same hire. I also check the connection pool and ask the CPI team about their limits. The trade-off is more moving parts, so I add them only when the numbers show we need them.",
+          "keypoints": [
+            {
+              "text": "Put numbers on it first",
+              "kw": [
+                "numbers",
+                "per day",
+                "per second",
+                "seconds",
+                "estimate",
+                "peak",
+                "peaks"
+              ]
+            },
+            {
+              "text": "Find the first bottleneck",
+              "kw": [
+                "bottleneck",
+                "slowest"
+              ]
+            },
+            {
+              "text": "Answer fast and forward asynchronously with a timeout",
+              "kw": [
+                "relay",
+                "replay",
+                "asynchronous",
+                "asynchronously",
+                "timeout"
+              ]
+            },
+            {
+              "text": "Keyset paging instead of a large OFFSET",
+              "kw": [
+                "keyset",
+                "offset",
+                "paging"
+              ]
+            },
+            {
+              "text": "SKIP LOCKED when several instances run",
+              "kw": [
+                "skip locked",
+                "for update",
+                "instances"
+              ]
+            },
+            {
+              "text": "Name the trade-off",
+              "kw": [
+                "trade-off",
+                "tradeoff",
+                "complexity",
+                "moving parts"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "cheatsheet": {
+    "sections": [
+      {
+        "h": "Start the session well",
+        "points": [
+          "Repeat the task in one sentence, then ask the questions that change the design: retries, required fields, volume.",
+          "When you don't ask, say the assumption aloud: I'll assume the event ID is the same on every retry.",
+          "Write the simplest working version first, with one happy-path test, then improve it step by step.",
+          "Think aloud: what you try, what you expect, what you have just learned. Name the trade-off before you are asked."
+        ]
+      },
+      {
+        "h": "The debugging loop",
+        "points": [
+          "Reproduce it with the same input and the smallest setup, for example a local stub instead of CPI.",
+          "Read the exact error and the whole stack trace: the real cause is often in the last Caused by section.",
+          "One hypothesis at a time, tested with the smallest check: one log line, one query, one extra test row.",
+          "Fix the root cause, not the symptom: a try/catch or a null check at the failing line hides bad input.",
+          "Add a regression test that fails before the fix and passes after it."
+        ]
+      },
+      {
+        "h": "Edge cases to try live",
+        "points": [
+          "null and missing fields: a switch on a null selector throws NullPointerException, and default does not match null. Java 21 has case null.",
+          "The last partial batch: subList(i, Math.min(i + size, list.size())).",
+          "Trailing empty fields: split(regex) drops them; split(regex, -1) keeps them.",
+          "The same event twice, and a retry after a failure in the middle of the work.",
+          "More than one page: test with 250 rows, not 50."
+        ]
+      },
+      {
+        "h": "Bugs from the session and their fixes",
+        "points": [
+          "A wrapped exception without its cause loses the details: pass e to the new exception.",
+          "Insert first, forward second: the row proves receipt, not delivery. Keep a status and forward while it is not FORWARDED.",
+          "OFFSET over rows that you are updating skips rows: page with id > :last_id.",
+          "HttpClient: connectTimeout only covers opening the connection; without timeout() on the request, send waits with no limit.",
+          "A ThreadLocal value stays on its thread: read it on the request thread and pass it to the task.",
+          "UNIQUE (a, b) lets duplicates in when b is NULL: choose the right key, or use UNIQUE NULLS NOT DISTINCT."
+        ]
+      },
+      {
+        "h": "Defend your code",
+        "points": [
+          "Unique constraint, not check-then-insert: only the database sees both concurrent requests.",
+          "A passing test proves little until you have seen it fail. assertThrows accepts subclasses, so expect the exact type and check the message.",
+          "Ten times the volume: numbers first, then the first bottleneck; keyset paging, and SKIP LOCKED for several workers.",
+          "Phrases: Let me think out loud for a second. My first hypothesis is... Can I check one assumption?"
+        ]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "id": "s1",
+      "title": "Preparing for Google technical internship interviews (PDF guide) - Google",
+      "url": "https://services.google.com/fh/files/misc/preparing_for_google_technical_internship_interviews.pdf",
+      "official": false
+    },
+    {
+      "id": "s2",
+      "title": "Preparing for your software engineering interview at Meta - Meta Careers blog",
+      "url": "https://www.metacareers.com/blog/preparing-for-your-software-engineering-interview-at-meta/",
+      "official": false
+    },
+    {
+      "id": "s3",
+      "title": "SDE II Interview Prep - Amazon Jobs",
+      "url": "https://amazon.jobs/content/en/how-we-hire/sde-ii-interview-prep",
+      "official": false
+    },
+    {
+      "id": "s4",
+      "title": "Effective Troubleshooting - Site Reliability Engineering (Google SRE book)",
+      "url": "https://sre.google/sre-book/effective-troubleshooting/",
+      "official": true
+    },
+    {
+      "id": "s5",
+      "title": "Testing for Reliability - Site Reliability Engineering (Google SRE book)",
+      "url": "https://sre.google/sre-book/testing-reliability/",
+      "official": true
+    },
+    {
+      "id": "s6",
+      "title": "Bug Reporting Guidelines - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/bug-reporting.html",
+      "official": true
+    },
+    {
+      "id": "s7",
+      "title": "Throwable (Java SE 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/Throwable.html",
+      "official": true
+    },
+    {
+      "id": "s8",
+      "title": "Pattern, split methods (Java SE 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/util/regex/Pattern.html",
+      "official": true
+    },
+    {
+      "id": "s9",
+      "title": "JEP 441: Pattern Matching for switch - OpenJDK",
+      "url": "https://openjdk.org/jeps/441",
+      "official": true
+    },
+    {
+      "id": "s10",
+      "title": "HttpRequest.Builder (Java SE 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpRequest.Builder.html",
+      "official": true
+    },
+    {
+      "id": "s11",
+      "title": "HttpClient.Builder (Java SE 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.net.http/java/net/http/HttpClient.Builder.html",
+      "official": true
+    },
+    {
+      "id": "s12",
+      "title": "ThreadLocal (Java SE 25 API)",
+      "url": "https://docs.oracle.com/en/java/javase/25/docs/api/java.base/java/lang/ThreadLocal.html",
+      "official": true
+    },
+    {
+      "id": "s13",
+      "title": "Assertions (JUnit 6.1.3 API)",
+      "url": "https://docs.junit.org/current/api/org.junit.jupiter.api/org/junit/jupiter/api/Assertions.html",
+      "official": true
+    },
+    {
+      "id": "s14",
+      "title": "Constraints (unique constraints and NULLS NOT DISTINCT) - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/ddl-constraints.html",
+      "official": true
+    },
+    {
+      "id": "s15",
+      "title": "INSERT (ON CONFLICT and RETURNING) - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/sql-insert.html",
+      "official": true
+    },
+    {
+      "id": "s16",
+      "title": "LIMIT and OFFSET - PostgreSQL 18 documentation",
+      "url": "https://www.postgresql.org/docs/current/queries-limit.html",
+      "official": true
+    }
+  ]
+}
