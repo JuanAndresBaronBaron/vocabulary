@@ -346,6 +346,10 @@ compartida no responde).
   de temas (Soldados y Programadores, `data/programadores.json`) y la de «Deportes de combate» (gimnasio, muay thai,
   kickboxing, lucha y jiu-jitsu, `data/<id>.json`: datos completos, sin repetidos, y el pajarito con Muay Thai);
   capturas en `capturas/pajarito`.
+- `test_topos.py` (`js/topos.js`, «Topos»): la tarjeta en Juegos, el prado de 2 × 3 en el celular (360 y 390 px,
+  topo ≥ 96 px, hasta abajo, el bocadillo nunca más ancho que su agujero) y de 3 × 3 en el ordenador; golpear un topo
+  bueno (+1, ✓, suena) y uno malo (✗ y su español); el letrero «bien escritos» con faltas que nunca son palabras del
+  tema; la pausa que para el reloj; el final con récord; francés y danés con otro tema. Capturas en `capturas/topos`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

@@ -14,7 +14,7 @@
    Al subir VERSION se sube también OFF_SHELL y el «?v=» de los <script> de index.html y privacy.html: GitHub Pages manda
    max-age=600 y, sin eso, el sw anterior (que pide a la red con la caché HTTP) daría el index.html nuevo con módulos
    viejos de esa caché. El shell se guarda y se busca sin el «?v=». */
-const VERSION = 35;
+const VERSION = 36;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
 const SHELL = [
@@ -46,7 +46,7 @@ const SHELL = [
   "data/gimnasio.json", "data/muaythai.json", "data/kickboxing.json", "data/lucha.json", "data/jiujitsu.json",
   "js/tech-boot.js", "js/tech.js", "js/tech-lesson.js",
   "js/tech-pages.js",
-  "js/flyer.js", "img/games/pajarito.png", "img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg",
+  "js/flyer.js", "img/games/pajarito.png", "img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg", "js/topos.js", "img/games/topos.png",
   "js/ielts-boot.js", "ielts.html", "ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js", "data/ielts/index.json",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */
