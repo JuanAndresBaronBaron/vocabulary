@@ -498,8 +498,10 @@ async function start(app, api, mode){
     const n = document.createElement("span");
     n.className = "cu-neu" + (gray ? " gray" : "");
     n.textContent = txt;
-    n.style.left = Math.max(56, Math.min(W - 56, x)) + "px"; n.style.top = Math.max(34, y) + "px";
+    n.style.top = Math.max(34, y) + "px";
     field.appendChild(n);
+    const hw = n.offsetWidth / 2 + 6;   /* el letrero entero dentro del campo (offsetWidth no cuenta el translate) */
+    n.style.left = Math.max(hw, Math.min(W - hw, x)) + "px";
     api.later(run, () => n.remove(), 1000);
   }
 
@@ -623,13 +625,18 @@ async function start(app, api, mode){
     for(const d of [0, -1, 1, -2, 2]){ const q = byL[lv + d]; if(q && q.length) return q.shift(); }
     return pick(P);
   }
+  const core = s => String(s || "").toLowerCase().replace(/\s*\([^)]*\)/g, "").replace(/[!?¡¿.,]/g, "")
+    .replace(/^(?:the|an?|le|la|les|une?|l['’]|en|et)\s*/, "").trim();
   function distract(it, n){
-    const lw = it.word.toLowerCase(), le = it.es.toLowerCase();
-    const ok = x => x !== it && x.word.toLowerCase() !== lw && x.es.toLowerCase() !== le && x.img !== it.img;
+    const lw = it.word.toLowerCase(), le = it.es.toLowerCase(), cw = core(it.word);
+    /* nada que contenga la otra (Reçu / Bien reçu, sergeant / staff sergeant): las dos serían «bien» */
+    const near = (a, b) => { const ta = a.split(/[\s-]+/).filter(Boolean), tb = b.split(/[\s-]+/).filter(Boolean);
+      return ta.length > 0 && tb.length > 0 && (ta.every(t => tb.includes(t)) || tb.every(t => ta.includes(t))); };
+    const ok = x => x !== it && x.word.toLowerCase() !== lw && x.es.toLowerCase() !== le && x.img !== it.img && !near(core(x.word), cw);
     const out = [];
     for(const x of [...mix(P.filter(x => ok(x) && lvOf(x) === lvOf(it))), ...mix(P.filter(x => ok(x) && lvOf(x) !== lvOf(it)))]){
       if(out.length >= n) break;
-      if(out.some(o => o.img === x.img || o.word.toLowerCase() === x.word.toLowerCase() || o.es.toLowerCase() === x.es.toLowerCase())) continue;
+      if(out.some(o => o.img === x.img || o.word.toLowerCase() === x.word.toLowerCase() || o.es.toLowerCase() === x.es.toLowerCase() || near(core(o.word), core(x.word)))) continue;
       out.push(x);
     }
     return out;
@@ -676,7 +683,7 @@ async function start(app, api, mode){
     asked.set(it.k, o);
     api.answer(ok, {es: it.es, word: it.word});
     const fb = rlc.querySelector("#cu-fb"), wl = `<b lang="${esc(code)}">${esc(it.word)}</b>${ipa(it.ipa, code)}`;
-    let bonus = false;
+    let bonus = false, add = 0;
     if(ok){
       right++; streak++;
       bonus = streak % 3 === 0;
@@ -685,11 +692,11 @@ async function start(app, api, mode){
       fb.innerHTML = `${wl}<small>¡Bien! ${bonus ? "Cargador lleno y 2 balas extra por 3 seguidas." : "Cargador lleno."}</small>`;
     } else {
       streak = 0;
-      mag = Math.min(MAG, mag + 2);
+      add = Math.max(0, Math.min(2, MAG - mag)); mag += add;
       retry.push({it, at: qn + 2});
-      fb.innerHTML = `Era esta: ${wl}<small>${esc(it.es)} · Solo entran 2 balas.</small>`;
+      fb.innerHTML = `Era esta: ${wl}<small>${esc(it.es)} · ${add === 1 ? "Solo entra 1 bala." : `Solo entran ${add} balas.`}</small>`;
     }
-    bonusMsg = ok ? (bonus ? "bonus" : "ok") : "no";
+    bonusMsg = ok ? (bonus ? "bonus" : "ok") : add === 1 ? "no1" : "no";
     paintMag(true);
     api.speak(it.word);
     const go = rlc.querySelector("#cu-go"); go.hidden = false;
@@ -705,7 +712,7 @@ async function start(app, api, mode){
     if(quiet || ended) return;
     if(bonusMsg === "bonus") radio("supplies", "+2 balas extra", false);
     else if(bonusMsg === "ok") radio("copy", "cargador lleno", false);
-    else if(bonusMsg === "no") radio("again", "solo 2 balas", false);
+    else if(bonusMsg === "no" || bonusMsg === "no1") radio("again", bonusMsg === "no1" ? "solo 1 bala" : "solo 2 balas", false);
     bonusMsg = false;
     if(api.kbd()) try{ stage.focus({preventScroll: true}); }catch(e){}
   }

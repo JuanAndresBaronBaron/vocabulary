@@ -81,6 +81,9 @@ function gridOf(base, min, max){
   if(g.length < min || g.length > max || !g.every(ch => ch.length === 1 && abc.includes(ch))) return null;
   return g.map(ch => ch.toUpperCase());
 }
+/* la pista en español no puede ser ya la respuesta (Portugal, radio, robot…) */
+const fold = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, "");
+const sameEs = it => fold(splitArt(it.word).base) === fold(it.es);
 const okItem = it => !!(it && typeof it.word === "string" && it.word.trim() && typeof it.es === "string" && it.es.trim() && it.img);
 /* las palabras del tema que caben en una rejilla, sin repetir */
 function gridCands(P, min, max){
@@ -351,7 +354,7 @@ const RIG_FRONT = `<svg class="wp-rig-f" viewBox="0 0 200 266" aria-hidden="true
   <path d="M30,203 V212 M170,203 V212" stroke="#1b1b1b" stroke-width="3" stroke-linecap="round"/></svg>`;
 
 const adFit = it => {
-  if(!okItem(it)) return false;
+  if(!okItem(it) || sameEs(it)) return false;
   const {base} = splitArt(it.word), ch = [...base], abc = ABC();
   const hid = ch.filter(c => isL(c) && abc.includes(key1(c)));
   if(hid.length < 3 || ch.length > 16 || !ch.every(c => !isL(c) || abc.includes(key1(c)))) return false;
@@ -488,7 +491,7 @@ async function adivina(app, api, mode){
       if(bls[b]){ bls[b].classList.add("pop"); sts[b].classList.add("pop"); }
       api.snd("tap");
       if(S.miss >= LIVES) lose();
-      else { place(); tellLive(run, `La ${l.toUpperCase()} no está. Quedan ${plural(LIVES - S.miss, "globo", "globos")}`); }
+      else { place(); tellLive(run, `La ${l.toUpperCase()} no está. ${LIVES - S.miss === 1 ? "Queda" : "Quedan"} ${plural(LIVES - S.miss, "globo", "globos")}`); }
     }
   }
   function win(){
@@ -780,7 +783,13 @@ async function sopa(app, api, mode){
     cellEls[cur].tabIndex = -1; cur = i; cellEls[i].tabIndex = 0;
     if(focus) try{ cellEls[i].focus({preventScroll: true}); }catch(e){}
   }
-  listEl.addEventListener("click", e => { const b = e.target.closest(".wp-li"); if(b) api.speak(words[+b.dataset.w].it.word); });
+  listEl.addEventListener("click", e => {
+    const b = e.target.closest(".wp-li"); if(!b) return;
+    const it = words[+b.dataset.w].it;
+    api.speak(it.word);
+    st.className = "wp-sp-st";
+    st.innerHTML = `<b lang="${esc(code)}">${esc(it.word)}</b>${ipaOf(it)}<small>= ${esc(it.es)}</small>`;
+  });
 
   function end(){
     if(ended) return;
@@ -840,7 +849,7 @@ async function sopa(app, api, mode){
 const CW_MAX = 7;
 /* la tecla de borrar (el sprite de iconos no la tiene) */
 const BACK = `<svg class="ico" width="26" height="26" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M8.5 5H19a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8.5L2.5 12Z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><path d="M11.5 9.5l5 5M16.5 9.5l-5 5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
-const cwFit = it => okItem(it) && !!gridOf(splitArt(it.word).base, 3, 9);
+const cwFit = it => okItem(it) && !sameEs(it) && !!gridOf(splitArt(it.word).base, 3, 9);
 /* una colocación: la primera palabra de lado y cada otra cruzando alguna ya puesta (la mejor de todas sus posiciones:
    más cruces y menos sitio); las que no caben se quedan fuera */
 function cwTry(pool, maxC, maxR){
@@ -971,7 +980,7 @@ async function crucigrama(app, api, mode){
     const w = words[sel.w], on = new Set(w.cells), curC = w.cells[sel.k];
     cmap.forEach(c => {
       c.el.lastChild.textContent = c.val;
-      c.el.className = "wp-cc" + (c.lock === "ok" ? " ok" : c.lock === "hint" ? " hint" : "") + (c.no ? " no" : "") + (on.has(c) ? " sel" : "") + (c === curC && !ended ? " cur" : "");
+      c.el.className = "wp-cc" + (c.lock === "ok" ? " ok" : c.lock === "hint" ? " hint" : "") + (c.no ? " no" : "") + (on.has(c) ? " sel" : "") + (c === curC && !ended ? " cur" : "") + (c.el.classList.contains("win") ? " win" : "");
       c.el.setAttribute("aria-label", `${c.n ? c.n + ". " : ""}${c.val || "vacía"}`);
     });
     clueEls.forEach((el, i) => { el.classList.toggle("on", i === sel.w); el.classList.toggle("done", words[i].done); });
@@ -1152,6 +1161,8 @@ async function crucigrama(app, api, mode){
   select(0, 0);
   cs.textContent = "";
   fit(); requestAnimationFrame(fit); api.later(run, fit, 280);
+  /* con el ratón, las casillas, las teclas y «Pista» no se quedan el foco: así Enter sigue siendo «siguiente palabra» */
+  root.addEventListener("mousedown", e => { if(e.target.closest && e.target.closest(".wp-cc,.wp-key,#wp-hint,.wp-clue")) e.preventDefault(); });
   api.intro(run, CW, () => {
     started = true; fit();
     api.keys(run, e => {
@@ -1173,7 +1184,7 @@ async function crucigrama(app, api, mode){
 const reg = (id, def) => window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(id, Object.assign({topic: true, sec: "palabras", fresh: true}, def));
 if(!reg(AD, {
   t: "Adivina la palabra", sub: "Salva los globos", img: "img/games/adivina.png",
-  how: "Mira el dibujo y piensa cómo se dice. Toca letras: si está, aparece en su sitio. Si no está, se pincha un globo. ¡Adivina la palabra antes de que la cesta llegue a la hierba!",
+  how: "Mira el dibujo y piensa cómo se dice. Toca una letra: si está, aparece en su sitio. Si no está, se pincha un globo. ¡Adivina la palabra antes de que la cesta llegue a la hierba!",
   rec: b => `${num(b.score)} de ${AD_N}`,
   start: adivina,
 })) console.warn("[wordplay] no se pudo añadir «Adivina la palabra» a Juegos");

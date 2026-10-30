@@ -767,7 +767,7 @@ async function verdadero(app, api, mode){
     if(!cur || cur.done) return;
     cur.done = true; streak = 0; paintStreak();
     card.classList.add("bad");
-    ans.innerHTML = `<span>${cur.ok ? "¡Rápido! Sí era" : "¡Rápido! Era"}</span><span>${wordIpa(cur.it)}</span>`;
+    ans.innerHTML = `<span>${cur.ok ? "¡Tiempo! Sí era" : "¡Tiempo! Era"}</span><span>${wordIpa(cur.it)}</span>`;
     api.answer(false, cur.it); seen.add(cur.it, true); api.speak(cur.it.word);
     api.later(run, dealCard, 1700);
   }
@@ -940,7 +940,7 @@ async function cajas(app, api, mode){
   }
   function choose(i){
     const b = cur;
-    if(!b || b.type !== "q" || b.done || run.paused || !(i >= 0 && i < b.opts.length)) return;
+    if(!b || b.type !== "q" || !b.opts || b.done || run.paused || !(i >= 0 && i < b.opts.length)) return;
     b.done = true;
     const ok = i === b.ans, f = pop.querySelector("#bx-fb"), os = [...pop.querySelectorAll(".bx-o")];
     os.forEach((o, k) => { o.disabled = true; o.classList.add(k === b.ans ? "ok" : k === i ? "no" : "dim"); });
@@ -993,7 +993,10 @@ async function cajas(app, api, mode){
   function typed(d){
     clearTimeout(bufT);
     buf += d;
-    if(buf === "1"){ tt.textContent = "Caja 1…"; bufT = api.later(run, () => { const n = +buf; buf = ""; openBox(B[n - 1]); }, 700); return; }
+    if(buf === "1"){ tt.textContent = "Caja 1…"; bufT = api.later(run, () => {
+      const n = +buf, b = B[n - 1]; buf = "";
+      if(b && !b.open) openBox(b); else if(!busy) tt.textContent = left === 1 ? "¡Queda una caja!" : `Quedan ${left} cajas.`;
+    }, 700); return; }
     let n = +buf; buf = "";
     if(n > NB || n < 1){ if(d === "0" || d === "1") return; n = +d; }
     openBox(B[n - 1]);
@@ -1174,8 +1177,8 @@ async function flechas(app, api, mode){
         wrong.forEach(p => { links.delete(p); shown.add(p); const t = tile("w", p); if(t) t.classList.add("good"); });
         paint();
         wrong.forEach(p => { const t = tile("w", p); if(t) t.classList.add("good"); });
+        api.later(run, nextRound, 2500);   /* encadenado: con la pausa en medio, la corrección se ve igual */
       }, 1300);
-      api.later(run, nextRound, 3800);
     }
   }
   function nextRound(){

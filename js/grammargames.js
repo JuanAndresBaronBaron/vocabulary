@@ -32,7 +32,7 @@ const code = () => (LANGS[lang] || LANGS.english).code;
 const num = v => Number.isFinite(+v) ? +v : 0;
 const shuf = a => { const b = [...a]; for(let i = b.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
 /* el **negrita** de algunos resúmenes */
-const md = s => esc(String(s || "")).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/(^|\s)-(?=\p{L})/gu, "$1-⁠");   /* «-ene» sin partirse tras el guion */
+const md = s => esc(String(s || "")).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").replace(/\*([^*\s][^*]*?)\*/g, "<i>$1</i>").replace(/(^|\s)-(?=\p{L})/gu, "$1-⁠");   /* «-ene» sin partirse tras el guion */
 const starsOf = (ok, n) => { const r = n ? ok / n : 0; return r >= .85 ? 3 : r >= .6 ? 2 : 1; };
 
 /* ---------- el nivel (por idioma) ---------- */
@@ -78,8 +78,22 @@ function pieces(t){
   if(carry){ if(out.length) out[out.length - 1] += NB + carry.trim(); else out.push(carry.trim()); }
   return out;
 }
+/* Completa: si una palabra no cabe entera en su botón (se partiría: childre|n), las opciones van una debajo de otra */
+function fitOps(box){
+  if(!box || !box.isConnected) return;
+  box.classList.remove("long");
+  const op = box.querySelector(".gg-op"); let wide = false;
+  if(op){
+    const cs = getComputedStyle(op), room = op.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
+    const cx = (fitOps.cv || (fitOps.cv = document.createElement("canvas"))).getContext("2d");
+    cx.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    wide = [...box.querySelectorAll(".gg-op > span")].some(sp => sp.textContent.split(/\s+/).some(w => cx.measureText(w).width > room));
+  }
+  box.classList.toggle("long", box.dataset.long === "1" || wide);
+}
 /* la frase de q con una opción en el hueco: {pre, mid, post, full}. «–» = nada (sin artículo); «'ll» va pegado */
 const NONE = o => /^[–—-]?$/.test(String(o).trim());
+const ELI = /(?:^|\s)(?:[cdjlmnst]|\p{L}*qu)['’]$/iu;
 function fill(s, o){
   const i = s.indexOf("___");
   if(i < 0) return {pre: s, mid: "", post: "", full: s, none: false};
@@ -90,7 +104,10 @@ function fill(s, o){
     if(!pre.trim()){ post = post.replace(/^\s+/, ""); post = post.charAt(0).toUpperCase() + post.slice(1); }
     else if(/\s$/.test(pre) && /^\s/.test(post)) post = post.replace(/^\s+/, "");
     else if(/^[.,;:!?]/.test(post)) pre = pre.replace(/\s+$/, "");
-  } else if(/^['’]/.test(mid)) pre = pre.replace(/\s+$/, "");
+  } else {
+    if(/^['’]/.test(mid)) pre = pre.replace(/\s+$/, "");
+    if(ELI.test(mid)) post = post.replace(/^\s+/, "");   /* L'hôtel, J'écoute, n'aime (no «Lars' cykel») */
+  }
   return {pre, mid, post, full: pre + mid + post, none};
 }
 /* lo que se dice en voz alta: sin «→» ni comillas */
@@ -603,7 +620,7 @@ const completa = (app, api, mode) => frame(app, api, mode, {
     const S = F.cur = {it, done: false};
     let ci = Math.floor(Math.random() * WAGONS.length);
     const wg = t => `<div class="gg-wg" style="--c:${WAGONS[ci++ % WAGONS.length]}"><div class="gg-wb">${esc(t)}</div><i class="gg-rl"></i></div>`;
-    const long = it.o.some(o => o.length > 9);
+    const long = it.o.some(o => o.length > 9);   /* y fitOps mira si alguna palabra no cabe entera */
     F.q.classList.remove("in");
     F.q.innerHTML = `${F.chips(it.u)}
       <div class="gg-track" id="gg-track"><div class="gg-train${RM() ? "" : " in"}" id="gg-train" lang="${esc(c)}" role="group" aria-label="La frase">
@@ -612,15 +629,15 @@ const completa = (app, api, mode) => frame(app, api, mode, {
         ${W.after.map(wg).join("")}
         <div class="gg-loco">${LOCO}<i class="gg-rl"></i></div></div></div>
       <p class="gg-ask" id="gg-ask">¿Qué palabra va en el vagón vacío?</p>
-      <div class="gg-opts${long ? " long" : ""}" id="gg-opts" role="group" aria-labelledby="gg-ask" style="margin-top:8px">${it.o.map((o, i) => `<button type="button" class="gg-op" data-o="${i}" data-gk="${i + 1}" lang="${esc(c)}"${NONE(o) ? ' aria-label="Nada"' : ""}><kbd class="gg-k" aria-hidden="true">${i + 1}</kbd><span>${optLabel(o)}</span></button>`).join("")}</div>`;
+      <div class="gg-opts${long ? " long" : ""}" id="gg-opts" data-long="${long ? 1 : 0}" role="group" aria-labelledby="gg-ask" style="margin-top:8px">${it.o.map((o, i) => `<button type="button" class="gg-op" data-o="${i}" data-gk="${i + 1}" lang="${esc(c)}"${NONE(o) ? ' aria-label="Nada"' : ""}><kbd class="gg-k" aria-hidden="true">${i + 1}</kbd><span>${optLabel(o)}</span></button>`).join("")}</div>`;
     const train = F.q.querySelector("#gg-train");
-    rows(train);
+    rows(train); fitOps(F.q.querySelector("#gg-opts"));
     if(!F.rowsOn){
       F.rowsOn = true;
-      const onR = () => rows(F.q.querySelector("#gg-train"));
+      const onR = () => { rows(F.q.querySelector("#gg-train")); fitOps(F.q.querySelector("#gg-opts")); };
       addEventListener("resize", onR); F.run.clean.push(() => removeEventListener("resize", onR));
     }
-    api.later(F.run, () => rows(train), 250);
+    api.later(F.run, () => { rows(train); fitOps(F.q.querySelector("#gg-opts")); }, 250);
     if(train.classList.contains("in")) requestAnimationFrame(() => requestAnimationFrame(() => train.classList.remove("in")));
     const ops = [...F.q.querySelectorAll(".gg-op")];
     ops.forEach((b, i) => { b.ggOk = i === it.a; b.onclick = () => choose(i); });
@@ -674,7 +691,7 @@ const detective = (app, api, mode) => frame(app, api, mode, {
     F.enter();
     F.q.innerHTML = `${F.chips(it.u)}
       <div class="gg-case" id="gg-case"><span class="gg-lens">${LENS}</span><span><b class="gg-case-t" id="gg-case-t">¿Cuál está bien?</b>
-        <span class="gg-case-s">Solo una de las tres frases está bien. ¡Encuéntrala!</span></span></div>
+        <span class="gg-case-s">${it.q.es ? `Quiere decir: «${esc(it.q.es)}»` : "Solo una de las tres frases está bien. ¡Encuéntrala!"}</span></span></div>
       <div class="gg-notes" role="group" aria-labelledby="gg-case-t">${it.o.map((o, i) => `<button type="button" class="gg-nt" data-o="${i}" data-gk="${i + 1}" lang="${esc(c)}" aria-label="${esc(fill(it.q.s, o).full)}"><span class="gg-n" aria-hidden="true">${i + 1}</span>${noteHtml(it.q.s, o)}</button>`).join("")}</div>`;
     const notes = [...F.q.querySelectorAll(".gg-nt")];
     notes.forEach((b, i) => { b.ggOk = i === it.a; b.onclick = () => choose(i); });
@@ -720,7 +737,7 @@ if(!reg(COM, {
 })) console.warn("[grammargames] no se pudo añadir «Completa la frase» a Juegos");
 if(!reg(DET, {
   t: "Detective de errores", sub: "¿Qué frase está bien?", img: "img/games/detective.png",
-  how: "Hay tres frases y solo una está bien escrita. ¡Búscala con tu lupa! Tócala o pulsa 1, 2 o 3.",
+  how: "Hay tres frases y solo una está bien. Debajo de la lupa ves lo que quiere decir. ¡Búscala! Tócala o pulsa 1, 2 o 3.",
   rec: b => `${num(b.score)} de 10 casos`,
   start: detective,
 })) console.warn("[grammargames] no se pudo añadir «Detective de errores» a Juegos");

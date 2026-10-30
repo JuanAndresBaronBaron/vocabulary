@@ -851,7 +851,7 @@ const isLink = id => !!GAMES[id] && typeof GAMES[id].start !== "function" && typ
 /* ¿juega con el tema elegido? (los de aquí y los de otros módulos con def.topic) */
 const usesTopic = g => !!GAMES[g] && (!!GAMES[g].topic || (!GAMES[g].start && !GAMES[g].words && !GAMES[g].href));
 /* ¿sale su tarjeta con el tema elegido? (def.show(tema), p. ej. los juegos de soldados solo con «Soldados») */
-const shown = id => { const f = GAMES[id] && GAMES[id].show; try{ return typeof f !== "function" || !!f(topicId()); }catch(e){ return true; } };
+const shown = (id, tp = topicId()) => { const f = GAMES[id] && GAMES[id].show; try{ return typeof f !== "function" || !!f(tp); }catch(e){ return true; } };
 const offMsg = id => (GAMES[id] && GAMES[id].off) || "Se activa con otro tema";
 const offToast = id => toast(`${offMsg(id)}. Elígelo arriba, en «Tema».`, IC("lock", "bold", 20));
 /* con «Soldados», su sección va la primera; con los demás temas, en su sitio */
@@ -1021,7 +1021,7 @@ function peek(id, from){
 async function play(g, withIntro){
   const my = NAV, app = $("#app"), G0 = GAMES[g];
   /* un enlace directo a un juego que no se activa con este tema: de vuelta al menú, con el aviso */
-  if(!shown(g)){ offToast(g); location.replace("#/juegos"); return; }
+  if(!shown(g, hashTopic() || topicId())){ offToast(g); location.replace("#/juegos"); return; }   /* ?t=militar (atajos de Hoy) vale */
   const mode = !withIntro ? "" : !introSeen(g) ? "full" : tappedNow(g) ? "" : "ready";
   app.innerHTML = `<div class="gm"><p class="gm-wait">Preparando el juego…</p></div>`;
   if(typeof G0.start === "function"){   /* un juego de otro módulo (vocabGames.register) */
