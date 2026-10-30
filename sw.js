@@ -46,7 +46,7 @@ const SHELL = [
   "data/gimnasio.json", "data/muaythai.json", "data/kickboxing.json", "data/lucha.json", "data/jiujitsu.json",
   "js/tech-boot.js", "js/tech.js", "js/tech-lesson.js",
   "js/tech-pages.js",
-  "js/flyer.js", "img/games/pajarito.png", "img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg", "js/topos.js", "img/games/topos.png",
+  "js/flyer.js", "img/games/pajarito.png", "img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg", "js/topos.js", "img/games/topos.png", "js/cuartel.js", "js/wordplay.js", "js/quiz.js", "js/grammargames.js", "img/games/cuartel.png", "img/games/adivina.png", "img/games/sopa.png", "img/games/crucigrama.png", "img/games/concurso.png", "img/games/verdadero.png", "img/games/cajas.png", "img/games/flechas.png", "img/games/ordenafrase.png", "img/games/completa.png", "img/games/detective.png",
   "js/ielts-boot.js", "ielts.html", "ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js", "data/ielts/index.json",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */
