@@ -350,6 +350,18 @@ compartida no responde).
   topo ≥ 96 px, hasta abajo, el bocadillo nunca más ancho que su agujero) y de 3 × 3 en el ordenador; golpear un topo
   bueno (+1, ✓, suena) y uno malo (✗ y su español); el letrero «bien escritos» con faltas que nunca son palabras del
   tema; la pausa que para el reloj; el final con récord; francés y danés con otro tema. Capturas en `capturas/topos`.
+- `test_wordplay.py` (`js/wordplay.js`): «Adivina la palabra» (la cesta con 6 globos; cada letra que falta revienta
+  uno), «Sopa de letras» (arrastrar, tocar la primera y la última o flechas; la pista que parpadea) y «Crucigrama»
+  (palabras que se cruzan, «Pista», casillas ≥ 30 px en 360 px); finales con récord, francés y danés. Capturas en
+  `capturas/wordplay`.
+- `test_quiz.py` (`js/quiz.js`): «Concurso», «Verdadero o falso», «Abre la caja» y «Une con flechas»; aciertos,
+  fallos en gris con ✗, finales con récord, celular y ordenador, otros idiomas. Capturas en `capturas/quiz`.
+- `test_grammargames.py` (`js/grammargames.js`): «Ordena la frase», «Completa la frase» (el tren) y «Detective de
+  errores»; el nivel A1-C2 por idioma ("gram:lv"), aciertos y fallos con el porqué, la pausa, francés y danés, y la fila
+  «Juega con la gramática» de la página Gramática que abre el juego en ese nivel. Capturas en `capturas/gramatica`.
+- `test_cuartel.py` (`js/cuartel.js`, «Defensa del cuartel»): solo con el tema «Soldados»; robots, drones y tanques por
+  3 carriles, el cargador de 6 balas, recargar respondiendo (bien: lleno; mal: 2 balas), los corazones, las oleadas y
+  el final con récord. Capturas en `capturas/cuartel`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.
