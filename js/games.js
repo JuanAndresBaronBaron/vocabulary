@@ -2,7 +2,8 @@
    Rutas: #/juegos (menú) · #/juegos/memoria · #/juegos/lluvia · #/juegos/globos · #/juegos/letras y los juegos que
           registran otros módulos con vocabGames.register (js/lince.js: #/juegos/lince, «Oído de lince»).
    Menú (plan-doc «Jugar › Juegos»): la pastilla «Tema: … ▾» abre una hoja con «Mis palabras» primero y luego los
-     temas (se recuerda en "games:topic"); tarjetas sólidas con su dibujo y el récord en estrellas. Tocar = jugar;
+     temas (se recuerda en "games:topic"); tarjetas sólidas con su dibujo y el récord en estrellas, por secciones
+     (SECS: palabras, concursos, gramática, en grupo, soldados y «Leer, escuchar y crear»; def.sec o SEC_OF). Tocar = jugar;
      mantener pulsado (G.hold) = vistazo: hoja pequeña con cómo se juega, el récord y con qué palabras.
    Partida: la explicación (intro) sale solo la primera vez de cada juego; después empieza directo. Si se entra sin
      haber tocado nada (al recargar o con Atrás) sale una tarjeta corta «¡A jugar!» para que no empiece solo. El botón
@@ -17,7 +18,7 @@
         register(id, def), meta(id) → {id, t, img, topic} | null, topic(id) → {id, name, img} | null,
         pic(src) → el dibujo que usan los juegos para src (img/fam_X.png → img/fam2/fam_X.png; «Descargar todo» los
         guarda también)}.
-        register: def = {t, sub, how, img, words (texto en lugar del tema), rec(best) → texto del récord, fresh (chip
+        register: def = {t, sub, how, img, sec (sección del menú), words (texto en lugar del tema), rec(best) → texto del récord, fresh (chip
         «Nuevo» en su tarjeta hasta la primera partida), start(app, api, intro)}; start monta el juego con
         api = {mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml,
         dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla), topicPool(g, need, fit) → {tp, name, P,
@@ -427,6 +428,9 @@ const CSS = `
 .gm-tpill b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
 .gm-tpill .ico{flex:none;color:var(--label2)}
 .gm-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:12px;margin:0 0 24px}
+/* las secciones del menú: un título corto encima de cada rejilla */
+.gm-sh2{margin:4px 0 10px;font:700 var(--fs-head)/1.25 var(--f-round);color:var(--label)}
+.gm-grp+.gm-grp .gm-sh2{margin-top:8px}
 /* en el ordenador, 4 columnas como mucho: con 6, las tarjetas bajaban de 170 px y el récord no cabía */
 @media (min-width:1000px){.gm-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
 /* un juego que no se activa con este tema (def.show): en oscuro, con candado y su aviso; tocarlo explica por qué
@@ -850,8 +854,16 @@ const usesTopic = g => !!GAMES[g] && (!!GAMES[g].topic || (!GAMES[g].start && !G
 const shown = id => { const f = GAMES[id] && GAMES[id].show; try{ return typeof f !== "function" || !!f(topicId()); }catch(e){ return true; } };
 const offMsg = id => (GAMES[id] && GAMES[id].off) || "Se activa con otro tema";
 const offToast = id => toast(`${offMsg(id)}. Elígelo arriba, en «Tema».`, IC("lock", "bold", 20));
+/* con «Soldados», su sección va la primera; con los demás temas, en su sitio */
+function orderSecs(){
+  const box = document.getElementById("gm-cards"), sol = box && box.querySelector('.gm-grp[data-sec="soldados"]'); if(!sol) return;
+  if(topicId() === MIL){ if(box.firstElementChild !== sol) box.prepend(sol); return; }
+  const next = SECS.slice(SECS.findIndex(x => x[0] === "soldados") + 1).map(x => box.querySelector(`.gm-grp[data-sec="${x[0]}"]`)).find(Boolean);
+  if(sol.nextElementSibling !== next) box.insertBefore(sol, next || null);
+}
 /* apagada: aria-disabled y el aviso al principio de su nombre, para que el lector de pantalla diga por qué */
 function paintCards(){
+  orderSecs();
   document.querySelectorAll("#gm-cards .gm-card[data-g]").forEach(c => {
     const on = shown(c.dataset.g), name = c.dataset.al != null ? c.dataset.al : (c.dataset.al = c.getAttribute("aria-label") || "");
     c.classList.toggle("gm-off", !on);
@@ -880,6 +892,20 @@ function cardHtml(id, b){
     ${G0.show ? `<span class="gm-lockb" aria-hidden="true">${IC("lock", "bold", 14)}${esc(offMsg(id))}</span>` : ""}
     <span class="gm-cr" aria-hidden="true">${starsHtml(st, 18)}<span class="gm-rt">${esc(rec)}</span></span></a>`;
 }
+/* el menú va por secciones (def.sec de cada juego; los de antes, por su id en SEC_OF). Las tarjetas que solo llevan a
+   otra pantalla van en «Leer, escuchar y crear». Con el tema «Soldados», su sección sale primero */
+const SECS = [["palabras", "Juegos de palabras"], ["concursos", "Concursos"], ["gramatica", "Gramática"], ["grupo", "Para jugar en grupo"],
+  ["soldados", "Soldados"], ["mas", "Leer, escuchar y crear"]];
+const SEC_OF = {memoria: "palabras", lluvia: "palabras", globos: "palabras", letras: "palabras", lince: "palabras", pajarito: "palabras", topos: "palabras",
+  impostor: "grupo", ordenar: "grupo", soldados: "soldados"};
+const secFor = id => { const s = GAMES[id].sec || SEC_OF[id] || (isLink(id) ? "mas" : "palabras"); return SECS.some(x => x[0] === s) ? s : "palabras"; };
+function cardsHtml(best){
+  return SECS.map(([sec, t]) => {
+    const ids = Object.keys(GAMES).filter(id => secFor(id) === sec);
+    return ids.length ? `<section class="gm-grp" data-sec="${sec}" aria-labelledby="gm-sh-${sec}"><h2 class="gm-sh2" id="gm-sh-${sec}">${esc(t)}</h2>
+      <div class="gm-cards">${ids.map(id => cardHtml(id, best[id])).join("")}</div></section>` : "";
+  }).join("");
+}
 const pillHtml = tp => `<span>Tema:</span> <b>${esc(topicName(tp))}</b>${IC("caret-down", "bold", 16)}`;
 function paintPill(){ const p = document.getElementById("gm-tpill"); if(p) p.innerHTML = pillHtml(topicId()); }
 async function menu(){
@@ -887,7 +913,7 @@ async function menu(){
   clearGest();
   app.innerHTML = `<div class="gm gm-menu" id="gm-menu">
     <div class="gm-bar"><button type="button" class="glass-btn gm-tpill" id="gm-tpill" aria-haspopup="dialog">${pillHtml(topicId())}</button></div>
-    <div class="gm-cards" id="gm-cards">${Object.keys(GAMES).map(id => cardHtml(id, best[id])).join("")}</div>
+    <div class="gm-secs" id="gm-cards">${cardsHtml(best)}</div>
   </div>`;
   $("#gm-tpill").onclick = e => openTopics(e.currentTarget);
   const cards = [...app.querySelectorAll(".gm-card")];
