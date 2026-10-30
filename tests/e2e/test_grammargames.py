@@ -392,3 +392,31 @@ def test_reduced_motion_and_menu():
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
+
+
+def test_grammar_page_links_open_level():
+    """En Gramática (#/gramatica/B1) sale «Juega con la gramática» con los tres juegos y sus dibujos; tocar «Completa la
+    frase» abre el juego en el nivel que se estaba mirando (B1), guardado en "gram:lv" para ese idioma."""
+    page = C.new_page("phone")
+    try:
+        page.set_viewport_size({"width": 360, "height": 780})
+        C.seed(page, _keys(), "#/gramatica/B1")
+        page.wait_for_selector("#gr .gr-play .gr-pg", timeout=8000)
+        m = page.evaluate("""() => [...document.querySelectorAll('#gr .gr-pg')].map(a => ({g: a.dataset.g, href: a.getAttribute('href'),
+          img: a.querySelector('img').getBoundingClientRect().width, r: a.getBoundingClientRect().right}))""")
+        assert [x["g"] for x in m] == list(GAMES), m
+        assert all(x["href"] == f"#/juegos/{x['g']}" and x["img"] >= 48 and x["r"] <= 360 for x in m), m
+        assert not page.evaluate("document.documentElement.scrollWidth > innerWidth + 1")
+        C.shot(page, "pagina-gramatica", SHOTS, full_page=False)
+        page.click('#gr .gr-pg[data-g="completa"]')
+        page.wait_for_selector("#gg .gg-chips", timeout=8000)
+        go = page.locator(".gm-intro .gm-go")
+        if go.count():
+            go.click()
+        page.wait_for_function("() => !document.querySelector('.gm-intro')")
+        lv = _layout(page)["lv"]
+        assert ["B1", "true"] in lv, lv
+        assert page.evaluate("JSON.parse(localStorage.getItem('gram:lv')).english") == "B1"
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()

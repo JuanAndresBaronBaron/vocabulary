@@ -479,6 +479,14 @@ dialog.pw-sheet.m-sheet,dialog.pw-sheet.m-sheet.glass{background:var(--bg);-webk
 .gr-ex .ln-spk{display:inline-grid;vertical-align:middle;margin:-10px 0}
 .gr-ex small{display:block;color:var(--label2);font-size:var(--fs-note)}
 .gr-go{margin:16px 0 0}
+.gr-play{margin:0 0 16px}
+.gr-ph{margin:0 0 8px;font:600 var(--fs-head)/1.25 var(--f-text);color:var(--label)}
+.gr-pl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.gr-pg{display:flex;flex-direction:column;align-items:center;gap:6px;min-height:var(--tap);padding:12px 6px;border-radius:18px;background:var(--card);
+  color:var(--label);text-decoration:none;text-align:center;font:600 var(--fs-sub)/1.2 var(--f-text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.gr-pg img{width:56px;height:56px}
+.gr-pg:active{transform:scale(.97)}
+.gr-pg:focus-visible{outline:3px solid var(--blue,#0A84FF);outline-offset:2px}
 @media (max-width:420px){.gr-b{padding-left:16px}}
 
 @media (prefers-reduced-motion:reduce){
@@ -1490,6 +1498,8 @@ function theory(x){
       ${r.tab ? `<div class="gr-tw"><table class="gr-tab">${r.tab.map(row => `<tr>${row.map(c => `<td>${md(c)}</td>`).join("")}</tr>`).join("")}</table></div>` : ""}</div>`).join("")}
     ${(x.ex || []).length ? `<div class="gr-ex"><h3>Ejemplos</h3>${x.ex.map(e => `<p><span lang="${lc}">${esc(e.t)}</span> ${spk(e.t, "sm")}<small>${esc(e.es)}</small></p>`).join("")}</div>` : ""}`;
 }
+/* los juegos de gramática (js/grammargames.js) abren en el nivel que se está mirando: store "gram:lv" es {idioma: nivel} */
+const GR_GAMES = [["ordenafrase", "Ordena la frase"], ["completa", "Completa la frase"], ["detective", "Detective de errores"]];
 async function gramatica(lv){
   await getMap();
   if(secOf(hashPath()) !== "gramatica") return;
@@ -1500,12 +1510,18 @@ async function gramatica(lv){
   const info = k => { const g = G0[k] || []; return {done: g.filter((_, i) => P[gId(k, i)]).length, total: g.length}; };
   $("#app").innerHTML = `<div class="gr" id="gr">
     <div class="cm-top">${levelPicker(lv, "#/gramatica/", {info, what: "temas"})}<p class="cm-sum"><b>${esc(LVS[lv].n)}</b> · ${list.length === 1 ? "1 tema" : `${list.length} temas`}</p></div>
+    ${list.length ? `<nav class="gr-play" aria-label="Juega con la gramática"><h2 class="gr-ph">Juega con la gramática</h2><div class="gr-pl">${GR_GAMES.map(([id, t]) =>
+      `<a class="gr-pg" href="#/juegos/${id}" data-g="${id}"><img src="img/games/${id}.png" alt="" width="56" height="56">${esc(t)}</a>`).join("")}</div></nav>` : ""}
     ${list.length ? `<div class="st-g gr-list">${list.map((x, k) => { const st = P[gId(lv, k)] || 0; return `<details class="gr-u${st ? " is-done" : ""}" data-k="${k}">
       <summary class="st-r gr-s"><span class="gr-n" aria-hidden="true">${st ? ico("check", "bold", 18) : k + 1}</span><span class="st-l gr-tl">${esc(x.t)}</span>
         ${st ? `<span class="gr-st" role="img" aria-label="${st} de 3 estrellas">${stars(st, 15)}</span>` : ""}${ico("caret-down", "bold", 18, "gr-car")}</summary>
       <div class="gr-b">${x.sum ? `<p class="gr-sum">${md(x.sum)}</p>` : ""}${theory(x)}<div class="gr-go"><a class="glass-btn glass-btn--pri" href="#/leccion/${esc(gId(lv, k))}">${ico("play", "fill", 18)}Practicar</a></div></div></details>`; }).join("")}</div>`
       : `<p class="ln-empty">Pronto habrá gramática de este nivel.</p>`}
   </div>`;
+  $("#gr").querySelectorAll(".gr-pg").forEach(a => a.addEventListener("click", () => {
+    const o = store.get("gram:lv", null), n = o && typeof o === "object" && !Array.isArray(o) ? o : {};
+    n[lang] = lv; store.set("gram:lv", n);
+  }));
   /* una abierta a la vez: así solo hay un «Practicar» destacado */
   const box = $("#gr .gr-list");
   if(box) box.addEventListener("toggle", e => {

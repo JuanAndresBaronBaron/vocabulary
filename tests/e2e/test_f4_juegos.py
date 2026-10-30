@@ -26,8 +26,10 @@ OUT = C.CAPTURAS / "F4"
 GAMES = ["memoria", "lluvia", "globos", "letras", "lince"]
 # los juegos en grupo de js/party.js (El impostor y Ordenar por grupo), el Pajarito volador (js/flyer.js) y Topos
 # (js/topos.js), con su chip «Nuevo» como «Oído de lince»
-CARDS = GAMES + ["impostor", "ordenar", "pajarito", "topos"]
-FRESH = {"lince", "impostor", "ordenar", "pajarito", "topos"}
+NEW = ["adivina", "sopa", "crucigrama", "concurso", "verdadero", "cajas", "flechas", "ordenafrase", "completa", "detective"]
+# en el orden de las secciones del menú (palabras, concursos, gramática, en grupo); cuartel y soldados salen en oscuro
+CARDS = GAMES + ["pajarito", "topos"] + NEW + ["impostor", "ordenar"]
+FRESH = {"lince", "impostor", "ordenar", "pajarito", "topos", *NEW}
 AB = {"english": "en", "français": "fr", "dansk": "da"}
 _ARTS = {"english": re.compile(r"^(?:the|an?|to)\s+", re.I),   # los artículos de js/lince.js (ARTS)
          "français": re.compile(r"^(?:les|le|la|une|un|des|du|se)\s+|^(?:l|s|d)['’]", re.I),

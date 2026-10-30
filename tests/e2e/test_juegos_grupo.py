@@ -138,13 +138,12 @@ def test_data_from_vocabulary_and_cards():
     try:
         _seed(page)
         page.wait_for_selector(".gm-card[data-g=ordenar]", timeout=8000)
-        r = page.evaluate("""() => { const ids = [...document.querySelectorAll('#gm-cards .gm-card')].map(c => c.dataset.g);
+        r = page.evaluate("""() => { const ids = [...document.querySelectorAll('#gm-cards .gm-grp[data-sec="grupo"] .gm-card')].map(c => c.dataset.g);
           const card = g => { const c = document.querySelector(`.gm-card[data-g="${g}"]`), i = c.querySelector('img');
             return {href: c.getAttribute('href'), t: c.querySelector('.gm-ct').textContent, img: i.getAttribute('src'), nw: i.naturalWidth, isNew: !!c.querySelector('.gm-new')}; };
           return {ids, imp: card('impostor'), sort: card('ordenar')}; }""")
-        i = r["ids"].index("lince") if "lince" in r["ids"] else -9
-        if r["ids"][i + 1:i + 3] != ["impostor", "ordenar"]:
-            probs.append(f"orden de las tarjetas: {r['ids']}")
+        if r["ids"] != ["impostor", "ordenar"]:   # su sección del menú, «Para jugar en grupo»
+            probs.append(f"tarjetas de «Para jugar en grupo»: {r['ids']}")
         for k, href, t, img in (("imp", "#/juegos/impostor", "El impostor", "img/games/impostor.png"), ("sort", "#/juegos/ordenar", "Ordenar por grupo", "img/games/ordenar.png")):
             c = r[k]
             if c["href"] != href or c["t"] != t or c["img"] != img or c["nw"] != 220 or not c["isNew"]:
