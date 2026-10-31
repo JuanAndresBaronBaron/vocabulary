@@ -98,7 +98,7 @@ def _prompt(iid):
     raise KeyError(iid)
 
 
-ESSAY1 = """In this day and age, cities replace buildings faster than ever. Some people think every new building should be required by law to last a hundred years. I believe this is partly right, but a strict law isn't the best tool.
+ESSAY1 = """In this day and age, cities replace buildings faster than ever. Some people think the law should make every new building last a hundred years. I believe this is partly right, but a strict law isn't the best tool.
 
 Firstly, long-lasting buildings save resources. Concrete and steel cause a large share of emissions, so a block that stands for a century doesn't need to be rebuilt three times.
 
@@ -108,7 +108,7 @@ However, a single rule for every building would be unwise. A hospital needs to c
 
 In conclusion, I agree that most homes and public buildings should be built to last, but the law should set different lifespans for different kinds of building."""
 
-ESSAY2 = """Cities now replace their buildings faster than at any time in the past. Some people therefore argue that every new building should be required by law to last for at least a century. I believe this view is partly right, but a single legal lifespan would be a blunt instrument.
+ESSAY2 = """Cities now replace their buildings faster than at any time in the past. Some people therefore argue that the law should oblige every new building to stand for a full century or more. I believe this view is partly right, but a single legal lifespan would be a blunt instrument.
 
 The strongest argument for durability is environmental. Concrete and steel account for a large share of global emissions, so a block of flats that stands for a hundred years, rather than being demolished and rebuilt three times, saves an enormous quantity of carbon. Durable materials also cost less over the life of a building, even if they cost more at the start.
 
@@ -116,13 +116,17 @@ A second argument concerns the character of a place. Victorian terraces and Geor
 
 However, a requirement that applies to every building would be unwise. A hospital must adapt as medicine changes, and a warehouse or a data centre may be obsolete within twenty years. Forcing such structures to last a century would waste money on strength that nobody needs, and might even discourage the adaptation that cities depend on.
 
-In conclusion, I agree that most homes and public buildings should be designed to last for generations, but I would argue that the law should set different minimum lifespans for different kinds of building, rather than one figure for all of them."""
+In conclusion, I agree that most homes and public buildings should be designed to last for generations, but I would argue that the law should set different minimum lifespans for different kinds of building, rather than one figure for all of them, since a single number would suit almost none of them well."""
 
 
 def _essay1(at=1773219600000):
     it = _prompt("u13-l2-i2")
     return {"id": "u13-l2-i2-seed", "iid": "u13-l2-i2", "task": 2, "prompt": it["prompt"], "text": ESSAY1, "words": len(re.findall(r"[A-Za-z0-9’'-]+", ESSAY1)),
             "self": {"0": 6, "1": 6, "2": 6, "3": 6}, "band": 6, "at": at}
+
+
+# (the fixtures paraphrase the prompt: js/ielts-player.js leaves runs of 5+ words copied from the question out of the
+# word count, and «Copied from the question» would be one more flag in every comparison)
 
 
 # ---------------------------------------------------------------- 1. bands
@@ -585,8 +589,14 @@ def test_core_writing_revision():
         c = page.inner_text("#app")
         assert page.locator(".ie-cmp > section").count() == 2 and "Version 1" in c and "Version 2" in c, c[:500]
         assert re.search(r"Words: \d+ → \d+ \(\+\d+\)", c) and "Flags fixed: 3 (Length, Memorised phrases, Contractions)" in c, c[:800]
-        assert "New flags: Sentences" in c and "Still to fix" not in c, c[:800]   # a sentence over 40 words is not the length check
+        assert "New flags: Sentences" in c and "Still to fix" not in c, c[:800]   # a sentence over 50 words (the last one) is not the length check
+        # self-marking comes only through IE.assess: ielts.html loads js/ielts-study.js, which provides it; without it, none
+        assert page.locator(".ie-model").count() == 1 and page.locator("#ie-rv-self").count() == 1
+        page.evaluate("() => { window.__as = IE.assess; IE.assess = undefined; }")
+        _open(page, "#/essays")
+        _open(page, "#/essays/u13-l2-i2-seed-v2/compare")
         assert page.locator(".ie-model").count() == 1 and page.locator("#ie-rv-self").count() == 0
+        page.evaluate("() => { IE.assess = window.__as; }")
         es = page.evaluate("() => IE.prog.get().essays")
         v2 = [e for e in es if e["id"] == "u13-l2-i2-seed-v2"][0]
         assert v2["parent"] == "u13-l2-i2-seed" and v2["v"] == 2 and v2["iid"] == "u13-l2-i2" and v2["text"] == ESSAY2 and v2["words"] >= 250 and v2["task"] == 2, v2
@@ -631,7 +641,7 @@ _POS1 = """Some people argue that every new building should last for a century. 
 
 The first position holds that durable homes save a great deal of carbon over their lifetimes.
 
-A second position concerns the character of streets and squares in older towns.
+A second position concerns the character of streets and squares in older towns, and any fair position must weigh it.
 
 However, the opposite position says that hospitals and factories must adapt as their uses evolve.
 
@@ -712,7 +722,7 @@ def test_core_revision_drafts_and_check_keys():
         # the check keys: a version 1 that repeats «position» and states its position is filed under Repetition only
         v1 = dict(e1, id="pos-v1", text=_POS1, words=len(re.findall(r"[A-Za-z0-9’'-]+", _POS1)), band=6, at=1773000000000)
         pos2 = (_POS1.replace("this position", "this view").replace("first position", "first argument").replace("second position", "second argument")
-                .replace("opposite position", "opposing case").replace("my position is", "my view is"))
+                .replace("opposite position", "opposing case").replace("my position is", "my view is").replace("fair position", "fair answer"))
         v2 = dict(v1, id="pos-v2", parent="pos-v1", v=2, text=pos2, band=None, self=None, at=1773000100000)
         _seed(page, {"ielts:data": {"v": 1, "lessons": {}, "tests": [], "essays": [v1, v2], "speaking": []}})
         _open(page, "#/essays", reload=True)
@@ -744,7 +754,7 @@ def test_core_backup_round_trip():
         data = {"v": 1, "lessons": {"u01-l1": {"done": True, "at": 100, "got": 3, "total": 4, "band": None}, "u01-l2": {"done": True, "at": 100}},
                 "tests": [{"lid": "u03-l3", "title": "Test: a full Part 1 · Unit 3", "skill": "listening", "got": 7, "total": 10, "band": 7, "at": 1000, "attempt": 1, "counted": True}],
                 "essays": [_essay1(at=2000)], "speaking": [{"title": "Part 1 · Unit 16", "band": 7, "at": 3000}]}
-        _seed(page, {"ielts:data": data, "ielts:ui": {"rate": 1, "accents": "gb", "at": 100}, "ielts:study": {"at": 100, "box": {"a": 1}},
+        _seed(page, {"ielts:data": data, "ielts:ui": {"rate": 1, "accents": "gb", "at": 100}, "ielts:study": {"v": 1, "at": 100, "box": {"a": 1}},
                      "ielts:draft:u13-l2-i2-seed": {"text": "draft", "blank": False, "at": 5}, "ielts:run:u03-l1": {"v": 1, "i": 2, "ans": {}, "started": True}})
         _open(page, "#/settings", reload=True)
         with page.expect_download() as dl:
@@ -759,7 +769,7 @@ def test_core_backup_round_trip():
           localStorage.setItem('ielts:data', JSON.stringify({v: 1, lessons: {'u01-l1': {done: true, at: 50, got: 1, total: 4}, 'u02-l1': {done: true, at: 70}},
             tests: [{lid: 'u03-l3', title: 'Test: a full Part 1 · Unit 3', skill: 'listening', got: 9, total: 10, band: 8, at: 500, attempt: 1, counted: true}],
             essays: [], speaking: [{title: 'Part 1 · Unit 16', band: 7, at: 3000}]}));
-          localStorage.setItem('ielts:study', JSON.stringify({at: 200, box: {b: 2}}));
+          localStorage.setItem('ielts:study', JSON.stringify({v: 1, at: 200, box: {b: 2}}));
           localStorage.setItem('ielts:ui', JSON.stringify({rate: 1.1, at: 50})); }""")
         buf = json.dumps(f).encode()
         page.set_input_files("#ie-restore", files=[{"name": "ielts-prep-2026-03-11.json", "mimeType": "application/json", "buffer": buf}])
@@ -771,7 +781,7 @@ def test_core_backup_round_trip():
         assert d2["lessons"]["u01-l1"]["at"] == 100 and d2["lessons"]["u02-l1"]["at"] == 70 and "u01-l2" in d2["lessons"], d2["lessons"]
         assert [(t["at"], t["attempt"], t["counted"]) for t in d2["tests"]] == [(500, 1, True), (1000, 2, False)], d2["tests"]
         assert [e["id"] for e in d2["essays"]] == ["u13-l2-i2-seed"] and len(d2["speaking"]) == 1, d2
-        assert r["study"] == {"at": 200, "box": {"b": 2}} and r["ui"]["rate"] == 1 and r["ui"]["accents"] == "gb", r
+        assert r["study"] == {"v": 1, "at": 200, "box": {"b": 2}} and r["ui"]["rate"] == 1 and r["ui"]["accents"] == "gb", r
         assert "ielts:draft:u13-l2-i2-seed" in r["keys"] and not [k for k in r["keys"] if k.startswith("ielts:run:")], r["keys"]
         # the same file again adds nothing
         page.set_input_files("#ie-restore", files=[{"name": "again.json", "mimeType": "application/json", "buffer": buf}])

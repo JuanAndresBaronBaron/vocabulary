@@ -205,9 +205,12 @@ def test_study_review_in_the_player():
         rv = [e for e in st["log"] if e["l"] == "review"]
         assert len(rv) == 6 and sum(e["ok"] for e in rv) == 3, rv
         assert "3 of 6 correct" in page.inner_text("#app")
-        # «Back to the unit» leads to the Review page
-        page.click("a[href='#/unit/review']")
-        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/unit/review'")
+        # the results lead back to the Review page: the player uses the review unit's own link (back: #/review, «Back to Review»)
+        assert page.locator(".ie-result a[href='#/unit/review'], #app a[href='#/unit/review']").count() == 0
+        link = page.locator("#app a.glass-btn[href='#/review']", has_text="Back to Review")
+        assert link.count() == 1, page.inner_text("#app")[-400:]
+        link.click()
+        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/review'")
         assert page.locator(".ie-rv-deck").count() == 1
         assert "Last review" in page.inner_text(".ie-rv-deck")
         assert not C.errors(page), C.errors(page)

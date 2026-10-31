@@ -94,11 +94,14 @@ PHASES = r"""
   };
 })();
 """
-# package study's shared self-marking, stubbed: it records what it was given
+# package study's shared self-marking, stubbed: it records what it was given (js/ielts-study.js sets the real one when it
+# loads; the stub stays, so that this test sees exactly what the player passes)
 ASSESS = r"""
 (() => {
   const IE = window.IE = window.IE || {};
   window.__assess = [];
+  let stub = null;
+  Object.defineProperty(IE, 'assess', {configurable: true, enumerable: true, get() { return stub; }, set(v) { if (!stub) stub = v; else window.__realAssess = v; }});
   IE.assess = {
     selfHtml: (kind, cur, it) => `<div class="stub-self" data-kind="${kind}" data-item="${it && it.id}"><button type="button" class="glass-btn" data-stub>Band 7</button></div>`,
     wireSelf: (el, kind, get, set, it) => { window.__assess.push(['wire', kind, it && it.id]);
@@ -380,7 +383,9 @@ def test_time_off_the_lesson_counts_as_a_pause():
         T._open(page, "#/lesson/u24-l1")
         page.evaluate("() => { IE.player.EXAM = {preview: 30, check: 1, review: 2}; }")
         page.click("#ie-go")
-        page.wait_for_function("() => /^Time to read questions 1 to 10/.test((document.getElementById('ie-xst') || {}).textContent || '')", timeout=8000)
+        rg = re.search(r"questions (\d+) to (\d+)", _item(_unit("u24"), "u24-l1-i2")["context"])
+        page.wait_for_function("l => ((document.getElementById('ie-xst') || {}).textContent || '').startsWith(l)",
+                               arg=f"Time to read questions {rg.group(1)} to {rg.group(2)}", timeout=8000)
         a0 = _run(page, "u24-l1").get("away", 0)
         page.clock.fast_forward("03:00")
         page.wait_for_timeout(1500)
@@ -520,7 +525,7 @@ def test_writing_practice_needs_the_compare_and_results_show_feedback():
         assert page.evaluate("() => IE.prog.get().essays.length") == 1
         page.click(".ie-revise a")
         page.wait_for_function("() => document.getElementById('app').dataset.ready && location.hash.endsWith('/revise')")
-        assert page.locator(".ie-essay").count() == 1
+        assert page.locator(".ie-revise #ie-ta").count() == 1 and page.input_value("#ie-ta") == text
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
@@ -734,6 +739,7 @@ def test_exam_finish_early_asks_and_walker_finishes_mocks():
     page.on("dialog", lambda d: (msgs.append(d.message), d.accept()))
     try:
         page.add_init_script(_IN)
+        page.add_init_script(TC.SPEECH)
         for uid, lid in (("u23", "u23-l1"), ("u24", "u24-l1")):
             _serve(page, uid, lambda u, lid=lid: _lesson(u, lid).__setitem__("exam", True))
         for uid, lid in (("u23", "u23-l1"), ("u24", "u24-l1")):
@@ -866,7 +872,12 @@ def test_reading_time_names_the_voices_range_and_keeps_its_digits_quiet():
         it["script"].insert(1, {"s": it["script"][0]["s"], "t": "Now you have some time to look at questions 5 to 7.", "pause": 3})
     page = _page("phone", init=[TC.SPEECH, SPY])
     try:
-        _serve(page, "u24", lambda u: _lesson(u, "u24-l1").__setitem__("exam", True))
+        def u24(u):
+            _lesson(u, "u24-l1")["exam"] = True
+            it = _item(u, "u24-l1-i3")
+            assert "questions 11 to 14" in it["context"], it["context"]
+            it["context"] = it["context"].replace("questions 11 to 14", "questions 11 to 20")
+        _serve(page, "u24", u24)
         _serve(page, "u05", pause)
         # exam mode, u24-l1 Part 2: the voice says "questions 11 to 20" (its first set is 11 to 14)
         _seed_run(page, "u24-l1", {"v": 1, "i": 2, "ans": {}, "checked": {}, "heard": {"u24-l1-i2": True}, "self": {}, "el": 0, "started": True,
@@ -969,7 +980,8 @@ def test_set_visuals_and_a_second_task1_visual():
     try:
         _serve(page, "u04", _plan)
         _serve(page, "u11", lambda u: _item(u, "u11-l2-i2").__setitem__("visual2", {"kind": "table", "title": "Average fares", "head": ["", "2010", "2020"], "rows": [["Rail", "£4", "£6"]]}))
-        _serve(page, "u03", lambda u: _item(u, "u03-l3-i1")["sets"][0].__setitem__("visual", {"kind": "table", "title": "Booking form", "head": ["Item", "Detail"], "rows": [["Name", "1 ____"]]}))
+        u03 = _serve(page, "u03", lambda u: _item(u, "u03-l3-i1")["sets"][0].__setitem__("visual", {"kind": "table", "title": "Booking form", "head": ["Item", "Detail"], "rows": [["Name", "1 ____"]]}))
+        nvis = sum(1 for it in _lesson(u03, "u03-l3")["items"] for st in it.get("sets") or [] if st.get("visual"))
         T._open(page, "#/lesson/u04-l2")
         order = page.evaluate("""() => [...document.querySelector('.ie-set').children].map(e => e.tagName + '.' + e.className.split(' ')[0])""")
         assert order[0] == "P.ie-instr" and order[1] == "FIGURE.ie-viz" and order[2].endswith("ie-q"), order
@@ -982,7 +994,7 @@ def test_set_visuals_and_a_second_task1_visual():
         page.click("#ie-go")
         page.click("#ie-fin")
         page.wait_for_selector(".ie-result")
-        assert page.locator(".ie-set .ie-viz").count() == 1 and "Booking form" in page.inner_text("#app")
+        assert nvis >= 1 and page.locator(".ie-set .ie-viz").count() == nvis and "Booking form" in page.inner_text("#app")
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
@@ -1019,7 +1031,7 @@ def test_results_labels_counted_part_tests_and_virtual_units():
     try:
         _serve(page, "u03", lambda u: u.update({"back": "#/progress", "backT": "My results"}))
         T._open(page, "#/lesson/u03-l3")
-        assert page.get_attribute(".ie-back", "href") == "#/progress" and "My results" in page.inner_text(".ie-back")
+        assert page.get_attribute(".ie-back", "href") == "#/progress" and page.get_attribute(".ie-back", "aria-label") == "Back to My results"
         page.evaluate("""() => { const o = IE.prog.addTest; IE.prog.addTest = t => { o.call(IE.prog, t); window.__added = t; return Object.assign({}, t, {attempt: 2, counted: false}); }; }""")
         page.click("#ie-go")
         page.click("#ie-fin")
