@@ -446,3 +446,35 @@ def test_algo():
     finally:
         page.context.close()
 ```
+
+<!-- package: player -->
+## IELTS Prep: el reproductor de lecciones (`test_ielts_player.py`)
+
+`test_ielts_player.py` (`js/ielts-player.js`; `--only test_ielts` lo corre junto con `test_ielts.py`, cuyo `_STEP`,
+`_open` e `_IN` reutiliza): cada fallo grave tiene su prueba, que fallaba con el reproductor de `72ee060`.
+- Reloj de los tests: `page.clock.fast_forward` de 8 s (página congelada) y de 25 min (portátil dormido, la página sigue
+  «visible») no quitan tiempo, suman a `run.away`; una página oculta (`visibilityState` y `visibilitychange` de mentira)
+  tampoco; con más de 2 min fuera, `prog.addTest` recibe `paused: true` y los resultados lo dicen. Doble clic en Finish:
+  un solo test en `ielts:data.tests`; `prog.done` envuelto lee la ejecución ya guardada (`finished`, `got`, `total`,
+  `band`, `at`). Con el tiempo ya acabado al volver, la tarjeta «Time is up» (Finish y Review), sin terminar sola.
+- Speaking: Part 2 empezada y Continue, 61 s después ni «Please start speaking now» ni grabadora; Continue mientras se
+  contesta en Part 1 para la pista del micrófono; follow-ups de Part 2 (20 s, se para a 30), Parts 1 y 3 con el objetivo
+  en el reloj y la grabación hasta 45/90 s («The examiner would usually move on here.»), sin micrófono un reloj con Stop,
+  «Thank you» y «Try again»; `URL.revokeObjectURL` al grabar otra vez.
+- Writing de práctica: sin «I've finished: compare» no hay Continue ni Finish; los resultados traen checks, modelo,
+  autoevaluación y «Revise it later in My writing» (`#/essays/<eid>/revise`). `writingChecks` sin fallos en los 14
+  modelos de banda 9 y un caso por regla (palabras del enunciado y de las etiquetas de `visual`/`visual2`, límite
+  max(6, ceil(palabras/40)), frases de más de 50 palabras, posición en Task 2, Task Response/Task Achievement, texto
+  copiado del enunciado en tramos de 5+ palabras).
+- Sin voz inglesa (`getVoices()` vacío y `window.IE = {ensureVoices: () => Promise.resolve(0)}` en un init script): la
+  transcripción abierta, `run.heard` sin marcar y `noaudio: true` en `prog.addTest`; un test `exam: true` pasa al reloj.
+- Listening: `IE.speak` espiado en un init script (`window.__said`): `voice`, `accent`, `alt`, `pitch` de cada hablante y
+  `rate: 1` en los tests; reanudar una grabación de test tras Next/Previous («Continue the recording», «Played» al final);
+  modo examen con `IE.player.EXAM = {preview: 1, check: 1, review: 2}` y datos servidos con `page.route` (`exam`, `pause`,
+  `accent`): orden de fases (registrado en `sessionStorage.__ph`), chip «Part N is playing», seguir a la parte nueva desde
+  la anterior o la tarjeta de inicio, recargar y seguir desde la línea guardada, fin solo y un único test; el caminante
+  de `test_ielts.py` termina u23-l1 y u24-l1 con `exam: true`.
+- Lo demás: visuales en los sets y `visual2`, `IE.assess` de mentira (delegación de la autoevaluación), `counted: false`
+  de `prog.addTest`, «Part test», `back`/`backT` de la unidad, la región viva, `autocorrect`/`autocapitalize`, pestaña y
+  scroll de lectura por ítem, almacenamiento lleno. Capturas en `capturas/ielts-player` (360 y 390 claro y oscuro, 1280,
+  con «reducir movimiento»): sin scroll horizontal, objetivos de 44 px, paleta y contraste (`audit.js`, `a11y.js`).
