@@ -94,13 +94,13 @@
      "type": "pick",
      "q": "Q: 'What do you do?' Which is the most natural opening?",
      "options": [
-      "That is a very interesting question.",
       "I'm a civil engineer, actually, working mainly on bridge maintenance.",
+      "That is a very interesting question.",
       "What I do is that I do engineering.",
       "Regarding my job, I would like to say that my job is engineering."
      ],
-     "answer": 1,
-     "why": "B answers immediately and precisely. A is a stalling formula examiners hear constantly, and C and D are wordy and repetitive."
+     "answer": 0,
+     "why": "A answers immediately and precisely. B is a stalling formula examiners hear constantly, and C and D are wordy and repetitive."
     },
     {
      "id": "u16-l1-i7",
@@ -137,12 +137,12 @@
      "q": "Which answer paraphrases the question best? Q: 'Do you spend much time outdoors?'",
      "options": [
       "Yes, I spend much time outdoors.",
-      "Not as much as I'd like. I'm stuck at a desk most of the week, so I try to make up for it at weekends by getting out into the hills.",
       "Outdoors is a place where I spend time.",
-      "I spend time outdoors, and the time I spend outdoors is good."
+      "I spend time outdoors, and the time I spend outdoors is good.",
+      "Not as much as I'd like. I'm stuck at a desk most of the week, so I try to make up for it at weekends by getting out into the hills."
      ],
-     "answer": 1,
-     "why": "B rephrases the idea ('stuck at a desk', 'getting out into the hills') rather than repeating 'spend much time outdoors', and adds a natural contrast."
+     "answer": 3,
+     "why": "D rephrases the idea ('stuck at a desk', 'getting out into the hills') rather than repeating 'spend much time outdoors', and adds a natural contrast."
     },
     {
      "id": "u16-l1-i9",
@@ -218,7 +218,7 @@
       "It sounds dull, but...",
       "The best part is... / The worst part is...",
       "...more on the ... side",
-      "Ask me again in a few years"
+      "Ask me again in five years"
      ]
     },
     {

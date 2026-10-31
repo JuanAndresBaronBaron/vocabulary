@@ -539,3 +539,36 @@ def test_algo():
     su caja, uno de 0 × 0 es solo el círculo, y el `alt` está en la página, oculto a la vista. En las tartas de u11-l5
     cada porción lleva su porcentaje, como en el examen: la de menos del 6 % («Other», 2 %) fuera del círculo con una
     línea guía y el color del texto, sin cortes ni solapes.
+
+<!-- ---- paquete: content2 (IELTS Prep) ---- -->
+## IELTS Prep: los simulacros y las claves de u13-u24 (paquete content2)
+
+`python3 tests/e2e/run.py --only test_ielts` también corre `test_ielts_content2.py`. Todas sus pruebas leen los JSON
+de `data/ielts` directamente (sin navegador), salvo la última:
+
+- `rules`: las tres reglas de examen de content1 en u13-u24 (cada respuesta aceptada de un hueco cabe en su límite;
+  un set «Label the» lleva `visual`; en una lección `test` con 4 o más `pick`, ningún índice tiene más de la mitad de
+  las claves) y la forma de los campos nuevos: `exam`, `pause` (5-60 s, solo en una línea del narrador
+  `{id: 'nar', name: 'Narrator'}`), `accent`, `mark` (un sitio marcado con caja lleva `shape`, para que el plano no
+  dependa de cómo dibuja el viz un marcador sin ella), `followups` y `exemplars`.
+- `listening_exam`: u23-l1 y u24-l1 son exámenes enteros en modo examen: `exam: true`, cuarenta puntos numerados
+  1-40 sin huecos («Questions a-b.» en cada set), el narrador con una pausa a mitad de las partes 1-3 que anuncia el
+  set siguiente (la parte 4 va de un tirón), un acento que no es `gb` en las partes 2-4 y la duración de la tarjeta.
+- `keys`: las claves corregidas y las variantes que deben puntuar (`20 minutes`, `£120`, `£85`, `unihemispheric`…),
+  el plano dibujado de u23-l1-i3 (las letras A-H son las opciones), los ids que salen (`u24-l2-i4-q8`, `-q9`) y los
+  que entran, y que ningún id de ítem se repite en u01-u24.
+- `reading`: cuarenta puntos en 17 + 20 + 23 minutos; cada simulacro tiene short answer o sentence completion y una
+  tabla o un Choose TWO (con dos respuestas).
+- `writing`: la Task 1 del simulacro 1 es inédita (no repite u11-l2-i2), su modelo tiene 170-230 palabras, el
+  overview no lleva cifras y cada cifra está en el gráfico o en sus totales; las notas de los modelos de Task 1 de
+  u23 y u24 citan frases que están en el modelo; las líneas oficiales de la consigna; «Task Achievement» solo aparece
+  junto a «Task 1».
+- `speaking`: 12 preguntas de Part 1, `followups` y charlas de unas 300 palabras en Part 2, respuestas de Part 3 de
+  90-130 palabras (u17, u18, u23, u24).
+- `exemplars`: un ensayo de banda 7 junto al modelo en u13-l2-i2 y u14-l2-i2, con notas TR, CC, LR y GRA.
+- `collocations_and_keys`: las preguntas de colocaciones reescritas ofrecen colocados reales (no palabras
+  inventadas); el `why` pone en negrita la frase correcta y nombra cada distractor; las claves de las `pick` de cuatro
+  opciones de u13-u22 están repartidas (cada letra entre el 15 y el 35 %) y cada `why` que empieza por una letra
+  nombra la de la clave.
+- `visuals_render`: dibuja con `IE.viz.html` el plano, la tabla y el gráfico de barras nuevos en un teléfono, claro
+  y oscuro, sin scroll lateral ni etiquetas cortadas; las capturas van a `VOCAB_CAPTURAS/content2`.

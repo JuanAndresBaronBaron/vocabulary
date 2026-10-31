@@ -56,28 +56,28 @@
     {
      "id": "u20-l1-i3",
      "type": "pick",
-     "q": "Choose the natural collocation: 'Critics have ___ several objections to the scheme.'",
+     "q": "Choose the natural collocation: 'Critics have ___ several objections to the scheme, which the council must now answer.'",
      "options": [
-      "made up",
-      "raised",
-      "risen",
-      "done"
+      "overruled",
+      "upheld",
+      "withdrawn",
+      "raised"
      ],
-     "answer": 1,
-     "why": "We *raise* objections, questions and concerns. *Risen* is intransitive (*prices have risen*) and cannot take an object."
+     "answer": 3,
+     "why": "Critics have **raised several objections**: you *raise* objections, questions and concerns when you put them forward. *Overrule* and *uphold* are what an authority such as a judge does to an objection, and *withdrawn* objections would no longer need an answer."
     },
     {
      "id": "u20-l1-i4",
      "type": "pick",
-     "q": "Choose the natural collocation: 'Governments must ___ the problem of food waste.'",
+     "q": "Choose the natural collocation: 'Governments must ___ the problem of food waste, which costs the average household hundreds of pounds a year.'",
      "options": [
+      "exacerbate",
+      "overlook",
       "tackle",
-      "fight up",
-      "solve out",
-      "make"
+      "pose"
      ],
-     "answer": 0,
-     "why": "*Tackle* or *address* a problem is standard. Phrasal-looking forms like *solve out* do not exist."
+     "answer": 2,
+     "why": "Governments must **tackle the problem of food waste** (or *address* it): *tackle* means deal with it firmly. *Exacerbate* (make worse) and *overlook* (fail to notice) are real collocations with *problem* but say the opposite of what is needed, and it is the waste itself that *poses* a problem."
     },
     {
      "id": "u20-l1-i5",
@@ -161,28 +161,28 @@
     {
      "id": "u20-l1-i10",
      "type": "pick",
-     "q": "Which sentence is most natural?",
+     "q": "Choose the natural collocation: 'The council has ___ the decision to close the library, so it will shut in May.'",
      "options": [
-      "The council did a decision to close the library.",
-      "The council took the decision to close the library.",
-      "The council made up a decision to close the library.",
-      "The council gave a decision to close the library."
+      "reversed",
+      "taken",
+      "postponed",
+      "challenged"
      ],
      "answer": 1,
-     "why": "*Take* or *make* a decision. *Do* and *give* do not collocate with *decision*; *make up* means *invent* or *compensate*."
+     "why": "The council has **taken the decision** (*made the decision* is also correct), so the closure goes ahead. *Reverse*, *postpone* and *challenge* are real collocations with *decision*, but each would stop the library shutting in May."
     },
     {
      "id": "u20-l1-i11",
      "type": "pick",
      "q": "'This would make the situation worse.' Which is the most precise upgrade?",
      "options": [
-      "This would worsen up the situation.",
-      "This would exacerbate the situation.",
-      "This would do the situation bad.",
-      "This would increase the situation."
+      "This would affect the situation.",
+      "This would alter the situation.",
+      "This would complicate the situation.",
+      "This would exacerbate the situation."
      ],
-     "answer": 1,
-     "why": "*Exacerbate* means 'make (a problem) worse', and collocates naturally with *situation*, *problem* and *tension*."
+     "answer": 3,
+     "why": "**This would exacerbate the situation**: *exacerbate* means exactly 'make (a problem) worse'. *Affect* and *alter* lose the direction of the change, and *complicate* means 'make more complicated', which is not necessarily worse."
     },
     {
      "id": "u20-l1-i12",
@@ -209,7 +209,7 @@
      "type": "card",
      "title": "Adjective + noun",
      "body": [
-      "English chooses adjectives for nouns in ways that logic does not predict. We say *heavy traffic* but not *strong traffic*, *high unemployment* but not *big unemployment*, *a strong argument* but not *a powerful reason* (though *a powerful argument* is fine).",
+      "English chooses adjectives for nouns in ways that logic does not predict. We say *heavy traffic* but not *strong traffic*, *high unemployment* but not *big unemployment*, *strong tea* but not *powerful tea*, and *a powerful engine* but not *a strong engine*.",
       "These partnerships are worth learning in sets."
      ],
      "list": [
@@ -235,27 +235,27 @@
       "**widely**: accepted, regarded, used, available",
       "**bitterly**: disappointed, opposed, cold",
       "**fully**: aware, committed, justified",
-      "**strongly**: opposed, recommended, believe"
+      "**strongly**: opposed, recommended, worded (it also goes with verbs: *I strongly believe*)"
      ],
      "tip": "Non-gradable adjectives (*essential*, *impossible*, *unique*) take *absolutely*, *completely* or *virtually*, not *very*: *virtually impossible*, not *very impossible*."
     },
     {
      "id": "u20-l2-i3",
      "type": "pick",
-     "q": "Choose the natural collocation: 'There is ___ concern about the cost of living.'",
+     "q": "Choose the most natural collocation: 'There is ___ concern about the cost of living.'",
      "options": [
       "widespread",
-      "wide",
-      "broad-spread",
-      "large-spread"
+      "heavy",
+      "large",
+      "extensive"
      ],
      "answer": 0,
-     "why": "*Widespread concern* is the standard collocation; *wide concern* is unusual."
+     "why": "There is **widespread concern**: *widespread* is the adjective for a feeling shared by many people (*widespread support*, *widespread belief*). *Heavy*, *large* and *extensive* are real words with their own partners (*heavy rain*, *a large number*, *extensive damage*), but they do not describe concern."
     },
     {
      "id": "u20-l2-i4",
      "type": "pick",
-     "q": "Choose the natural collocation: 'The policy proved ___ unpopular with voters.'",
+     "q": "Choose the natural collocation: 'Such attitudes are ___ ingrained in the culture.'",
      "options": [
       "highly",
       "deeply",
@@ -263,7 +263,7 @@
       "widely"
      ],
      "answer": 1,
-     "why": "*Deeply unpopular* is the most natural pairing; *highly* tends to go with *likely*, *effective* or *controversial*."
+     "why": "Such attitudes are **deeply ingrained**: *deeply* goes with beliefs and attitudes that are hard to change (*deeply rooted*, *deeply held*). *Highly* goes with probability and value (*highly likely*), *widely* with how many people share something (*widely held*), and *bitterly* with disappointment, opposition and cold."
     },
     {
      "id": "u20-l2-i5",
@@ -322,7 +322,7 @@
      ],
      "rows": [
       {
-       "label": "___ disappointed with the result",
+       "label": "___ cold winds",
        "answer": 3
       },
       {
@@ -338,37 +338,37 @@
        "answer": 1
       },
       {
-       "label": "a ___ controversial decision",
+       "label": "___ skilled workers",
        "answer": 0
       }
      ],
-     "why": "bitterly disappointed, fully aware, widely regarded, deeply rooted, highly controversial."
+     "why": "bitterly cold, fully aware, widely regarded, deeply rooted, highly skilled."
     },
     {
      "id": "u20-l2-i10",
      "type": "pick",
-     "q": "Which sentence sounds most natural?",
+     "q": "Unemployment in the region jumped from 4% to 9% in a single year. Which sentence describes this most precisely?",
      "options": [
-      "There was a big rise of unemployment in the region.",
       "There was a sharp rise in unemployment in the region.",
-      "There was a strong rise in the unemployment of the region.",
-      "There was a heavy rise in unemployment in the region."
+      "There was a steady rise in unemployment in the region.",
+      "There was a slight rise in unemployment in the region.",
+      "There was a gradual rise in unemployment in the region."
      ],
-     "answer": 1,
-     "why": "*A sharp rise in* is the standard collocation and preposition. *Big rise of* has a weak adjective and the wrong preposition."
+     "answer": 0,
+     "why": "**There was a sharp rise in unemployment**: *sharp* means sudden and large, which matches a jump from 4% to 9% in one year. *Steady* and *gradual* describe slow, even change, and *slight* a small one. Note the preposition: a rise *in* something."
     },
     {
      "id": "u20-l2-i11",
      "type": "pick",
-     "q": "Which sentence would sound most natural in a Task 2 essay?",
+     "q": "Without this step, the plan cannot work at all. Which sentence says so most precisely?",
      "options": [
-      "This is a very essential step.",
-      "This is an absolutely essential step.",
-      "This is a highly essential step.",
-      "This is a deeply essential step."
+      "This step is highly desirable.",
+      "This step is fairly important.",
+      "This step is widely recommended.",
+      "This step is absolutely essential."
      ],
-     "answer": 1,
-     "why": "*Essential* is non-gradable, so it takes *absolutely*, not *very*, *highly* or *deeply*."
+     "answer": 3,
+     "why": "**This step is absolutely essential**: the plan cannot work without it. *Essential* is non-gradable, so it takes *absolutely*, not *very*. *Highly desirable* and *fairly important* are weaker, and *widely recommended* says how many people advise it, not how necessary it is."
     }
    ]
   },
@@ -443,7 +443,7 @@
     {
      "id": "u20-l3-i5",
      "type": "pick",
-     "q": "'The company's ___ performance has improved this year.'",
+     "q": "'The country's ___ performance has improved this year.'",
      "options": [
       "economic",
       "economical"
@@ -458,10 +458,11 @@
      "answer": [
       "negligible",
       "minimal",
-      "insignificant"
+      "insignificant",
+      "imperceptible"
      ],
      "limit": "ONE WORD",
-     "why": "*Negligible* means too small to be worth considering, which matches 'nobody noticed it'."
+     "why": "*Negligible* means too small to be worth considering, which matches 'nobody noticed it'; *imperceptible* (too small to notice) also fits."
     },
     {
      "id": "u20-l3-i7",
@@ -479,10 +480,11 @@
      "type": "gap",
      "text": "Learning a language as an adult is a ___, but a rewarding one.",
      "answer": [
-      "challenge"
+      "challenge",
+      "struggle"
      ],
      "limit": "ONE WORD",
-     "why": "*Challenge* suits a difficulty that is worth overcoming; *problem* would not fit 'a rewarding one'."
+     "why": "*Challenge* suits a difficulty that is worth overcoming, and *a struggle, but a rewarding one* also works; *problem* would not fit 'a rewarding one'."
     },
     {
      "id": "u20-l3-i9",
@@ -517,27 +519,27 @@
     {
      "id": "u20-l3-i10",
      "type": "pick",
-     "q": "Which sentence uses 'issue' most precisely?",
+     "q": "In which sentence does 'issue' mean 'a subject that people argue about'?",
      "options": [
-      "My car has an issue with its brakes, so I'm issuing it to a garage.",
+      "The latest issue of the magazine sold out in a day.",
+      "The council will issue new parking permits next month.",
       "Immigration is one of the most divisive issues in the election.",
-      "I have an issue of eight children.",
-      "The issue is rising quickly."
+      "The car has an issue with its brakes."
      ],
-     "answer": 1,
-     "why": "*Issue* fits a topic of public debate. In A the verb is misused, in C the meaning is wrong, and D's 'issue' is too vague to rise."
+     "answer": 2,
+     "why": "Immigration is one of the most **divisive issues** in the election: here an *issue* is a topic of public debate. In the other sentences *issue* is an edition of a magazine, a verb meaning 'give out officially', and, informally, a problem."
     },
     {
      "id": "u20-l3-i11",
      "type": "pick",
      "q": "Which sentence is correct?",
      "options": [
-      "Less people drive to work than ten years ago.",
       "Fewer people drive to work than ten years ago.",
+      "Less people drive to work than ten years ago.",
       "Littler people drive to work than ten years ago.",
       "Fewer traffic is seen than ten years ago."
      ],
-     "answer": 1,
+     "answer": 0,
      "why": "*Fewer* with countable plurals (*people*); *less* with uncountables (*less traffic*)."
     },
     {

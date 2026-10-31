@@ -32,10 +32,10 @@
      ],
      "list": [
       "**-ic, -ical**: stress the syllable just before: *ecoNOMic*, *photoGRAPHic* (not *phoTOgraphic*)",
-      "**-ion**: stress the syllable just before: *eduCAtion*, *poliTIcian*",
+      "**-ion, -ian**: stress the syllable just before: *eduCAtion*, *poliTIcian*",
       "**-ity**: stress the syllable just before: *PUBlic* becomes *pubLIcity*",
       "**-ogy, -graphy, -ometry**: stress the syllable before: *techNOlogy*, *phoTOgraphy*",
-      "**-ee, -eer, -ese**: stress the suffix itself: *employEE*, *engiNEER*, *JapanESE*"
+      "**-ee, -eer, -ese**: stress the suffix itself: *refuGEE*, *trainEE*, *engiNEER*, *JapanESE* (*employee* is often *emPLOYee* in British English)"
      ]
     },
     {
@@ -170,11 +170,11 @@
        "answer": 0
       },
       {
-       "label": "employee",
+       "label": "refugee",
        "answer": 2
       }
      ],
-     "why": "a-NAL-y-sis, AN-a-lyse, pub-LIC-i-ty, e-co-NOM-ic, PHO-to-graph, em-ploy-EE (-ee takes the stress)."
+     "why": "a-NAL-y-sis, AN-a-lyse, pub-LIC-i-ty, e-co-NOM-ic, PHO-to-graph, re-fu-GEE (-ee takes the stress)."
     }
    ]
   },
@@ -241,7 +241,7 @@
      "type": "say",
      "text": "Yes, I can. And so can she.",
      "ipa": "/ˈjes aɪ ˈkæn | ən ˈsəʊ kæn ˈʃiː/",
-     "tip": "At the end of a phrase *can* takes its strong form /kæn/."
+     "tip": "At the end of a phrase *can* takes its strong form /kæn/. In *so* + auxiliary + subject (*so can she*), *can* also keeps its full vowel /kæn/, although the stresses fall on *so* and *she*."
     },
     {
      "id": "u19-l2-i7",
@@ -305,7 +305,7 @@
        "answer": 0
       },
       {
-       "label": "handbag /ˈhæmbæɡ/",
+       "label": "in bed /ɪm ˈbed/",
        "answer": 2
       },
       {
@@ -325,7 +325,7 @@
        "answer": 0
       }
      ],
-     "why": "Linking and intrusive /r/ join a vowel to a vowel (*law and order* and *media attention* have no written r: intrusive). Elision drops /t/ or /d/ between consonants. Assimilation changes /n/ to /m/ before /b/ or /p/ (and /d/ is lost in *handbag*)."
+     "why": "Linking and intrusive /r/ join a vowel to a vowel (*law and order* and *media attention* have no written r: intrusive). Elision drops /t/ or /d/ between consonants. Assimilation changes /n/ to /m/ before /b/ or /p/ (*in bed*, *ten boys*)."
     }
    ]
   },
@@ -433,11 +433,11 @@
      "q": "'I didn't buy the *red* car.' What does the speaker imply?",
      "options": [
       "Someone else bought the red car.",
-      "The speaker bought a car of a different colour.",
       "The speaker rented the red car.",
-      "The speaker bought a red bicycle."
+      "The speaker bought a red bicycle.",
+      "The speaker bought a car of a different colour."
      ],
-     "answer": 1,
+     "answer": 3,
      "why": "Stress on *red* contrasts the colour: the speaker bought a car, but not the red one."
     },
     {

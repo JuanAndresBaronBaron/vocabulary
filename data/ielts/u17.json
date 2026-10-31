@@ -79,12 +79,12 @@
      "type": "pick",
      "q": "You have one minute to prepare. Which is the best use of it?",
      "options": [
-      "Write out the first three sentences in full so you start confidently.",
       "Write a few keywords for each prompt, plus a detail or two and an idea for the final 'why' prompt.",
+      "Write out the first three sentences in full so you start confidently.",
       "Think silently without writing anything.",
       "Write a list of advanced words to use, whatever the story."
      ],
-     "answer": 1,
+     "answer": 0,
      "why": "Keywords keep you on track without sounding scripted. Full sentences take too long and lead to reading aloud, and a list of words unconnected to your story leads to forced vocabulary."
     },
     {
@@ -198,21 +198,26 @@
       ],
       "close": "and explain why it was important to you."
      },
+     "followups": [
+      "Do you still do any woodwork yourself?",
+      "Have you ever taught a younger person something in the same way?"
+     ],
      "prep": 60,
      "talk": 120,
      "model": {
       "text": [
        "I'd like to talk about my grandfather, who was a carpenter all his working life, and about one summer when I was fifteen and spent a few weeks helping him in his workshop.",
-       "To be honest, I didn't go willingly. My parents thought I was spending too much time on screens, so they more or less sent me there. I was expecting to build something impressive straight away, a table or a bookcase, but on the first day he handed me a set of old chisels and told me to sharpen them. And that's what I did, for most of the first week. I'd work at one for twenty minutes, show it to him, and he'd run his thumb along the edge and just say, 'Again.'",
-       "I was furious at first. It seemed completely pointless. But somewhere in the second week something shifted. I started to notice the difference between an edge that was nearly right and one that was really right, and I got a strange satisfaction out of it. By the end of the summer we had made a small stool together, which my mother still has in her kitchen.",
+       "To be honest, I didn't go willingly. My parents thought I was spending too much time on screens, so they more or less sent me there. I was expecting to build something impressive straight away, a table or a bookcase, but on the first day he handed me a set of old chisels and told me to sharpen them. And that's what I did, for most of the first week. I'd work at one for twenty minutes, show it to him, and he'd run his thumb along the edge and just say, 'Again.' That was more or less the only word he said all week.",
+       "I was furious at first. It seemed completely pointless. But somewhere in the second week something shifted. I started to notice the difference between an edge that was nearly right and one that was really right, and I got a strange satisfaction out of it. Soon he was letting me use the chisels on real wood, and he'd stand behind me without saying anything, which I eventually realised was his way of showing approval. By the end of the summer we had made a small stool together, which my mother still has in her kitchen.",
        "What I learnt, really, wasn't carpentry. It was that doing the boring preparation properly makes everything afterwards easier, and that rushing the early stages always costs you later. I think about that a lot in my job now, when I'm tempted to skip the groundwork on a project. He died a few years ago, and I think that summer is probably the most valuable thing he gave me."
       ],
       "notes": [
        "All prompts are covered, and the final 'explain' prompt receives the most developed and reflective answer.",
-       "Narrative tenses are controlled precisely: past simple for events, habitual *would* (*I'd work at one... he'd run his thumb*), past perfect not needed and not forced.",
+       "Narrative tenses are controlled precisely: past simple for events, habitual *would* (*I'd work at one... he'd run his thumb*, *he'd stand behind me*), and the past perfect only once, where it is needed (*By the end of the summer we had made...*).",
        "Storytelling devices (direct speech, a turning point, a concrete object that survives) make the talk vivid and easy to follow.",
        "Natural spoken discourse markers (*To be honest*, *really*, *somewhere in the second week*) support fluency without becoming fillers.",
-       "Precise vocabulary (*run his thumb along the edge*, *skip the groundwork*) is chosen for meaning, not for display."
+       "Precise vocabulary (*run his thumb along the edge*, *skip the groundwork*) is chosen for meaning, not for display.",
+       "At about 300 words, the talk fills the two minutes at a natural pace; the extra detail comes from the story itself, not from padding."
       ]
      },
      "phrases": [
@@ -237,13 +242,17 @@
       ],
       "close": "and explain why it was more interesting than you had expected."
      },
+     "followups": [
+      "Have you been back there since?",
+      "Do you prefer visiting famous places or less well-known ones?"
+     ],
      "prep": 60,
      "talk": 120,
      "model": {
       "text": [
        "I'm going to talk about a small industrial town in the north of England that I visited a couple of years ago, mainly because a friend of mine had moved there and kept inviting me.",
        "I'll be honest: my expectations were pretty low. I'd only ever heard it mentioned in news stories about factory closures, so I imagined grey streets, boarded-up shops and not much else. The first impression didn't help, either. It was raining when I arrived, and the walk from the station took me past a row of empty units.",
-       "But over the weekend my friend showed me a completely different side to it. There was an old textile mill that had been converted into a sort of creative hub, with artists' studios, a bakery and a little cinema that showed old films on Sunday afternoons. We went on a walk along the canal, which was lined with these enormous Victorian warehouses, and the scale of them was genuinely impressive. In the evening we ended up in a tiny pub where a group of retired mill workers were playing folk music, and they insisted on telling us the history of every building we'd seen.",
+       "But over the weekend my friend showed me a completely different side to it. There was an old textile mill that had been converted into a sort of creative hub, with artists' studios, a bakery and a little cinema that showed old films on Sunday afternoons. I ended up buying a print from one of the artists there, a pen-and-ink drawing of the mill itself, and it's still hanging in my hallway. We went on a walk along the canal, which was lined with these enormous Victorian warehouses, and the scale of them was genuinely impressive. In the evening we ended up in a tiny pub where a group of retired mill workers were playing folk music, and they insisted on telling us the history of every building we'd seen.",
        "I think it was more interesting than I'd expected because it wasn't trying to be a tourist destination. Everything I saw was there for the people who lived there, and you could feel the history in a way you can't in places that have been polished up for visitors. It made me realise how much I'd judged it without ever having been, and I've tried to be a bit less quick to do that since."
       ],
       "notes": [
@@ -251,7 +260,8 @@
        "A range of past forms is used accurately (*I'd only ever heard*, *had been converted*, *we'd seen*, *without ever having been*).",
        "Vivid, specific details (a converted mill, retired workers playing folk music) give the examiner rich lexical evidence.",
        "The reflection goes beyond 'it was nice' to an insight about prejudging places, which shows the ability to discuss abstract ideas.",
-       "Spoken markers (*I'll be honest*, *sort of*, *these enormous warehouses*) give a natural conversational tone."
+       "Spoken markers (*I'll be honest*, *sort of*, *these enormous warehouses*) give a natural conversational tone.",
+       "At about 300 words, the talk fills the two minutes at a natural pace; the extra detail comes from the story itself, not from padding."
       ]
      },
      "phrases": [
@@ -284,21 +294,26 @@
       ],
       "close": "and explain how you feel about having learnt it."
      },
+     "followups": [
+      "Do you think everyone should learn to touch type at school?",
+      "Is there another skill you would like to teach yourself?"
+     ],
      "prep": 60,
      "talk": 120,
      "model": {
       "text": [
        "The skill I want to talk about is touch typing, which sounds a bit unexciting, I know, but it's probably made more difference to my working life than anything I learnt at university.",
-       "I taught myself about four years ago, during a fairly quiet period at work. I'd always typed with two or three fingers, looking down at the keyboard, and I was reasonably fast, so I'd never seen the point of changing. Then a colleague watched me writing a report and said, quite kindly, that I looked like I was fighting the keyboard. That stuck with me.",
+       "I taught myself about four years ago, during a fairly quiet period at work. I'd always typed with two or three fingers, looking down at the keyboard, and I was reasonably fast, so I'd never seen the point of changing. Then a colleague watched me writing a report and said, quite kindly, that I looked like I was fighting the keyboard. That stuck with me. I'd never thought of myself as a bad typist, but once she'd said it, I couldn't stop noticing how often I paused to look for a key or went back to correct a mistake.",
        "So I downloaded a free typing program and committed to fifteen minutes every morning before work. The first fortnight was genuinely frustrating, because I was much slower than before, and there were several moments when I was tempted to go back to my old habits, especially when I had a deadline. What kept me going was a little graph the program showed of my speed and accuracy, which crept up week by week. After about two months I'd overtaken my old speed, and now I'm roughly twice as fast as I used to be.",
-       "I'm proud of it partly because nobody made me do it, and partly because it taught me something about learning in general: that getting worse before you get better is normal, and that small daily practice beats occasional bursts of effort. I've since used the same approach for learning to read music, with mixed results, but that's another story."
+       "I'm proud of it partly because nobody made me do it, and partly because it taught me something about learning in general: that getting worse before you get better is normal, and that small daily practice beats occasional bursts of effort. And there's a small satisfaction every time I type a long email without once looking down. I've since used the same approach for learning to read music, with mixed results, but that's another story."
       ],
       "notes": [
        "The talk covers every prompt and builds naturally to a reflective final section.",
        "A turning point (the colleague's comment) and a moment of difficulty give the story shape and tension.",
        "Precise time and sequence language (*the first fortnight*, *after about two months*, *week by week*) keeps the narrative coherent.",
        "Accurate perfect forms (*I'd always typed*, *I'd overtaken*, *it's probably made more difference*) arise from the meaning.",
-       "A light, self-aware ending (*with mixed results, but that's another story*) is natural and confident."
+       "A light, self-aware ending (*with mixed results, but that's another story*) is natural and confident.",
+       "At about 300 words, the talk fills the two minutes at a natural pace; the extra detail comes from the story itself, not from padding."
       ]
      },
      "phrases": [
@@ -323,21 +338,26 @@
       ],
       "close": "and explain how you felt about it."
      },
+     "followups": [
+      "Do you think people are more patient when they travel than in everyday life?",
+      "How do you usually pass the time when you have to wait?"
+     ],
      "prep": 60,
      "talk": 120,
      "model": {
       "text": [
        "I'd like to describe the time I waited nearly eight hours in an airport in Lisbon, on my way back from a work conference.",
-       "It was the end of a long week, and all I wanted was to get home. I'd checked in and was sitting at the gate when the announcement came that the flight was delayed by an hour because of a technical problem. Fine, I thought. An hour later it was delayed again, then again, and by mid-afternoon it was clear that nobody actually knew when we'd leave.",
+       "It was the end of a long week, and all I wanted was to get home. I'd checked in and was sitting at the gate when the announcement came that the flight was delayed by an hour because of a technical problem. Fine, I thought. An hour later it was delayed again, then again, and by mid-afternoon it was clear that nobody actually knew when we'd leave. The airline handed out vouchers for a sandwich and a coffee, which felt like a fairly small apology for a whole day, and the queue for them was almost as long as the delay.",
        "At first I did what everyone does: I paced around, checked my phone every five minutes and got increasingly irritated. But at some point I realised that being angry wasn't going to make the plane any less broken. So I found a quiet corner, finished a novel I'd been carrying around for months and, rather unexpectedly, got chatting to an elderly couple who were flying home after visiting their grandchildren. They'd been married for fifty-two years and had a story about almost every country in Europe. By the time we finally boarded, at about ten at night, I almost felt sorry it was over.",
-       "How did I feel? Exhausted, obviously, but also slightly surprised at myself. I'm not naturally a patient person, and that day taught me that once you accept that something is out of your control, waiting becomes much less painful. I wouldn't want to repeat it, but I've thought about that conversation with the couple many times since."
+       "How did I feel? Exhausted, obviously, but also slightly surprised at myself. I'm not naturally a patient person, and that day taught me that once you accept that something is out of your control, waiting becomes much less painful. It's a lesson I have to relearn regularly, to be honest. I wouldn't want to repeat that day, but I've thought about that conversation with the couple many times since."
       ],
       "notes": [
        "The talk follows a clear emotional arc (frustration, acceptance, an unexpected positive) that makes it engaging.",
        "Narrative tenses are precise, including the past perfect continuous (*I'd been carrying around for months*).",
        "Short direct thoughts (*Fine, I thought.*) and repetition for effect (*delayed again, then again*) are effective spoken storytelling devices.",
        "The reflection discusses an abstract idea (control and patience) in natural, accessible language.",
-       "The speaker answers the 'how you felt' prompt explicitly, signalling coverage without a formula."
+       "The speaker answers the 'how you felt' prompt explicitly, signalling coverage without a formula.",
+       "At about 300 words, the talk fills the two minutes at a natural pace; the extra detail comes from the story itself, not from padding."
       ]
      },
      "phrases": [
