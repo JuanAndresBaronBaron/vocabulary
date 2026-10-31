@@ -30,7 +30,7 @@
    con módulos viejos; y un «?v=» que no es VERSION va a sameUrl, que sin red no encuentra las copias que carryLazy pasa
    por su nombre (IELTS Prep se rompería sin conexión tras cada actualización). El shell se guarda sin el «?v=»: es de
    una sola versión, la de su nombre. */
-const VERSION = 38;
+const VERSION = 39;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
 const SHELL = [

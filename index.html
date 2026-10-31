@@ -2056,7 +2056,7 @@ let rv = null;
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v38", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v39", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/party.js", "data/party.json", "img/games/impostor.png", "img/games/ordenar.png", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
@@ -3624,47 +3624,47 @@ renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
 document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmMaybe(); bus.emit("boot"); route(); });
 </script>
 <!-- ?v= es la VERSION de sw.js (se sube con ella): así una versión nueva no sale con módulos viejos de la caché HTTP -->
-<script src="js/motion.js?v=38"></script>
-<script src="js/gestures.js?v=38"></script>
-<script src="js/keys.js?v=38"></script>
-<script src="js/ctxmenu.js?v=38"></script>
-<script src="js/lesson.js?v=38"></script>
-<script src="js/learn.js?v=38"></script>
-<script src="js/sfx.js?v=38"></script>
-<script src="js/shop.js?v=38"></script>
-<script src="js/farm.js?v=38"></script>
-<script src="js/games.js?v=38"></script>
-<script src="js/lince.js?v=38"></script>
-<script src="js/party.js?v=38"></script>
-<script src="js/buddy.js?v=38"></script>
-<script src="js/album.js?v=38"></script>
-<script src="js/rewards.js?v=38"></script>
-<script src="js/army.js?v=38"></script>
-<script src="js/flyer.js?v=38"></script>
-<script src="js/topos.js?v=38"></script>
-<script src="js/cuartel.js?v=38"></script>
-<script src="js/wordplay.js?v=38"></script>
-<script src="js/quiz.js?v=38"></script>
-<script src="js/grammargames.js?v=38"></script>
-<script src="js/save.js?v=38"></script>
-<script src="js/sync.js?v=38"></script>
-<script src="js/gate.js?v=38"></script>
-<script src="js/settings.js?v=38"></script>
-<script src="js/review.js?v=38"></script>
-<script src="js/season.js?v=38"></script>
-<script src="js/shortcuts.js?v=38"></script>
-<script src="js/mailbox.js?v=38"></script>
-<script src="js/phrases.js?v=38"></script>
-<script src="js/parrot.js?v=38"></script>
-<script src="js/calls.js?v=38"></script>
-<script src="js/stories.js?v=38"></script>
-<script src="js/chant.js?v=38"></script>
-<script src="js/simon.js?v=38"></script>
-<script src="js/oido.js?v=38"></script>
-<script src="js/hunter-boot.js?v=38"></script>
-<script src="js/ielts-boot.js?v=38"></script>
-<script src="js/tech-boot.js?v=38"></script>
-<script src="js/welcome.js?v=38"></script>
-<script src="js/navmotion.js?v=38"></script>
+<script src="js/motion.js?v=39"></script>
+<script src="js/gestures.js?v=39"></script>
+<script src="js/keys.js?v=39"></script>
+<script src="js/ctxmenu.js?v=39"></script>
+<script src="js/lesson.js?v=39"></script>
+<script src="js/learn.js?v=39"></script>
+<script src="js/sfx.js?v=39"></script>
+<script src="js/shop.js?v=39"></script>
+<script src="js/farm.js?v=39"></script>
+<script src="js/games.js?v=39"></script>
+<script src="js/lince.js?v=39"></script>
+<script src="js/party.js?v=39"></script>
+<script src="js/buddy.js?v=39"></script>
+<script src="js/album.js?v=39"></script>
+<script src="js/rewards.js?v=39"></script>
+<script src="js/army.js?v=39"></script>
+<script src="js/flyer.js?v=39"></script>
+<script src="js/topos.js?v=39"></script>
+<script src="js/cuartel.js?v=39"></script>
+<script src="js/wordplay.js?v=39"></script>
+<script src="js/quiz.js?v=39"></script>
+<script src="js/grammargames.js?v=39"></script>
+<script src="js/save.js?v=39"></script>
+<script src="js/sync.js?v=39"></script>
+<script src="js/gate.js?v=39"></script>
+<script src="js/settings.js?v=39"></script>
+<script src="js/review.js?v=39"></script>
+<script src="js/season.js?v=39"></script>
+<script src="js/shortcuts.js?v=39"></script>
+<script src="js/mailbox.js?v=39"></script>
+<script src="js/phrases.js?v=39"></script>
+<script src="js/parrot.js?v=39"></script>
+<script src="js/calls.js?v=39"></script>
+<script src="js/stories.js?v=39"></script>
+<script src="js/chant.js?v=39"></script>
+<script src="js/simon.js?v=39"></script>
+<script src="js/oido.js?v=39"></script>
+<script src="js/hunter-boot.js?v=39"></script>
+<script src="js/ielts-boot.js?v=39"></script>
+<script src="js/tech-boot.js?v=39"></script>
+<script src="js/welcome.js?v=39"></script>
+<script src="js/navmotion.js?v=39"></script>
 </body>
 </html>
