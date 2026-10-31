@@ -644,7 +644,7 @@ def test_export_unchanged_and_nothing_recorded_in_it():
         for k in ("album:uniq:english",):
             keys[k] = base["keys"].get(k, keys.get(k))
         f = json.loads(keys["farm:state"]); b = json.loads(base["keys"]["farm:state"])
-        f.pop("visit", None); b.pop("visit", None)
+        f.pop("visit", None); b.pop("visit", None); f.pop("ls", None); b.pop("ls", None)
         if f != b:
             probs.append("farm:state cambia más que la hora de la visita")
         keys["farm:state"] = base["keys"]["farm:state"]

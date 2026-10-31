@@ -61,7 +61,7 @@ function hashKeys(keys){
   for(const k of Object.keys(keys).sort()){
     if(NOHASH.has(k) || k.startsWith("voice:")) continue;
     let v = keys[k];
-    if(k === "farm:state"){ try{ const o = JSON.parse(v); if(isObj(o)){ delete o.visit; v = JSON.stringify(o); } }catch(e){} }
+    if(k === "farm:state"){ try{ const o = JSON.parse(v); if(isObj(o)){ delete o.visit; delete o.ls; v = JSON.stringify(o); } }catch(e){} }   /* (ls: «visto por última vez», js/farm.js) */
     parts.push(k + "\u0001" + v);
   }
   return cyrb53(parts.join("\u0002"));

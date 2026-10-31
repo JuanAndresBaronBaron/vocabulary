@@ -597,6 +597,8 @@ button.st-r:disabled .st-ic{background:#8E8E93}
 .hm-wd li.on{background:var(--gold);color:var(--gold-on)}
 .hm-wd li.today:not(.on){background:none;box-shadow:inset 0 0 0 2px var(--gold-deep)}
 .hm-wd li.fut{background:none;box-shadow:inset 0 0 0 1px var(--sep);color:var(--label2)}
+.hm-wd li.rest{background:var(--brand-fill);color:#fff}
+.hm-wf.hm-fresh{max-width:6.2em;font:800 var(--fs-min)/1.05 var(--f-round);color:var(--label);text-align:center}
 @media (forced-colors:active){.hm-wd li{border:1px solid CanvasText}.hm-wd li.on{background:CanvasText;color:Canvas}}
 /* HOME_SLOTS: como mucho 2, y si no hay nada no ocupan sitio. Lo que no sea una fila de homeRow() (un .panel o una
    tarjeta de otro módulo) se compacta aquí: en fila, con el título pequeño, sin el párrafo y con los botones justos */
@@ -768,6 +770,7 @@ dialog label{display:block;font-weight:600;margin:14px 0 6px}
 .gbox.open{animation:boom .6s forwards}.gbox.got{animation:gpop .5s}
 @keyframes gpop{0%{transform:scale(.3)}70%{transform:scale(1.15)}100%{transform:scale(1)}}
 .gword{font-size:1.6rem;font-weight:800;margin:4px 0}
+.gipa{margin:-2px 0 6px;color:var(--label2);font:400 var(--fs-sub)/1.3 var(--f-text)}
 @keyframes shake{0%,100%{transform:rotate(0)}20%{transform:rotate(-10deg)}40%{transform:rotate(10deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(6deg)}}
 @keyframes boom{to{transform:scale(1.8);opacity:0}}
 /* Premios (Medallas y Mi zorro): sus estilos van con js/rewards.js (<style id="css-rewards">) */
@@ -1851,12 +1854,26 @@ function srsAdd(id, rows, box){         /* añade al repaso; box 0 = hoy, 1 = ma
 const dueList = () => Object.values(srsAll()).filter(x => x.due <= today());
 const dayKey = d => d.toLocaleDateString("sv");
 function logAct(n=1){ const a = store.get("act", {}), k = dayKey(new Date()); a[k] = (a[k]||0) + n; store.set("act", a); }
-function streak(){
-  const a = store.get("act", {}), d = new Date(); let s = 0;
-  if(!a[dayKey(d)]) d.setDate(d.getDate()-1);
-  while(a[dayKey(d)]){ s++; d.setDate(d.getDate()-1); }
-  return s;
+/* racha amable (sin clave nueva: sale de "act"): cada 7 días practicados seguidos dan 1 «día de descanso» (2 como mucho),
+   que se usa solo el día que no practica; así un día sin practicar no rompe la racha. Solo se rompe sin descansos
+   guardados y entonces se empieza de nuevo («Empieza tu semana»: nunca un 0 ni un zorro triste). Hoy, si aún no ha
+   practicado, no cuenta como perdido. → {n: días practicados de la racha, rest: descansos guardados, used: días de
+   descanso usados (todos, "AAAA-MM-DD"), broke: si alguna vez se rompió una racha (para «Empieza tu semana»)} */
+function streakInfo(){
+  const a = store.get("act", {}) || {}, out = {n: 0, rest: 0, used: [], broke: false};
+  const ks = Object.keys(a).filter(k => a[k] && /^\d{4}-\d{2}-\d{2}$/.test(k)).sort(); if(!ks.length) return out;
+  const tk = dayKey(new Date()), d = new Date(ks[0] + "T12:00:00");
+  for(let i = 0; i < 20000; i++){
+    const k = dayKey(d); if(k > tk) break;
+    if(a[k]){ out.n++; if(out.n % 7 === 0) out.rest = Math.min(2, out.rest + 1); }
+    else if(k !== tk && out.n){ if(out.rest > 0){ out.rest--; out.used.push(k); } else { out.n = 0; out.rest = 0; out.broke = true; } }
+    d.setDate(d.getDate() + 1);
+  }
+  return out;
 }
+function streak(){ return streakInfo().n; }
+/* ¿dominada? La definición es la del repaso: srsMastered(x) si el repaso la da; si no, la caja (x.b >= MASTER) */
+const isMast = x => { try{ return !!x && (typeof srsMastered === "function" ? !!srsMastered(x) : (x.b || 0) >= MASTER); }catch(e){ return false; } };
 function updBadge(){ const n = dueList().length; tabBadge("aprender", n, n === 1 ? "1 palabra para repasar" : `${n} palabras para repasar`, "#/repaso"); }
 
 /* el repaso (Aprender › Repasar, #/repaso) está en js/review.js: repaso(), rvStart(), rvDraw() y «Dilo primero», con
@@ -2777,14 +2794,18 @@ function firstOfDay(){
 bus.on("lesson-done", firstOfDay);
 bus.on("review-done", firstOfDay);
 /* la semana de lunes a domingo (vocabRewards.week() de js/rewards.js) con la llama y los días seguidos (streak()). No
-   sale mientras no haya nada que enseñar (ni racha ni un día practicado esta semana) */
+   sale en un aparato que nunca ha practicado */
 function weekHtml(){
   const R = window.vocabRewards; if(!R || typeof R.week !== "function") return "";
   let days = [], st = 0; try{ days = R.week(); st = streak(); }catch(e){ return ""; }
-  const n = days.filter(d => d.done).length; if(!st && !n) return "";
-  const lbl = `${st ? (st === 1 ? "1 día seguido" : `${st} días seguidos`) + ". " : ""}Esta semana ${n === 1 ? "has practicado 1 día" : `has practicado ${n} días`}`;
-  return `<div class="hm-week" id="hm-week" role="img" aria-label="${esc(lbl)}"><span class="hm-wf${st ? "" : " off"}">${ico("fire", "fill", 20)}${st}</span>`
-    + `<ol class="hm-wd">${days.map(d => `<li${d.done || d.today || d.future ? ` class="${[d.done && "on", d.today && "today", d.future && "fut"].filter(Boolean).join(" ")}"` : ""}>${esc(d.l)}</li>`).join("")}</ol></div>`;
+  /* (un aparato nuevo, sin nada practicado nunca, no la ve; quien vuelve tras parar ve «Empieza tu semana») */
+  const n = days.filter(d => d.done).length, nr = days.filter(d => d.rest).length;
+  if(!st && !n && !Object.keys(store.get("act", {}) || {}).length) return "";
+  /* sin racha (se rompió): «Empieza tu semana», nunca un 0. Un día de descanso usado: punto azul con un copo */
+  const lbl = `${st ? (st === 1 ? "1 día seguido" : `${st} días seguidos`) + ". " : "Empieza tu semana. "}Esta semana ${n === 1 ? "has practicado 1 día" : `has practicado ${n} días`}${nr ? `, ${nr === 1 ? "1 día de descanso" : nr + " días de descanso"}` : ""}`;
+  const snow = typeof R.snow === "function" ? R.snow(14) : "";
+  return `<div class="hm-week" id="hm-week" role="img" aria-label="${esc(lbl)}">${st ? `<span class="hm-wf">${ico("fire", "fill", 20)}${st}</span>` : `<span class="hm-wf hm-fresh">Empieza tu semana</span>`}`
+    + `<ol class="hm-wd">${days.map(d => `<li${d.done || d.rest || d.today || d.future ? ` class="${[d.done && "on", d.rest && !d.done && "rest", d.today && "today", d.future && "fut"].filter(Boolean).join(" ")}"` : ""}>${d.rest && !d.done && snow ? snow : esc(d.l)}</li>`).join("")}</ol></div>`;
 }
 
 /* ---------- accesorio «Seguir» ----------
@@ -3047,27 +3068,39 @@ function award(n, why, quiet, from){
 }
 /* medallas */
 function allMapP(){ const all = {}; for(const L of Object.keys(LANGS)) Object.assign(all, ...Object.entries(store.get("map:"+L, {})).map(([k, v]) => ({[L+k]: v}))); return all; }
+/* lv: nivel de la medalla (1 bronce, 2 plata, 3 oro), de más fácil a más difícil dentro de cada familia. Una medalla
+   ganada no se pierde nunca (ok también si ya está en game.ach: p. ej., si cambia lo que es «dominada») */
 function achList(){
   const g = game(), P = allMapP(), keys = Object.keys(P);
   const les = keys.filter(k => !k.includes("G-")).length, gr = keys.filter(k => k.includes("G-")).length;
   const three = Object.values(P).filter(v => v === 3).length;
-  const words = Object.keys(srsAll()).length, mast = Object.values(srsAll()).filter(x => x.b >= MASTER).length;
+  const words = Object.keys(srsAll()).length, mast = Object.values(srsAll()).filter(isMast).length;
   const farm = SHOP.filter(x => x.t === "farm" && g.owned[x.id]).length, things = Object.keys(g.owned).length - 1;
+  const AK = (typeof farmMount === "function" && farmMount.kinds && farmMount.kinds.animal) || [], animals = SHOP.filter(x => x.t === "farm" && AK.includes(x.id));
+  const anim = animals.filter(x => g.owned[x.id]).length, animN = animals.length || 11;
+  let pages = 0; for(const L of Object.keys(LANGS)){ const d = store.get("album:done:" + L, {}); if(d && typeof d === "object") pages += Object.keys(d).length; }
   const st = streak();
   const A = [
-    ["l1","🥇","Primera lección","Termina tu primera lección", les, 1], ["l10","📗","Explorador","Termina 10 lecciones", les, 10],
-    ["l50","📘","Aventurero","Termina 50 lecciones", les, 50], ["l150","📙","Sabio","Termina 150 lecciones", les, 150],
-    ["g1","✏️","Primera gramática","Termina una lección de gramática", gr, 1], ["g10","📐","Maestro de reglas","Termina 10 de gramática", gr, 10],
-    ["s3","⭐","Tres estrellas","Saca 3 estrellas en 5 lecciones", three, 5], ["s20","🌟","Estrella brillante","Saca 3 estrellas en 20 lecciones", three, 20],
-    ["r3","🔥","Racha de 3","Aprende 3 días seguidos", st, 3], ["r7","🚒","Racha de 7","Aprende 7 días seguidos", st, 7], ["r30","🌋","Racha de 30","Aprende 30 días seguidos", st, 30],
-    ["w50","📖","50 palabras","Ten 50 palabras en tu repaso", words, 50], ["w300","📚","300 palabras","Ten 300 palabras en tu repaso", words, 300],
-    ["m25","💎","Memoria de oro","Domina 25 palabras", mast, 25],
-    ["c200","💰","Ahorrador","Gana 200 monedas", g.earned, 200], ["c1000","🏦","Banquero","Gana 1000 monedas", g.earned, 1000],
-    ["f5","🌾","Granjero","Ten 5 cosas en tu granja", farm, 5], ["f20","🚜","Gran granjero","Ten 20 cosas en tu granja", farm, 20],
-    ["t10","🎽","Con estilo","Consigue 10 premios de la tienda", things, 10],
-    ["k4","🔖","Ratón de biblioteca","Lee 4 cuentos del zorro", window.vocabStories ? vocabStories.doneCount() : 0, 4],
+    ["l1","🥇","Primera lección","Termina tu primera lección", les, 1, 1], ["l10","📗","Explorador","Termina 10 lecciones", les, 10, 1],
+    ["l50","📘","Aventurero","Termina 50 lecciones", les, 50, 2], ["l150","📙","Sabio","Termina 150 lecciones", les, 150, 3],
+    ["g1","✏️","Primera gramática","Termina una lección de gramática", gr, 1, 1], ["g10","📐","Maestro de reglas","Termina 10 de gramática", gr, 10, 2],
+    ["s3","⭐","Tres estrellas","Saca 3 estrellas en 5 lecciones", three, 5, 1], ["s20","🌟","Estrella brillante","Saca 3 estrellas en 20 lecciones", three, 20, 2],
+    ["r3","🔥","Racha de 3","Aprende 3 días seguidos", st, 3, 1], ["r7","🚒","Racha de 7","Aprende 7 días seguidos", st, 7, 1],
+    ["r14","🏕️","Racha de 14","Aprende 14 días seguidos", st, 14, 2], ["r30","🌋","Racha de 30","Aprende 30 días seguidos", st, 30, 2],
+    ["r60","🗻","Racha de 60","Aprende 60 días seguidos", st, 60, 3], ["r100","💯","Racha de 100","Aprende 100 días seguidos", st, 100, 3],
+    ["r365","🎆","Un año entero","Aprende 365 días seguidos", st, 365, 3],
+    ["w50","📖","50 palabras","Ten 50 palabras en tu repaso", words, 50, 1], ["w300","📚","300 palabras","Ten 300 palabras en tu repaso", words, 300, 2],
+    ["w1000","🏛️","1000 palabras","Ten 1000 palabras en tu repaso", words, 1000, 3],
+    ["m25","💎","Memoria de oro","Domina 25 palabras", mast, 25, 2], ["m100","👑","Memoria diamante","Domina 100 palabras", mast, 100, 3],
+    ["p3","🖼️","Coleccionista","Completa 3 páginas del álbum", pages, 3, 1], ["p10","📔","Álbum brillante","Completa 10 páginas del álbum", pages, 10, 2],
+    ["p30","🏆","Álbum lleno","Completa 30 páginas del álbum", pages, 30, 3],
+    ["c200","💰","Ahorrador","Gana 200 monedas", g.earned, 200, 1], ["c1000","🏦","Banquero","Gana 1000 monedas", g.earned, 1000, 2],
+    ["f5","🌾","Granjero","Ten 5 cosas en tu granja", farm, 5, 1], ["f20","🚜","Gran granjero","Ten 20 cosas en tu granja", farm, 20, 2],
+    ["a11","🐄","Toda la granja","Ten los " + animN + " animales de la granja", anim, animN, 3],
+    ["t10","🎽","Con estilo","Consigue 10 premios de la tienda", things, 10, 1],
+    ["k4","🔖","Ratón de biblioteca","Lee 4 cuentos del zorro", window.vocabStories ? vocabStories.doneCount() : 0, 4, 1],
   ];
-  return A.map(([id, e, t, d, v, goal]) => ({id, e, t, d, v: Math.min(v, goal), goal, ok: v >= goal}));
+  return A.map(([id, e, t, d, v, goal, lv]) => ({id, e, t, d, v: Math.min(v, goal), goal, lv, ok: v >= goal || !!(g.ach && g.ach[id])}));
 }
 let achBusy = false;
 function checkAch(){
@@ -3100,7 +3133,7 @@ function showGift(it){
     setTimeout(() => {
       d.innerHTML = `<div class="gift"><div class="gbox got">${it ? pjImg(it) : "🪙"}</div>
         <h2>${it ? `¡Es ${esc(art(it.n))}!` : "¡50 monedas!"}</h2>
-        ${it ? `<p class="gword">${esc(itemWord(it))} ${sayBtn(itemWord(it))}</p><p class="sub">Así se dice en ${LANGS[lang].name}. ${it.t === "farm" ? "Ya está en tu granja." : "Ya está en tu armario."}</p>` : `<p class="sub">Ya tienes todos los regalos pequeños. ¡Compra algo grande en la tienda!</p>`}
+        ${it ? `<p class="gword"><span lang="${LANGS[lang].code}">${esc(itemWord(it))}</span> ${sayBtn(itemWord(it))}</p>${it.ipa && it.ipa[lang] ? `<p class="gipa">${ipaHtml(it.ipa[lang], LANGS[lang].code)}</p>` : ""}<p class="sub">Así se dice en ${LANGS[lang].name}. ${it.t === "farm" ? "Ya está en tu granja." : "Ya está en tu armario."}</p>` : `<p class="sub">Ya tienes todos los regalos pequeños. ¡Compra algo grande en la tienda!</p>`}
         <div class="ctrl" style="justify-content:center">
           ${it && it.t !== "farm" ? `<button class="btn lc" id="gwear" style="--lc:#1E6EF4">Ponérmelo</button>` : ""}
           <button class="btn" id="gclose">¡Genial!</button></div></div>`;

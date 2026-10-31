@@ -171,6 +171,7 @@ def _norm(store, t0):
     if isinstance(f, dict):
         f = dict(f)
         f.pop("visit", None)
+        f.pop("ls", None)   # «visto por última vez» (la vecina): una hora, como la visita
         f["fed"] = {k: ("ahora" if v >= t0 else v) for k, v in f.get("fed", {}).items()}
         f["prod"] = sorted([P["a"], P["p"]] for P in f.get("prod", {}).values())
         f["pl"] = {k: dict(p, w=("ahora" if (p.get("w") or 0) >= t0 else p.get("w"))) for k, p in f.get("pl", {}).items()}
@@ -651,7 +652,7 @@ _SRS = "() => JSON.parse(localStorage.getItem('srs:english'))"
 def test_name_quiz_say_it_grades_srs_and_never_counts_a_miss():
     """Tras comer, «¿Cómo me llamo?» con 3 opciones y «Dilo» (hay reconocedor). Con uno que no entiende: «No te he oído
     bien. Toca la respuesta.», nada en gris, el repaso igual (nunca es un fallo) y se puede seguir; con uno que acierta:
-    «¡Muy bien!» y la palabra (animales|Conejo, que no estaba) entra en el repaso como con srsGrade(…, 2) de una lección.
+    «¡Te acordaste de mi nombre!» y la palabra (animales|Conejo, que no estaba) entra en el repaso como con srsGrade(…, 2) de una lección.
     Sin reconocedor no hay «Dilo» y se toca; tocar la mala: gris con ✗, la buena en verde con ✓, sin temblor ni sonido
     triste y sin tocar el repaso."""
     probs = []
@@ -688,7 +689,7 @@ def test_name_quiz_say_it_grades_srs_and_never_counts_a_miss():
             probs.append(f"acertar con «Dilo»: {key} = {srs1.get(key)} (se esperaba {want})")
         if {k: v for k, v in srs1.items() if k != key} != srs0:
             probs.append("acertar cambió otras palabras del repaso")
-        if "Muy bien" not in q["msg"] or q["ok"] != 1 or q["bad"]:
+        if "Te acordaste de mi nombre" not in q["msg"] or q["ok"] != 1 or q["bad"]:
             probs.append(f"tras acertar: {q}")
         probs += C.errors(page)
     finally:
@@ -837,7 +838,7 @@ def test_looks_contrast_palette_and_captures():
 # ---------------------------------------------------------------- partida
 def test_export_unchanged():
     """La partida exportada al arrancar es la de la base; entrar en la granja, abrir la bandeja y la hoja y salir sin
-    hacer nada solo cambia la hora de la visita (ni claves nuevas)."""
+    hacer nada solo cambia la hora de la visita y «visto» (farm:state.ls; ni claves nuevas)."""
     probs = []
     base = C.load_baseline()
     assert base, "falta tests/e2e/baseline/export.json"
@@ -860,8 +861,9 @@ def test_export_unchanged():
         C.goto(page, "")
         after = C.export(page)
         old_f, new_f = json.loads(snap["keys"]["farm:state"]), json.loads(after["keys"]["farm:state"])
-        old_f.pop("visit", None)
-        new_f.pop("visit", None)
+        for k in ("visit", "ls"):   # la hora de la visita y «visto por última vez» (la vecina)
+            old_f.pop(k, None)
+            new_f.pop(k, None)
         if old_f != new_f:
             probs.append(f"farm:state cambia más que la visita: {_diff(old_f, new_f)}")
         keys = dict(after["keys"])

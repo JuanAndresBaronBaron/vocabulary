@@ -392,7 +392,8 @@ def test_mizorro_buy_wear_choose():
 
 # ---------------------------------------------------------------- Álbum
 def test_album_cover_selector():
-    """Portada: sin la portada con degradado, .al-deco, .al-hello ni los chips; anillo y una línea «N de M pegatinas»;
+    """Portada: sin la portada con degradado, .al-deco, .al-hello ni los chips; anillo y una línea con la meta más
+    cercana, «La familia: te faltan N» (desde la versión de las metas largas; antes «N de M pegatinas»);
     las partes en un control segmentado (tablist) que cambia las miniaturas y se recuerda en "album:tab"; miniaturas
     sobre fondo neutro (la tarjeta)."""
     probs = []
@@ -409,7 +410,7 @@ def test_album_cover_selector():
           card: getComputedStyle(document.querySelector('.al-sum')).backgroundColor})""")
         if r["old"]:
             probs.append(f"quedan {r['old']} piezas de la portada vieja")
-        if r["ring"] != 1 or not re.fullmatch(r"\s*\d+ de \d+ pegatinas\s*", r["line"]):
+        if r["ring"] != 1 or not re.fullmatch(r"\s*\S+\s*[^:]+: te faltan? \d+\s*", r["line"]):
             probs.append(f"cabecera: anillo {r['ring']}, línea {r['line']!r}")
         if r["role"] != "tablist" or [t for t, _ in r["tabs"]] != ["temas", "3000", "avanzado"]:
             probs.append(f"selector de partes: {r['role']} {r['tabs']}")
