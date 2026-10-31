@@ -61,6 +61,15 @@ function fresh(list, k, idOf){
   const r = recent(k), n = list.filter(x => !r.includes(idOf(x)));
   return n.length ? n : list.filter(x => idOf(x) !== r[r.length - 1]);
 }
+/* el tema elegido en Juegos (api.topicPool): ¿la palabra es de ese tema? (su d, o está entre las del tema, como en «Mis
+   palabras»). Con Soldados, ninguna: se juega con cualquiera */
+async function topicFit(api, g){
+  let T = null;
+  try{ T = await api.topicPool(g, 0); }catch(e){}
+  if(!T || !T.tp || T.mil) return () => false;
+  const P = Array.isArray(T.P) ? T.P : [], ks = new Set(P.map(x => x.k)), ws = new Set(P.map(x => String(x.word || "").toLowerCase()));
+  return w => !!w && (w.d === T.tp || ks.has(`${w.d}|${w.es}`) || ws.has(String(w.word || "").toLowerCase()));
+}
 
 /* ---------- trocitos ---------- */
 const imgHtml = (src, cls = "") => {
@@ -68,7 +77,13 @@ const imgHtml = (src, cls = "") => {
   const s = pic(src);
   return `<img${cls ? ` class="${cls}"` : ""} src="${esc(s)}"${s !== src ? ` data-f="${esc(src)}" onerror="if(this.dataset.f){this.src=this.dataset.f;delete this.dataset.f}"` : ""} alt="" draggable="false">`;
 };
-const wHtml = w => `<span class="pt-w" lang="${esc(code())}">${esc(w.word)}</span>${ipaHtml(w.ipa, code(), "pt-ipa")}`;
+const wHtml = (w, id) => `<span class="pt-w"${id ? ` id="${id}"` : ""} lang="${esc(code())}">${esc(w.word)}</span>${ipaHtml(w.ipa, code(), "pt-ipa")}`;
+/* los nombres de los botones con una palabra del idioma: «Escuchar» (en español) y la palabra (con su lang), por
+   aria-labelledby; LBL va una vez en cada juego */
+let UID = 0;
+const uid = () => "pt-u" + (++UID);
+const LBL = `<span class="vh" id="pt-esc" lang="es">Escuchar</span><span class="vh" id="pt-cesta" lang="es">Cesta</span><span class="vh" id="pt-oir" lang="es">Toca para oírla</span>`;
+const sayBtn = w => { const id = uid(); return `<button type="button" class="pt-say" id="pt-say" data-key="space" aria-labelledby="pt-esc ${id}">${wHtml(w, id)}</button>`; };
 const talk = w => { try{ if(w && w.word) say(w.word); }catch(e){} };
 const talkP = w => { try{ return w && w.word ? sayP(w.word) : Promise.resolve(); }catch(e){ return Promise.resolve(); } };
 const stopTalk = () => { try{ if("speechSynthesis" in window) speechSynthesis.cancel(); }catch(e){} };
@@ -255,7 +270,7 @@ const CSS = `
 .pt-bk .pt-ipa{font-size:var(--fs-min);line-height:1.2;text-align:center;max-width:100%;overflow-wrap:anywhere}
 .pt-bk .pt-in{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;margin-top:auto;min-height:26px}
 .pt-bk .pt-in img{width:26px;height:26px;object-fit:contain;border-radius:6px;background:var(--gm-tile);animation:gm-in .3s}
-.pt-bk-say{position:absolute;right:2px;top:10px;z-index:2;width:40px;height:40px;border:0;border-radius:50%;background:none;color:var(--brand-tint);display:grid;place-items:center;cursor:pointer}
+.pt-bk-say{position:absolute;right:2px;top:10px;z-index:2;width:44px;height:44px;border:0;border-radius:50%;background:none;color:var(--brand-tint);display:grid;place-items:center;cursor:pointer}
 .pt-bk-say.playing{color:var(--ok-ink)}
 .pt-bk.is-over{transform:scale(1.04);box-shadow:0 6px 16px rgba(0,0,0,.14),inset 0 0 0 3px var(--brand-tint),inset 0 7px 0 0 var(--c)}
 .pt-bk.is-ok{background:var(--ok-fill);color:#fff;box-shadow:none}
@@ -346,9 +361,11 @@ async function impostor(app, api, mode){
   if(!api.here(my, IMP)) return;
   const C = casesOf(D);
   if(C.length < 4){ empty(app, `Este juego todavía no tiene palabras en ${api.nm()}.`); return; }
+  const inTp = await topicFit(api, IMP);
+  if(!api.here(my, IMP)) return;
   const run = api.mount(app, `<div class="gm pt" id="pt">
     ${api.topHtml(IMP, `<span class="gm-pill" id="pt-rd" hidden title="Ronda">${IC("chat-circle-text", "bold", 18)}<span><b id="pt-rn">1</b>/${ROUNDS}</span></span>`)}
-    <div class="pt-main" id="pt-main"></div><div class="pt-dock" id="pt-dock"></div></div>`, mode);
+    <div class="pt-main" id="pt-main"></div><div class="pt-dock" id="pt-dock"></div>${LBL}</div>`, mode);
   const root = run.root, main = root.querySelector("#pt-main"), dock = root.querySelector("#pt-dock");
   const live = () => api.live(run);
   const wait = ms => new Promise(res => api.later(run, res, ms));
@@ -356,8 +373,9 @@ async function impostor(app, api, mode){
   const show = (html, dk = "") => { stopTalk(); main.innerHTML = html + `<div class="pt-sp" aria-hidden="true"></div>`; dock.innerHTML = dk; window.scrollTo(0, 0); };
   const btn = (id, label, icon, pri = true, key = "enter", extra = "") => `<button type="button" class="glass-btn${pri ? " glass-btn--pri" : " pt-sec"} glass-btn--lg" id="${id}"${key ? ` data-key="${key}"` : ""}${extra}>${icon ? IC(icon, "bold", 20) : ""}${label}</button>`;
   const on = (sel, fn) => { const el = root.querySelector(sel); if(el) el.onclick = fn; return el; };
-  /* el caso de esta partida (sin repetir los últimos) */
-  const cs = pick(fresh(C, "imp", x => x.id));
+  /* el caso de esta partida: si se puede, uno del tema elegido (sin repetir los últimos) */
+  const mineC = C.filter(x => inTp(x.w));
+  const cs = pick(fresh(mineC.length ? mineC : C, "imp", x => x.id));
   remember("imp", cs.id, 24);
   const q = new URLSearchParams(location.hash.split("?")[1] || "").get("m");
 
@@ -437,14 +455,14 @@ async function impostor(app, api, mode){
         <img class="pt-mask" src="img/games/impostor.png" alt="">
         <span class="pt-tag">¡Eres el impostor!</span>
         <p class="pt-es">Tu pista:</p>
-        <button type="button" class="pt-say" id="pt-say" data-key="space" aria-label="Escuchar ${esc(w.word)}">${wHtml(w)}</button>
+        ${sayBtn(w)}
         <p class="pt-es">En español: <b>${esc(w.es)}</b></p>
         <p class="pt-tip">Nadie sabe que eres tú. Di palabras que encajen con la pista y adivina la palabra secreta.</p>
         <p class="pt-tip">${IC("speaker-high", "fill", 16)} Si la escuchas, bajito: ¡que no la oigan!</p>
       </div>` : `<div class="pt-card pt-role pt-civil">
         <span class="pt-tag">Eres civil</span>
         <div class="pt-pic">${imgHtml(w.img)}</div>
-        <button type="button" class="pt-say" id="pt-say" data-key="space" aria-label="Escuchar ${esc(w.word)}">${wHtml(w)}</button>
+        ${sayBtn(w)}
         <p class="pt-es">En español: <b>${esc(w.es)}</b></p>
         <p class="pt-tip">Es la palabra secreta. Di palabras que tengan que ver con ella, ¡sin decirla!</p>
         <p class="pt-tip">${IC("speaker-high", "fill", 16)} Si la escuchas, bajito: ¡que no la oigan!</p>
@@ -506,7 +524,7 @@ async function impostor(app, api, mode){
           <span class="pt-win">¡Gana el impostor!</span>
           <p class="pt-es">La palabra secreta era:</p>
           <div class="pt-pic">${imgHtml(cs.w.img)}</div>
-          <button type="button" class="pt-say" id="pt-say" data-key="space" aria-label="Escuchar ${esc(cs.w.word)}">${wHtml(cs.w)}</button>
+          ${sayBtn(cs.w)}
           <p class="pt-es">En español: <b>${esc(cs.w.es)}</b></p>
         </div>`, btn("pt-end", "Ver el premio", "caret-right"));
       const sb = on("#pt-say", () => { try{ say(cs.w.word, sb); }catch(e){} });
@@ -532,7 +550,7 @@ async function impostor(app, api, mode){
       main.querySelectorAll(".pt-op").forEach(x => { const y = opts[+x.dataset.k]; x.classList.toggle("is-right", y.id === cs.w.id); });
       if(!ok){ b.classList.add("is-miss"); }
       else { b.classList.add("is-ok"); api.snd("ok"); api.haptic("success"); }
-      main.querySelector("#pt-gq").innerHTML = ok ? `¡<b>${esc(P[imp])}</b> la adivinó!` : `Era <b lang="${esc(code())}">${esc(cs.w.word)}</b>.`;
+      main.querySelector("#pt-gq").innerHTML = ok ? `¡<b>${esc(P[imp])}</b> la adivinó!` : `Era <b lang="${esc(code())}">${esc(cs.w.word)}</b> ${ipaHtml(cs.w.ipa, code(), "pt-ipa")}.`;
       main.querySelector("#pt-gr").innerHTML = `<span class="pt-win">${ok ? "¡Gana el impostor!" : "¡Ganan los civiles!"}</span>`;
       api.later(run, () => talk(cs.w), 250);
       dock.innerHTML = btn("pt-end", "Ver el premio", "caret-right");
@@ -565,10 +583,11 @@ async function impostor(app, api, mode){
     const rowOf = k => main.querySelector(`.pt-row[data-k="${k}"]`);
     const chip = (k, w, cls = "") => {
       const box = rowOf(k) && rowOf(k).querySelector(".pt-chips"); if(!box) return;
-      box.insertAdjacentHTML("beforeend", `<button type="button" class="pt-cw${cls ? " " + cls : ""}" data-id="${esc(w.id)}" aria-label="Escuchar ${esc(w.word)}">${w.img ? imgHtml(w.img) : ""}<span lang="${esc(code())}">${esc(w.word)}</span></button>`);
+      const id = uid();
+      box.insertAdjacentHTML("beforeend", `<button type="button" class="pt-cw${cls ? " " + cls : ""}" data-id="${esc(w.id)}" aria-labelledby="pt-esc ${id}">${w.img ? imgHtml(w.img) : ""}<span id="${id}" lang="${esc(code())}">${esc(w.word)}</span></button>`);
     };
     const stage = html => { const s = main.querySelector("#pt-stage"); if(s) s.innerHTML = html; };
-    const bubble = (p, w) => `<div class="pt-spk">${p ? pjImg(p) : meAv("pt-me")}<div class="pt-bub">${w ? `${w.img ? `<div class="pt-bi">${imgHtml(w.img)}</div>` : ""}<button type="button" class="pt-say" id="pt-say" data-key="space" aria-label="Escuchar ${esc(w.word)}">${wHtml(w)}</button>` : `<span class="pt-dots" aria-label="Pensando">${[0, 1, 2].map(i => `<i style="--i:${i}"></i>`).join("")}</span>`}</div></div>`;
+    const bubble = (p, w) => `<div class="pt-spk">${p ? pjImg(p) : meAv("pt-me")}<div class="pt-bub">${w ? `${w.img ? `<div class="pt-bi">${imgHtml(w.img)}</div>` : ""}${sayBtn(w)}` : `<span class="pt-dots" aria-label="Pensando">${[0, 1, 2].map(i => `<i style="--i:${i}"></i>`).join("")}</span>`}</div></div>`;
     const allW = {};
     const keep = w => { if(w) allW[w.id] = w; return w; };
     keep(cs.w); keep(cs.hint);
@@ -580,13 +599,13 @@ async function impostor(app, api, mode){
         <img class="pt-mask" src="img/games/impostor.png" alt="">
         <span class="pt-tag">¡Eres el impostor!</span>
         <p class="pt-es">Tu pista:</p>
-        <button type="button" class="pt-say" id="pt-say" data-key="space" aria-label="Escuchar ${esc(w0.word)}">${wHtml(w0)}</button>
+        ${sayBtn(w0)}
         <p class="pt-es">En español: <b>${esc(w0.es)}</b></p>
         <p class="pt-tip">${pjs.map(p => esc(p.n)).join(" y ")} saben la palabra secreta. Escúchalos, elige palabras que encajen y adivínala.</p>
       </div>` : `<div class="pt-card pt-role pt-civil">
         <span class="pt-tag">Eres civil</span>
         <div class="pt-pic">${imgHtml(w0.img)}</div>
-        <button type="button" class="pt-say" id="pt-say" data-key="space" aria-label="Escuchar ${esc(w0.word)}">${wHtml(w0)}</button>
+        ${sayBtn(w0)}
         <p class="pt-es">En español: <b>${esc(w0.es)}</b></p>
         <p class="pt-tip">Uno de tus amigos es el impostor: no sabe la palabra. Escucha bien y descúbrelo.</p>
       </div>`, btn("pt-go", "¡Vamos!", "play"));
@@ -679,8 +698,8 @@ async function impostor(app, api, mode){
         const from = impFrom;
         stage(`<p class="pt-big">${ok ? `¡Lo pillaste! Era <b>${esc(pjs[impPj].n)}</b>` : `¡Uy! <b>${esc(pjs[k].n)}</b> no era`}</p>
           ${ok ? "" : `<p class="pt-p">El impostor era <b>${esc(pjs[impPj].n)}</b>.</p>`}
-          <p class="pt-p">Solo sabía la pista: <b lang="${esc(code())}">${esc(cs.hint.word)}</b>${from ? `. Creía que era <b lang="${esc(code())}">${esc(from.word)}</b>` : ""}.</p>
-          <div class="pt-spk"><div class="pt-bub pt-flat"><div class="pt-bi">${imgHtml(cs.w.img)}</div><button type="button" class="pt-say" id="pt-say" data-key="space" aria-label="Escuchar ${esc(cs.w.word)}">${wHtml(cs.w)}</button></div></div>`);
+          <p class="pt-p">Solo sabía la pista: <b lang="${esc(code())}">${esc(cs.hint.word)}</b> ${ipaHtml(cs.hint.ipa, code(), "pt-ipa")}${from ? `. Creía que era <b lang="${esc(code())}">${esc(from.word)}</b> ${ipaHtml(from.ipa, code(), "pt-ipa")}` : ""}.</p>
+          <div class="pt-spk"><div class="pt-bub pt-flat"><div class="pt-bi">${imgHtml(cs.w.img)}</div>${sayBtn(cs.w)}</div></div>`);
         const sb = main.querySelector("#pt-say"); if(sb) sb.onclick = () => { try{ say(cs.w.word, sb); }catch(e){} };
         api.later(run, () => talk(cs.w), 300);
         dock.innerHTML = btn("pt-end", "Ver el premio", "caret-right");
@@ -719,7 +738,7 @@ async function impostor(app, api, mode){
         api.answer(ok, {es: cs.w.es, word: cs.w.word});
         main.querySelectorAll(".pt-op").forEach(x => x.classList.toggle("is-right", opts[+x.dataset.k].id === cs.w.id));
         if(ok){ b.classList.add("is-ok"); api.snd("ok"); api.haptic("success"); } else b.classList.add("is-miss");
-        main.querySelector("#pt-gq").innerHTML = ok ? `¡Sí! Era <b lang="${esc(code())}">${esc(cs.w.word)}</b>.` : `Era <b lang="${esc(code())}">${esc(cs.w.word)}</b>.`;
+        main.querySelector("#pt-gq").innerHTML = `${ok ? "¡Sí! " : ""}Era <b lang="${esc(code())}">${esc(cs.w.word)}</b> ${ipaHtml(cs.w.ipa, code(), "pt-ipa")}.`;
         api.later(run, () => talk(cs.w), 250);
         dock.innerHTML = btn("pt-end", "Ver el premio", "caret-right");
         const stars = (caught ? 0 : 1) + (ok ? 1 : 0) + 1, score = (caught ? 0 : 3) + (ok ? 3 : 0);
@@ -731,7 +750,7 @@ async function impostor(app, api, mode){
   }
 
   function optHtml(w, k){
-    return `<button type="button" class="pt-op" data-k="${k}" data-key="${k + 1}" style="--i:${k}" aria-label="${esc(w.word)}">
+    return `<button type="button" class="pt-op" data-k="${k}" data-key="${k + 1}" style="--i:${k}" lang="${esc(code())}" aria-label="${esc(w.word)}">
       <span class="pt-opi${w.img ? "" : " no-img"}">${w.img ? imgHtml(w.img) : IC("chat-circle-text", "bold", 40)}</span>${wHtml(w)}
       <span class="pt-mk" aria-hidden="true">${IC("check", "bold", 18)}${IC("x", "bold", 18)}</span></button>`;
   }
@@ -739,7 +758,7 @@ async function impostor(app, api, mode){
   function end(stars, score, line, ws, misses = []){
     stopTalk();
     const seenW = new Set(), words = [];
-    for(const w of ws) if(w && !seenW.has(w.id)){ seenW.add(w.id); words.push({word: w.word, es: w.es, img: w.img, miss: misses.includes(w.id)}); }
+    for(const w of ws) if(w && !seenW.has(w.id)){ seenW.add(w.id); words.push({word: w.word, es: w.es, img: w.img, ipa: w.ipa, miss: misses.includes(w.id)}); }
     api.finish(run, IMP, {score, stars: Math.max(1, Math.min(3, stars)), words, line});
   }
 
@@ -777,13 +796,18 @@ async function ordenar(app, api, mode){
   if(!api.here(my, SORT)) return;
   const S = sortSets(D);
   if(!S.length){ empty(app, `Este juego todavía no tiene palabras en ${api.nm()}.`); return; }
-  const set = pick(fresh(S, "sort", x => x.si));
+  const inTp = await topicFit(api, SORT);
+  if(!api.here(my, SORT)) return;
+  /* si se puede, unas cestas del tema elegido (la mitad de sus palabras o más); si no, cualquiera */
+  const part = x => { const a = x.gs.flatMap(g => g.ws); return a.filter(inTp).length / Math.max(1, a.length); };
+  const mineS = S.filter(x => part(x) >= .5);
+  const set = pick(fresh(mineS.length ? mineS : S, "sort", x => x.si));
   remember("sort", set.si, 8);
   /* las palabras: per de cada cesta, sin repetir dibujo ni palabra entre cestas */
   const seenK = new Set(), items = [];
   set.gs.forEach((g, gi) => {
     let n = 0;
-    for(const w of shuffle(g.ws)){
+    for(const w of shuffle(g.ws).sort((a, b) => (inTp(b) ? 1 : 0) - (inTp(a) ? 1 : 0))){   /* las del tema, primero */
       if(n >= set.per) break;
       const k = w.word.toLowerCase();
       if(seenK.has(k) || seenK.has(w.img)) continue;
@@ -799,15 +823,15 @@ async function ordenar(app, api, mode){
       <button type="button" class="pt-wc" id="pt-wc" data-key="space" aria-describedby="pt-hint"></button>
       <p class="pt-hint" id="pt-hint" aria-live="polite">Toca la palabra y luego su cesta</p>
       <div class="pt-bks" id="pt-bks" style="--n:${nb}">${set.gs.map((g, gi) => `<div class="pt-bkw">
-        <button type="button" class="pt-bk" data-g="${gi}" data-key="${gi + 1}" style="--c:${COLS[[0, 1, 3][gi]]}" aria-label="Cesta ${esc(g.name.word)}">
+        <button type="button" class="pt-bk" data-g="${gi}" data-key="${gi + 1}" style="--c:${COLS[[0, 1, 3][gi]]}" aria-labelledby="pt-cesta pt-bn${gi}">
           <span class="pt-bkp">${imgHtml(g.pic.img)}</span>
-          <span class="pt-w" lang="${esc(code())}"${nameFs(g.name.word)}>${esc(g.name.word)}</span>${ipaHtml(g.name.ipa, code(), "pt-ipa")}
+          <span class="pt-w" id="pt-bn${gi}" lang="${esc(code())}"${nameFs(g.name.word)}>${esc(g.name.word)}</span>${ipaHtml(g.name.ipa, code(), "pt-ipa")}
           <span class="pt-in" aria-hidden="true"></span>
           <span class="pt-mk" aria-hidden="true">${IC("check", "bold", 18)}${IC("x", "bold", 18)}</span></button>
-        <button type="button" class="pt-bk-say" data-g="${gi}" aria-label="Escuchar ${esc(g.name.word)}">${IC("speaker-high", "fill", 20)}</button></div>`).join("")}</div>
+        <button type="button" class="pt-bk-say" data-g="${gi}" aria-labelledby="pt-esc pt-bn${gi}">${IC("speaker-high", "fill", 20)}</button></div>`).join("")}</div>
       ${api.dotsHtml(N)}
       <div class="pt-sp" id="pt-sp" aria-hidden="true" style="height:16px"></div>
-    </div></div>`, mode);
+    </div>${LBL}</div>`, mode);
   const root = run.root, card = root.querySelector("#pt-wc"), hint = root.querySelector("#pt-hint"), bks = [...root.querySelectorAll(".pt-bk")];
   const dots = [...root.querySelectorAll("#gm-dots i")];
   const live = () => api.live(run);
@@ -817,8 +841,8 @@ async function ordenar(app, api, mode){
     const w = cur(); if(!w) return;
     sel = false;
     card.classList.remove("is-sel", "is-in"); void card.offsetWidth; card.classList.add("is-in");
-    card.innerHTML = `<span class="pt-spkr" aria-hidden="true">${IC("speaker-high", "fill", 22)}</span><span class="pt-pic">${imgHtml(w.img)}</span>${wHtml(w)}`;
-    card.setAttribute("aria-label", `${w.word}. Toca para oírla`);
+    card.innerHTML = `<span class="pt-spkr" aria-hidden="true">${IC("speaker-high", "fill", 22)}</span><span class="pt-pic">${imgHtml(w.img)}</span>${wHtml(w, "pt-wcw")}`;
+    card.setAttribute("aria-labelledby", "pt-wcw pt-oir");
     dots.forEach((d, k) => d.classList.toggle("now", k === i));
     bks.forEach(b => b.classList.remove("is-hint", "is-miss", "is-ok"));
     hint.textContent = "Toca la palabra y luego su cesta";
@@ -865,7 +889,7 @@ async function ordenar(app, api, mode){
   function done(){
     const stars = misses <= 1 ? 3 : misses <= 4 ? 2 : 1;
     api.finish(run, SORT, {score: firstOk, stars,
-      words: Q.map(w => ({word: w.word, es: w.es, img: w.img, miss: w.miss > 0})),
+      words: Q.map(w => ({word: w.word, es: w.es, img: w.img, ipa: w.ipa, miss: w.miss > 0})),
       line: misses === 0 ? `¡Las ${N} a la primera!` : `¡Ordenaste las ${N}! ${firstOk} a la primera.`});
   }
   card.onclick = () => { if(started) select(); };
@@ -911,15 +935,17 @@ async function ordenar(app, api, mode){
 const reg = (id, def) => window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(id, def);
 if(!reg(IMP, {
   t: "El impostor", sub: "¿Quién no sabe la palabra?", img: "img/games/impostor.png",
-  how: "Todos saben la palabra secreta menos el impostor, que solo tiene una pista. Por turnos, cada uno dice una palabra que tenga que ver. ¿Quién es el impostor? Se juega en grupo, pasando el aparato, o solo con el zorro y sus amigos.",
-  words: "Palabras de muchos temas", fresh: true,
+  how: "Todos saben la palabra secreta menos el impostor. Di palabras que encajen y descúbrelo.",
+  keys: "Con el teclado: 1 a 4 eligen, Espacio repite y Enter sigue.",
+  words: "Palabras del tema o de varios", fresh: true,
   rec: b => `${num(b.score)} ${num(b.score) === 1 ? "punto" : "puntos"}`,
   start: impostor,
 })) console.warn("[party] no se pudo añadir «El impostor» a Juegos");
 if(!reg(SORT, {
   t: "Ordenar por grupo", sub: "Cada cosa en su cesta", img: "img/games/ordenar.png",
-  how: "Toca la palabra y luego su cesta, o arrástrala hasta ella. ¡Cada cosa en su grupo!",
-  words: "Palabras de muchos temas", fresh: true,
+  how: "Toca la palabra y luego su cesta, o arrástrala. ¡Cada cosa en su grupo!",
+  keys: "Con el teclado: Espacio repite la palabra y 1 a 3 eligen la cesta.",
+  words: "Palabras del tema o de varios", fresh: true,
   rec: b => `${num(b.score)} a la primera`,
   start: ordenar,
 })) console.warn("[party] no se pudo añadir «Ordenar por grupo» a Juegos");

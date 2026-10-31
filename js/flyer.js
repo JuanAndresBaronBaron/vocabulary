@@ -451,11 +451,11 @@ async function start(app, api, mode){
     ended = true; phase = "wait";
     const stars = score >= N - 2 ? 3 : score >= Math.ceil(N * .6) ? 2 : 1;
     const seen = new Set(), words = [];
-    rounds.slice(0, res.length).forEach((o, i) => { if(!seen.has(o.t.word)){ seen.add(o.t.word); words.push({word: o.t.word, es: o.t.es, img: o.t.img, miss: !res[i]}); } });
+    rounds.slice(0, res.length).forEach((o, i) => { if(!seen.has(o.t.word)){ seen.add(o.t.word); words.push({word: o.t.word, es: o.t.es, img: o.t.img, ipa: o.t.ipa, miss: !res[i]}); } });
     const extra = jet ? ` Ayuda entregada: ${stats.aid} · barricadas: ${stats.foe} · drones: ${stats.drone}.` : "";
     api.finish(run, ID, {score, stars, words: words.sort((a, b) => b.miss - a.miss),
       line: (lives <= 0 ? `¡Pasaste ${score} puerta${score === 1 ? "" : "s"} por ${scene.city}! La próxima llegas más lejos.`
-        : score === N ? (jet ? `¡Misión cumplida! Las ${N} palabras en ${scene.city}.` : `¡Las ${N} puertas! Eres el rey del cielo de ${scene.city}.`)
+        : score === N ? (jet ? `¡Misión cumplida! Las ${N} palabras en ${scene.city}.` : `¡Las ${N} puertas por ${scene.city}! Leíste cada palabra con atención.`)
         : jet ? `Misión cumplida: ${score} de ${N} palabras en ${scene.city}.` : `¡Pasaste ${score} de ${N} puertas por ${scene.city}!`) + extra});
   }
   /* ---------- armas y ayuda (solo el avión) ---------- */
@@ -635,7 +635,8 @@ async function start(app, api, mode){
 
 const reg = window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(ID, {
   t: "Pajarito volador", sub: "Pajarito o avión de combate", img: "img/games/pajarito.png",
-  how: "Arriba sale una palabra del tema. Ve a la puerta que la dice en el idioma: toca la puerta, tu lado o desliza. Con el tema Soldados puedes volar en avión de combate: dispara, esquiva drones, bombardea barricadas y lanza ayuda a los soldados.",
+  how: "Arriba sale una palabra. Vuela hacia la puerta que la dice en el idioma.",
+  keys: "Con el teclado: ← → o 1, 2 y 3 cambian de carril; en avión, Espacio dispara.",
   topic: true,
   fresh: true,
   rec: b => `${Number.isFinite(+b.score) ? +b.score : 0} palabras`,

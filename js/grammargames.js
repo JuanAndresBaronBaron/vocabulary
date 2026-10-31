@@ -4,11 +4,14 @@
      («Detective de errores»).
    Datos: data/grammar_<en|fr|da>.json (getGram() de index.html; si no, fetch): {A1: [unidad…], …, C2}; cada unidad
      {t (título en español), sum, rules, ex: [{t (la frase en el idioma), es}], q: [{s (con ___), o, a, es, why}]}.
-   Nivel: arriba de cada partida, una fila A1 … C2 (por defecto A1; se recuerda por idioma en store "gram:lv"
-     {english: "A1", …}). Cambiarlo empieza otra vez con ese nivel; al contestar la primera pregunta la fila se va y
-     queda la pastilla «Nivel A1». Las preguntas mezclan las unidades del nivel (una de cada unidad por vuelta) y cada
+   Nivel: arriba de cada partida, una fila A1 … C2 (por defecto, el del camino: el más alto con una lección hecha en
+     "map:<idioma>"; si no hay, A1. Lo que se elija a mano se recuerda por idioma en store "gram:lv" {english: "A1",
+     …}). Cambiarlo empieza otra vez con ese nivel; al contestar la primera pregunta la fila se va y queda la pastilla
+     «Nivel A1». Las preguntas mezclan las unidades del nivel (una de cada unidad por vuelta) y cada
      una lleva su título en una pastilla. Después de cada respuesta sale el porqué (why; en Ordena, el resumen de la
-     unidad) y la frase buena suena con la voz de la app (api.speak).
+     unidad) y la frase buena suena con la voz de la app (api.speak). En A1 y A2 (niños pequeños: primero modelos de
+     frase, luego reglas) sale primero la frase buena con lo que cambia marcado y su español; la regla queda en una
+     línea pequeña «¿Por qué?» que se abre al tocarla. De B1 en adelante, el porqué a la vista como siempre.
    Ordena la frase: 8 frases de ex con 3-9 piezas (los signos van pegados a su palabra: «Paris ?», «— Oui,»). Sale lo
      que significa en español; se tocan las piezas en orden (o se arrastran a un hueco; tocar una puesta la quita) y
      «Comprobar». Bien: turquesa y suena la frase. Mal: las mal puestas en gris con ✗ (las buenas se quedan) y otra
@@ -36,9 +39,20 @@ const md = s => esc(String(s || "")).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>").repl
 const starsOf = (ok, n) => { const r = n ? ok / n : 0; return r >= .85 ? 3 : r >= .6 ? 2 : 1; };
 
 /* ---------- el nivel (por idioma) ---------- */
+/* el nivel del camino: el más alto con alguna lección hecha en "map:<idioma>" (A1-001, G-B1-02…); si no hay, A1 */
+function pathLv(){
+  let m = null, best = 0;
+  try{ m = store.get("map:" + lang, null); }catch(e){}
+  if(m && typeof m === "object") for(const [k, v] of Object.entries(m)){
+    const x = +v > 0 && /^(?:G-)?([ABC][12])-/.exec(k), i = x ? LVS.indexOf(x[1]) : -1;
+    if(i > best) best = i;
+  }
+  return LVS[best];
+}
+/* el elegido a mano (si lo hay) o el del camino */
 function lvGet(){
   const o = store.get(LV_KEY, null), v = o && typeof o === "object" ? o[lang] : null;
-  return LVS.includes(v) ? v : "A1";
+  return LVS.includes(v) ? v : pathLv();
 }
 function lvSet(v){
   if(!LVS.includes(v)) return;
@@ -153,7 +167,7 @@ const CSS = `
 .gg-lv[hidden]{display:none}
 .gg-lv-l{flex:none;font:700 var(--fs-note)/1.2 var(--f-text);color:var(--label2)}
 .gg-lv-s{flex:1;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;padding:3px;border-radius:14px;background:var(--fill)}
-.gg-lv-b{min-width:0;min-height:40px;padding:0;border:0;border-radius:11px;background:none;color:var(--label);font:800 1rem/1 var(--f-round);cursor:pointer;
+.gg-lv-b{min-width:0;min-height:44px;padding:0;border:0;border-radius:11px;background:none;color:var(--label);font:800 1rem/1 var(--f-round);cursor:pointer;
   -webkit-tap-highlight-color:transparent}
 .gg-lv-b[aria-checked=true]{background:var(--navy);color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.25)}
 [data-theme=dark] .gg-lv-b[aria-checked=true]{background:#2f63b8}
@@ -186,6 +200,17 @@ const CSS = `
 .gg-fb-es::before{content:"Significa: ";font-weight:500;color:var(--label2)}
 .gg-fb-why{margin:0;display:flex;gap:8px;align-items:flex-start;font:500 var(--fs-sub,1rem)/1.4 var(--f-text);color:var(--label)}
 .gg-fb-why .ico{flex:none;margin-top:1px;color:var(--gold-ink)}
+/* A1-A2: la frase modelo (lo que cambia, marcado) y la regla plegada en «¿Por qué?» */
+.gg-fb-s mark{background:color-mix(in srgb,var(--gg-teal) 20%,transparent);color:inherit;border-radius:6px;padding:0 .12em;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.gg-fb-pq{display:block;margin:0;font:500 var(--fs-note,.9375rem)/1.4 var(--f-text);color:var(--label)}
+.gg-fb-pq summary{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding-right:8px;cursor:pointer;list-style:none;font-weight:700;color:var(--label)}
+.gg-fb-pq summary::-webkit-details-marker{display:none}
+.gg-fb-pq summary .ico{color:var(--gold-ink)}
+.gg-fb-pq summary::after{content:"";width:.5em;height:.5em;margin-left:2px;border:solid currentColor;border-width:0 2px 2px 0;transform:translateY(-2px) rotate(45deg)}
+.gg-fb-pq[open] summary::after{transform:translateY(2px) rotate(-135deg)}
+.gg-fb-pq summary:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px;border-radius:8px}
+.gg-fb-pq > span{display:block;padding:0 0 4px 26px}
+@media (prefers-reduced-motion:no-preference){.gg-fb-pq summary::after{transition:transform .2s}}
 .gg-next{align-self:center;margin-top:6px}
 .gg-dw .gm-dots{margin-top:12px}
 /* Ordena la frase: los huecos (la frase) y las piezas de madera */
@@ -292,7 +317,7 @@ const CSS = `
 /* el fantasma de la pieza que se arrastra */
 .gg-ghost{box-shadow:0 12px 24px rgba(0,0,0,.3)!important;rotate:-4deg}
 /* pantallas bajitas */
-@media (max-height:700px){.gg-card{padding:10px 10px 12px}.gg-es{margin-bottom:8px}.gg-pool{margin-top:10px}.gg-lv{margin-bottom:8px}.gg-lv-b{min-height:36px}}
+@media (max-height:700px){.gg-card{padding:10px 10px 12px}.gg-es{margin-bottom:8px}.gg-pool{margin-top:10px}.gg-lv{margin-bottom:8px}}
 @media (prefers-reduced-motion:reduce){.gg-q.in,.gg-fb,.gg-slot.win,.gg-wg.gap.ok .gg-wb,.gg-case.look .gg-lens,.gg-steam{animation:none!important}
   .gg-train,.gg-train.go{transition:none}}
 `;
@@ -326,12 +351,17 @@ function wireLv(root, api, onPick){
   });
 }
 const chipsHtml = (lv, u, showLv) => `<div class="gg-chips">${showLv ? `<span class="gg-chip lv">Nivel ${esc(lv)}</span>` : ""}<span class="gg-chip" title="El tema de gramática">${IC("book-open", "bold", 15)}${esc((u && u.t) || "")}</span></div>`;
+/* la frase buena con lo que cambia marcado (fill() de la pregunta) */
+const frameHtml = f => f.none || !f.mid ? esc(f.full) : `${esc(f.pre)}<mark>${esc(f.mid)}</mark>${esc(f.post)}`;
 function fbHtml(o){
-  return `<div class="gg-fb ${o.ok ? "ok" : "no"}">
+  /* A1-A2 (o.kid): primero la frase modelo y su español; la regla, plegada en «¿Por qué?» */
+  const kid = !!o.kid && !!(o.frame || o.sent || o.sayText), sent = kid ? (o.frame ? frameHtml(o.frame) : esc(o.sent || o.sayText)) : o.sent ? esc(o.sent) : "";
+  return `<div class="gg-fb ${o.ok ? "ok" : "no"}${kid ? " kid" : ""}">
     <div class="gg-fb-h"><span class="gg-fb-ic" aria-hidden="true">${o.ok ? "✓" : "✗"}</span><b>${esc(o.title)}</b>${o.say ? `<button type="button" class="gm-say gg-say" id="gg-say" aria-label="Escuchar la frase">${IC("speaker-high", "fill", 22)}</button>` : ""}</div>
-    ${o.sent ? `<p class="gg-fb-s" lang="${esc(code())}">${esc(o.sent)}</p>` : ""}
+    ${sent ? `<p class="gg-fb-s" lang="${esc(code())}">${sent}</p>` : ""}
     ${o.es ? `<p class="gg-fb-es">${esc(o.es)}</p>` : ""}
-    ${o.why ? `<p class="gg-fb-why">${IC("lightbulb", "fill", 20)}<span>${md(o.why)}</span></p>` : ""}
+    ${o.why && kid ? `<details class="gg-fb-why gg-fb-pq"><summary>${IC("lightbulb", "fill", 18)}¿Por qué?</summary><span>${md(o.why)}</span></details>`
+      : o.why ? `<p class="gg-fb-why">${IC("lightbulb", "fill", 20)}<span>${md(o.why)}</span></p>` : ""}
     ${o.next ? `<button type="button" class="glass-btn glass-btn--pri glass-btn--lg gg-next" id="gg-next" data-key="enter">${o.last ? "Ver el premio" : "Siguiente"}${IC("caret-right", "bold", 20)}</button>` : ""}</div>`;
 }
 /* teclas de la partida: los números pulsan [data-gk], Enter el [data-key~=enter] que se vea; extra(e) → true si la trató */
@@ -343,7 +373,7 @@ function useKeys(api, run, extra){
     if(extra && extra(e) === true){ e.preventDefault(); return; }
     const k = e.key === "Enter" ? "enter" : /^[1-9]$/.test(e.key) ? e.key : null;
     if(!k) return;
-    const own = k === "enter" && t && t.closest ? t.closest("button,a") : null;
+    const own = k === "enter" && t && t.closest ? t.closest("button,a,summary") : null;
     if(own && !own.disabled) return;   /* el navegador ya pulsa el botón enfocado */
     const sel = k === "enter" ? '[data-key~="enter"]' : `[data-gk="${k}"]`;
     const el = [...run.root.querySelectorAll(sel)].find(x => !x.disabled && x.getClientRects().length && !x.classList.contains("used"));
@@ -394,7 +424,7 @@ async function frame(app, api, mode, g){
     if(ch) ch.insertAdjacentHTML("afterbegin", `<span class="gg-chip lv">Nivel ${esc(F.lv)}</span>`);
   };
   F.fb = o => {
-    F.fbw.innerHTML = fbHtml(Object.assign({last: F.qi + 1 >= F.list.length}, o));
+    F.fbw.innerHTML = fbHtml(Object.assign({last: F.qi + 1 >= F.list.length, kid: /^A[12]$/.test(F.lv)}, o));
     const nx = F.fbw.querySelector("#gg-next"); if(nx) nx.onclick = () => F.next();
     const sy = F.fbw.querySelector("#gg-say"); if(sy) sy.onclick = () => api.speak(spoken(o.sayText || o.sent || ""));
     if(nx && api.kbd()) try{ nx.focus({preventScroll: true}); }catch(e){}
@@ -509,7 +539,7 @@ const ordena = (app, api, mode) => frame(app, api, mode, {
         api.snd("ok"); api.haptic("success");
         api.speak(spoken(it.t));
         F.paintDots();
-        F.fb({ok: true, title: first ? "¡Perfecto!" : "¡Muy bien!", say: true, sayText: it.t, why: sum, next: true});
+        F.fb({ok: true, title: first ? "¡Perfecto!" : "¡Muy bien!", say: true, sayText: it.t, es: /^A[12]$/.test(F.lv) ? it.es : "", why: sum, next: true});
         F.auto(String(sum || "").length);
         return;
       }
@@ -537,7 +567,7 @@ const ordena = (app, api, mode) => frame(app, api, mode, {
         S.ans.forEach((w, k) => { const j = free.findIndex(i => S.tiles[i].w === w); const ti = free.splice(j, 1)[0]; S.slots[k] = ti; S.tiles[ti].at = k; S.lock[k] = bad[k] ? "fix" : "good"; });
         paint();
         api.speak(spoken(it.t));
-        F.fb({ok: false, title: "Así se dice:", say: true, sent: it.t, why: sum, next: true});
+        F.fb({ok: false, title: "Así se dice:", say: true, sent: it.t, es: /^A[12]$/.test(F.lv) ? it.es : "", why: sum, next: true});
       }, 900);
     };
     S.check = check;
@@ -655,13 +685,13 @@ const completa = (app, api, mode) => frame(app, api, mode, {
         F.score++; F.setScore(); F.res[F.qi] = "ok";
         api.answer(true, {es: it.q.es, word: R.full});
         api.snd("ok"); api.haptic("success");
-        F.fb({ok: true, title: "¡Muy bien!", say: true, sayText: R.full, es: it.q.es, why: it.q.why, next: true});
+        F.fb({ok: true, title: "¡Muy bien!", say: true, sayText: R.full, frame: R, es: it.q.es, why: it.q.why, next: true});
         F.auto(String(it.q.why || "").length + String(it.q.es || "").length);
       } else {
         F.res[F.qi] = "meh";
         api.answer(false, {es: it.q.es, word: R.full});
         api.snd("tap");
-        F.fb({ok: false, title: NONE(right) ? "Casi. Aquí no va nada." : `Casi. Va «${right}».`, say: true, sayText: R.full, es: it.q.es, why: it.q.why, next: true});
+        F.fb({ok: false, title: NONE(right) ? "Casi. Aquí no va nada." : `Casi. Va «${right}».`, say: true, sayText: R.full, frame: R, es: it.q.es, why: it.q.why, next: true});
       }
       F.paintDots();
     };
@@ -706,13 +736,13 @@ const detective = (app, api, mode) => frame(app, api, mode, {
         F.score++; F.setScore(); F.res[F.qi] = "ok";
         api.answer(true, {es: it.q.es, word: R.full});
         api.snd("ok"); api.haptic("success");
-        F.fb({ok: true, title: "¡Caso resuelto!", say: true, sayText: R.full, es: it.q.es, why: it.q.why, next: true});
+        F.fb({ok: true, title: "¡Caso resuelto!", say: true, sayText: R.full, frame: R, es: it.q.es, why: it.q.why, next: true});
         F.auto(String(it.q.why || "").length + String(it.q.es || "").length);
       } else {
         F.res[F.qi] = "meh";
         api.answer(false, {es: it.q.es, word: R.full});
         api.snd("tap");
-        F.fb({ok: false, title: `Casi. La buena es la ${it.a + 1}.`, say: true, sayText: R.full, es: it.q.es, why: it.q.why, next: true});
+        F.fb({ok: false, title: `Casi. La buena es la ${it.a + 1}.`, say: true, sayText: R.full, frame: R, es: it.q.es, why: it.q.why, next: true});
       }
       F.paintDots();
     };
@@ -725,19 +755,22 @@ const detective = (app, api, mode) => frame(app, api, mode, {
 const reg = (id, def) => window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(id, Object.assign({words: "Gramática", sec: "gramatica", fresh: true}, def));
 if(!reg(ORD, {
   t: "Ordena la frase", sub: "Pon las palabras en orden", img: "img/games/ordenafrase.png",
-  how: "Lee lo que significa la frase. Toca las piezas en orden (o arrástralas) y pulsa «Comprobar». Si una está mal, se pone gris y tienes otra oportunidad.",
+  how: "Lee lo que significa. Toca las piezas en orden y luego «Comprobar».",
+  keys: "Con el teclado: los números ponen piezas, ⌫ quita la última y Enter comprueba.",
   rec: b => `${num(b.score)} a la primera`,
   start: ordena,
 })) console.warn("[grammargames] no se pudo añadir «Ordena la frase» a Juegos");
 if(!reg(COM, {
   t: "Completa la frase", sub: "Llena el vagón vacío", img: "img/games/completa.png",
-  how: "Al tren le falta una palabra. Elige la que va en el vagón vacío (o pulsa 1, 2 o 3). Si aciertas, ¡el tren arranca!",
+  how: "Al tren le falta una palabra. Elige la que va en el vagón vacío.",
+  keys: "Con el teclado: 1, 2 o 3 eligen y Enter sigue.",
   rec: b => `${num(b.score)} de 10`,
   start: completa,
 })) console.warn("[grammargames] no se pudo añadir «Completa la frase» a Juegos");
 if(!reg(DET, {
   t: "Detective de errores", sub: "¿Qué frase está bien?", img: "img/games/detective.png",
-  how: "Hay tres frases y solo una está bien. Debajo de la lupa ves lo que quiere decir. ¡Búscala! Tócala o pulsa 1, 2 o 3.",
+  how: "Hay tres frases y solo una está bien. ¡Búscala y tócala!",
+  keys: "Con el teclado: 1, 2 o 3 eligen y Enter sigue.",
   rec: b => `${num(b.score)} de 10 casos`,
   start: detective,
 })) console.warn("[grammargames] no se pudo añadir «Detective de errores» a Juegos");

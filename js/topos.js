@@ -9,6 +9,8 @@
      letrero); 3 seguidos sin fallar hacen racha. De vez en cuando un topo bueno sale dorado: se esconde antes y vale 3. Golpe malo: ✗ en gris y se ve lo que era (la palabra en español o cómo se escribe bien), sin sonido
      triste; resta al final. Se toca el topo (o su agujero) o con las teclas 1-9 (de izquierda a derecha y de arriba
      abajo). 60 s; cada vez salen más deprisa y se esconden antes.
+     Niveles (api.level, def.levels: ★★★ abre el siguiente): en el 2 y el 3 los topos salen y se esconden más deprisa
+     y hay más topos malos (LV).
      Puntos = topos buenos (el dorado, 3) − malos. Estrellas: 15 ★★★, 8 ★★, si no ★.
    Las palabras son las del tema elegido en Juegos (api.topicPool, como Pajarito volador).
    Usa de games.js lo de los demás juegos: tarjeta del menú, récord, explicación la primera vez, «?», pausa (el reloj se
@@ -17,6 +19,8 @@
 "use strict";
 
 const ID = "topos", DUR0 = 60, NEED = 3, MAX_LEN = 18;
+/* por nivel: sp, cuánto dura todo (asomar y esconderse; menos = más deprisa); ok, la probabilidad de un topo bueno */
+const LV = {1: {sp: 1, ok: .42}, 2: {sp: .86, ok: .35}, 3: {sp: .74, ok: .29}};
 const IC = (n, s = "bold", z = 22, c = "") => typeof ico === "function" ? ico(n, s, z, c) : "";
 const RM = () => { try{ return !!(window.M && typeof M.rm === "function" && M.rm()); }catch(e){ return false; } };
 const pic = src => (window.vocabGames && typeof vocabGames.pic === "function") ? vocabGames.pic(src) : src;
@@ -110,7 +114,7 @@ const CSS = `
 .tp-pic.okic{background:var(--teal);color:#fff}
 .tp-pic:empty{display:none}
 .tp-st{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
-.tp-lab{font:700 .9rem/1.2 var(--f-text);opacity:.82}
+.tp-lab{font:700 .9rem/1.2 var(--f-text)}   /* sin transparencia: con ella no llegaba a 4,5:1 en oscuro */
 .tp-tg{font:900 clamp(1.45rem,6.4vw,2rem)/1.1 var(--f-round);overflow-wrap:anywhere}
 .tp-ans{min-height:1.3em;font:700 1rem/1.3 var(--f-text);color:#123b16;overflow-wrap:anywhere;visibility:hidden}
 .tp-ans.on{visibility:visible}
@@ -200,14 +204,17 @@ async function start(app, api, mode){
     return;
   }
   const code = LANGS[L].code, DUR = Number(window.__toposDur) > 0 ? +window.__toposDur : DUR0;   /* __toposDur: solo para las pruebas */
+  const lv = api.level(ID), K = LV[lv] || LV[1];
   /* las palabras para «bien escritos» (con al menos 2 faltas posibles); con menos de 4, solo hay letreros de «dicen» */
   const known = new Set(P.map(x => x.word.normalize("NFC").toLowerCase()));
   const SP = P.map(it => ({it, bad: misspell(it.word, L, known)})).filter(x => x.bad.length >= 2);
   const SPELL = SP.length >= 4;
   const MEAN = shuffle(P);
   MEAN.slice(0, 4).forEach(t => { const im = new Image(); im.src = pic(t.img); });
+  /* el nombre del agujero: «Agujero N»; con un topo, «Topo:» (en español) y su palabra (con su idioma), por aria-labelledby */
   const cells = Array.from({length: 9}, (_, i) => `<button type="button" class="tp-cell" data-i="${i}" aria-label="Agujero ${i + 1}">
-      <span class="tp-hole"></span><span class="tp-pit"><span class="tp-mole"><span class="tp-bub" lang="${esc(code)}"><b></b></span>${MOLE}</span></span>
+      <span class="vh" id="tp-c${i}" lang="es">Topo:</span>
+      <span class="tp-hole"></span><span class="tp-pit"><span class="tp-mole"><span class="tp-bub" lang="${esc(code)}"><b id="tp-w${i}"></b></span>${MOLE}</span></span>
       <span class="tp-rim"></span><span class="tp-mk" aria-hidden="true">${IC("check", "bold", 18, "v")}${IC("x", "bold", 18, "x")}</span><span class="tp-k" aria-hidden="true">${i + 1}</span></button>`).join("");
   const run = api.mount(app, `<div class="gm tp" id="tp">
     ${api.topHtml(ID, `<span class="gm-pill" title="Tiempo">${IC("timer", "bold", 18)}<b id="tp-clock">${clock(DUR)}</b></span><span class="gm-pill" title="Puntos">${IC("star", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
@@ -218,13 +225,13 @@ async function start(app, api, mode){
       <button type="button" class="gm-say tp-say" id="tp-say" aria-label="Escuchar la palabra" hidden>${IC("speaker-high", "fill", 24)}</button></div>
     <div class="tp-field" id="tp-field">${cells}</div></div>`, mode);
   const root = run.root, field = root.querySelector("#tp-field"), sign = root.querySelector("#tp-sign");
-  root.tpWords = P.map(x => x.word);   /* para las pruebas */
+  root.tpWords = P.map(x => x.word); root.tpK = K;   /* para las pruebas */
   const picEl = root.querySelector("#tp-pic"), lab = root.querySelector("#tp-lab"), tg = root.querySelector("#tp-tg"), ans = root.querySelector("#tp-ans");
   const sayB = root.querySelector("#tp-say"), sc = root.querySelector("#gm-sc"), clk = root.querySelector("#tp-clock"), tb = root.querySelector("#gm-tb");
   const holes = [...field.querySelectorAll(".tp-cell")].map((el, i) => ({el, i, st: "down", it: null, ok: false, txt: "", until: 0, free: 0, bub: el.querySelector(".tp-bub b")}));
   let t = 0, last = 0, running = false, ended = false, spawnIn = .6, score = 0, good = 0, wrong = 0, streak = 0, R = null, ri = 0, mi = 0, lastT = 0, lastHole = -1, two = false, shownS = -1, lastGold = 0;
   const seen = new Map();   /* las palabras de la partida (para el resultado), con miss si hubo un golpe malo */
-  const note = (it, miss) => { const o = seen.get(it.k) || {word: it.word, es: it.es, img: it.img, miss: false}; if(miss) o.miss = true; seen.set(it.k, o); };
+  const note = (it, miss) => { const o = seen.get(it.k) || {word: it.word, es: it.es, img: it.img, ipa: it.ipa, miss: false}; if(miss) o.miss = true; seen.set(it.k, o); };
 
   /* el prado llena lo que queda de pantalla; en pantallas estrechas, 2 columnas para que los topos se vean grandes */
   function fit(){
@@ -274,7 +281,7 @@ async function start(app, api, mode){
   function down(h){
     h.st = "down"; h.el.classList.remove("up");
     h.free = t + .4;
-    h.el.setAttribute("aria-label", `Agujero ${h.i + 1}`);
+    h.el.removeAttribute("aria-labelledby");
   }
   /* asoma un topo: con la palabra buena (al menos uno cada 2,4 s) o con otra */
   function spawn(){
@@ -282,7 +289,7 @@ async function start(app, api, mode){
     if(!free.length) return;
     const h = pick(free.length > 1 ? free.filter(x => x.i !== lastHole) : free);
     const ups = holes.filter(x => x.st !== "down"), okUp = ups.some(x => x.st === "up" && x.ok);
-    const ok = (!okUp && t - lastT > 2.4) || Math.random() < (okUp ? .2 : .42);
+    const ok = (!okUp && t - lastT > 2.4) || Math.random() < (okUp ? .2 : K.ok);
     let it, txt;
     if(R.type === "mean"){
       const on = new Set(ups.map(x => x.it)), lw = R.T.word.toLowerCase();
@@ -300,14 +307,14 @@ async function start(app, api, mode){
     /* el topo dorado: un bueno, como mucho uno cada 12 s, y más rápido */
     const gold = ok && t > 6 && t - lastGold > 12 && Math.random() < .35;
     if(gold) lastGold = t;
-    Object.assign(h, {it, ok, txt, gold, st: "up", until: t + (gold ? 1.15 : Math.max(1.2, 2.1 - .85 * t / DUR))});
+    Object.assign(h, {it, ok, txt, gold, st: "up", until: t + K.sp * (gold ? 1.15 : Math.max(1.2, 2.1 - .85 * t / DUR))});
     h.bub.textContent = txt;
     h.bub.parentNode.style.setProperty("--bf", bubFs(txt, field.clientWidth / (two ? 2 : 3) < 140));
     h.el.classList.remove("hit", "good", "bad");
     h.el.classList.toggle("gold", gold);
     h.el.tpOk = ok;   /* para las pruebas */
     h.el.classList.add("up");
-    h.el.setAttribute("aria-label", "Topo: " + txt);
+    h.el.setAttribute("aria-labelledby", `tp-c${h.i} tp-w${h.i}`);
     lastHole = h.i;
   }
   function floatTxt(h, txt, bad){
@@ -365,7 +372,7 @@ async function start(app, api, mode){
     api.later(run, () => {
       const pts = Math.max(0, score - wrong), stars = pts >= 15 ? 3 : pts >= 8 ? 2 : 1;
       const words = [...seen.values()].sort((a, b) => b.miss - a.miss);
-      api.finish(run, ID, {score: pts, stars, words,
+      api.finish(run, ID, {score: pts, stars, lv, words,
         line: !good ? "¡Casi! La próxima vez golpearás muchos topos buenos."
           : `¡${good} topo${good === 1 ? "" : "s"} bueno${good === 1 ? "" : "s"}${wrong ? ` y ${wrong} equivocado${wrong === 1 ? "" : "s"}` : ""}: ${pts} punto${pts === 1 ? "" : "s"}!`});
     }, 1500);
@@ -380,7 +387,7 @@ async function start(app, api, mode){
       else {
         spawnIn -= dt;
         const ups = holes.filter(h => h.st === "up").length;
-        if(spawnIn <= 0 && ups < (t < 15 ? 2 : 3)){ spawn(); spawnIn = Math.max(.55, 1.05 - .45 * t / DUR); }
+        if(spawnIn <= 0 && ups < (t < (lv >= 3 ? 6 : 15) ? 2 : 3)){ spawn(); spawnIn = K.sp * Math.max(.55, 1.05 - .45 * t / DUR); }
       }
       const rem = Math.max(0, Math.ceil(DUR - t));
       if(clk.textContent !== clock(rem)) clk.textContent = clock(rem);
@@ -411,8 +418,10 @@ async function start(app, api, mode){
 
 const reg = window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(ID, {
   t: "Topos", sub: "Golpea los topos buenos", img: "img/games/topos.png",
-  how: "Lee el letrero de arriba y golpea solo los topos que dicen la palabra o los que están bien escritos. ¡Cuidado con los otros! Toca el topo (o usa las teclas 1 a 9).",
+  how: "Lee el letrero y golpea solo los topos buenos. ¡Cuidado con los otros!",
+  keys: "Con el teclado: las teclas 1 a 9 golpean cada agujero.",
   topic: true,
+  levels: true,
   fresh: true,
   rec: b => `${Number.isFinite(+b.score) ? +b.score : 0} puntos`,
   start,

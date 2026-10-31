@@ -407,6 +407,22 @@ compartida no responde).
   palabra en inglés y francés y otra vez dos palabras en danés, unirse tocando a tiempo y con un micrófono de mentira,
   `window.__rapRounds`); capturas en `capturas/hablar` (360 claro, 390 oscuro con «Reducir movimiento» y 1280) con
   contraste, paleta y `a11y.js`.
+- `test_oido.py` (`js/oido.js`, «¿Qué oíste?»; `HTMLMediaElement.play` y `speechSynthesis` espiados): los pares mínimos
+  de cada idioma (3 contrastes de nivel 1, 6 hasta el 2, todos en el 3; audio grabado, IPA del corpus, español y
+  dibujo), una ronda de 20 en inglés con dos fallos (verde azulado ✓, gris ✗, suenan la elegida y la buena, «Seguir»,
+  el par fallado vuelve 3 a 5 palabras después, nunca la voz del navegador), ★★★ abre el nivel 2 con sus contrastes,
+  Espacio/T (0,7)/1-2/Enter, francés y danés (los 10 contrastes del nivel 3), la tarjeta («No usa el tema», 15
+  palabras como mucho, teclas solo con teclado) y 360/390 claro y oscuro, 1280 y «Reducir movimiento» con contraste y
+  paleta; capturas en `capturas/juegos2`.
+- `test_juegos2.py` (los módulos de juegos, segunda ola): explicaciones de 15 palabras como mucho y las teclas aparte
+  (solo con teclado); ningún elogio a la persona; niveles de Concurso (15/12/10 s), Verdadero o falso (`vfLim`), Topos
+  (`tpK`) y Sopa (6/8/10 palabras, 9 × 9 y 10 × 10 en el celular, diagonal solo en el 3); zonas de toque de 44 px en
+  la Sopa y el Crucigrama a 360 px (el borde elige su casilla; el reloj y «0/10» no tapan las monedas); gramática desde el nivel del camino ("map:<idioma>",
+  lo elegido a mano manda) y en A1-A2 la frase modelo y el español antes de la regla plegada en «¿Por qué?» (abierta,
+  debajo); el
+  impostor y Ordenar prefieren el tema (Comida, Colores; con Soldados cualquiera); nombres con su lang (cestas,
+  topos, Verdadero o falso, la lista de la Sopa, Lluvia); la IPA en el resultado de Ordenar y de la Sopa; contraste del
+  letrero de Topos en oscuro y de la bienvenida del Concurso; capturas en `capturas/juegos2`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

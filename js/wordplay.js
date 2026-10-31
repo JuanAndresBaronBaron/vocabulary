@@ -9,9 +9,10 @@
      Al destaparla (o al aterrizar) suena con su IPA. 8 palabras, de la más corta a la más larga. Estrellas por
      palabras adivinadas: 7 u 8 ★★★, 5 o 6 ★★, si no ★.
    Sopa de letras: una rejilla de 8 × 8 en el celular y de 10 × 10 en el ordenador con 6 palabras del tema (solo
-     letras, sin artículo, de 3 a 8; en mayúsculas y sin tildes, Æ Ø Å sí), de izquierda a derecha y de arriba abajo
-     (en el ordenador también en diagonal). Debajo (al lado en el ordenador), la lista con el dibujo de cada palabra
-     (tocar = oírla). Se marca arrastrando sobre las letras o tocando la primera y la última (o con las flechas y
+     letras, sin artículo, de 3 a 8; en mayúsculas y sin tildes, Æ Ø Å sí), de izquierda a derecha y de arriba abajo.
+     Niveles (api.level, def.levels: ★★★ abre el siguiente; SP_LV): 1 = 6 palabras, 2 = 8 (9 × 9 en el celular),
+     3 = 10 y también en diagonal (10 × 10). Cada casilla tiene una zona de toque invisible de 44 px. Debajo (al lado
+     en el ordenador), la lista con el dibujo de cada palabra (tocar = oírla). Se marca arrastrando sobre las letras o tocando la primera y la última (o con las flechas y
      Enter). Encontrada: una banda de color, suena con su IPA y se tacha en la lista. Mal: la banda en gris con ✗ un
      momento, sin sonido triste. Pista sola: 40 s sin encontrar nada → brilla la primera letra de una que falta (y si
      sigue sin salir, también la última). Estrellas por tiempo y pistas (cada pista cuenta 30 s).
@@ -134,6 +135,11 @@ const CSS = `
 .wp{--wp-teal:#008198;max-width:820px}
 :root:is([data-gm-play=adivina],[data-gm-play=sopa],[data-gm-play=crucigrama]) main{padding-bottom:calc(var(--safe-b) + 12px)}
 .wp .gm-top{margin-bottom:8px}
+/* sopa en el móvil estrecho: el reloj y «0/10» caben antes de las monedas (sin el icono del reloj) */
+@media (max-width:400px){
+  :root[data-gm-play=sopa] .wp .gm-stats{gap:4px}
+  :root[data-gm-play=sopa] .wp .gm-pill{padding:0 8px;gap:3px}
+  :root[data-gm-play=sopa] .wp .gm-pill[title=Tiempo]>.ico{display:none}}
 /* el teclado de letras */
 .wp-kb{--kw:40px;display:flex;flex-wrap:wrap;justify-content:center;gap:5px;width:100%;max-width:720px;margin:0 auto;user-select:none;-webkit-user-select:none}
 .wp-key{position:relative;flex:none;width:var(--kw);height:var(--kh,46px);margin:0;padding:0;border:0;border-radius:11px;background:var(--card);color:var(--label);
@@ -232,6 +238,8 @@ const CSS = `
 .wp-c{position:relative;display:grid;place-items:center;margin:0;padding:0;border:0;border-radius:50%;background:none;color:var(--label);
   font:800 calc(var(--cs) * .52)/1 var(--f-round);cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent}
 .wp-c:focus-visible{outline:3px solid var(--brand-tint);outline-offset:-3px}
+/* la zona de toque llega a 44 px aunque la casilla sea más pequeña (no se ve; cellAt() elige por la posición) */
+.wp-c::after{content:"";position:absolute;inset:min(0px,calc((var(--cs) - 44px) / 2))}
 .wp-c.start{box-shadow:inset 0 0 0 3px var(--brand-tint)}
 .wp-c.hint{background:var(--gold-soft);box-shadow:inset 0 0 0 3px var(--gold-deep);animation:wp-pulse 1.1s ease-in-out infinite}
 @keyframes wp-pulse{50%{transform:scale(1.2)}}
@@ -272,6 +280,8 @@ const CSS = `
   font:900 calc(var(--cs) * .56)/1 var(--f-round);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .wp-cc small{position:absolute;left:2px;top:1px;font:800 max(9px,calc(var(--cs) * .27))/1 var(--f-text);color:#3a3a3c}
 .wp-cc:focus-visible{box-shadow:inset 0 0 0 3px var(--brand-tint)}
+/* zona de toque de 44 px aunque la casilla sea más pequeña (no se ve; el clic elige la casilla que hay bajo el dedo) */
+.wp-cc::before{content:"";position:absolute;inset:min(0px,calc((var(--cs) - 44px) / 2))}
 .wp-cc.sel{background:#d8e7ff}
 .wp-cc.cur{background:#a9cbff;box-shadow:inset 0 0 0 3px #1E6EF4}
 .wp-cc.hint{background:#ffe7a0}
@@ -549,7 +559,7 @@ async function adivina(app, api, mode){
     if(w < N){ word(); return; }
     S = null;
     const stars = got >= N - 1 ? 3 : got >= Math.ceil(N * .6) ? 2 : 1;
-    api.finish(run, AD, {score: got, stars, words: list.map((it, i) => ({word: it.word, es: it.es, img: it.img, miss: !res[i]})),
+    api.finish(run, AD, {score: got, stars, words: list.map((it, i) => ({word: it.word, es: it.es, img: it.img, ipa: it.ipa, miss: !res[i]})),
       line: got ? `¡Adivinaste ${got} de ${N} palabras!` : "¡Casi! La próxima vez adivinarás más palabras."});
   }
   kb.addEventListener("click", e => { const b = e.target.closest(".wp-key"); if(b) press(b.dataset.l); });
@@ -571,16 +581,19 @@ async function adivina(app, api, mode){
    2. SOPA DE LETRAS
    ===================================================================== */
 const SP_N = 6, HINT_S = 40;
+/* por nivel: n palabras, la rejilla (celular, ordenador) y si van también en diagonal */
+const SP_LV = {1: {n: 6, g: [8, 10], dg: false}, 2: {n: 8, g: [9, 10], dg: false}, 3: {n: 10, g: [10, 10], dg: true}};
 const BANDS = ["#008198", "#1E6EF4", "#2f9e44", "#d4a017", "#22409a", "#b8743c"];
 const spFit = it => okItem(it) && !!gridOf(splitArt(it.word).base, 3, 8);
-/* 6 palabras que no estén una dentro de otra (en 8 × 8, que no pasen de 38 letras entre todas) */
-function spChoose(C, N){
-  const out = [], rnd = mix(C);
-  /* al azar y, si no llegan a 6 (palabras largas), se completa con las más cortas */
+/* n palabras que no estén una dentro de otra (que no pasen del 60 % de las casillas entre todas: 38 en 8 × 8; se
+   deja sitio para las que faltan, de 3 letras como poco, así salen las n) */
+function spChoose(C, N, n = SP_N){
+  const out = [], rnd = mix(C), max = Math.floor(N * N * .6);
+  /* al azar y, si no llegan a n (palabras largas), se completa con las más cortas */
   for(const c of rnd.concat([...rnd].sort((a, b) => a.g.length - b.g.length))){
-    if(out.length >= SP_N) break;
+    if(out.length >= n) break;
     if(out.includes(c) || out.some(o => o.s.includes(c.s) || c.s.includes(o.s))) continue;
-    if(N <= 8 && out.reduce((a, o) => a + o.g.length, 0) + c.g.length > 38) continue;
+    if(out.reduce((a, o) => a + o.g.length, 0) + c.g.length + 3 * Math.max(0, n - out.length - 1) > max) continue;
     out.push(c);
   }
   return out;
@@ -624,11 +637,12 @@ async function sopa(app, api, mode){
   let TP = {P: []};
   try{ TP = await api.topicPool(SP, SP_N, spFit); }catch(e){}
   if(!api.here(my, SP) || lang !== L) return;
-  const big = isWide(), N = big ? 10 : 8;
-  const DIRS = big ? [[0, 1], [1, 0], [1, 1], [-1, 1]] : [[0, 1], [1, 0]];
+  const lv = api.level(SP), K = SP_LV[lv] || SP_LV[1], big = isWide(), N = K.g[big ? 1 : 0];
+  const DIRS = K.dg ? [[0, 1], [1, 0], [1, 1], [-1, 1]] : [[0, 1], [1, 0]];
   const C = gridCands(TP.P, 3, 8);
   let lay = null;
-  for(let t = 0; t < 14 && !lay; t++) lay = spPlace(spChoose(C, N), N, DIRS);
+  for(let t = 0; t < 14 && !lay; t++) lay = spPlace(spChoose(C, N, K.n), N, DIRS);
+  for(let t = 0; t < 6 && !lay; t++) lay = spPlace(spChoose(C, N, SP_N), N, DIRS);   /* si no caben, 6 */
   if(!lay){ app.innerHTML = emptyHtml(api); return; }
   /* el resto, con letras de las palabras del tema (así las de las palabras no destacan) */
   const fillers = (C.map(c => c.s).join("") + ABC().toUpperCase()).split("");
@@ -637,8 +651,9 @@ async function sopa(app, api, mode){
   const code = codeOf(), W = words.length;
   preload(words.map(w => w.it));
   const cells = lay.G.map((ch, i) => `<button type="button" class="wp-c" data-i="${i}" tabindex="${i ? -1 : 0}" aria-label="${esc(ch)}, fila ${Math.floor(i / N) + 1}, columna ${i % N + 1}">${esc(ch)}</button>`).join("");
-  const items = words.map((w, i) => `<button type="button" class="wp-li" data-w="${i}" aria-label="${esc(w.base)}. Toca para oírla">
-      <span class="wp-li-p">${imgHtml(w.it)}</span><span class="wp-li-w" lang="${esc(code)}">${esc(w.base)}</span><span class="wp-li-ok" aria-hidden="true">${IC("check", "bold", 14)}</span></button>`).join("");
+  /* el nombre: la palabra (con su lang) y, en español, «Toca para oírla» (o «encontrada…»), por aria-labelledby */
+  const items = words.map((w, i) => `<button type="button" class="wp-li" data-w="${i}" aria-labelledby="wp-lw${i} wp-ls${i}">
+      <span class="wp-li-p">${imgHtml(w.it)}</span><span class="wp-li-w" id="wp-lw${i}" lang="${esc(code)}">${esc(w.base)}</span><span class="wp-li-ok" aria-hidden="true">${IC("check", "bold", 14)}</span><span class="vh" id="wp-ls${i}" lang="es">Toca para oírla</span></button>`).join("");
   const run = api.mount(app, `<div class="gm wp wp-sp" id="wp-sp">
     ${api.topHtml(SP, `<span class="gm-pill" title="Tiempo">${IC("timer", "bold", 18)}<b id="wp-clock">0:00</b></span><span class="gm-pill" title="Encontradas">${IC("magnifying-glass", "bold", 18)}<span><b id="gm-sc">0</b>/${W}</span></span>`)}
     <div class="wp-sp-main" id="wp-main">
@@ -653,7 +668,7 @@ async function sopa(app, api, mode){
   const foundG = root.querySelector("#wp-found"), clk = root.querySelector("#wp-clock"), sc = root.querySelector("#gm-sc");
   const cellEls = [...cellsEl.querySelectorAll(".wp-c")], liEls = [...listEl.querySelectorAll(".wp-li")];
   root.wpWords = words.map(w => ({s: w.s, cells: w.cells}));   /* para las pruebas */
-  root.wpN = N;
+  root.wpN = N; root.wpLv = lv;
   const HS = Number(window.__wpHint) > 0 ? +window.__wpHint : HINT_S;
   let started = false, ended = false, t = 0, last = 0, shown = -1, lastFind = 0, hints = 0, nFound = 0, hinted = null, tapStart = -1, drag = null, cur = 0, flash = 0;
 
@@ -714,7 +729,7 @@ async function sopa(app, api, mode){
     w.cells.concat(cs).forEach(i => cellEls[i].classList.remove("hint"));
     if(hinted === w) hinted = null;
     const li = liEls[words.indexOf(w)];
-    li.classList.add("done"); li.setAttribute("aria-label", `${w.base}: encontrada. Toca para oírla`);
+    li.classList.add("done"); const ls = li.querySelector(".vh"); if(ls) ls.textContent = "encontrada. Toca para oírla";
     st.className = "wp-sp-st ok";
     st.innerHTML = `✓ <b lang="${esc(code)}">${esc(w.it.word)}</b>${ipaOf(w.it)}<small>= ${esc(w.it.es)}</small>`;
     api.speak(w.it.word); api.answer(true, w.it);
@@ -794,10 +809,11 @@ async function sopa(app, api, mode){
   function end(){
     if(ended) return;
     ended = true;
-    const secs = Math.round(t), pen = secs + 30 * hints, [g3, g2] = N >= 10 ? [180, 360] : [150, 300];
+    /* 25 s por palabra (y 30 más en las rejillas de 10): 6 palabras en 8 × 8 → 150 s ★★★ y 300 s ★★ */
+    const secs = Math.round(t), pen = secs + 30 * hints, g3 = 25 * W + (N >= 10 ? 30 : 0), g2 = 2 * g3;
     const stars = pen <= g3 ? 3 : pen <= g2 ? 2 : 1;
-    api.later(run, () => api.finish(run, SP, {score: Math.max(10, 1000 - pen), stars,
-      words: words.map(w => ({word: w.it.word, es: w.it.es, img: w.it.img, miss: w.hs > 0})),
+    api.later(run, () => api.finish(run, SP, {score: Math.max(10, 1000 - pen), stars, lv,
+      words: words.map(w => ({word: w.it.word, es: w.it.es, img: w.it.img, ipa: w.it.ipa, miss: w.hs > 0})),
       line: `¡Encontraste las ${W} palabras en ${clock(secs)}!${hints ? ` Usaste ${plural(hints, "pista", "pistas")}.` : ""}`}), 1600);
   }
   function frame(now){
@@ -1120,7 +1136,12 @@ async function crucigrama(app, api, mode){
     api.haptic("selection");
     select(wi, words[wi].cells.indexOf(c));
   }
-  gridEl.addEventListener("click", e => { const b = e.target.closest(".wp-cc"); if(b) tapCell(cmap.get(b.dataset.k)); });
+  gridEl.addEventListener("click", e => {
+    let b = e.target.closest(".wp-cc");
+    /* la zona de toque pisa un poco a las vecinas: vale la casilla que de verdad está bajo el dedo, si la hay */
+    if(b && e.detail){ const h = [...gridEl.querySelectorAll(".wp-cc")].find(x => { const r = x.getBoundingClientRect(); return e.clientX >= r.left && e.clientX < r.right && e.clientY >= r.top && e.clientY < r.bottom; }); if(h) b = h; }
+    if(b) tapCell(cmap.get(b.dataset.k));
+  });
   cluesEl.addEventListener("click", e => { const b = e.target.closest(".wp-clue"); if(b && started && !ended){ api.haptic("selection"); select(+b.dataset.w); } });
   kb.addEventListener("click", e => { const b = e.target.closest(".wp-key"); if(!b) return; if(b.dataset.l === "del") erase(); else typeL(b.dataset.l); });
   root.querySelector("#wp-hint").onclick = hint;
@@ -1131,7 +1152,7 @@ async function crucigrama(app, api, mode){
     paint();
     const max = 3 * NW, ratio = pts / max, stars = ratio >= .85 ? 3 : ratio >= .6 ? 2 : 1;
     api.later(run, () => api.finish(run, CW, {score: pts, stars,
-      words: words.map(w => ({word: w.it.word, es: w.it.es, img: w.it.img, miss: w.hints > 0 || w.errs > 0})),
+      words: words.map(w => ({word: w.it.word, es: w.it.es, img: w.it.img, ipa: w.it.ipa, miss: w.hints > 0 || w.errs > 0})),
       line: `¡Completaste el crucigrama de ${NW} palabras${hints ? ` con ${plural(hints, "pista", "pistas")}` : " sin pistas"}! Puntos: ${pts} de ${max}.`}), 1800);
   }
   /* las casillas de 30 px como mínimo; si la rejilla no cabe de alto, se desplaza hacia abajo (nunca de lado) */
@@ -1184,19 +1205,23 @@ async function crucigrama(app, api, mode){
 const reg = (id, def) => window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(id, Object.assign({topic: true, sec: "palabras", fresh: true}, def));
 if(!reg(AD, {
   t: "Adivina la palabra", sub: "Salva los globos", img: "img/games/adivina.png",
-  how: "Mira el dibujo y piensa cómo se dice. Toca una letra: si está, aparece en su sitio. Si no está, se pincha un globo. ¡Adivina la palabra antes de que la cesta llegue a la hierba!",
+  how: "Mira el dibujo y toca letras. ¡Adivina la palabra antes de que la cesta baje!",
+  keys: "Con el teclado: escribe las letras y Enter sigue.",
   rec: b => `${num(b.score)} de ${AD_N}`,
   start: adivina,
 })) console.warn("[wordplay] no se pudo añadir «Adivina la palabra» a Juegos");
 if(!reg(SP, {
   t: "Sopa de letras", sub: "Busca las palabras escondidas", img: "img/games/sopa.png",
-  how: "Busca las palabras de la lista en las letras. Arrastra el dedo de la primera letra a la última, o toca la primera y luego la última. Van de lado y hacia abajo (en el ordenador, también en diagonal).",
+  how: "Busca las palabras de la lista. Arrastra de la primera letra a la última.",
+  keys: "Con el teclado: las flechas mueven y Enter marca la primera y la última letra.",
+  levels: true,
   rec: b => `${num(b.score)} puntos`,
   start: sopa,
 })) console.warn("[wordplay] no se pudo añadir «Sopa de letras» a Juegos");
 if(!reg(CW, {
   t: "Crucigrama", sub: "Escribe las palabras cruzadas", img: "img/games/crucigrama.png",
-  how: "Cada número tiene un dibujo. Toca una casilla o un dibujo y escribe la palabra con las letras de abajo. Si te atascas, «Pista» pone una letra.",
+  how: "Toca una casilla o un dibujo y escribe la palabra. «Pista» pone una letra.",
+  keys: "Con el teclado: escribe, ⌫ borra, las flechas mueven y Enter va a la siguiente.",
   rec: b => `${num(b.score)} puntos`,
   start: crucigrama,
 })) console.warn("[wordplay] no se pudo añadir «Crucigrama» a Juegos");

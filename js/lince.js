@@ -253,9 +253,9 @@ async function start(app, api, mode){
     if(r < ROUNDS){ round(); return; }
     const stars = score >= 7 ? 3 : score >= 5 ? 2 : 1;
     const seen = new Set(), words = [];
-    rounds.forEach((o, i) => { const t = o.target; if(!seen.has(t.w)){ seen.add(t.w); words.push({word: t.w, es: t.es, img: t.img, miss: !res[i]}); } });
+    rounds.forEach((o, i) => { const t = o.target; if(!seen.has(t.w)){ seen.add(t.w); words.push({word: t.w, es: t.es, img: t.img, ipa: IPA[t.w] || "", miss: !res[i]}); } });
     api.finish(run, ID, {score, stars, words,
-      line: score === ROUNDS ? `¡Las ${ROUNDS} a la primera! Tienes oído de lince.` : score ? `¡Acertaste ${score} de ${ROUNDS}!` : "¡Buen intento! Cada vez lo oirás mejor."});
+      line: score === ROUNDS ? `¡Las ${ROUNDS} a la primera! Escuchaste con mucha atención.` : score ? `¡Acertaste ${score} de ${ROUNDS}!` : "¡Buen intento! Cada vez lo oirás mejor."});
   }
   box.addEventListener("click", e => {
     const c = e.target.closest(".ln-c"); if(!c || !live()) return;
@@ -289,6 +289,7 @@ async function start(app, api, mode){
 const reg = window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(ID, {
   t: "Oído de lince", sub: "¿Cuál suena?", img: "img/games/lince.png",
   how: "Escucha la palabra. Las dos suenan casi igual: toca la que oyes.",
+  keys: "Con el teclado: 1 o 2 eligen, Espacio repite, T despacio y Enter sigue.",
   words: "Palabras que suenan casi igual",
   fresh: true,   /* chip «Nuevo» en su tarjeta hasta la primera partida */
   rec: b => `${Number.isFinite(+b.score) ? +b.score : 0} de ${ROUNDS}`,

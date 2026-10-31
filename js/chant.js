@@ -437,7 +437,7 @@ async function start(app, api, mode){
     beatUI(-1); setSay("¡Bravo!");
     micOff();
     const N = SLOTS.length, stars = score >= N * .7 ? 3 : score >= N * .35 ? 2 : 1;
-    const seen = new Map(); RD.forEach(r => r.a.forEach(x => { if(!seen.has(x.it.k)) seen.set(x.it.k, {word: x.it.word, es: x.it.es, img: x.it.img, miss: false}); }));
+    const seen = new Map(); RD.forEach(r => r.a.forEach(x => { if(!seen.has(x.it.k)) seen.set(x.it.k, {word: x.it.word, es: x.it.es, img: x.it.img, ipa: x.it.ipa, miss: false}); }));
     api.later(run, () => api.finish(run, ID, {score, stars, words: [...seen.values()],
       line: score ? `¡Rapeaste con el zorro ${score} de ${N} veces!` : "¡Buen ritmo! La próxima vez, repite con el zorro cuando salga «¡Tú!»."}), 900);
   }
@@ -483,7 +483,8 @@ async function start(app, api, mode){
 
 const reg = window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(ID, {
   t: "Rap del zorro", sub: "Repite al ritmo", img: "img/games/rap.png", sec: "palabras",
-  how: "El zorro rapea una palabra dos veces. Cuando salga «¡Tú!», repítela al ritmo. Puedes usar el micrófono o tocar el escenario a tiempo.",
+  how: "El zorro rapea una palabra. Cuando salga «¡Tú!», repítela al ritmo.",
+  keys: "Con el teclado: Espacio marca el ritmo.",
   topic: true,
   fresh: "2026-10-31",
   rec: b => `${Number.isFinite(+b.score) ? +b.score : 0} al ritmo`,
