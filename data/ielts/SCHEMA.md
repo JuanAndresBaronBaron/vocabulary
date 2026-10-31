@@ -33,7 +33,9 @@ Blocks: `start`, `listening`, `reading`, `writing`, `speaking`, `language`, `moc
 - **Reordering the options of an existing `pick`, `multi` or `select` changes what saved answers mean**: a run stores
   the index of the option chosen (`ielts:run:<lid>`.ans). Do it only with a one-time migration that maps each old
   index to the new one in every saved run (guarded by a flag such as `ielts:mig:content1`), and never change the text
-  of an option in a way that changes its meaning. Adding options at the end is safe.
+  of an option in a way that changes its meaning. The flag must survive "Erase my progress" (`prog.erase()` keeps every
+  `ielts:mig:*` key): erasing does not reload the page, so runs saved after an erase already use the new order, and a
+  migration that ran again on the next load would map them a second time. Adding options at the end is safe.
 - Inline markup in any text: `**bold**`, `*italic*`. Nothing else (no HTML, no links).
 
 ## Item types
@@ -71,7 +73,7 @@ also accept the answer typed with the unit, if it stays within the limit (`"£18
 | `accent` | a `listening` speaker | One of `gb`, `us`, `ca`, `au`, `nz`, `ie`, `za`: the voice to prefer when the browser has one (British otherwise). The script is still written in British spelling. |
 | `visual` | a `reading` or `listening` set | A visual (see Task 1 visuals) drawn above the set's questions: the plan, map or diagram to label, or the table to complete. Any set whose `instr` contains "Label the" must have one. |
 | `mark: true` | a map item | A marker: `label` is a letter or number (1-3 characters) drawn bold in a circle at the centre of the item's box, over the item's shape like any map item (`rect` when `shape` is left out): a room or building to label. A marker whose `w` and `h` are both 0 is a callout: only the circle, at (`x`, `y`), on a feature drawn by other items (a layer of a cross-section, a point in a borehole); a callout has no `shape`. Do not label a marked place in words: the learner supplies that. |
-| `alt` | a `map` visual | A text alternative for screen readers, read after the drawing (hidden on screen): what the plan or diagram shows and where each marker is, in the words of the drawing, not of the script or passage, so that it never gives an answer away. Give one to every plan, map or diagram that a set asks the learner to label. |
+| `alt` | a `map` visual | A text alternative for screen readers, read after the drawing (hidden on screen): what the plan or diagram shows and where each marker is, in the words of the drawing (compass points and the drawing's own labels), not of the script or passage, so that it never gives an answer away: "C: a small building in the south-east corner", not "C: on the right, just inside the entrance". Give one to every plan, map or diagram that a set asks the learner to label. |
 | `visual2` | a Task 1 `writing` item | A second visual, shown under `visual` (for example pie charts plus a table). Task 1 only. |
 | `followups` | a Part 2 `speaking` item | 1-2 short questions the examiner may ask after the long turn ("Do you still...?"). Part 2 only. |
 | `exemplars` | a `writing` item | 1-3 sample answers below band 9 for comparison: `{"band": 6.5, "text": [2-8 paragraphs], "notes": [1-6 strings]}`. `band` is 5-9 in half bands; each `text` has at least `minWords` words. |

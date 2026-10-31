@@ -218,6 +218,10 @@ def test_ielts_content1_plan():
     assert all(f"Marker {x}" in d["alt"] for x in "56789"), d["alt"]
     # the passage's answers are not in the alt text
     assert not re.search(r"\b(cable|firn|bubbles|cylinder|core|fluid)\b", d["alt"], re.I), d["alt"]
+    # the plan's alt places the letters by compass points, never in the script's own words (the instruction dropped its
+    # position list because "straight ahead" or "on the far bank" in both texts turns the task into phrase matching)
+    words = r"\b(left|right|behind|ahead|far|bank|riverbank|beside|inside|beyond|immediately)\b"
+    assert not re.findall(words, v["alt"], re.I), re.findall(words, v["alt"], re.I)
 
 
 def test_ielts_content1_types():
@@ -326,6 +330,15 @@ def test_ielts_content1_remap():
         old = OLD_KEY[qid]
         new = sorted(perm[i] for i in old) if isinstance(old, list) else perm[old]
         assert new == (sorted(q["answer"]) if isinstance(q["answer"], list) else q["answer"]), (qid, old, new, q["answer"])
+    # Once the integrator has put the migration into js/ielts.js, its MAP must be REMAP, and "Erase my progress" must
+    # keep its flag: erase does not reload the page, so runs saved after it already use the new order, and a migration
+    # that ran again on the next load would map them a second time. (Before the merge js/ielts.js has no migration.)
+    js = (V.DATA.parent.parent / "js" / "ielts.js").read_text(encoding="utf-8")
+    if "ielts:mig:content1" in js:
+        m = re.search(r"const MAP = (\{.*?\});", js, re.S)
+        assert m and json.loads(m.group(1)) == REMAP, "the saved-answer migration's MAP is not REMAP"
+        er = re.findall(r"erase\(\)\s*\{(.*?)LS\.del\(k\)", js, re.S)
+        assert er and all('startsWith("ielts:mig:")' in x for x in er), "prog.erase() deletes the migration flag"
 
 
 def test_ielts_content1_ids():
@@ -392,6 +405,21 @@ def test_ielts_content1_visuals_render():
                     assert len(r["cols"]) == len(vals) and max(r["cols"]) > 200, r["cols"]
                     assert all(abs(h / max(r["cols"]) - x / max(vals)) < .02 for h, x in zip(r["cols"], vals)), r["cols"]
                     assert "60%" in r["ticks"] and "100%" not in r["ticks"], r["ticks"]
+                if name == "pies":
+                    # as in the exam, every slice shows its figure: a thin one (the 2% "Other") outside the circle on a
+                    # leader line, in the text colour, with no figure cut off and no two figures overlapping
+                    p = page.evaluate("""() => [...document.querySelectorAll('.ie-pie svg')].map(s => { const b = s.getBoundingClientRect();
+                      const ts = [...s.querySelectorAll('text.ie-pctl')], rs = ts.map(t => t.getBoundingClientRect());
+                      return {t: ts.map(t => t.textContent), out: s.querySelectorAll('text.ie-pcto').length, lines: s.querySelectorAll('line.ie-pcll').length,
+                        cut: rs.filter(x => x.right > b.right + .5 || x.left < b.left - .5 || x.top < b.top - .5 || x.bottom > b.bottom + .5).length,
+                        overlap: rs.some((x, i) => rs.some((y, j) => j > i && x.left < y.right && y.left < x.right && x.top < y.bottom && y.top < x.bottom)),
+                        fill: ts.filter(t => t.classList.contains('ie-pcto')).map(t => getComputedStyle(t).fill)}; })""")
+                    tot = [sum(x["value"] for x in c["slices"]) for c in v["charts"]]
+                    want = [[f"{round(x['value'] / t * 100)}%" for x in c["slices"]] for c, t in zip(v["charts"], tot)]
+                    assert [sorted(x["t"]) for x in p] == [sorted(w) for w in want], (scheme, p)
+                    assert all(x["out"] == x["lines"] == 1 and x["cut"] == 0 and not x["overlap"] for x in p), (scheme, p)
+                    ink = "rgb(255, 255, 255)" if scheme == "dark" else "rgb(0, 0, 0)"   # --label, not the white of a figure on a slice
+                    assert all(f == ink for x in p for f in x["fill"]), (scheme, p)
             # map labels fit their boxes (shrinking down to 3.2 units), on the maps that predate this package too; a
             # marker without a shape is drawn on a box like any item (content2's rooms), a 0 x 0 marker is a callout;
             # the alt text is on the page for screen readers

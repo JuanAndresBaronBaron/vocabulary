@@ -67,20 +67,46 @@ function bar(v){
 const chart = (v, W, H, g, names, head, rows) => `<figcaption class="t-head">${esc(v.title)}</figcaption>
   <svg class="ie-svg" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(v.title)}"><line class="ie-axis" x1="74" x2="${W - 18}" y1="${H - 52}" y2="${H - 52}"/>${g}</svg>
   ${names.length > 1 || v.unit ? legend(names) : ""}${v.unit && v.unit !== "%" ? `<p class="t-min">Figures in ${esc(v.unit)}.</p>` : ""}${dataTable(head, rows)}`;
+/* Every slice shows its figure, as in the exam. A slice under 6% is too thin for it, so its figure sits outside the
+   circle on a short leader line (pushed further out if it would touch another one), and every pie of the visual gets
+   the same viewBox, widened to hold those figures, so the circles stay the same size side by side. */
 function pie(v){
-  const one = c => {
-    const tot = c.slices.reduce((s, x) => s + x.value, 0) || 1; let a0 = -Math.PI / 2;
-    const paths = c.slices.map((s, i) => {
-      const a1 = a0 + s.value / tot * Math.PI * 2, big = a1 - a0 > Math.PI ? 1 : 0;
-      const p = c.slices.length === 1 ? `<circle cx="100" cy="100" r="90"/>` : `<path d="M100,100 L${100 + 90 * Math.cos(a0)},${100 + 90 * Math.sin(a0)} A90,90 0 ${big} 1 ${100 + 90 * Math.cos(a1)},${100 + 90 * Math.sin(a1)} Z"/>`;
-      const mid = (a0 + a1) / 2, pct = Math.round(s.value / tot * 100); a0 = a1;
-      return `<g class="ie-s${i % 6} ie-slice">${p}${pct >= 6 ? `<text class="ie-pctl" x="${100 + 58 * Math.cos(mid)}" y="${104 + 58 * Math.sin(mid)}" text-anchor="middle">${pct}%</text>` : ""}</g>`;
-    }).join("");
-    return `<div class="ie-pie"><svg viewBox="0 0 200 200" role="img" aria-label="${esc(c.title)}">${paths}</svg><p class="t-note">${esc(c.title)}</p></div>`;
-  };
   const labels = [...new Set(v.charts.flatMap(c => c.slices.map(s => s.label)))];
   /* the same label keeps the same colour in every pie */
   const charts = v.charts.map(c => Object.assign({}, c, {slices: labels.map(l => c.slices.find(s => s.label === l) || {label: l, value: 0})}));
+  const box = {x0: 0, y0: 0, x1: 200, y1: 200}, hit = (p, q) => p.x0 < q.x1 && q.x0 < p.x1 && p.y0 < q.y1 && q.y0 < p.y1;
+  const lay = charts.map(c => {
+    const tot = c.slices.reduce((s, x) => s + x.value, 0) || 1, outs = []; let a0 = -Math.PI / 2;
+    return c.slices.map(s => {
+      const a1 = a0 + s.value / tot * Math.PI * 2, mid = (a0 + a1) / 2, sh = s.value / tot * 100;
+      const o = {a0, a1, mid, t: s.value > 0 ? (sh < .5 ? "<1" : Math.round(sh)) + "%" : ""}; a0 = a1;
+      if(!o.t || sh >= 5.5 || c.slices.length === 1) return o;
+      const cs = Math.cos(mid), sn = Math.sin(mid), w = 9 * o.t.length;
+      o.anchor = cs > .3 ? "start" : cs < -.3 ? "end" : "middle";
+      for(let r = 101; r < 160; r += 13){
+        const tx = 100 + r * cs + (o.anchor === "start" ? 2 : o.anchor === "end" ? -2 : 0);
+        const by = 100 + r * sn + (sn < -.3 ? -1 : sn > .3 ? 11 : 5);
+        const x0 = o.anchor === "start" ? tx : o.anchor === "end" ? tx - w : tx - w / 2;
+        Object.assign(o, {r, tx, by, bb: {x0, x1: x0 + w, y0: by - 12, y1: by + 3}});
+        if(!outs.some(p => hit(p, o.bb))) break;
+      }
+      outs.push(o.bb);
+      box.x0 = Math.min(box.x0, o.bb.x0 - 3); box.x1 = Math.max(box.x1, o.bb.x1 + 3);
+      box.y0 = Math.min(box.y0, o.bb.y0 - 3); box.y1 = Math.max(box.y1, o.bb.y1 + 3);
+      return o;
+    });
+  });
+  const vb = [box.x0, box.y0, box.x1 - box.x0, box.y1 - box.y0].map(n => Math.round(n * 10) / 10).join(" ");
+  const one = (c, k) => {
+    const paths = c.slices.map((s, i) => {
+      const {a0, a1, mid, t, r, tx, by, anchor} = lay[k][i], big = a1 - a0 > Math.PI ? 1 : 0, cs = Math.cos(mid), sn = Math.sin(mid);
+      const p = c.slices.length === 1 ? `<circle cx="100" cy="100" r="90"/>` : `<path d="M100,100 L${100 + 90 * Math.cos(a0)},${100 + 90 * Math.sin(a0)} A90,90 0 ${big} 1 ${100 + 90 * Math.cos(a1)},${100 + 90 * Math.sin(a1)} Z"/>`;
+      const lab = !t ? "" : r ? `<line class="ie-pcll" x1="${100 + 88 * cs}" y1="${100 + 88 * sn}" x2="${100 + (r - 3) * cs}" y2="${100 + (r - 3) * sn}"/><text class="ie-pctl ie-pcto" x="${tx}" y="${by}" text-anchor="${anchor}">${t}</text>`
+        : `<text class="ie-pctl" x="${100 + 58 * cs}" y="${104 + 58 * sn}" text-anchor="middle">${t}</text>`;
+      return `<g class="ie-s${i % 6} ie-slice">${p}${lab}</g>`;
+    }).join("");
+    return `<div class="ie-pie"><svg viewBox="${vb}" role="img" aria-label="${esc(c.title)}">${paths}</svg><p class="t-note">${esc(c.title)}</p></div>`;
+  };
   return `<figcaption class="t-head">${esc(v.title)}</figcaption><div class="ie-pies">${charts.map(one).join("")}</div>${legend(labels)}
     ${dataTable(["", ...v.charts.map(c => c.title)], labels.map(l => [l, ...v.charts.map(c => { const s = c.slices.find(x => x.label === l); return s ? fmt(s.value) + (v.unit === "%" || !v.unit ? "%" : unitOf(v)) : "–"; })]))}`;
 }

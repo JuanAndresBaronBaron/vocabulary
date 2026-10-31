@@ -292,3 +292,6 @@ a.ie-row:active{background:var(--fill2)}
 .ie-col{fill:var(--c)}
 /* on a phone a three-column table of words fits without sideways scrolling: tighter cells, and a long word may wrap */
 @media (max-width:600px){.ie-table.is-words th,.ie-table.is-words td{padding:8px 5px}.ie-table.is-words td{overflow-wrap:anywhere;hyphens:auto}}
+/* pie slices under 6%: the figure sits outside the circle, on a leader line, in the text colour */
+:root .ie-pie .ie-slice text.ie-pctl.ie-pcto{fill:var(--label)}
+.ie-pcll{stroke:var(--label2);stroke-width:1.2}
