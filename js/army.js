@@ -298,7 +298,7 @@ let HOST = null;
 function nextText(L){
   const inf = INFO[L], d = dataNow(L);
   if(!inf) return "";
-  if(!inf.next) return "¡Eres el rango más alto!";
+  if(!inf.next) return "¡Ya tienes el rango más alto!";
   const to = d && d.ranks[inf.r + 1];
   const n = inf.next.need, what = n === 1 ? "1 lección" : `${n} lecciones`;
   return `Te ${n === 1 ? "falta" : "faltan"} ${what} de ${inf.next.lv} para ser ${to ? `«${to.w}»` : "el siguiente"}.`;
@@ -561,7 +561,7 @@ async function start(app, api, mode){
     r++;
     if(r < ROUNDS){ round(); return; }
     const stars = score >= 7 ? 3 : score >= 5 ? 2 : 1;
-    const words = rounds.map((o, i) => ({word: o.t.w, es: o.cat === "alfabeto" ? `letra ${o.t.letter}` : o.t.es, img: o.t.img || null, miss: !res[i]}));
+    const words = rounds.map((o, i) => ({word: o.t.w, es: o.cat === "alfabeto" ? `letra ${o.t.letter}` : o.t.es, img: o.t.img || null, ipa: o.t.ipa, miss: !res[i]}));
     api.finish(run, GID, {score, stars, words,
       line: score === ROUNDS ? "¡Misión cumplida! Las 8 órdenes a la primera." : score ? `¡Entendiste ${score} de ${ROUNDS} órdenes!` : "¡Buen intento, soldado! La próxima saldrá mejor."});
   }
@@ -684,7 +684,8 @@ addEventListener("storage", e => { if(e.key && (e.key === "lang" || e.key.starts
 
 const reg = W.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(GID, {
   t: "Misión por radio", sub: "Órdenes del sargento", img: "img/games/soldados.png",
-  how: "El sargento te da una orden por radio. Escúchala y toca el dibujo que significa lo mismo. Empieza con palabras básicas y termina con las más difíciles.",
+  how: "El sargento da una orden por radio. Toca el dibujo que significa lo mismo.",
+  keys: "Con el teclado: 1 a 4 eligen, Espacio repite y Enter sigue.",
   words: "Palabras de soldados",
   show: tp => tp === "militar",   /* solo con el tema «Soldados» de Juegos (con los demás, en oscuro y con este aviso) */
   off: "Se activa con el tema Soldados",

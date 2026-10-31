@@ -22,11 +22,16 @@
      celular, dos columnas de fichas grandes y las líneas en un SVG encima.
    Los cuatro usan de games.js lo de los demás juegos (api): tarjeta, récord, explicación la primera vez, «?», pausa
      (api.later y run.paused paran el reloj) y finish() (récord en "games:best".<id> y monedas).
+   Niveles (api.level, def.levels: ★★★ abre el siguiente) en «Concurso» (15, 12 y 10 s por pregunta) y en «Verdadero o
+     falso» (cada tarjeta, con menos tiempo: VF_LV).
    Ganchos para las pruebas (tests/e2e/test_quiz.py): window.__concursoT (segundos por pregunta) y
      window.__verdaderoDur (segundos de partida); root.cqAns (la respuesta buena), la tarjeta .vfOk, root.bxCur (la
      caja abierta) y root.bxAns, y en Flechas el data-i de cada ficha (dibujo y palabra iguales = pareja). */
 (() => {
 "use strict";
+
+/* por nivel: los segundos de cada pregunta del Concurso y cuánto tiempo tiene cada tarjeta de Verdadero o falso */
+const CQ_T = {1: 15, 2: 12, 3: 10}, VF_LV = {1: 1, 2: .8, 3: .65};
 
 const SEC = "concursos", QZ = "concurso", VF = "verdadero", BOX = "cajas", ARW = "flechas";
 const IC = (n, s = "bold", z = 22, c = "") => typeof ico === "function" ? ico(n, s, z, c) : "";
@@ -75,7 +80,7 @@ function deal(P, n){
 function tracker(){
   const m = new Map();
   return {
-    add(it, miss){ const o = m.get(it.k) || {word: it.word, es: it.es, img: it.img, doc: it.doc, miss: false}; if(miss) o.miss = true; m.set(it.k, o); },
+    add(it, miss){ const o = m.get(it.k) || {word: it.word, es: it.es, img: it.img, doc: it.doc, ipa: it.ipa, miss: false}; if(miss) o.miss = true; m.set(it.k, o); },
     list(){ return [...m.values()].sort((a, b) => b.miss - a.miss); },
   };
 }
@@ -153,9 +158,12 @@ const CSS = `
 .cq{max-width:720px}
 .cq-main{position:relative;display:flex;flex-direction:column;gap:10px;height:var(--h,640px)}
 .cq-stage{position:relative;flex:none;display:flex;flex-direction:column;gap:8px;padding:16px 12px 12px;border-radius:22px;overflow:hidden;isolation:isolate;color:#fff;
-  background:radial-gradient(90% 60% at 50% 115%,rgba(0,129,152,.38),transparent 70%),linear-gradient(180deg,#14406f 0%,#0B2545 72%);
+  background:linear-gradient(180deg,#14406f 0%,#0B2545 72%);
   box-shadow:inset 0 0 0 2px rgba(241,183,14,.4),0 3px 10px rgba(11,37,69,.25)}
-[data-theme=dark] .cq-stage{background:radial-gradient(90% 60% at 50% 115%,rgba(0,129,152,.3),transparent 70%),linear-gradient(180deg,#0f2f57 0%,#071a33 72%)}
+[data-theme=dark] .cq-stage{background:linear-gradient(180deg,#0f2f57 0%,#071a33 72%)}
+/* el brillo verde azulado de abajo, aparte (detrás de todo): el texto blanco se mide sobre el azul, con ≥ 4,5:1 */
+.cq-stage::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;background:radial-gradient(90% 60% at 50% 115%,rgba(0,129,152,.38),transparent 70%)}
+[data-theme=dark] .cq-stage::before{background:radial-gradient(90% 60% at 50% 115%,rgba(0,129,152,.3),transparent 70%)}
 .cq.wo .cq-stage{flex:1 1 0;min-height:0}
 /* los focos: dos haces de luz que bajan desde arriba y una fila de bombillas */
 .cq-beam{position:absolute;top:-24px;z-index:-1;width:55%;height:140%;pointer-events:none;opacity:.2;transform-origin:50% 0;
@@ -188,7 +196,7 @@ const CSS = `
 .cq-help:empty{display:none}
 .cq-help .ipa{color:#cfe0f5}
 .cq-wr{padding:4px 12px;border-radius:12px;background:rgba(0,0,0,.3)}
-.cq-mini{display:inline-flex;align-items:center;gap:6px;min-height:40px;padding:0 14px;border:0;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font:700 .95rem/1 var(--f-text);cursor:pointer}
+.cq-mini{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:0;border-radius:999px;background:rgba(255,255,255,.16);color:#fff;font:700 .95rem/1 var(--f-text);cursor:pointer}
 .cq-blur{width:88px;height:88px;border-radius:16px;background:var(--gm-tile);display:grid;place-items:center;overflow:hidden}
 .cq-blur img{width:86%;height:86%;object-fit:contain;filter:blur(5px);mix-blend-mode:multiply}
 /* las respuestas */
@@ -438,7 +446,7 @@ async function concurso(app, api, mode){
   const P = await words(api, QZ, 6);
   if(!P) return;
   if(P.length < 4){ noWords(app, api); return; }
-  const C = code(), T0 = num(window.__concursoT) > 0 ? num(window.__concursoT) : 15, N = 10, AB = ["A", "B", "C", "D"];
+  const lv = api.level(QZ), C = code(), T0 = num(window.__concursoT) > 0 ? num(window.__concursoT) : CQ_T[lv] || 15, N = 10, AB = ["A", "B", "C", "D"];
   const kinds = mixKinds();
   const Q = deal(P, N).map((it, i) => { const opts = shuffle([it, ...others(P, it, 3)]); return {kind: kinds[i], it, opts, ans: opts.indexOf(it)}; });
   preload(Q.slice(0, 2).flatMap(q => q.opts));
@@ -624,7 +632,7 @@ async function concurso(app, api, mode){
     let done = false;
     const fin = () => {
       if(done || !api.live(run)) return; done = true;
-      api.finish(run, QZ, {score, stars, words,
+      api.finish(run, QZ, {score, stars, lv, words,
         line: `¡${rights} de ${N} bien y ${score} puntos!${best >= 3 ? ` Tu mejor racha: ${best} seguidas.` : ""}`});
     };
     main.insertAdjacentHTML("beforeend", `<div class="cq-pod" id="cq-pod" role="dialog" aria-labelledby="cq-pod-t">
@@ -687,13 +695,13 @@ async function verdadero(app, api, mode){
   const P = await words(api, VF, 6);
   if(!P) return;
   if(P.length < 4){ noWords(app, api); return; }
-  const C = code(), DUR = num(window.__verdaderoDur) > 0 ? num(window.__verdaderoDur) : 60;
+  const lv = api.level(VF), K = VF_LV[lv] || 1, C = code(), DUR = num(window.__verdaderoDur) > 0 ? num(window.__verdaderoDur) : 60;
   const run = api.mount(app, `<div class="gm qz vf" id="vf">
     ${api.topHtml(VF, `<span class="gm-pill" title="Tiempo">${IC("timer", "bold", 18)}<b id="vf-clock">${clock(DUR)}</b></span><span class="gm-pill" title="Aciertos">${IC("check-circle", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
     <div class="vf-main" id="vf-main">
       <div class="gm-tbar vf-tbar" id="vf-tbar"><i id="vf-tb"></i></div>
       <div class="vf-deck" id="vf-deck">
-        <div class="vf-card" id="vf-card" aria-describedby="vf-ask">
+        <div class="vf-card" id="vf-card" role="group" aria-labelledby="vf-lb vf-w" aria-describedby="vf-ask"><span class="vh" id="vf-lb" lang="es"></span>
           <div class="vf-pic" id="vf-pic"></div>
           <b class="vf-w" id="vf-w" lang="${esc(C)}">¿Preparado?</b>
           <p class="vf-ans" id="vf-ans" role="status" aria-live="polite"></p>
@@ -724,13 +732,13 @@ async function verdadero(app, api, mode){
     if(!o) truth = true;
     lastTruth.push(truth); if(lastTruth.length > 4) lastTruth.shift();
     cards++;
-    cur = {it, shown: truth ? it : o, ok: truth, at: t, lim: Math.max(3.2, 6.5 - 3.3 * t / DUR), done: false};
-    card.vfOk = truth;   /* para las pruebas */
+    cur = {it, shown: truth ? it : o, ok: truth, at: t, lim: K * Math.max(3.2, 6.5 - 3.3 * t / DUR), done: false};
+    card.vfOk = truth; card.vfLim = cur.lim;   /* para las pruebas */
     card.classList.remove("good", "bad", "in"); void card.offsetWidth; if(!RM()) card.classList.add("in");
     picEl.innerHTML = imgHtml(it);
     wEl.textContent = cur.shown.word; wEl.classList.remove("strike");
     ans.innerHTML = "";
-    card.setAttribute("aria-label", `Dibujo de ${it.es}. Palabra: ${cur.shown.word}`);
+    root.querySelector("#vf-lb").textContent = `Dibujo de ${it.es}. Palabra:`;   /* y la palabra, con su idioma (#vf-w) */
     lim.style.transform = "scaleX(1)";
     const nx = bag[bag.length - 1]; if(nx) preload([nx]);
   }
@@ -779,7 +787,7 @@ async function verdadero(app, api, mode){
     api.snd("whoosh");
     api.later(run, () => {
       const stars = score >= 16 ? 3 : score >= 9 ? 2 : 1;
-      api.finish(run, VF, {score, stars, words: seen.list(),
+      api.finish(run, VF, {score, stars, lv, words: seen.list(),
         line: !score ? "¡Casi! La próxima vez acertarás muchas." : `¡${plural(score, "acierto", "aciertos")} en ${DUR} segundos!${best >= 3 ? ` Tu mejor racha: ${best}.` : ""}`});
     }, 1500);
   }
@@ -1257,22 +1265,26 @@ const reg = (id, def) => window.vocabGames && typeof vocabGames.register === "fu
 const pts = b => plural(num(b.score), "punto", "puntos");
 if(!reg(QZ, {
   t: "Concurso", sub: "Preguntas con comodines", img: "img/games/concurso.png",
-  how: "¡Un concurso de la tele! Son 10 preguntas con 4 respuestas. Si contestas rápido, ganas más puntos, y con una racha de aciertos, el doble o el triple. Tienes tres comodines, uno de cada: 50:50, +10 segundos y una pista. Toca la respuesta (o pulsa 1, 2, 3 o 4).",
-  rec: pts, start: concurso,
+  how: "10 preguntas con 4 respuestas. Más rápido, más puntos. Tienes tres comodines.",
+  keys: "Con el teclado: 1 a 4 responden; 7, 8 y 9 son los comodines.",
+  levels: true, rec: pts, start: concurso,
 })) console.warn("[quiz] no se pudo añadir «Concurso» a Juegos");
 if(!reg(VF, {
   t: "Verdadero o falso", sub: "¿Es su palabra?", img: "img/games/verdadero.png",
-  how: "Mira el dibujo y la palabra. ¿Es su palabra? Toca ✓ si es verdad y ✗ si no. También puedes deslizar la tarjeta: a la derecha es sí y a la izquierda, no (o usa las flechas ← →). ¡Tienes 60 segundos!",
-  rec: b => `${num(b.score)} bien`, start: verdadero,
+  how: "¿Es la palabra del dibujo? Toca ✓ si es verdad y ✗ si no.",
+  keys: "Con el teclado: → es verdad y ← es mentira.",
+  levels: true, rec: b => `${num(b.score)} bien`, start: verdadero,
 })) console.warn("[quiz] no se pudo añadir «Verdadero o falso» a Juegos");
 if(!reg(BOX, {
   t: "Abre la caja", sub: "Sorpresas y preguntas", img: "img/games/cajas.png",
-  how: "Hay 12 cajas de regalo. Toca una (o escribe su número) para abrirla. Casi todas traen una pregunta y algunas, una sorpresa: ¡Doble! o una estrella extra. ¡Ábrelas todas!",
+  how: "Abre las 12 cajas de regalo. Casi todas traen una pregunta; algunas, una sorpresa.",
+  keys: "Con el teclado: escribe el número de una caja; 1 a 3 responden.",
   rec: pts, start: cajas,
 })) console.warn("[quiz] no se pudo añadir «Abre la caja» a Juegos");
 if(!reg(ARW, {
   t: "Une con flechas", sub: "Cada dibujo con su palabra", img: "img/games/flechas.png",
-  how: "Une cada dibujo con su palabra: arrastra una línea de uno a otro, o toca el dibujo y luego la palabra. Después toca «Comprobar». Las líneas grises están mal: puedes arreglarlas una vez.",
+  how: "Une cada dibujo con su palabra y toca «Comprobar».",
+  keys: "Con el teclado: las flechas mueven, Espacio une y Enter comprueba.",
   rec: pts, start: flechas,
 })) console.warn("[quiz] no se pudo añadir «Une con flechas» a Juegos");
 })();

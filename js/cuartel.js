@@ -678,7 +678,7 @@ async function start(app, api, mode){
     const it = Q.it, ok = Q.opts[i] === it, btns = [...rlc.querySelectorAll(".cu-op")];
     btns.forEach((b, j) => { b.disabled = true; if(Q.opts[j] === it) b.classList.add("ok"); });
     if(!ok) btns[i].classList.add("no");
-    const o = asked.get(it.k) || {word: it.word, es: it.es, img: it.img, miss: false};
+    const o = asked.get(it.k) || {word: it.word, es: it.es, img: it.img, ipa: it.ipa, miss: false};
     if(!ok) o.miss = true;
     asked.set(it.k, o);
     api.answer(ok, {es: it.es, word: it.word});
@@ -803,7 +803,8 @@ async function start(app, api, mode){
 
 const reg = window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(ID, {
   t: "Defensa del cuartel", sub: "Dispara y recarga contestando", img: "img/games/cuartel.png",
-  how: "Robots, drones y tanques vienen hacia tu cuartel. Tócalos (o usa las teclas 1, 2 y 3) para disparar. Cuando se acaben las balas, contesta una pregunta para recargar. ¡Aguanta 5 oleadas!",
+  how: "Toca los robots para disparar. Sin balas, contesta una pregunta para recargar. ¡Aguanta 5 oleadas!",
+  keys: "Con el teclado: 1, 2 y 3 disparan a cada carril y R recarga.",
   topic: true,
   sec: "soldados",
   fresh: true,

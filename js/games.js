@@ -1621,6 +1621,7 @@ function lluvia(app, P, mode){
     const el = document.createElement("button");
     el.className = "gm-bub"; el.style.setProperty("--bs", bs + "px"); el.style.width = bw + "px";
     el.setAttribute("aria-label", it.word);
+    el.lang = code();   /* el nombre es solo la palabra: que se lea en su idioma */
     el.innerHTML = `<span class="gm-bub-i">${imgTag(it)}</span><span class="gm-bub-w" style="font-size:${[...it.word].length > 11 ? ".8rem" : ".95rem"}">${esc(it.word)}</span>`;
     const fall = Math.max(2.6, 7.4 - 4 * Math.min(1, t / DUR) - Math.min(1.2, score * .06)) / SPD;
     const b = {el, it, x: lane * laneW + (laneW - bw) / 2, y: -bs * 1.5, v: (H + bs * 1.6) / fall, ph: Math.random() * 6, dead: false};

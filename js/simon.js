@@ -193,7 +193,7 @@ async function start(app, api, mode){
   const sayB = root.querySelector("#zd-say");
   let ri = -1, Q = null, score = 0, done = false, seq = 0;
   const res = [], seen = new Map(), queue = [];
-  const note = (it, miss) => { const o = seen.get(it.k) || {word: it.word, es: it.es, img: it.img, miss: false}; if(miss) o.miss = true; seen.set(it.k, o); };
+  const note = (it, miss) => { const o = seen.get(it.k) || {word: it.word, es: it.es, img: it.img, ipa: it.ipa, miss: false}; if(miss) o.miss = true; seen.set(it.k, o); };
   /* las palabras van saliendo todas antes de repetir */
   const nextWord = (not = []) => {
     if(!queue.length) queue.push(...mix(P));
@@ -377,7 +377,8 @@ async function start(app, api, mode){
 
 const reg = window.vocabGames && typeof vocabGames.register === "function" && vocabGames.register(ID, {
   t: "El zorro dice", sub: "Escucha y toca", img: "img/games/zorrodice.png", sec: "palabras",
-  how: "El zorro te pide que toques un dibujo. ¡Escucha bien! Luego te pedirá dos dibujos en orden y, al final, el color y el dibujo. El altavoz lo repite.",
+  how: "El zorro te pide dibujos. ¡Escucha bien y tócalos en orden!",
+  keys: "Con el teclado: 1 a 4 tocan los dibujos y Espacio repite.",
   topic: true,
   fresh: "2026-10-31",
   rec: b => `${Number.isFinite(+b.score) ? +b.score : 0} de ${R} a la primera`,
