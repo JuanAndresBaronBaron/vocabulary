@@ -25,7 +25,8 @@ Blocks: `start`, `listening`, `reading`, `writing`, `speaking`, `language`, `moc
   the unit files it has seen in the service worker's `vocab-media`, which survives app updates and can answer when the
   network is slow or missing. `js/ielts.js` never uses a copy whose `rev` is lower than `REV`: it fetches the file
   again past that copy (and saves the new one), and offline it says the unit was updated instead of grading against
-  old options. Raise `rev` in every unit and `REV` together whenever saved answers or review cards would mean
+  old options; `sw.js` (`IELTS_REV`, the same number) fetches such copies again when a new version of the app installs.
+  Raise `rev` in every unit, `REV` and `IELTS_REV` together whenever saved answers or review cards would mean
   something else with an old copy (for example with the option migration below).
 - `kind`: `learn` (explanations plus instant feedback), `practice` (instant feedback, exam-style), `test`
   (timed, no feedback until the end, scored as a band). A `test` lesson has `"timed": <seconds>`.
@@ -45,6 +46,9 @@ Blocks: `start`, `listening`, `reading`, `writing`, `speaking`, `language`, `moc
   `run.mig` = 2, in the same write) so that a retry after a failed write never moves it twice, and raise `rev` in every
   unit and `REV` in `js/ielts.js` in the same release, so that no phone grades the moved answers against the copy of the
   old file it keeps. Adding options at the end is safe.
+- **Adding a question to a lesson, or replacing a statement**, leaves the finished runs of that lesson with a question
+  their learner never saw: list it for those runs in the migration (`run.unseen`, as for u09-l2, u10-l2, u09-l3 and
+  u24-l2), so that the review deck never counts it as a miss and the review says it was added since.
 - Inline markup in any text: `**bold**`, `*italic*`. Nothing else (no HTML, no links).
 
 ## Item types

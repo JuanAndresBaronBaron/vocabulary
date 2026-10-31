@@ -664,7 +664,7 @@ de `data/ielts` directamente (sin navegador), salvo la última:
   las más antiguas primero; las opciones se barajan solo si ni la pregunta ni la explicación las nombran por su letra
   («(B)», «B is», «option C»; las letras de párrafo no cuentan) y la respuesta sigue a su opción; recargar devuelve la
   misma sesión (y la respuesta guardada); una sesión nueva borra `ielts:run:review`; la primera carga crea el mazo con
-  las lecciones terminadas de antes, una sola vez; el cuaderno de errores (etiquetas *spelling*, *word limit*,
+  las lecciones terminadas de antes, una sola vez por aparato (`ielts:mig:deck`); el cuaderno de errores (etiquetas *spelling*, *word limit*,
   *number format*, *singular/plural*, *T↔NG*… con un registro sembrado, «Where my marks go» de 30 días, la tabla de
   confusión TRUE/FALSE/NOT GIVEN y el acierto por tipo con los tres más flojos enlazados a su unidad); `IE.assess`
   montado en un `div` (bandas 6-9 por criterio con la lista de descriptores, la estimación con las listas completas, el
@@ -685,7 +685,9 @@ de `data/ielts` directamente (sin navegador), salvo la última:
     mala; una opción que ya no existe deja la pregunta sin contestar; una ejecución guardada por esta versión
     (`run.at`) no se toca; una u09-l3 terminada con las preguntas quitadas se borra; q8/q9 de u24-l2 pasan a la
     Choose TWO q11; el Task 1 sustituido de u23-l3 queda en My writing con su enunciado viejo (su página lo dice y no
-    enseña el gráfico nuevo); u23-l4 sigue en su ítem; las tarjetas de preguntas quitadas salen del mazo. Al recargar
+    enseña el gráfico nuevo); u23-l4 sigue en su ítem; las tarjetas de preguntas quitadas salen del mazo; una ejecución
+    terminada apunta en `run.unseen` las preguntas que no llegó a ver (q14-q16 de u09-l2, la frase nueva de u24-l2): el
+    mazo no las califica y la revisión del test dice «Added since you did this lesson: not in your score.». Al recargar
     no se mueve nada otra vez, y «Erase my progress» conserva las banderas.
   - Con el almacenamiento lleno (`__full`: `localStorage` rechaza esas claves): una ejecución que no se puede guardar
     se queda como estaba, las banderas pasan a `0` y la carga siguiente la mueve, una sola vez (cada ejecución movida
@@ -693,13 +695,20 @@ de `data/ielts` directamente (sin navegador), salvo la última:
     que no se puede guardar empieza de nuevo (sin `ielts:run:review`) y el reintento no la toca; el Task 1 de u23-l3
     guardado en My writing antes de que fallara su ejecución no se guarda dos veces, y si My writing no cabe, la
     ejecución entera espera.
+  - El mazo con las lecciones terminadas antes de esta versión (ejecuciones sin `fin`): una vez por aparato
+    (`ielts:mig:deck`, que no viaja ni va en las copias), también si `ielts:study` ya trae tarjetas de otro aparato
+    (la mezcla de Drive); una carga que tiene que esperar (`IE.migPending`) apunta la lección terminada en ella y la
+    siguiente añade las de antes sin repetirla, también una vieja que el reproductor guardó con hora mientras tanto; y
+    una ejecución que no se pudo mover, abierta en esa carga con sitio otra vez, se mueve antes de que el reproductor
+    la guarde (`IE.migRun`).
   - Unidades viejas guardadas (`rev`): una copia de u01.json de la versión anterior (sin `rev`, con las opciones de
     antes) en `vocab-media`, con la red lenta (el service worker da lo guardado a los 3 s): `data.unit()` la vuelve a
     pedir a la red, la guarda, y el mazo hecho con una u01-l3 vieja terminada da bien su respuesta buena; sin red
     después, la copia guardada es la nueva. Sin red y solo con la copia vieja, la unidad dice «This unit was updated:
     open it once with a connection.» y el mazo espera a una carga con red. Esta prueba no usa `page.route`: con la
     intercepción de Playwright, Chromium pasa al service worker las peticiones `cache: "no-store"` como normales.
-    `IE.warmUnits()` también cambia una copia vieja guardada.
+    `IE.warmUnits()` también cambia una copia vieja guardada, y una versión nueva de la app que se instala con red
+    (sw.js con VERSION + 1) también: sin red después, la unidad abre y el mazo se monta.
   - La comparación de versiones: «N words copied from the question» es su propia comprobación («Copied from the
     question»), no el texto del mensaje.
   - Sin conexión: con el service worker al mando (entrando por la app, como un adulto), IELTS Prep guarda en segundo
@@ -713,7 +722,8 @@ de `data/ielts` directamente (sin navegador), salvo la última:
     volver a la app y en el otro aparato se va lo de antes y se queda lo de después; una copia de una versión más
     nueva o ajena nunca se mezcla ni se pisa; un estado vacío nunca se sube sobre uno lleno; con IELTS Prep apagado o
     sin Google no se hace nada; el archivo del niño nunca lleva `ielts:`. Tras un «Erase» de otro aparato se van
-    también las `ielts:run:*` e `ielts:draft:*` de antes (o sin hora) y `ielts:study` lleva `mig` (el mazo no se rehace
-    con lo borrado); una mezcla sin borrado no quita ninguna. Y `vocabIelts.sync.merge`, pura: empates para este
+    también las `ielts:run:*` e `ielts:draft:*` de antes (o sin hora; una terminada sin hora, de un reproductor viejo,
+    lleva la de su resultado en ese aparato, y una a medias con un texto escrito se queda), y el mazo de ese aparato
+    solo trae lo de después; una mezcla sin borrado no quita ninguna. Y `vocabIelts.sync.merge`, pura: empates para este
     aparato, tests por lid+at, lápidas, la hora del borrado (también cuando Drive ya no tiene `ielts:study`) y la fecha
     del examen por su `examAt` (una fecha quitada o cambiada no vuelve aunque el otro aparato repasara después).

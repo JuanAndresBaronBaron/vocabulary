@@ -6,7 +6,7 @@
      and exemplar calibration, for the player and My writing.
    · Stores one key, "ielts:study" = {v:1, cards:{qid: {lid, box, due, hits, last, n, p?, sec?}}, log:[{q, l, k, s, ok,
      tag?, x?, g?, m?, c?, a?, at}], session:{at, ids:[qid], ord:{qid:[original index…]}} | null,
-     exam:{date:"YYYY-MM-DD", from} | null, examAt?, calib:[{iid, x, guess, band, at}], mig?, at}. at = the time of the
+     exam:{date:"YYYY-MM-DD", from} | null, examAt?, calib:[{iid, x, guess, band, at}], at}. at = the time of the
      last write (a restore from a backup takes the newer copy); examAt = when the exam date was last set or cleared (the
      Drive copy in js/ielts-boot.js keeps the newer date by it, not by at). Card: p = the reading/listening
      item a set question lives in (a "wrapped" card), sec = when it was retired as secure. Log: x = a standalone
@@ -14,6 +14,12 @@
      right and the given answer of TRUE/FALSE/NOT GIVEN. Every read and write goes through IE.LS (try/catch); a missing
      or damaged key is built again (a damaged one is copied once to "ielts:study:bak"). Nothing is written outside
      ielts:*; ielts:run:review is deleted when a new review session starts.
+   · Once per device, the deck is built from the lessons this device finished before this version (finished runs with
+     no run.fin: the player sets fin when this version finishes a lesson, which prog.done logs at once), with the time
+     of each lesson in ielts:data. Done is recorded in "ielts:mig:deck", a key of this device only (Erase keeps it,
+     backups and the Drive copy leave it out), never in ielts:study: a copy from another device or a backup with cards
+     doesn't stop it. It waits for a later load while js/ielts.js still has answers to move (IE.migPending) or a unit
+     can't load (offline with an old copy: e.stale), and a question the run never saw (run.unseen) is never graded.
    · Wraps once, at load: IE.prog.done (logs every finished lesson and updates the deck; the virtual "review" lesson is
      graded here and never reaches the original), IE.data.lesson ("review" → the virtual lesson and its unit),
      IE.ROUTES.home (the Review card before .ie-scores) and IE.ROUTES.unit ("review" → the Review page). Adds
@@ -41,7 +47,7 @@ const daysBetween = (a, b) => Math.round((day0(b) - day0(a)) / DAY);
 
 /* ---------- storage ---------- */
 const blank = () => ({v: 1, cards: {}, log: [], session: null, exam: null, calib: []});
-let RO = false, bakDone = false, migDone = false;
+let RO = false, bakDone = false;
 function sget(){
   let raw = null; try{ raw = localStorage.getItem(SK); }catch(e){}
   let o = null;
@@ -60,7 +66,6 @@ function sget(){
 }
 function sset(s){
   if(RO) return false;
-  if(migDone) s.mig = 1;
   s.at = Date.now();   /* core's restore keeps whichever copy of ielts:study is newer */
   s.log = s.log.slice(-LOG_MAX); s.calib = s.calib.slice(-CAL_MAX);
   if(LS.set(SK, s)) return true;
@@ -261,12 +266,13 @@ function notebook(s, t = Date.now()){
 /* ---------- lessons finished: the log and the deck ---------- */
 const origLesson = data.lesson.bind(data);
 const blockOf = U => U.block || "";
-async function onLesson(lid, run, at){
-  const pl = P(); if(!pl) return;
-  const found = await origLesson(lid); if(!found) return;
+/* a finished lesson (found = {lesson, unit}) into the log and the deck of s, at time t */
+function logLesson(s, lid, run, t, found){
+  const pl = P(); if(!pl || !found) return;
   const {lesson: L, unit: U} = found, ans = isObj(run) && isObj(run.ans) ? run.ans : {};
-  const s = sget(), t = at || Date.now();
+  const unseen = new Set(isObj(run) && Array.isArray(run.unseen) ? run.unseen : []);   /* added since it was done */
   const handle = (q, parent, instr, standalone) => {
+    if(unseen.has(q.id)) return;
     const a = ans[q.id], m = pl.marks(q), g = Math.max(0, pl.mark(q, a)), ok = g >= m;
     const e = {q: q.id, l: lid, k: kindOf(q, instr, parent), s: parent ? parent.type : blockOf(U), ok, at: t};
     if(standalone) e.x = 1;
@@ -280,7 +286,11 @@ async function onLesson(lid, run, at){
     if(Array.isArray(it.sets)) for(const st of it.sets) for(const q of st.items) handle(q, it, st.instr, false);
     else if(SCORED.has(it.type)) handle(it, null, it.type === "select" ? it.q : "", true);
   }
-  sset(s);
+}
+async function onLesson(lid, run, at){
+  if(!P()) return;
+  const found = await origLesson(lid); if(!found) return;
+  const s = sget(); logLesson(s, lid, run, at || Date.now(), found); sset(s);
 }
 
 /* ---------- the virtual review lesson ---------- */
@@ -565,26 +575,43 @@ ROUTES.review = async (_, a) => {
 
 /* ---------- migration: the deck from lessons finished before this file existed ---------- */
 function unlocked(){ let inn = false; try{ inn = sessionStorage.getItem("ielts:in") === "1"; }catch(e){} return LS.get("ielts:on") === true && inn; }
+const DECK = "ielts:mig:deck";
+/* the finished runs this version never logged: [[lid, run]] */
+const oldRuns = () => LS.keys().map(k => RUN_RE.exec(k)).filter(Boolean).map(m => [m[1], LS.get(m[0])])
+  .filter(([, r]) => isObj(r) && r.finished && isObj(r.ans) && !r.fin);
 function migrate(){
-  const s = sget();
-  if(s.mig || RO){ migDone = true; return Promise.resolve(); }
+  if(LS.raw(DECK) != null) return Promise.resolve();
+  sget(); if(RO) return Promise.resolve();   /* a newer version's deck: never written */
   /* js/ielts.js couldn't move every saved answer to the new options this load (storage full): the runs would be graded
      in the old order, so the deck waits for the load that moves them */
-  if(IE.migPending) return Promise.resolve();
-  const runs = LS.keys().map(k => RUN_RE.exec(k)).filter(Boolean).map(m => [m[1], LS.get(m[0])]).filter(([, r]) => isObj(r) && r.finished && isObj(r.ans));
-  if(Object.keys(s.cards).length || !runs.length){ migDone = true; return Promise.resolve(); }
-  const done = prog.get().lessons || {};
-  runs.sort((x, y) => (+(done[x[0]] || {}).at || 0) - (+(done[y[0]] || {}).at || 0));
+  if(IE.migPending || !P()) return Promise.resolve();   /* (and without the player nothing could be graded) */
   return (async () => {
-    /* a unit this device kept from an older version, which can't be fetched again now (offline: data.unit says so with
-       e.stale), would leave its runs out of the deck for good: then nothing is written and the next load tries again */
-    for(const u of new Set(runs.map(([lid]) => lid.slice(0, 3)))){ try{ await data.unit(u); }catch(e){ if(e && e.stale) return; } }
-    for(const [lid, run] of runs){ try{ await onLesson(lid, run, +(done[lid] || {}).at || Date.now()); }catch(e){ console.error(e); } }
-    migDone = true; const st = sget(); sset(st);
+    /* every unit first: one that can't load now (offline with a copy from an older version: e.stale; or any other
+       error) would leave its runs out of the deck for good, so then nothing is written and the next load tries again.
+       Runs of a unit the course doesn't have are left alone */
+    let idx; try{ idx = await data.index(); }catch(e){ return; }
+    const known = new Set(idx.units.map(u => u.id)), found = {};
+    for(const u of new Set(oldRuns().map(([lid]) => lid.slice(0, 3)).filter(u => known.has(u)))){ try{ await data.unit(u); }catch(e){ return; } }
+    /* read again after the waits: a run may have gone (Erase) or been done again meanwhile */
+    const runs = oldRuns().filter(([lid]) => known.has(lid.slice(0, 3)));
+    for(const [lid] of runs){ try{ found[lid] = await origLesson(lid); }catch(e){ return; } }
+    if(runs.length){
+      const s = sget(); if(RO) return;
+      const done = prog.get().lessons || {}, tOf = lid => +(done[lid] || {}).at || 0;
+      runs.sort((x, y) => tOf(x[0]) - tOf(y[0]));
+      for(const [lid, run] of runs){
+        const t = tOf(lid) || Date.now();
+        /* already logged at that time (an import whose flag couldn't be written, or another device's import of a newer
+           result of the same lesson, which ielts:data then holds) */
+        if(tOf(lid) && s.log.some(e => e.l === lid && e.at === t)) continue;
+        logLesson(s, lid, run, t, found[lid]);
+      }
+      if(!sset(s)) return;   /* storage full: the next load tries again */
+    }
+    LS.setRaw(DECK, String(Date.now()));
   })();
 }
 if(unlocked()) pending = pending.then(migrate).catch(e => console.error(e));
-else migDone = true;
 
 /* ---------- IE.assess: self-marking against the descriptors ---------- */
 /* Short paraphrases of the public IELTS Writing band descriptors (May 2023) and Speaking band descriptors. A statement

@@ -117,6 +117,7 @@ self.addEventListener("install", e => {
     const missing = REQUIRED.filter(u => failed.includes(u));
     if(missing.length) throw new Error("[sw] sin " + missing.join(", ") + ": se queda la versión anterior");
     await carryLazy(c);
+    await freshIelts();
     await self.skipWaiting();
   })());
 });
@@ -135,6 +136,32 @@ async function carryLazy(c){
       }
     }
   }catch(err){ console.warn("[sw] no se pudo volver a bajar lo ya usado:", msg(err)); }
+}
+
+/* IELTS Prep: las unidades (data/ielts/uNN.json) que una versión vieja dejó en vocab-media con un «rev» menor que el de
+   esta (IELTS_REV, igual que REV de js/ielts.js; se suben juntos) se vuelven a bajar ahora, que la red funciona: sin
+   conexión js/ielts.js no usa esas copias (calificaría con las opciones viejas) y diría «This unit was updated» hasta
+   abrir IELTS Prep con red. Solo las que ya estaban (lo que el adulto abrió); si falla, js/ielts.js las cambia al
+   abrirlas con red. Nunca impide instalar la versión nueva. */
+const IELTS_REV = 2, IELTS_RE = /\/data\/ielts\/u\d{2}\.json$/;
+async function freshIelts(){
+  try{
+    const m = await caches.open(MEDIA_CACHE);
+    const old = [];
+    for(const req of await m.keys()){
+      const url = new URL(req.url);
+      if(url.origin !== location.origin || !IELTS_RE.test(url.pathname)) continue;
+      const rev = await m.match(req).then(r => r.json()).then(u => u && u.rev, () => null);
+      if(!(rev >= IELTS_REV)) old.push(req.url);
+    }
+    await Promise.all(old.map(async u => {
+      try{
+        const res = await fetch(u, {cache: "reload"});
+        const d = good(res) ? await res.clone().json().catch(() => null) : null;
+        if(d && d.rev >= IELTS_REV) await m.put(u, res);
+      }catch(err){}
+    }));
+  }catch(err){ console.warn("[sw] no se pudieron poner al día las unidades de IELTS Prep:", msg(err)); }
 }
 
 self.addEventListener("activate", e => {

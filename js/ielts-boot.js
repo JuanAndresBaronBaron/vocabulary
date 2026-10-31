@@ -27,7 +27,9 @@
      cuenta si se hizo con este aparato ya enlazado (después de linked; uno de antes se queda en este aparato): entonces
      lo de antes de esa hora se olvida también en Drive y en los otros aparatos, también en uno que se enlace después
      (como en Tech Prep); en esos aparatos se van además sus ielts:run:* e ielts:draft:* de antes de esa hora
-     (dropBefore) y su ielts:study lleva mig, así que el mazo no se rehace con lecciones borradas.
+     (dropBefore: una lección terminada sin hora, de un reproductor viejo, lleva la de su resultado en este aparato), así
+     que el mazo de js/ielts-study.js, que se monta una vez por aparato con las lecciones terminadas antes de esta
+     versión (ielts:mig:deck, que no viaja), nunca se rehace con lecciones borradas.
    API: window.vocabIelts = {on(), setOn(v), enter(from), menuItem(), adultHtml(), sync: {now(), merge(a, b, ea, eb),
    hash(), payload(), state()}}. */
 (() => {
@@ -184,12 +186,22 @@ function merge(a, b, ea = 0, eb = 0){
 }
 /* tras un «Erase» de otro aparato (a la hora e): las lecciones a medias o terminadas (ielts:run:*) y los borradores
    (ielts:draft:*) de aquí guardados antes de e, o sin hora, se van, como en el aparato que borró: ni «Continue» ni el
-   mazo ni los resultados vuelven a traer lo borrado. Lo guardado después de e se queda */
-function dropBefore(e){
+   mazo ni los resultados vuelven a traer lo borrado. Lo guardado después de e se queda. Los reproductores de antes de
+   esta versión no ponían hora (run.at) a sus lecciones: una terminada lleva la de su resultado en este aparato (mine =
+   ielts:data de aquí antes de mezclar: un resultado de otro aparato no dice cuándo se hizo esta), y una a medias con un
+   texto escrito (un Task 1 o 2 que no está en ninguna otra parte) se queda */
+const wrote = v => isObj(v.ans) && Object.values(v.ans).some(a => typeof a === "string" && a.trim().split(/\s+/).length >= 8);
+function dropBefore(e, mine){
+  const ls = isObj(mine) && isObj(mine.lessons) ? mine.lessons : {};
   let ks = []; try{ ks = Object.keys(localStorage); }catch(err){ return; }
   for(const k of ks) if(k.startsWith("ielts:run:") || k.startsWith("ielts:draft:")){
     let v = null; try{ v = JSON.parse(localStorage.getItem(k)); }catch(err){}
-    if(!(isObj(v) && +v.at > e)){ try{ localStorage.removeItem(k); }catch(err){} }
+    let t = isObj(v) ? +v.at || 0 : 0;
+    if(!t && isObj(v) && k.startsWith("ielts:run:")){
+      if(v.finished) t = at(ls[k.slice(10)]);
+      else if(wrote(v)) continue;
+    }
+    if(!(t > e)){ try{ localStorage.removeItem(k); }catch(err){} }
   }
 }
 /* el borrado de este aparato que cuenta: solo uno hecho ya enlazado con Drive (uno de antes es solo historia de aquí) */
@@ -221,12 +233,11 @@ function sync(why){
         const L = local(); if(!L.ok) throw Object.assign(new Error("local"), {code: "local"});
         /* sin esperas entre leer y escribir: nada de lo que se guarda aquí mientras tanto se pierde */
         const er = isObj(rd[PK]) ? +rd[PK].erased || 0 : 0, mg = merge(L.data, rd, erasedHere(L.data, st), er);
-        /* un «Erase» de otro aparato, más nuevo que el último de aquí: el mazo nunca se rehace con las lecciones de antes
-           (mig de ielts:study: js/ielts-study.js no lo vuelve a montar con ielts:run:*) */
+        /* un «Erase» de otro aparato, más nuevo que el último de aquí: se van también las lecciones de antes (dropBefore,
+           con los resultados de aquí de antes de mezclar), y el mazo no las vuelve a traer */
         const erNew = er > (isObj(L.data[PK]) ? +L.data[PK].erased || 0 : 0);
-        if(erNew && isObj(mg[SK])) mg[SK] = Object.assign({}, mg[SK], {mig: 1});
         for(const k of KEYS) if(mg[k] !== undefined && canon(mg[k]) !== canon(L.data[k])){ try{ localStorage.setItem(k, JSON.stringify(mg[k])); }catch(e){ throw Object.assign(new Error("full"), {code: "full"}); } }
-        if(erNew) dropBefore(er);
+        if(erNew) dropBefore(er, L.data[PK]);
       }
       const L = local(); if(!L.ok) throw Object.assign(new Error("local"), {code: "local"});
       const h = hashOf(L.data);

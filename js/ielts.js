@@ -14,7 +14,8 @@
        "ielts:data:bak-<ms>". Nothing is trimmed unless the browser refuses to save (then the caps below apply and a toast
        sends the learner to Settings › Your data).
      "ielts:sync" = the state of this device's Drive copy (js/ielts-boot.js); "ielts:mig:content1|2" = the one-time
-     migration of saved answers (below).
+     migration of saved answers (below); "ielts:mig:deck" = when js/ielts-study.js built the deck from the runs this
+     device finished before it (once per device: never from a synced or restored ielts:study).
      "ielts:ui" = {rate, accents: "mixed"|"gb", at}; "ielts:run:<lid>" = a lesson in progress (js/ielts-player.js, saved as
      you go); "ielts:draft:<essayId>" = {text, blank, at, from, alt?} a revision being written (#/essays/<id>/revise; alt =
      the draft of the other mode, so «Write version N» and «Rewrite from memory» never open each other's draft; finishing
@@ -35,7 +36,8 @@
    · window.IE = {esc, md, ico, LS, isObj, data, band, bandRange, roundBand, fmtBand, prog, ui, uiSet, speak, stopSpeak,
      canSpeak, voices, ensureVoices, voiceTest, ROUTES, route, go, query, setTop, toast, KIND_T, when, words}.
      IE.migPending is true while some saved answers are still in the old option order (migrateAnswers below couldn't
-     save them this load); js/ielts-study.js then waits to build the deck from finished runs.
+     save them this load); js/ielts-study.js then waits to build the deck from finished runs, and the player opens a run
+     through IE.migRun(key), which moves such a run first (or tells it not to save it this load).
      js/ielts-player.js adds IE.player (#/lesson/<lid>) and js/ielts-viz.js IE.viz (Task 1 visuals); IE.assess (self-marking,
      selfHtml(kind, cur, item) and wireSelf(el, kind, get, set, item)) is used by the revision page when it exists. */
 (() => {
@@ -95,7 +97,8 @@ async function getJSON(url){
    fetched in vocab-media, which survives app updates and answers when the network takes more than 3 s or is missing,
    so a phone can still hold a unit from before this version, with the old option orders that migrateAnswers() (below)
    has already moved saved answers away from. A unit with a lower rev is never used: it is fetched again past that copy
-   (netUnit), and if that fails the unit says so (STALE) instead of grading answers against the old options. */
+   (netUnit), and if that fails the unit says so (STALE) instead of grading answers against the old options. sw.js
+   (IELTS_REV, the same number: raise them together) also fetches such copies again when a new version installs. */
 const REV = 2, MEDIA = "vocab-media";
 const STALE = "This unit was updated: open it once with a connection.";
 const unitUrl = id => `data/ielts/${id}.json`;
@@ -402,16 +405,19 @@ const prog = {
    old prompt, then leaves the run); u23-l4 and u24-l4 have new items (an unfinished run stays on its item). In a review
    session (ielts:study.session.ord, places on screen) a question whose options were only reordered keeps its places;
    otherwise that shuffle and its answer go. Cards of questions that are gone leave the deck.
+   Questions a finished run never saw (added to its lesson since, or a statement replaced) are listed in run.unseen:
+   js/ielts-study.js never grades them and the player's review says so, while the stored score stays as it was.
    Never twice: the flags ielts:mig:content1 and ielts:mig:content2 are written first (if they can't be, nothing
    changes and the next load tries again); prog.erase() keeps ielts:mig:*; a lesson run saved by this version (it
    has run.at, which older players never wrote) is never touched; and every run this moves carries run.mig = 2 in the
    same write, so it is never moved again. A write that fails (localStorage is shared with the child's game and can be
    full) leaves its run as it was and sets the flags to 0 at the end: the next load tries again, only the runs not
-   marked yet (a u23-l3 Task 1 that couldn't be kept in My writing leaves its whole run for then). The review session
-   is settled on the first load: a session or review run that couldn't be saved in the new order starts afresh
-   (ielts:run:review deleted), and a later load never maps them. The flags describe this device's runs, so backups and
-   the Drive copy leave them out. It runs while this file loads, before js/ielts-player.js opens a run and before
-   js/ielts-study.js builds the deck from finished runs. */
+   marked yet (a u23-l3 Task 1 that couldn't be kept in My writing leaves its whole run for then). Meanwhile the
+   player opens such a run through IE.migRun (below), so it never saves one, with its time, in the old order. The
+   review session is settled on the first load: a session or review run that couldn't be saved in the new order starts
+   afresh (ielts:run:review deleted), and a later load never maps them. The flags describe this device's runs, so
+   backups and the Drive copy leave them out. It runs while this file loads, before js/ielts-player.js opens a run and
+   before js/ielts-study.js builds the deck from finished runs. */
 (function migrateAnswers(){
   const F1 = "ielts:mig:content1", F2 = "ielts:mig:content2", do1 = !LS.get(F1), do2 = !LS.get(F2);
   if(!do1 && !do2) return;
@@ -420,10 +426,6 @@ const prog = {
   const RVK = "ielts:run:review";
   let failed = false;
   const at = Date.now();
-  /* IE.migPending: some saved answers are still in the old order this load (js/ielts-study.js doesn't build the deck from
-     finished runs until a load has moved them all) */
-  if(do1 && !LS.set(F1, at)){ IE.migPending = true; return; }
-  if(do2 && !LS.set(F2, at)){ if(do1) LS.del(F1); IE.migPending = true; return; }
   const MAP = {"u01-l3-i8": [1, 0, 2, 3], "u01-l3-i10": [0, 3, 1, 2], "u01-l3-i11": [0, 2, 1, 3],
     "u02-l1-i2-q9": [0, 2, 1], "u02-l1-i3-q1": [1, 0, 2], "u02-l1-i3-q4": [0, 2, 1], "u02-l1-i3-q5": [1, 0, 2, 3, 4],
     "u04-l1-i9": [0, 2, 1], "u04-l1-i10": [1, 0, 2], "u04-l2-i1-q6": [0, 2, 1], "u04-l3-i1-q2": [0, 1, 2, 4, 3],
@@ -451,9 +453,83 @@ const prog = {
   const DROP = new Set([...GONE, ...(do2 ? ["u24-l2-i4-q8", "u24-l2-i4-q9"] : [])]);   /* questions that left the course */
   const POS = do2 ? {"u23-l4": [0, 2, 3, 4, 5], "u24-l4": [0, 3, 4, 5]} : {};
   const W1 = "u23-l3-i2", W1P = "You should spend about 20 minutes on this task.\n\nThe graph below shows the main mode of travel used by commuters in the city of Westhaven between 2000 and 2020.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.";
+  /* the questions a finished run of these lessons never saw: u09-l2 q14-q16 and u10-l2 q12 are new, u09-l3 q14-q17
+     replaced q6-q9 (a finished run that answered those is cleared, above) and u24-l2-i4-q2 is a new statement */
+  const UNSEEN = Object.assign({}, do1 ? {"u09-l2": ["u09-l2-i1-q14", "u09-l2-i1-q15", "u09-l2-i1-q16"], "u10-l2": ["u10-l2-i1-q12"],
+    "u09-l3": ["u09-l3-i1-q14", "u09-l3-i1-q15", "u09-l3-i1-q16", "u09-l3-i1-q17"]} : {}, do2 ? {"u24-l2": ["u24-l2-i4-q2"]} : {});
   /* an index in range moves (undefined: its option is gone); anything else is left as it was */
   const to = (m, x) => Number.isInteger(x) && x >= 0 && x < m.length ? (m[x] == null ? undefined : m[x]) : x;
   const only = m => m.every(x => x != null) && m.slice().sort((a, b) => a - b).every((x, i) => x === i);
+  const dataOk = () => { const raw = LS.raw(PK); if(raw == null) return true; try{ const o = JSON.parse(raw); return isObj(o) && o.v === 1; }catch(e){ return false; } };
+  /* one saved run (lid, or "review" with sh = the review session's shuffles), moved in place. "skip": nothing to move;
+     "drop": the run goes; "wait": it can't be moved whole yet (it stays as it is stored, for a later load); "moved":
+     changed here (with mig 2), not saved yet */
+  function moveRun(lid, run, sh){
+    const rev = lid === "review";
+    if(!isObj(run) || !isObj(run.ans)) return "skip";
+    if(run.mig >= 2) return "skip";   /* moved by an earlier load */
+    if(!rev && run.at != null) return "skip";   /* saved by this version: already in the new order */
+    const A = run.ans, before = JSON.stringify(run);
+    if(lid === "u09-l3" && run.finished && GONE.some(q => q in A)) return "drop";
+    const forget = q => { delete A[q]; if(isObj(run.checked)){ delete run.checked[q]; delete run.checked["rv-" + q]; } };
+    for(const [q, m] of Object.entries(M)){
+      if(rev && q in sh){ if(!sh[q]) forget(q); continue; }   /* A[q] is a place on screen */
+      if(!(q in A)) continue;
+      const v = A[q];
+      if(Array.isArray(v)) A[q] = v.map(x => to(m, x)).filter(x => x !== undefined);
+      else{ const n = to(m, v); if(n === undefined) delete A[q]; else A[q] = n; }
+    }
+    if(do2){
+      if("u24-l2-i4-q2" in A) forget("u24-l2-i4-q2");
+      if(lid === "u24-l2" && !("u24-l2-i4-q11" in A)){
+        const two = [], q8 = A["u24-l2-i4-q8"], q9 = A["u24-l2-i4-q9"];
+        if(typeof q8 === "number") two.push(q8 === 0 ? 1 : 0);
+        if(typeof q9 === "number") two.push(q9 === 2 ? 4 : 3);
+        if(two.length) A["u24-l2-i4-q11"] = two;
+      }
+      if(lid === "u24-l2"){ delete A["u24-l2-i4-q8"]; delete A["u24-l2-i4-q9"]; }
+      if(lid === "u23-l3" && W1 in A && dataOk()){
+        const t = String(A[W1] || ""), eid = isObj(run.eid) ? run.eid[W1] : null;
+        /* (an earlier load may have kept it before its run couldn't be saved) */
+        let kept = !t.trim() || !!(eid && prog.essay(eid)) || prog.get().essays.some(e => e.iid === W1 && e.prompt === W1P && e.text === t);
+        if(!kept){
+          const id = eid || `${W1}-${at.toString(36)}`;
+          prog.addEssay({id, iid: W1, task: 1, prompt: W1P, text: t, words: words(t), self: isObj(run.self) && run.self[W1] || null, band: null});
+          kept = !!prog.essay(id);
+        }
+        if(!kept) return "wait";   /* never dropped before it is safe in My writing */
+        delete A[W1];
+        for(const b of ["self", "eid", "wt", "checked", "sband"]) if(isObj(run[b])) delete run[b][W1];
+      }
+      const pos = POS[lid];
+      if(pos && !run.finished && typeof run.i === "number" && pos[run.i] != null) run.i = pos[run.i];
+    }
+    if(!rev && run.finished && UNSEEN[lid]) run.unseen = [...new Set([...(Array.isArray(run.unseen) ? run.unseen : []), ...UNSEEN[lid]])];
+    if(JSON.stringify(run) === before) return "skip";
+    run.mig = 2;
+    return "moved";
+  }
+  const pend = new Set();   /* the lesson runs this load couldn't move */
+  let all = false;   /* nothing could start (the flags couldn't be written): every run still waits */
+  /* IE.migRun(key): js/ielts-player.js asks it before it opens a lesson run. A run this load couldn't move is moved now,
+     in memory and, when it fits, in storage (mig 2): then the player can never save it, with its time, in the old order
+     (the retry leaves dated runs alone). → {run} to play (null: it went), {run, hold: true} when it still can't be
+     moved whole (the player doesn't save it this load), or null: read it as usual */
+  const exportRun = () => { IE.migRun = k => {
+    const km = /^ielts:run:(u\d{2}-l\d+)$/.exec(String(k)); if(!km || !(all || pend.has(k))) return null;
+    const run = LS.get(k), r = moveRun(km[1], run, {});
+    if(r === "drop"){ LS.del(k); pend.delete(k); return {run: null}; }
+    if(r === "wait") return {run: LS.get(k), hold: true};
+    if(r === "moved"){ if(LS.set(k, run)) pend.delete(k); return {run}; }
+    pend.delete(k); return null;
+  }; };
+  /* IE.migPending: some saved answers are still in the old order this load (js/ielts-study.js doesn't build the deck from
+     finished runs until a load has moved them all) */
+  const was1 = LS.raw(F1);
+  if((do1 && !LS.set(F1, at)) || (do2 && !LS.set(F2, at))){
+    if(do1 && LS.raw(F1) === String(at) && !(was1 != null && LS.setRaw(F1, was1))) LS.del(F1);   /* F1 as it was ("0" fits) */
+    IE.migPending = true; all = true; exportRun(); return;
+  }
   /* the review session's shuffles: ord[i] = the original index shown at place i */
   const st = LS.get("ielts:study"), ss = isObj(st) && isObj(st.session) ? st.session : null, ord = !retry && ss && isObj(ss.ord) ? ss.ord : {};
   const shuf = {};   /* qid → true: kept (the same options in the same places), false: dropped */
@@ -466,62 +542,20 @@ const prog = {
   if(ss && Array.isArray(ss.ids) && ss.ids.some(q => DROP.has(q))){ ss.ids = ss.ids.filter(q => !DROP.has(q)); stCh = true; }
   /* the shuffles stay in the old order: the review run's answers (places on screen) would point elsewhere */
   if(stCh && !LS.set("ielts:study", st)){ failed = true; if(ordCh) LS.del(RVK); }
-  /* My writing can take the old Task 1 only from valid data of this version (never a newer version's or a damaged blob) */
-  const dataOk = () => { const raw = LS.raw(PK); if(raw == null) return true; try{ const o = JSON.parse(raw); return isObj(o) && o.v === 1; }catch(e){ return false; } };
   for(const k of LS.keys()){
     const km = /^ielts:run:(u\d{2}-l\d+|review)$/.exec(k); if(!km) continue;
     const lid = km[1], rev = lid === "review";
     if(rev && retry) continue;   /* settled by the first load (saved in the new order or started afresh) */
     try{
-      const run = LS.get(k); if(!isObj(run) || !isObj(run.ans)) continue;
-      if(run.mig >= 2) continue;   /* moved by an earlier load */
-      if(!rev && run.at != null) continue;   /* saved by this version: already in the new order */
-      const A = run.ans, before = JSON.stringify(run);
-      let whole = true;   /* false: this run waits for the next load, untouched */
-      if(lid === "u09-l3" && run.finished && GONE.some(q => q in A)){ LS.del(k); continue; }
-      const forget = q => { delete A[q]; if(isObj(run.checked)){ delete run.checked[q]; delete run.checked["rv-" + q]; } };
-      for(const [q, m] of Object.entries(M)){
-        if(rev && q in shuf){ if(!shuf[q]) forget(q); continue; }   /* A[q] is a place on screen */
-        if(!(q in A)) continue;
-        const v = A[q];
-        if(Array.isArray(v)) A[q] = v.map(x => to(m, x)).filter(x => x !== undefined);
-        else{ const n = to(m, v); if(n === undefined) delete A[q]; else A[q] = n; }
-      }
-      if(do2){
-        if("u24-l2-i4-q2" in A) forget("u24-l2-i4-q2");
-        if(lid === "u24-l2" && !("u24-l2-i4-q11" in A)){
-          const two = [], q8 = A["u24-l2-i4-q8"], q9 = A["u24-l2-i4-q9"];
-          if(typeof q8 === "number") two.push(q8 === 0 ? 1 : 0);
-          if(typeof q9 === "number") two.push(q9 === 2 ? 4 : 3);
-          if(two.length) A["u24-l2-i4-q11"] = two;
-        }
-        if(lid === "u24-l2"){ delete A["u24-l2-i4-q8"]; delete A["u24-l2-i4-q9"]; }
-        if(lid === "u23-l3" && W1 in A && dataOk()){
-          const t = String(A[W1] || ""), eid = isObj(run.eid) ? run.eid[W1] : null;
-          /* (an earlier load may have kept it before its run couldn't be saved) */
-          let kept = !t.trim() || !!(eid && prog.essay(eid)) || prog.get().essays.some(e => e.iid === W1 && e.prompt === W1P && e.text === t);
-          if(!kept){
-            const id = eid || `${W1}-${at.toString(36)}`;
-            prog.addEssay({id, iid: W1, task: 1, prompt: W1P, text: t, words: words(t), self: isObj(run.self) && run.self[W1] || null, band: null});
-            kept = !!prog.essay(id);
-          }
-          if(kept){   /* never dropped before it is safe in My writing */
-            delete A[W1];
-            for(const b of ["self", "eid", "wt", "checked", "sband"]) if(isObj(run[b])) delete run[b][W1];
-          } else whole = false;
-        }
-        const pos = POS[lid];
-        if(pos && !run.finished && typeof run.i === "number" && pos[run.i] != null) run.i = pos[run.i];
-      }
-      if(!whole){ failed = true; continue; }
-      if(JSON.stringify(run) !== before){
-        run.mig = 2;
-        if(!LS.set(k, run)){ failed = true; if(rev) LS.del(k); }   /* a review run starts afresh; a lesson run waits */
-      }
+      const run = LS.get(k), r = moveRun(lid, run, shuf);
+      if(r === "drop") LS.del(k);
+      else if(r === "wait"){ failed = true; pend.add(k); }
+      /* a review run starts afresh; a lesson run waits */
+      else if(r === "moved" && !LS.set(k, run)){ failed = true; if(rev) LS.del(k); else pend.add(k); }
     }catch(e){ console.error(e); }
   }
   /* something couldn't be saved: 0 (smaller than the time it replaces, so it always fits) makes the next load try again */
-  if(failed){ IE.migPending = true; for(const [f, d] of [[F1, do1], [F2, do2]]) if(d && !LS.setRaw(f, "0")) LS.del(f); }
+  if(failed){ IE.migPending = true; exportRun(); for(const [f, d] of [[F1, do1], [F2, do2]]) if(d && !LS.setRaw(f, "0")) LS.del(f); }
 })();
 
 /* ---------- voice (the browser's English voices, by accent) ---------- */

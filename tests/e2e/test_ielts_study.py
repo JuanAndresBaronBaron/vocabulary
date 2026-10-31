@@ -6,7 +6,7 @@
   #/lesson/review runs in the real player and grading moves the boxes (+1 / −2, never below 0); the exam-date cap;
   secure cards retire; at most 20 cards (5 wrapped) per session; options are shuffled only when no text refers to them
   by letter, and the answer follows; a reload resumes the same session; a new session deletes ielts:run:review; the
-  first load builds the deck from lessons finished before (migration), once.
+  first load builds the deck from lessons finished before (migration), once per device (ielts:mig:deck).
 - The notebook: the tags (spelling, word limit, number format, singular/plural, T↔NG and the rest), the 30-day
   «Where my marks go», the TRUE/FALSE/NOT GIVEN confusion table and accuracy by question type on a seeded log.
 - IE.assess mounted in a div: per-criterion checklist bands 6-9, the estimate from complete checklists, the warning
@@ -58,9 +58,11 @@ def _lesson(lid):
     return next(l for l in _unit(lid[:3])["lessons"] if l["id"] == lid)
 
 
-# finishes a lesson exactly as the player does: the run is saved first, then prog.done
+# finishes a lesson exactly as the player does: the run is saved first (with at, and fin: finished by this version),
+# then prog.done
 _FINISH = """async ([lid, ans]) => {
-  localStorage.setItem('ielts:run:' + lid, JSON.stringify({v: 1, i: 0, ans, checked: {}, heard: {}, self: {}, el: 0, started: true, finished: true}));
+  const t = Date.now();
+  localStorage.setItem('ielts:run:' + lid, JSON.stringify({v: 1, i: 0, ans, checked: {}, heard: {}, self: {}, el: 0, started: true, finished: true, at: t, fin: t}));
   IE.prog.done(lid, {got: 0, total: 1});
   await IE.study.settled();
   return JSON.parse(localStorage.getItem('ielts:study'));
@@ -405,8 +407,11 @@ def test_study_migration_from_finished_runs():
         _open(page)
         les = _lesson("u01-l1")
         qs = [i for i in les["items"] if i["type"] in ("pick", "tfng")]
+        # a device whose first load of this version finds runs finished before it (no fin): the first load here found
+        # none and is done (ielts:mig:deck), so this one starts without it
+        assert page.evaluate("() => localStorage.getItem('ielts:mig:deck')"), "a load with no finished runs left the import to do"
         page.evaluate("""([ans, at]) => {
-          localStorage.removeItem('ielts:study');
+          localStorage.removeItem('ielts:study'); localStorage.removeItem('ielts:mig:deck');
           localStorage.setItem('ielts:run:u01-l1', JSON.stringify({v: 1, i: 11, ans, checked: {}, heard: {}, self: {}, el: 0, started: true, finished: true}));
           localStorage.setItem('ielts:run:u07-l2', JSON.stringify({v: 1, i: 0, ans: {}, checked: {}, heard: {}, self: {}, el: 0, started: true}));
           localStorage.setItem('ielts:data', JSON.stringify({v: 1, lessons: {'u01-l1': {done: true, at: Date.now() - 5 * 864e5, got: 1, total: 6}}, tests: [], essays: [], speaking: []}));
@@ -414,7 +419,8 @@ def test_study_migration_from_finished_runs():
         _open(page, "#/", reload=True)
         page.evaluate("() => IE.study.settled()")
         s = page.evaluate(_STUDY)
-        assert s and s.get("mig") == 1 and set(s["cards"]) == {q["id"] for q in qs}, s and sorted(s["cards"])
+        assert s and set(s["cards"]) == {q["id"] for q in qs}, s and sorted(s["cards"])
+        assert page.evaluate("() => localStorage.getItem('ielts:mig:deck')") and "mig" not in s, "the import isn't recorded on this device only"
         assert not any(k.startswith("u07-l2") for k in s["cards"]), "an unfinished run was migrated"
         # made 5 days ago: the right one is due in 3 days from then, the missed ones are due now
         assert page.evaluate("() => IE.study.due().length") == len(qs), page.evaluate("() => IE.study.due()")
@@ -425,11 +431,11 @@ def test_study_migration_from_finished_runs():
 
         # the first load opens straight on #/lesson/review (a reload there, a bookmark): the review waits for the
         # migration, so it plays the migrated cards and its session does not wipe them
-        page.evaluate("() => { localStorage.removeItem('ielts:study'); localStorage.removeItem('ielts:run:review'); }")
+        page.evaluate("() => { localStorage.removeItem('ielts:study'); localStorage.removeItem('ielts:run:review'); localStorage.removeItem('ielts:mig:deck'); }")
         _open(page, "#/lesson/review", reload=True)
         page.evaluate("() => IE.study.settled()")
         s = page.evaluate(_STUDY)
-        assert s and s.get("mig") == 1 and set(s["cards"]) == {q["id"] for q in qs}, s and sorted(s["cards"])
+        assert s and set(s["cards"]) == {q["id"] for q in qs} and page.evaluate("() => localStorage.getItem('ielts:mig:deck')"), s and sorted(s["cards"])
         assert len(s["log"]) == n, (len(s["log"]), n)
         assert s["session"] and sorted(s["session"]["ids"]) == sorted(q["id"] for q in qs), s["session"]
         assert "Nothing due today" not in page.inner_text("#app")

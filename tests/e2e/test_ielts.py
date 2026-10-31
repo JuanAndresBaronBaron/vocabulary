@@ -101,7 +101,7 @@ def test_ielts_locked_without_the_gate():
 def test_ielts_validator_rules():
     """The exam rules of ielts_validate.py: the word-limit counter, 'Label the' needs a visual, the spread of pick keys
     in a test and of Choose TWO pairs in a unit; the new optional fields (markers, callouts, alt); the content revision
-    every unit carries (rev, equal to REV in js/ielts.js); and every PENDING id (left for content2) exists."""
+    every unit carries (rev, equal to REV in js/ielts.js and IELTS_REV in sw.js); and every PENDING id (left for content2) exists."""
     import copy
     fits = [("14th", "ONE WORD AND/OR A NUMBER"), ("07700 911483", "A NUMBER"), ("BS7 4QD", "ONE WORD AND/OR A NUMBER"),
             ("10:15", "A NUMBER"), ("£85", "A NUMBER"), ("check-in", "ONE WORD ONLY"), ("15 minutes", "ONE WORD AND/OR A NUMBER"),
@@ -144,6 +144,9 @@ def test_ielts_validator_rules():
     planted(lambda u: u.update(rev="2"), "rev must be a whole number, 2 or more")
     js_rev = re.search(r"\bconst REV = (\d+)", (C.REPO / "js" / "ielts.js").read_text(encoding="utf-8"))
     assert js_rev and int(js_rev.group(1)) == V.REV == base["rev"], "REV in js/ielts.js, ielts_validate.REV and the units' rev differ"
+    # sw.js refreshes, at install, every unit copy in vocab-media with a lower rev (IELTS_REV): the same number
+    sw_rev = re.search(r"\bconst IELTS_REV = (\d+)", (C.REPO / "sw.js").read_text(encoding="utf-8"))
+    assert sw_rev and int(sw_rev.group(1)) == V.REV, "IELTS_REV in sw.js and REV in js/ielts.js differ"
     planted(over_limit, "'a big rucksack' is over the limit")
     planted(unknown_limit, "unknown word limit")
     planted(label_no_visual, "needs a visual")

@@ -40,8 +40,11 @@
      microphone and every timer of the old one (a Part 2 preparation can't speak or record on another screen).
    · A lesson in progress is saved as you go ("ielts:run:<lid>" = {v:1, i, ans, checked, heard, self, el, started,
      finished, got, total, band, at} plus away, hid, paused, over, xmode, x, lpos, played, noaudio, panes, rpos, eid, wt,
-     smode, sband, fu, counted, attempt): reloading or coming back later picks it up. finish() saves the finished run
-     before IE.prog.done(lid, rec) and uses what IE.prog.addTest() returns ({attempt, counted}). */
+     smode, sband, fu, counted, attempt, fin; mig and unseen from js/ielts.js): reloading or coming back later picks it
+     up. finish() saves the finished run (fin = when this version finished it: js/ielts-study.js has logged it, so its
+     one-time deck import leaves it out) before IE.prog.done(lid, rec) and uses what IE.prog.addTest() returns
+     ({attempt, counted}). A run is opened through IE.migRun when js/ielts.js provides it (a run whose answers it couldn't
+     move this load: moved first, or played without saving). The review marks run.unseen questions as added since. */
 (() => {
 "use strict";
 const W = window, D = document, IE = W.IE;
@@ -351,12 +354,19 @@ IE.ROUTES.lesson = async ([lid], a) => {
   const LIS = L.items.filter(i => i.type === "listening");
   const examLesson = test && L.exam === true && LIS.length > 0;
   const fresh = () => ({v: 1, i: 0, ans: {}, checked: {}, heard: {}, self: {}, el: 0, started: !test});
-  let run = LS.get(RK(lid));
+  let run = LS.get(RK(lid)), hold = false;
+  /* a saved run that js/ielts.js couldn't move to this version's options this load (storage full) is moved first; one
+     that still can't be moved whole is played but never saved this load (a save would date it in the old order) */
+  const mv = typeof IE.migRun === "function" ? IE.migRun(RK(lid)) : null;
+  if(mv){ run = mv.run; hold = !!mv.hold; }
   if(!isObj(run) || run.v !== 1) run = fresh();
   for(const k of ["ans", "checked", "heard", "self"]) if(!isObj(run[k])) run[k] = {};
   if(!(run.el >= 0)) run.el = 0;
   let full = false;
-  const save = () => { run.at = Date.now(); if(!LS.set(RK(lid), run) && !full){ full = true; toast("Couldn't save on this device: storage is full."); } };
+  const save = () => {
+    if(hold){ if(!full){ full = true; toast("Couldn't save on this device: storage is full."); } return; }
+    run.at = Date.now(); if(!LS.set(RK(lid), run) && !full){ full = true; toast("Couldn't save on this device: storage is full."); }
+  };
   const ans = id => run.ans[id];
   let st = 0; const saveSoon = () => { clearTimeout(st); st = setTimeout(save, 400); };
   const setAns = (id, v) => { run.ans[id] = v; saveSoon(); };
@@ -571,7 +581,10 @@ IE.ROUTES.lesson = async ([lid], a) => {
   }
 
   /* ----- items ----- */
-  const setBody = (s, fb) => `<section class="ie-set"><p class="ie-instr">${md(s.instr)}</p>${s.visual ? fig(s.visual) : ""}${s.items.map(q => qHtml(q, ans(q.id), NUM[q.id], fb, !fb && locked())).join("")}</section>`;
+  /* run.unseen: questions added to the lesson after this run was finished (js/ielts.js): not in its score */
+  const unseen = id => Array.isArray(run.unseen) && run.unseen.includes(id);
+  const setBody = (s, fb) => `<section class="ie-set"><p class="ie-instr">${md(s.instr)}</p>${s.visual ? fig(s.visual) : ""}${s.items.map(q => (fb && unseen(q.id) ? `<p class="t-note ie-unseen">Added since you did this lesson: not in your score.</p>` : "")
+    + qHtml(q, ans(q.id), NUM[q.id], fb, !fb && locked())).join("")}</section>`;
   function setHtml(it, fb){
     return it.sets.map(s => setBody(s, fb)).join("")
       + (fb ? `<p class="ie-score t-head">${(() => { const qs = it.sets.flatMap(s => s.items), g = qs.reduce((t, q) => t + mark(q, ans(q.id)), 0), m = qs.reduce((t, q) => t + marks(q), 0); return `${g} of ${m} correct`; })()}</p>` : "");
@@ -1039,7 +1052,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
     addHidden();
     const got = QS.reduce((s, x) => s + mark(x.q, ans(x.q.id)), 0), total = QS.reduce((s, x) => s + x.m, 0);
     const b = (skill === "listening" || skill === "reading") && total ? band(skill, got, total) : null;
-    run.finished = true; run.got = got; run.total = total; run.band = b;
+    run.finished = true; run.fin = Date.now(); run.got = got; run.total = total; run.band = b;   /* fin: finished (and logged) by this version */
     if(test) run.paused = (run.away || 0) > 120000;
     save();
     for(const it of L.items) if(it.type === "writing" && (ans(it.id) || "").trim()) saveEssay(it);
@@ -1084,7 +1097,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
     </div>`;
     a.querySelector("#ie-redo").onclick = () => {
       if(!confirm("Start this lesson again? Your answers here will be cleared.")) return;
-      LS.del(RK(lid)); run = fresh(); hiddenAt = 0; show();
+      LS.del(RK(lid)); run = fresh(); hold = false; hiddenAt = 0; show();
     };
     const ms = [...writes, ...(test ? speaks : [])].map(x => x.model);
     a.querySelectorAll("[data-say-model]").forEach((b, i) => { b.onclick = () => { if(ms[i]) say(plain(ms[i].text.join(" ")), {voice: "f"}); }; });

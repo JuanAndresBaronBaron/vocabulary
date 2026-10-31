@@ -5,17 +5,21 @@
   one wrong; a run saved by this version (run.at) is left alone; the u09-l3 questions that left the course clear a
   finished run; u24-l2 q8/q9 become the Choose TWO q11; u23-l3's replaced Task 1 is kept in My writing with its old
   prompt (and its page says the task was replaced, with no chart); u23-l4 keeps its item; cards of questions that left
-  the course leave the deck. A reload maps nothing again and «Erase my progress» keeps the flags. With storage full,
-  a run that can't be saved is moved on the next load, once (run.mig = 2, flags at 0), and the deck waits for it.
+  the course leave the deck; a finished run lists the questions it never saw (run.unseen: u09-l2 q14-q16, the new
+  u24-l2 statement), which the deck never grades and the review marks as added since. A reload maps nothing again and
+  «Erase my progress» keeps the flags. With storage full, a run that can't be saved is moved on the next load, once
+  (run.mig = 2, flags at 0), and the deck waits for it; opened in that load, the player moves it before saving it.
+- The deck from runs finished before this version: once per device (ielts:mig:deck), also when ielts:study already has
+  another device's cards, and after a load that had to wait, without logging a lesson twice.
 - Writing compare: «N words copied from the question» is its own check («Copied from the question»).
 - Offline: with the service worker in control, IELTS Prep saves every unit file in vocab-media in the background, so a
   unit never opened works without a connection, with no console errors. A unit file an older version left in
   vocab-media (no rev 2: the old options) is fetched again and replaced, never used to grade; offline it says the unit
-  was updated.
+  was updated; a new version of the app installed with a connection fetches it again at once (sw.js IELTS_REV).
 - Google Drive (js/ielts-boot.js, with a fake Drive): its own file vocabulary-ieltsprep.json with only ielts:data,
   ielts:study and ielts:ui; two devices end up with the same merge, newer record wins, a deleted result never comes back,
-  an erase made in IELTS Prep travels (and on the other device takes the runs and drafts from before it, and the deck
-  isn't rebuilt from them), a newer or foreign copy is never merged or overwritten, an empty state is never uploaded
+  an erase made in IELTS Prep travels (and on the other device takes the runs and drafts from before it, an undated
+  finished run dated by its own result there and an unfinished essay kept, and the deck isn't rebuilt from them), a newer or foreign copy is never merged or overwritten, an empty state is never uploaded
   over a full one, and nothing happens with IELTS Prep off or Google not connected; the exam date merges by examAt.
 - The review deck with content1's real data: the card of the u04-l2 plan question carries the plan, and the player
   draws it in #/lesson/review.
@@ -90,7 +94,7 @@ def _ls(page, k):
 
 # ---------------------------------------------------------------- 1. saved answers follow the new options, once
 # the old option orders: MAP (content1) and MAP2 (content2) in js/ielts.js give, for each old index, the new one
-M1 = {"u01-l3-i8": [1, 0, 2, 3], "u05-l1-i8-q1": [1, 0, 2, 4, 3], "u02-l1-i3-q1": [1, 0, 2]}
+M1 = {"u01-l3-i8": [1, 0, 2, 3], "u05-l1-i8-q1": [1, 0, 2, 4, 3], "u02-l1-i3-q1": [1, 0, 2], "u09-l2-i1-q9": [0, 3, 1, 2]}
 M2 = {"u15-l2-i4": "x0xx", "u23-l1-i4-q5": "10243", "u20-l1-i4": "2xxx"}
 
 
@@ -121,6 +125,13 @@ def test_ielts_integration_saved_answers():
         w1 = _q("u23-l3-i2")
         assert "Westhaven" not in w1["prompt"], "u23-l3-i2 is still the old task"
         essay = "Commuting in Westhaven changed a great deal over the period. " * 12
+        # u09-l2 finished before q14-q16 existed, every answer right (q9 in the old order): 13 of 13
+        l92 = next(x for x in _unit(9)["lessons"] if x["id"] == "u09-l2")
+        q92 = [q for st in l92["items"][0]["sets"] for q in st["items"]]
+        new92 = ["u09-l2-i1-q14", "u09-l2-i1-q15", "u09-l2-i1-q16"]
+        assert [q["id"] for q in q92][-3:] == new92 and len(q92) == 16, [q["id"] for q in q92]
+        ans92 = {q["id"]: (q["answer"][0] if q["type"] == "gap" else _old(M1[q["id"]], q["answer"]) if q["id"] in M1 else q["answer"])
+                 for q in q92 if q["id"] not in new92}
         keys = {
             "ielts:run:u01-l3": {"i": 3, "ans": {"u01-l3-i8": right8, "u01-l3-i10": 1}, "checked": {}},
             "ielts:run:u05-l1": {"i": 2, "ans": {"u05-l1-i8-q1": multi5}},
@@ -130,10 +141,12 @@ def test_ielts_integration_saved_answers():
             # saved by this version (it has at): never touched
             "ielts:run:u02-l1": {"i": 1, "at": NOW - H, "ans": {"u02-l1-i3-q1": 0}},
             "ielts:run:u09-l3": {"i": 9, "finished": True, "ans": {"u09-l3-i1-q6": 1, "u09-l3-i1-q1": 0}},
-            "ielts:run:u24-l2": {"i": 3, "ans": {"u24-l2-i4-q8": 0, "u24-l2-i4-q9": 1, "u24-l2-i4-q2": "Y"}},
+            "ielts:run:u24-l2": {"v": 1, "i": 3, "finished": True, "ans": {"u24-l2-i4-q8": 0, "u24-l2-i4-q9": 1, "u24-l2-i4-q2": "Y"}},
+            "ielts:run:u09-l2": {"v": 1, "i": 0, "finished": True, "got": 13, "total": 13, "ans": ans92, "checked": {}},
             "ielts:run:u23-l3": {"i": 1, "ans": {"u23-l3-i2": essay}, "self": {"u23-l3-i2": {"ta": 7}}},
             "ielts:run:u23-l4": {"i": 1, "ans": {}},
-            "ielts:study": {"v": 1, "cards": {"u24-l2-i4-q8": {"b": 1, "last": NOW - H}, "u01-l3-i8": {"b": 2, "last": NOW - H}},
+            "ielts:study": {"v": 1, "cards": {"u24-l2-i4-q8": {"lid": "u24-l2", "box": 1, "due": NOW, "last": NOW - H},
+                                              "u01-l3-i8": {"lid": "u01-l3", "box": 2, "due": NOW, "last": NOW - H}},
                             "log": [], "session": {"at": NOW - 600_000, "ids": ["u24-l2-i4-q9", "u01-l3-i8", "u15-l2-i4"],
                                                    "ord": {"u01-l3-i8": [3, 2, 1, 0], "u15-l2-i4": [0, 1, 2, 3]}},
                             "exam": None, "calib": [], "at": NOW - H},
@@ -143,6 +156,7 @@ def test_ielts_integration_saved_answers():
         _open(page)
         flags = page.evaluate("() => [localStorage.getItem('ielts:mig:content1'), localStorage.getItem('ielts:mig:content2')]")
         assert all(flags), flags
+        page.evaluate("() => IE.study.settled()")
         r = {k: _ls(page, k) for k in keys}
         a8 = r["ielts:run:u01-l3"]["ans"]["u01-l3-i8"]
         assert a8 == q8["answer"] and _mark(q8, a8) == 1, a8
@@ -155,6 +169,16 @@ def test_ielts_integration_saved_answers():
         assert r["ielts:run:u09-l3"] is None, "a finished u09-l3 run with removed questions was kept"
         a24 = r["ielts:run:u24-l2"]["ans"]
         assert a24 == {"u24-l2-i4-q11": [1, 3]} and _mark(q11, a24["u24-l2-i4-q11"]) == 1, a24
+        # questions a finished run never saw (added since, or a new statement): listed, never graded by the deck
+        assert r["ielts:run:u24-l2"]["unseen"] == ["u24-l2-i4-q2"] and r["ielts:run:u24-l2"]["mig"] == 2, r["ielts:run:u24-l2"]
+        r92 = r["ielts:run:u09-l2"]
+        assert r92["unseen"] == new92 and r92["mig"] == 2 and r92["ans"]["u09-l2-i1-q9"] == _q("u09-l2-i1-q9")["answer"], r92
+        assert page.evaluate("() => localStorage.getItem('ielts:mig:deck')"), "the deck wasn't built from the finished runs"
+        dlog = r["ielts:study"]["log"]
+        assert sorted(e["q"] for e in dlog if e["l"] == "u09-l2") == sorted(ans92) and all(e["ok"] for e in dlog if e["l"] == "u09-l2"), \
+            [(e["q"], e["ok"]) for e in dlog if e["l"] == "u09-l2"]
+        assert not [q for q in r["ielts:study"]["cards"] if q.startswith("u09-l2") or q == "u24-l2-i4-q2"], r["ielts:study"]["cards"]
+        assert "u24-l2-i4-q2" not in [e["q"] for e in dlog] and "u24-l2-i4-q11" in [e["q"] for e in dlog], [e["q"] for e in dlog]
         es = page.evaluate("() => IE.prog.get().essays")
         assert len(es) == 1 and es[0]["iid"] == "u23-l3-i2" and "Westhaven" in es[0]["prompt"] and es[0]["text"] == essay, es
         assert es[0]["task"] == 1 and es[0]["self"] == {"ta": 7}, es[0]
@@ -175,6 +199,12 @@ def test_ielts_integration_saved_answers():
         page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/unit/u01'", timeout=15000)
         after = {k: page.evaluate("k => localStorage.getItem(k)", k) for k in keys}
         assert after == before, [k for k in keys if after[k] != before[k]]
+
+        # the review of the finished test says which question was added since
+        _open(page, "#/lesson/u24-l2")
+        notes = page.evaluate("() => [...document.querySelectorAll('.ie-unseen')].map(n => n.nextElementSibling && n.nextElementSibling.dataset.q)")
+        assert notes == ["u24-l2-i4-q2"], notes
+        assert "Added since you did this lesson: not in your score." in page.inner_text("#app")
 
         # the replaced task: its own prompt, no chart of the new one, and a note
         _open(page, f"#/essays/{es[0]['id']}")
@@ -277,6 +307,103 @@ def test_ielts_integration_saved_answers_retry():
         page.context.close()
 
 
+def test_ielts_integration_deck_per_device():
+    """The deck is built once per device from the lessons it finished before this version (runs without fin), and
+    ielts:mig:deck (this device's own key: never synced, backed up or erased) records it, never ielts:study: a device
+    whose ielts:study already holds another device's cards (the Drive merge) still adds its own runs. A load that has to
+    wait (an answer not moved yet: IE.migPending) logs the lesson finished in it, and the next load adds the older runs
+    without logging that one twice, also an older run the player saved (with a time) in the meantime. A run that couldn't
+    be moved, opened in the player in that load once there is room, is moved before the player saves it: the retry
+    leaves dated runs alone, so a save in the old order would stay."""
+    page = C.new_page("phone")
+    page.on("dialog", lambda d: d.accept())
+    page.add_init_script(_FULL)
+    D = 86_400_000
+    flags = "() => [localStorage.getItem('ielts:mig:content1'), localStorage.getItem('ielts:mig:content2')]"
+    deck = "() => localStorage.getItem('ielts:mig:deck')"
+    js = (C.REPO / "js" / "ielts.js").read_text(encoding="utf-8")
+    les1 = next(x for x in _unit(1)["lessons"] if x["id"] == "u01-l1")
+    qs1 = [i for i in les1["items"] if i["type"] in ("pick", "tfng")]
+    assert '"u01-l1-' not in js, "u01-l1 has moved options: its saved answers would change"
+    wrong = qs1[0]
+    bad = ("F" if wrong["answer"] != "F" else "T") if wrong["type"] == "tfng" else (wrong["answer"] + 1) % len(wrong["options"])
+    run1 = {"v": 1, "i": len(les1["items"]) - 1, "ans": {wrong["id"]: bad}, "checked": {}, "heard": {}, "self": {}, "el": 0, "started": True, "finished": True}
+    q5 = _q("u05-l1-i8-q1")
+    run5 = {"v": 1, "i": 9, "ans": {"u05-l1-i8-q1": sorted(_old(M1["u05-l1-i8-q1"], x) for x in q5["answer"])}, "checked": {}, "heard": {}, "self": {},
+            "el": 0, "started": True, "finished": True}
+    data = _data({"u01-l1": {"done": True, "got": 5, "total": 6, "at": NOW - 5 * D}, "u05-l1": {"done": True, "got": 2, "total": 4, "at": NOW - 4 * D}})
+    mine = lambda st, lid: [e for e in st["log"] if e["l"] == lid]
+
+    def reload_(h="#/"):
+        page.reload()
+        page.wait_for_function("h => document.getElementById('app').dataset.ready === h", arg=h, timeout=15000)
+        page.evaluate("() => IE.study.settled()")
+    try:
+        # 1. device B: its first IELTS Prep step was the app, whose Drive copy wrote A's ielts:study (with a card)
+        C.seed(page, C.seed_keys())
+        remote = {"v": 1, "cards": {"u02-l1-i3-q1": {"lid": "u02-l1", "box": 1, "due": NOW + D, "hits": 1, "last": NOW - H, "n": 1}},
+                  "log": [{"q": "u02-l1-i3-q1", "l": "u02-l1", "k": "mc", "s": "start", "ok": True, "x": 1, "at": NOW - H}],
+                  "session": None, "exam": None, "calib": [], "mig": 1, "at": NOW - H}
+        merged = page.evaluate("r => vocabIelts.sync.merge({}, {'ielts:study': r})['ielts:study']", remote)
+        assert merged["cards"] and "mig" not in merged, merged
+        _seed(page, {"ielts:run:u01-l1": run1, "ielts:data": data, "ielts:study": merged})
+        _open(page)
+        page.evaluate("() => IE.study.settled()")
+        st = _ls(page, "ielts:study")
+        assert len(mine(st, "u01-l1")) == len(qs1) and len(mine(st, "u02-l1")) == 1, [(e["l"], e["q"]) for e in st["log"]]
+        assert wrong["id"] in st["cards"] and "u02-l1-i3-q1" in st["cards"], sorted(st["cards"])
+        assert all(e["at"] == NOW - 5 * D for e in mine(st, "u01-l1")), "logged at the time of the lesson"
+        assert page.evaluate(deck) and "mig" not in st, (page.evaluate(deck), st.get("mig"))
+        n = len(st["log"])
+        reload_()
+        assert len(_ls(page, "ielts:study")["log"]) == n, "the runs were imported twice"
+
+        # 2. a load that waits: u05-l1 can't be moved (storage full)
+        _seed(page, {"ielts:run:u01-l1": run1, "ielts:run:u05-l1": run5, "ielts:data": data, "__full": "ielts:run:u05-l1"})
+        _open(page)
+        page.evaluate("() => IE.study.settled()")
+        assert page.evaluate(flags) == ["0", "0"] and page.evaluate("() => IE.migPending") is True
+        assert not page.evaluate(deck) and not mine(_ls(page, "ielts:study") or {"log": []}, "u01-l1"), "the deck didn't wait"
+        # a lesson finished in that load, as the player does (at, fin, then prog.done): logged now
+        page.evaluate("""async () => { const t = Date.now();
+          localStorage.setItem('ielts:run:u03-l1', JSON.stringify({v: 1, i: 0, ans: {}, checked: {}, heard: {}, self: {}, el: 0, started: true, finished: true, at: t, fin: t}));
+          IE.prog.done('u03-l1', {got: 0, total: 2}); await IE.study.settled(); }""")
+        n3 = len(mine(_ls(page, "ielts:study"), "u03-l1"))
+        assert n3 > 0 and not page.evaluate(deck)
+        # room again, and the learner opens u05-l1 in the same load: it is moved before the player saves it
+        page.evaluate("() => localStorage.removeItem('__full')")
+        page.evaluate("() => { location.hash = '#/lesson/u05-l1'; }")
+        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/lesson/u05-l1'", timeout=15000)
+        assert "Lesson complete" in page.inner_text("#app")
+        page.evaluate("() => { location.hash = '#/'; }")
+        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/'", timeout=15000)
+        r5 = _ls(page, "ielts:run:u05-l1")
+        assert r5["mig"] == 2 and r5.get("at") and _mark(q5, r5["ans"]["u05-l1-i8-q1"]) == 2, r5
+        # the learner also looks at the older u01-l1 in that load: the player saves it with a time, and it still counts
+        # as finished before this version (no fin)
+        page.evaluate("() => { location.hash = '#/lesson/u01-l1'; }")
+        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/lesson/u01-l1'", timeout=15000)
+        page.evaluate("() => { location.hash = '#/'; }")
+        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/'", timeout=15000)
+        r1 = _ls(page, "ielts:run:u01-l1")
+        assert r1.get("at") and "fin" not in r1, r1
+        # the next load: nothing moved twice, the older runs reach the deck, the lesson of that load once
+        reload_()
+        f2 = page.evaluate(flags)
+        assert all(f and f != "0" for f in f2), f2
+        assert _ls(page, "ielts:run:u05-l1") == r5, "a run was moved twice"
+        st = _ls(page, "ielts:study")
+        assert len(mine(st, "u01-l1")) == len(qs1) and len(mine(st, "u03-l1")) == n3, [(e["l"], e["q"]) for e in st["log"]]
+        assert [e["ok"] for e in mine(st, "u05-l1") if e["q"] == "u05-l1-i8-q1"] == [True], mine(st, "u05-l1")
+        assert page.evaluate(deck)
+        n = len(st["log"])
+        reload_()
+        assert len(_ls(page, "ielts:study")["log"]) == n
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
 # ---------------------------------------------------------------- 2. writing compare: words copied from the question
 def test_ielts_integration_compare_copied():
     page = C.new_page("phone")
@@ -304,9 +431,15 @@ def test_ielts_integration_compare_copied():
 
 
 # ---------------------------------------------------------------- 3. every unit, offline
+def _version():
+    return int(re.search(r"const VERSION = (\d+);", (C.ROOT / "sw.js").read_text(encoding="utf-8")).group(1))
+
+
 class _Switch(C._Quiet):
     """the usual server; with ST["down"] it closes the connection without answering (no network, for the service worker
-    too); with ST["slow"] = (regex, s) it waits s seconds before answering a path that matches"""
+    too); with ST["slow"] = (regex, s) it waits s seconds before answering a path that matches; with ST["bump"], a new
+    version of the app as it is released: sw.js with VERSION + 1, and index.html and ielts.html with their ?v= (and
+    OFF_SHELL) raised with it"""
     ST = {}
 
     def do_GET(self):
@@ -316,6 +449,23 @@ class _Switch(C._Quiet):
         slow = self.ST.get("slow")
         if slow and re.search(slow[0], self.path):
             time.sleep(slow[1])
+        p = self.path.split("?")[0]
+        if self.ST.get("bump") and p in ("/sw.js", "/", "/index.html", "/ielts.html"):
+            v = _version()
+            name = "sw.js" if p == "/sw.js" else "ielts.html" if p == "/ielts.html" else "index.html"
+            src = (C.ROOT / name).read_text(encoding="utf-8")
+            if name == "sw.js":
+                body = src.replace(f"const VERSION = {v};", f"const VERSION = {v + 1};")
+            else:
+                body = src.replace(f'?v={v}"', f'?v={v + 1}"').replace(f'"vocab-shell-v{v}"', f'"vocab-shell-v{v + 1}"')
+            assert body != src, f"the new version of {name} changed nothing"
+            out = body.encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "text/javascript; charset=utf-8" if name == "sw.js" else "text/html; charset=utf-8")
+            self.send_header("Content-Length", str(len(out)))
+            self.end_headers()
+            self.wfile.write(out)
+            return
         super().do_GET()
 
 
@@ -394,7 +544,9 @@ def test_ielts_integration_stale_unit_copies():
     slow network, data.unit() sees the copy has no rev 2, fetches the file past it and saves it, so the deck built from
     an old finished run marks its right answer right; offline afterwards the saved copy is the new one. Offline with
     only the old copy, the unit says it was updated (never the old options) and the deck waits for a load with a
-    connection, which then builds it right."""
+    connection, which then builds it right. And a new version of the app, installed with a connection, fetches such a
+    copy again at once: offline afterwards the unit opens (before, it said it was updated until IELTS Prep was opened
+    with a connection) and the deck is built."""
     st = {}
     srv = C.Server(C.ROOT, "localhost", handler=type("H", (_Switch,), {"ST": st}))
     # no page.route: with Playwright's request interception on, Chromium hands cache:"no-store" requests to the service
@@ -431,7 +583,7 @@ def test_ielts_integration_stale_unit_copies():
     def deck_i8():
         page.evaluate("() => IE.study.settled()")
         s = _ls(page, "ielts:study") or {}
-        return [(e["ok"], e.get("tag")) for e in s.get("log", []) if e["q"] == "u01-l3-i8"], s.get("mig")
+        return [(e["ok"], e.get("tag")) for e in s.get("log", []) if e["q"] == "u01-l3-i8"], page.evaluate("() => localStorage.getItem('ielts:mig:deck')")
 
     try:
         C.seed(page, {**C.seed_keys(), "ielts:on": "true"})
@@ -442,7 +594,7 @@ def test_ielts_integration_stale_unit_copies():
         _open(page, "#/")
         assert _ls(page, "ielts:run:u01-l3")["ans"]["u01-l3-i8"] == q8["answer"], "the migration didn't move the answer"
         got, mig = deck_i8()
-        assert got == [(True, None)] and mig == 1, (got, mig)
+        assert got == [(True, None)] and mig, (got, mig)
         for _ in range(40):
             if page.evaluate(_MEDIA_REV, "u01") == V.REV:
                 break
@@ -478,8 +630,35 @@ def test_ielts_integration_stale_unit_copies():
         reopen("#/unit/u01")
         assert _unit(1)["title"] in page.inner_text("#app")
         got, mig = deck_i8()
-        assert got == [(True, None)] and mig == 1, (got, mig)
+        assert got == [(True, None)] and mig, (got, mig)
         assert not errs(), errs()
+
+        # a new version installs with a connection, while nothing of IELTS Prep is open: the old copy is fetched again
+        page.goto(C.base_url(page) + "/__blank")
+        page.wait_for_timeout(500)   # (a unit copy the page was still saving lands first)
+        old_device()
+        assert page.evaluate(_MEDIA_REV, "u01") is None
+        v = _version()
+        st["bump"] = True
+        page.evaluate("() => navigator.serviceWorker.getRegistration().then(r => r.update())")
+        keys = []
+        for _ in range(120):
+            keys = page.evaluate("() => caches.keys()")
+            if f"vocab-shell-v{v + 1}" in keys and f"vocab-shell-v{v}" not in keys:
+                break
+            page.wait_for_timeout(250)
+        assert f"vocab-shell-v{v + 1}" in keys and f"vocab-shell-v{v}" not in keys, keys
+        assert page.evaluate(_MEDIA_REV, "u01") == V.REV, "installing the new version left the old unit copy in vocab-media"
+        # offline afterwards: the unit opens and the deck is built with the new options
+        st["down"] = True
+        ctx.set_offline(True)
+        C.clear_errors(page)
+        reopen("#/unit/u01")
+        t = page.inner_text("#app")
+        assert _unit(1)["title"] in t and stale_t not in t, t[:300]
+        got, mig = deck_i8()
+        assert got == [(True, None)] and mig, (got, mig)
+        assert not [e for e in errs() if not any(re.search(a, e) for a in ok)], errs()
         assert not outside, outside
     finally:
         try:
@@ -601,21 +780,33 @@ def test_ielts_integration_drive_two_devices():
         assert not rb.get("ielts:study") or not rb["ielts:study"].get("cards"), rb.get("ielts:study")
         # B: what it did before the erase goes; what it did after it stays
         # (and its lesson runs and drafts from before the erase, or without a time, go too: no «Continue», no results
-        # and no deck rebuilt from them, which would bring the old mistakes back to every device)
-        pb.evaluate("""e => { const d = JSON.parse(localStorage.getItem('ielts:data'));
-          d.lessons['u05-l1'] = {done: true, got: 2, total: 2, at: e + 60000}; localStorage.setItem('ielts:data', JSON.stringify(d));
+        # and no deck rebuilt from them, which would bring the old mistakes back to every device). An older player never
+        # dated its runs: a finished one takes the time of its result on this device (u01-l3 before the erase goes,
+        # u05-l1 after it stays), and an unfinished one with an essay in it stays (it exists nowhere else)
+        essay = "Some cities have banned cars from their centres, and the results deserve a closer look."
+        pb.evaluate("""([e, essay]) => { const d = JSON.parse(localStorage.getItem('ielts:data'));
+          d.lessons['u05-l1'] = {done: true, got: 2, total: 2, at: e + 60000}; d.lessons['u01-l3'] = {done: true, got: 1, total: 1, at: e - 60000};
+          localStorage.setItem('ielts:data', JSON.stringify(d));
           const put = (k, v) => localStorage.setItem(k, typeof v === 'string' ? v : JSON.stringify(v));
-          put('ielts:run:u01-l3', {i: 12, ans: {'u01-l3-i8': 0}, finished: true});
-          put('ielts:run:u02-l1', {i: 1, ans: {}, at: e - 60000});
-          put('ielts:run:u05-l1', {i: 2, ans: {}, finished: true, at: e + 60000});
+          put('ielts:run:u01-l3', {v: 1, i: 12, ans: {'u01-l3-i8': 0}, finished: true});
+          put('ielts:run:u02-l1', {v: 1, i: 1, ans: {}, at: e - 60000});
+          put('ielts:run:u05-l1', {v: 1, i: 2, ans: {}, finished: true});
+          put('ielts:run:u13-l2', {v: 1, i: 1, ans: {'u13-l2-i2': essay}});
+          put('ielts:run:u07-l1', {v: 1, i: 2, ans: {'u07-l1-i3': 'T'}});
           put('ielts:draft:eb', {text: 'old', at: e - 1}); put('ielts:draft:ec', {text: 'new', at: e + 1}); put('ielts:draft:ed', 'draft');
-          put('ielts:mig:content1', '1'); }""", er["erased"])
+          put('ielts:mig:content1', '1'); }""", [er["erased"], essay])
         assert pb.evaluate("vocabIelts.sync.now()") is True
         mb2 = _ls(pb, "ielts:data")
         assert list(mb2["lessons"]) == ["u05-l1"] and not mb2["tests"] and not mb2["essays"] and mb2["erased"] == er["erased"], mb2
-        assert not _ls(pb, "ielts:study")["cards"] and _ls(pb, "ielts:study")["mig"] == 1, _ls(pb, "ielts:study")
+        assert not _ls(pb, "ielts:study")["cards"], _ls(pb, "ielts:study")
         kb = pb.evaluate("() => Object.keys(localStorage).filter(k => /^ielts:(run|draft|mig):/.test(k)).sort()")
-        assert kb == ["ielts:draft:ec", "ielts:mig:content1", "ielts:run:u05-l1"], kb
+        assert kb == ["ielts:draft:ec", "ielts:mig:content1", "ielts:run:u05-l1", "ielts:run:u13-l2"], kb
+        # B then opens IELTS Prep: its deck holds the lesson finished after the erase, and nothing from before it
+        _open(pb, "#/")
+        pb.evaluate("() => IE.study.settled()")
+        lb = _ls(pb, "ielts:study")["log"]
+        assert lb and {e["l"] for e in lb} == {"u05-l1"}, sorted({e["l"] for e in lb})
+        assert pb.evaluate("() => localStorage.getItem('ielts:mig:deck')"), "the deck wasn't built on B"
         assert pa.evaluate("vocabIelts.sync.now()") is True
         assert list(_ls(pa, "ielts:data")["lessons"]) == ["u05-l1"]
 
