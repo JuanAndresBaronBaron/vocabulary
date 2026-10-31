@@ -1,7 +1,8 @@
 """IELTS Prep: the study engine (js/ielts-study.js and its «package: study» section of ielts.css).
 
 - The deck: a finished learn lesson makes a card of every standalone question (missed → box 0, due tomorrow; right →
-  box 1, due in 3 days); a missed set question of a test becomes a wrapped card with its passage or its transcript;
+  box 1, due in 3 days); a missed set question of a test becomes a wrapped card with its passage or its transcript
+  and the set's visual (the plan to label, the table to complete);
   #/lesson/review runs in the real player and grading moves the boxes (+1 / −2, never below 0); the exam-date cap;
   secure cards retire; at most 20 cards (5 wrapped) per session; options are shuffled only when no text refers to them
   by letter, and the answer follows; a reload resumes the same session; a new session deletes ielts:run:review; the
@@ -214,6 +215,61 @@ def test_study_review_in_the_player():
         page.context.close()
 
 
+# a small plan for the label-the-plan set of u04-l2-i1, served in place of the real one (content packages add the real
+# visuals; the study engine only has to carry them over)
+_PLAN = {"kind": "map", "title": "Hallam Bridge Mill", "maps": [{"title": "Site plan (north is at the top)", "items": [
+    {"label": "River", "x": 0, "y": 5, "w": 100, "h": 12, "shape": "water"},
+    {"label": "A", "mark": True, "x": 10, "y": 30, "w": 20, "h": 15, "shape": "rect"},
+    {"label": "B", "mark": True, "x": 40, "y": 30, "w": 20, "h": 15, "shape": "rect"},
+    {"label": "C", "mark": True, "x": 70, "y": 30, "w": 20, "h": 15, "shape": "rect"},
+    {"label": "Courtyard", "x": 30, "y": 55, "w": 40, "h": 30, "shape": "rect"}]}]}
+
+
+def test_study_wrapped_card_keeps_the_set_visual():
+    page = _page()
+    try:
+        u04 = _unit("u04")
+        les = next(l for l in u04["lessons"] if l["id"] == "u04-l2")
+        it = next(i for i in les["items"] if i["id"] == "u04-l2-i1")
+        with_vis = it["sets"][0]
+        assert "Label the" in with_vis["instr"], with_vis["instr"]
+        with_vis["visual"] = _PLAN
+        body = json.dumps(u04)
+        page.route("**/data/ielts/u04.json*", lambda r: r.fulfill(status=200, content_type="application/json", body=body))
+        _open(page)
+        s = _finish(page, "u04-l2", {})
+        ids = [q["id"] for st_ in it["sets"] for q in st_["items"]]
+        assert all(s["cards"][i]["p"] == "u04-l2-i1" for i in ids), [s["cards"].get(i) for i in ids]
+        # only the plan question is due: its wrapped item carries the plan
+        page.evaluate("""(id) => { const s = JSON.parse(localStorage.getItem('ielts:study'));
+          for(const [k, c] of Object.entries(s.cards)) if(k !== id) c.due += 30 * 864e5; else c.due -= 2 * 864e5;
+          localStorage.setItem('ielts:study', JSON.stringify(s)); }""", with_vis["items"][0]["id"])
+        L = page.evaluate("async () => (await IE.data.lesson('review')).lesson")
+        assert [i["id"] for i in L["items"]] == ["rv-" + with_vis["items"][0]["id"]], [i["id"] for i in L["items"]]
+        w = L["items"][0]
+        assert w["title"] == f"Transcript · {it['title']}" and w["sets"][0]["visual"] == _PLAN, w["sets"][0].keys()
+        assert w["sets"][0]["items"][0]["options"] == with_vis["items"][0]["options"]
+        # a set without a visual doesn't get one
+        q2 = it["sets"][1]["items"][0]["id"]
+        page.evaluate("""([a, b]) => { const s = JSON.parse(localStorage.getItem('ielts:study'));
+          s.cards[a].due += 60 * 864e5; s.cards[b].due -= 90 * 864e5; s.session = null;
+          localStorage.setItem('ielts:study', JSON.stringify(s)); }""", [with_vis["items"][0]["id"], q2])
+        L2 = page.evaluate("async () => (await IE.data.lesson('review')).lesson")
+        assert [i["id"] for i in L2["items"]] == ["rv-" + q2] and "visual" not in L2["items"][0]["sets"][0], L2["items"][0]["sets"][0].keys()
+        # the review lesson opens in the real player; a player that draws set visuals draws the plan
+        page.evaluate("""(id) => { const s = JSON.parse(localStorage.getItem('ielts:study'));
+          for(const c of Object.values(s.cards)) c.due += 120 * 864e5; s.cards[id].due -= 200 * 864e5; s.session = null;
+          localStorage.setItem('ielts:study', JSON.stringify(s)); }""", with_vis["items"][0]["id"])
+        _open(page, "#/lesson/review")
+        page.wait_for_selector("#ie-item")
+        player = (V.DATA.parents[1] / "js" / "ielts-player.js").read_text(encoding="utf-8")
+        if "s.visual" in player:
+            page.locator("#ie-item .ie-set figure.ie-viz").first.wait_for(state="attached", timeout=5000)
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
 def test_study_exam_cap_and_secure_cards():
     page = _page()
     try:
@@ -312,10 +368,17 @@ def test_study_session_limits_shuffle_and_resume():
                 assert sorted(q["options"][i] for i in q["answer"]) == sorted(so[i] for i in o["answer"]), q["id"]
         # option letters in the question or the explanation keep the order
         assert page.evaluate("(q) => IE.study.canShuffle(q)", orig["u11-l1-i6"]) is False
+        # «A says…» and «the first option…» name an option too (both are learn items, so they'd be standalone cards)
+        for lid, iid in (("u22-l2", "u22-l2-i5"), ("u01-l3", "u01-l3-i13")):
+            q = next(i for i in _lesson(lid)["items"] if i["id"] == iid)
+            assert page.evaluate("(q) => IE.study.canShuffle(q)", q) is False, iid
         lr = page.evaluate("""() => [IE.study.letterRefs('Option B summarises the trend.'), IE.study.letterRefs('A is wrong: it overstates.'),
           IE.study.letterRefs('(C) is a distractor'), IE.study.letterRefs('Paragraph C: the char insulates.'),
-          IE.study.letterRefs('A case study first, then the figures.'), IE.study.letterRefs('Paragraphs B and D give the dates.')]""")
-        assert lr == [True, True, True, False, False, False], lr
+          IE.study.letterRefs('A case study first, then the figures.'), IE.study.letterRefs('Paragraphs B and D give the dates.'),
+          IE.study.letterRefs('A says the same thing in neutral language.'), IE.study.letterRefs('Good. A uses the right word.'),
+          IE.study.letterRefs('The first option is forced and overblown.'), IE.study.letterRefs('*A sharp rise in* is the standard collocation.'),
+          IE.study.letterRefs('Ben first finds it persuasive.')]""")
+        assert lr == [True, True, True, False, False, False, True, True, True, False, False], lr
         # a reload rebuilds the same lesson, in the real player too
         _open(page, "#/lesson/review")
         first = page.inner_text("#ie-item")
@@ -377,6 +440,9 @@ def test_study_notebook_tags_and_tables():
             number: g(['1890'], 'A NUMBER', '1980'),
             number2: g(['15.50'], 'ONE WORD AND/OR A NUMBER', '£15.50'),
             number3: g(['12'], 'ONE WORD AND/OR A NUMBER', '12 May'),
+            phone: g(['07700 911483', '07700911483'], 'A NUMBER', '07700 911438'),
+            phoneOver: g(['07700 911483'], 'A NUMBER', 'mobile 07700 911438'),
+            swaps: [g(['field'], 'ONE WORD ONLY', 'feild'), g(['their'], 'ONE WORD ONLY', 'thier'), g(['piano'], 'ONE WORD ONLY', 'paino')],
             plural: g(['station'], 'ONE WORD ONLY', 'stations'),
             plural2: g(['library'], 'ONE WORD ONLY', 'libraries'),
             wrong: g(['table'], 'ONE WORD ONLY', 'chair'),
@@ -404,6 +470,10 @@ def test_study_notebook_tags_and_tables():
         assert r["spelling"] == "spelling" and r["limit"] == "word limit" and r["limit2"] == "word limit", r
         assert r["hyphen"] is None and r["hyphenMiss"] == "spelling", r
         assert r["number"] == r["number2"] == r["number3"] == "number format", r
+        # a phone number with a space is one number, not two words over the limit
+        assert r["phone"] == "number format" and r["phoneOver"] == "word limit", r
+        # swapping two adjacent letters is one slip, even in a short word
+        assert r["swaps"] == ["spelling"] * 3, r["swaps"]
         assert r["plural"] == r["plural2"] == "singular/plural" and r["wrong"] == "wrong word" and r["short"] == "wrong word" and r["blank"] == "unanswered", r
         assert [r[k] for k in ("tng", "ngt", "fng", "tfx", "yng", "nng", "yn", "tfBlank")] == ["T↔NG", "T↔NG", "F↔NG", "T↔F", "Y↔NG", "N↔NG", "Y↔N", "unanswered"], r
         assert r["pick"] == "distractor" and r["pickBlank"] == "unanswered" and r["multi"] == "distractor" and r["multiHalf"] == "unanswered" and r["right"] is None, r

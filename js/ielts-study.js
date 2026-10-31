@@ -157,19 +157,29 @@ function parseLimit(s){
   const m = /\b(one|two|three|four|five)(?:\s+or\s+(one|two|three|four|five))?\s+words?\b/.exec(t);
   return m ? {w: NUMW[m[2] || m[1]], n: num ? 1 : 0} : null;
 }
-/* words beyond the limit: a hyphenated word counts as one, a number as a word unless the limit allows one */
+/* words beyond the limit: a hyphenated word counts as one, a number as a word unless the limit allows one; a run of
+   tokens with digits is one number (07700 911483, BS7 4QD), as in the validator */
 function overLimit(v, lim){
-  const tok = String(v).trim().split(/\s+/).filter(Boolean), nums = tok.filter(x => /\d/.test(x)).length;
-  return tok.length - nums + Math.max(0, nums - lim.n) > lim.w;
+  let nums = 0, words = 0, prevNum = false;
+  for(const x of String(v).trim().split(/\s+/).filter(Boolean)){
+    const d = /\d/.test(x);
+    if(d){ if(!prevNum) nums++; } else words++;
+    prevNum = d;
+  }
+  return words + Math.max(0, nums - lim.n) > lim.w;
 }
+/* edit distance where swapping two adjacent letters counts as one edit (optimal string alignment): feild → field is 1 */
 function lev(a, b){
   if(a === b) return 0; if(!a.length) return b.length; if(!b.length) return a.length;
   if(Math.abs(a.length - b.length) > 3) return 9;
-  let prev = Array.from({length: b.length + 1}, (_, i) => i);
+  let prev2 = null, prev = Array.from({length: b.length + 1}, (_, i) => i);
   for(let i = 1; i <= a.length; i++){
     const cur = [i];
-    for(let j = 1; j <= b.length; j++) cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
-    prev = cur;
+    for(let j = 1; j <= b.length; j++){
+      cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+      if(i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) cur[j] = Math.min(cur[j], prev2[j - 2] + 1);
+    }
+    prev2 = prev; prev = cur;
   }
   return prev[b.length];
 }
@@ -272,11 +282,15 @@ async function onLesson(lid, run, at){
 
 /* ---------- the virtual review lesson ---------- */
 const PARA_REF = /\bparagraphs?\s+[A-H](?:\s*(?:,|and|or|to|-|–)\s*[A-H])*\b/gi;
-/* true when a text refers to options by letter: "(B)", "B is", "option C", "A and D" (paragraph letters don't count) */
+/* true when a text refers to options by letter or by position: "(B)", "B is", "option C", "A and D", "A says",
+   "the first option" (paragraph letters don't count) */
+const A_SUBJ = /(?:^|[.;:!?]\s+)(?:\*\*)?A(?:\*\*)?\s+(?:says|uses|gives|has|keeps|matches|fits|shows|states|means|sounds|repeats|describes|does|doesn't|would|could|also)\b/;
+const POS_REF = /\b(?:first|second|third|fourth|fifth|last)\s+(?:options?|answers?|choices?)\b|\bthe\s+(?:former|latter)\b/i;
 function letterRefs(txt){
   const t = String(txt || "").replace(PARA_REF, " ");
   return /\(\s*[A-H]\s*\)/.test(t) || /\boptions?\s+[A-H]\b/i.test(t) || /\b[B-H]\b/.test(t)
-    || /\bA\b(?=\s*(?:[,;:).]|\band\b|\bor\b|\bis\b|\bwas\b|\bare\b))/.test(t) || /\b(?:and|or|nor|but|while|whereas|unlike|than)\s+A\b/.test(t);
+    || /\bA\b(?=\s*(?:[,;:).]|\band\b|\bor\b|\bis\b|\bwas\b|\bare\b))/.test(t) || /\b(?:and|or|nor|but|while|whereas|unlike|than)\s+A\b/.test(t)
+    || A_SUBJ.test(t) || POS_REF.test(t);
 }
 const TF_OPTS = /^(true|false|not given|yes|no)$/i;
 function canShuffle(q){
@@ -314,10 +328,13 @@ function findQ(u, lid, qid, p){
 /* a set question becomes a reading item of its own, with the passage (or the transcript of the recording) */
 function wrap(f, q){
   const it = f.it, instr = String(f.st.instr || "").replace(/^Questions?\s+\d+(?:\s*[-–]\s*\d+)?[.:]?\s*/i, "");
-  if(it.type === "reading") return {id: `rv-${q.id}`, type: "reading", title: it.title, paragraphs: clone(it.paragraphs), sets: [{instr, items: [q]}]};
+  /* the set's visual (the plan, map or diagram to label, the table to complete) goes with the question */
+  const set = {instr, items: [q]};
+  if(f.st.visual) set.visual = clone(f.st.visual);
+  if(it.type === "reading") return {id: `rv-${q.id}`, type: "reading", title: it.title, paragraphs: clone(it.paragraphs), sets: [set]};
   const name = id => ((it.speakers || []).find(x => x.id === id) || {}).name || id;
   return {id: `rv-${q.id}`, type: "reading", title: `Transcript · ${it.title}`,
-    paragraphs: (it.script || []).map(l => ({label: null, text: `**${name(l.s)}:** ${l.t}`})), sets: [{instr, items: [q]}]};
+    paragraphs: (it.script || []).map(l => ({label: null, text: `**${name(l.s)}:** ${l.t}`})), sets: [set]};
 }
 async function buildItems(sess, s, fresh){
   const items = [], ids = [], meta = {};
@@ -580,7 +597,7 @@ const GRAW = ["Grammatical Range and Accuracy", "A wide range of structures used
   9: ["Structures are used with full flexibility and control.", "At most one slip in the whole text.", "Punctuation is appropriate throughout."]}];
 const CRIT = {
   w1: [["Task Achievement", "A clear overview; every key feature selected, reported accurately and compared; nothing irrelevant.", {
-    7: ["A clear overview of the main trends, differences or stages.", "The key features are covered and every figure given is accurate.",
+    7: ["A clear overview of the main trends, differences or stages.", "The key features are covered and the figures are accurate, with at most a few slips.",
       "The data are grouped sensibly, not reported item by item."],
     8: ["The key features are skilfully selected and each one is illustrated with the right data.", "Everything the task asks for is covered, with no more than an occasional slip."],
     9: ["All requirements are fully met: nothing important is missing or misreported.", "Every detail earns its place; nothing is irrelevant, speculative or an opinion."]}], CC, LRW, GRAW],
