@@ -407,6 +407,20 @@ compartida no responde).
   palabra en inglés y francés y otra vez dos palabras en danés, unirse tocando a tiempo y con un micrófono de mentira,
   `window.__rapRounds`); capturas en `capturas/hablar` (360 claro, 390 oscuro con «Reducir movimiento» y 1280) con
   contraste, paleta y `a11y.js`.
+- `test_offline_sync.py` (sin conexión, guardado en Google y arranque: `sw.js`, `js/sync.js`, `js/save.js` y el
+  arranque de `index.html`): SHELL igual a OFF_APP, sin «./» y con LAZY (fondos de Pajarito, Tech e IELTS) aparte; la
+  gramática que no llega no se guarda vacía (`#/gramatica` dice «Sin conexión» con «Reintentar» y con `online` el
+  camino se repinta); primera visita con red (el sw se registra tras `load` y la app guarda de antemano en
+  `vocab-media` personajes, gramática, mapa de audios, las 2 lecciones siguientes y el tema de Juegos) y luego sin red
+  de verdad (servidor que corta la conexión): camino, gramática, lección, Memoria sin dibujos rotos y la página «Sin
+  conexión» con «Reintentar» en un tema nunca abierto, que se pinta sola al volver la red; el sw da los js con
+  `?v=VERSION` del shell, la página y los datos lentos a los 3 s de lo guardado (y luego sin esperar), nunca un fichero
+  de otro `?v=` y lo de LAZY ya usado pasa al shell nuevo; `calmCss` solo con «Reducir movimiento»; un guardado que no
+  cabe sale en Ajustes › Para mayores («Libera espacio», «Descargar copia»); con un Drive de mentira (`page.route`) y
+  dos aparatos: una partida de Drive de una versión más nueva nunca se pisa («Hay una versión nueva de la app. Recarga
+  para seguir.»), `vocabSave.merge` (estrellas, repaso, días, álbum, récords, cuentos, temporada, sellos) y dos aparatos
+  que juegan a la vez se juntan sin perder nada (con «Volver a la partida de antes»), y se sube enseguida al acabar
+  una lección o un juego (sin `keepalive` con más de 60 KB). Capturas en `capturas/offline`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

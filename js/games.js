@@ -409,7 +409,7 @@ async function pool(src){
     sw.add(kw); se.add(ke); si.add(r.img);
     out.push({k: d + "|" + r.es, es, word, img: r.img, doc: d, ipa: x.ipa || ""});
   }
-  return out;
+  return window.vocabOffline ? vocabOffline.prefer(out) : out;   /* sin conexión, las de dibujo ya guardado (index.html) */
 }
 const topicId = () => { const t = store.get("games:topic", "animales"); return typeof t === "string" && (t === MIS || TOPICS.some(x => x[0] === t)) ? t : "animales"; };
 const isTopic = t => typeof t === "string" && (t === MIS || TOPICS.some(x => x[0] === t));

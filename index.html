@@ -728,6 +728,13 @@ input[type=search]{flex:1;min-width:180px;padding:10px 14px;border:1px solid var
 .off-bar{height:8px;border-radius:999px;background:var(--fill);overflow:hidden;margin:12px 0 6px}
 .off-bar i{display:block;height:100%;width:0;background:var(--teal);border-radius:inherit;transition:width .2s}
 @media (prefers-reduced-motion:reduce){.off-bar i{transition:none}}
+/* una pantalla que no se pudo abrir (routeFail): «Sin conexión» con «Reintentar» */
+.rt-off{display:flex;flex-direction:column;align-items:center;gap:10px;max-width:420px;margin:40px auto;padding:0 8px;text-align:center}
+.rt-off-ic{display:grid;place-items:center;width:84px;height:84px;border-radius:50%;background:var(--fill);color:var(--label2)}
+.rt-off-t{margin:4px 0 0;font:700 var(--fs-t2)/1.2 var(--f-round);color:var(--label)}
+.rt-off-p{margin:0;font:400 var(--fs-body)/1.4 var(--f-text);color:var(--label2)}
+.rt-off-b{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:8px}
+.rt-off .empty{padding:0}
 select{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);max-width:100%}
 input[type=range]{accent-color:var(--brand)}
 /* diálogo de voz */
@@ -945,8 +952,21 @@ const LANGS = {
 };
 const store = {
   get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},
-  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  set(k,v){try{localStorage.setItem(k,JSON.stringify(v));if(SAVE_FAIL&&SAVE_FAIL.k===k)saveFail(null)}catch(e){saveFail(k,e)}}
 };
+/* un guardado que no se pudo hacer (el navegador sin sitio, o que no deja guardar): no se calla. Se apunta aquí y en
+   sessionStorage "vocab:savefail" {k, at, full} (en localStorage no cabe) y Ajustes › Para mayores lo enseña con qué
+   hacer (js/sync.js: «Libera espacio» y «Descargar copia»); bus "save-fail". Si esa clave se guarda bien después, se
+   quita. */
+let SAVE_FAIL = (() => { try{ const o = JSON.parse(sessionStorage.getItem("vocab:savefail")); return o && typeof o.k === "string" ? o : null; }catch(e){ return null; } })();
+function saveFail(k, e){
+  const full = !!e && (e.name === "QuotaExceededError" || e.name === "NS_ERROR_DOM_QUOTA_REACHED" || e.code === 22 || e.code === 1014);
+  const was = SAVE_FAIL;
+  SAVE_FAIL = k ? {k, at: Date.now(), full} : null;
+  try{ if(SAVE_FAIL) sessionStorage.setItem("vocab:savefail", JSON.stringify(SAVE_FAIL)); else sessionStorage.removeItem("vocab:savefail"); }catch(err){}
+  if(k && !was) console.warn("[guardar] no se pudo guardar", k, e && e.name);
+  try{ if(!!was !== !!SAVE_FAIL || (SAVE_FAIL && was.k !== k)) bus.emit("save-fail", SAVE_FAIL); }catch(err){}
+}
 let lang = store.get("lang","english"); if(!LANGS[lang]) lang="english";
 let rate = store.get("rate",0.9);
 let INDEX = null; const CACHE = {};
@@ -1870,7 +1890,7 @@ let rv = null;
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
 const OFF_SHELL = "vocab-shell-v38", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
-const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
+const OFF_APP = ["index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/party.js", "data/party.json", "img/games/impostor.png", "img/games/ordenar.png", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
   "icons/icon-192-maskable.png", "icons/icon-512-maskable.png", "fonts/nunito-latin-700-normal.woff2", "fonts/nunito-latin-800-normal.woff2",
@@ -1900,10 +1920,13 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
   "js/army.js", "data/army/en.json", "data/army/fr.json", "data/army/da.json", "img/games/soldados.png", "data/programadores.json", "img/om_1F7E6.png",
   "data/gimnasio.json", "data/muaythai.json", "data/kickboxing.json", "data/lucha.json", "data/jiujitsu.json",
-  "js/tech-boot.js", "js/tech.js", "js/tech-lesson.js",
-  "js/tech-pages.js",
-  "js/flyer.js", "img/games/pajarito.png", "img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg", "js/topos.js", "img/games/topos.png", "js/cuartel.js", "js/wordplay.js", "js/quiz.js", "js/grammargames.js", "img/games/cuartel.png", "img/games/adivina.png", "img/games/sopa.png", "img/games/crucigrama.png", "img/games/concurso.png", "img/games/verdadero.png", "img/games/cajas.png", "img/games/flechas.png", "img/games/ordenafrase.png", "img/games/completa.png", "img/games/detective.png",
-  "js/ielts-boot.js", "ielts.html", "ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js", "data/ielts/index.json"];
+  "js/tech-boot.js",
+  "js/flyer.js", "img/games/pajarito.png", "js/topos.js", "img/games/topos.png", "js/cuartel.js", "js/wordplay.js", "js/quiz.js", "js/grammargames.js", "img/games/cuartel.png", "img/games/adivina.png", "img/games/sopa.png", "img/games/crucigrama.png", "img/games/concurso.png", "img/games/verdadero.png", "img/games/cajas.png", "img/games/flechas.png", "img/games/ordenafrase.png", "img/games/completa.png", "img/games/detective.png",
+  "js/ielts-boot.js",
+  "img/games/memoria.png", "img/games/lluvia.png", "img/games/globos.png", "img/games/letras.png", "img/games/lince.png",
+  "img/pj/zorro.png", "img/pj/loro.png"];
+/* OFF_APP = SHELL de sw.js. Lo de LAZY (sw.js) que es del niño, los fondos de Pajarito volador, va en los dibujos */
+const OFF_LATER_IMG = ["img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg"];
 /* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
 const OFF_IMG_MB = 8, OFF_IMG_N = 996;            /* dibujos y personajes, con img/fam2 (los que ya están no se vuelven a pedir) */
@@ -2062,6 +2085,7 @@ async function downloadAll(){
     if(window.vocabCalls && vocabCalls.images) (await vocabCalls.images()).forEach(u => imgs.add(u));   /* los de las llamadas del zorro (img/calls) */
     if(window.vocabStories && vocabStories.images) (await vocabStories.images()).forEach(u => imgs.add(u));   /* los de los Cuentos del zorro */
     if(window.vocabHunter && vocabHunter.images) vocabHunter.images().forEach(u => imgs.add(u));   /* los del Cazador de cosas (modo tocar) */
+    OFF_LATER_IMG.forEach(u => imgs.add(u));   /* los fondos de Pajarito volador (no van en SHELL: LAZY de sw.js) */
     const second = [...[...imgs].map(u => [u, media]), ...ids.map(id => [`audio/${ab}/${id}.mp3`, media])];
     job.total = first.length + second.length;
     await pool(second, ([u, c]) => one(u, c, true, false));
@@ -2083,7 +2107,160 @@ let installEv = null;
 /* el aviso de instalar se guarda y se usa desde Ajustes › Para mayores › «Instalar la app» */
 addEventListener("beforeinstallprompt", e => { e.preventDefault(); installEv = e; });
 addEventListener("appinstalled", () => { installEv = null; });
-if("serviceWorker" in navigator && window.isSecureContext) navigator.serviceWorker.register("sw.js").catch(e => console.warn("No se pudo instalar el modo sin internet:", e.message));
+/* el service worker se registra después de load: su instalación (la app entera, unos 150 ficheros) no le quita red ni
+   tiempo a la primera pantalla */
+if("serviceWorker" in navigator && window.isSecureContext) addEventListener("load", () => {
+  navigator.serviceWorker.register("sw.js").then(warmWatch, e => console.warn("No se pudo instalar el modo sin internet:", e.message));
+  navigator.serviceWorker.ready.then(() => { warmOk = true; warmSoon(true); }, () => {});
+});
+
+/* ---------- guardar de antemano, sin pedirlo (warmCache) ----------
+   La primera visita la sirve la red (el service worker aún no manda) y, sin «Descargar todo», al día siguiente sin
+   conexión faltarían datos y dibujos. Con el service worker ya activo, con red, con la pantalla a la vista y el aparato
+   tranquilo (requestIdleCallback, como mucho 8 s), se guarda en vocab-media, de 2 en 2 y sin repetir lo que ya está:
+   los personajes (img/pj, ~460 KB) y su ropa (img/shop, ~340 KB: el zorro sale en muchas pantallas), la gramática y
+   el mapa de audios del idioma, y los temas y los dibujos de las 2 lecciones siguientes del camino, del tema elegido en
+   Juegos y de las palabras que tocan en el repaso (las 40 que antes tocan). Se repite al cambiar de idioma o de tema, al acabar una lección, al volver la conexión y cada día (warmKey).
+   Si queda poco sitio (navigator.storage.estimate: menos de 40 MB libres o más del 90 % usado) no guarda nada; un fallo
+   de red lo para. Pide con cache:"no-store" (sw.js no lo guarda otra vez). Los mp3 no: solo «Descargar todo».
+   Mientras se instala una versión nueva de la app (warmHold), espera: cada petición pasa por el service worker de
+   ahora, y con peticiones seguidas el navegador no lo suelta y la versión nueva no se activa. */
+const WARM_ROOM = 40 * 1048576, WARM_DUE = 40, WARM_POOL = 10;
+let warmOk = false, warmT = 0, warmRun = null, warmAgain = false, warmDone = "", warmLast = null, warmHold = false;
+function warmWatch(reg){
+  if(!reg) return;
+  const hold = w => {
+    if(!w) return;
+    warmHold = true;
+    const end = () => {
+      if(w.state !== "activated" && w.state !== "redundant") return;
+      w.removeEventListener("statechange", end);
+      warmHold = !!(reg.installing || reg.waiting);
+      if(!warmHold) warmSoon(true);
+    };
+    w.addEventListener("statechange", end); end();
+  };
+  hold(reg.installing || reg.waiting);
+  reg.addEventListener("updatefound", () => hold(reg.installing));
+}
+const warmKey = () => [lang, store.get("games:topic", ""), store.get("mapLv", ""), Object.keys(mapP() || {}).length, today()].join("|");
+function warmSoon(force){
+  if(!warmOk || warmHold || !("caches" in window) || navigator.onLine === false) return;
+  if(!force && warmKey() === warmDone) return;
+  clearTimeout(warmT);
+  warmT = setTimeout(() => {
+    const go = () => { if(document.visibilityState !== "hidden") warmCache().catch(e => console.warn("[sin internet] no se pudo guardar de antemano:", e && e.message)); };
+    if("requestIdleCallback" in window) requestIdleCallback(go, {timeout: 8000}); else go();
+  }, 1500);
+}
+/* las URL que conviene tener guardadas ahora (json: los datos que hay que leer para saber qué dibujos llevan) */
+async function warmList(json){
+  const l = lang, ab = LANGS[l].code.slice(0, 2), imgs = new Set(), pics = new Set();
+  const add = u => { if(typeof u === "string" && /^img\//.test(u)) imgs.add(u); };
+  await getShop();
+  Object.keys(SPR || {}).forEach(k => /^[\w-]+$/.test(k) && add(`img/pj/${k}.png`));
+  if(window.vocabShop && typeof vocabShop.images === "function") vocabShop.images().forEach(add);   /* lo que se pone el zorro (img/shop, ~340 KB) */
+  const g = await json(`data/grammar_${ab}.json`);
+  if(g && typeof g === "object" && !GRAM[l] && l === lang){ GRAM[l] = g; delete GRAM_OFF[l]; }
+  if(CLIP_AB[l]) await json(`audio/${CLIP_AB[l]}.json`, true);
+  const doc = async id => {
+    if(!/^[\w-]+$/.test(String(id))) return null;
+    const d = await json(`data/${id}.json`, !!CACHE[id]);   /* ya leído: solo se guarda (si falta) */
+    if(d && !CACHE[id] && Array.isArray(d.rows)) CACHE[id] = d;
+    return CACHE[id] || d;
+  };
+  /* las 2 lecciones siguientes del camino (desde el nivel que se mira), con los primeros dibujos de su tema
+     (las otras opciones de la lección salen de ahí) */
+  await getMap();
+  const P = mapP() || {}, lvs = Object.keys(LVS), from = Math.max(0, lvs.indexOf(store.get("mapLv", "A1"))), next = [];
+  for(const lv of lvs.slice(from)){
+    if(!MAP[lv]) continue;
+    for(const u of MAP[lv]) for(const ls of u.ls) if(next.length < 2 && Array.isArray(ls.w) && !P[ls.id]) next.push({ls, d0: u.doc});
+    if(next.length >= 2) break;
+  }
+  for(const {ls, d0} of next){
+    for(const [d, i] of ls.w){ const x = await doc(d); add(x && x.rows && x.rows[i] && x.rows[i].img); }
+    const x = await doc(d0); ((x && x.rows) || []).slice(0, 16).forEach(r => add(r && r.img));
+  }
+  /* el tema de Juegos: todas sus palabras con dibujo (los juegos las barajan); Soldados, sus términos */
+  const tp = store.get("games:topic", "animales");
+  if(tp === "militar"){ const a = await json(`data/army/${ab}.json`); ((a && a.terms) || []).forEach(t => t && pics.add(t.img)); }
+  else if(tp !== "mis" && window.vocabGames && typeof vocabGames.topic === "function" && vocabGames.topic(tp)){
+    const x = await doc(tp);
+    ((x && x.rows) || []).forEach(r => r && r.img && r.l && r.l[l] && pics.add(r.img));
+    ((x && x.terms) || []).forEach(t => t && pics.add(t.img));
+  }
+  /* las palabras del repaso que antes tocan (también «Mis palabras» de Juegos) */
+  const due = Object.values(srsAll()).filter(x => x && x.d && typeof x.due === "number").sort((a, b) => a.due - b.due).slice(0, WARM_DUE), by = {};
+  due.forEach(x => (by[x.d] = by[x.d] || new Set()).add(x.e));
+  for(const id of Object.keys(by)){ const x = await doc(id); ((x && x.rows) || []).forEach(r => r && by[id].has(r.es) && pics.add(r.img)); }
+  /* los juegos enseñan los árboles de familia recortados (img/fam2/) */
+  pics.forEach(u => { add(u); if(window.vocabGames && typeof vocabGames.pic === "function") add(vocabGames.pic(u)); });
+  return [...imgs].filter(u => !OFF_APP.includes(u));
+}
+async function warmCache(){
+  if(warmRun){ warmAgain = true; return warmRun; }
+  warmRun = (async () => {
+    do{
+      warmAgain = false;
+      const key = warmKey(), st = {key, saved: 0, have: 0, skipped: "", at: Date.now()};
+      if(navigator.onLine === false) return;
+      if(navigator.storage && navigator.storage.estimate){
+        const q = await navigator.storage.estimate().catch(() => null);
+        if(q && q.quota && (q.quota - (q.usage || 0) < WARM_ROOM || (q.usage || 0) > .9 * q.quota)){ st.skipped = "space"; warmDone = key; warmLast = st; return; }
+      }
+      const media = await caches.open(OFF_MEDIA), have = new Set((await media.keys()).map(r => r.url));
+      const abs = u => new URL(u, location.href).href;
+      let net = 0;
+      const save = async (u, body) => {
+        const a = abs(u);
+        if(OFF_APP.includes(u)) return body ? fetch(u).then(r => r.ok ? r.json() : null).catch(() => null) : null;   /* ya en el shell */
+        if(have.has(a)){ st.have++; return body ? media.match(a).then(r => r && r.json()).catch(() => null) : null; }
+        if(net || warmHold || navigator.onLine === false) return null;
+        let r;
+        try{ r = await fetch(u, {cache: "no-store"}); }catch(e){ net++; return null; }
+        if(r.status !== 200) return null;
+        const out = body ? await r.clone().json().catch(() => null) : null;
+        await media.put(a, r); have.add(a); st.saved++;
+        return out;
+      };
+      const imgs = await warmList((u, noBody) => save(u, !noBody));
+      let i = 0;
+      await Promise.all([0, 1].map(async () => { while(i < imgs.length && !net && !warmHold) await save(imgs[i++], false); }));
+      if(net) st.skipped = "net";
+      else if(warmHold) st.skipped = "update";
+      else warmDone = key;
+      offImgs = null; warmLast = st;
+    } while(warmAgain && navigator.onLine !== false);
+  })().finally(() => { warmRun = null; });
+  return warmRun;
+}
+bus.on("route", () => warmSoon());
+bus.on("lang", () => warmSoon(true));
+bus.on("lesson-done", () => warmSoon(true));
+addEventListener("online", () => warmSoon(true));
+
+/* los juegos sin conexión: pool() de js/games.js pasa sus palabras por aquí. Sin conexión y con al menos 10 palabras con
+   el dibujo ya guardado (en vocab-media o en el shell, también el de img/fam2/), solo esas; si no, todas */
+let offImgs = null, offImgsAt = 0;
+async function offCachedImgs(){
+  if(offImgs && Date.now() - offImgsAt < 10000) return offImgs;
+  const s = new Set();
+  for(const n of [OFF_MEDIA, await offShellName()]) for(const r of await (await caches.open(n)).keys()) s.add(new URL(r.url).pathname);
+  offImgs = s; offImgsAt = Date.now();
+  return s;
+}
+async function offPrefer(list){
+  if(navigator.onLine !== false || !Array.isArray(list) || list.length <= WARM_POOL || !("caches" in window)) return list;
+  try{
+    const have = await offCachedImgs(), at = u => new URL(u, location.href).pathname;
+    const pic = u => window.vocabGames && typeof vocabGames.pic === "function" ? vocabGames.pic(u) : u;
+    const got = list.filter(x => !x || typeof x.img !== "string" || /^data:/.test(x.img) || have.has(at(x.img)) || have.has(at(pic(x.img))));
+    return got.length >= WARM_POOL ? got : list;
+  }catch(e){ return list; }
+}
+window.vocabOffline = Object.freeze({warm: () => warmCache(), list: () => warmList(u => fetch(u).then(r => r.ok ? r.json() : null).catch(() => null)),
+  prefer: offPrefer, get state(){ return {ok: warmOk, done: warmDone, last: warmLast, busy: !!warmRun}; }});
 
 /* ---------- tema: Automático (sin clave "theme": sigue al sistema), Claro u Oscuro ----------
    Nunca se guarda "auto": elegir Automático borra la clave. */
@@ -2937,11 +3114,27 @@ function lvCur(lv, P){ const ls = lvLessons(lv); const i = ls.findIndex(l => !P[
    de salida que route() mira antes de nada) */
 
 /* ---------- gramática ---------- */
-const GRAM = {};
-async function getGram(){
-  if(!GRAM[lang]) GRAM[lang] = await fetch(`data/grammar_${LANGS[lang].code.slice(0,2)}.json`).then(r => r.ok ? r.json() : {}).catch(() => ({}));
-  return GRAM[lang];
+/* GRAM[idioma] = data/grammar_<ab>.json. Un fallo de red no se guarda: getGram() da {} (el camino sale sin sus
+   lecciones de gramática y #/gramatica dice «Sin conexión» con «Reintentar», gramOff()) y se vuelve a pedir en la
+   siguiente llamada (pasados 5 s; force: ya) o al volver la conexión, y entonces se repinta el camino o la gramática que
+   esté a la vista. Solo un 404 (ese idioma no tiene gramática) se guarda como {}. */
+const GRAM = {}, GRAM_P = {}, GRAM_OFF = {};
+async function getGram(force){
+  const l = lang;
+  if(GRAM[l]) return GRAM[l];
+  if(!GRAM_P[l] && !force && GRAM_OFF[l] && Date.now() - GRAM_OFF[l] < 5000) return {};
+  if(!GRAM_P[l]) GRAM_P[l] = fetch(`data/grammar_${LANGS[l].code.slice(0,2)}.json`)
+    .then(r => { if(r.status === 404) return {}; if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(g => { GRAM[l] = g && typeof g === "object" ? g : {}; delete GRAM_OFF[l]; return GRAM[l]; },
+      () => { GRAM_OFF[l] = Date.now(); return {}; })
+    .finally(() => { delete GRAM_P[l]; });
+  return GRAM_P[l];
 }
+const gramOff = () => !GRAM[lang] && !!GRAM_OFF[lang];
+addEventListener("online", () => {
+  if(!gramOff()) return;
+  getGram(true).then(g => { if(Object.keys(g).length && ["mapa", "gramatica"].includes(secOf(hashPath()))) route(); });
+});
 const gId = (lv, k) => `G-${lv}-${String(k+1).padStart(2,"0")}`;
 function lvUnits(lv){                     /* unidades del nivel con las lecciones de gramática intercaladas */
   const g = (GRAM[lang] || {})[lv] || [], N = MAP[lv].reduce((a, u) => a + u.ls.length, 0);
@@ -3122,7 +3315,14 @@ const art = n => n.startsWith("gafas") ? "unas " + n : (FEM.has(n) ? "una " : "u
 /* ---------- «Reducir movimiento» de Ajustes (html[data-motion=calm]) = el del aparato ----------
    Las reglas de cada hoja de estilos para @media (prefers-reduced-motion: reduce) se copian con :root[data-motion=calm]
    delante en <style id="css-calm">: las de esta página y las que inyectan los módulos (se vuelve a copiar cuando entra
-   un <style> nuevo en el <head>). La regla general (≤150 ms y sin bucles) está en el CSS de arriba. */
+   un <style> nuevo en el <head>). La regla general (≤150 ms y sin bucles) está en el CSS de arriba.
+   Recorrer todas las reglas cuesta (~75 ms en un móvil): solo se hace con data-motion=calm puesto, al arrancar si ya lo
+   está, cuando se enciende (en el mismo paso, antes de pintar) y, mientras siga, cuando entra un <style> nuevo. Sin él
+   las copias no hacen nada (todas empiezan por :root[data-motion=calm]); el «Reducir movimiento» del aparato ya usa las
+   reglas @media de siempre. */
+const calmOn = () => document.documentElement.dataset.motion === "calm";
+let calmStale = true;
+function calmMaybe(){ if(calmOn()){ calmStale = false; calmCss(); } }
 function calmCss(){
   const PRE = ":root[data-motion=calm]", RMQ = /prefers-reduced-motion\s*:\s*reduce/;
   const split = sel => { const out = []; let d = 0, cur = ""; for(const ch of sel){ if(ch === "(" || ch === "[") d++; else if(ch === ")" || ch === "]") d--; if(ch === "," && !d){ out.push(cur); cur = ""; } else cur += ch; } out.push(cur); return out.map(x => x.trim()).filter(Boolean); };
@@ -3143,7 +3343,10 @@ function calmCss(){
   if(!el){ el = document.createElement("style"); el.id = "css-calm"; document.head.appendChild(el); }
   if(el.textContent !== css) el.textContent = css;
 }
-{ let t = 0; new MutationObserver(() => { clearTimeout(t); t = setTimeout(calmCss, 30); }).observe(document.head, {childList: true}); }
+{ let t = 0; const own = r => [...r.addedNodes, ...r.removedNodes].every(n => n.id === "css-calm");   /* la suya no cuenta */
+  new MutationObserver(rs => { if(rs.every(own)) return; clearTimeout(t); calmStale = true; if(calmOn()) t = setTimeout(calmMaybe, 30); }).observe(document.head, {childList: true});
+  new MutationObserver(() => { if(calmStale) calmMaybe(); })
+    .observe(document.documentElement, {attributes: true, attributeFilter: ["data-motion"]}); }
 
 /* ---------- rutas ---------- */
 /* las rutas que existen: las de aquí y las de los módulos (ROUTES). Una que no existe (un enlace viejo o mal escrito)
@@ -3184,7 +3387,7 @@ async function route(){
       if(hp.startsWith("leccion/")) await leccion(hp.slice(8));
       else if(ROUTES[secOf(hp)]){ document.onkeydown = null; await ROUTES[secOf(hp)](hp.split("/").slice(1)); }
       else await home();
-    }catch(e){ console.error(e); $("#app").innerHTML = `<p class="empty">No se pudo cargar. ${esc(e.message)}</p>`; }
+    }catch(e){ if(netFail(e)) console.warn("[sin conexión]", hp, e.message); else console.error(e); routeFail(e); }
     /* si mientras se pintaba se fue a otra ruta, la nueva se encarga de las barras y del scroll */
     if(hashPath() === hp){
       paintTabs(hp); updFocus(); paintHead(hp); sayScreen(hp); fmPast();
@@ -3197,6 +3400,24 @@ async function route(){
   ROUTE_RESTORE = false;
   bus.emit("route", {h});
 }
+/* una pantalla que no pudo pintarse. Sin conexión (o la red falló: lo que pedía aún no está guardado en el aparato), una
+   página amable «Sin conexión» con «Reintentar» (y se reintenta sola al volver la conexión); otro fallo, el aviso de
+   siempre, también con «Reintentar». data-route-fail = "offline" | "error" (para las pruebas). */
+const netFail = e => navigator.onLine === false || (e instanceof TypeError && /fetch|network|load failed/i.test(e.message || ""));
+function routeFail(e){
+  const off = netFail(e), app = $("#app");
+  app.innerHTML = off ? `<div class="rt-off" role="alert" data-route-fail="offline">
+      <span class="rt-off-ic" aria-hidden="true">${ico("wifi-slash", "bold", 44)}</span>
+      <h2 class="rt-off-t">Sin conexión</h2>
+      <p class="rt-off-p">Esta parte aún no está guardada en el aparato. Vuelve a intentarlo cuando haya internet.</p>
+      <div class="rt-off-b"><button type="button" class="glass-btn glass-btn--pri" id="rt-retry">${ico("arrows-clockwise", "bold", 18)}Reintentar</button>
+        <a class="glass-btn" href="#/">Ir a Hoy</a></div></div>`
+    : `<div class="rt-off" data-route-fail="error"><p class="empty">No se pudo cargar. ${esc(e && e.message)}</p>
+      <div class="rt-off-b"><button type="button" class="glass-btn" id="rt-retry">${ico("arrows-clockwise", "bold", 18)}Reintentar</button></div></div>`;
+  const b = $("#rt-retry");
+  if(b) b.onclick = () => { b.disabled = true; route(); };
+}
+addEventListener("online", () => { if(document.querySelector('#app [data-route-fail="offline"]')) route(); });
 /* los datos de una pantalla antes de pintarla: ROUTES[x].load(partes) si la ruta lo tiene (una función que devuelve
    una promesa: lo que su ruta va a pedir con getDoc(), getIndex()…) o, si no, el cargador de js/navmotion.js. Un
    fallo aquí no para nada (la ruta lo vuelve a pedir y enseña su aviso); como mucho 4 s. */
@@ -3208,7 +3429,7 @@ async function prefetch(hp){
 }
 window.addEventListener("hashchange", route);
 renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
-document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmCss(); bus.emit("boot"); route(); });
+document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmMaybe(); bus.emit("boot"); route(); });
 </script>
 <!-- ?v= es la VERSION de sw.js (se sube con ella): así una versión nueva no sale con módulos viejos de la caché HTTP -->
 <script src="js/motion.js?v=38"></script>

@@ -5,9 +5,19 @@
      drive.appdata y nada más: la app solo ve su carpeta privada de Drive, no los archivos de la persona.
    - Un archivo «vocabulary-progress.json» en appDataFolder con la copia de js/save.js (snapshot) y en appProperties
      el hash de lo que contiene ({hash, score, v}).
-   - Subir: unos 20 s después de jugar (eventos del bus o un vistazo cada 30 s) y al esconder o cerrar la página.
+   - Subir: al momento al acabar una lección, un repaso o una partida (T.done); si no, unos 20 s después de jugar
+     (eventos del bus o un vistazo cada 30 s; 5 s si la partida pasa de 60 KB) y al esconder o cerrar la página. Al
+     cerrar solo llega un fetch keepalive, y keepalive admite ~64 KB: una partida más grande se sube antes (al
+     esconderse la página, que en el móvil es lo último seguro, y con la espera corta), no al cerrar.
    - Bajar: al arrancar y al volver a la página. Si solo cambió la de Google, se carga (apply, con copia para deshacer,
-     y recarga). Si cambiaron las dos, gana la que tiene más progreso y la otra queda como copia para deshacer.
+     y recarga). Si cambiaron las dos, se juntan (mergeBoth): la de más progreso manda (monedas, compras, granja…) y de
+     la otra se junta lo que solo crece (vocabSave.merge: lecciones, repaso, actividad, álbum, récords, cuentos,
+     temporada y sellos); la juntada va a Google y a este aparato, y la que perdió algo queda como copia para deshacer.
+   - Una partida de Google escrita por una versión más nueva de la app (appProperties.v, que se mira antes de bajarla,
+     o parse() con code "newer") no se baja ni se pisa: se para la copia hasta recargar con la app nueva
+     («Hay una versión nueva de la app. Recarga para seguir.»). Solo una partida dañada de verdad se reemplaza.
+   - Un guardado en este aparato que no cupo (SAVE_FAIL de index.html) sale arriba en Para mayores, con qué hacer
+     («Libera espacio») y «Descargar copia» (un archivo con la partida guardada).
    - La primera vez en un aparato con progreso y una partida en Google, el mayor elige cuál seguir.
    - El permiso dura ~1 hora y, sin servidor, renovarlo abre (y cierra sola) una ventanita de Google que el navegador
      solo deja abrir dentro de un toque. Se renueva solo, de paso, en un toque normal del niño (pestañas, monedas,
@@ -38,7 +48,8 @@ const ABOUT = "https://www.googleapis.com/drive/v3/about?fields=user(emailAddres
 const REVOKE = "https://oauth2.googleapis.com/revoke";
 const NAME = "vocabulary-progress.json", FIELDS = "id,modifiedTime,appProperties";
 const M = S.META, MIN = 6e4, DAY = 864e5;
-const T = {debounce: 20e3, poll: 30e3, retry: 30e3, retryMax: 10 * MIN, tapGap: 50 * MIN, tapRetry: 3 * MIN};
+const T = {debounce: 20e3, debounceBig: 5e3, done: 600, poll: 30e3, retry: 30e3, retryMax: 10 * MIN, tapGap: 50 * MIN, tapRetry: 3 * MIN};
+const KEEPALIVE = 60000;   /* lo que admite un fetch keepalive (~64 KB), con margen */
 const now = () => Date.now();
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
 const online = () => navigator.onLine !== false;
@@ -197,10 +208,12 @@ function upload(id, keys, h, keepalive){
   const B = "vocab" + Math.random().toString(36).slice(2) + now().toString(36);
   const data = JSON.stringify({app: S.APP, v: S.VER, saved: new Date(now()).toISOString(), keys});
   const body = `--${B}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(md)}\r\n--${B}\r\nContent-Type: application/json\r\n\r\n${data}\r\n--${B}--`;
-  let small = false; try{ small = new Blob([body]).size < 60000; }catch(e){}   /* keepalive admite ~64 KB */
+  let size = body.length * 2; try{ size = new Blob([body]).size; }catch(e){}
+  big = size >= KEEPALIVE;   /* keepalive no la llevaría: se sube antes (schedule) */
   const url = id ? `${UP}/${encodeURIComponent(id)}?uploadType=multipart&fields=${FIELDS}` : `${UP}?uploadType=multipart&fields=${FIELDS}`;
-  return drive(id ? "PATCH" : "POST", url, {body, headers: {"Content-Type": `multipart/related; boundary=${B}`}, keepalive: !!keepalive && small});
+  return drive(id ? "PATCH" : "POST", url, {body, headers: {"Content-Type": `multipart/related; boundary=${B}`}, keepalive: !!keepalive && !big});
 }
+let big = false;   /* la última partida subida no cabe en un keepalive */
 /* otro archivo de la carpeta privada, con el mismo permiso, la misma envoltura drive() y los mismos códigos de error
    (SErr: e.code "offline" | "reconnect" | "auth" | "full" | "rate" | "gone" | "server" | "net" | "bad"): el de Tech Prep
    (js/tech.js, "vocabulary-techprep.json"). No pide permiso nunca: sin uno vigente falla con "reconnect" sin marcar
@@ -253,6 +266,7 @@ function job(fn){ const p = chain.then(fn); chain = p.catch(() => {}); return p;
 function onErr(e){
   const c = (e && e.code) || "net";
   if(c === "superseded") return;
+  if(c === "newer"){ setPhase("newer"); return; }
   if(c === "offline"){ setPhase("offline"); return; }
   if(c === "reconnect" || c === "auth" || c === "scope"){ markReconnect(); setPhase("reconnect"); return; }
   setPhase("error", c); retryLater();
@@ -267,19 +281,37 @@ function sync(why){
     const w = queuedWhy; queued = null; queuedWhy = "";
     if(!connected()) return;
     clearTimeout(retryT); clearTimeout(pushT); pushT = 0;
-    if(meta().choice){ await firstSync(); return; }
-    if(!online()){ setPhase("offline"); return; }
-    if(phase !== "ok") setPhase("busy");
-    await run(w);
-    backoff = T.retry;
+    if(newer){ setPhase("newer"); return; }
+    running = true;
+    try{
+      if(meta().choice){ await firstSync(); return; }
+      if(!online()){ setPhase("offline"); return; }
+      if(phase !== "ok") setPhase("busy");
+      await run(w);
+      backoff = T.retry;
+    }finally{ running = false; }
   }).catch(onErr);
   return queued;
 }
+let running = false;   /* una sincronización en marcha */
 function adopt(remote, h){
   setMeta({fileId: remote.id, baseHash: h, remoteModified: remote.modifiedTime || null, lastSync: now(), localDirty: false});
   lastCheck = now(); setPhase("ok");
 }
+/* la partida de Google la escribió una versión más nueva de la app: esta no sabe leerla, así que no se baja ni se sube
+   nada en esta página (subir la de aquí la borraría) hasta recargar con la app nueva. Para mayores lo dice y, una vez,
+   un aviso para todos. Se pide ya la versión nueva al service worker, para que al recargar esté. */
+let newer = false, newerTold = false;
+const NEWER = "Hay una versión nueva de la app. Recarga para seguir.";
+const remoteNewer = r => { const v = Number(r && r.appProperties && r.appProperties.v); return isFinite(v) && v > S.VER; };
+function stopNewer(){
+  newer = true; clearTimeout(pushT); pushT = 0; clearTimeout(retryT);
+  setPhase("newer");
+  if(!newerTold){ newerTold = true; try{ toast(NEWER); }catch(e){} }
+  try{ if(navigator.serviceWorker) navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => {}); }catch(e){}
+}
 async function push(id, keys, h, keepalive){
+  if(newer) throw new SErr("newer");
   let r;
   try{ r = await upload(id, keys, h, keepalive); }
   catch(e){ if(e && e.code === "gone" && id){ setMeta({fileId: null}); r = await upload(null, keys, h, keepalive); } else throw e; }
@@ -288,17 +320,38 @@ async function push(id, keys, h, keepalive){
 }
 /* cargar la partida de Google (apply guarda la de ahora para deshacer y recarga) */
 const APPLIED = "vocab:sync-applied";
-function pull(remote, keys, h, flash){
+/* mode "load" (la de ahora queda para deshacer) o "merge" (la juntada: la copia para deshacer ya está puesta).
+   Devuelve true si se cargó (y la página se recarga). */
+function pull(remote, keys, h, flash, mode){
   let list = []; try{ list = JSON.parse(sessionStorage.getItem(APPLIED) || "[]"); }catch(e){}
   if(!Array.isArray(list)) list = [];
   list = list.filter(t => typeof t === "number" && now() - t < 20e3 && t <= now());
-  if(list.length >= 4){ setPhase("error", "loop"); return; }   /* nunca recargar una y otra vez */
+  if(list.length >= 4){ setPhase("error", "loop"); return false; }   /* nunca recargar una y otra vez */
   const before = S.metaGet(M.sync, null);
   setMeta({fileId: remote.id, baseHash: h, remoteModified: remote.modifiedTime || null, lastSync: now(), localDirty: false, choice: false});
   try{ list.push(now()); sessionStorage.setItem(APPLIED, JSON.stringify(list)); }catch(e){}
-  const err = S.apply(keys, "load", flash || {t: "☁️ Partida actualizada desde otro aparato", adult: false});
-  if(err){ if(before) S.metaSet(M.sync, before); setPhase("error", err === "rollback" ? "rollback" : "space"); if(err !== "rollback") msg(err, "bad"); }
-  else { choice = null; setPhase("busy"); }
+  const err = S.apply(keys, mode || "load", flash || {t: "☁️ Partida actualizada desde otro aparato", adult: false});
+  if(err){ if(before) S.metaSet(M.sync, before); setPhase("error", err === "rollback" ? "rollback" : "space"); if(err !== "rollback") msg(err, "bad"); return false; }
+  choice = null; setPhase("busy");
+  return true;
+}
+/* cambiaron las dos (dos aparatos jugaron a la vez): manda la de más progreso (la de Google si tiene lo mismo o más) y de
+   la otra se junta lo que solo crece (vocabSave.merge). Si la de Google ya lo tenía todo, se carga sin más. Si no, la
+   juntada se sube a Google, la que perdió algo (sus monedas, su granja…) queda como copia para deshacer y, si trae algo
+   de Google, se carga aquí (recarga). Si no cabe aquí, la base vuelve a la de antes: la próxima vez se junta otra vez
+   (nunca se sube encima la de este aparato sin lo de Google). */
+async function mergeBoth(remote, keys, lh, rk, rkh, saved){
+  const g = score(rk) >= score(keys);
+  const mk = g ? S.merge(rk, keys) : S.merge(keys, rk), mh = hashKeys(mk);
+  if(mh === rkh){ pull(remote, rk, rkh); return; }
+  const base0 = meta().baseHash;
+  await push(remote.id, mk, mh, false);
+  S.keepUndo(g ? keys : rk, g ? now() : (saved || Date.parse(remote.modifiedTime) || now()));
+  paintUndo();
+  if(mh === lh) return;
+  const m = meta();
+  if(!pull({id: m.fileId, modifiedTime: m.remoteModified}, mk, mh, {t: "☁️ Partida juntada con la de otro aparato", adult: false}, "merge"))
+    setMeta({baseHash: base0});
 }
 async function run(why){
   let m = meta();
@@ -317,6 +370,7 @@ async function run(why){
   lastCheck = now(); m = setMeta({lastPull: now()});
   if(!remote){ await push(null, keys, lh, hidden); return; }
   if(remote.id !== m.fileId) m = setMeta({fileId: remote.id});
+  if(remoteNewer(remote)){ stopNewer(); return; }   /* de una app más nueva: ni se baja ni se pisa */
   const rh = (remote.appProperties && remote.appProperties.hash) || null;
   const changed = rh ? rh !== m.baseHash : remote.modifiedTime !== m.remoteModified;
   if(!changed){
@@ -327,14 +381,12 @@ async function run(why){
   if(rh && rh === lh){ adopt(remote, lh); return; }
   if(hidden){ setPhase("ok"); return; }   /* la de Google es nueva: se carga al volver, no con la página escondida */
   const p = S.parse(await download(remote.id));
-  if(!p.ok){ await push(remote.id, keys, lh, false); return; }   /* la de Google está dañada: se reemplaza */
+  if(!p.ok && p.code === "newer"){ stopNewer(); return; }
+  if(!p.ok){ await push(remote.id, keys, lh, false); return; }   /* la de Google está dañada de verdad: se reemplaza */
   const rk = p.data.keys, rkh = hashKeys(rk);
   if(rkh === lh){ adopt(remote, lh); return; }
-  if(!dirty || score(rk) >= score(keys)){ pull(remote, rk, rkh); return; }
-  /* cambiaron las dos y esta tiene más progreso: se sube y la de Google queda como copia para deshacer */
-  S.keepUndo(rk, Date.parse(remote.modifiedTime) || now());
-  await push(remote.id, keys, lh, false);
-  paintUndo();
+  if(!dirty){ pull(remote, rk, rkh); return; }
+  await mergeBoth(remote, keys, lh, rk, rkh, p.data.saved);
 }
 /* primera vez en este aparato (o pendiente de elegir) */
 async function firstSync(){
@@ -342,8 +394,10 @@ async function firstSync(){
   setMeta({lastPull: now()});
   const keys = S.collect(true), lh = hashKeys(keys);
   if(!remote){ setMeta({connectedAt: meta().connectedAt || now(), choice: false}); await push(null, keys, lh, false); return; }
+  if(remoteNewer(remote)){ setMeta({connectedAt: meta().connectedAt || now(), fileId: remote.id}); stopNewer(); return; }
   const p = S.parse(await download(remote.id));
   setMeta({connectedAt: meta().connectedAt || now(), fileId: remote.id});
+  if(!p.ok && p.code === "newer"){ stopNewer(); return; }
   if(!p.ok){ setMeta({choice: false}); await push(remote.id, keys, lh, false); return; }
   const rk = p.data.keys, rkh = hashKeys(rk);
   if(rkh === lh){ setMeta({choice: false}); adopt(remote, lh); return; }
@@ -368,14 +422,21 @@ function useRemote(){
   pull(c.remote, c.keys, c.hash, {t: "✓ Partida de Google cargada", adult: true});
 }
 
-/* subir unos segundos después de jugar */
+/* subir unos segundos después de jugar (5 s si la partida no cabe en un keepalive: al cerrar no se podría) */
 function schedule(){
-  if(pushT || !connected() || meta().choice) return;
-  pushT = setTimeout(() => { pushT = 0; if(connected() && localHash() !== meta().baseHash) sync("change"); }, T.debounce);
+  if(pushT || newer || !connected() || meta().choice) return;
+  pushT = setTimeout(() => { pushT = 0; if(connected() && localHash() !== meta().baseHash) sync("change"); }, big ? T.debounceBig : T.debounce);
 }
 const dirtyNow = () => { const m = meta(); return !!m.connectedAt && !m.choice && localHash() !== m.baseHash; };
-["coins", "lesson-done", "review-done", "farm-feed", "farm-harvest", "farm-collect", "buy", "game-done", "medal", "gift-open", "album-complete", "route"]
+["coins", "farm-feed", "farm-harvest", "farm-collect", "buy", "medal", "gift-open", "album-complete", "route"]
   .forEach(ev => bus.on(ev, () => { if(connected()){ schedule(); preGis(); } }));
+/* al acabar una lección, un repaso o una partida: al momento (T.done deja que los demás módulos apunten lo suyo:
+   monedas, misiones, medallas) */
+["lesson-done", "review-done", "game-done"].forEach(ev => bus.on(ev, () => {
+  if(!connected()) return;
+  preGis();
+  setTimeout(() => { if(connected() && !newer && dirtyNow()) sync("done"); }, T.done);
+}));
 let pollI = 0;
 function startPoll(){
   if(pollI) return;
@@ -393,7 +454,8 @@ document.addEventListener("visibilitychange", () => {
   preGis();
   if(now() - lastVis > 5e3){ lastVis = now(); sync("visible"); }
 });
-window.addEventListener("pagehide", () => { if(dirtyNow()) sync("hide"); });
+/* al cerrar: si ya se está subiendo (lo empezó visibilitychange), no se pide otra (no llegaría) */
+window.addEventListener("pagehide", () => { if(!queued && !running && dirtyNow()) sync("hide"); });
 window.addEventListener("online", () => { if(connected()) sync("online"); });
 window.addEventListener("offline", () => { if(connected()) setPhase("offline"); });
 
@@ -417,7 +479,7 @@ let opened = true;   /* aún no se ha probado en esta visita (al abrir la app o 
 let nowFail = false; /* «Guardar ahora» no pudo renovar el permiso: Para mayores ofrece «Volver a conectar» */
 function tapDue(){
   const m = meta();
-  if(!m.connectedAt || m.choice || !online() || tokLeft() > SOON) return false;
+  if(!m.connectedAt || m.choice || newer || !online() || tokLeft() > SOON) return false;
   const at = m.tapAt || 0, ago = now() - at;
   if(ago < 0) return true;   /* el reloj del aparato fue hacia atrás */
   const gone = !tokOk(), dirty = gone && dirtyNow();
@@ -568,6 +630,8 @@ const CSS = `
 .sv-cmp td:nth-child(n+2){font-weight:600}
 .sv-cmp td:first-child{width:40%}
 .sv-undo{margin-top:12px}
+.sv-fail{margin:0 0 6px}
+.sv-fail-how{margin-bottom:14px}
 `;
 function css(){ if(document.getElementById("css-sync")) return; const s = document.createElement("style"); s.id = "css-sync"; s.textContent = CSS; document.head.appendChild(s); }
 const G = `<svg viewBox="0 0 48 48" aria-hidden="true" data-brand="google"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>`;
@@ -600,6 +664,8 @@ function statusHtml(){
   const out = btn("sv-out", ico("sign-out", "bold", 18), "gr", "Salir de Google", "", "sv-quiet");
   if(m.choice) return `<div class="st-g ics">${row(ico("cloud-check", "bold", 18), "", "Conectado con Google",
     `${acc} · ${choice ? "Elige qué partida quieres seguir." : "Mirando la partida de Google…"}`)}${out}</div>`;
+  if(phase === "newer") return `<div class="st-g ics">${row(ico("arrows-clockwise", "bold", 18), "gr", NEWER,
+    `${acc} · La partida de Google la guardó la versión nueva: no se ha tocado.`)}${btn("sv-reload", ico("arrows-clockwise", "bold", 18), "", "Recargar", "")}${out}</div>`;
   const last = agoMin(m.lastSync);
   let st, foot = "";
   if(phase === "reconnect" || m.reconnect){
@@ -623,6 +689,7 @@ function statusHtml(){
 }
 function blockHtml(){
   return `<section class="sv" id="sv-box" aria-label="Guardar la partida en Google">
+    <div id="sv-fail-w"></div>
     <div id="sv-dyn">${statusHtml()}</div>
     <p class="sv-msg" id="sv-msg" role="status" aria-live="polite"></p>
     <div id="sv-confirm" hidden></div>
@@ -644,6 +711,7 @@ function paint(){
   on("sv-g", e => gated("Para entrar con Google.", connect, e.currentTarget));
   on("sv-re", e => gated("Para volver a entrar en Google.", connect, e.currentTarget));
   on("sv-out", e => gated("Para salir de Google.", disconnect, e.currentTarget));
+  on("sv-reload", () => location.reload());
   on("sv-now", () => { msg("");
     if(!tokOk()){
       const p = renewInTap(true);
@@ -733,12 +801,40 @@ function paintSafe(){
     if(show) io.innerHTML = "<b>En iPhone o iPad</b>, si añades la app a la <b>pantalla de inicio</b> (Safari › Compartir › «Añadir a pantalla de inicio»), ábrela desde ese icono y entra allí también con Google: la app del icono tiene sus propios datos."; }
 }
 bus.on("save-persist", paintSafe);
+
+/* ---------- un guardado que no cupo en este aparato (SAVE_FAIL y bus "save-fail" de index.html) ----------
+   Arriba de todo en Para mayores: qué pasa, qué hacer («Libera espacio») y «Descargar copia» (la partida guardada en
+   este aparato, vocabSave.snapshot(), en un archivo .json). Sin rojo: gris, como todo aviso. */
+const saveFailed = () => { try{ return typeof SAVE_FAIL !== "undefined" && SAVE_FAIL && typeof SAVE_FAIL.k === "string" ? SAVE_FAIL : null; }catch(e){ return null; } };
+function paintFail(){
+  const w = $s("sv-fail-w"); if(!w) return;
+  const f = saveFailed();
+  if(!f){ w.innerHTML = ""; return; }
+  w.innerHTML = `<div class="st-g ics sv-fail" id="sv-fail" role="status">
+      ${row(ico("warning-circle", "bold", 18), "gr", f.full ? "Este aparato no tiene sitio para guardar" : "Este navegador no deja guardar",
+        `Lo último que se jugó (${esc(agoMin(f.at))}) aún no está guardado.`)}
+      ${btn("sv-dl", ico("download-simple", "bold", 18), "", "Descargar copia", "Un archivo con la partida guardada, por si acaso")}</div>
+    <p class="st-foot sv-fail-how">${f.full ? "<b>Libera espacio:</b> borra fotos, vídeos o apps que no uses, o los datos de otras webs en los ajustes del navegador. Luego vuelve a abrir la app."
+      : "Puede ser una ventana privada o que el navegador no deje guardar datos de las webs: ábrela en una ventana normal."}</p>`;
+  const b = $s("sv-dl"); if(b) b.onclick = downloadCopy;
+}
+function downloadCopy(){
+  try{
+    const a = document.createElement("a"), day = new Date(now()).toISOString().slice(0, 10);
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(S.snapshot())], {type: "application/json"}));
+    a.download = `vocabulary-partida-${day}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    msg("✓ Copia descargada. Guárdala en un sitio seguro.", "ok");
+  }catch(e){ msg("No se pudo descargar la copia.", "bad"); }
+}
+bus.on("save-fail", () => { paintFail(); cfgPaint(); });
 /* pone el bloque en Ajustes › Para mayores (host = el [data-sync-block] de esa página) */
 function mountBlock(host){
   if(!host) return;
   css();
   host.innerHTML = blockHtml();
-  paint(); paintUndo(); paintSafe();
+  paint(); paintUndo(); paintSafe(); paintFail();
   const lm = lastMsg; lastMsg = null;
   if(lm && now() - lm[2] < MIN){ msg(lm[0], lm[1]); if(joining){ const g = $s("sv-g"); if(g) g.disabled = true; } }
   /* el script de Google se prepara al abrir «Para mayores», así la ventana sale enseguida al tocar */
@@ -767,7 +863,9 @@ bus.on("settings", d => {
 
 /* Ajustes: el estado de Google en la fila «Para mayores» ([data-sync-cfg]) */
 function cfgText(){
-  const m = meta();
+  const m = meta(), f = saveFailed();
+  if(f) return f.full ? "No hay sitio para guardar: mira Para mayores" : "No se puede guardar: mira Para mayores";
+  if(newer && m.connectedAt) return "Google: recarga para seguir";
   if(!m.connectedAt) return "Google: sin conectar";
   if(m.choice) return "Google: elige qué partida seguir";
   /* sin alarmas aquí (lo ve también el niño): el detalle está en Para mayores */
@@ -800,7 +898,8 @@ bus.on("boot", () => {
 window.vocabSync = Object.freeze({
   sync: why => sync(why || "manual"), connect, disconnect, hash: localHash, hashKeys, score, renewInTap, tapDue, go,
   file, connected, tokOk,   /* otro archivo de la carpeta privada (Tech Prep, js/tech.js); ¿entró un mayor?; ¿hay permiso ahora? */
-  get state(){ return {phase, errCode, meta: meta(), tokOk: tokOk(), choice: !!choice}; },
+  get state(){ return {phase, errCode, meta: meta(), tokOk: tokOk(), choice: !!choice, newer, big, running}; },
+  download: downloadCopy,   /* «Descargar copia» */
   _delays(o){ Object.assign(T, o || {}); if(pollI){ clearInterval(pollI); pollI = 0; startPoll(); } if(pushT){ clearTimeout(pushT); pushT = 0; schedule(); } },
   _idle: () => chain,
 });

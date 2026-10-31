@@ -108,7 +108,8 @@ def _wait_route(page, n0, timeout=8000):
 # =============================================================== 1. versión, SHELL, orden de carga y save.js
 def test_version_shell_load_order_and_inventory():
     """sw.js VERSION 23 o más = OFF_SHELL = el ?v= de cada <script> de index.html y privacy.html. Cada js/*.js, cada guion de
-    llamada y cada cuento está en SHELL y en OFF_APP (las mismas listas). En el navegador: los módulos de F6 existen
+    llamada y cada cuento está en SHELL y en OFF_APP (las mismas listas), o en LAZY de sw.js (lo de mayores: se guarda al
+    usarlo). En el navegador: los módulos de F6 existen
     (vocabMenu, vocabNavMotion, vocabParrot, vocabCalls, vocabStories, vocabHunter) y window.vocabMedia (de
     js/mailbox.js) está antes que js/parrot.js y js/hunter-boot.js; js/navmotion.js es el último; js/hunter.js no se pide
     hasta entrar en el cazador y entonces llega con ?v=<VERSION>. Los dibujos de los cuentos, las llamadas y el cazador van en
@@ -129,9 +130,13 @@ def test_version_shell_load_order_and_inventory():
                 probs.append(f"{name}: <script src={src}> sin ?v={v}")
     shell = set(re.findall(r'"([^"]+)"', sw[sw.index("const SHELL"):sw.index("];", sw.index("const SHELL"))]))
     off = set(re.findall(r'"([^"]+)"', html[html.index("const OFF_APP"):html.index("];", html.index("const OFF_APP"))]))
+    lazy = set(re.findall(r'"([^"]+)"', sw[sw.index("const LAZY = ["):sw.index("];", sw.index("const LAZY = ["))])) \
+        if "const LAZY = [" in sw else set()
     for f in sorted({str(p.relative_to(C.ROOT)) for p in (C.ROOT / "js").glob("*.js")}
                     | {str(p.relative_to(C.ROOT)) for d in ("data/stories", "data/calls") for p in (C.ROOT / d).rglob("*.json")}
                     | {"img/games/cuentos.png", "img/games/cazador.png"}):
+        if f in lazy and f not in shell:
+            continue
         if f not in shell:
             probs.append(f"{f} no está en SHELL")
         if f not in off:

@@ -209,13 +209,23 @@ def _sw():
     return shell, int(v.group(1)) if v else None
 
 
+def _lazy():
+    """LAZY de sw.js: lo que no se baja al instalar (se guarda la primera vez que se usa)"""
+    m = re.search(r"const LAZY = \[(.*?)\];", (C.ROOT / "sw.js").read_text(encoding="utf-8"), re.S)
+    return json.loads("[" + re.sub(r",\s*$", "", m.group(1).strip()) + "]") if m else []
+
+
 def test_sw_shell_entries_200():
     """Cada entrada de SHELL en sw.js responde 200, sin repetidas, y en SHELL están todos los scripts, el manifiesto, los
-    iconos y las letras que usa index.html (también js/motion.js y js/gestures.js, que cargan antes que los módulos)."""
+    iconos y las letras que usa index.html (también js/motion.js y js/gestures.js, que cargan antes que los módulos).
+    Lo de LAZY (se guarda al usarlo) también responde 200 y no está en SHELL; «./» no hace falta en SHELL (el sw da su
+    index.html)."""
     shell, version = _sw()
+    lazy = _lazy()
+    assert not set(shell) & set(lazy), f"en SHELL y en LAZY a la vez: {sorted(set(shell) & set(lazy))}"
     srv = C.serve()
     bad = []
-    for u in shell:
+    for u in shell + lazy:
         try:
             with urllib.request.urlopen(f"{srv.url}/{'' if u == './' else u}", timeout=10) as r:
                 if r.status != 200:
@@ -254,22 +264,31 @@ _DATA_IN_CACHES = """async () => { const out = {};
 def test_offline_serves_new_version():
     """Con una caché vieja «vocab-v1» que tiene un index.html falso: el sw nuevo se instala, borra vocab-v1 (pasando sus
     dibujos a vocab-media); lo que el niño abrió con red (temas, gramática, lección) sigue guardado después de una
-    versión nueva de la app (VERSION + 1); y sin conexión de verdad (el servidor parado) la recarga sirve el index.html
-    bueno, esas rutas pintan aunque la caché vieja vuelva a aparecer, y un tema que nunca se abrió no sale de ninguna
-    parte (control: la prueba de verdad está sin red)."""
+    versión nueva de la app (VERSION + 1, con su «?v=» y OFF_SHELL); y sin conexión de verdad (el servidor parado) la
+    recarga sirve el index.html bueno, esas rutas pintan (sin la página «Sin conexión») aunque la caché vieja vuelva a
+    aparecer, y un tema que nunca se abrió no sale de ninguna parte (control: la prueba de verdad está sin red)."""
     shell, version = _sw()
     img = "img/" + sorted(p.name for p in (C.ROOT / "img").glob("*.png"))[0]
     st = {"bump": False}
 
     class Handler(C._Quiet):
-        """El servidor de siempre; con st["bump"] sirve sw.js con VERSION + 1, como al publicar una versión nueva."""
+        """El servidor de siempre; con st["bump"] sirve una versión nueva como se publica: sw.js con VERSION + 1 e
+        index.html con el «?v=» de sus <script> y OFF_SHELL subidos con ella."""
 
         def do_GET(self):
-            if st["bump"] and self.path.split("?")[0] == "/sw.js":
-                src = (C.ROOT / "sw.js").read_text(encoding="utf-8")
-                body = re.sub(r"const VERSION = (\d+);", lambda m: f"const VERSION = {int(m.group(1)) + 1};", src).encode()
+            p = self.path.split("?")[0]
+            if st["bump"] and p in ("/sw.js", "/", "/index.html"):
+                if p == "/sw.js":
+                    src = (C.ROOT / "sw.js").read_text(encoding="utf-8")
+                    body = src.replace(f"const VERSION = {version};", f"const VERSION = {version + 1};")
+                else:
+                    src = (C.ROOT / "index.html").read_text(encoding="utf-8")
+                    body = src.replace(f'?v={version}"', f'?v={version + 1}"') \
+                              .replace(f'"vocab-shell-v{version}"', f'"vocab-shell-v{version + 1}"')
+                assert body != src, f"la versión nueva de {p} no cambió nada"
+                body = body.encode()
                 self.send_response(200)
-                self.send_header("Content-Type", "text/javascript; charset=utf-8")
+                self.send_header("Content-Type", "text/javascript; charset=utf-8" if p == "/sw.js" else "text/html; charset=utf-8")
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
@@ -355,6 +374,7 @@ def test_offline_serves_new_version():
             txt = page.locator("#app").inner_text()
             assert "No se pudo cargar" not in txt and "Cargando" not in txt[:40] and txt.strip(), \
                 f"sin conexión {h} no pinta: {txt[:120]!r}"
+            assert page.locator("[data-route-fail]").count() == 0, f"sin conexión {h} (abierto con red) sale «Sin conexión»"
         # sin red, Chrome pide los dibujos perezosos desde más lejos: los de más abajo que no se vieron con red no están
         # (eso es lo esperado sin «Descargar todo»); cualquier otro fallo sí cuenta
         unseen = re.compile(r"^console: Failed to load resource: net::ERR_FAILED @ https?://[^/]+(/(?:img|audio)/\S+)$")

@@ -1,24 +1,36 @@
 /* App sin internet.
-   · vocab-shell-vN: la app (las entradas de SHELL: páginas, js, iconos, los datos pequeños y los dibujos de las tarjetas
-     de F5 en Juegos y Hoy, que así salen sin conexión desde el primer día). Cada versión nueva borra las anteriores.
+   · vocab-shell-vN: la app (las entradas de SHELL: index.html, js, iconos, los datos pequeños, los dibujos de las
+     tarjetas de Juegos y Hoy y los personajes que salen siempre, el zorro y el loro, que así salen sin conexión desde el
+     primer día). Cada versión nueva borra las anteriores.
+   · LAZY: lo que solo usan algunos: los fondos de Pajarito volador (img/games/vuelo-*.jpg, unos 490 KB) y lo de mayores
+     (Tech Prep e IELTS Prep). No se baja al instalar: se guarda la primera vez que se usa (el código en el shell, los
+     dibujos y los datos en vocab-media) y, si ya se usó, la versión nueva lo vuelve a bajar al instalarse. Va escrito
+     aquí entre comillas porque js/tech-boot.js mira en este fichero qué módulos trae la versión.
    · vocab-media: imágenes, audios y los demás datos (temas, gramática, mapas de audio: data/… y audio/….json), con lo que
-     guarda «Descargar todo». Se conserva de una versión a otra: lo que el niño ya abrió con red sigue ahí sin conexión
-     aunque la app se actualice. Aquí van también los árboles de familia recortados de los juegos (img/fam2/, unos
-     470 KB): no están en SHELL porque solo los usa el tema Familia; se guardan la primera vez que se ven y con «Descargar
-     todo», y sin ellos los juegos vuelven al dibujo de siempre (img/fam_…).
-   La página y los datos van primero a la red (siempre la última versión) y, sin conexión, salen del shell actual,
-   luego de vocab-media y por último de cualquier otra caché. Las imágenes y los mp3 salen de vocab-media y, si no
-   están, de la red (y se guardan). Las cachés viejas (vocab-v1 de «Descargar todo», vocab-vNN del sw anterior) pasan
-   sus imágenes, audios y datos a vocab-media entrada a entrada y después se borran; si no cabe, se borran igual (todo
-   se puede volver a bajar).
+     guarda «Descargar todo» y lo que index.html guarda de antemano (warmCache). Se conserva de una versión a otra: lo que
+     el niño ya abrió con red sigue ahí sin conexión aunque la app se actualice. Aquí van también los árboles de familia
+     recortados de los juegos (img/fam2/, unos 470 KB): no están en SHELL porque solo los usa el tema Familia; se
+     guardan la primera vez que se ven y con «Descargar todo», y sin ellos los juegos vuelven al dibujo de siempre.
+   Cómo se contesta:
+   · js, css y html con «?v=» igual a VERSION (los <script> de index.html): primero el shell, que es esa misma versión
+     (así arranca sin esperar a la red); si no está, la red (y se guarda).
+   · js, css y html con otro «?v=»: la red y, sin red, solo la copia guardada de esa misma URL, con su «?v=». Nunca se da
+     un fichero guardado por su nombre sin mirar el «?v=» (una página nueva con módulos viejos no arranca).
+   · la página y los datos: la red, pero si tarda más de 3 s (NET_WAIT), lo guardado (la red sigue y lo guarda para la
+     próxima vez); tras una espera así, durante SLOW_FOR lo guardado sale enseguida (la red lenta no suma 3 s a cada
+     dato) hasta que la red vuelve a contestar a tiempo; sin red, del shell actual, luego de vocab-media y por último de cualquier otra caché. Una página que
+     no está guardada da index.html. La carpeta («./», start_url) es su index.html.
+   · imágenes y mp3: de vocab-media (o del shell, las de SHELL) y, si no están, de la red (y se guardan).
+   Las cachés viejas (vocab-v1 de «Descargar todo», vocab-vNN del sw anterior) pasan sus imágenes, audios y datos a
+   vocab-media entrada a entrada y después se borran; si no cabe, se borran igual (todo se puede volver a bajar).
    Al subir VERSION se sube también OFF_SHELL y el «?v=» de los <script> de index.html y privacy.html: GitHub Pages manda
-   max-age=600 y, sin eso, el sw anterior (que pide a la red con la caché HTTP) daría el index.html nuevo con módulos
-   viejos de esa caché. El shell se guarda y se busca sin el «?v=». */
+   max-age=600 y, sin eso, la caché HTTP daría el index.html nuevo con módulos viejos. El shell se guarda sin el «?v=»:
+   es de una sola versión, la de su nombre. */
 const VERSION = 38;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
 const SHELL = [
-  "./", "index.html", "privacy.html", "manifest.webmanifest",
+  "index.html", "privacy.html", "manifest.webmanifest",
   "data/index.json", "data/map.json", "data/game.json", "data/sprites.json",
   "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/party.js", "data/party.json", "img/games/impostor.png", "img/games/ordenar.png", "js/buddy.js", "js/album.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "js/rewards.js",
@@ -51,22 +63,37 @@ const SHELL = [
   "js/keys.js", "icons/sc-repasar.png", "icons/sc-camino.png", "icons/sc-juegos.png", "icons/sc-granja.png",
   "js/army.js", "data/army/en.json", "data/army/fr.json", "data/army/da.json", "img/games/soldados.png", "data/programadores.json", "img/om_1F7E6.png",
   "data/gimnasio.json", "data/muaythai.json", "data/kickboxing.json", "data/lucha.json", "data/jiujitsu.json",
-  "js/tech-boot.js", "js/tech.js", "js/tech-lesson.js",
-  "js/tech-pages.js",
-  "js/flyer.js", "img/games/pajarito.png", "img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg", "js/topos.js", "img/games/topos.png", "js/cuartel.js", "js/wordplay.js", "js/quiz.js", "js/grammargames.js", "img/games/cuartel.png", "img/games/adivina.png", "img/games/sopa.png", "img/games/crucigrama.png", "img/games/concurso.png", "img/games/verdadero.png", "img/games/cajas.png", "img/games/flechas.png", "img/games/ordenafrase.png", "img/games/completa.png", "img/games/detective.png",
-  "js/ielts-boot.js", "ielts.html", "ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js", "data/ielts/index.json",
+  "js/tech-boot.js",
+  "js/flyer.js", "img/games/pajarito.png", "js/topos.js", "img/games/topos.png", "js/cuartel.js", "js/wordplay.js", "js/quiz.js", "js/grammargames.js", "img/games/cuartel.png", "img/games/adivina.png", "img/games/sopa.png", "img/games/crucigrama.png", "img/games/concurso.png", "img/games/verdadero.png", "img/games/cajas.png", "img/games/flechas.png", "img/games/ordenafrase.png", "img/games/completa.png", "img/games/detective.png",
+  "js/ielts-boot.js",
+  "img/games/memoria.png", "img/games/lluvia.png", "img/games/globos.png", "img/games/letras.png", "img/games/lince.png",
+  "img/pj/zorro.png", "img/pj/loro.png",
+];
+const LAZY = [
+  "img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg",
+  "js/tech.js", "js/tech-lesson.js", "js/tech-pages.js",
+  "ielts.html", "ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js", "data/ielts/index.json",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */
+const NET_WAIT = 3000;                                      /* la red tarda más: se da lo guardado */
+const SLOW_FOR = 20000;                                     /* tras una espera, lo guardado enseguida durante 20 s */
+let slowUntil = 0;
 const MEDIA_RE = /\.(png|jpe?g|gif|webp|svg|mp3|m4a|ogg|wav)$/i;
+const CODE_RE = /\.(js|css|html?)$/i;
 const isMedia = url => MEDIA_RE.test(url.pathname) && !url.pathname.includes("/icons/");
 const OLD_RE = /^vocab-v\d+$/;                              /* cachés de antes de vocab-shell */
 const SHELL_RE = /^vocab-shell-v\d+$/;
 const KEEP_RE = /\/(data|audio)\/.+\.json$/;                /* datos que se guardan en vocab-media (y pasan de las viejas) */
-const SHELL_URLS = new Set(SHELL.map(u => new URL(u, location.href).href));
-const inShell = url => SHELL_URLS.has(url.origin + url.pathname);
+const abs = u => new URL(u, location.href).href;
+/* la clave de una petición en las cachés: sin «?…» y la carpeta como su index.html */
+const keyOf = url => url.origin + (url.pathname.endsWith("/") ? url.pathname + "index.html" : url.pathname);
+const SHELL_URLS = new Set(SHELL.map(abs));
+const LAZY_PATHS = new Set(LAZY.map(u => new URL(u, location.href).pathname));
+const inShell = url => SHELL_URLS.has(keyOf(url));
 /* dónde se guarda una respuesta de la red: los datos que no son del shell, en vocab-media (no se borran al actualizar) */
 const cacheFor = url => !inShell(url) && KEEP_RE.test(url.pathname) ? MEDIA_CACHE : SHELL_CACHE;
 const msg = err => (err && (err.name === "QuotaExceededError" ? "no cabe (" + err.message + ")" : err.message)) || err;
+const good = res => res.status === 200 && res.type === "basic" && !res.redirected;
 
 self.addEventListener("install", e => {
   e.waitUntil((async () => {
@@ -87,9 +114,24 @@ self.addEventListener("install", e => {
     failed.forEach(u => console.warn("[sw] no se pudo guardar", u, msg(errs[SHELL.indexOf(u)])));
     const missing = REQUIRED.filter(u => failed.includes(u));
     if(missing.length) throw new Error("[sw] sin " + missing.join(", ") + ": se queda la versión anterior");
+    await carryLazy(c);
     await self.skipWaiting();
   })());
 });
+/* lo de LAZY que ya se usó (está en un shell de antes): se baja otra vez para esta versión, con la misma URL. Si falla,
+   se pedirá al usarlo. */
+async function carryLazy(c){
+  try{
+    for(const n of (await caches.keys()).filter(n => SHELL_RE.test(n) && n !== SHELL_CACHE)){
+      const old = await caches.open(n);
+      for(const req of await old.keys()){
+        const url = new URL(req.url);
+        if(url.origin !== location.origin || !LAZY_PATHS.has(url.pathname) || await c.match(req.url)) continue;
+        await c.add(new Request(req.url, {cache: "reload"})).catch(() => {});
+      }
+    }
+  }catch(err){ console.warn("[sw] no se pudo volver a bajar lo ya usado:", msg(err)); }
+}
 
 self.addEventListener("activate", e => {
   e.waitUntil((async () => {
@@ -136,27 +178,56 @@ function migrateOld(){
 
 self.addEventListener("fetch", e => {
   const req = e.request;
-  /* «Descargar todo» pide con cache:"no-store" y guarda él mismo en la caché que toca */
+  /* «Descargar todo» y lo que se guarda de antemano piden con cache:"no-store" y guardan ellos mismos */
   if(req.method !== "GET" || req.cache === "no-store") return;
   const url = new URL(req.url);
   if(url.origin !== location.origin) return;
   if(!migrating) e.waitUntil(migrateOld());
-  e.respondWith(isMedia(url) ? mediaFirst(req, e) : networkFirst(req, e));
+  const v = url.searchParams.get("v");
+  e.respondWith(isMedia(url) ? mediaFirst(req, url, e)
+    : v !== null && CODE_RE.test(url.pathname) ? (v === String(VERSION) ? shellFirst(req, url, e) : sameUrl(req, e))
+    : networkFirst(req, url, e));
 });
 
-/* imágenes y audios: de vocab-media; si no están, de la red entera (sin Range) y se guardan */
-async function mediaFirst(req, e){
-  const media = await caches.open(MEDIA_CACHE);
-  let res = await media.match(req.url);
+/* guarda una copia de la respuesta (sin parar la respuesta) */
+function keep(e, name, key, res){
+  const copy = res.clone();
+  e.waitUntil(caches.open(name).then(c => c.put(key, copy)).catch(err => console.warn("[sw] no cabe", key, msg(err))));
+}
+
+/* js, css y html de esta versión: del shell; si no está (LAZY, o no se pudo guardar al instalar), de la red */
+async function shellFirst(req, url, e){
+  const key = keyOf(url), hit = await (await caches.open(SHELL_CACHE)).match(key);
+  if(hit) return hit;
+  try{
+    const res = await fetch(req);
+    if(good(res)) keep(e, SHELL_CACHE, key, res);
+    return res;
+  }catch(err){ return Response.error(); }
+}
+
+/* con otro «?v=»: la red y, sin red, solo esa misma URL guardada (con su «?v=») */
+async function sameUrl(req, e){
+  try{
+    const res = await fetch(req);
+    if(good(res)) keep(e, SHELL_CACHE, req.url, res);
+    return res;
+  }catch(err){
+    return (await caches.match(req.url)) || Response.error();
+  }
+}
+
+/* imágenes y audios: de vocab-media (o del shell); si no están, de la red entera (sin Range) y se guardan */
+async function mediaFirst(req, url, e){
+  const media = await caches.open(MEDIA_CACHE), key = url.search ? req.url : keyOf(url);
+  let res = await media.match(key);
+  if(!res && inShell(url)) res = await (await caches.open(SHELL_CACHE)).match(keyOf(url));
   if(!res){
     try{
       res = await fetch(req.url, {credentials: "same-origin"});
-      if(res.status === 200 && !res.redirected){
-        const copy = res.clone();
-        e.waitUntil(media.put(req.url, copy).catch(err => console.warn("[sw] no cabe", req.url, (err && err.message) || err)));
-      }
+      if(res.status === 200 && !res.redirected) keep(e, MEDIA_CACHE, key, res);
     }catch(err){
-      res = await caches.match(req.url, {ignoreSearch: true});
+      res = await caches.match(key);
       if(!res) return Response.error();
     }
   }
@@ -179,26 +250,39 @@ async function rangeOf(req, res){
     "Content-Range": `bytes ${a}-${b}/${size}`, "Content-Length": String(b - a + 1), "Accept-Ranges": "bytes"}});
 }
 
-/* lo demás: primero la red (y se guarda: el shell en el shell actual, los datos en vocab-media); sin red, de las cachés */
-async function networkFirst(req, e){
-  try{
-    const res = await fetch(req);
-    if(res.status === 200 && res.type === "basic" && !res.redirected){
-      const copy = res.clone(), url = new URL(req.url);
-      e.waitUntil(caches.open(cacheFor(url)).then(c => c.put(url.origin + url.pathname, copy))
-        .catch(err => console.warn("[sw] no cabe", url.pathname, msg(err))));
-    }
+/* la página y los datos: primero la red (y se guarda: el shell en el shell actual, los datos en vocab-media), como
+   mucho NET_WAIT; si tarda más, lo guardado, y si no hay nada guardado, se sigue esperando a la red. Con la red lenta
+   (slowUntil), lo guardado sin esperar, y la red sigue detrás para la próxima vez */
+async function networkFirst(req, url, e){
+  const key = keyOf(url), t0 = Date.now();
+  const net = fetch(req).then(res => {
+    if(good(res)) keep(e, cacheFor(url), key, res);
+    if(Date.now() - t0 < NET_WAIT) slowUntil = 0;
     return res;
-  }catch(err){
-    return fromCaches(req);
+  });
+  if(Date.now() < slowUntil){
+    const saved = await fromCaches(req, key);
+    if(saved){ e.waitUntil(net.catch(() => {})); return saved; }
   }
+  let t = 0;
+  const late = new Promise(r => { t = setTimeout(() => { slowUntil = Date.now() + SLOW_FOR; r(); }, NET_WAIT); });
+  try{
+    const res = await Promise.race([net, late]);
+    if(res){ clearTimeout(t); return res; }
+  }catch(err){
+    clearTimeout(t);
+    return (await fromCaches(req, key)) || Response.error();
+  }
+  const saved = await fromCaches(req, key);
+  if(saved){ e.waitUntil(net.catch(() => {})); return saved; }
+  try{ return await net; }catch(err){ return Response.error(); }
 }
-async function fromCaches(req){
-  const o = {ignoreSearch: true};
+/* lo guardado de una página o de unos datos (por su clave, sin «?…»: no llevan «?v=») */
+async function fromCaches(req, key){
   const shell = await caches.open(SHELL_CACHE);
-  let res = await shell.match(req, o);
-  if(!res) res = await (await caches.open(MEDIA_CACHE)).match(req, o);
-  if(!res) res = await caches.match(req, o);
-  if(!res && req.mode === "navigate") res = (await shell.match("index.html")) || (await shell.match("./"));
-  return res || Response.error();
+  let res = await shell.match(key);
+  if(!res) res = await (await caches.open(MEDIA_CACHE)).match(key);
+  if(!res) res = await caches.match(key);
+  if(!res && req.mode === "navigate") res = await shell.match(abs("index.html"));
+  return res || null;
 }

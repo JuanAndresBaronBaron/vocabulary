@@ -572,18 +572,19 @@ def test_buddy_without_floating_fox():
 # ---------------------------------------------------------------- movimiento tranquilo
 def test_calm_motion_matches_reduced_motion():
     """html[data-motion=calm] apaga lo mismo que «Reducir movimiento»: la regla global de index.html y las de los
-    módulos (copiadas en <style id=css-calm>)."""
+    módulos (copiadas en <style id=css-calm> al encenderse, antes del siguiente fotograma)."""
     page = C.new_page("phone")
     probs = []
     try:
         C.seed(page)
         C.goto(page, "#/")
-        st = page.evaluate("""() => { const host = document.createElement('div'); host.innerHTML =
+        st = page.evaluate("""async () => { const host = document.createElement('div'); host.innerHTML =
             '<button class="bd-bounce" id="t-rv">x</button><i id="t-inf" style="animation:m-dummy 1s infinite">y</i>';
           document.getElementById('app').appendChild(host);
           const css = id => getComputedStyle(document.getElementById(id));
           const a = [css('t-rv').animationName, css('t-inf').animationIterationCount];
           document.documentElement.dataset.motion = 'calm';
+          await new Promise(requestAnimationFrame);
           const b = [css('t-rv').animationName, css('t-inf').animationIterationCount];
           delete document.documentElement.dataset.motion; host.remove();
           const calm = document.getElementById('css-calm');

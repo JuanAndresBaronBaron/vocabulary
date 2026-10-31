@@ -1,6 +1,7 @@
 /* Módulo save: el núcleo de la copia de la partida (sin interfaz; la interfaz y Google Drive están en js/sync.js).
-   - Inventario de las claves de la app (typeOf/collect), copia (snapshot), lectura comprobada (parse), resumen para
-     comparar (summary) y reemplazo de la partida con copia para deshacer ("save:undo") y recarga (apply).
+   - Inventario de las claves de la app (typeOf/collect), copia (snapshot), lectura comprobada (parse, con el porqué en
+     code: "newer" = de una versión más nueva de la app), resumen para comparar (summary), juntar dos partidas (merge) y
+     reemplazo de la partida con copia para deshacer ("save:undo") y recarga (apply).
    - Al arrancar pide al navegador que no borre los datos (navigator.storage.persist).
    Formato: {app:"vocabulary", v:1, saved:"<ISO>", keys:{clave: "valor tal cual está en localStorage"}}.
    El origen juanandresbaronbaron.github.io lo comparten otras webs del mismo usuario: solo se leen, guardan y borran
@@ -109,24 +110,27 @@ const metaSet = (k, v) => { try{ localStorage.setItem(k, JSON.stringify(v)); ret
 const metaDel = k => { try{ localStorage.removeItem(k); }catch(e){} };
 
 /* ---------- leer y comprobar una partida ---------- */
-const fail = err => ({ok: false, err});
-/* devuelve {ok, data:{saved, keys}, ignored, bad} o {ok:false, err}. Solo se rechaza la partida entera si falla su
-   estructura (app, v, keys); un dato suelto dañado se salta y se cuenta en bad */
+const fail = (err, code) => ({ok: false, err, code});
+/* devuelve {ok, data:{saved, keys}, ignored, bad} o {ok:false, err, code}. Solo se rechaza la partida entera si falla su
+   estructura (app, v, keys); un dato suelto dañado se salta y se cuenta en bad.
+   code dice por qué: "empty" · "big" · "json" · "app" (de otra app) · "ver" (sin versión) · "keys" · "bad" (nada se
+   puede leer), que son una partida dañada, y "newer": está bien, pero la escribió una versión más nueva de la app (esta
+   no sabe leerla). js/sync.js nunca sube encima de una "newer": esa la tiene que leer la app nueva. */
 function parse(text){
-  if(typeof text !== "string" || !text.trim()) return fail("La partida está vacía.");
-  if(text.length > MAX) return fail("Es demasiado grande para ser una partida de Vocabulario.");
-  let o; try{ o = JSON.parse(text); }catch(e){ return fail("Esto no es una partida de Vocabulario (o está dañada). No se ha cambiado nada."); }
-  if(!isObj(o) || o.app !== APP) return fail("Esto no es una partida de Vocabulario: parece de otra app. No se ha cambiado nada.");
-  if(typeof o.v !== "number" || !(o.v >= 1)) return fail("La partida está dañada (falta la versión). No se ha cambiado nada.");
-  if(o.v > VER) return fail("Esta partida es de una versión más nueva de la app. Recarga la página para actualizarla y prueba otra vez.");
-  if(!isObj(o.keys)) return fail("La partida está dañada (no tiene datos). No se ha cambiado nada.");
+  if(typeof text !== "string" || !text.trim()) return fail("La partida está vacía.", "empty");
+  if(text.length > MAX) return fail("Es demasiado grande para ser una partida de Vocabulario.", "big");
+  let o; try{ o = JSON.parse(text); }catch(e){ return fail("Esto no es una partida de Vocabulario (o está dañada). No se ha cambiado nada.", "json"); }
+  if(!isObj(o) || o.app !== APP) return fail("Esto no es una partida de Vocabulario: parece de otra app. No se ha cambiado nada.", "app");
+  if(typeof o.v !== "number" || !(o.v >= 1)) return fail("La partida está dañada (falta la versión). No se ha cambiado nada.", "ver");
+  if(o.v > VER) return fail("Esta partida es de una versión más nueva de la app. Recarga la página para actualizarla y prueba otra vez.", "newer");
+  if(!isObj(o.keys)) return fail("La partida está dañada (no tiene datos). No se ha cambiado nada.", "keys");
   const keys = {}; let ignored = 0, bad = 0;
   for(const [k, v] of Object.entries(o.keys)){
     if(!typeOf(k)){ ignored++; continue; }
     if(!valid(k, v)){ bad++; continue; }
     keys[k] = v;
   }
-  if(bad && !Object.keys(keys).length) return fail("La partida está dañada (ningún dato se puede leer). No se ha cambiado nada.");
+  if(bad && !Object.keys(keys).length) return fail("La partida está dañada (ningún dato se puede leer). No se ha cambiado nada.", "bad");
   const t = Date.parse(o.saved);
   return {ok: true, data: {saved: isFinite(t) ? t : null, keys}, ignored, bad};
 }
@@ -147,13 +151,104 @@ function summary(keys){
 }
 const total = (s, f) => Object.values(s.per).reduce((a, x) => a + x[f], 0);
 
+/* ---------- juntar dos partidas (dos aparatos que jugaron a la vez; js/sync.js) ----------
+   merge(base, other) → claves {clave: texto}. base es la que gana (la de más progreso): de ella salen las monedas y lo
+   comprado (game), la granja (farm:state) y todo lo demás. De other se junta lo que solo crece, así no se pierde lo
+   jugado en el otro aparato:
+     map:<lang> (lecciones del camino): las de las dos, con las estrellas más altas de cada lección
+     srs:<lang> (repaso): las palabras de las dos; si está en las dos, la que lleva más repasos (n) y, con los mismos, la
+       que vuelve más tarde (due)
+     act (actividad por día): la cifra más alta de cada día
+     album:seen|uniq:<lang>: lo más alto de cada clave · album:done|orph:<lang>: las de las dos
+     games:best: por juego, la partida de récord más alto (con sus estrellas e intentos); plays, lv y at, los más altos
+     cuentos: los leídos en las dos (por cuento: los finales vistos de las dos, veces y pagado lo más alto, la última
+       fecha) y lo pagado, el del día más nuevo (si es el mismo día, lo más alto)
+     season: por año y fiesta, las pegatinas y ventanitas de las dos; bolsas, último premio y monedas, lo más alto; la
+       ronda a medias, la del día más nuevo
+     phrase:stamps: los días sellados de las dos (los 60 últimos) y el total con los días que solo tenía la otra
+   Una de estas claves que solo está en other se añade. Si en una de las dos no se puede leer, queda la de base. Si
+   other no trae nada nuevo, el texto de base no cambia (ni el orden de sus claves). */
+const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
+const num = x => +x || 0;
+const more = (x, y) => num(y) > num(x) ? y : x;
+const newer = (x, y) => (typeof y === typeof x ? y > x : y != null && x == null) ? y : x;   /* fechas «AAAA-MM-DD», ISO o días */
+const union = (a, b) => [...new Set([...(Array.isArray(a) ? a : []), ...(Array.isArray(b) ? b : [])])];
+const byKey = f => (a, b) => {
+  const o = {};
+  for(const k of Object.keys(a)) o[k] = own(b, k) ? f(a[k], b[k], k) : a[k];
+  for(const k of Object.keys(b)) if(!own(o, k)) o[k] = b[k];
+  return o;
+};
+const objs = f => (x, y) => isObj(x) && isObj(y) ? f(x, y) : isObj(x) ? x : y;
+const srsPick = objs((x, y) => num(y.n) > num(x.n) || (num(y.n) === num(x.n) && num(y.due) > num(x.due)) ? y : x);
+const bestPick = objs((x, y) => {
+  const o = Object.assign({}, num(y.score) > num(x.score) ? y : x);
+  for(const k of ["plays", "lv", "at"]) if(own(x, k) || own(y, k)) o[k] = Math.max(num(x[k]), num(y[k]));
+  return o;
+});
+const talePick = objs((x, y) => {
+  const o = Object.assign({}, x, {d: newer(x.d, y.d), e: union(x.e, y.e), n: Math.max(num(x.n), num(y.n))});
+  if(x.p || y.p) o.p = 1;
+  return o;
+});
+function tales(a, b){
+  const o = Object.assign({}, a);
+  if(isObj(a.done) || isObj(b.done)) o.done = byKey(talePick)(isObj(a.done) ? a.done : {}, isObj(b.done) ? b.done : {});
+  if(isObj(b.pay) && (!isObj(a.pay) || newer(a.pay.d, b.pay.d) !== a.pay.d)) o.pay = b.pay;
+  else if(isObj(a.pay) && isObj(b.pay) && a.pay.d === b.pay.d) o.pay = Object.assign({}, a.pay, {n: Math.max(num(a.pay.n), num(b.pay.n))});
+  return o;
+}
+const fest = objs((x, y) => {
+  const o = Object.assign({}, x);
+  if(isObj(x.st) || isObj(y.st)) o.st = byKey(v => v)(isObj(x.st) ? x.st : {}, isObj(y.st) ? y.st : {});
+  if(Array.isArray(x.open) || Array.isArray(y.open)) o.open = union(x.open, y.open);
+  for(const k of ["last", "paid"]) if(own(x, k) || own(y, k)) o[k] = newer(x[k], y[k]);
+  if(own(x, "bags") || own(y, "bags")) o.bags = Math.max(num(x.bags), num(y.bags));
+  const ra = x.run, rb = y.run;
+  if(isObj(rb) && (!isObj(ra) || newer(ra.d, rb.d) !== ra.d || (ra.d === rb.d && union(rb.ok).length > union(ra.ok).length))) o.run = rb;
+  return o;
+});
+const seasons = byKey(objs((ya, yb) => byKey(fest)(ya, yb)));
+function stamps(a, b){
+  const da = union(a.days), db = union(b.days), sa = new Set(da), sb = new Set(db);
+  const days = union(da, db).filter(d => typeof d === "string").sort().slice(-60);
+  const n = Math.max(num(a.n) + db.filter(d => !sa.has(d)).length, num(b.n) + da.filter(d => !sb.has(d)).length, days.length);
+  return Object.assign({}, a, {days, n});
+}
+const GROW = [
+  [k => k.startsWith("map:"), byKey(more)],
+  [k => k.startsWith("srs:"), byKey(srsPick)],
+  [k => k === "act", byKey(more)],
+  [k => /^album:(seen|uniq):/.test(k), byKey(more)],
+  [k => /^album:(done|orph):/.test(k), byKey(v => v)],
+  [k => k === "games:best", byKey(bestPick)],
+  [k => k === "cuentos", tales],
+  [k => k === "season", seasons],
+  [k => k === "phrase:stamps", stamps],
+];
+function merge(base, other){
+  const out = Object.assign({}, isObj(base) ? base : {});
+  if(!isObj(other)) return out;
+  for(const k of Object.keys(other)){
+    const g = typeOf(k) && GROW.find(r => r[0](k));
+    if(!g || typeof other[k] !== "string") continue;
+    if(!own(out, k)){ if(valid(k, other[k])) out[k] = other[k]; continue; }
+    let a, b; try{ a = JSON.parse(out[k]); b = JSON.parse(other[k]); }catch(e){ continue; }
+    if(!isObj(a) || !isObj(b)) continue;
+    const m = JSON.stringify(g[1](a, b));
+    if(m !== JSON.stringify(a)) out[k] = m;
+  }
+  return out;
+}
+
 /* ---------- reemplazar la partida ---------- */
 const FLASH = "vocab:save-flash";   /* sessionStorage: {t: mensaje que se enseña al recargar, adult: abrir «Para mayores»} */
 function writeAll(keys){
   for(const k of Object.keys(collect())) localStorage.removeItem(k);
   for(const [k, v] of Object.entries(keys)) if(typeOf(k)) localStorage.setItem(k, v);
 }
-/* mode "load": guarda copia para deshacer · "undo": vuelve a la copia y la borra.
+/* mode "load": guarda copia para deshacer · "undo": vuelve a la copia y la borra · "merge": la partida juntada de dos
+   aparatos (js/sync.js), sin tocar la copia para deshacer (sync.js ya guardó ahí la que perdió algo).
    flash: {t, adult} para enseñar tras recargar (por defecto el mensaje de siempre y abrir «Para mayores»).
    Devuelve "" si va bien (y recarga), "rollback" si quedó a medias, o un mensaje de error para mayores. */
 function apply(keys, mode, flash){
@@ -164,13 +259,13 @@ function apply(keys, mode, flash){
   }
   try{
     writeAll(keys);
-    if(mode === "load") metaSet(META.last, now());
+    if(mode === "load" || mode === "merge") metaSet(META.last, now());
     else { const u = metaGet(META.undo, null); if(u && u.last) metaSet(META.last, u.last); else metaDel(META.last); metaDel(META.undo); }
   }catch(e){
     try{ writeAll(before); }catch(e2){
       /* tampoco se pudo volver atrás: se conserva la copia para deshacer y se avisa */
       if(lastBefore === null) metaDel(META.last); else metaSet(META.last, lastBefore);
-      return mode === "load" ? "rollback" : "No se pudo terminar de volver a la partida de antes porque el navegador no tiene sitio. Libera espacio y pulsa otra vez «↩️ Deshacer».";
+      return mode !== "undo" ? "rollback" : "No se pudo terminar de volver a la partida de antes porque el navegador no tiene sitio. Libera espacio y pulsa otra vez «↩️ Deshacer».";
     }
     if(mode === "load") metaDel(META.undo);
     return "No hay sitio en el navegador para esta partida. No se ha cambiado nada.";
@@ -232,7 +327,7 @@ function progress(){
 bus.on("boot", () => { firstSeen(); askPersist(); });
 
 /* para js/sync.js, las pruebas y los mayores curiosos */
-window.vocabSave = Object.freeze({typeOf, collect, snapshot, parse, summary, total, apply, keepUndo, takeFlash,
+window.vocabSave = Object.freeze({typeOf, collect, snapshot, parse, summary, total, merge, apply, keepUndo, takeFlash,
   metaGet, metaSet, metaDel, META, APP, VER, firstSeen, progress, isIOS, standalone, fmtShort, fmtDate, ago, langs,
   inventory: {exact: Object.keys(EXACT), perLang: Object.keys(PER_LANG), pr: "pr:<docId>:<lang>", deviceOnly: DEVICE_ONLY, meta: Object.values(META)},
   get skipped(){ return skipped; }, get persisted(){ return persisted; }});
