@@ -378,3 +378,53 @@ a.ie-link{display:inline-flex;align-items:center}
 .ie-file:focus-within{outline:3px solid var(--brand-tint);outline-offset:2px}
 /* the back link on the light glass bar: brand ink measured 4.39:1 there, this darker blue 5.3:1 */
 :root:not([data-theme=dark]) .ie-back{color:#1450B8}
+
+/* ---- package: player ---- */
+/* js/ielts-player.js: exam-style Listening (status line, chip, «Continue the recording»), no-voice note, results notes,
+   follow-up questions, set visuals and desktop writing (task and answer side by side from 960 px). */
+.ie-xbar{position:sticky;top:calc(60px + var(--safe-t));z-index:6;display:flex;justify-content:center}
+.ie-xbar:empty{display:none}
+.ie-xbar>.ie-xgo{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:16px 20px}
+.ie-xbar>.ie-xgo p{margin:0}
+.ie-xchip{display:inline-flex;align-items:center;gap:8px;min-height:44px;max-width:100%;padding:8px 18px;border:0;border-radius:var(--r-pill);
+  background:var(--navy);color:#fff;font:600 var(--fs-note)/1.25 var(--f-text);text-align:left;box-shadow:0 4px 14px rgba(11,37,69,.28);cursor:pointer}
+.ie-xchip .ico{flex:none}
+:root[data-theme=dark] .ie-xchip{background:var(--teal);color:#000;box-shadow:none}
+.ie-xstat{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .35em;min-height:44px;margin-top:14px;padding:11px 14px;border-radius:var(--r-md);
+  background:var(--card-2);font:600 var(--fs-sub)/1.35 var(--f-text)}
+.ie-xstat #ie-xclk{color:var(--brand-ink);font-variant-numeric:tabular-nums}
+.ie-noaudio{display:flex;gap:10px;align-items:flex-start;margin:14px 0 0;padding:12px 14px;border-radius:var(--r-md);background:var(--gold-soft);
+  font:400 var(--fs-sub)/1.45 var(--f-text)}
+.ie-noaudio .ico{flex:none;color:var(--gold-ink);margin-top:2px}
+:root[data-theme=dark] .ie-noaudio .ico{color:var(--gold)}
+.ie-timeup .ie-row-b{justify-content:center;margin-top:6px}
+.ie-locked{display:flex;gap:10px;align-items:flex-start;margin:0;padding:12px 14px;border-radius:var(--r-md);background:var(--fill2);
+  font:400 var(--fs-sub)/1.45 var(--f-text)}
+.ie-locked .ico{flex:none;margin-top:2px}
+.ie-player>#ie-lclk{margin-left:-6px;font-variant-numeric:tabular-nums}
+.ie-player>#ie-lclk:empty{display:none}
+.ie-rnote{padding:8px 12px;border-radius:var(--r-sm);background:var(--fill2);color:var(--label)!important}
+/* the results link «Revise it later» (a <p>): core uses .ie-revise for its whole revise page, so this stays on p */
+p.ie-revise{display:flex;justify-content:center;margin:0}
+.ie-wchecks{scroll-margin-top:calc(72px + var(--safe-t))}
+.ie-srnote{margin:-4px 0 8px}
+.ie-fu{margin-top:6px;padding-top:12px;border-top:.5px solid var(--sep)}
+.ie-fu>h2{margin:0 0 4px}
+.ie-fu>.ie-sq:first-of-type{border-top:0}
+.ie-set>.ie-viz{margin:0 0 16px}
+.ie-set>.ie-viz .ie-maps{max-width:460px;margin-inline:auto}
+.ie-wtask>.ie-viz+.ie-viz{margin-top:12px}
+@media (min-width:960px){
+  .ie-page:has(#ie-item > .ie-wtask){max-width:1180px}
+  .ie-page:has(#ie-item > .ie-wtask) .ie-dock{padding-left:max(var(--gutter),var(--safe-l),calc(50% - 590px));padding-right:max(var(--gutter),var(--safe-r),calc(50% - 590px))}
+  #ie-item:has(> .ie-wtask){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+  #ie-item:has(> .ie-wtask)>*{grid-column:1 / -1}
+  #ie-item:has(> .ie-wtask)>.ie-wtask{grid-column:1;grid-row:1;position:sticky;top:calc(64px + var(--safe-t));max-height:calc(100vh - 160px);overflow:auto;overscroll-behavior:contain}
+  #ie-item:has(> .ie-wtask)>.ie-wans{grid-column:2;grid-row:1}
+  #ie-item:has(> .ie-wtask) .ie-ta{min-height:min(58vh,560px)}
+}
+/* the player's controls reach 44 px, and the low-time clock keeps 4.5:1 on the light glass bar */
+.ie-seg>button{min-height:44px}
+.ie-in{min-height:44px}
+:root:not([data-theme=dark]) .ie-timer.is-low{color:var(--gold-on)}
+@media (prefers-reduced-motion:reduce){.ie-xchip{transition:none}}
