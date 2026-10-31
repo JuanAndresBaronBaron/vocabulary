@@ -4,9 +4,11 @@
    siempre (la que tenía granja() en index.html): mismos precios, mismas claves guardadas ("game": coins, owned, wear) y
    el mismo bus "buy" {item}. Las monedas solo se gastan aquí (y en la comida/rescate de la granja); nunca entran.
    · Pieza (card): sólida, radio 24. Dibujo (img/pj si hay personaje de cuerpo entero; si no, img/shop/<id>.png de
-     OpenMoji; si no carga, el emoji), el nombre en español, la palabra en el idioma con su altavoz y abajo un botón:
+     OpenMoji; si no carga, el emoji), el nombre en español, la palabra en el idioma con su altavoz, su IPA (it.ipa de
+     data/game.json, con ipaHtml) y abajo un botón:
      - no la tiene: cápsula tintada «Conseguir · 🪙 N» (fondo azul suave, como en App Store) si le llega; si no, cápsula gris «Te faltan N» (sigue
-       siendo tocable: explica con un aviso amable lo que falta, sin sonido triste) y encima «Cuesta 🪙 N»;
+       siendo tocable: explica con un aviso amable lo que falta, con «Ganar monedas» que lleva a la siguiente lección o
+       al repaso, sin sonido triste) y encima «Cuesta 🪙 N»; debajo, «Es mi deseo» (una sola cosa: game.wish);
      - granja: «✓ En tu granja», o «En el refugio» con «Ir al refugio» si el animal se fue al refugio;
      - zorro: «Ponérmelo» / «Quitármelo» (con el género: «Ponérmela», «Quitármelas»…); el personaje: «✓ Eres tú» (no se
        quita) o «Elegir». Lo que lleva puesto tiene un anillo azul y una ✓ en la esquina.
@@ -44,6 +46,10 @@
      goShelter()                             abre el refugio de la granja (si hace falta, va a #/granja antes).
      images() → string[]                     los dibujos de img/shop que existen (los guarda «Descargar todo»).
      types                                   [{t, n, one}] de los tipos, en el orden de las pestañas de antes.
+     wish() → id | null · setWish(id) → boolean (alterna; bus "wish" {item, on}) · wishHtml() → la barra del deseo
+        («Dinosaurio · 245 de 300» con su dibujo y «Ganar monedas», o «Conseguir» cuando ya llega) · wishSlot() → un
+        hueco [data-wish-slot] que se pone al día solo (syncWish(root?)) · goEarn(desde?) → la siguiente lección o el
+        repaso (nextAction()). Al llegar a su precio, «¡Ya puedes conseguir tu deseo!» una vez (game.wishTold).
    Usa de index.html (globales): SHOP, getShop, itemById, itemWord, game, gameSet, pjHas, pjImg, checkAch, toast, say,
    bus, esc, ico, lang, LANGS, FEM, hashPath; window.M (motion.js), window.G (gestures.js) y farmMount.care (farm.js). */
 (() => {
@@ -104,16 +110,66 @@ function img(x){
   if(IMG.has(it.id)) return `<img class="pj shp-im" src="img/shop/${it.id}.png" alt="" draggable="false" decoding="async" data-e="${esc(it.e || "")}">`;
   return `<span class="pj-fb">${esc(it.e || "")}</span>`;
 }
+/* su IPA en el idioma actual (data/game.json: ipa) con ipaHtml() de index.html (se ve salvo que un mayor la apague) */
+const ipaOf = it => { try{ const v = it && it.ipa && it.ipa[lang]; return v && typeof ipaHtml === "function" ? `<div class="shp-ipa">${ipaHtml(v, lc())}</div>` : ""; }catch(e){ return ""; } };
 const imgSrc = it => (typeof pjHas === "function" && pjHas(it.id)) ? (typeof pjSrc === "function" ? pjSrc(it) : `img/pj/${it.id}.png`) : IMG.has(it.id) ? `img/shop/${it.id}.png` : "";
 const images = () => list().filter(it => IMG.has(it.id) && !(typeof pjHas === "function" && pjHas(it.id))).map(it => `img/shop/${it.id}.png`);
+
+/* ---------- «Mi deseo» ----------
+   Una sola cosa deseada (game.wish = id; game.wishTold = el id del que ya se dijo «¡Ya puedes conseguir tu deseo!»):
+   «Es mi deseo» en la pieza de lo que aún no le llega; la barra «Dinosaurio · 245 de 300» con su dibujo arriba de la
+   tienda de la granja, de Mi zorro y de Premios (wishHtml); «Ganar monedas» lleva a la siguiente lección o al repaso. */
+const wishId = (g = game()) => { const id = g.wish; return id && itemById(id) && !g.owned[id] ? id : null; };
+function setWish(id){
+  const g = game(), it = itemById(id); if(!it || g.owned[id]) return false;
+  if(g.wish === id){ delete g.wish; delete g.wishTold; } else { g.wish = id; delete g.wishTold; }
+  gameSet(g);
+  try{ bus.emit("wish", {item: it, on: g.wish === id}); }catch(e){}
+  return g.wish === id;
+}
+/* la barra del deseo: dibujo, «Dinosaurio · 245 de 300», la barra dorada y «Ganar monedas» (o «Conseguir» si ya llega).
+   "" si no hay deseo */
+function wishHtml(){
+  const g = game(), id = wishId(g); if(!id) return "";
+  const it = itemById(id), have = Math.max(0, Math.floor(+g.coins || 0)), p = it.p, ok = have >= p, w = itemWord(it), pc = Math.min(100, p ? 100 * have / p : 100);
+  return `<section class="shp-wish${ok ? " ready" : ""}" data-wish-bar="${esc(id)}" aria-label="Tu deseo: ${esc(it.n)}, ${Math.min(have, p)} de ${p} monedas">
+    <span class="shp-wi" aria-hidden="true">${img(it)}</span>
+    <span class="shp-wt"><small>${ico("star", "fill", 14)}Mi deseo</small><b><span class="shp-wn">${esc(cap1(it.n))}</span> · <span class="t-num">${fmtN(Math.min(have, p))}</span> de <span class="t-num">${fmtN(p)}</span></b>
+      <span class="shp-wbar" aria-hidden="true"><i style="width:${pc.toFixed(1)}%"></i></span>
+      <span class="shp-ww" lang="${lc()}">${esc(w)}</span></span>
+    ${ok ? `<button type="button" class="btn-fill shp-b shp-tint shp-wgo" data-buy="${esc(id)}" aria-label="Conseguir tu deseo: ${esc(it.n)}, ${p} monedas">Conseguir</button>`
+      : `<button type="button" class="btn-fill shp-b shp-tint shp-wgo" data-earn aria-label="Ganar monedas: te ${p - have === 1 ? "falta 1" : `faltan ${p - have}`}">Ganar monedas</button>`}</section>`;
+}
+const cap1 = s => { s = String(s || ""); return s.charAt(0).toUpperCase() + s.slice(1); };
+const fmtN = n => Number(n || 0).toLocaleString("es");
+/* «Ganar monedas»: la siguiente lección o el repaso (nextAction() de index.html); si no, el camino */
+async function goEarn(from){
+  let h = "#/mapa";
+  try{
+    const a = typeof nextAction === "function" ? await nextAction() : null;
+    if(a && (a.kind === "leccion" || a.kind === "repaso")) h = a.href;
+    else if(typeof dueList === "function" && dueList().length) h = "#/repaso";
+  }catch(e){ console.error(e); }
+  if(from && from.closest) await closeHostSheet(from);
+  location.hash = h;
+  return h;
+}
+/* ya le llega para su deseo: un aviso, una sola vez por deseo */
+function wishCheck(){
+  const g = game(), id = wishId(g); if(!id || g.wishTold === id) return;
+  const it = itemById(id); if((+g.coins || 0) < it.p) return;
+  g.wishTold = id; gameSet(g);
+  notice("¡Ya puedes conseguir tu deseo!", toastIcon(it));
+}
 
 /* ---------- la pieza ---------- */
 function actionHtml(it, st){
   const id = esc(it.id), n = esc(it.n), p = it.p, k = st.split(":")[0];
   if(k === "buy") return `<span class="sb" data-sb="${id}"><button type="button" class="btn-fill shp-b shp-tint buy" data-buy="${id}" aria-label="Conseguir: ${n}, ${p} ${p === 1 ? "moneda" : "monedas"}"><span>Conseguir</span><span class="shp-dot" aria-hidden="true">·</span>${COIN}<span class="t-num">${p}</span></button></span>`;
   if(k === "short"){
-    const need = +st.split(":")[1] || 0;
-    return `<span class="sb" data-sb="${id}"><small class="shp-cost" aria-hidden="true">Cuesta ${COIN}<span class="t-num">${p}</span></small><button type="button" class="btn-fill shp-b shp-short buy no" data-buy="${id}" aria-disabled="true" aria-label="${n}: cuesta ${p}, te ${need === 1 ? "falta 1 moneda" : `faltan ${need} monedas`}"><span>Te ${need === 1 ? "falta" : "faltan"}</span><span class="t-num">${need}</span>${COIN}</button></span>`;
+    const need = +st.split(":")[1] || 0, mine = wishId() === it.id;
+    return `<span class="sb" data-sb="${id}"><small class="shp-cost" aria-hidden="true">Cuesta ${COIN}<span class="t-num">${p}</span></small><button type="button" class="btn-fill shp-b shp-short buy no" data-buy="${id}" aria-disabled="true" aria-label="${n}: cuesta ${p}, te ${need === 1 ? "falta 1 moneda" : `faltan ${need} monedas`}"><span>Te ${need === 1 ? "falta" : "faltan"}</span><span class="t-num">${need}</span>${COIN}</button>
+      <button type="button" class="shp-wb${mine ? " on" : ""}" data-wish="${id}" aria-pressed="${mine}">${ico("star", mine ? "fill" : "bold", 16)}<span>${mine ? "Tu deseo" : "Es mi deseo"}</span></button></span>`;
   }
   if(k === "own") return `<span class="own">${CHK()}<span>En tu granja</span></span>`;
   if(k === "shel") return `<span class="own shl">En el refugio</span><button type="button" class="btn-fill shp-b shp-tint" data-shelter="${id}" aria-label="Ir al refugio a por ${n}">Ir al refugio</button>`;
@@ -134,27 +190,27 @@ function card(x, o = {}){
   const it = byId(x); if(!it) return "";
   const mode = o.mode === "farm" || o.mode === "zorro" ? o.mode : (it.t === "farm" ? "farm" : "zorro");
   const st = state(it), w = itemWord(it);
-  return `<div class="sc shp-c${stCls(st)}" data-id="${esc(it.id)}" data-t="${esc(it.t)}" data-mode="${mode}" data-st="${esc(st)}" role="group" aria-label="${esc(groupLabel(it, st))}">
+  return `<div class="sc shp-c${stCls(st)}" data-id="${esc(it.id)}" data-t="${esc(it.t)}" data-mode="${mode}" data-st="${esc(st)}" data-wish="${wishId() === it.id ? 1 : 0}" role="group" aria-label="${esc(groupLabel(it, st))}">
     <span class="shp-on" aria-hidden="true">${CHK(16)}</span>
     <div class="se" aria-hidden="true">${img(it)}</div>
     <div class="sn">${esc(it.n)}</div>
-    <div class="sw"><span class="shp-w" lang="${lc()}">${esc(w)}</span><button type="button" class="say shp-spk" data-say="${esc(w)}" aria-label="Escuchar «${esc(w)}»">${ico("speaker-high", "fill", 22)}</button></div>
+    <div class="sw"><span class="shp-w" lang="${lc()}">${esc(w)}</span><button type="button" class="say shp-spk" data-say="${esc(w)}" aria-label="Escuchar «${esc(w)}»">${ico("speaker-high", "fill", 22)}</button></div>${ipaOf(it)}
     <div class="sx">${actionHtml(it, st)}</div></div>`;
 }
 /* repinta una pieza si su estado cambió; si el foco estaba en su botón, pasa al botón nuevo (o a la pieza) */
 function paint(el, g = game()){
   if(!el || !el.classList || !el.classList.contains("shp-c")) return false;
   const it = itemById(el.dataset.id); if(!it) return false;
-  const st = state(it, g); if(el.dataset.st === st) return false;
+  const st = state(it, g), wi = wishId(g) === it.id ? "1" : "0"; if(el.dataset.st === st && el.dataset.wish === wi) return false;
   const sx = el.querySelector(".sx"); if(!sx) return false;
-  const had = sx.contains(D.activeElement);
-  el.dataset.st = st;
+  const had = sx.contains(D.activeElement), hadWish = had && D.activeElement.hasAttribute("data-wish");
+  el.dataset.st = st; el.dataset.wish = wi;
   el.classList.remove("own", "shel", "worn");
   stCls(st).trim().split(/\s+/).filter(Boolean).forEach(c => el.classList.add(c));
   el.setAttribute("aria-label", groupLabel(it, st));
   sx.innerHTML = actionHtml(it, st);
   if(had){
-    const f = sx.querySelector("button");
+    const f = (hadWish && sx.querySelector("[data-wish]")) || sx.querySelector("button");
     if(f) f.focus({preventScroll: true});
     else { el.tabIndex = -1; el.focus({preventScroll: true}); }
   }
@@ -166,6 +222,16 @@ function sync(root){
   return n;
 }
 const refreshPrices = root => sync(root);
+/* las barras del deseo pintadas (tienda de la granja, Mi zorro, Premios) se ponen al día */
+function syncWish(root){
+  (root && root.querySelectorAll ? root : D).querySelectorAll("[data-wish-slot]").forEach(h => {
+    const html = wishHtml(); if(h._h === html) return;
+    const had = h.contains(D.activeElement); h._h = html; h.innerHTML = html; h.hidden = !html;
+    if(had){ const b = h.querySelector("button"); if(b) b.focus({preventScroll: true}); }
+  });
+}
+/* el hueco de la barra del deseo (se pinta y se pone al día solo) */
+const wishSlot = () => { const html = wishHtml(); return `<div class="shp-wslot" data-wish-slot${html ? "" : " hidden"}>${html}</div>`; };
 
 /* ---------- comprar y ponerse ---------- */
 function toastIcon(it){
@@ -179,11 +245,13 @@ function buy(id, fromEl){
   if(g.owned[it.id]) return {ok: false, reason: "owned", item: it};
   if(g.coins < it.p){
     const need = it.p - g.coins;
-    notice(need === 1 ? "Te falta 1 moneda. ¡Gánala aprendiendo!" : `Te faltan ${need} monedas. ¡Gánalas aprendiendo!`, "coin");
+    try{ if(W.M && typeof M.toast === "function") M.toast(need === 1 ? "Te falta 1 moneda." : `Te faltan ${need} monedas.`, {icon: "coin", action: {t: "Ganar monedas", fn: () => goEarn(fromEl)}}); else notice(`Te faltan ${need} monedas.`, "coin"); }catch(e){}
     sync();
     return {ok: false, reason: "coins", need, item: it};
   }
-  g.coins -= it.p; g.owned[it.id] = true; if(it.t !== "farm") g.wear[it.t] = it.id; gameSet(g); bus.emit("buy", {item: it});
+  g.coins -= it.p; g.owned[it.id] = true; if(it.t !== "farm") g.wear[it.t] = it.id;
+  if(g.wish === it.id){ delete g.wish; delete g.wishTold; }   /* ¡deseo cumplido! */
+  gameSet(g); bus.emit("buy", {item: it});
   notice(`¡Nuevo! ${it.n} = ${itemWord(it)}`, toastIcon(it)); say(itemWord(it)); setTimeout(checkAch, 800);
   sync();
   try{
@@ -243,8 +311,18 @@ function bind(host, o = {}){
   if(BOUND.has(host)) BOUND.get(host)();
   const tell = e => { if(typeof o.onChange === "function"){ try{ o.onChange(e); }catch(err){ console.error(err); } } };
   const onClick = e => {
-    const b = e.target && e.target.closest ? e.target.closest("[data-buy],[data-wear],[data-shelter]") : null;
+    const b = e.target && e.target.closest ? e.target.closest("[data-buy],[data-wear],[data-shelter],[data-wish],[data-earn]") : null;
     if(!b || !host.contains(b)) return;
+    if(b.hasAttribute("data-earn")){ e.preventDefault(); goEarn(b); tell({type: "earn"}); return; }
+    if(b.hasAttribute("data-wish")){
+      const id = b.dataset.wish, on = setWish(id);
+      try{ if(W.G && typeof G.haptic === "function") G.haptic("selection"); }catch(err){}
+      const it = itemById(id);
+      if(on && it){ const need = Math.max(0, it.p - (+game().coins || 0)); notice(`¡Tu deseo: ${it.n}! Te ${need === 1 ? "falta 1 moneda" : `faltan ${need} monedas`}`, toastIcon(it)); }
+      sync(); syncWish();
+      tell({type: "wish", id, item: it, on});
+      return;
+    }
     const c = b.closest(".sc[data-id]");
     if(c && +c.dataset.busy > Date.now()){ e.preventDefault(); e.stopPropagation(); return; }
     const hold = () => { if(c) c.dataset.busy = String(Date.now() + BUSY_MS); };
@@ -277,7 +355,8 @@ function bind(host, o = {}){
 }
 
 /* las monedas cambian sin repintar la página (comida de la granja, regalos, medallas): los precios se ponen al día */
-bus.on("coins", () => sync());
+bus.on("coins", () => { sync(); syncWish(); wishCheck(); });
+bus.on("buy", () => syncWish());
 
 /* ---------- estilos ---------- */
 const STYLE = `
@@ -315,6 +394,32 @@ const STYLE = `
 .shp-c .own{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:44px;color:var(--ok-ink);font:600 var(--fs-note)/1.2 var(--f-text)}
 .shp-c .own.shl{min-height:0;color:var(--gold-ink)}
 .shp-c .own .chk{flex:none}
+.shp-c .shp-ipa{margin-top:-6px;max-width:100%;color:var(--label2);font:400 var(--fs-min)/1.25 var(--f-text);overflow-wrap:anywhere}
+/* «Es mi deseo» (debajo de «Te faltan N») */
+.shp-wb{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:44px;padding:0 10px;border:0;border-radius:999px;background:none;
+  color:var(--brand-ink);font:600 var(--fs-min)/1.2 var(--f-text);cursor:pointer}
+.shp-wb .ico{color:var(--gold-deep)}
+.shp-wb.on{color:var(--gold-ink)}
+.shp-wb:focus-visible,.shp-wgo:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
+:root[data-theme=dark] .shp-wb{color:#7DBBFF}
+:root[data-theme=dark] .shp-wb.on,:root[data-theme=dark] .shp-wb .ico{color:var(--gold)}
+/* la barra del deseo: dibujo, «Dinosaurio · 245 de 300», barra dorada y «Ganar monedas» */
+.shp-wslot[hidden]{display:none}
+.shp-wish{display:grid;grid-template-columns:56px minmax(0,1fr);grid-template-areas:"i t" "b b";align-items:center;gap:8px 12px;margin:0 0 12px;padding:12px;border-radius:var(--r-card,24px);
+  background:var(--card);box-shadow:inset 0 0 0 2px var(--gold-soft,#FFF1B8);color:var(--label)}
+.shp-wish.ready{box-shadow:inset 0 0 0 2px var(--gold)}
+.shp-wi{grid-area:i;display:grid;place-items:center;width:56px;height:56px;border-radius:16px;background:#F2F2F7;font-size:40px;line-height:1}
+.shp-wi .pj{display:block;width:48px;height:48px;object-fit:contain}
+.shp-wt{grid-area:t;display:flex;flex-direction:column;gap:3px;min-width:0}
+.shp-wt small{display:inline-flex;align-items:center;gap:4px;color:var(--gold-ink);font:700 var(--fs-min)/1.2 var(--f-text)}
+.shp-wt small .ico{color:var(--gold-deep)}
+.shp-wt b{font:600 var(--fs-sub)/1.25 var(--f-text);overflow-wrap:anywhere}
+.shp-ww{color:var(--label2);font:400 var(--fs-min)/1.2 var(--f-text)}
+.shp-wbar{display:block;height:10px;border-radius:999px;background:var(--fill);overflow:hidden}
+.shp-wbar i{display:block;height:100%;border-radius:inherit;background:var(--gold)}
+.shp-wgo{grid-area:b;width:100%}
+:root[data-theme=dark] .shp-wt small,:root[data-theme=dark] .shp-wt small .ico{color:var(--gold)}
+@media (min-width:560px){.shp-wish{grid-template-columns:56px minmax(0,1fr) auto;grid-template-areas:"i t b"}.shp-wgo{width:auto;min-width:150px}}
 @media (forced-colors:active){.sc.shp-c{border:1px solid CanvasText}.shp-c .shp-on{border:1px solid CanvasText}}`;
 function css(){
   if(D.getElementById("css-shop")) return;
@@ -323,5 +428,5 @@ function css(){
 css();
 
 W.vocabShop = {ready, items, byId, word, img, owned, worn, coins, state, buy, wear, gift, card, bind, paint, sync, refreshPrices,
-  goShelter, images, types: TYPES};
+  goShelter, images, types: TYPES, wish: () => wishId(), setWish, wishHtml, wishSlot, syncWish, goEarn};
 })();

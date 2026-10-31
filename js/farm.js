@@ -25,14 +25,24 @@
      hasta el animal (3 veces; quieta con «Reducir movimiento»).
    - Animales que pasean y dan regalos; plantas que crecen con agua y se cosechan; árboles con fruta o nidos; edificios
      con sorpresa; «¿Dónde está…?» (tocando al personaje); refugio a mitad de precio a los 5 días sin comer (nunca mueren).
+   - La vecina: lo que la app estuvo cerrada más de 24 h no cuenta como hambre (farm:state.ls, «visto por última vez»;
+     careSync adelanta las horas de comer). Al volver de un viaje, «¡La vecina les dio de comer!» en el globo de la
+     bienvenida. El refugio queda solo para el hambre mientras juega. Con Google Drive se queda el «visto» más nuevo
+     (mergeSeen, desde js/save.js) y ls no cuenta para subir la copia (js/sync.js).
+   - «Visitante del día»: una vez al día entra andando una palabra del repaso que ya le toca (con dibujo; si no hay, un
+     animal). Tocarla: suena y «¿Qué has oído?» con 3 palabras; acertar la puntúa con srsGrade y da 5 monedas.
+   - La IPA (ipaHtml) va debajo de cada palabra: globos, comida, refugio, «¿Dónde está…?» y piezas de la tienda.
+   - La granja no se paga sola (ver «Economía» más abajo): las monedas quieren decir «aprendí».
    - Fuera de la granja: un punto azul en la pestaña «Granja» si algún animal tiene hambre o si alguno se fue al refugio y
      aún no lo ha visto; ese aviso del refugio también sale en Hoy (HOME_SLOTS, id "granja").
    - Capa vacía <div class="fm-season"> (toda la pantalla, encima del suelo y debajo de los animales, sin recibir toques)
      para las temporadas (js/season.js); al montar: bus "farm-mounted" {stage, season, world, hz}.
    Estado: store "farm:state". Emite: farm-mounted, farm-feed {item, food}, farm-harvest {item}, farm-collect {product},
-   farm-find {ok}, farm-buy {food, n, cost}, farm-rescue {item}, coins {n < 0} al gastar.
+   farm-find {ok}, farm-buy {food, n, cost}, farm-rescue {item}, farm-visitor {ok, word, kind}, farm-food {n},
+   coins {n < 0} al gastar.
    Para otros módulos: farmMount.kinds (especies), farmMount.care (consultas de solo lectura) y window.vocabFarm:
-   openShop({food, from}) (abre la hoja de la tienda; desde otra pestaña va antes a #/granja), closeShop(), stage. */
+   openShop({food, from}) (abre la hoja de la tienda; desde otra pestaña va antes a #/granja), closeShop(), stage,
+   giveFood(n) → {ok, n} (raciones a la despensa: el cofre de js/buddy.js) y mergeSeen(llega, aquí) (js/save.js). */
 function farmMount(host){ return farmMount._mount ? farmMount._mount(host) : null; }
 /* pruebas: phase "dawn" | "day" | "dusk" | "night" fuerza la hora del cielo;
    shift (ms) adelanta el reloj de la granja (simular días); tick() repasa la granja montada al momento */
@@ -44,8 +54,10 @@ farmMount.debug = {phase: null, shift: 0, tick(){}};
 /* ---------- comida y cuidado: precios y tiempos ----------
    Economía: una lección da ~10–25 monedas (y el primer premio del día +10). Cada animal come 1 ración al día (5–8) y deja
    1 regalo de 1 moneda (2 si acierta su nombre): mantener 5 animales cuesta ≈ 21–26 al día y los 11 ≈ 47–58, o sea
-   1–2 lecciones. Los regalos de los animales valen poco a propósito: si valieran más que la comida, la granja se pagaría
-   sola y no haría falta aprender. */
+   1–2 lecciones. La granja NO se paga sola (las monedas quieren decir «aprendí»): los regalos valen 1, cosechar 1, la
+   fruta de los árboles 1 (cada 8 h), el agua gratis de cada planta una vez cada 8 h (las gotas extra llegan con las
+   lecciones) y «¿Dónde está?» paga solo 2 partidas al día (1 por acierto). Un día entero jugando solo a la granja
+   (tests/e2e/test_granja_premios.py lo simula) gana menos de lo que cuesta la comida. */
 const HOUR = 36e5;
 const CARE_V    = 1;              /* versión del cuidado guardada en el estado (migración de granjas antiguas) */
 const FULL_H    = 8;              /* tras comer: «¡Está lleno!» durante 8 h (no se gasta comida) */
@@ -53,21 +65,26 @@ const HEART_H   = [24, 48, 72];   /* sin comer: 3 corazones → 2 a las 24 h →
 const SHELTER_H = 120;            /* a las 120 h (5 días) sin comer se va al refugio */
 const ARRIVE_H  = 24;             /* recién llegados (y todos al actualizar): comieron hace 24 h → 2 corazones */
 const RESCUE_H  = 48;             /* rescatado del refugio: comió hace 48 h → 1 corazón */
-const MISS_H    = 48;             /* sin venir a la granja 2 días: «¡Te echaban de menos!» */
+const MISS_H    = 48;             /* sin venir a la granja 2 días: «¡Qué alegría verte!» */
+const AWAY_H    = 24;             /* la vecina: lo que la app estuvo cerrada más allá de 24 h no cuenta como hambre */
+const SEEN_MS   = 10 * 60e3;      /* «visto por última vez» (farm:state.ls) se apunta como mucho cada 10 min… */
+const SEEN_UP   = 2 * 60e3;       /* …y solo cuando la app lleva 2 min abierta (o al guardar la granja): arrancar no escribe */
 const PAN_MAX   = 30;             /* raciones como mucho de cada comida */
 const PROD_MAX  = 3;              /* regalos de un mismo animal esperando en el suelo */
 const WELCOME_FOOD = {grano: 2};  /* el regalo de bienvenida trae comida para la gallina */
 const rescuePrice = it => Math.max(1, Math.ceil(((it && it.p) || 2) / 2));   /* la mitad de su precio */
-/* c: monedas por ración · a: artículo en español · w: francés con artículo, danés con en/et */
+/* c: monedas por ración · a: artículo en español · w: francés con artículo, danés con en/et · i: su IPA (la de data/*.json
+   si la palabra está en el corpus; si no, escrita a mano) */
 const FOOD = {
-  grano:     {e: "🌾", n: "grano",     a: "el", c: 5, w: {english: "grain",  "français": "le grain",   dansk: "et korn"}},
-  zanahoria: {e: "🥕", n: "zanahoria", a: "la", c: 6, w: {english: "carrot", "français": "la carotte", dansk: "en gulerod"}},
-  heno:      {e: "🌿", n: "heno",      a: "el", c: 7, w: {english: "hay",    "français": "le foin",    dansk: "et hø"}},
-  maiz:      {e: "🌽", n: "maíz",      a: "el", c: 8, w: {english: "maize",  "français": "le maïs",    dansk: "en majs"}},
-  nectar:    {e: "🌼", n: "néctar",    a: "el", c: 7, w: {english: "nectar", "français": "le nectar",  dansk: "en nektar"}},
+  grano:     {e: "🌾", n: "grano",     a: "el", c: 5, w: {english: "grain",  "français": "le grain",   dansk: "et korn"},     i: {english: "/ɡreɪn/", "français": "/ɡʁɛ̃/", dansk: "/ˈkoɐ̯ˀn/"}},
+  zanahoria: {e: "🥕", n: "zanahoria", a: "la", c: 6, w: {english: "carrot", "français": "la carotte", dansk: "en gulerod"}, i: {english: "/ˈkærət/", "français": "/kaʁɔt/", dansk: "/ˈguləˌʁoðˀ/"}},
+  heno:      {e: "🌿", n: "heno",      a: "el", c: 7, w: {english: "hay",    "français": "le foin",    dansk: "et hø"},       i: {english: "/heɪ/", "français": "/fwɛ̃/", dansk: "/ˈhøˀ/"}},
+  maiz:      {e: "🌽", n: "maíz",      a: "el", c: 8, w: {english: "maize",  "français": "le maïs",    dansk: "en majs"},     i: {english: "/meɪz/", "français": "/mais/", dansk: "/ˈmajˀs/"}},
+  nectar:    {e: "🌼", n: "néctar",    a: "el", c: 7, w: {english: "nectar", "français": "le nectar",  dansk: "en nektar"},   i: {english: "/ˈnektə/", "français": "/nɛktaʁ/", dansk: "/ˈnɛgtɑ/"}},
 };
 /* «La granja te habla»: lo que dice un animal con hambre (en el idioma que aprende, con la voz de ese idioma) */
 const PHRASE = {english: "I'm hungry!", "français": "J'ai faim !", dansk: "Jeg er sulten!"};
+const PHRASE_I = {english: "/aɪm ˈhʌŋɡri/", "français": "/ʒe fɛ̃/", dansk: "/jɑj æɐ̯ ˈsuldən/"};
 const PHRASE_ES = "¡Tengo hambre!";
 /* las cosas de la granja que están en el corpus de cada idioma: id → "tema|es" (la clave del repaso, srsK). Sacado de
    data/*.json: la palabra del idioma sin artículo es la misma y una de las partes del «es» de la fila es su nombre
@@ -84,7 +101,8 @@ const CORPUS = (() => {
 
 /* ---------- datos ---------- */
 const KEY = "farm:state";
-const WATER = 2 * HOUR, TREE_T = 3 * HOUR, MAX_DROPS = 12, ROUNDS = 5, FIND_PAID = 5;
+const WATER = 8 * HOUR, TREE_T = 8 * HOUR, MAX_DROPS = 12, ROUNDS = 5, FIND_PAID = 2;
+const VIS_COINS = 5;   /* «Visitante del día»: acertar su pregunta (una vez al día) */
 const GND = {x0: 5, x1: 95, y0: 58, y1: 95};   /* suelo, en % del mundo (punto de apoyo de cada cosa) */
 
 /* p: producto · eats: su comida · f: femenino (para «a la vaca» / «al cerdo») · sp: velocidad (px/s) · r: radio de paseo (%) */
@@ -101,8 +119,8 @@ const ANIM = {
   burro:   {p: "abono", eats: "zanahoria",       sp: 17, r: 9},
   caballo: {p: "abono", eats: "zanahoria",       sp: 30, r: 13},
 };
-/* monedas al cosechar (0 = árbol: no se cosecha, da productos) */
-const PLANT = {flor: 3, girasol: 3, seta: 3, zanahoria: 4, fresa: 4, maiz: 4, calabaza: 5, trigo: 4, manzana: 4, arbol: 0, pino: 0};
+/* monedas al cosechar (0 = árbol: no se cosecha, da productos). 1 a propósito: ver «Economía» */
+const PLANT = {flor: 1, girasol: 1, seta: 1, zanahoria: 1, fresa: 1, maiz: 1, calabaza: 1, trigo: 1, manzana: 1, arbol: 0, pino: 0};
 const TREE = {arbol: "pera", pino: "nido"};
 const BUILD = {tienda: "camp", cabana: "smoke", casa: "light", tractor: "drive", fuente: "spray", castillo: "fire", cohete: "launch"};
 const BIG = new Set(["tienda", "cabana", "casa", "tractor", "fuente", "castillo", "cohete", "molino"]);
@@ -115,31 +133,42 @@ const pj = (it, c) => typeof pjImg === "function" ? pjImg(it, c) : (it && it.e) 
 
 /* productos: francés con artículo, danés con en/et · c: monedas al recogerlo (los de los animales, 1: ver «Economía») */
 const PROD = {
-  huevo: {e: "🥚", n: "un huevo",  c: 1, w: {english: "egg",     "français": "l'œuf (m.)", dansk: "et æg"}},
-  pluma: {e: "🪶", n: "una pluma", c: 1, w: {english: "feather", "français": "la plume",   dansk: "en fjer"}},
-  abono: {e: "💩", n: "abono",     c: 1, w: {english: "manure",  "français": "le fumier",  dansk: "en gødning"}},
-  miel:  {e: "🍯", n: "miel",      c: 1, w: {english: "honey",   "français": "le miel",    dansk: "en honning"}},
-  trufa: {e: "🍄", n: "una trufa", c: 1, w: {english: "truffle", "français": "la truffe",  dansk: "en trøffel"}},
-  lana:  {e: "🧶", n: "lana",      c: 1, w: {english: "wool",    "français": "la laine",   dansk: "en uld"}},
-  queso: {e: "🧀", n: "queso",     c: 1, w: {english: "cheese",  "français": "le fromage", dansk: "en ost"}},
-  leche: {e: "🥛", n: "leche",     c: 1, w: {english: "milk",    "français": "le lait",    dansk: "en mælk"}},
-  pera:  {e: "🍐", n: "una pera",  c: 4, w: {english: "pear",    "français": "la poire",   dansk: "en pære"}},
-  nido:  {e: "🪺", n: "un nido",   c: 5, w: {english: "nest",    "français": "le nid",     dansk: "en rede"}},
+  huevo: {e: "🥚", n: "un huevo",  c: 1, w: {english: "egg",     "français": "l'œuf (m.)", dansk: "et æg"},      i: {english: "/eɡ/", "français": "/œf/", dansk: "/ˈɛˀg/"}},
+  pluma: {e: "🪶", n: "una pluma", c: 1, w: {english: "feather", "français": "la plume",   dansk: "en fjer"},    i: {english: "/ˈfeðə/", "français": "/plym/", dansk: "/ˈfjeɐ̯ˀ/"}},
+  abono: {e: "💩", n: "abono",     c: 1, w: {english: "manure",  "français": "le fumier",  dansk: "en gødning"}, i: {english: "/məˈnjʊə/", "français": "/fymje/", dansk: "/ˈgøðneŋ/"}},
+  miel:  {e: "🍯", n: "miel",      c: 1, w: {english: "honey",   "français": "le miel",    dansk: "en honning"}, i: {english: "/ˈhʌni/", "français": "/mjɛl/", dansk: "/ˈhʌneŋ/"}},
+  trufa: {e: "🍄", n: "una trufa", c: 1, w: {english: "truffle", "français": "la truffe",  dansk: "en trøffel"}, i: {english: "/ˈtrʌfl/", "français": "/tʁyf/", dansk: "/ˈtʁœfəl/"}},
+  lana:  {e: "🧶", n: "lana",      c: 1, w: {english: "wool",    "français": "la laine",   dansk: "en uld"},     i: {english: "/wʊl/", "français": "/lɛn/", dansk: "/ˈulˀ/"}},
+  queso: {e: "🧀", n: "queso",     c: 1, w: {english: "cheese",  "français": "le fromage", dansk: "en ost"},     i: {english: "/tʃiːz/", "français": "/fʁɔmaʒ/", dansk: "/ˈʌsd/"}},
+  leche: {e: "🥛", n: "leche",     c: 1, w: {english: "milk",    "français": "le lait",    dansk: "en mælk"},    i: {english: "/mɪlk/", "français": "/lɛ/", dansk: "/ˈmɛlˀg/"}},
+  pera:  {e: "🍐", n: "una pera",  c: 1, w: {english: "pear",    "français": "la poire",   dansk: "en pære"},    i: {english: "/peə/", "français": "/pwaʁ/", dansk: "/ˈpɛːɐ/"}},
+  nido:  {e: "🪺", n: "un nido",   c: 1, w: {english: "nest",    "français": "le nid",     dansk: "en rede"},    i: {english: "/nest/", "français": "/ni/", dansk: "/ˈʁɛːðə/"}},
 };
 /* palabras del cielo */
 const SKYW = {
-  sol:      {e: "☀️", n: "sol",      w: {english: "sun",       "français": "le soleil",    dansk: "en sol"}},
-  luna:     {e: "🌙", n: "luna",     w: {english: "moon",      "français": "la lune",      dansk: "en måne"}},
-  nube:     {e: "☁️", n: "nube",     w: {english: "cloud",     "français": "le nuage",     dansk: "en sky"}},
-  estrella: {e: "⭐", n: "estrella", w: {english: "star",      "français": "l'étoile (f.)", dansk: "en stjerne"}},
-  mariposa: {e: "🦋", n: "mariposa", w: {english: "butterfly", "français": "le papillon",  dansk: "en sommerfugl"}},
+  sol:      {e: "☀️", n: "sol",      w: {english: "sun",       "français": "le soleil",    dansk: "en sol"},        i: {english: "/sʌn/", "français": "/sɔlɛj/", dansk: "/ˈsoˀl/"}},
+  luna:     {e: "🌙", n: "luna",     w: {english: "moon",      "français": "la lune",      dansk: "en måne"},       i: {english: "/muːn/", "français": "/lyn/", dansk: "/ˈmɔːnə/"}},
+  nube:     {e: "☁️", n: "nube",     w: {english: "cloud",     "français": "le nuage",     dansk: "en sky"},        i: {english: "/klaʊd/", "français": "/nɥaʒ/", dansk: "/ˈsgyˀ/"}},
+  estrella: {e: "⭐", n: "estrella", w: {english: "star",      "français": "l'étoile (f.)", dansk: "en stjerne"},   i: {english: "/stɑː/", "français": "/etwal/", dansk: "/ˈsdjæɐ̯nə/"}},
+  mariposa: {e: "🦋", n: "mariposa", w: {english: "butterfly", "français": "le papillon",  dansk: "en sommerfugl"},  i: {english: "/ˈbʌtəflaɪ/", "français": "/papijɔ̃/", dansk: "/ˈsʌmɐˌfuˀl/"}},
 };
 const GREET = {
-  dawn:  {es: "¡Buenos días!",    english: "Good morning!", "français": "Bonjour !", dansk: "Godmorgen!"},
-  day:   {es: "¡Hola!",           english: "Hello!",        "français": "Salut !",   dansk: "Hej!"},
-  dusk:  {es: "¡Buenas tardes!",  english: "Good evening!", "français": "Bonsoir !", dansk: "God aften!"},
-  night: {es: "¡Buenas noches!",  english: "Good night!",   "français": "Bonne nuit !", dansk: "Godnat!"},
+  dawn:  {es: "¡Buenos días!",    english: "Good morning!", "français": "Bonjour !", dansk: "Godmorgen!", i: {english: "/ɡʊd ˈmɔːnɪŋ/", "français": "/bɔ̃ʒuʁ/", dansk: "/ɡoˈmɒːɒn/"}},
+  day:   {es: "¡Hola!",           english: "Hello!",        "français": "Salut !",   dansk: "Hej!",       i: {english: "/həˈləʊ/", "français": "/saly/", dansk: "/ˈhajˀ/"}},
+  dusk:  {es: "¡Buenas tardes!",  english: "Good evening!", "français": "Bonsoir !", dansk: "God aften!", i: {english: "/ɡʊd ˈiːvnɪŋ/", "français": "/bɔ̃swaʁ/", dansk: "/ɡo ˈafdən/"}},
+  night: {es: "¡Buenas noches!",  english: "Good night!",   "français": "Bonne nuit !", dansk: "Godnat!", i: {english: "/ɡʊd ˈnaɪt/", "français": "/bɔn nɥi/", dansk: "/ɡoˈnad/"}},
 };
+/* la IPA de una palabra de la granja en el idioma actual (cosas de la tienda: it.ipa de data/game.json; comida,
+   regalos, cielo y saludos: su i) · ipaW(palabra) la busca por la palabra misma (para los globos ya escritos) */
+const ipaOfIt = it => (it && it.ipa && it.ipa[lang]) || "";
+function ipaW(w){
+  if(!w) return "";
+  for(const T of [FOOD, PROD, SKYW]) for(const k in T){ const x = T[k]; if(x.w && x.w[lang] === w) return (x.i && x.i[lang]) || ""; }
+  for(const k in GREET) if(GREET[k][lang] === w) return GREET[k].i[lang] || "";
+  if(PHRASE[lang] === w) return PHRASE_I[lang] || "";
+  try{ const it = (typeof SHOP !== "undefined" ? SHOP : []).find(x => x.t === "farm" && itemWord(x) === w) || (typeof SHOP !== "undefined" ? SHOP : []).find(x => itemWord(x) === w); return ipaOfIt(it); }catch(e){ return ""; }
+}
+const ipaH = (w, cls) => { try{ return typeof ipaHtml === "function" ? ipaHtml(ipaW(w), (LANGS[lang] && LANGS[lang].code) || "en-GB", cls || "") : ""; }catch(e){ return ""; } };
 /* la moneda (la misma que la de js/shop.js y la de arriba) */
 const COIN = `<svg class="coin-ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFCC00"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7A000" stroke-opacity=".8"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B39000" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7.8 13.06 10.54 15.99 10.7 13.71 12.56 14.47 15.4 12 13.8 9.53 15.4 10.29 12.56 8.01 10.7 10.94 10.54Z" fill="#A88700" fill-opacity=".8"/></svg>`;
 /* la mano que enseña a arrastrar (Phosphor hand-pointing fill, MIT) */
@@ -210,7 +239,10 @@ function srsWord(id){
 
 /* ---------- estado ---------- */
 /* pan: despensa {comida: raciones} · shelter: {animal: {t: cuándo se fue, seen: si ya vio el aviso}}
-   cv: versión del cuidado · visit: última visita a la granja */
+   cv: versión del cuidado · visit: última visita a la granja · ls (opcional): la última vez que se vio la app abierta
+   (al guardar la granja y, con la app abierta 2 min, cada 10 min; nunca al arrancar) · nb (opcional): la vecina les dio
+   de comer mientras la app estaba cerrada (sale en el globo de la bienvenida y se borra) · vis (opcional):
+   {day, ok} el «Visitante del día» ya contestado hoy */
 const DEF = () => ({welcome: false, pos: {}, fed: {}, prod: {}, pl: {}, tree: {}, seen: {}, drops: 0, dn: 0, hero: null, light: true, fd: {day: "", n: 0},
                     pan: {}, shelter: {}, cv: 0, visit: 0});
 function load(){
@@ -223,7 +255,8 @@ function load(){
   for(const k of ["drops", "dn", "cv", "visit"]) if(typeof s[k] !== "number" || !isFinite(s[k])) s[k] = 0;
   return s;
 }
-const save = s => store.set(KEY, s);
+/* seen: además apunta «visto ahora» (ls): la granja se está usando */
+const save = (s, seen) => { if(seen) s.ls = now(); store.set(KEY, s); };
 
 /* ---------- cuidado de los animales (se calcula sin montar la granja: portada, menú, misiones) ---------- */
 const HMS = h => h * HOUR;
@@ -255,6 +288,19 @@ function careSync(s){
     else if(typeof v.t !== "number" || !isFinite(v.t)){ v.t = t; out.ch = true; }
   }
   const ids = ownedAnimals();
+  /* la vecina: si la app estuvo cerrada más de 24 h (un viaje), lo que pasa de 24 h no cuenta: las horas de comer se
+     adelantan eso mismo. Así nadie encuentra la granja vacía al volver; el refugio queda solo para los animales que
+     pasaron hambre mientras él jugaba. (Va antes que todo lo demás: también antes del primer careSync del arranque.) */
+  if(okT(s.ls) && t - s.ls > HMS(AWAY_H)){
+    const push = t - s.ls - HMS(AWAY_H); let n = 0;
+    for(const id of ids){
+      if(inShelterS(s, id)) continue;
+      const f = s.fed[id]; if(!okT(f)) continue;
+      s.fed[id] = Math.min(t, f + push); n++;
+    }
+    if(n) s.nb = Math.round(t);
+    s.ls = t; out.ch = true;
+  }
   /* primera vez con esta versión: nadie pierde animales por actualizar. Empiezan con 2 corazones (o más si comieron hace
      poco) y, si la granja ya existía, llega un poco de comida de regalo para cada uno */
   if(s.cv !== CARE_V){
@@ -362,7 +408,38 @@ function navBadge(){
   }catch(e){ console.error(e); }
 }
 ["boot", "route", "coins", "farm-feed", "farm-rescue", "buy", "gift-open"].forEach(ev => bus.on(ev, () => navBadge()));
-setInterval(navBadge, 60000);   /* (navBadge también pone al día lo comprado o regalado: llega con 2 corazones aunque no se abra la granja) */
+/* «visto por última vez» (farm:state.ls) para la vecina: con la app abierta y a la vista, cada 10 min como mucho, y no
+   en los 2 primeros minutos (arrancar no cambia la partida; lo que se usa menos de 2 min cuenta como cerrada: la vecina
+   echa una mano de más, nunca de menos) */
+const BOOT_T = Date.now();
+function seenBeat(){
+  try{
+    if(Date.now() - BOOT_T < SEEN_UP || document.visibilityState === "hidden") return;
+    const s = cur && cur.alive() ? cur.sync() : careState(), t = now();
+    if(okT(s.ls) && s.ls <= t && t - s.ls < SEEN_MS) return;
+    save(s, true);
+  }catch(e){ console.error(e); }
+}
+setInterval(() => { navBadge(); seenBeat(); }, 60000);   /* (navBadge también pone al día lo comprado o regalado: llega con 2 corazones aunque no se abra la granja) */
+/* una partida que llega de Google Drive o de un archivo (js/save.js, apply «load»): se queda la hora «visto» más nueva
+   de las dos. Si la que llega es más antigua, las horas de comer de la que llega se adelantan como con la vecina (lo que
+   pasa de 24 h): así una copia vieja no manda a nadie al refugio. Recibe y devuelve el texto de farm:state */
+function mergeSeen(inc, here){
+  try{
+    const a = JSON.parse(inc), b = JSON.parse(here);
+    if(!a || typeof a !== "object" || !b || typeof b !== "object" || !okT(b.ls) || (okT(a.ls) && a.ls >= b.ls)) return inc;
+    const base = okT(a.ls) ? a.ls : (okT(a.visit) && a.visit > 0 ? a.visit : null);
+    let moved = false;
+    if(base !== null && b.ls - base > HMS(AWAY_H) && a.fed && typeof a.fed === "object"){
+      const push = b.ls - base - HMS(AWAY_H);
+      for(const id of Object.keys(a.fed)) if(ANIM[id] && okT(a.fed[id]) && !(a.shelter && a.shelter[id])){ a.fed[id] = Math.min(b.ls, a.fed[id] + push); moved = true; }
+    }
+    /* (una copia sin «visto» y sin nada que adelantar se carga tal cual) */
+    if(!okT(a.ls) && !moved) return inc;
+    a.ls = b.ls;
+    return JSON.stringify(a);
+  }catch(e){ return inc; }
+}
 
 /* window.vocabFarm.openShop({food, from}): la pastilla de las monedas (y el dock) abren la hoja de la tienda de la granja.
    Desde otra pestaña, va antes a #/granja y la abre al llegar */
@@ -384,6 +461,22 @@ bus.on("route", d => {
     return false;
   };
   VF.closeShop = () => { if(cur && cur.alive()) cur.closeShop(); };
+  /* el cofre de las misiones (js/buddy.js): n raciones a la despensa, repartidas entre las comidas de sus animales (los
+     de la granja; sin animales, nada). Nunca pasa de PAN_MAX por comida. → {ok, n: las que cupieron} */
+  VF.giveFood = n => {
+    n = Math.max(0, Math.floor(Number(n) || 0));
+    const live = cur && cur.alive(), s = live ? cur.sync() : careState();
+    const ks = [...new Set(onFarmS(s).map(id => ANIM[id].eats))];
+    let got = 0;
+    for(let i = 0, idle = 0; got < n && idle < ks.length; i++){
+      const k = ks[i % ks.length];
+      if((s.pan[k] || 0) >= PAN_MAX){ idle++; continue; }
+      idle = 0; s.pan[k] = (s.pan[k] || 0) + 1; got++;
+    }
+    if(got){ save(s); if(live) cur.foodIn(); emit("farm-food", {n: got}); }
+    return {ok: got > 0, n: got};
+  };
+  VF.mergeSeen = mergeSeen;
   /* la escena montada ahora (o null fuera de la granja): un getter, no una copia */
   Object.defineProperty(VF, "stage", {configurable: true, enumerable: true, get: () => cur && cur.alive() ? cur.stage : null});
 }
@@ -426,7 +519,7 @@ function mount(host){
     if(!alive) return; alive = false;
     micStop();
     /* solo la hora de la visita, sobre lo guardado (otra pestaña pudo cambiar la granja) */
-    try{ const t = load(); t.visit = Math.max(Number(t.visit) || 0, now()); save(t); }catch(e){}
+    try{ const t = load(); t.visit = Math.max(Number(t.visit) || 0, now()); save(t, true); }catch(e){}
     T.forEach(clearTimeout); I.forEach(clearInterval); T.clear(); I.clear();
     OFF.splice(0).forEach(f => { try{ f(); }catch(e){} });
     window.removeEventListener("resize", onResize); window.removeEventListener("storage", onStorage);
@@ -437,8 +530,8 @@ function mount(host){
   }
   /* estado + regalo de bienvenida */
   const s = load();
-  const upd = f => { f(s); save(s); };
-  careSync(s);   /* primero la migración: el regalo de bienvenida no cuenta como granja antigua */
+  const upd = f => { f(s); save(s, true); };
+  careSync(s);   /* primero la vecina y la migración: el regalo de bienvenida no cuenta como granja antigua */
   const first = !s.welcome; let gifted = false;
   if(first && !owned().length){
     const g = game(); g.owned.gallina = true; g.owned.flor = true; gameSet(g); gifted = true;
@@ -454,6 +547,7 @@ function mount(host){
     openShelter: () => { if(!dlgOpen() && !finding()) openShelter(); },
     openShop: o => openShop(o || {}), closeShop: () => closeShop(),
     added: id => addLive(id), coins: () => shopCoins(),
+    foodIn: () => { trayPaint(); shopFoods(); },
     tick: () => tick()};
   cur = api;
   const items = owned().filter(it => !inShelterS(s, it.id)), fresh = [];
@@ -483,7 +577,8 @@ function mount(host){
   for(const k of Object.keys(live)) if(!s.pos[k]) delete live[k];
   for(const k of Object.keys(s.prod)){ const P = s.prod[k]; if(!P || !PROD[P.p] || !okPos(P)) delete s.prod[k]; }
   const news = first ? 0 : s.dn; s.dn = 0;
-  save(s);
+  const nb = !first && s.nb > 0; delete s.nb;   /* la vecina les dio de comer: se cuenta al entrar (una vez) */
+  save(s, true);
 
   /* ---------- escenario ---------- */
   let ph = phase();
@@ -602,7 +697,7 @@ function mount(host){
       c = h === 0 ? "sick" : h === 1 ? "sad" : "";
       if(eat){ lead = id === leadId; badge = askHtml(id, lead); }
       else if(asleep(id)) badge = `<span class="fm-zz" aria-hidden="true">💤</span>`;
-      lbl += `, ${h === 1 ? "1 corazón" : h + " corazones"}${h === 0 ? (ANIM[id].f ? ", está malita" : ", está malito") : ""}${eat ? `, tiene hambre: quiere ${FOOD[ANIM[id].eats].n}` : hungry(id) ? ", puede comer" : ""}`;
+      lbl += `, ${h === 1 ? "1 corazón" : h + " corazones"}${eat ? `, tiene hambre: quiere ${FOOD[ANIM[id].eats].n}` : hungry(id) ? ", puede comer" : ""}`;
     } else if(k === "plant"){
       const p = plant(id);
       if(p.s <= 0){ g = "🌱"; c = "sd0"; } else if(p.s === 1){ g = "🌿"; c = "sd1"; }
@@ -684,7 +779,8 @@ function mount(host){
   /* ---------- bocadillo ---------- */
   const msg = t => `<span class="fm-bm">${t}</span>`;
   const sayBtns = w => `<span class="fm-sg"><button type="button" class="say" data-say="${esc(w)}" aria-label="Escuchar" title="Escuchar">${icon("speaker-high", "fill", 22)}</button><button type="button" class="say" data-say="${esc(w)}" data-slow aria-label="Escuchar despacio" title="Escuchar despacio">${icon("turtle", "fill", 22)}</button></span>`;
-  const wordBub = (e, w, es, extra) => `<span class="fm-be">${e}</span><span class="fm-bt"><b lang="${code()}">${esc(w)}</b><small>= ${esc(es)}</small>${extra ? `<i>${extra}</i>` : ""}</span>${sayBtns(w)}`;
+  /* globo con la palabra: dibujo, palabra (con su IPA, ipaHtml de index.html), «= español», lo de más y 🔊🐢 */
+  const wordBub = (e, w, es, extra) => `<span class="fm-be">${e}</span><span class="fm-bt"><b lang="${code()}">${esc(w)}</b>${ipaH(w, "fm-ipa")}<small>= ${esc(es)}</small>${extra ? `<i>${extra}</i>` : ""}</span>${sayBtns(w)}`;
   function bubble(html, anchor, ms){
     bub.innerHTML = html; bub.hidden = false;
     bub.classList.remove("in", "below"); void bub.offsetWidth; bub.classList.add("in");
@@ -817,7 +913,7 @@ function mount(host){
     hop(hero);
     if(finding()){ const it = itemById(F.target); if(it) speak(iw(it)); return; }
     const gr = GREET[ph] || GREET.day, w = gr[lang] || gr.english;
-    bubble(`<span class="fm-be">👋</span><span class="fm-bt"><b lang="${code()}">${esc(w)}</b><small>= ${esc(gr.es)}</small></span>${sayBtns(w)}${findable().length >= 3 ? playBtn : ""}`, hero, 6000);
+    bubble(`<span class="fm-be">👋</span><span class="fm-bt"><b lang="${code()}">${esc(w)}</b>${ipaH(w, "fm-ipa")}<small>= ${esc(gr.es)}</small></span>${sayBtns(w)}${findable().length >= 3 ? playBtn : ""}`, hero, 6000);
     speak(w); play("pop");
   }
 
@@ -988,7 +1084,7 @@ function mount(host){
     const it = itemById(id), A = ANIM[id], right = A.eats, R = FOOD[right], h = Math.max(0, hearts(id)), el = els[id];
     const tried = new Set();
     let done = false;
-    const box = pop(`<div class="fm-ph"><p class="fm-qt">${h === 0 ? `¡${cap(elA(id))} está ${A.f ? "malita" : "malito"}! Dale su comida.` : `¿Qué le das ${alA(id)}?`}</p>
+    const box = pop(`<div class="fm-ph"><p class="fm-qt">¿Qué le das ${alA(id)}?</p>
         <span class="fm-hpill" role="img" aria-label="${h} de 3 corazones">${heartsHtml(h)}</span></div>
       <div class="fm-fb"></div>
       <p class="fm-qm" aria-live="polite"></p>
@@ -1081,7 +1177,7 @@ function mount(host){
       play("ok"); speak(right); srsWord(id);
       const k = addProd(id, ANIM[id].p); if(k) res.keys.push(k);
       const n = res.keys.length;
-      m.className = "fm-qm ok"; m.innerHTML = `¡Muy bien! <b lang="${code()}">${esc(right)}</b><br>${n >= 2 ? "¡Regalo doble! 🎁🎁" : n ? "¡Te dejo un regalo! 🎁" : "¡Recoge mis regalos! 🥚"}`;
+      m.className = "fm-qm ok"; m.innerHTML = `¡Te acordaste de mi nombre! <b lang="${code()}">${esc(right)}</b>${ipaH(right, "fm-ipa")}<br>${n >= 2 ? "¡Regalo doble! 🎁🎁" : n ? "¡Te dejo un regalo! 🎁" : "¡Recoge mis regalos! 🥚"}`;
       x.textContent = "¡Genial!";
       if(window.M && typeof M.ok === "function" && b) try{ M.ok(b); }catch(e){}
       later(() => { if(popEl.dataset.kind === "quiz" && popEl.dataset.fid === id) closePop(); }, 1700);
@@ -1096,7 +1192,7 @@ function mount(host){
       b.classList.add("bad"); b.insertAdjacentHTML("beforeend", `<span class="fm-mk" aria-hidden="true">${icon("x", "bold", 18)}</span>`);
       speak(right);
       const o = okB(); if(o){ o.disabled = false; o.classList.add("ok"); o.onclick = null; o.insertAdjacentHTML("beforeend", `<span class="fm-mk" aria-hidden="true">${icon("check", "bold", 18)}</span>`); }
-      m.className = "fm-qm info"; m.innerHTML = `Me llamo <b lang="${code()}">«${esc(right)}»</b><br>${res.keys.length ? "¡Te dejo un regalo! 🎁" : res.weak ? "¡Dame de comer cada día! 💪" : "¡Recoge mis regalos! 🥚"}`;
+      m.className = "fm-qm info"; m.innerHTML = `Me llamo <b lang="${code()}">«${esc(right)}»</b>${ipaH(right, "fm-ipa")}<br>${res.keys.length ? "¡Te dejo un regalo! 🎁" : res.weak ? "¡Gracias por la comida! 💪" : "¡Recoge mis regalos! 🥚"}`;
       x.textContent = "Seguir"; x.classList.remove("btn-fill--neu");
     });
     /* «Dilo»: si no lo entiende, nunca es un fallo: se puede tocar */
@@ -1181,7 +1277,7 @@ function mount(host){
       bubble(wordBub(pj(it), w, it.n, hasProd(id) ? "Mira lo que hay en el suelo 👇" : "Pronto dará un regalo 🎁"), el); speak(w); return;
     }
     const can = canWater(id) || s.drops > 0;
-    bubble(wordBub(`${p.s <= 0 ? "🌱" : "🌿"}<small>→</small>${it.e}`, w, it.n, can ? "¡Riégame! 💧" : `Crece… vuelve en ${fmtLeft(WATER - (now() - plant(id).w))}`), el); speak(w);
+    bubble(wordBub(`${p.s <= 0 ? "🌱" : "🌿"}<small>→</small>${it.e}`, w, it.n, can ? "¡Riégame! 💧" : `Está creciendo 🌱 Podrá beber en ${fmtLeft(WATER - (now() - plant(id).w))}`), el); speak(w);
     if(can) cls(bWater, "nudge", 1300);
   }
   function waterTap(id){
@@ -1199,7 +1295,7 @@ function mount(host){
     const free = canWater(id);
     if(!free && s.drops <= 0){
       cls(el, "no", 500); play("tap");
-      bubble(msg(`🌿 Ya bebió agua.<br>Vuelve en ${fmtLeft(WATER - (now() - p.w))}.<br>📚 ¡Una lección te da agua extra!`), el, 4200); return false;
+      bubble(msg(`🌿 Ya bebió agua.<br>Podrá beber en ${fmtLeft(WATER - (now() - p.w))}.<br>📚 Las lecciones traen agua extra.`), el, 4200); return false;
     }
     upd(st => { if(!free) st.drops = Math.max(0, st.drops - 1); const q = st.pl[id]; q.s = Math.min(2, q.s + 1); q.w = now(); });
     walkNear(id); play("whoosh");
@@ -1220,7 +1316,7 @@ function mount(host){
     upd(st => { st.pl[id].s = 0; });
     flyTo(el, it.e); burst(el, "✨", 6);
     bubble(wordBub(pj(it), w, it.n, "¡Cosechado! 🧺"), el); speak(w);
-    award(PLANT[id] || 3, `¡${cap(artEs(it.n))}!`);
+    award(PLANT[id] || 1, `¡${cap(artEs(it.n))}!`);
     el._busy = true; cls(el, "pluck", 460);
     later(() => { el._busy = false; render(id, true); cls(el, "grow", 750); }, 470);
     emit("farm-harvest", {item: it});
@@ -1362,7 +1458,7 @@ function mount(host){
     F.target = id; F.prev = id; F.lock = false;
     const it = itemById(id), w = iw(it);
     fb.hidden = false;
-    fb.innerHTML = `<span class="fm-fh">${heroHtml(30)}</span><span class="fm-ft"><small>¿Dónde está…?</small><b lang="${code()}">${esc(w)}</b>${dots()}</span>
+    fb.innerHTML = `<span class="fm-fh">${heroHtml(30)}</span><span class="fm-ft"><small>¿Dónde está…?</small><b lang="${code()}">${esc(w)}</b>${ipaH(w, "fm-ipa")}${dots()}</span>
       <button type="button" class="say" data-say="${esc(w)}" aria-label="Escuchar" title="Escuchar">${icon("speaker-high", "fill", 22)}</button><button type="button" class="fm-fq" aria-label="Salir del juego" title="Salir">${icon("x", "bold", 18)}</button>`;
     hop(hero); later(() => speak(w), 200);
   }
@@ -1379,7 +1475,7 @@ function mount(host){
     emit("farm-find", {ok});
     if(ok) srsWord(F.target);
     const dd = fb.querySelector(".fm-dots"); if(dd) dd.outerHTML = dots();
-    if(ok){ play("ok"); hop(el); burst(el, "⭐", 5); bubble(wordBub(pj(it), w, it.n, "¡Muy bien! ✅"), el, 1400); }
+    if(ok){ play("ok"); hop(el); burst(el, "⭐", 5); bubble(wordBub(pj(it), w, it.n, "¡Lo encontraste! ✅"), el, 1400); }
     else { cls(tEl, "hl", 2300); bubble(wordBub(pj(it), w, it.n, "¡Está aquí! 👇"), tEl || el, 2300); speak(w); }
     later(nextRound, ok ? 1300 : 2500);
   }
@@ -1387,10 +1483,10 @@ function mount(host){
     F.done = true;
     const n = F.ok, all = n === ROUNDS, day = dayKey(new Date()); let paid = false;
     upd(st => { if(!st.fd || st.fd.day !== day) st.fd = {day, n: 0}; if(st.fd.n < FIND_PAID){ st.fd.n++; paid = true; } });
-    const coins = paid ? n + (all ? 5 : 0) : 0;
+    const coins = paid ? n : 0;   /* 1 por acierto, 2 partidas al día (FIND_PAID): ver «Economía» */
     if(coins) award(coins, all ? "¡Lo encontraste todo!" : "¿Dónde está?");
     if(all){ play("fanfare"); try{ if(window.M && M.confetti) M.confetti({n: 40}); }catch(e){} } else if(n) play("ok");
-    fb.innerHTML = `<span class="fm-fh">${heroHtml(30)}</span><span class="fm-ft"><small>${all ? "¡Perfecto! 🏆" : n >= 3 ? "¡Muy bien! 🎉" : "¡Buen intento! 💪"}</small><b>${n} de ${ROUNDS}</b>${coins ? `<em>+${coins} monedas</em>` : !paid ? `<em class="m">Hoy ya ganaste monedas aquí</em>` : ""}</span>
+    fb.innerHTML = `<span class="fm-fh">${heroHtml(30)}</span><span class="fm-ft"><small>${all ? "¡Encontraste todo! 🏆" : n >= 3 ? "¡Buscaste muy bien! 🎉" : "¡Sigue buscando! 💪"}</small><b>${n} de ${ROUNDS}</b>${coins ? `<em>+${coins} monedas</em>` : !paid ? `<em class="m">¡Ahora, a jugar por gusto!</em>` : ""}</span>
       <button type="button" class="btn-fill fm-fa">Otra vez</button><button type="button" class="fm-fq" aria-label="Cerrar" title="Cerrar">${icon("x", "bold", 18)}</button>`;
     stage.classList.remove("finding"); bar();
     Object.keys(els).forEach(id => { if(ANIM[id]) resume(id, rnd(800, 2500)); });
@@ -1402,6 +1498,107 @@ function mount(host){
     later(nextIntro, 350);
   }
 
+  /* ---------- «Visitante del día» ----------
+     Una vez al día entra andando por la derecha una palabra del repaso que ya le toca y tiene dibujo (si no hay, un
+     animal). Tocarla: suena la palabra y «¿Qué has oído?» con 3 palabras escritas. Acertar la puntúa en el repaso como
+     una tarjeta (srsGrade(tema, fila, 2); fallar, 0) y da VIS_COINS. Contestado (bien o mal), se despide y no vuelve
+     hasta otro día (farm:state.vis = {day, ok}); «Ahora no» la deja paseando. El mismo visitante todo el día. */
+  let visEl = null, visV = null;
+  const seeded = seed => { let h = 2166136261 >>> 0; for(const c of String(seed)) { h ^= c.codePointAt(0); h = Math.imul(h, 16777619); }
+    return () => { h += 0x6D2B79F5; let x = h; x = Math.imul(x ^ (x >>> 15), x | 1); x ^= x + Math.imul(x ^ (x >>> 7), x | 61); return ((x ^ (x >>> 14)) >>> 0) / 4294967296; }; };
+  const sshuf = (a, r) => { a = a.slice(); for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  async function visPick(day){
+    const r = seeded("vis|" + lang + "|" + day), L = lang;
+    let due = []; try{ due = typeof dueList === "function" ? dueList() : []; }catch(e){}
+    for(const x of sshuf(due, r).slice(0, 6)){
+      let doc = null; try{ doc = await getDoc(x.d); }catch(e){}
+      const rows = ((doc && doc.rows) || []).filter(q => q && q.es && q.l && q.l[L] && q.l[L].word);
+      const row = rows.find(q => q.es === x.e && q.img);
+      if(!row) continue;
+      const w = row.l[L].word, seen = new Set([w]), opts = [];
+      for(const q of sshuf(rows, r)){ const ww = q.l[L].word; if(!seen.has(ww)){ seen.add(ww); opts.push(ww); } if(opts.length === 2) break; }
+      if(opts.length < 2) continue;
+      return {k: "word", doc: x.d, row, w, ipa: row.l[L].ipa || "", es: row.es, pic: `<img class="fm-vimg" src="${esc(row.img)}" alt="" draggable="false">`, opts: sshuf([w, ...opts], r)};
+    }
+    /* sin palabras con dibujo pendientes: un animal (mejor uno que aún no tiene) */
+    const o = game().owned || {}, an = Object.keys(ANIM).filter(id => itemById(id)), pool = an.filter(id => !o[id]).length ? an.filter(id => !o[id]) : an;
+    if(!pool.length) return null;
+    const id = sshuf(pool, r)[0], it = itemById(id), w = iw(it), seen = new Set([w]), opts = [];
+    for(const x of sshuf(SHOP.filter(x => x.t === "farm" && x.id !== id), r)){ const ww = iw(x); if(!seen.has(ww)){ seen.add(ww); opts.push(ww); } if(opts.length === 2) break; }
+    return {k: "animal", id, w, ipa: ipaOfIt(it), es: it.n, pic: pj(it), opts: sshuf([w, ...opts], r)};
+  }
+  async function visitor(){
+    const day = dayKey(new Date());
+    if((s.vis && s.vis.day === day) || visEl) return;
+    const v = await visPick(day);
+    if(!v || !isOn() || visEl || (s.vis && s.vis.day === day)) return;
+    visV = v;
+    const el = visEl = document.createElement("button");
+    el.type = "button"; el.className = "fm-vis"; el.dataset.vk = v.k;
+    el.setAttribute("aria-label", "Visitante del día: tócalo para oír su palabra");
+    el.innerHTML = `<span class="fm-vbody"><span class="fm-vpic">${v.pic}</span></span><span class="fm-vq" aria-hidden="true">?</span>`;
+    const p = spot("vis", s.pos, GR.y0), W = layer.clientWidth || 600;
+    /* entero dentro de la pantalla (mide ~64 px: a 360 px, el 92 % de spot() lo sacaría por la derecha) */
+    const hw = (40 / W) * 100; p.x = clamp(p.x, Math.min(50, hw + 1), Math.max(50, 100 - hw - 1));
+    el.style.setProperty("--fx", 1);
+    put(el, 104, p.y, 0); layer.appendChild(el);
+    const ms = RM() ? 0 : Math.round(clamp((104 - p.x) * W / 100 / 60 * 1000, 900, 4200));
+    void el.offsetWidth;
+    if(ms) el.classList.add("walk");
+    put(el, p.x, p.y, ms);
+    later(() => { if(el.isConnected){ el.classList.remove("walk"); cls(el, "hop", 600); } }, ms + 40);
+  }
+  function visTap(){
+    const el = visEl, v = visV; if(!el || !v || finding() || dlgOpen()) return;
+    hop(el); play("pop"); speak(v.w);
+    let done = false;
+    const box = pop(`<div class="fm-ph"><span class="fm-qe fm-vqe" aria-hidden="true">${v.pic}</span><p class="fm-qt">¿Qué has oído?</p>
+        <button type="button" class="say fm-vsay" data-say="${esc(v.w)}" aria-label="Escuchar otra vez" title="Escuchar otra vez">${icon("speaker-high", "fill", 22)}</button></div>
+      <p class="fm-qs">Visitante del día</p>
+      <div class="fm-opts">${v.opts.map((o, i) => `<button type="button" class="fm-opt" data-vo="${i}" lang="${code()}">${esc(o)}</button>`).join("")}</div>
+      <p class="fm-qm" aria-live="polite"></p>
+      <div class="fm-pa"><button type="button" class="btn-fill btn-fill--neu fm-x">Ahora no</button></div>`, el, "Visitante del día: ¿qué has oído?",
+      () => { if(done && isOn()) visBye(); });
+    popEl.dataset.kind = "vis"; popEl.dataset.fid = "";
+    closeTray();
+    const m = box.querySelector(".fm-qm"), x = box.querySelector(".fm-x");
+    x.onclick = () => closePop();
+    box.querySelectorAll(".fm-opt").forEach(b => b.onclick = () => {
+      if(done) return; done = true;
+      const ok = v.opts[+b.dataset.vo] === v.w, rb = [...box.querySelectorAll(".fm-opt")].find(o => v.opts[+o.dataset.vo] === v.w);
+      box.querySelectorAll(".fm-opt").forEach(o => { if(o !== b && o !== rb) o.disabled = true; });
+      if(rb){ rb.classList.add("ok"); rb.onclick = null; rb.insertAdjacentHTML("beforeend", `<span class="fm-mk" aria-hidden="true">${icon("check", "bold", 18)}</span>`); }
+      if(!ok){ b.classList.add("bad"); b.insertAdjacentHTML("beforeend", `<span class="fm-mk" aria-hidden="true">${icon("x", "bold", 18)}</span>`); }
+      /* al repaso como una tarjeta: la palabra pendiente se puntúa (bien 2, mal 0); el animal, solo si acierta (srsWord) */
+      try{
+        if(v.k === "word" && typeof srsGrade === "function") srsGrade(v.doc, v.row, ok ? 2 : 0);
+        else if(ok) srsWord(v.id);
+      }catch(e){ console.error(e); }
+      upd(st => st.vis = {day: dayKey(new Date()), ok: ok ? 1 : 0});
+      const wl = `<b lang="${code()}">${esc(v.w)}</b>${(() => { try{ return typeof ipaHtml === "function" ? ipaHtml(v.ipa, code(), "fm-ipa") : ""; }catch(e){ return ""; } })()}`;
+      if(ok){
+        play("ok"); m.className = "fm-qm ok"; m.innerHTML = `¡Lo oíste bien! ${wl} = ${esc(v.es)}`;
+        award(VIS_COINS, "¡Visitante del día!", false, b);
+        try{ if(window.G && G.haptic) G.haptic("success"); }catch(e){}
+        if(window.M && typeof M.ok === "function") try{ M.ok(b); }catch(e){}
+      } else { m.className = "fm-qm info"; m.innerHTML = `Era ${wl} = ${esc(v.es)}`; }
+      speak(v.w);
+      emit("farm-visitor", {ok, word: v.w, kind: v.k});
+      x.textContent = "¡Adiós!"; x.classList.remove("btn-fill--neu");
+      placePop();
+    });
+  }
+  /* se despide: anda hacia la derecha y se va */
+  function visBye(){
+    const el = visEl; visEl = null; visV = null; if(!el) return;
+    const p = {x: parseFloat(el.style.left) || 50, y: parseFloat(el.style.top) || 80};
+    el.style.setProperty("--fx", -1); el.disabled = true;
+    if(RM()){ el.remove(); return; }
+    el.classList.add("walk", "bye");
+    put(el, 106, p.y, 1800);
+    later(() => el.remove(), 1900);
+  }
+
   /* ---------- refugio y avisos ---------- */
   /* comidas que hacen falta: las de sus animales (también los del refugio) y las que ya tiene */
   const neededFoods = () => Object.keys(FOOD).filter(k => ownedAnimals().some(id => ANIM[id].eats === k) || (s.pan[k] || 0) > 0);
@@ -1410,7 +1607,7 @@ function mount(host){
     if(dlgOpen()) return;
     play("tap");
     const d = dlg(`${head("El refugio")}
-      <p class="fm-sub">Aquí cuidan a los animales que pasaron mucha hambre. ¡Puedes traerlos a casa!</p>
+      <p class="fm-sub">Aquí cuidan muy bien a los animales mientras tanto. ¡Puedes traerlos a casa cuando quieras!</p>
       <div class="fm-pl"></div><p class="fm-qm" aria-live="polite"></p>`, "fm-shd");
     const list = d.querySelector(".fm-pl"), m = d.querySelector(".fm-qm"), back = [];
     function paint(){
@@ -1418,10 +1615,10 @@ function mount(host){
       list.innerHTML = ids.length ? ids.map(id => {
         const it = itemById(id), w = iw(it), Fd = FOOD[ANIM[id].eats], p = rescuePrice(it), miss = p - coinsNow();
         return `<div class="fm-prow" data-sh="${id}"><span class="fm-pe2" aria-hidden="true">${pj(it)}</span>
-          <span class="fm-pt"><span class="fm-pw"><b lang="${code()}">${esc(w)}</b><button type="button" class="say shp-spk" data-say="${esc(w)}" aria-label="Escuchar «${esc(w)}»">${icon("speaker-high", "fill", 22)}</button></span>
+          <span class="fm-pt"><span class="fm-pw"><b lang="${code()}">${esc(w)}</b><button type="button" class="say shp-spk" data-say="${esc(w)}" aria-label="Escuchar «${esc(w)}»">${icon("speaker-high", "fill", 22)}</button></span>${ipaH(w, "fm-ipa")}
             <small>${esc(it.n)} · come ${Fd.e} ${esc(Fd.n)}</small></span>
           <span class="fm-pbs one"><button type="button" class="btn-fill fm-pb res${miss > 0 ? " no" : ""}" data-rescue="${id}">${miss > 0 ? `Te faltan <span class="t-num">${miss}</span>${COIN}` : `Traer a casa · ${COIN}<span class="t-num">${p}</span>`}</button></span></div>`;
-      }).join("") + `<p class="fm-note2">Vuelve con 1 corazón: ¡dale de comer enseguida!</p>`
+      }).join("") + `<p class="fm-note2">Al llegar a casa querrá comer 🍽️</p>`
         : `<p class="fm-note">¡No hay nadie! 🥰<br>Todos tus animales están en casa.</p>`;
     }
     paint();
@@ -1478,20 +1675,20 @@ function mount(host){
     const pl = ids.length > 1, lo = pl ? "los" : ANIM[ids[0]].f ? "la" : "lo";
     const d = dlg(`${head(pl ? "Se fueron al refugio" : `${cap(elA(ids[0]))} se fue al refugio`, "Vale")}
       <div class="fm-dep" aria-hidden="true">${ids.map(id => pj(itemById(id))).join(" ")}</div>
-      <p class="fm-sub">${pl ? `${cap(joinY(ids.map(elA)))} tenían` : "Tenía"} mucha hambre. En el refugio ${lo} cuidan muy bien. ¡Puedes traer${lo} de vuelta!</p>
+      <p class="fm-sub">${pl ? `${cap(joinY(ids.map(elA)))} están` : "Está"} de visita en el refugio. Allí ${lo} cuidan muy bien. ¡Puedes traer${lo} de vuelta cuando quieras!</p>
       <div class="fm-dbtns"><button type="button" class="btn-fill fm-go">${icon("house", "bold", 20)}<span>Ver el refugio</span></button></div>`, "fm-dpd");
     d.querySelector(".fm-go").onclick = () => { shut(d); later(openShelter, 380); };
     play("whoosh");
     return true;
   }
-  /* vuelve tras 2 días o más sin venir: el personaje lo cuenta y los animales saltan */
-  function missYou(){
+  /* vuelve tras 2 días o más sin venir (o tras un viaje: la vecina les dio de comer): el personaje lo cuenta y los
+     animales saltan de alegría. Sin reproches: nada de «tienen hambre» */
+  function missYou(nb){
     const an = Object.keys(els).filter(id => ANIM[id]); if(!an.length) return 0;
-    const n = an.filter(id => needy(id)).length;
-    bubble(msg(`🥰 ¡Te echaban de menos!${n ? "<br>¡Tienen hambre!" : ""}`), hero, 4200);
+    bubble(msg(`🥰 ¡Qué alegría verte!${nb ? "<br>¡La vecina les dio de comer!" : ""}`), hero, nb ? 5200 : 4200);
     play("pop");
     an.forEach((id, i) => later(() => { const el = els[id]; if(el && hearts(id) > 0){ hop(el); heart(el); } }, 300 + i * 140));
-    return 4300;
+    return nb ? 5300 : 4300;
   }
   function shelSign(){
     const n = Object.keys(s.shelter).length;
@@ -1633,7 +1830,7 @@ function mount(host){
     const Fd = FOOD[k], w = fw(k), who = eatersOf(k);
     return `<div class="fm-prow" data-pf="${k}">
       <span class="fm-pe2" aria-hidden="true">${Fd.e}</span>
-      <span class="fm-pt"><span class="fm-pw"><b lang="${code()}">${esc(w)}</b><button type="button" class="say shp-spk" data-say="${esc(w)}" aria-label="Escuchar «${esc(w)}»">${icon("speaker-high", "fill", 22)}</button></span>
+      <span class="fm-pt"><span class="fm-pw"><b lang="${code()}">${esc(w)}</b><button type="button" class="say shp-spk" data-say="${esc(w)}" aria-label="Escuchar «${esc(w)}»">${icon("speaker-high", "fill", 22)}</button></span>${ipaH(w, "fm-ipa")}
         <small>${esc(Fd.n)}${who ? ` · para ${who}` : ""}</small><small class="fm-have">Tienes <b class="t-num">${s.pan[k] || 0}</b></small></span>
       <span class="fm-pbs">${foodBtn(k, 1)}${foodBtn(k, 3)}</span><p class="fm-qm fm-rm" aria-live="polite"></p></div>`;
   }
@@ -1643,6 +1840,7 @@ function mount(host){
     const sec = (t, k, list) => list.length ? `<section class="fm-ss" aria-labelledby="fm-sh-${k}"><h3 class="fm-sh3" id="fm-sh-${k}">${t}</h3><div class="shop">${list.map(card).join("")}</div></section>` : "";
     return `${head("Tienda", "Listo", "fm-shop-t")}
       <p class="fm-scoin">Tienes ${COIN}<b class="t-num" data-fm-coins data-coins-n>${coinsNow()}</b></p>
+      ${window.vocabShop && typeof vocabShop.wishSlot === "function" ? vocabShop.wishSlot() : ""}
       <a class="fm-zrow" href="#/mizorro" data-zorro><span class="fm-zi" aria-hidden="true">${typeof heroHtml === "function" ? heroHtml(38) : "🦊"}</span>
         <span class="fm-zt"><b>Sombreros, gafas y juguetes</b><small>Para tu zorro, en Premios</small></span><span class="fm-zg">Mi zorro${icon("caret-right", "bold", 16)}</span></a>
       <section class="fm-ss" aria-labelledby="fm-sh-c"><h3 class="fm-sh3" id="fm-sh-c">Comida</h3>
@@ -1796,6 +1994,8 @@ function mount(host){
     const p = phase();
     if(p !== ph){ ph = p; stage.dataset.ph = p; }
     const cr = careSync(s); if(cr.ch) save(s); if(cr.gone.length) leave(cr.gone);
+    /* el aparato durmió más de un día con la granja abierta: también la vecina, y se cuenta */
+    if(s.nb > 0){ delete s.nb; save(s); if(!dlgOpen() && !finding() && !popOpen()) missYou(true); }
     skyPos(); checkTrees();
     pickLead();
     for(const id of Object.keys(els)) render(id);
@@ -1838,6 +2038,7 @@ function mount(host){
     /* el globo del hambre (la nube blanca que sale del animal) es del animal: tocarlo es tocarlo a él (con hambre, su comida) */
     const ask = t.closest(".fm-ask"), ai = ask && ask.closest(".fm-it");
     if(ai && ai.dataset.fid) return tap(ai.dataset.fid, e);
+    if(t.closest(".fm-vis")) return visTap();
     const it = pickIt(e, t.closest(".fm-it")); if(it) return tap(it.dataset.fid, e);
     const pr = t.closest(".fm-prod"); if(pr){ if(!finding()) collect(pr.dataset.pk, pr); return; }
     /* el personaje no tapa nada: se le toca solo si debajo no hay otra cosa */
@@ -1910,7 +2111,7 @@ function mount(host){
      agua extra · el más urgente dice que tiene hambre (si no suena nada) · nada que hacer: el zorro propone jugar */
   if(s.wpend || s.cnew) intro.push(() => coach());
   intro.push(() => departed() ? undefined : 0);
-  if(!first && away >= HMS(MISS_H)) intro.push(() => missYou());
+  if(!first && (nb || away >= HMS(MISS_H))) intro.push(() => missYou(nb));
   if(fresh.length && !s.wpend){
     const id = fresh[fresh.length - 1], it = itemById(id), k = kindOf(id);
     intro.push(() => { if(!els[id]) return 0; bubble(wordBub(pj(it), iw(it), it.n, k === "animal" ? "¡Nuevo! Tiene hambre 🍽️" : k === "plant" ? "¡Nuevo! Riégalo 💧" : "¡Nuevo! Tócalo ✨"), els[id], 4500); return 4600; });
@@ -1925,6 +2126,7 @@ function mount(host){
     return 0;
   });
   later(nextIntro, 450);
+  later(() => { visitor().catch(e => console.error(e)); }, 2400);   /* el «Visitante del día» entra un poco después */
   emit("farm-mounted", {stage, season: seasonEl, world, hz: HZ});
   return api;
 }
@@ -2046,6 +2248,20 @@ function css(){
 .fm-it.fly .fm-e{translate:0 -.45em;animation:fmHover 1.3s ease-in-out infinite}
 .fm-it.fly .fm-sh{width:.5em;opacity:.6}
 .fm-it.walk .fm-e{animation:fmWalk .42s ease-in-out infinite alternate}
+/* «Visitante del día»: una ficha blanca con su dibujo que entra andando, con un «?» dorado encima */
+.fm-vis{position:absolute;display:flex;align-items:flex-end;justify-content:center;border:0;background:none;padding:0;margin:0;color:inherit;cursor:pointer;
+  min-width:52px;min-height:52px;font-size:var(--u);line-height:1;-webkit-tap-highlight-color:transparent;z-index:950;
+  transform:translate(-50%,-100%) scale(var(--d,1));transform-origin:50% 100%;transition:left var(--t,0ms) linear,top var(--t,0ms) linear,opacity .4s}
+.fm-vis.bye{opacity:0;transition:left var(--t,0ms) linear,top var(--t,0ms) linear,opacity 1.6s ease-in}
+.fm-vbody{display:grid;place-items:center;width:1.25em;height:1.25em;border-radius:22%;background:#fff;box-shadow:0 3px 10px rgba(11,37,69,.22),0 0 0 3px #FFCC00}
+.fm-vpic{display:grid;place-items:center;width:100%;height:100%;font-size:.86em;line-height:1}
+.fm-vpic img{display:block;width:88%;height:88%;object-fit:contain}
+.fm-vis.walk .fm-vbody{animation:fmWalk .42s ease-in-out infinite alternate}
+.fm-vq{position:absolute;left:50%;bottom:calc(100% + 4px);translate:-50% 0;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#FFCC00;color:#3D2E00;font:800 18px/1 var(--f-round,system-ui);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.fm-vis:focus-visible{outline:3px solid var(--brand-tint);outline-offset:4px;border-radius:12px}
+.fm-vqe .fm-vimg{display:block;width:56px;height:56px;object-fit:contain;border-radius:12px;background:#fff}
+.fm-vsay{display:grid;place-items:center;width:44px;height:44px;margin-left:auto;padding:0;border:0;border-radius:50%;background:var(--brand-soft);color:var(--brand-tint);flex:none}
+.stage.finding .fm-vis,.fm-stage.finding .fm-vis{opacity:.35;pointer-events:none}
 .fm-it.hopper.walk .fm-e{animation:fmBunny .5s ease-out infinite}
 .fm-it.ripe .fm-e{animation:fmRipe 1.6s ease-in-out 3;filter:drop-shadow(0 0 6px rgba(255,224,110,.95)) drop-shadow(0 2px 1px rgba(0,0,0,.18))}
 .fm-it.lit::before{content:"";position:absolute;left:50%;top:40%;width:190%;height:160%;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(255,214,0,.65),rgba(255,214,0,0));pointer-events:none}
@@ -2153,6 +2369,10 @@ function css(){
 .fm-bt{display:flex;flex-direction:column;line-height:1.15;min-width:0}
 .fm-bt b{font-size:1.25rem;font-weight:600}.fm-bt small{color:#6C6C70;font-size:.9rem;font-weight:400}
 .fm-bt i{font-style:normal;font-size:.9rem;color:#185CCF;font-weight:600;white-space:normal;line-height:1.25}
+/* la IPA de la palabra (ipaHtml): en el globo (siempre claro), en las filas de las hojas, en «¿Dónde está?» y en el quiz */
+.fm-bt .fm-ipa{font-size:.86rem;font-weight:400;color:#3F4B59;line-height:1.2}
+.fm-pt .fm-ipa,.fm-ft .fm-ipa{font-size:var(--fs-min);font-weight:400;color:var(--label2);line-height:1.2}
+.fm-qm .fm-ipa{margin-left:6px;font-weight:400;font-size:.92em;color:var(--label2)}
 .fm-hl{letter-spacing:-1px}
 .fm-pe{display:inline-block;line-height:1}.fm-pe-lana{filter:grayscale(1) brightness(1.32)}
 .fm-sg{display:flex;gap:4px;flex:none}
@@ -2363,7 +2583,7 @@ dialog.fm-sheet,dialog.fm-dlg{color:var(--label)}
 /* «Reducir movimiento» (y html[data-motion=calm], que index.html copia de aquí): el escenario se queda quieto */
 @media (prefers-reduced-motion: reduce){
   .fm-cloud{animation:none!important;left:var(--cx)!important}
-  .fm-stars i,.fm-flies i,.fm-sun::before,.fm-need,.fm-zz,.fm-spk i,.fm-it.fly .fm-e,.fm-it.walk .fm-e,.fm-it.ripe .fm-e,.fm-prod,.fm-fire,.fm-flame,.fm-shel,.fm-ask,.fm-db.nudge,.fm-bfly{animation:none!important}
+  .fm-stars i,.fm-flies i,.fm-sun::before,.fm-need,.fm-zz,.fm-spk i,.fm-it.fly .fm-e,.fm-it.walk .fm-e,.fm-vis.walk .fm-vbody,.fm-it.ripe .fm-e,.fm-prod,.fm-fire,.fm-flame,.fm-shel,.fm-ask,.fm-db.nudge,.fm-bfly{animation:none!important}
   .fm-it,.fm-hero{transition:none!important}
   .fm-tray.in,.fm-pop.in,.fm-bub.in{animation-name:fmFade!important}   /* aparecen sin crecer (lo de dentro no se mueve) */
 }`;

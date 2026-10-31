@@ -1210,7 +1210,7 @@ def _v19_then_new(gh_cache):
             if old.get(k) != new.get(k):
                 if k == "farm:state":
                     a, b = json.loads(old[k]), json.loads(new.get(k) or "{}")
-                    a.pop("visit", None), b.pop("visit", None)
+                    a.pop("visit", None), b.pop("visit", None), a.pop("ls", None), b.pop("ls", None)
                     if a == b:
                         continue
                     probs.append(f"{tag}: cambia farm:state: {[x for x in set(a) | set(b) if a.get(x) != b.get(x)]}")

@@ -157,7 +157,7 @@ compartida no responde).
   y sin práctica hoy: hoy vacío, nada late); «Tu próxima medalla» = la de más progreso (también con 990 de 1000 monedas);
   la hoja de detalle (falta / conseguida, ratón y teclado); una medalla nueva gira una vez (`vocab:ui.medals`); Mi zorro
   (comprar un sombrero resta una vez y se lo pone, saltito, quitárselo, elegir la rana, sin piezas de la granja); el
-  álbum: portada con anillo y una línea y las partes en un control segmentado (`album:tab`, flechas, recargar),
+  álbum: portada con anillo y la meta más cercana («La familia: te faltan N») y las partes en un control segmentado (`album:tab`, flechas, recargar),
   deslizar `#al-page` con el dedo (CDP: < 60 px, en diagonal, con un diálogo abierto o sin tema a ese lado no pasa) y
   la hoja «Tema», despegar (uno y todos) y completar un tema que da 50 una sola vez, la tarjeta con botones de icono y la
   IPA, salvo que un mayor la apague (`vocab:ui.ipa = false`); sin bucles infinitos; contraste/paleta (capturas `F4c-*`
@@ -434,6 +434,18 @@ compartida no responde).
   impostor y Ordenar prefieren el tema (Comida, Colores; con Soldados cualquiera); nombres con su lang (cestas,
   topos, Verdadero o falso, la lista de la Sopa, Lluvia); la IPA en el resultado de Ordenar y de la Sopa; contraste del
   letrero de Topos en oscuro y de la bienvenida del Concurso; capturas en `capturas/juegos2`.
+- `test_granja_premios.py` (granja, premios y metas largas: `js/farm.js`, `js/shop.js`, `js/rewards.js`, `js/album.js`,
+  la mezcla de misiones y la comida del cofre de `js/buddy.js`, `streakInfo()`/`achList()` de `index.html`): la vecina
+  (un viaje de 6 días con `farm:state.ls` viejo no manda a nadie al refugio y avisa «¡La vecina les dio de comer!»; el
+  refugio sigue para el hambre mientras juega; con la granja abierta y el aparato dormido; `vocabFarm.mergeSeen`);
+  arrancar no escribe y «visto» no cambia `vocabSync.hash()`; 24 h jugando solo a la granja con `farmMount.debug.shift`
+  (comer, regalos, cosechas, riegos, «¿Dónde está?», visitante y misión) ganan menos de lo que cuesta la comida; bus
+  `"mastered"` → +5 una vez con la palabra y su IPA y la pegatina dorada; la racha amable (días de descanso con copo
+  en Premios y Hoy, «Empieza tu semana» tras parar, Hoy sin scroll); «Mi deseo» (botón, barra en Mi zorro, Premios y la
+  tienda de la granja, aviso una vez, «Ganar monedas» a `nextAction()`); la IPA de `data/game.json` (igual que la del
+  corpus) en piezas, globos, comida, refugio y regalo; copa de la semana, estantería, niveles de medalla y medallas
+  nuevas; la meta del álbum; el «Visitante del día» (360 px, acertar puntúa con `srsGrade` y da 5, fallar en gris);
+  `vocabFarm.giveFood`; como mucho una misión de la granja; sin culpa en los textos. Capturas en `capturas/granja`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

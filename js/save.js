@@ -162,6 +162,10 @@ function writeAll(keys){
    Devuelve "" si va bien (y recarga), "rollback" si quedó a medias, o un mensaje de error para mayores. */
 function apply(keys, mode, flash){
   const before = collect(), lastBefore = metaGet(META.last, null);
+  /* la granja se queda con la hora «visto» (farm:state.ls) más nueva de las dos (vocabFarm.mergeSeen de js/farm.js) */
+  if(mode === "load" && keys && keys["farm:state"] && before["farm:state"]){
+    try{ const VF = window.vocabFarm; if(VF && typeof VF.mergeSeen === "function") keys = Object.assign({}, keys, {"farm:state": VF.mergeSeen(keys["farm:state"], before["farm:state"])}); }catch(e){}
+  }
   if(mode === "load"){
     const u = {app: APP, v: VER, saved: new Date(now()).toISOString(), last: lastBefore, keys: before};
     if(!metaSet(META.undo, u)) return "No hay sitio en el navegador para guardar la copia de seguridad. No se ha cambiado nada.";

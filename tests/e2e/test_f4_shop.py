@@ -610,7 +610,7 @@ def test_export_unchanged_and_sw():
         C.goto(page, "")
         after = C.export(page)
         old_f, new_f = json.loads(snap["keys"]["farm:state"]), json.loads(after["keys"]["farm:state"])
-        old_f.pop("visit", None); new_f.pop("visit", None)
+        old_f.pop("visit", None); new_f.pop("visit", None); old_f.pop("ls", None); new_f.pop("ls", None)
         if old_f != new_f:
             ch = sorted(k for k in set(old_f) | set(new_f) if old_f.get(k) != new_f.get(k))
             probs.append(f"farm:state cambia más que la visita: {ch}")

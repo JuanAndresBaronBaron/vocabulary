@@ -1,8 +1,11 @@
 /* Módulo album: álbum de pegatinas (Jugar › Álbum).
    - Cada palabra del vocabulario es una pegatina. Se consigue cuando la palabra está en el repaso del idioma
-     actual (srsAll() tiene "doc|es") y es DORADA cuando está dominada (caja b >= MASTER).
-   - #/album (portada): un anillo con lo conseguido (verde azulado; la parte dorada, en oro) y una línea «91 de 6327
-     pegatinas»; los temas con pegatinas nuevas sin pegar (filas); un control segmentado con las partes del álbum
+     actual (srsAll() tiene "doc|es") y es DORADA cuando está dominada (isMast() de index.html: la definición del repaso,
+     un acierto comprobado a 30 días o más; srsMastered(x) si el repaso la da, si no x.b >= MASTER). Las que ya se vieron
+     doradas (album:seen = 2) siguen doradas. Cuando una se domina, el repaso avisa (bus "mastered"): al volver al
+     álbum se pone dorada con su brillo (newgold) y js/rewards.js da la sorpresa de +5.
+   - #/album (portada): un anillo con lo conseguido (verde azulado; la parte dorada, en oro) y la meta más cercana: la
+     página empezada a la que menos le falta («La familia: te faltan 3», enlace a esa página); los temas con pegatinas nuevas sin pegar (filas); un control segmentado con las partes del álbum
      (Temas · Las 3000 · Avanzado, con el nº de nuevas en su aviso) y las miniaturas de esa parte sobre fondo neutro,
      cada una con su anillo de progreso. La parte elegida se guarda en store "album:tab".
    - #/album/<docId> (página de un tema): «‹ Álbum» y la pastilla «Tema: … ▾», que abre una hoja con los temas de cada
@@ -54,6 +57,9 @@ const K = {
   tab: "album:tab",
 };
 const getSeen = () => store.get(K.seen(), {}) || {};
+/* dorada: dominada (la definición del repaso) o ya vista dorada antes (una pegatina dorada no deja de serlo) */
+const mastOf = x => { try{ return typeof isMast === "function" ? isMast(x) : !!x && (x.b || 0) >= MASTER; }catch(e){ return false; } };
+const goldOf = (x, k, seen) => !!x && (mastOf(x) || (seen && seen[k] === 2));
 const now = () => (typeof performance !== "undefined" ? performance.now() : Date.now());
 
 const GROUPS = [
@@ -113,7 +119,7 @@ function stats(){
     if(!x || orph[k]) continue;
     const d = x.d || k.split("|")[0];
     const o = by[d] || (by[d] = {got: 0, gold: 0, nw: 0});
-    const gold = (x.b || 0) >= MASTER;
+    const gold = goldOf(x, k, seen);
     o.got++; if(gold) o.gold++;
     if(!seen[k] || (gold && seen[k] < 2)) o.nw++;
   }
@@ -175,6 +181,11 @@ const CSS = `
 .al-sum .al-ring{width:68px;height:68px}
 .al-sum-t{flex:1;min-width:0;margin:0;font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
 .al-sum-t b{font:700 var(--fs-t2)/1 var(--f-round);color:var(--label)}
+.al-goal{display:flex;align-items:center;gap:8px;min-height:44px;color:var(--label);text-decoration:none;border-radius:var(--r-md)}
+.al-goal>span:not(.al-goal-e){flex:1;min-width:0;overflow-wrap:anywhere}
+.al-goal b:first-child{font:600 var(--fs-sub)/1.25 var(--f-text);color:var(--label)}
+.al-goal-e{flex:none;font-size:26px;line-height:1}
+.al-goal:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 .al-sum .glass-btn{flex:none}
 .al-news .st-h{margin-top:4px}
 .al-nw{color:var(--label);font:400 var(--fs-sub)/1.25 var(--f-text);-webkit-tap-highlight-color:transparent}
@@ -407,6 +418,9 @@ async function cover(nav){
   const all = await topics();
   if(!alive(nav)) return;
   const N = sum(all, x => x.got), M = sum(all, x => x.t), G = sum(all, x => x.gold);
+  /* la meta más cercana: la página empezada a la que menos le falta (a igualdad, la que más tiene) */
+  const goal = all.filter(x => x.got > 0 && x.got < x.t).sort((a, b) => (a.t - a.got) - (b.t - b.got) || b.got - a.got)[0] || null;
+  const doneN = all.filter(x => x.t && x.got >= x.t).length;
   const groups = groupsOf(all);
   let tab = store.get(K.tab, null);
   if(!groups.some(g => g.g === tab)){
@@ -422,7 +436,9 @@ async function cover(nav){
   $("#app").innerHTML = `<div class="al al-cv">
     <section class="card al-sum" aria-label="Mi álbum de pegatinas">
       <span class="al-ring${M && N >= M ? " al-full" : ""}">${ringSvg(M ? N / M : 0, M ? G / M : 0)}<span class="al-ring-e" aria-hidden="true">📒</span></span>
-      <p class="al-sum-t"><b class="t-num">${fmt(N)}</b> de <span class="t-num">${fmt(M)}</span> ${plural(M, "pegatina", "pegatinas")}</p>
+      ${goal ? `<a class="al-sum-t al-goal" href="#/album/${esc(goal.d.id)}" aria-label="${esc(goal.d.title)}: te ${goal.t - goal.got === 1 ? "falta 1 pegatina" : `faltan ${goal.t - goal.got} pegatinas`} para completar la página">
+          <span class="al-goal-e" aria-hidden="true">${emo(goal.d)}</span><span><b>${esc(goal.d.title)}</b>: te ${goal.t - goal.got === 1 ? "falta" : "faltan"} <b class="t-num">${fmt(goal.t - goal.got)}</b></span>${IC("caret-right", "bold", 18, "al-chev")}</a>`
+        : `<p class="al-sum-t">${N ? `¡${doneN === 1 ? "1 página completa" : `${fmt(doneN)} páginas completas`}!` : "Tu álbum te espera"}</p>`}
       ${N ? "" : `<a class="glass-btn glass-btn--pri glass-btn--sm" href="#/mapa">${IC("map-trifold", "bold", 18)}Conseguir</a>`}
     </section>
     ${news.length ? `<section class="al-news" aria-labelledby="al-news-h"><h2 class="st-h" id="al-news-h">Pegatinas nuevas para pegar</h2>
@@ -467,7 +483,7 @@ function build(id, doc){
 function refresh(s, m, seen){
   const x = m[s.k];
   s.got = !!x; s.box = x ? (x.b || 0) : 0; s.reps = x ? (x.n || 0) : 0; s.due = x ? x.due : null;
-  s.gold = s.got && s.box >= MASTER;
+  s.gold = s.got && goldOf(x, s.k, seen);
   s.isNew = s.got && !seen[s.k];
   s.newGold = s.gold && seen[s.k] === 1;
 }
@@ -608,7 +624,7 @@ function paintTip(c){
   /* con pegatinas nuevas lo dice el botón «Pegar…» (no se repite aquí) */
   tip.hidden = !!c.nw; if(c.nw){ tip.innerHTML = ""; return; }
   const msg = !c.got ? "Aprende palabras de este tema en el Camino para llenar la página."
-    : c.got >= c.tot ? (c.gold >= c.tot ? "¡Todas doradas! ¡Eres un campeón!" : "¡Página completa! Repasa para que todas sean doradas.")
+    : c.got >= c.tot ? (c.gold >= c.tot ? "¡Todas doradas! Las repasaste hasta que ya no se te olvidan." : "¡Página completa! Repasa para que todas sean doradas.")
     : `Te ${plural(c.lock, "falta", "faltan")} ${c.lock}. Toca una pegatina para verla en grande.`;
   const x = !c.nw && c.lock && P.more;
   const more = !x ? "" : x.open
@@ -904,7 +920,8 @@ function frontHtml(s){
 function backHtml(s){
   const r = s.r, d = r.l[lang], left = Math.max(0, MASTER - s.box), lv = r.level && typeof LVS !== "undefined" && LVS[r.level];
   const forms = d.forms && d.forms !== "—" && d.forms !== d.word ? d.forms : "";
-  const dots = Array.from({length: MASTER}, (_, j) => `<i class="${j < s.box ? "on" : ""}">${j < s.box ? "⭐" : "☆"}</i>`).join("");
+  const lit = j => s.gold || j < s.box;
+  const dots = Array.from({length: MASTER}, (_, j) => `<i class="${lit(j) ? "on" : ""}">${lit(j) ? "⭐" : "☆"}</i>`).join("");
   const due = !s.gold && s.due != null && s.due <= today();
   return `<div class="al-cf al-back">
     <div class="al-cf-top"><span class="al-n2">Nº ${s.n}</span></div>
@@ -916,8 +933,8 @@ function backHtml(s){
     ${r.pos && POS[r.pos] ? `<div class="al-fi"><span>Tipo</span><b>${esc(POS[r.pos])}</b></div>` : ""}
     ${forms ? `<div class="al-fi"><span>Otras formas</span><b>${esc(forms)}</b></div>` : ""}
     <div class="al-fi"><span>La has repasado</span><b>${s.reps} ${plural(s.reps, "vez", "veces")}</b></div>
-    <div class="al-br"><div class="lbl">Brillo</div><div class="al-dots" role="img" aria-label="Brillo ${Math.min(s.box, MASTER)} de ${MASTER}">${dots}</div>
-      <p>${s.gold ? "¡Es dorada! Esta palabra ya no se te olvida." : `Acierta ${left} ${plural(left, "repaso", "repasos")} más y será dorada.`}</p></div>
+    <div class="al-br"><div class="lbl">Brillo</div><div class="al-dots" role="img" aria-label="Brillo ${s.gold ? MASTER : Math.min(s.box, MASTER)} de ${MASTER}">${dots}</div>
+      <p>${s.gold ? "¡Es dorada! Esta palabra ya no se te olvida." : `Acierta ${Math.max(1, left)} ${plural(Math.max(1, left), "repaso", "repasos")} más y será dorada.`}</p></div>
     ${due ? `<a class="glass-btn glass-btn--pri" href="#/repaso">${IC("arrows-clockwise", "bold", 20)}Repasar ahora</a>` : ""}
   </div>`;
 }
@@ -1056,7 +1073,7 @@ bus.on("review-done", () => {
     try{
       const host = document.querySelector(".pr-end .pr-row"); if(!host || host.querySelector(".al-ls")) return;
       const m = srsAll(), seen = getSeen();
-      const n = Object.entries(m).filter(([k, x]) => x && (x.b || 0) >= MASTER && seen[k] !== 2).length;
+      const n = Object.entries(m).filter(([k, x]) => x && mastOf(x) && seen[k] !== 2).length;
       if(n) host.insertAdjacentHTML("beforeend", `<a class="btn al-ls" href="#/album">${ico("star", "fill", 18)}¡${n} ${plural(n, "pegatina dorada nueva", "pegatinas doradas nuevas")}!</a>`);
     }catch(e){ console.error(e); }
   }, 60);

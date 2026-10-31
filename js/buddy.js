@@ -7,7 +7,7 @@
      las 3 misiones de hoy, su progreso y un altavoz en cada fila (las lee el zorro en español: hmSpeak de index.html),
      «Recoger · 15» y el cofre sorpresa). Cada misión lleva a su sitio exacto (hrefOf): «Termina…» y «Acierta…», a la
      siguiente lección (#/leccion/<id>; con el camino hecho, #/mapa); «Juega…», al último juego con su tema
-     (vocabShortcuts.lastGame(); si no, #/juegos). El cofre es una sorpresa con peso (chestPrize: 15-40 monedas, media
+     (vocabShortcuts.lastGame(); si no, #/juegos). Como mucho una de las 3 es de la granja (no se paga sola). El cofre es una sorpresa con peso (chestPrize: 15-40 monedas, media
      ≈ 25; 3 raciones de comida si js/farm.js da vocabFarm.giveFood; 1 vez de cada 10 el huevo de oro), la misma todo el
      día (rng por fecha); nunca se dice antes qué ni cuánto da. No caduca: si las 3 se cumplieron y no se abrió, al día
      siguiente sigue ahí («¡Un cofre sin abrir!», M.owed). Abierto, la tarjeta de Hoy dice «¡Lo de hoy, hecho!» (confeti
@@ -18,7 +18,7 @@
      (award(…, desde)). La pieza de Misiones salta una vez cuando hay una misión recién cumplida (attention()).
    - Mapa: el personaje junto a la lección actual (camina desde la anterior al terminar una) y «🎁 Regalo en N lecciones».
    - Mientras se juega a un minijuego (html[data-gm-play], lo pone games.js) los avisos de misión esperan al resultado.
-   API: window.vocabBuddy = {missions(), misHtml(), paintMis(), misPiece(), openMissions(desde), claim(k, desde),
+   API: window.vocabBuddy = {missions(), makeMissions(día) (la mezcla de un día, sin guardarla), misHtml(), paintMis(), misPiece(), openMissions(desde), claim(k, desde),
         openChest(desde), openOwed(desde), chestPrize(día), hrefOf(k), partyOnce(), wotdPick(), wotdPiece(), paintWotd(girada), attention(),
         wire(), cheer(texto, icono)}.
         claim/openChest/openOwed devuelven true si han pagado; attention() true si la pieza de Misiones ha saltado; partyOnce()
@@ -237,12 +237,14 @@ const MDEF = {
   game: {ev: "game-done",    e: "🎮", href: "#/juegos",   t: () => "Juega a un minijuego", ok: () => typeof ROUTES === "object" && typeof ROUTES.juegos === "function"},
   /* cada animal come como mucho una vez cada 8 h: el objetivo son sus animales (hasta 4) */
   feed: {ev: "farm-feed",    e: "🍽️", href: "#/granja",   t: g => g === 1 ? "Da de comer a tu animal" : "Da de comer a tus animales", ok: () => farmCount().an >= 1, goal: () => Math.min(4, farmCount().an)},
-  harv: {ev: "farm-harvest", e: "🧺", href: "#/granja",   t: g => `Cosecha ${plural(g, "planta", "plantas")}`, ok: () => farmCount().pl >= 1, goal: () => Math.min(2, farmCount().pl)},
-  /* cada animal da 1 o 2 regalos por comida (como mucho cada 8 h) y cada árbol 1 cada 3 h: el objetivo depende de cuántos tiene */
+  /* (cada planta bebe gratis una vez cada 8 h y necesita 2 riegos: una cosecha al día) */
+  harv: {ev: "farm-harvest", e: "🧺", href: "#/granja",   t: g => `Cosecha ${plural(g, "planta", "plantas")}`, ok: () => farmCount().pl >= 1, goal: () => 1},
+  /* cada animal da 1 o 2 regalos por comida (como mucho cada 8 h) y cada árbol 1 cada 8 h: el objetivo depende de cuántos tiene */
   coll: {ev: "farm-collect", e: "🥚", href: "#/granja",   t: g => `Recoge ${plural(g, "tesoro", "tesoros")} de la granja`, ok: () => farmCount().an + farmCount().tr >= 1, goal: () => Math.min(3, farmCount().an + farmCount().tr)},
   find: {ev: "farm-find",    e: "🔍", href: "#/granja",   t: g => `Encuentra ${plural(g, "cosa", "cosas")} en la granja`, ok: () => farmCount().all >= 3},
 };
 const BASE_GOAL = {les: 1, ans: 15, rev: 10, game: 1, feed: 1, harv: 2, coll: 3, find: 5};
+const FARM_M = new Set(["feed", "harv", "coll", "find"]);   /* las misiones de la granja */
 function makeMissions(day){
   const r = rng("buddy|" + day);
   const can = k => { try{ return !MDEF[k].ok || !!MDEF[k].ok(); }catch(e){ return false; } };
@@ -253,7 +255,9 @@ function makeMissions(day){
   const all = sshuf(Object.keys(MDEF), r).filter(can);
   const learn = all.filter(k => MDEF[k].learn);
   const first = learn[0] || "les";
-  const rest = all.filter(k => k !== first).slice(0, 2);
+  /* como mucho una misión de la granja al día: la granja no se paga sola (las monedas quieren decir «aprendí») */
+  const rest = [];
+  for(const k of all){ if(k === first || (FARM_M.has(k) && rest.some(x => FARM_M.has(x)))) continue; rest.push(k); if(rest.length === 2) break; }
   while(rest.length < 2){ const k = ["ans", "les", "rev"].find(x => x !== first && !rest.includes(x)); if(!k) break; rest.push(k); }
   return {day, list: [first, ...rest].map(k => ({k, goal: goalOf(k), n: 0, s: 0, got: false})), chest: false};
 }
@@ -716,5 +720,5 @@ bus.on("farm-harvest", d => bump("farm-harvest", d));
 bus.on("farm-collect", d => bump("farm-collect", d));
 bus.on("farm-find", d => bump("farm-find", d));
 
-window.vocabBuddy = {missions, misHtml, paintMis, misPiece, openMissions, claim, openChest, openOwed, chestPrize, hrefOf, partyOnce, wotdPick, wotdPiece, paintWotd, attention, wire: wireHome, cheer};
+window.vocabBuddy = {missions, makeMissions, misHtml, paintMis, misPiece, openMissions, claim, openChest, openOwed, chestPrize, hrefOf, partyOnce, wotdPick, wotdPiece, paintWotd, attention, wire: wireHome, cheer};
 })();
