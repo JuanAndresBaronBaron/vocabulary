@@ -7,7 +7,9 @@ Reads data/ielts/*.json directly (no browser), except the last test, which draws
   the numbers the player gives the questions.
 - Units 3-10 practise sentence, summary and table completion, short answers, diagram labelling and Choose TWO.
 - Unit 11 covers line, bar, pie and table Task 1 visuals and ends with a timed (20-minute) Task 1.
-- The diagnostic test of u02 does not bunch its keys on one letter.
+- The diagnostic test of u02 does not bunch its keys on one letter, and Choose TWO answers are not always B and D.
+- REMAP (old option index -> new index) covers every question whose options this package reordered: the integrator's
+  one-time migration (ielts:mig:content1) applies it to saved runs, so it must stay in step with the data.
 - SCHEMA.md documents every new field.
 """
 from __future__ import annotations
@@ -20,6 +22,24 @@ import common as C
 import ielts_validate as V
 
 _IN = "localStorage.setItem('ielts:on', 'true'); sessionStorage.setItem('ielts:in', '1');"
+
+# The questions whose options content1 reordered: REMAP[id][old index] = new index, and the key before the change
+# (v38, commit 72ee060). A saved run stores the index of the option chosen, so the integrator's migration applies
+# REMAP to every ielts:run:<lid>.ans once (flag ielts:mig:content1); a multi answer maps element by element.
+REMAP = {
+    "u01-l3-i8": [1, 0, 2, 3], "u01-l3-i10": [0, 3, 1, 2], "u01-l3-i11": [0, 2, 1, 3],
+    "u02-l1-i2-q9": [0, 2, 1], "u02-l1-i3-q1": [1, 0, 2], "u02-l1-i3-q4": [0, 2, 1], "u02-l1-i3-q5": [1, 0, 2, 3, 4],
+    "u04-l1-i9": [0, 2, 1], "u04-l1-i10": [1, 0, 2], "u04-l2-i1-q6": [0, 2, 1], "u04-l3-i1-q2": [0, 1, 2, 4, 3],
+    "u05-l1-i8-q1": [1, 0, 2, 4, 3], "u05-l1-i9": [1, 0, 2], "u05-l1-i10": [0, 2, 1], "u05-l2-i1-q5": [1, 0, 3, 2, 4],
+    "u05-l3-i1-q2": [1, 0, 2], "u05-l3-i1-q3": [0, 2, 1], "u05-l3-i1-q4": [0, 2, 1, 4, 3],
+    "u09-l2-i1-q9": [0, 3, 1, 2], "u10-l2-i1-q9": [1, 0, 2, 3],
+}
+OLD_KEY = {
+    "u01-l3-i8": 1, "u01-l3-i10": 1, "u01-l3-i11": 1, "u02-l1-i2-q9": 1, "u02-l1-i3-q1": 1, "u02-l1-i3-q4": 1,
+    "u02-l1-i3-q5": [1, 3], "u04-l1-i9": 1, "u04-l1-i10": 1, "u04-l2-i1-q6": 1, "u04-l3-i1-q2": [1, 3],
+    "u05-l1-i8-q1": [1, 3], "u05-l1-i9": 1, "u05-l1-i10": 1, "u05-l2-i1-q5": [1, 3], "u05-l3-i1-q2": 1,
+    "u05-l3-i1-q3": 1, "u05-l3-i1-q4": [1, 3], "u09-l2-i1-q9": 1, "u10-l2-i1-q9": 1,
+}
 
 
 def _unit(n):
@@ -118,7 +138,13 @@ def test_ielts_content1_keys():
     accepts("u11-l1-i8", "plateaued", "levelled off", "levelled out", "stabilised", "held steady")
     accepts("u12-l1-i10", "was converted", "has been converted", "was turned")
     accepts("u12-l1-i7", "it", "instead, it")
+    accepts("u09-l2-i1-q14", "building codes", "building regulations", "regulations")
     # keys that were wrong or arguable
+    # a qualifier mismatch is FALSE only when the passage rules the statement out (the u07-l1-i3 card)
+    assert "many smaller towns were never connected" in _find("u07-l3-i1")["paragraphs"][1]["text"]
+    assert _find("u07-l3-i1-q4")["answer"] == "F" and "never connected" in _find("u07-l3-i1-q4")["why"]
+    q = _find("u07-l1-i9")
+    assert "has not yet been proved" in q["q"] and q["answer"] == 1 and "has not yet been proved" in q["why"], q
     q = _find("u07-l3-i1-q5")
     assert q["answer"] == "F" and "Rain" in q["statement"], q
     assert "There is no agreement" in _find("u07-l1-i7")["paragraphs"][1]["text"], "u07-l1-i7-q3 needs its evidence"
@@ -186,6 +212,12 @@ def test_ielts_content1_plan():
     assert {"River", "Main entrance"} <= {z["label"] for z in items}
     q = s["items"][0]
     assert q["type"] == "select" and len(q["rows"]) == 5 and len({r["answer"] for r in q["rows"]}) == 5, q
+    # a screen reader gets the drawing in words: every letter of the plan and every number of the diagram
+    assert all(f"{x}:" in v["alt"] for x in "ABCDEFG"), v["alt"]
+    d = _find("u09-l3-i1")["sets"][1]["visual"]
+    assert all(f"Marker {x}" in d["alt"] for x in "56789"), d["alt"]
+    # the passage's answers are not in the alt text
+    assert not re.search(r"\b(cable|firn|bubbles|cylinder|core|fluid)\b", d["alt"], re.I), d["alt"]
 
 
 def test_ielts_content1_types():
@@ -268,6 +300,34 @@ def test_ielts_content1_spread():
                 assert max(Counter(keys).values()) <= len(keys) / 2, (les["id"], keys)
 
 
+def test_ielts_content1_choose_two():
+    """Choose TWO keys are not always the same pair: no pair holds more than half of the multi questions in u01-u12,
+    nor in any unit with 3 or more; and the three pick keys of the u05 test differ."""
+    pairs = {}
+    for n in range(1, 13):
+        for o in _walk(_u(n)):
+            if o.get("type") == "multi":
+                pairs[o["id"]] = tuple(sorted(o["answer"]))
+    c = Counter(pairs.values())
+    assert len(pairs) >= 5 and max(c.values()) * 2 <= len(pairs), pairs
+    for n in range(1, 13):
+        ps = [p for k, p in pairs.items() if k.startswith(f"u{n:02d}-")]
+        if len(ps) >= 3:
+            assert max(Counter(ps).values()) * 2 <= len(ps), (n, ps)
+    assert pairs["u02-l1-i3-q5"] != (1, 3), "the diagnostic's Choose TWO"
+    assert len({_find(f"u05-l3-i1-q{k}")["answer"] for k in (1, 2, 3)}) == 3
+
+
+def test_ielts_content1_remap():
+    """REMAP turns every old key into the current key, so saved answers keep pointing at the same option text."""
+    for qid, perm in REMAP.items():
+        q = _find(qid)
+        assert q["type"] in ("pick", "multi") and sorted(perm) == list(range(len(q["options"]))), (qid, perm)
+        old = OLD_KEY[qid]
+        new = sorted(perm[i] for i in old) if isinstance(old, list) else perm[old]
+        assert new == (sorted(q["answer"]) if isinstance(q["answer"], list) else q["answer"]), (qid, old, new, q["answer"])
+
+
 def test_ielts_content1_ids():
     """New questions and lessons take the next free number; removed ids are never reused."""
     new = ["u09-l3-i1-q14", "u09-l3-i1-q15", "u09-l3-i1-q16", "u09-l3-i1-q17", "u09-l2-i1-q14", "u09-l2-i1-q15",
@@ -284,9 +344,10 @@ def test_ielts_content1_ids():
 def test_ielts_content1_schema_doc():
     """SCHEMA.md documents every field the validator now accepts, and the word limits."""
     doc = (V.DATA / "SCHEMA.md").read_text(encoding="utf-8")
-    fields = ["exam", "pause", "accent", "visual", "mark", "visual2", "followups", "exemplars"]
+    fields = ["exam", "pause", "accent", "visual", "mark", "visual2", "followups", "exemplars", "alt"]
     assert [f for f in fields if not re.search(r"`" + re.escape(f) + r"(?![\w])", doc)] == []
-    for s in ("### Word limits", "### Exam rules the validator enforces", "AND/OR A NUMBER", "Label the", "Never renumber an id"):
+    for s in ("### Word limits", "### Exam rules the validator enforces", "AND/OR A NUMBER", "Label the", "Never renumber an id",
+              "Reordering the options", "callout", "no answer pair"):
         assert s in doc, s
 
 
@@ -331,6 +392,42 @@ def test_ielts_content1_visuals_render():
                     assert len(r["cols"]) == len(vals) and max(r["cols"]) > 200, r["cols"]
                     assert all(abs(h / max(r["cols"]) - x / max(vals)) < .02 for h, x in zip(r["cols"], vals)), r["cols"]
                     assert "60%" in r["ticks"] and "100%" not in r["ticks"], r["ticks"]
+            # map labels fit their boxes (shrinking down to 3.2 units), on the maps that predate this package too; a
+            # marker without a shape is drawn on a box like any item (content2's rooms), a 0 x 0 marker is a callout;
+            # the alt text is on the page for screen readers
+            maps = {"u12": _find("u12-l3-i2")["visual"], "plan": vis["plan"][0], "diagram": vis["diagram"][0],
+                    "rooms": {"kind": "map", "title": "Rooms", "alt": "A: west. B: east.", "maps": [{"title": "Ground floor", "items": [
+                        {"label": "A", "mark": True, "x": 2, "y": 2, "w": 24, "h": 22}, {"label": "B", "mark": True, "x": 60, "y": 40, "w": 0, "h": 0},
+                        {"label": "Main entrance", "x": 38, "y": 91, "w": 24, "h": 8, "shape": "rect"}]}]}}
+            for name, v in maps.items():
+                r = page.evaluate("""v => { const a = document.getElementById('app');
+                  a.innerHTML = `<div class="card ie-card" style="margin:16px"><figure class="ie-viz">${IE.viz.html(v)}</figure></div>`;
+                  const f = a.querySelector('figure'), out = {bad: [], small: [], mk: []};
+                  for(const g of f.querySelectorAll('svg > g:not(.ie-mk)')){
+                    const sh = g.querySelector(':scope > rect, :scope > ellipse'), ts = [...g.querySelectorAll('text')];
+                    if(!sh || !ts.length) continue;
+                    const b = sh.getBoundingClientRect(), u = b.width / sh.getBBox().width;
+                    const t = ts.map(x => x.getBoundingClientRect()), top = Math.min(...t.map(x => x.top)), bot = Math.max(...t.map(x => x.bottom));
+                    const fs = parseFloat(getComputedStyle(ts[0]).fontSize);
+                    if(fs < 4.2) out.small.push([ts.map(x => x.textContent).join(' '), fs]);
+                    const thin = Math.min(b.width, b.height) / u < 6;   /* a road or path: the label lies over it, on its halo */
+                    if(!thin && (bot - top > b.height + 1.2 * u || Math.max(...t.map(x => x.width)) > b.width + 1.2 * u))
+                      out.bad.push([ts.map(x => x.textContent).join(' '), fs, Math.round(b.width / u), Math.round(b.height / u)]);
+                  }
+                  out.mk = [...f.querySelectorAll('.ie-mk')].map(g => [g.querySelector('.ie-mk-t').textContent, !!g.querySelector('rect,ellipse')]);
+                  out.alt = (f.querySelector('p.vh') || {}).textContent || '';
+                  out.altShown = f.querySelector('p.vh') ? f.querySelector('p.vh').getBoundingClientRect().width : -1;
+                  return out; }""", v)
+                assert r["bad"] == [], (scheme, name, r["bad"])
+                assert all(fs >= 3.2 - 1e-6 for _, fs in r["small"]), (scheme, name, r["small"])
+                if v.get("alt"):
+                    assert r["alt"] == v["alt"] and r["altShown"] <= 1, (scheme, name, r["alt"][:60], r["altShown"])
+                if name == "u12":
+                    assert {x for x, _ in r["small"]} >= {"Shops and café", "Fishing harbour"}, r["small"]
+                if name == "rooms":
+                    assert r["mk"] == [["A", True], ["B", False]], r["mk"]
+                if name == "diagram":
+                    assert dict(r["mk"]) == {"5": True, "6": False, "7": False, "8": True, "9": False}, r["mk"]
             assert not C.errors(page), C.errors(page)
         finally:
             page.context.close()

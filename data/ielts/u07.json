@@ -229,14 +229,14 @@
     {
      "id": "u07-l1-i9",
      "type": "pick",
-     "q": "Passage: 'Some researchers believe the drug may slow the disease.' Statement: 'The drug has been proved to slow the disease.' What is the answer?",
+     "q": "Passage: 'Some researchers believe the drug may slow the disease, but this has not yet been proved.' Statement: 'The drug has been proved to slow the disease.' What is the answer?",
      "options": [
       "TRUE",
       "FALSE",
       "NOT GIVEN"
      ],
      "answer": 1,
-     "why": "'Some researchers believe… may' contradicts 'has been proved': the passage says the evidence is not conclusive. FALSE."
+     "why": "The passage says the effect \"has not yet been proved\", which rules out 'has been proved'. FALSE."
     }
    ]
   },
@@ -440,7 +440,7 @@
       },
       {
        "label": "B",
-       "text": "The first line, linking Paris with Lille in the north, came into service in 1794, during a period of war. Its value was quickly demonstrated: news of a French military success near the northern border is said to have reached Paris within about an hour, a journey that would have taken a rider on horseback the best part of a day. The government, recognising the strategic advantage, extended the network in every direction. At its height it comprised more than five hundred stations and reached most of the country's major cities."
+       "text": "The first line, linking Paris with Lille in the north, came into service in 1794, during a period of war. Its value was quickly demonstrated: news of a French military success near the northern border is said to have reached Paris within about an hour, a journey that would have taken a rider on horseback the best part of a day. The government, recognising the strategic advantage, extended the network in every direction. At its height it comprised more than five hundred stations and reached most of the country's major cities, although many smaller towns were never connected."
       },
       {
        "label": "C",
@@ -497,7 +497,7 @@
          "mode": "tfng",
          "statement": "The French network eventually reached every town in the country.",
          "answer": "F",
-         "why": "Paragraph B: it \"reached most of the country's major cities\". If some major cities were not reached, it cannot have reached every town."
+         "why": "Paragraph B: \"many smaller towns were never connected\", so the network never reached every town."
         },
         {
          "id": "u07-l3-i1-q5",

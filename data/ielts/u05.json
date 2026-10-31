@@ -219,15 +219,15 @@
          "type": "multi",
          "q": "Which TWO parts of the trip do both students find most useful?",
          "options": [
-          "A  the talk on the coach",
-          "B  talking to farmers",
+          "A  talking to farmers",
+          "B  the talk on the coach",
           "C  the museum visit",
-          "D  watching samples being collected",
-          "E  the guided walk"
+          "D  the guided walk",
+          "E  watching samples being collected"
          ],
          "answer": [
-          1,
-          3
+          0,
+          4
          ],
          "why": "Both value the farmers (\"the interviews\") and the soil samples. The coach lecture covered things already known, the museum was \"rushed\" and no walk is mentioned."
         }
@@ -490,15 +490,15 @@
          "type": "multi",
          "q": "Which TWO types of visual does Dr Collins say work especially well?",
          "options": [
-          "A  photographs",
-          "B  a timeline",
-          "C  video clips",
-          "D  actual objects",
+          "A  a timeline",
+          "B  photographs",
+          "C  actual objects",
+          "D  video clips",
           "E  slides with detailed text"
          ],
          "answer": [
-          1,
-          3
+          0,
+          2
          ],
          "why": "Photos are merely \"good\"; the two that \"work especially well\" are \"a timeline\" and \"real objects\". Video and heavy text are discouraged."
         }
@@ -695,11 +695,11 @@
          "type": "pick",
          "q": "Which noise data are the students using in their report?",
          "options": [
-          "A  readings from a phone app",
-          "B  readings from borrowed equipment",
+          "A  readings from borrowed equipment",
+          "B  readings from a phone app",
           "C  a mixture of both"
          ],
-         "answer": 1,
+         "answer": 0,
          "why": "App readings were unreliable; \"those are the figures we're using\" refers to the noise monitor borrowed from engineering."
         },
         {
@@ -708,11 +708,11 @@
          "q": "What did the students find about the open-plan floor?",
          "options": [
           "A  It had a higher average noise level.",
-          "B  It had more sudden loud noises.",
-          "C  It was quieter than they expected."
+          "B  It was quieter on average than the third floor.",
+          "C  It had more sudden loud noises."
          ],
-         "answer": 1,
-         "why": "\"The average levels were almost the same… What was different was the peaks.\""
+         "answer": 2,
+         "why": "\"The average levels were almost the same on both floors\", so it was neither louder nor quieter on average. \"What was different was the peaks\": sudden bursts of noise that carry across the space."
         }
        ]
       },
@@ -725,14 +725,14 @@
          "q": "Which TWO noise sources did respondents find most distracting?",
          "options": [
           "A  mobile phones",
-          "B  conversations",
-          "C  keyboards",
-          "D  footsteps",
-          "E  air conditioning"
+          "B  keyboards",
+          "C  conversations",
+          "D  air conditioning",
+          "E  footsteps"
          ],
          "answer": [
-          1,
-          3
+          2,
+          4
          ],
          "why": "Josh expected phones, but \"conversations were the clear winner\" and \"footsteps were a big one too\". Keyboards \"hardly registered\"; people were \"fairly tolerant\" of air conditioning."
         }

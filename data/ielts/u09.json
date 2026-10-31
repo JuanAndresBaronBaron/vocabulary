@@ -420,10 +420,13 @@
          "answer": [
           "building codes",
           "the building codes",
-          "codes"
+          "codes",
+          "building regulations",
+          "the building regulations",
+          "regulations"
          ],
          "limit": "NO MORE THAN THREE WORDS AND/OR A NUMBER",
-         "why": "Paragraph A: the shift \"has been driven partly by changes to building codes\", which now permit taller timber structures."
+         "why": "Paragraph A uses two terms for the same rules: \"building regulations limited timber structures to a few storeys\", and the shift came from \"changes to building codes\", which in a number of countries now permit taller timber structures. Either term is accepted."
         },
         {
          "id": "u09-l2-i1-q15",
@@ -625,30 +628,31 @@
            {
             "label": "6",
             "mark": true,
-            "x": 10,
-            "y": 20,
-            "w": 12,
-            "h": 10
+            "x": 16,
+            "y": 25,
+            "w": 0,
+            "h": 0
            },
            {
             "label": "7",
             "mark": true,
-            "x": 10,
-            "y": 50,
-            "w": 12,
-            "h": 10
+            "x": 16,
+            "y": 55,
+            "w": 0,
+            "h": 0
            },
            {
             "label": "9",
             "mark": true,
-            "x": 67,
-            "y": 74,
-            "w": 10,
-            "h": 10
+            "x": 72,
+            "y": 79,
+            "w": 0,
+            "h": 0
            }
           ]
          }
-        ]
+        ],
+        "alt": "A cross-section through an ice sheet. On the surface, a drilling rig stands over a borehole that runs down through a thin layer of snow, a thick upper layer and then solid ice. Marker 5 is on the line from the rig down to the drill. Marker 6 is in the upper layer, below the snow. Marker 7 is in the solid ice. Marker 8 is on the drill itself, near the top of the solid ice. Marker 9 is in the borehole, below the drill."
        },
        "items": [
         {

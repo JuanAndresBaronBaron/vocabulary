@@ -30,6 +30,10 @@ Blocks: `start`, `listening`, `reading`, `writing`, `speaking`, `language`, `moc
 - **Never renumber an id**: learners' saved runs and review cards use them. A new lesson, item or question takes the
   next free number, even when it appears earlier in a list (`u09-l3-i1-q14` may sit between `q5` and `q10`). The
   number a learner sees comes from the position, not from the id.
+- **Reordering the options of an existing `pick`, `multi` or `select` changes what saved answers mean**: a run stores
+  the index of the option chosen (`ielts:run:<lid>`.ans). Do it only with a one-time migration that maps each old
+  index to the new one in every saved run (guarded by a flag such as `ielts:mig:content1`), and never change the text
+  of an option in a way that changes its meaning. Adding options at the end is safe.
 - Inline markup in any text: `**bold**`, `*italic*`. Nothing else (no HTML, no links).
 
 ## Item types
@@ -66,7 +70,8 @@ also accept the answer typed with the unit, if it stays within the limit (`"£18
 | `pause` | a `listening` script line | A whole number of seconds, 5-60: silence after that line (time to read the next questions or check answers). The line's `s` is a normal speaker, usually `{"id": "nar", "name": "Narrator", "voice": "m"}` listed in `speakers`, saying for example "You now have some time to look at questions 5 to 10." |
 | `accent` | a `listening` speaker | One of `gb`, `us`, `ca`, `au`, `nz`, `ie`, `za`: the voice to prefer when the browser has one (British otherwise). The script is still written in British spelling. |
 | `visual` | a `reading` or `listening` set | A visual (see Task 1 visuals) drawn above the set's questions: the plan, map or diagram to label, or the table to complete. Any set whose `instr` contains "Label the" must have one. |
-| `mark: true` | a map item | A marker: `label` is a letter or number (1-3 characters) drawn bold in a circle at the centre of the item's box. With an explicit `shape`, the shape is drawn under the marker (a building to label); without one, only the marker (a callout on a feature drawn by other items). Do not label a marked place in words: the learner supplies that. |
+| `mark: true` | a map item | A marker: `label` is a letter or number (1-3 characters) drawn bold in a circle at the centre of the item's box, over the item's shape like any map item (`rect` when `shape` is left out): a room or building to label. A marker whose `w` and `h` are both 0 is a callout: only the circle, at (`x`, `y`), on a feature drawn by other items (a layer of a cross-section, a point in a borehole); a callout has no `shape`. Do not label a marked place in words: the learner supplies that. |
+| `alt` | a `map` visual | A text alternative for screen readers, read after the drawing (hidden on screen): what the plan or diagram shows and where each marker is, in the words of the drawing, not of the script or passage, so that it never gives an answer away. Give one to every plan, map or diagram that a set asks the learner to label. |
 | `visual2` | a Task 1 `writing` item | A second visual, shown under `visual` (for example pie charts plus a table). Task 1 only. |
 | `followups` | a Part 2 `speaking` item | 1-2 short questions the examiner may ask after the long turn ("Do you still...?"). Part 2 only. |
 | `exemplars` | a `writing` item | 1-3 sample answers below band 9 for comparison: `{"band": 6.5, "text": [2-8 paragraphs], "notes": [1-6 strings]}`. `band` is 5-9 in half bands; each `text` has at least `minWords` words. |
@@ -88,6 +93,9 @@ number; spelled-out numbers are words (`one hundred and fifty` is five words). P
 - Every accepted `gap` answer fits its limit (above).
 - A set whose `instr` contains "Label the" has a `visual`.
 - In a `test` lesson with 4 or more `pick` questions, no answer index holds more than half of their keys.
+- In a unit with 3 or more `multi` questions, no answer pair (the same set of letters) holds more than half of them.
+- A map marker's box is either 0 × 0 (a callout, with no `shape`) or has both a width and a height; `alt` is a
+  non-empty string, on a `map` visual only.
 - Listening answers come in script order within a set; Reading answers follow the passage order except in matching
   information, matching headings and diagram labelling. (Checked by reviewers, not by the validator.)
 
@@ -109,8 +117,11 @@ British voice, so write for the ear: numbers as people say them ("double three",
 Map coordinates are on a 0-100 grid (x to the right, y downwards); `shape` is `rect`, `circle`, `road` (a long thin
 rect) or `water`. Add a compass note in the title when it matters ("North is at the top"). A map item with
 `"mark": true` is a marker (see Optional fields): `{"label": "C", "mark": true, "x": 72, "y": 68, "w": 16, "h": 13,
-"shape": "rect"}` draws a building with a circled C on it. A map can also be a labelled diagram (a cross-section, a
-machine): draw the parts as items and put numbered markers on the parts to label.
+"shape": "rect"}` draws a building with a circled C on it (so does the same item without `shape`);
+`{"label": "6", "mark": true, "x": 16, "y": 25, "w": 0, "h": 0}` draws only the circled 6. A map can also be a
+labelled diagram (a cross-section, a machine): draw the parts as items and put numbered markers on the parts to label.
+Labels are drawn 4.2 units high and wrap to the width of their box; a label that does not fit its box is set smaller,
+down to 3.2 units, so give each labelled box room for its words (about 2.5 units per character, 4.7 per line).
 
 A set `visual` uses the same kinds: a `map` for a plan, map or diagram to label (markers A-H or the question
 numbers), a `table` for table completion, with each blank written as its question number and a line

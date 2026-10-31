@@ -99,8 +99,9 @@ def test_ielts_locked_without_the_gate():
 
 
 def test_ielts_validator_rules():
-    """The three exam rules of ielts_validate.py: the word-limit counter, 'Label the' needs a visual, and the spread of
-    pick keys in a test; the new optional fields; and every PENDING id (left for content2) exists."""
+    """The exam rules of ielts_validate.py: the word-limit counter, 'Label the' needs a visual, the spread of pick keys
+    in a test and of Choose TWO pairs in a unit; the new optional fields (markers, callouts, alt); and every PENDING id
+    (left for content2) exists."""
     import copy
     fits = [("14th", "ONE WORD AND/OR A NUMBER"), ("07700 911483", "A NUMBER"), ("BS7 4QD", "ONE WORD AND/OR A NUMBER"),
             ("10:15", "A NUMBER"), ("£85", "A NUMBER"), ("check-in", "ONE WORD ONLY"), ("15 minutes", "ONE WORD AND/OR A NUMBER"),
@@ -148,6 +149,34 @@ def test_ielts_validator_rules():
             {"label": "A", "mark": True, "x": 10, "y": 10, "w": 10, "h": 10, "shape": "rect"}]}]}
     u = copy.deepcopy(base)
     label_with_visual(u)
+    assert V.check_unit(u, "u03") == [], V.check_unit(u, "u03")
+    # markers: a room (w and h, shape optional), a callout (0 x 0, no shape) and an alt text are all fine
+    def plan_items(u, items, **extra):
+        label_with_visual(u)
+        v = u["lessons"][1]["items"][lst]["sets"][1]["visual"]
+        v["maps"][0]["items"] = items
+        v.update(extra)
+    u = copy.deepcopy(base)
+    plan_items(u, [{"label": "A", "mark": True, "x": 10, "y": 10, "w": 20, "h": 12}, {"label": "B", "mark": True, "x": 50, "y": 50, "w": 0, "h": 0}],
+               alt="A: in the north-west corner. B: in the middle.")
+    assert V.check_unit(u, "u03") == [], V.check_unit(u, "u03")
+    planted(lambda u: plan_items(u, [{"label": "B", "mark": True, "x": 50, "y": 50, "w": 0, "h": 0, "shape": "rect"}]), "a callout marker (w and h 0) has no shape")
+    planted(lambda u: plan_items(u, [{"label": "B", "mark": True, "x": 50, "y": 50, "w": 0, "h": 12}]), "has both a width and a height")
+    planted(lambda u: plan_items(u, [{"label": "A", "mark": True, "x": 10, "y": 10, "w": 20, "h": 12}], alt=""), "alt is a text alternative")
+    def alt_on_table(u):
+        u["lessons"][2]["items"][0]["sets"][1]["visual"]["alt"] = "A table."
+    assert base["lessons"][2]["items"][0]["sets"][1]["visual"]["kind"] == "table"
+    planted(alt_on_table, "for a map visual only")
+    # Choose TWO: 3 of 4 multi questions with the same pair is too many; 2 of 4 is fine
+    def multis(pairs):
+        def change(u):
+            u["lessons"][2]["items"].append({"id": "u03-l3-i2", "type": "reading", "title": "t", "minutes": 5, "paragraphs": [{"label": None, "text": "x"}],
+                                              "sets": [{"instr": "Choose TWO letters, A-E.", "items": [{"id": f"u03-l3-i2-q{k}", "type": "multi", "q": "Which TWO?",
+                                                        "options": ["A  a", "B  b", "C  c", "D  d", "E  e"], "answer": list(p), "why": "w"} for k, p in enumerate(pairs, 1)]}]})
+        return change
+    planted(multis([(1, 3), (3, 1), (1, 3), (0, 4)]), "3 of the 4 multi questions share one answer pair")
+    u = copy.deepcopy(base)
+    multis([(1, 3), (3, 1), (0, 2), (0, 4)])(u)
     assert V.check_unit(u, "u03") == [], V.check_unit(u, "u03")
     # the new optional fields are checked too
     def bad_fields(u):

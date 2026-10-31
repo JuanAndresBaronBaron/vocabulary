@@ -4,8 +4,10 @@
    Colours come from the CSS classes ie-s0…ie-s5 (blue, navy, teal, grey, green, gold), so they follow light and dark.
    Every chart also has «Show the data» as a table, for screen readers and small screens.
    Bars are rect.ie-col: .ie-bar belongs to the player's progress bar, whose CSS height (4px) would flatten them.
-   Maps: labels sit on a halo so they stay readable over any shape; an item with mark: true is a letter or number in a
-   circle (the places a learner labels), drawn over its shape when it has one. */
+   Maps: labels sit on a halo so they stay readable over any shape, and shrink (down to 3.2) to fit their box; an item
+   with mark: true is a letter or number in a circle (the places a learner labels), drawn over its shape like any item,
+   or alone when its box is 0 × 0 (a callout on a feature that other items draw). A map visual's "alt" (where each marker is)
+   follows the drawing as a visually hidden paragraph, for screen readers. */
 (() => {
 "use strict";
 const IE = window.IE; if(!IE) return;
@@ -95,22 +97,37 @@ function wrapWords(t, max, n){
   if(cur) out.push(cur);
   return out.slice(0, n);
 }
-/* map labels: 4.2 map units high (ielts.css), so about 2.45 units per character and 4.7 per line */
-const LAB = {size: 4.2, ch: 2.45, lh: 4.7};
-const wrapLabel = (t, w) => wrapWords(t, Math.max(4, Math.floor(w / LAB.ch)), 3);
+/* map labels: 4.2 map units high (ielts.css), so about 2.45 units per character and 4.7 per line. A label that needs
+   more lines than its box is high, or has a word wider than the box, is set smaller (down to 3.2, with ch and lh scaled
+   by the same factor); a label that still does not fit keeps every word and runs out sideways, on its halo */
+const LAB = {size: 4.2, min: 3.2, ch: 2.45, lh: 4.7};
+function fitLabel(t, w, h){
+  w = Math.max(w - 1, 3); h = Math.max(h - .6, 3);
+  const at = f => { const k = f / LAB.size; return {f, lh: LAB.lh * k, per: Math.max(1, Math.floor(w / (LAB.ch * k))), n: Math.max(1, Math.floor(h / (LAB.lh * k)))}; };
+  for(let f = LAB.size; f >= LAB.min - 1e-9; f = Math.round((f - .2) * 10) / 10){
+    const z = at(f), ls = wrapWords(t, z.per, 99);
+    if(ls.length <= z.n && ls.every(l => l.length <= z.per)) return {ls, f, lh: z.lh};
+  }
+  const z = at(LAB.min); let per = z.per, ls = wrapWords(t, per, 99);
+  while(ls.length > z.n && per < 99) ls = wrapWords(t, ++per, 99);
+  return {ls, f: LAB.min, lh: z.lh};
+}
 function mapItem(z){
   const sh = z.shape || "rect", cx = z.x + z.w / 2, cy = z.y + z.h / 2;
   const body = sh === "circle" ? `<ellipse class="ie-m-${sh}" cx="${cx}" cy="${cy}" rx="${z.w / 2}" ry="${z.h / 2}"/>` : `<rect class="ie-m-${sh}" x="${z.x}" y="${z.y}" width="${z.w}" height="${z.h}" rx="${sh === "road" ? 0 : 1.2}"/>`;
-  /* a marker: the letter or number in a circle, over its shape only when the item names one */
-  if(z.mark) return `<g class="ie-mk">${z.shape ? body : ""}<circle class="ie-mk-c" cx="${cx}" cy="${cy}" r="3.7"/><text class="ie-mk-t" x="${cx}" y="${cy + 1.65}" text-anchor="middle">${esc(z.label)}</text></g>`;
-  const vert = sh === "road" && z.h > z.w * 1.5, ls = vert ? [z.label] : wrapLabel(z.label, Math.max(z.w, 14));
-  return `<g>${body}<g${vert ? ` transform="rotate(-90 ${cx} ${cy})"` : ""}>${ls.map((l, i) => `<text class="ie-mlab${sh === "road" || sh === "water" ? " is-on-dark" : ""}" x="${cx}" y="${cy + LAB.size * .36 + (i - (ls.length - 1) / 2) * LAB.lh}" text-anchor="middle">${esc(l)}</text>`).join("")}</g></g>`;
+  /* a marker: the letter or number in a circle, over its shape; a 0 × 0 box is a callout, the circle alone */
+  if(z.mark) return `<g class="ie-mk">${z.w || z.h ? body : ""}<circle class="ie-mk-c" cx="${cx}" cy="${cy}" r="3.7"/><text class="ie-mk-t" x="${cx}" y="${cy + 1.65}" text-anchor="middle">${esc(z.label)}</text></g>`;
+  /* a tall road is labelled along its length */
+  const vert = sh === "road" && z.h > z.w * 1.5, {ls, f, lh} = vert ? fitLabel(z.label, z.h, z.w) : fitLabel(z.label, z.w, z.h);
+  const fs = f === LAB.size ? "" : ` style="font-size:${f}px"`;
+  return `<g>${body}<g${vert ? ` transform="rotate(-90 ${cx} ${cy})"` : ""}>${ls.map((l, i) => `<text class="ie-mlab${sh === "road" || sh === "water" ? " is-on-dark" : ""}"${fs} x="${cx}" y="${Math.round((cy + f * .36 + (i - (ls.length - 1) / 2) * lh) * 100) / 100}" text-anchor="middle">${esc(l)}</text>`).join("")}</g></g>`;
 }
 function map(v){
   const one = m => `<div class="ie-map"><svg viewBox="-1 -1 102 102" role="img" aria-label="${esc(m.title)}"><rect class="ie-land" x="-1" y="-1" width="102" height="102" rx="2"/>
     ${m.items.map(mapItem).join("")}</svg>
     <p class="t-note">${esc(m.title)}</p></div>`;
-  return `<figcaption class="t-head">${esc(v.title)}</figcaption><div class="ie-maps">${v.maps.map(one).join("")}</div>`;
+  /* alt: what the drawing shows (where each marker is), for a screen reader; hidden on screen */
+  return `<figcaption class="t-head">${esc(v.title)}</figcaption><div class="ie-maps">${v.maps.map(one).join("")}</div>${v.alt ? `<p class="vh">${esc(v.alt)}</p>` : ""}`;
 }
 const KIND = {line, bar, pie, table, process, map};
 IE.viz = {html: v => { try{ return (KIND[v && v.kind] || (() => ""))(v); }catch(e){ console.error(e); return `<p class="t-sub">This chart can't be drawn.</p>`; } }};

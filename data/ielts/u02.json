@@ -501,14 +501,14 @@
          "type": "multi",
          "q": "Which TWO challenges did respondents mention most often?",
          "options": [
-          "A  complaints from neighbours",
-          "B  a shortage of flowering plants",
+          "A  a shortage of flowering plants",
+          "B  complaints from neighbours",
           "C  the cost of equipment",
           "D  disease",
           "E  lack of time"
          ],
          "answer": [
-          1,
+          0,
           3
          ],
          "why": "\"The two big ones were finding enough flowering plants… and disease.\" Neighbours were \"hardly\" mentioned; cost and time \"nowhere near as often\"."

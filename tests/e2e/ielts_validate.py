@@ -6,9 +6,10 @@
 
 Not a test_*.py: run.py does not pick it up by itself (test_ielts.py calls check_all()).
 
-Besides the shape of every item, three exam rules are errors: every accepted gap answer fits its word limit
-(fits()), a set whose instruction says "Label the ..." has a visual, and in a test with 4 or more pick questions no
-answer letter holds more than half of their keys.
+Besides the shape of every item, four exam rules are errors: every accepted gap answer fits its word limit
+(fits()), a set whose instruction says "Label the ..." has a visual, in a test with 4 or more pick questions no
+answer letter holds more than half of their keys, and in a unit with 3 or more multi questions no answer pair holds
+more than half of them.
 """
 import json
 import re
@@ -28,7 +29,7 @@ AMERICAN = re.compile(r"\b(color|colors|favorite|center|centers|analyze|analyzed
                       r"utilize|utilized|fiber|liter|meter|meters|centimeter|kilometer)\b")
 MARKUP = re.compile(r"<[a-z/][^>]*>|\[[^\]]+\]\(", re.I)
 ACCENTS = {"gb", "us", "ca", "au", "nz", "ie", "za"}
-# Package content2 fixes these in u23 and u24: errors of the three exam rules on these ids are skipped.
+# Package content2 fixes these in u23 and u24: errors of the exam rules on these ids are skipped.
 # the integrator empties this after merging content2
 PENDING = {"u23-l1-i2-q10", "u24-l1-i2-q4", "u23-l1-i3", "u23-l1", "u23-l2", "u24-l1", "u24-l2"}
 
@@ -171,6 +172,8 @@ def check_visual(v, e, where):
         return e(f"{where}: visual kind must be one of {sorted(VISUALS)}")
     if not _str(v.get("title")):
         e(f"{where}: visual needs a title")
+    if "alt" in v and (k != "map" or not _str(v["alt"])):
+        e(f"{where}: alt is a text alternative (a non-empty string) for a map visual only")
     if k in ("line", "bar"):
         x, s = v.get("x"), v.get("series")
         if not _strs(x, 2, 14) or not isinstance(s, list) or not 1 <= len(s) <= 6:
@@ -214,6 +217,10 @@ def check_visual(v, e, where):
                     e(f"{where}: bad map item {z!r}"[:200])
                 elif "mark" in z and (z["mark"] is not True or len(z["label"].strip()) > 3):
                     e(f"{where}: a marker needs mark: true and a label of 1-3 characters (a letter or number): {z!r}"[:200])
+                elif z.get("mark") and (z["w"] == 0) != (z["h"] == 0):
+                    e(f"{where}: a marker's box is 0 x 0 (a callout) or has both a width and a height: {z!r}"[:200])
+                elif z.get("mark") and z["w"] == 0 and "shape" in z:
+                    e(f"{where}: a callout marker (w and h 0) has no shape: {z!r}"[:200])
 
 
 def check_sets(it, e, where, ids, rule=None):
@@ -405,6 +412,15 @@ def check_unit(u, stem=None):
         if l.get("kind") == "test" and not sum(marks(q) for it in items for s in (it.get("sets") or [{"items": [it]}]) for q in s.get("items", [])) \
                 and not any(it.get("type") in ("writing", "speaking") for it in items):
             e(f"{lid}: a test needs scored questions or a writing/speaking task")
+    # Choose TWO: in a unit with 3 or more multi questions, no answer pair holds more than half of them
+    pairs = [tuple(sorted(q["answer"])) for l in les if isinstance(l, dict) for it in (l.get("items") or []) if isinstance(it, dict)
+             for s in (it.get("sets") or [{"items": [it]}]) if isinstance(s, dict) for q in (s.get("items") or [])
+             if isinstance(q, dict) and q.get("type") == "multi" and isinstance(q.get("answer"), list)
+             and all(isinstance(x, int) for x in q["answer"])]
+    if len(pairs) >= 3:
+        top = max(pairs.count(p) for p in set(pairs))
+        if top * 2 > len(pairs):
+            rule(u["id"], f"{u['id']}: {top} of the {len(pairs)} multi questions share one answer pair (at most half may)")
     for s in _texts(u):
         if MARKUP.search(s):
             e(f"markup not allowed: {s[:80]!r}")
