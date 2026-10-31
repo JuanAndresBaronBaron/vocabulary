@@ -286,6 +286,25 @@ def test_core_data_safety():
           Storage.prototype.setItem = s0; }""")
         assert _toast(page) == FULL, _toast(page)
         assert page.evaluate("() => IE.prog.get().essays.length") == 75
+        # a damaged blob that can't be copied (storage full): never overwritten, the full-storage message (not «Update
+        # the app»), and once the learner erases, saving works again without a reload
+        page.add_init_script("""(() => { if (sessionStorage.getItem('test:failbak') !== '1') return; const s0 = Storage.prototype.setItem;
+          Storage.prototype.setItem = function (k, v) { if (String(k).startsWith('ielts:data:bak-')) throw new DOMException('full', 'QuotaExceededError'); return s0.call(this, k, v); }; })()""")
+        _seed(page, {"ielts:data": "{not json"})
+        page.evaluate("() => sessionStorage.setItem('test:failbak', '1')")
+        _open(page, "#/", reload=True)
+        assert _toast(page) == FULL, _toast(page)
+        assert page.evaluate("() => [IE.prog.readOnly(), IE.prog.newer(), Object.keys(localStorage).filter(k => k.startsWith('ielts:data:bak-')).length]") == [True, False, 0]
+        page.evaluate("() => { const t = document.getElementById('ie-toast'); if (t) t.textContent = ''; IE.prog.done('u01-l1', {got: 3, total: 4}); }")
+        assert page.evaluate("() => localStorage.getItem('ielts:data')") == "{not json"
+        assert _toast(page) == FULL, _toast(page)
+        assert page.evaluate("() => IE.prog.restore({app: 'ielts-prep', keys: {'ielts:data': {v: 1, lessons: {}}}}).error") == FULL
+        assert page.evaluate("() => IE.prog.erase()") is True
+        page.evaluate("() => IE.prog.done('u01-l1', {got: 3, total: 4})")
+        saved = json.loads(page.evaluate("() => localStorage.getItem('ielts:data') || 'null'") or "null")
+        assert saved and saved["v"] == 1 and saved["lessons"]["u01-l1"]["done"] is True and saved["lessons"]["u01-l1"]["got"] == 3, saved
+        assert page.evaluate("() => IE.prog.readOnly()") is False
+        page.evaluate("() => sessionStorage.removeItem('test:failbak')")
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
@@ -509,6 +528,34 @@ def test_core_home_when_a_unit_fails():
         page.context.close()
 
 
+def test_core_home_when_every_lesson_is_done():
+    page = _page("phone")
+    try:
+        # every lesson of every unit done: «You've done every lesson», on the first visit (units arriving) and later ones
+        # (units cached, so the first paint already knows); never an error page
+        ix = json.loads((V.DATA / "index.json").read_text(encoding="utf-8"))
+        lessons = {}
+        for r in ix["units"]:
+            if r.get("available"):
+                for les in json.loads((V.DATA / f"{r['id']}.json").read_text(encoding="utf-8"))["lessons"]:
+                    lessons[les["id"]] = {"done": True, "at": 1}
+        assert len(lessons) > 24
+        _seed(page, {"ielts:data": {"v": 1, "lessons": lessons, "tests": [], "essays": [], "speaking": []}})
+        _open(page, "#/", reload=True)
+        page.wait_for_selector("#ie-next[data-done]", timeout=15000)
+        t = _next_text(page)
+        assert "You've done every lesson" in t, t
+        for h in ("#/progress", "#/"):
+            _open(page, h)
+        a = page.inner_text("#app")
+        assert "Something went wrong" not in a and page.locator("#ie-next[data-done]").count() == 1, a[:400]
+        assert "You've done every lesson" in _next_text(page)
+        assert page.locator(".ie-hero").count() == 1 and page.locator(".ie-scores").count() == 1
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
 # ---------------------------------------------------------------- 5. writing revision
 def test_core_writing_revision():
     page = _page("phone")
@@ -625,6 +672,43 @@ def test_core_revision_drafts_and_check_keys():
         # (the blank draft didn't hide the model above, where the learner chose «Write version 2»); from memory, it resumes
         _open(page, "#/essays/u13-l2-i2-seed/revise?blank=1")
         assert page.input_value("#ie-ta").startswith("Cities replace") and page.locator(".ie-model").count() == 0
+        # finishing version 2 with the model keeps the memory draft: it moves to version 2, whose «Rewrite from memory» opens it
+        _open(page, "#/essays/u13-l2-i2-seed/revise")
+        assert page.input_value("#ie-ta") == ESSAY1 and page.locator("#ie-rv-other").count() == 1
+        page.fill("#ie-ta", ESSAY2)
+        page.wait_for_timeout(700)
+        page.click("#ie-rv-done")
+        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/essays/u13-l2-i2-seed-v2/compare'")
+        drs = page.evaluate("() => Object.fromEntries(Object.keys(localStorage).filter(k => k.startsWith('ielts:draft:')).map(k => [k, JSON.parse(localStorage.getItem(k))]))")
+        assert list(drs) == ["ielts:draft:u13-l2-i2-seed-v2"], drs
+        dr = drs["ielts:draft:u13-l2-i2-seed-v2"]
+        assert dr["blank"] is True and dr["text"].startswith("Cities replace") and dr["from"] == "u13-l2-i2-seed-v2" and "alt" not in dr, dr
+        _open(page, "#/essays/u13-l2-i2-seed")
+        page.click("#ie-rvm")
+        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/essays/u13-l2-i2-seed-v2/revise?blank=1'")
+        assert page.input_value("#ie-ta").startswith("Cities replace") and page.locator(".ie-model").count() == 0
+        assert "continuing your draft" in page.inner_text("#app")
+        # version 3 is the last: finishing it in the other mode asks before the memory draft goes
+        _open(page, "#/essays/u13-l2-i2-seed-v2/revise")
+        assert page.input_value("#ie-ta") == ESSAY2 and page.locator("#ie-rv-other").count() == 1
+        page.fill("#ie-ta", ESSAY2 + "\n\nA final sentence.")
+        page.wait_for_timeout(700)
+        page.evaluate("() => { window.__cf = []; window.__c0 = window.confirm; window.confirm = m => { window.__cf.push(m); return false; }; }")
+        page.click("#ie-rv-done")
+        page.wait_for_timeout(300)
+        cf = page.evaluate("() => window.__cf")
+        assert len(cf) == 1 and "draft from memory will be deleted" in cf[0], cf
+        assert page.evaluate("() => location.hash") == "#/essays/u13-l2-i2-seed-v2/revise"
+        assert page.evaluate("() => IE.prog.essay('u13-l2-i2-seed-v3')") is None
+        dr = page.evaluate("() => JSON.parse(localStorage.getItem('ielts:draft:u13-l2-i2-seed-v2'))")
+        assert dr["blank"] is False and dr["alt"]["blank"] is True and dr["alt"]["text"].startswith("Cities replace"), dr
+        page.evaluate("() => { window.confirm = m => { window.__cf.push(m); return true; }; }")
+        page.click("#ie-rv-done")
+        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/essays/u13-l2-i2-seed-v3/compare'")
+        v3 = page.evaluate("() => IE.prog.essay('u13-l2-i2-seed-v3')")
+        assert v3["v"] == 3 and v3["parent"] == "u13-l2-i2-seed" and v3["text"].endswith("A final sentence."), v3
+        assert page.evaluate("() => Object.keys(localStorage).filter(k => k.startsWith('ielts:draft:'))") == []
+        page.evaluate("() => { window.confirm = window.__c0; }")
         # the check keys: a version 1 that repeats «position» and states its position is filed under Repetition only
         v1 = dict(e1, id="pos-v1", text=_POS1, words=len(re.findall(r"[A-Za-z0-9’'-]+", _POS1)), band=6, at=1773000000000)
         pos2 = (_POS1.replace("this position", "this view").replace("first position", "first argument").replace("second position", "second argument")

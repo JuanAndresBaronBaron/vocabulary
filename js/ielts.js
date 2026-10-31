@@ -13,7 +13,8 @@
        sends the learner to Settings › Your data).
      "ielts:ui" = {rate, accents: "mixed"|"gb", at}; "ielts:run:<lid>" = a lesson in progress (js/ielts-player.js, saved as
      you go); "ielts:draft:<essayId>" = {text, blank, at, from, alt?} a revision being written (#/essays/<id>/revise; alt =
-     the draft of the other mode, so «Write version N» and «Rewrite from memory» never open each other's draft).
+     the draft of the other mode, so «Write version N» and «Rewrite from memory» never open each other's draft; finishing
+     one moves the other to the new version, or asks first at version 3).
    · Bands: attempt = the n-th test of that lesson; a test counts if it is the first attempt (or the previous one was 60+
      days earlier) and wasn't paused or played without sound. Listening and Reading come from the counted tests, newest
      first, pooled until there are 40 questions behind the band; latestInfo() adds the questions and a likely range
@@ -186,7 +187,7 @@ function trimmed(d){
 }
 /* saves; only if the browser refuses does it keep the newest within the caps (and always says so) */
 function pset(d){
-  if(RO){ warnNewer(true); return false; }
+  if(RO){ if(NEWV) warnNewer(true); else toast(FULL, 7000); return false; }   /* a newer version's data, or a damaged blob that couldn't be copied */
   if(LS.set(PK, d)) return true;
   const t = trimmed(d), ok = t !== d && LS.set(PK, t);
   toast(FULL, 7000);
@@ -303,6 +304,7 @@ const prog = {
   erase(){
     pget(); if(NEWV) return false;
     for(const k of LS.keys()) if(k.startsWith("ielts:") && k !== "ielts:on" && k !== "ielts:ui") LS.del(k);
+    RO = false; bakTried = null;   /* the damaged blob that couldn't be copied is gone: saving works again */
     return true;
   },
   /* the data on this device was written by a newer version of the app */
@@ -318,7 +320,7 @@ const prog = {
   },
   /* merges a backup into this device: {lessons, tests, essays, speaking, other} added, or {error} */
   restore(f){
-    if(prog.readOnly()) return {error: NEWER};
+    if(prog.readOnly()) return {error: NEWV ? NEWER : FULL};
     const keys = isObj(f) && isObj(f.keys) ? f.keys : isObj(f) && f.v === 1 && isObj(f.lessons) ? {[PK]: f} : null;
     if(!keys) return {error: "That file isn't an IELTS Prep backup."};
     const inc = keys[PK];
@@ -598,11 +600,13 @@ function unitRow(r, busy){
 }
 const waitNext = () => `<div class="card ie-card ie-next is-wait" id="ie-next" aria-busy="true"><span class="ie-next-k">Up next</span><span class="ie-skel" aria-hidden="true"></span><span class="t-note">Loading the course…</span></div>`;
 function nextHtml(nx){
-  if(!nx && nx !== null) return "";
+  if(nx === undefined || nx === false) return "";
+  /* null: every lesson is done (and every unit loaded); it has no fields, so it goes before nx.failed */
+  if(nx === null) return data.avail().length ? `<div class="card ie-card" id="ie-next" data-done="1"><h2 class="t-3">You've done every lesson</h2><p class="t-sub">Repeat the mock tests under exam conditions, a week apart.</p></div>` : "";
+  if(!isObj(nx)) return "";
   if(nx.failed) return `<div class="card ie-card ie-next is-fail" id="ie-next" data-done="1" role="alert"><span class="ie-next-k">Up next</span>
     <span class="t-3">Couldn't load Unit ${esc(nx.failed.n)}.</span><span class="t-note">Check the connection.</span>
     <button type="button" class="glass-btn glass-btn--sm ie-next-b" data-retry>${ico("arrow-counter-clockwise", 18)}Try again</button></div>`;
-  if(nx === null) return data.avail().length ? `<div class="card ie-card" id="ie-next" data-done="1"><h2 class="t-3">You've done every lesson</h2><p class="t-sub">Repeat the mock tests under exam conditions, a week apart.</p></div>` : "";
   const {lesson: l, unit: u} = nx, test = l.kind === "test";
   return `<a class="card ie-card ie-next" id="ie-next" data-done="1" href="#/lesson/${l.id}"><span class="ie-next-k">${doneCount(u.id) || Object.keys(pget().lessons).length ? "Up next" : "Start here"}</span>
     <span class="t-3">${esc(l.title)}</span><span class="t-note">Unit ${u.n} · ${esc(u.title)} · ${l.minutes} min${test ? " · timed" : ""}</span>
@@ -830,11 +834,16 @@ async function revise(id, a){
     const t = ta.value;
     if(!t.trim()){ toast("Write your new version first."); ta.focus(); return; }
     if(words(t) < 30 && !confirm("That's very short. Compare anyway?")) return;
+    /* the draft of the other mode is never lost without asking: version 3 is the last, so nothing can carry it on */
+    if(other && nv >= 3 && !confirm(`Your draft ${other.blank ? "from memory" : "with the model"} will be deleted, because version 3 is the last. Compare anyway?`)) return;
     const taken = new Set(pget().essays.map(x => x.id));
     let nid = `${rootId}-v${nv}`; if(taken.has(nid)) nid += `-${Date.now().toString(36)}`;
     const rec = prog.addEssay({id: nid, parent: rootId, v: nv, iid: e.iid, task: e.task, prompt: e.prompt, text: t, words: words(t), self: null, band: null});
     if(!prog.essay(rec.id)) return;   /* not saved (storage full or a newer version's data): keep the draft */
-    clearTimeout(t0); dirty = false; LS.del(DRAFT(id));
+    clearTimeout(t0); dirty = false;
+    /* before version 3, the other mode's draft moves to the new version, where its button now opens it */
+    if(other && nv < 3 && !LS.set(DRAFT(rec.id), draftRec(Object.assign({}, other, {from: rec.id})))) toast(FULL, 7000);
+    else LS.del(DRAFT(id));
     location.replace(`#/essays/${enc(rec.id)}/compare`);
   };
   return () => save();
