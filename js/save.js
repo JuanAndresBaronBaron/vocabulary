@@ -31,6 +31,8 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
      calls (las llamadas del zorro: interruptor, última que sonó, la perdida, cuándo sonó cada una y las pagadas hoy;
        js/calls.js; solo se escribe al sonar una o al tocar algo, nunca al arrancar)
      cuentos (los Cuentos del zorro leídos: finales vistos, veces y si ya pagó, y los pagados hoy; js/stories.js)
+     rv:stat (las últimas 50 respuestas del repaso comprobadas por la app, para alargar o acortar los intervalos de ese
+       niño; index.html) · mig (los cambios de datos ya hechos al arrancar, {nac: 1}; index.html)
    Por idioma (<lang> = una clave de LANGS: english, français, dansk):
      srs:<lang> (repaso) · map:<lang> (lecciones del camino) · voice:<lang> · album:seen|done|uniq|orph:<lang>
      army:<lang> (el último rango del soldado ya celebrado en ese idioma, 0-12; js/army.js)
@@ -67,6 +69,7 @@ const EXACT = {
   "phrase:stamps": "o",
   calls: "o",
   cuentos: "o",
+  "rv:stat": "o", mig: "o",
 };
 const PER_LANG = {"srs:": "o", "map:": "o", "voice:": "*", "album:seen:": "*", "album:done:": "*", "album:uniq:": "*", "album:orph:": "*",
   "army:": "*"};
@@ -94,6 +97,7 @@ function valid(k, v){
 let skipped = 0;
 function collect(good){
   const out = {}; if(good) skipped = 0;
+  try{ if(typeof srsFlush === "function") srsFlush(); }catch(e){}   /* el repaso en memoria (index.html), ya escrito */
   try{
     for(let i = 0; i < localStorage.length; i++){
       const k = localStorage.key(i);

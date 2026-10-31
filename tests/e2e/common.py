@@ -665,8 +665,9 @@ def seed(page, keys=None, hash="", now=FIXED_NOW, clear=True):
 
 
 def storage(page) -> dict:
-    """Todo localStorage del origen {clave: texto}."""
-    return page.evaluate("() => Object.fromEntries(Object.keys(localStorage).map(k => [k, localStorage.getItem(k)]))")
+    """Todo localStorage del origen {clave: texto} (antes, srsFlush(): el repaso se escribe 250 ms después de cambiar)."""
+    return page.evaluate("""() => { try { if (typeof srsFlush === 'function') srsFlush(); } catch (e) {}
+      return Object.fromEntries(Object.keys(localStorage).map(k => [k, localStorage.getItem(k)])); }""")
 
 
 # ---------------------------------------------------------------- exportación

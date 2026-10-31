@@ -645,7 +645,7 @@ _QUIZ = """() => { const p = document.querySelector('#app .fm-pop'), m = p.query
     msgCls: (p.querySelector('.fm-qm') || {}).className || '', bad: p.querySelectorAll('.fm-opt.bad').length, ok: p.querySelectorAll('.fm-opt.ok').length,
     dis: [...p.querySelectorAll('.fm-opt')].filter(b => b.disabled).length, opts: [...p.querySelectorAll('.fm-opt')].map(b => b.textContent.trim()),
     title: (p.querySelector('.fm-qt') || {}).textContent}; }"""
-_SRS = "() => JSON.parse(localStorage.getItem('srs:english'))"
+_SRS = "() => (srsFlush(), JSON.parse(localStorage.getItem('srs:english')))"   # el repaso se escribe 250 ms después
 
 
 def test_name_quiz_say_it_grades_srs_and_never_counts_a_miss():
