@@ -14,6 +14,8 @@ import struct
 
 import common as C
 import routes as R
+import test_f3_repaso as V
+import test_repaso_metodo as M
 
 LESSON = R.LESSON
 
@@ -182,11 +184,12 @@ def test_lesson_keys():
 # ---------------------------------------------------------------- el repaso
 def test_review_arrows_are_no_and_yes():
     """En el repaso: Espacio gira la tarjeta, ← es «No» (nota 0) y → es «¡Sí!» (nota ≥ 1), una vez cada una: el repaso
-    se queda sus teclas y keys.js no pulsa «No» ni «¡Sí!» además. Mayús+Espacio suena despacio."""
+    se queda sus teclas y keys.js no pulsa «No» ni «¡Sí!» además. Mayús+Espacio suena despacio. (La tarjeta es la de
+    las palabras de la caja 4 o más; las pantallas que corrige la app, en test_review_app_graded_keys.)"""
     page = C.new_page("phone")
     probs = []
     try:
-        C.seed(page)
+        C.seed(page, keys=V._card_keys())
         C.goto(page, "#/repaso")
         page.wait_for_selector("#rv-card", timeout=8000)
         page.evaluate(_SPY)
@@ -229,6 +232,78 @@ def test_review_arrows_are_no_and_yes():
     finally:
         page.context.close()
     assert not probs, "\n".join(probs)
+
+
+def test_review_app_graded_keys():
+    """En las pantallas del repaso que corrige la app, todo con el teclado y una vez cada cosa (el repaso se queda sus
+    teclas: keys.js no pulsa nada además). «Escucha y elige» (caja 0): Espacio la oye, Mayús+Espacio despacio y 1-4
+    eligen el dibujo (nota 2, un solo aviso). «¿Cuál es…?» (caja 1): Espacio no la dice (sería la respuesta; con el
+    dedo tampoco hay altavoz), 1-4 eligen (mal: nota 0) y Enter es «Seguir» una sola vez (pasa a la siguiente, no dos).
+    Las letras (caja 2): cada letra tecleada pone su ficha y bien a la primera es nota 2."""
+    page = C.new_page("phone")
+    probs = []
+    try:
+        C.seed(page, keys=M._keys(M._ent("Perro", 0, M.T - 6), M._ent("Gato", 1, M.T - 5), M._ent("Conejo", 2, M.T - 4),
+                                  M._fillers(4, skip=("Perro", "Gato", "Conejo"))))
+        C.goto(page, "#/repaso")
+        page.wait_for_selector("#rv-card", timeout=8000)
+        page.evaluate(_SPY)
+        wait_kind = "k => { const s = vocabReview.state; return s && s.kind === k && !s.graded ? s : null; }"
+        # «Escucha y elige»
+        st = page.wait_for_function(wait_kind, arg="listen", timeout=6000).json_value()
+        page.wait_for_function("() => rv.c && rv.c.played", timeout=4000)
+        page.wait_for_timeout(600)
+        page.evaluate(_BLUR)
+        for key, what in (("Space", "Espacio"), ("Shift+Space", "Mayús+Espacio")):
+            page.evaluate(_RESET)
+            page.keyboard.press(key)
+            page.wait_for_timeout(500)
+            k = page.evaluate(_K)
+            if not k["snd"] or [c for c in k["clk"] if not c["trusted"]]:
+                probs.append(f"«Escucha y elige»: {what} no la oye (o keys.js pulsa además): {k}")
+        page.evaluate(_RESET)
+        page.keyboard.press(str(st["right"] + 1))
+        page.wait_for_function("() => vocabReview.state.graded", timeout=3000)
+        page.wait_for_timeout(300)
+        k = page.evaluate(_K)
+        if k["cards"] != [2] or [c for c in k["clk"] if not c["trusted"]]:
+            probs.append(f"«Escucha y elige»: {st['right'] + 1} da las notas {k['cards']} (clics {k['clk']})")
+        # «¿Cuál es…?»: Espacio no dice la respuesta; mal; Enter sigue una vez
+        st = page.wait_for_function(wait_kind, arg="pick", timeout=9000).json_value()
+        page.wait_for_timeout(600)
+        page.evaluate(_BLUR)
+        page.evaluate(_RESET)
+        page.keyboard.press("Space")
+        page.wait_for_timeout(500)
+        k = page.evaluate(_K)
+        if k["snd"] or page.evaluate("() => vocabReview.state.graded"):
+            probs.append(f"«¿Cuál es…?»: Espacio sin contestar dice la palabra: {k['snd']}")
+        page.keyboard.press(str((st["right"] + 1) % 4 + 1))
+        page.wait_for_function("() => vocabReview.state.graded", timeout=3000)
+        page.wait_for_timeout(400)
+        page.evaluate(_RESET)
+        page.keyboard.press("Enter")
+        page.wait_for_timeout(700)
+        k, now = page.evaluate(_K), page.evaluate("() => vocabReview.state")
+        if now["i"] != st["i"] + 1 or [c for c in k["clk"] if not c["trusted"]]:
+            probs.append(f"«¿Cuál es…?»: Enter tras fallar pasa de {st['i']} a {now['i']} (clics {k['clk']})")
+        # las letras
+        st = page.wait_for_function(wait_kind, arg="spell", timeout=6000).json_value()
+        page.evaluate(_RESET)
+        for ch in st["letters"]:
+            page.keyboard.press(ch)
+            page.wait_for_timeout(60)
+        page.wait_for_function("() => vocabReview.state.graded", timeout=3000)
+        page.wait_for_timeout(300)
+        k = page.evaluate(_K)
+        if k["cards"] != [2] or [c for c in k["clk"] if not c["trusted"]]:
+            probs.append(f"las letras: tecleando «{st['letters']}» da las notas {k['cards']} (clics {k['clk']})")
+        if C.errors(page):
+            probs.append(f"errores: {C.errors(page)}")
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
 
 
 # ---------------------------------------------------------------- Hoy y la hoja «Teclas»

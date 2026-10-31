@@ -18,12 +18,19 @@ grande» y en 1280×720), con dos pistas en el repaso ni en Letras con «Texto m
 
 Y las pantallas de F5 con dibujos, con el mismo criterio (MIN_F5): la bandeja de Frases mágicas (con los árboles de
 familia recortados), las plantillas del Buzón, las tarjetas de Juegos del Buzón y de Frases y la fila «Tus atajos» de Hoy,
-sin scroll donde antes no lo había; y img/fam2 fuera de SHELL, en «Descargar todo» y sin conexión una vez visto."""
+sin scroll donde antes no lo había; y img/fam2 fuera de SHELL, en «Descargar todo» y sin conexión una vez visto.
+
+El repaso tiene, además de la tarjeta de siempre (palabras de la caja 4 o más), las pantallas que corrige la app: en
+«Escucha y elige» (caja 0) los 4 dibujos son tan grandes como los de la lección (MIN «opciones») y en «¿Cuál es…?» (caja 1)
+y las letras (cajas 2-3) el dibujo de la tarjeta, como el de siempre (MIN «repaso»); caben sin scroll y, tras un fallo
+(gris con ✗, la respuesta y «Seguir»), tampoco se baja, en los mismos tamaños que la lección."""
 from __future__ import annotations
 
 import json
 
 import common as C
+import test_f3_repaso as V
+import test_repaso_metodo as RM
 
 PHONES = {
     "320x568": dict(viewport={"width": 320, "height": 568}, has_touch=True, is_mobile=True, device_scale_factor=2),
@@ -449,10 +456,46 @@ def _halloween_pic_sheet(page):
     return False
 
 
+# el repaso con las tres pantallas que corrige la app, una tras otra: Perro (caja 0, «Escucha y elige»), Gato (caja 1,
+# «¿Cuál es…?») y Conejo (caja 2, las letras); después, tarjetas de siempre
+_TASKS = RM._keys(RM._ent("Perro", 0, RM.T - 6), RM._ent("Gato", 1, RM.T - 5), RM._ent("Conejo", 2, RM.T - 4),
+                  RM._fillers(4, skip=("Perro", "Gato", "Conejo")))
+# lo que se mide en cada una: los 4 dibujos de «Escucha y elige» (como los de la lección) o el dibujo de la tarjeta
+_TASK_PIC = {"listen": ("#rv-dock .rv-opt.pic img", "opciones"), "pick": ("#rv-card .rv-pic", "repaso"), "spell": ("#rv-card .rv-pic", "repaso")}
+
+
+def _review(page, keys, ui=None):
+    """#/repaso con la partida de ejemplo y el repaso de keys (los mismos ajustes de _page)."""
+    keys = dict(keys)
+    keys["vocab:ui"] = json.dumps(dict(_UI, **(ui or {})))
+    C.seed(page, keys, hash="#/repaso")
+    page.wait_for_selector("#rv-card", timeout=10000)
+
+
+def _review_tasks(page, at):
+    """Recorre «Escucha y elige», «¿Cuál es…?» y las letras (de _TASKS, ya abierto): at(kind, "q") con la pregunta y
+    at(kind, "miss") tras fallarla con el dedo (una opción mala; en las letras, dos fichas malas); luego «Seguir»."""
+    for kind in ("listen", "pick", "spell"):
+        page.wait_for_function("k => { const s = vocabReview.state; return !!s && s.kind === k && !s.graded; }", arg=kind, timeout=8000)
+        _settle(page, 500)
+        at(kind, "q")
+        st = page.evaluate("() => vocabReview.state")
+        if kind == "spell":
+            for i in [i for i, t in enumerate(st["tiles"]) if t.lower() != st["letters"][0].lower()][:2]:
+                page.locator(f'#rv-dock .rv-tile[data-i="{i}"]').click()
+                page.wait_for_timeout(120)
+        else:
+            page.locator(f'#rv-dock .rv-opt[data-i="{(st["right"] + 1) % 4}"]').click()
+        page.wait_for_function("() => vocabReview.state.graded", timeout=4000)
+        _settle(page, 500)
+        at(kind, "miss")
+        page.locator('#rv-dock [data-rv="tnext"]').click()
+
+
 def _others(page, vp, probs, check_fit):
     lim = lambda k: MIN[k].get(vp, BEFORE.get(vp, {}).get(k))   # noqa: E731
-    # el repaso: la tarjeta con dibujo
-    _fresh(page, "#/repaso")
+    # el repaso: la tarjeta de siempre (palabras de la caja 4 o más), con dibujo
+    _review(page, V._card_keys())
     page.wait_for_selector(".rv-q .rv-pic", timeout=8000)
     _settle(page, 500)
     s = _sides(page, ".rv-q .rv-pic")
@@ -461,6 +504,21 @@ def _others(page, vp, probs, check_fit):
     ok, f = _fits(page)
     if check_fit and not ok:
         probs.append(f"{vp}: el repaso no cabe sin scroll {f}")
+
+    # y las que corrige la app, sin contestar: el dibujo tan grande como en la tarjeta (en «Escucha y elige», los 4 como
+    # los de la lección) y sin scroll
+    def task(kind, when):
+        if when != "q":
+            return
+        sel, k = _TASK_PIC[kind]
+        s = _sides(page, sel)
+        if not s or (kind == "listen" and len(s) != 4) or (lim(k) and min(s) < lim(k)):
+            probs.append(f"{vp}: dibujo del repaso ({kind}) {s} (mínimo {lim(k)})")
+        ok, f = _fits(page)
+        if check_fit and not ok:
+            probs.append(f"{vp}: el repaso ({kind}) no cabe sin scroll {f}")
+    _review(page, _TASKS)
+    _review_tasks(page, task)
     # la lección: «Escucha y elige» con dibujos
     if _lesson_pic_options(page):
         _settle(page, 300)
@@ -482,8 +540,9 @@ def _others(page, vp, probs, check_fit):
 
 
 def test_review_lesson_season_drawings():
-    """El repaso, «Escucha y elige» con dibujos y «Elige el dibujo»: al menos MIN en 360×740 y 390×844; el repaso y la
-    lección siguen cabiendo sin scroll en los celulares de pie; en el iPad y el ordenador, no más pequeños que antes."""
+    """El repaso (la tarjeta de siempre y las que corrige la app), «Escucha y elige» con dibujos y «Elige el dibujo»: al
+    menos MIN en 360×740 y 390×844; el repaso y la lección siguen cabiendo sin scroll en los celulares de pie; en el iPad
+    y el ordenador, no más pequeños que antes."""
     probs = []
     for vp in ["360x740", "390x844", "320x568", "375x667", "430x932", "820x1180", "1280x800"]:
         page = _page(vp)
@@ -525,6 +584,8 @@ def _lesson_miss(page):
 def test_no_scroll_after_answers():
     """Tras un fallo en «Escucha y elige» con dibujos (la opción gris con ✗, «¡Casi! Es …» y el botón «Seguir») la
     lección no baja, en los móviles bajos, en 1280×720 y con «Texto más grande»; la ✓ y la ✗ van en una esquina de abajo del dibujo.
+    En los mismos tamaños, tras un fallo en las pantallas del repaso que corrige la app («Escucha y elige», «¿Cuál es…?» y
+    las letras: gris con ✗, la respuesta y «Seguir») tampoco se baja.
     El repaso con dos pistas no baja en 320×568 ni en 360×640, Letras con «Texto más grande» tampoco, y en Memoria oscuro
     la cara del dibujo es blanca."""
     probs = []
@@ -543,14 +604,24 @@ def test_no_scroll_after_answers():
                     probs.append(f"{tag}: la respuesta queda debajo del botón «Seguir» {d}")
                 if not d["marks"] or any(m is None or m > 20 for m in d["marks"]):
                     probs.append(f"{tag}: la ✓ o la ✗ no van en la esquina del dibujo {d['marks']}")
+
+            # el repaso: un fallo en cada pantalla que corrige la app
+            def task(kind, when):
+                if when != "miss":
+                    return
+                ok, f = _fits(page)
+                if not ok:
+                    probs.append(f"{tag}: tras un fallo en el repaso ({kind}) se baja {f}")
+            _review(page, _TASKS, ui={"text": "large"} if big else None)
+            _review_tasks(page, task)
             probs += [f"{tag}: {e}" for e in C.errors(page)]
         finally:
             page.context.close()
-    # el repaso: dos pistas
+    # el repaso: dos pistas (en la tarjeta de siempre)
     for vp in ["320x568", "360x640"]:
         page = _page(vp)
         try:
-            _fresh(page, "#/repaso")
+            _review(page, V._card_keys())
             page.wait_for_selector(".rv-q .rv-pic", timeout=8000)
             _settle(page, 400)
             for _ in range(2):

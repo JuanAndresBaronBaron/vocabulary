@@ -40,6 +40,7 @@ import test_f4_int as I4
 import test_f4_temporadas as T
 import test_f5_atajos as SC
 import test_f5_buzon as BZ
+import test_f3_repaso as V
 import test_f5_teclado as K
 
 OUT = C.CAPTURAS / "F5"
@@ -774,10 +775,16 @@ _TAGHIT = r"""() => {
 }"""
 
 
+# el repaso: una palabra con dibujo delante, en la pantalla kind (como si su caja fuera la que la da)
+_RV_AS = """kind => { const x = rv.q.slice(rv.i).find(x => x.r.img) || rv.q[rv.i];
+  rv.q.splice(rv.i, 0, {id: x.id, r: x.r, x: x.x, kind}); rv.c = null; rvDraw(); return vocabReview.state.kind; }"""
+
+
 def test_key_tags_never_touch_their_neighbours():
     """Con el teclado, cada etiqueta de tecla deja al menos 4 px con lo de al lado (otra etiqueta, otro botón, un
     texto u otra tarjeta) y no se sale de la pantalla: en Hoy con «Tus atajos» (1-3 dentro de cada pieza), en la
-    lección (Esc, Espacio y ⇧ Espacio en una línea sobre los botones redondos, Enter), en el repaso, en Tarjetas (sin
+    lección (Esc, Espacio y ⇧ Espacio en una línea sobre los botones redondos, Enter), en el repaso (la tarjeta de
+    siempre y las que corrige la app: «Escucha y elige», «¿Cuál es…?» también fallada, y las letras), en Tarjetas (sin
     ensanchar la página: nunca se prueba un sitio fuera de la pantalla), en el Buzón (1-4 dentro, Espacio,
     Enter del micrófono), en Frases mágicas, en la frase de la cena y en la hoja «Teclas» (Esc de «Listo»), en claro y
     en oscuro. Al cambiar de pantalla con las etiquetas puestas, el nombre de «‹ Volver» no se mete en la suya. En la hoja «Teclas» la acción va a la izquierda y las teclas a la derecha, sin partir las acciones."""
@@ -785,7 +792,8 @@ def test_key_tags_never_touch_their_neighbours():
     for scheme in ("light", "dark"):
         page = BZ._page(color_scheme=scheme)
         try:
-            C.seed(page, _keys())
+            # las pendientes en la caja 4: el repaso empieza por la tarjeta de siempre (la que gira con Espacio)
+            C.seed(page, _keys(srs__english=V._card_keys()["srs:english"]))
             page.evaluate("() => sessionStorage.setItem('__mic', 'ok')")
             _hoy(page)
 
@@ -822,6 +830,21 @@ def test_key_tags_never_touch_their_neighbours():
             page.wait_for_function("() => vocabReview.state.flip", timeout=3000)
             page.wait_for_timeout(600)
             look("repaso", ["Esc", "Espacio", "⇧ Espacio"])
+            # las pantallas que corrige la app (una palabra con dibujo, como si su caja fuera la 0, la 1 o la 2); en
+            # «¿Cuál es…?», también tras un fallo (la respuesta con su altavoz y «Seguir»)
+            for kind, need in (("listen", ["Esc", "Espacio", "⇧ Espacio"]), ("pick", ["Esc"]), ("spell", ["Esc"])):
+                got = page.evaluate(_RV_AS, kind)
+                if got != kind:
+                    probs.append(f"{scheme} repaso: no sale la pantalla {kind} ({got})")
+                    continue
+                page.wait_for_timeout(600)
+                look(f"repaso-{kind}", need)
+                if kind == "pick":
+                    st = page.evaluate("() => vocabReview.state")
+                    page.keyboard.press(str((st["right"] + 1) % 4 + 1))
+                    page.wait_for_function("() => vocabReview.state.graded", timeout=3000)
+                    page.wait_for_timeout(400)
+                    look("repaso-pick-mal", ["Esc", "Espacio", "⇧ Espacio", "Enter"])
             C.goto(page, f"#/doc/{R.TOPIC}?m=tarjetas")
             page.wait_for_selector("#card", timeout=6000)
             page.wait_for_timeout(500)
