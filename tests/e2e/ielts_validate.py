@@ -32,6 +32,8 @@ ACCENTS = {"gb", "us", "ca", "au", "nz", "ie", "za"}
 # Ids whose exam-rule errors are skipped while a content package still has to fix them. Empty since content2 was
 # merged: every unit passes the three rules.
 PENDING = set()
+# The content revision every unit file carries ("rev"): the same number as REV in js/ielts.js
+REV = 2
 
 # ---------- word limits (ielts.org: "You will lose the mark for writing more than the word limit.") ----------
 _LIMIT = re.compile(r"(?:NO MORE THAN )?(ONE|TWO|THREE)(?: OR (TWO|THREE))? WORDS?(?: ONLY)?( AND/OR A NUMBER)?")
@@ -278,6 +280,10 @@ def check_unit(u, stem=None):
         return errs
     if u["format"] != 1:
         e("format must be 1")
+    # js/ielts.js (REV) fetches again any copy with a lower rev: a phone's saved copy of the old options never grades
+    # answers that were migrated to the new ones
+    if not (isinstance(u.get("rev"), int) and not isinstance(u.get("rev"), bool) and u["rev"] >= REV):
+        e(f"rev must be a whole number, {REV} or more (the content revision js/ielts.js asks for)")
     if not re.fullmatch(r"u\d\d", u["id"]) or int(u["id"][1:]) != u["n"]:
         e("id must be uNN and match n")
     if stem is not None and stem != u["id"]:

@@ -16,11 +16,17 @@ Blocks: `start`, `listening`, `reading`, `writing`, `speaking`, `language`, `moc
 ## uNN.json
 
 ```json
-{"format": 1, "id": "u03", "n": 3, "block": "listening", "title": "Part 1: forms and details",
+{"format": 1, "rev": 2, "id": "u03", "n": 3, "block": "listening", "title": "Part 1: forms and details",
  "summary": "After this unit you can …",
  "lessons": [{"id": "u03-l1", "title": "…", "kind": "learn", "minutes": 10, "items": [ … ]}]}
 ```
 
+- `rev`: the content revision, the same in every unit file and equal to `REV` in `js/ielts.js` (now 2). A phone keeps
+  the unit files it has seen in the service worker's `vocab-media`, which survives app updates and can answer when the
+  network is slow or missing. `js/ielts.js` never uses a copy whose `rev` is lower than `REV`: it fetches the file
+  again past that copy (and saves the new one), and offline it says the unit was updated instead of grading against
+  old options. Raise `rev` in every unit and `REV` together whenever saved answers or review cards would mean
+  something else with an old copy (for example with the option migration below).
 - `kind`: `learn` (explanations plus instant feedback), `practice` (instant feedback, exam-style), `test`
   (timed, no feedback until the end, scored as a band). A `test` lesson has `"timed": <seconds>`.
 - `exam`?: `true` only on a `test` lesson whose scored items are all in `listening` items (cards may sit between
@@ -35,7 +41,10 @@ Blocks: `start`, `listening`, `reading`, `writing`, `speaking`, `language`, `moc
   index to the new one in every saved run (guarded by a flag such as `ielts:mig:content1`), and never change the text
   of an option in a way that changes its meaning. The flag must survive "Erase my progress" (`prog.erase()` keeps every
   `ielts:mig:*` key): erasing does not reload the page, so runs saved after an erase already use the new order, and a
-  migration that ran again on the next load would map them a second time. Adding options at the end is safe.
+  migration that ran again on the next load would map them a second time. Mark each run the migration moves (as
+  `run.mig` = 2, in the same write) so that a retry after a failed write never moves it twice, and raise `rev` in every
+  unit and `REV` in `js/ielts.js` in the same release, so that no phone grades the moved answers against the copy of the
+  old file it keeps. Adding options at the end is safe.
 - Inline markup in any text: `**bold**`, `*italic*`. Nothing else (no HTML, no links).
 
 ## Item types

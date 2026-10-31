@@ -454,7 +454,9 @@ compartida no responde).
   de verdad (servidor que corta la conexión): camino, gramática, lección, Memoria sin dibujos rotos y la página «Sin
   conexión» con «Reintentar» en un tema nunca abierto, que se pinta sola al volver la red; el sw da los js con
   `?v=VERSION` del shell, la página y los datos lentos a los 3 s de lo guardado (y luego sin esperar), nunca un fichero
-  de otro `?v=` y lo de LAZY ya usado pasa al shell nuevo; `calmCss` solo con «Reducir movimiento»; un guardado que no
+  de otro `?v=` y lo de LAZY ya usado pasa al shell nuevo, también por su nombre (sin red sale `ielts.css?v=` de la
+  versión nueva); `ielts.html` pide `ielts.css` y los cuatro `js/ielts*.js` con el `?v=` de `index.html`, que es
+  VERSION, y la cabecera de `sw.js` dice que se sube con ella; `calmCss` solo con «Reducir movimiento»; un guardado que no
   cabe sale en Ajustes › Para mayores («Libera espacio», «Descargar copia»); con un Drive de mentira (`page.route`) y
   dos aparatos: una partida de Drive de una versión más nueva nunca se pisa («Hay una versión nueva de la app. Recarga
   para seguir.»), `vocabSave.merge` (estrellas, repaso, días, álbum, récords, cuentos, temporada, sellos) y dos aparatos
@@ -685,6 +687,19 @@ de `data/ielts` directamente (sin navegador), salvo la última:
     Choose TWO q11; el Task 1 sustituido de u23-l3 queda en My writing con su enunciado viejo (su página lo dice y no
     enseña el gráfico nuevo); u23-l4 sigue en su ítem; las tarjetas de preguntas quitadas salen del mazo. Al recargar
     no se mueve nada otra vez, y «Erase my progress» conserva las banderas.
+  - Con el almacenamiento lleno (`__full`: `localStorage` rechaza esas claves): una ejecución que no se puede guardar
+    se queda como estaba, las banderas pasan a `0` y la carga siguiente la mueve, una sola vez (cada ejecución movida
+    lleva `mig: 2` en la misma escritura; u01-l3-i8 se movería de vuelta si se moviera dos veces); la sesión de repaso
+    que no se puede guardar empieza de nuevo (sin `ielts:run:review`) y el reintento no la toca; el Task 1 de u23-l3
+    guardado en My writing antes de que fallara su ejecución no se guarda dos veces, y si My writing no cabe, la
+    ejecución entera espera.
+  - Unidades viejas guardadas (`rev`): una copia de u01.json de la versión anterior (sin `rev`, con las opciones de
+    antes) en `vocab-media`, con la red lenta (el service worker da lo guardado a los 3 s): `data.unit()` la vuelve a
+    pedir a la red, la guarda, y el mazo hecho con una u01-l3 vieja terminada da bien su respuesta buena; sin red
+    después, la copia guardada es la nueva. Sin red y solo con la copia vieja, la unidad dice «This unit was updated:
+    open it once with a connection.» y el mazo espera a una carga con red. Esta prueba no usa `page.route`: con la
+    intercepción de Playwright, Chromium pasa al service worker las peticiones `cache: "no-store"` como normales.
+    `IE.warmUnits()` también cambia una copia vieja guardada.
   - La comparación de versiones: «N words copied from the question» es su propia comprobación («Copied from the
     question»), no el texto del mensaje.
   - Sin conexión: con el service worker al mando (entrando por la app, como un adulto), IELTS Prep guarda en segundo
@@ -697,5 +712,8 @@ de `data/ielts` directamente (sin navegador), salvo la última:
     «Erase» de antes de enlazar no viaja; «Erase my progress» (Ajustes dice cuándo se guardó la copia) se sube al
     volver a la app y en el otro aparato se va lo de antes y se queda lo de después; una copia de una versión más
     nueva o ajena nunca se mezcla ni se pisa; un estado vacío nunca se sube sobre uno lleno; con IELTS Prep apagado o
-    sin Google no se hace nada; el archivo del niño nunca lleva `ielts:`. Y `vocabIelts.sync.merge`, pura: empates
-    para este aparato, tests por lid+at, lápidas, la hora del borrado (también cuando Drive ya no tiene `ielts:study`).
+    sin Google no se hace nada; el archivo del niño nunca lleva `ielts:`. Tras un «Erase» de otro aparato se van
+    también las `ielts:run:*` e `ielts:draft:*` de antes (o sin hora) y `ielts:study` lleva `mig` (el mazo no se rehace
+    con lo borrado); una mezcla sin borrado no quita ninguna. Y `vocabIelts.sync.merge`, pura: empates para este
+    aparato, tests por lid+at, lápidas, la hora del borrado (también cuando Drive ya no tiene `ielts:study`) y la fecha
+    del examen por su `examAt` (una fecha quitada o cambiada no vuelve aunque el otro aparato repasara después).

@@ -23,9 +23,11 @@
    · imágenes y mp3: de vocab-media (o del shell, las de SHELL) y, si no están, de la red (y se guardan).
    Las cachés viejas (vocab-v1 de «Descargar todo», vocab-vNN del sw anterior) pasan sus imágenes, audios y datos a
    vocab-media entrada a entrada y después se borran; si no cabe, se borran igual (todo se puede volver a bajar).
-   Al subir VERSION se sube también OFF_SHELL y el «?v=» de los <script> de index.html y privacy.html: GitHub Pages manda
-   max-age=600 y, sin eso, la caché HTTP daría el index.html nuevo con módulos viejos. El shell se guarda sin el «?v=»:
-   es de una sola versión, la de su nombre. */
+   Al subir VERSION se sube también OFF_SHELL y el «?v=» de los <script> de index.html y privacy.html, y el de ielts.html
+   (ielts.css y los cuatro js/ielts*.js): GitHub Pages manda max-age=600 y, sin eso, la caché HTTP daría la página nueva
+   con módulos viejos; y un «?v=» que no es VERSION va a sameUrl, que sin red no encuentra las copias que carryLazy pasa
+   por su nombre (IELTS Prep se rompería sin conexión tras cada actualización). El shell se guarda sin el «?v=»: es de
+   una sola versión, la de su nombre. */
 const VERSION = 38;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
@@ -118,16 +120,18 @@ self.addEventListener("install", e => {
     await self.skipWaiting();
   })());
 });
-/* lo de LAZY que ya se usó (está en un shell de antes): se baja otra vez para esta versión, con la misma URL. Si falla,
-   se pedirá al usarlo. */
+/* lo de LAZY que ya se usó (está en un shell de antes): se baja otra vez para esta versión, con la misma URL y también
+   por su nombre sin «?…», que es como shellFirst lo busca cuando la página nueva lo pide con «?v=» de esta versión
+   (ielts.html pasa de «?v=» viejo a VERSION: sin su copia por nombre, IELTS Prep abriría sin css ni js sin conexión).
+   Si falla, se pedirá al usarlo. */
 async function carryLazy(c){
   try{
     for(const n of (await caches.keys()).filter(n => SHELL_RE.test(n) && n !== SHELL_CACHE)){
       const old = await caches.open(n);
       for(const req of await old.keys()){
         const url = new URL(req.url);
-        if(url.origin !== location.origin || !LAZY_PATHS.has(url.pathname) || await c.match(req.url)) continue;
-        await c.add(new Request(req.url, {cache: "reload"})).catch(() => {});
+        if(url.origin !== location.origin || !LAZY_PATHS.has(url.pathname)) continue;
+        for(const u of new Set([req.url, keyOf(url)])) if(!(await c.match(u))) await c.add(new Request(u, {cache: "reload"})).catch(() => {});
       }
     }
   }catch(err){ console.warn("[sw] no se pudo volver a bajar lo ya usado:", msg(err)); }

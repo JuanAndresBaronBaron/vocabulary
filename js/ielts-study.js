@@ -6,8 +6,9 @@
      and exemplar calibration, for the player and My writing.
    · Stores one key, "ielts:study" = {v:1, cards:{qid: {lid, box, due, hits, last, n, p?, sec?}}, log:[{q, l, k, s, ok,
      tag?, x?, g?, m?, c?, a?, at}], session:{at, ids:[qid], ord:{qid:[original index…]}} | null,
-     exam:{date:"YYYY-MM-DD", from} | null, calib:[{iid, x, guess, band, at}], mig?, at}. at = the time of the last write
-     (a restore from a backup takes the newer copy). Card: p = the reading/listening
+     exam:{date:"YYYY-MM-DD", from} | null, examAt?, calib:[{iid, x, guess, band, at}], mig?, at}. at = the time of the
+     last write (a restore from a backup takes the newer copy); examAt = when the exam date was last set or cleared (the
+     Drive copy in js/ielts-boot.js keeps the newer date by it, not by at). Card: p = the reading/listening
      item a set question lives in (a "wrapped" card), sec = when it was retired as secure. Log: x = a standalone
      exercise (not an exam-format question), g/m = marks got/available when a question is worth more than one, c/a = the
      right and the given answer of TRUE/FALSE/NOT GIVEN. Every read and write goes through IE.LS (try/catch); a missing
@@ -555,6 +556,7 @@ ROUTES.review = async (_, a) => {
     if(!v && ev && (ev.type === "input" || (inp.validity && inp.validity.badInput))) return;   /* a date being typed */
     if(v && parseDay(v)) st.exam = {date: v, from: st.exam && st.exam.date ? st.exam.from || Date.now() : Date.now()};
     else if(!v) st.exam = null; else return;
+    st.examAt = Date.now();
     sset(st); out.innerHTML = planInner(st); clr.hidden = !st.exam;
   };
   inp.addEventListener("change", saveExam); inp.addEventListener("input", saveExam);
@@ -566,11 +568,17 @@ function unlocked(){ let inn = false; try{ inn = sessionStorage.getItem("ielts:i
 function migrate(){
   const s = sget();
   if(s.mig || RO){ migDone = true; return Promise.resolve(); }
+  /* js/ielts.js couldn't move every saved answer to the new options this load (storage full): the runs would be graded
+     in the old order, so the deck waits for the load that moves them */
+  if(IE.migPending) return Promise.resolve();
   const runs = LS.keys().map(k => RUN_RE.exec(k)).filter(Boolean).map(m => [m[1], LS.get(m[0])]).filter(([, r]) => isObj(r) && r.finished && isObj(r.ans));
   if(Object.keys(s.cards).length || !runs.length){ migDone = true; return Promise.resolve(); }
   const done = prog.get().lessons || {};
   runs.sort((x, y) => (+(done[x[0]] || {}).at || 0) - (+(done[y[0]] || {}).at || 0));
   return (async () => {
+    /* a unit this device kept from an older version, which can't be fetched again now (offline: data.unit says so with
+       e.stale), would leave its runs out of the deck for good: then nothing is written and the next load tries again */
+    for(const u of new Set(runs.map(([lid]) => lid.slice(0, 3)))){ try{ await data.unit(u); }catch(e){ if(e && e.stale) return; } }
     for(const [lid, run] of runs){ try{ await onLesson(lid, run, +(done[lid] || {}).at || Date.now()); }catch(e){ console.error(e); } }
     migDone = true; const st = sget(); sset(st);
   })();

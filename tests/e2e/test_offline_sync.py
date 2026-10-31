@@ -11,7 +11,8 @@ index.html).
   gramática, la lección, Memoria con dibujos guardados, Pajarito sin su fondo y, para lo que no se guardó, la página
   «Sin conexión» con «Reintentar», que se vuelve a pintar sola al volver la red.
 - sw.js: js con ?v=VERSION sale del shell sin esperar a la red; la página y los datos esperan a la red 3 s como mucho;
-  nunca se da una copia de otra versión por su nombre; lo de LAZY ya usado pasa a la versión nueva.
+  nunca se da una copia de otra versión por su nombre; lo de LAZY ya usado pasa a la versión nueva (también por su
+  nombre, como lo pide ielts.html con el «?v=» de la versión, que es el de index.html).
 - «Reducir movimiento» (calmCss) solo recorre las hojas con data-motion=calm, al encenderlo y mientras siga.
 - Un guardado que no cabe sale en Para mayores con «Libera espacio» y «Descargar copia».
 - Google Drive de mentira (FakeDrive, compartido por dos aparatos): una partida de una versión más nueva de la app nunca
@@ -353,7 +354,8 @@ def test_sw_cache_first_timeout_and_versions():
     igual de rápido y ningún js?v= llega al servidor); (2) con la página y los datos lentos (8 s), pinta antes de 6 s con lo
     guardado; (3) sin red, js/games.js?v=VERSION sale y con otro ?v= no (nunca la copia de otra versión por su nombre), y
     la carpeta («./») abre la app; (4) lo de LAZY ya usado (js/tech.js, ielts.css?v=29) pasa al shell de una versión nueva,
-    y lo no usado no."""
+    y lo no usado no; lo usado con un «?v=» viejo pasa también por su nombre, y sin red ielts.css?v=<la versión nueva>
+    sale (ielts.html pide sus ficheros con el «?v=» de la versión: sin esa copia, IELTS Prep abriría sin css ni js)."""
     srv, st = _switch_server()
     ctx = C.new_context("phone", sw=True, server=srv)
     page = ctx.new_page()
@@ -424,9 +426,19 @@ def test_sw_cache_first_timeout_and_versions():
         else:
             probs.append(f"la versión nueva no se activó: {names}")
         keys = set(page.evaluate(f"async () => (await caches.open('{new}')).keys().then(rs => rs.map(r => {{ const u = new URL(r.url); return u.pathname + u.search; }}))"))
-        for k in ("/js/tech.js", "/ielts.css?v=29", "/ielts.html"):
+        for k in ("/js/tech.js", "/ielts.css?v=29", "/ielts.css", "/ielts.html"):
             if k not in keys:
                 probs.append(f"{k} (ya usado) no pasó al shell de la versión nueva")
+        # sin red, la página nueva pide ielts.css con el «?v=» de la versión nueva (shellFirst, por su nombre)
+        page.wait_for_function("() => !!navigator.serviceWorker.controller && navigator.serviceWorker.controller.state === 'activated'", timeout=10000)
+        st["down"] = True
+        ctx.set_offline(True)
+        got = page.evaluate("""async v => { const t = u => fetch(u).then(r => r.status, () => 'falla');
+          return {css: await t('ielts.css?v=' + v), html: await t('ielts.html'), unseen: await t('js/ielts.js?v=' + v)}; }""", v + 1)
+        if got != {"css": 200, "html": 200, "unseen": "falla"}:
+            probs.append(f"sin red, tras la versión nueva: {got} (se esperaba ielts.css?v={v + 1} e ielts.html, y js/ielts.js sin usar no)")
+        st["down"] = False
+        ctx.set_offline(False)
         for k in ("/js/tech-pages.js", "/js/ielts.js", "/img/games/vuelo-fr.jpg"):
             if k in keys:
                 probs.append(f"{k} (sin usar) está en el shell de la versión nueva")
@@ -438,6 +450,31 @@ def test_sw_cache_first_timeout_and_versions():
             pass
         ctx.close()
         srv.stop()
+    assert not probs, "\n".join(probs)
+
+
+def test_ielts_html_versions_follow_index():
+    """ielts.html pide ielts.css y los cuatro js/ielts*.js con el «?v=» de index.html, que es VERSION de sw.js: así salen
+    del shell por su nombre (shellFirst), que es como carryLazy los pasa a una versión nueva (sin red IELTS Prep abre
+    tras actualizar), y la caché HTTP no mezcla ficheros de dos versiones. La regla de la cabecera de sw.js lo dice: al
+    subir VERSION se sube también el de ielts.html."""
+    v = _version()
+    html = (C.ROOT / "index.html").read_text(encoding="utf-8")
+    ie = (C.ROOT / "ielts.html").read_text(encoding="utf-8")
+    probs = []
+    idx = set(re.findall(r'<script[^>]*\ssrc="[^"?]+\?v=(\d+)"', html))
+    if idx != {str(v)}:
+        probs.append(f"index.html: los <script> llevan ?v={sorted(idx)} (se esperaba solo {v}, VERSION)")
+    refs = re.findall(r'(?:src|href)="((?:ielts\.css|js/ielts[\w-]*\.js)(?:\?[^"]*)?)"', ie)
+    want = {"ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js", "js/ielts-study.js"}
+    if {r.split("?")[0] for r in refs} != want:
+        probs.append(f"ielts.html carga {sorted(refs)} (se esperaba {sorted(want)})")
+    for r in refs:
+        if not r.endswith(f"?v={v}"):
+            probs.append(f"ielts.html: {r} sin ?v={v} (el de index.html y VERSION)")
+    head = _sw_src()[:_sw_src().index("*/")]
+    if not re.search(r"«\?v=» de los <script> de index\.html y privacy\.html, y el de ielts\.html", head):
+        probs.append("la cabecera de sw.js no dice que el «?v=» de ielts.html se sube con VERSION")
     assert not probs, "\n".join(probs)
 
 

@@ -19,13 +19,15 @@
      más nuevo; tests, por lid+at (y los borrados, ielts:data.gone, no vuelven; si cambia la lista, attempt y counted se
      quitan y js/ielts.js los vuelve a contar en orden); textos, por id, el de at más nuevo; speaking, por iid (o
      title)+at; tarjetas del repaso, la de last más nuevo; el cuaderno (log) y la calibración, por q+at e iid+x+at;
-     la fecha del examen, la de la copia de ielts:study más nueva; ielts:ui entero, el de at más nuevo; la sesión de
-     repaso a medias y la marca mig de ielts:study son de este aparato. Empate: lo de aquí. Nunca se pisa una copia de
+     la fecha del examen, la de examAt más nuevo (la hora en que se puso o se quitó; una copia de antes de examAt con
+     fecha cuenta con su at); ielts:ui entero, el de at más nuevo; la sesión de repaso a medias y la marca mig de
+     ielts:study son de este aparato. Empate: lo de aquí. Nunca se pisa una copia de
      una versión más nueva (v > 1, aquí o en Drive) ni se sube sin haber mezclado antes lo que hay en Drive; un estado
      vacío no se sube sobre uno lleno salvo tras «Erase my progress» (ielts:data.erased = la hora), y ese borrado solo
      cuenta si se hizo con este aparato ya enlazado (después de linked; uno de antes se queda en este aparato): entonces
      lo de antes de esa hora se olvida también en Drive y en los otros aparatos, también en uno que se enlace después
-     (como en Tech Prep).
+     (como en Tech Prep); en esos aparatos se van además sus ielts:run:* e ielts:draft:* de antes de esa hora
+     (dropBefore) y su ielts:study lleva mig, así que el mazo no se rehace con lecciones borradas.
    API: window.vocabIelts = {on(), setOn(v), enter(from), menuItem(), adultHtml(), sync: {now(), merge(a, b, ea, eb),
    hash(), payload(), state()}}. */
 (() => {
@@ -159,8 +161,13 @@ function mergeStudy(a, b, ea, eb){
   const join = (xs, ys, key, max) => { const m = new Map(); for(const x of xs) m.set(key(x), x); for(const y of ys) if(!m.has(key(y))) m.set(key(y), y); return [...m.values()].sort((x, y) => at(x) - at(y)).slice(-max); };
   out.log = join(arr(A.log).filter(e => okA(at(e))), arr(b.log).filter(e => okB(at(e))), e => `${e.q}|${at(e)}`, LOG_MAX);
   out.calib = join(arr(A.calib).filter(e => okA(at(e))), arr(b.calib).filter(e => okB(at(e))), e => `${e.iid}|${e.x || 0}|${at(e)}`, CAL_MAX);
-  const ex = [[A, at(A), okA], [b, at(b), okB]].filter(([s, t, ok]) => isObj(s.exam) && ok(t)).sort((x, y) => y[1] - x[1])[0];
-  out.exam = ex ? ex[0].exam : null;
+  /* la fecha del examen, por su propia hora (examAt: al ponerla o quitarla, js/ielts-study.js) y nunca por el at de la
+     copia, que cambia con cada repaso: una fecha quitada o cambiada en un aparato no vuelve desde otro. Una copia de
+     antes de examAt con fecha cuenta con su at (la regla con la que se escribió) */
+  const exT = s => +s.examAt || (isObj(s.exam) ? at(s) : 0);
+  const ex = [[A, exT(A), okA], [b, exT(b), okB]].filter(([, t, ok]) => ok(t)).sort((x, y) => y[1] - x[1])[0];
+  out.exam = ex && isObj(ex[0].exam) ? ex[0].exam : null;
+  if(ex && ex[1]) out.examAt = ex[1]; else delete out.examAt;
   out.at = Math.max(at(A), at(b)) || undefined;
   if(out.at === undefined) delete out.at;
   return out;
@@ -174,6 +181,16 @@ function merge(a, b, ea = 0, eb = 0){
   const ua = a[UK], ub = b[UK];
   if(ua || ub) out[UK] = !isObj(ua) || (isObj(ub) && at(ub) > at(ua)) ? ub : ua;
   return out;
+}
+/* tras un «Erase» de otro aparato (a la hora e): las lecciones a medias o terminadas (ielts:run:*) y los borradores
+   (ielts:draft:*) de aquí guardados antes de e, o sin hora, se van, como en el aparato que borró: ni «Continue» ni el
+   mazo ni los resultados vuelven a traer lo borrado. Lo guardado después de e se queda */
+function dropBefore(e){
+  let ks = []; try{ ks = Object.keys(localStorage); }catch(err){ return; }
+  for(const k of ks) if(k.startsWith("ielts:run:") || k.startsWith("ielts:draft:")){
+    let v = null; try{ v = JSON.parse(localStorage.getItem(k)); }catch(err){}
+    if(!(isObj(v) && +v.at > e)){ try{ localStorage.removeItem(k); }catch(err){} }
+  }
 }
 /* el borrado de este aparato que cuenta: solo uno hecho ya enlazado con Drive (uno de antes es solo historia de aquí) */
 const erasedHere = (d, st) => { const e = isObj(d[PK]) ? +d[PK].erased || 0 : 0; return e && st.linked && e > st.linked ? e : 0; };
@@ -204,7 +221,12 @@ function sync(why){
         const L = local(); if(!L.ok) throw Object.assign(new Error("local"), {code: "local"});
         /* sin esperas entre leer y escribir: nada de lo que se guarda aquí mientras tanto se pierde */
         const er = isObj(rd[PK]) ? +rd[PK].erased || 0 : 0, mg = merge(L.data, rd, erasedHere(L.data, st), er);
+        /* un «Erase» de otro aparato, más nuevo que el último de aquí: el mazo nunca se rehace con las lecciones de antes
+           (mig de ielts:study: js/ielts-study.js no lo vuelve a montar con ielts:run:*) */
+        const erNew = er > (isObj(L.data[PK]) ? +L.data[PK].erased || 0 : 0);
+        if(erNew && isObj(mg[SK])) mg[SK] = Object.assign({}, mg[SK], {mig: 1});
         for(const k of KEYS) if(mg[k] !== undefined && canon(mg[k]) !== canon(L.data[k])){ try{ localStorage.setItem(k, JSON.stringify(mg[k])); }catch(e){ throw Object.assign(new Error("full"), {code: "full"}); } }
+        if(erNew) dropBefore(er);
       }
       const L = local(); if(!L.ok) throw Object.assign(new Error("local"), {code: "local"});
       const h = hashOf(L.data);

@@ -691,8 +691,11 @@ def test_study_home_plan_icons_storage_and_erase():
         ymd = page.evaluate("(d) => { const x = new Date(Date.now() + d * 864e5); return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`; }", 71)
         page.fill("#ie-exam", ymd)
         page.wait_for_timeout(100)
-        ex = page.evaluate(_STUDY)["exam"]
+        st0 = page.evaluate(_STUDY)
+        ex = st0["exam"]
         assert ex["date"] == ymd and ex["from"] > 0, ex
+        # the date has its own time (the Drive copy keeps the newer date by it, not by the copy's at)
+        assert st0.get("examAt", 0) > 0, st0.get("examAt")
         out = page.inner_text("#ie-plan-out")
         assert "10 weeks to go" in out and "Two timed practices a week" in out and "version 2" in out and "Review daily" in out and "Full mocks at about one third and two thirds" in out and "final mock 7–10 days before" in out, out
         assert "Real gains are about half a band per 10-12 weeks of intensive study (Elder & O'Loughlin 2003)." in page.inner_text(".ie-rv-plan")
@@ -703,8 +706,11 @@ def test_study_home_plan_icons_storage_and_erase():
         assert "2 weeks to go" in out and "Mocks, the mistake notebook and review only" in out and "Full mocks at about" not in out, out
         assert page.evaluate("() => IE.study.capDays()") == 4
         assert not re.search(r"streak|hurry|only \d+ days? left", page.inner_text("#app"), re.I)
+        at3 = page.evaluate(_STUDY)["examAt"]
+        page.clock.fast_forward(1000)
         page.click("#ie-exam-x")
-        assert page.evaluate(_STUDY)["exam"] is None
+        st1 = page.evaluate(_STUDY)
+        assert st1["exam"] is None and st1["examAt"] > at3, (st1["exam"], st1.get("examAt"), at3)
 
         # rewrite from memory: first versions older than 3 days without a version 2
         page.evaluate("""() => { const d = JSON.parse(localStorage.getItem('ielts:data')) || {v: 1, lessons: {}, tests: [], speaking: []}, t = Date.now(), D = 864e5;

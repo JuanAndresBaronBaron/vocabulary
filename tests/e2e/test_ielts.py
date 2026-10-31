@@ -100,8 +100,8 @@ def test_ielts_locked_without_the_gate():
 
 def test_ielts_validator_rules():
     """The exam rules of ielts_validate.py: the word-limit counter, 'Label the' needs a visual, the spread of pick keys
-    in a test and of Choose TWO pairs in a unit; the new optional fields (markers, callouts, alt); and every PENDING id
-    (left for content2) exists."""
+    in a test and of Choose TWO pairs in a unit; the new optional fields (markers, callouts, alt); the content revision
+    every unit carries (rev, equal to REV in js/ielts.js); and every PENDING id (left for content2) exists."""
     import copy
     fits = [("14th", "ONE WORD AND/OR A NUMBER"), ("07700 911483", "A NUMBER"), ("BS7 4QD", "ONE WORD AND/OR A NUMBER"),
             ("10:15", "A NUMBER"), ("£85", "A NUMBER"), ("check-in", "ONE WORD ONLY"), ("15 minutes", "ONE WORD AND/OR A NUMBER"),
@@ -138,6 +138,12 @@ def test_ielts_validator_rules():
         u["lessons"][2]["items"].append({"id": "u03-l3-i2", "type": "reading", "title": "t", "minutes": 5, "paragraphs": [{"label": None, "text": "x"}],
                                           "sets": [{"instr": "Choose A, B or C.", "items": [{"id": f"u03-l3-i2-q{k}", "type": "pick", "q": "q",
                                                     "options": ["A  a", "B  b", "C  c"], "answer": 1 if k < 4 else 0, "why": "w"} for k in range(1, 5)]}]})
+    # every unit carries the content revision js/ielts.js asks for (an older copy kept on a phone is fetched again)
+    planted(lambda u: u.pop("rev"), "rev must be a whole number, 2 or more")
+    planted(lambda u: u.update(rev=1), "rev must be a whole number, 2 or more")
+    planted(lambda u: u.update(rev="2"), "rev must be a whole number, 2 or more")
+    js_rev = re.search(r"\bconst REV = (\d+)", (C.REPO / "js" / "ielts.js").read_text(encoding="utf-8"))
+    assert js_rev and int(js_rev.group(1)) == V.REV == base["rev"], "REV in js/ielts.js, ielts_validate.REV and the units' rev differ"
     planted(over_limit, "'a big rucksack' is over the limit")
     planted(unknown_limit, "unknown word limit")
     planted(label_no_visual, "needs a visual")

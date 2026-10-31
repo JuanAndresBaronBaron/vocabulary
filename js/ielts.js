@@ -34,6 +34,8 @@
      #/settings. The router looks ROUTES up at route time, so other files can add or wrap routes.
    · window.IE = {esc, md, ico, LS, isObj, data, band, bandRange, roundBand, fmtBand, prog, ui, uiSet, speak, stopSpeak,
      canSpeak, voices, ensureVoices, voiceTest, ROUTES, route, go, query, setTop, toast, KIND_T, when, words}.
+     IE.migPending is true while some saved answers are still in the old option order (migrateAnswers below couldn't
+     save them this load); js/ielts-study.js then waits to build the deck from finished runs.
      js/ielts-player.js adds IE.player (#/lesson/<lid>) and js/ielts-viz.js IE.viz (Task 1 visuals); IE.assess (self-marking,
      selfHtml(kind, cur, item) and wireSelf(el, kind, get, set, item)) is used by the revision page when it exists. */
 (() => {
@@ -89,6 +91,32 @@ async function getJSON(url){
     catch(e){ throw new Error(ac && ac.signal.aborted ? SLOW : "IELTS Prep data is damaged."); }
   } finally { clearTimeout(dog); }
 }
+/* The content revision of the unit files ("rev" in data/ielts/uNN.json, SCHEMA.md). sw.js keeps every unit file a page
+   fetched in vocab-media, which survives app updates and answers when the network takes more than 3 s or is missing,
+   so a phone can still hold a unit from before this version, with the old option orders that migrateAnswers() (below)
+   has already moved saved answers away from. A unit with a lower rev is never used: it is fetched again past that copy
+   (netUnit), and if that fails the unit says so (STALE) instead of grading answers against the old options. */
+const REV = 2, MEDIA = "vocab-media";
+const STALE = "This unit was updated: open it once with a connection.";
+const unitUrl = id => `data/ielts/${id}.json`;
+const unitOk = (u, id) => isObj(u) && u.format === 1 && u.id === id && Array.isArray(u.lessons);
+/* a unit file from the network, never from a copy the service worker keeps (sw.js lets cache:"no-store" through and
+   doesn't save it), given up after 10 s. A current unit (rev REV or more) is saved in vocab-media, where sw.js finds it
+   offline: resolves {u, kept}; null for anything else (not 200, not a unit, an older rev); rejects when the network
+   fails */
+async function netUnit(id){
+  const ac = typeof AbortController === "function" ? new AbortController() : null;
+  const dog = ac ? setTimeout(() => ac.abort(), FETCH_MS) : 0;
+  try{
+    const res = await fetch(unitUrl(id), ac ? {cache: "no-store", signal: ac.signal} : {cache: "no-store"});
+    if(res.status !== 200) return null;
+    const u = await res.clone().json().catch(() => null);
+    if(!unitOk(u, id) || !(u.rev >= REV)) return null;
+    let kept = false;
+    if("caches" in W){ try{ await (await caches.open(MEDIA)).put(new URL(unitUrl(id), location.href).href, res); kept = true; }catch(e){} }
+    return {u, kept};
+  } finally { clearTimeout(dog); }
+}
 const data = {
   index(){
     if(IDX) return Promise.resolve(IDX);
@@ -101,8 +129,13 @@ const data = {
   unit(id){
     if(!/^u\d{2}$/.test(String(id))) return Promise.reject(new Error(`No unit ${id}.`));
     if(UNITS[id]) return Promise.resolve(UNITS[id]);
-    if(!pUnit[id]) pUnit[id] = getJSON(`data/ielts/${id}.json`).then(u => {
-      if(!u || u.format !== 1 || u.id !== id || !Array.isArray(u.lessons)) throw new Error("IELTS Prep data is damaged.");
+    if(!pUnit[id]) pUnit[id] = getJSON(unitUrl(id)).then(async u => {
+      if(!unitOk(u, id)) throw new Error("IELTS Prep data is damaged.");
+      if(!(u.rev >= REV)){   /* a copy kept from an older version of the app */
+        const r = await netUnit(id).catch(() => null);
+        if(!r) throw Object.assign(new Error(STALE), {stale: true});
+        u = r.u;
+      }
       UNITS[id] = u; return u;
     }).catch(e => { delete pUnit[id]; throw e; });
     return pUnit[id];
@@ -370,16 +403,27 @@ const prog = {
    session (ielts:study.session.ord, places on screen) a question whose options were only reordered keeps its places;
    otherwise that shuffle and its answer go. Cards of questions that are gone leave the deck.
    Never twice: the flags ielts:mig:content1 and ielts:mig:content2 are written first (if they can't be, nothing
-   changes and the next load tries again); prog.erase() keeps ielts:mig:*; and a lesson run saved by this version (it
-   has run.at, which older players never wrote) is never touched. The flags describe this device's runs, so backups
-   and the Drive copy leave them out. It runs while this file loads, before js/ielts-player.js opens a run and before
+   changes and the next load tries again); prog.erase() keeps ielts:mig:*; a lesson run saved by this version (it
+   has run.at, which older players never wrote) is never touched; and every run this moves carries run.mig = 2 in the
+   same write, so it is never moved again. A write that fails (localStorage is shared with the child's game and can be
+   full) leaves its run as it was and sets the flags to 0 at the end: the next load tries again, only the runs not
+   marked yet (a u23-l3 Task 1 that couldn't be kept in My writing leaves its whole run for then). The review session
+   is settled on the first load: a session or review run that couldn't be saved in the new order starts afresh
+   (ielts:run:review deleted), and a later load never maps them. The flags describe this device's runs, so backups and
+   the Drive copy leave them out. It runs while this file loads, before js/ielts-player.js opens a run and before
    js/ielts-study.js builds the deck from finished runs. */
 (function migrateAnswers(){
   const F1 = "ielts:mig:content1", F2 = "ielts:mig:content2", do1 = !LS.get(F1), do2 = !LS.get(F2);
   if(!do1 && !do2) return;
+  /* "0": an earlier load couldn't save everything; the review session was settled then */
+  const retry = (do1 && LS.raw(F1) === "0") || (do2 && LS.raw(F2) === "0");
+  const RVK = "ielts:run:review";
+  let failed = false;
   const at = Date.now();
-  if(do1 && !LS.set(F1, at)) return;
-  if(do2 && !LS.set(F2, at)){ if(do1) LS.del(F1); return; }
+  /* IE.migPending: some saved answers are still in the old order this load (js/ielts-study.js doesn't build the deck from
+     finished runs until a load has moved them all) */
+  if(do1 && !LS.set(F1, at)){ IE.migPending = true; return; }
+  if(do2 && !LS.set(F2, at)){ if(do1) LS.del(F1); IE.migPending = true; return; }
   const MAP = {"u01-l3-i8": [1, 0, 2, 3], "u01-l3-i10": [0, 3, 1, 2], "u01-l3-i11": [0, 2, 1, 3],
     "u02-l1-i2-q9": [0, 2, 1], "u02-l1-i3-q1": [1, 0, 2], "u02-l1-i3-q4": [0, 2, 1], "u02-l1-i3-q5": [1, 0, 2, 3, 4],
     "u04-l1-i9": [0, 2, 1], "u04-l1-i10": [1, 0, 2], "u04-l2-i1-q6": [0, 2, 1], "u04-l3-i1-q2": [0, 1, 2, 4, 3],
@@ -411,25 +455,29 @@ const prog = {
   const to = (m, x) => Number.isInteger(x) && x >= 0 && x < m.length ? (m[x] == null ? undefined : m[x]) : x;
   const only = m => m.every(x => x != null) && m.slice().sort((a, b) => a - b).every((x, i) => x === i);
   /* the review session's shuffles: ord[i] = the original index shown at place i */
-  const st = LS.get("ielts:study"), ss = isObj(st) && isObj(st.session) ? st.session : null, ord = ss && isObj(ss.ord) ? ss.ord : {};
+  const st = LS.get("ielts:study"), ss = isObj(st) && isObj(st.session) ? st.session : null, ord = !retry && ss && isObj(ss.ord) ? ss.ord : {};
   const shuf = {};   /* qid → true: kept (the same options in the same places), false: dropped */
-  let stCh = false;
+  let stCh = false, ordCh = false;
   for(const [q, m] of Object.entries(M)) if(Array.isArray(ord[q])){
-    shuf[q] = only(m) && ord[q].length === m.length; stCh = true;
+    shuf[q] = only(m) && ord[q].length === m.length; stCh = ordCh = true;
     if(shuf[q]) ord[q] = ord[q].map(i => m[i]); else delete ord[q];
   }
   if(isObj(st) && isObj(st.cards)) for(const q of DROP) if(st.cards[q]){ delete st.cards[q]; stCh = true; }
   if(ss && Array.isArray(ss.ids) && ss.ids.some(q => DROP.has(q))){ ss.ids = ss.ids.filter(q => !DROP.has(q)); stCh = true; }
-  if(stCh) LS.set("ielts:study", st);
+  /* the shuffles stay in the old order: the review run's answers (places on screen) would point elsewhere */
+  if(stCh && !LS.set("ielts:study", st)){ failed = true; if(ordCh) LS.del(RVK); }
   /* My writing can take the old Task 1 only from valid data of this version (never a newer version's or a damaged blob) */
   const dataOk = () => { const raw = LS.raw(PK); if(raw == null) return true; try{ const o = JSON.parse(raw); return isObj(o) && o.v === 1; }catch(e){ return false; } };
   for(const k of LS.keys()){
     const km = /^ielts:run:(u\d{2}-l\d+|review)$/.exec(k); if(!km) continue;
     const lid = km[1], rev = lid === "review";
+    if(rev && retry) continue;   /* settled by the first load (saved in the new order or started afresh) */
     try{
       const run = LS.get(k); if(!isObj(run) || !isObj(run.ans)) continue;
+      if(run.mig >= 2) continue;   /* moved by an earlier load */
       if(!rev && run.at != null) continue;   /* saved by this version: already in the new order */
       const A = run.ans, before = JSON.stringify(run);
+      let whole = true;   /* false: this run waits for the next load, untouched */
       if(lid === "u09-l3" && run.finished && GONE.some(q => q in A)){ LS.del(k); continue; }
       const forget = q => { delete A[q]; if(isObj(run.checked)){ delete run.checked[q]; delete run.checked["rv-" + q]; } };
       for(const [q, m] of Object.entries(M)){
@@ -450,7 +498,8 @@ const prog = {
         if(lid === "u24-l2"){ delete A["u24-l2-i4-q8"]; delete A["u24-l2-i4-q9"]; }
         if(lid === "u23-l3" && W1 in A && dataOk()){
           const t = String(A[W1] || ""), eid = isObj(run.eid) ? run.eid[W1] : null;
-          let kept = !t.trim() || !!(eid && prog.essay(eid));
+          /* (an earlier load may have kept it before its run couldn't be saved) */
+          let kept = !t.trim() || !!(eid && prog.essay(eid)) || prog.get().essays.some(e => e.iid === W1 && e.prompt === W1P && e.text === t);
           if(!kept){
             const id = eid || `${W1}-${at.toString(36)}`;
             prog.addEssay({id, iid: W1, task: 1, prompt: W1P, text: t, words: words(t), self: isObj(run.self) && run.self[W1] || null, band: null});
@@ -459,14 +508,20 @@ const prog = {
           if(kept){   /* never dropped before it is safe in My writing */
             delete A[W1];
             for(const b of ["self", "eid", "wt", "checked", "sband"]) if(isObj(run[b])) delete run[b][W1];
-          }
+          } else whole = false;
         }
         const pos = POS[lid];
         if(pos && !run.finished && typeof run.i === "number" && pos[run.i] != null) run.i = pos[run.i];
       }
-      if(JSON.stringify(run) !== before) LS.set(k, run);
+      if(!whole){ failed = true; continue; }
+      if(JSON.stringify(run) !== before){
+        run.mig = 2;
+        if(!LS.set(k, run)){ failed = true; if(rev) LS.del(k); }   /* a review run starts afresh; a lesson run waits */
+      }
     }catch(e){ console.error(e); }
   }
+  /* something couldn't be saved: 0 (smaller than the time it replaces, so it always fits) makes the next load try again */
+  if(failed){ IE.migPending = true; for(const [f, d] of [[F1, do1], [F2, do2]]) if(d && !LS.setRaw(f, "0")) LS.del(f); }
 })();
 
 /* ---------- voice (the browser's English voices, by accent) ---------- */
@@ -1124,13 +1179,14 @@ ROUTES.settings = async (_, a) => {
    sw.js keeps every data/ielts/uNN.json the page fetches in vocab-media (kept from one version of the app to the next),
    but a learner only fetches the units they open. So when IELTS Prep opens online, with the service worker in control,
    no new version of the app installing, the page in view and the browser idle (requestIdleCallback, at most 8 s),
-   the unit files that aren't in vocab-media yet are saved there, two at a time, never blocking anything: a learner who
-   has opened IELTS Prep once can study every unit offline. A file is kept only if it is a valid unit. It asks with
+   the unit files that aren't in vocab-media yet, or only as a copy from an older version (rev below REV), are saved
+   there, two at a time, never blocking anything: a learner who has opened IELTS Prep once can study every unit
+   offline. A file is kept only if it is a valid unit of this revision (netUnit). It asks with
    cache:"no-store" (sw.js lets such requests through and doesn't save them twice). It does nothing offline, with
    Data Saver on or with storage nearly full (under 40 MB free or over 90 % used), stops at the first network error,
    and never writes to the console. Once a page load has saved everything it doesn't run again; until then it tries
    again on the next route and when the connection comes back. warmUnits() resolves {saved, have, skipped?}. */
-const MEDIA = "vocab-media", WARM_ROOM = 40 * 1048576, WARM_AT_ONCE = 2;
+const WARM_ROOM = 40 * 1048576, WARM_AT_ONCE = 2;
 let warmRun = null, warmT = 0, warmed = false;
 const online = () => navigator.onLine !== false;
 function warmSoon(){
@@ -1158,17 +1214,16 @@ function warmUnits(){
     await data.index();
     const media = await caches.open(MEDIA), todo = [];
     for(const r of data.avail()){
-      const u = `data/ielts/${r.id}.json`, a = new URL(u, location.href).href;
-      if(await media.match(a)) st.have++; else todo.push([r.id, u, a]);
+      /* a copy saved by an older version of the app (a lower rev) counts as missing: it is replaced */
+      const hit = await media.match(new URL(unitUrl(r.id), location.href).href);
+      const cur = !!hit && await hit.clone().json().then(b => isObj(b) && b.rev >= REV, () => false);
+      if(cur) st.have++; else todo.push(r.id);
     }
     let i = 0, net = false;
-    const one = async ([id, u, a]) => {
-      let res;
-      try{ res = await fetch(u, {cache: "no-store"}); }catch(e){ net = true; return; }
-      if(res.status !== 200) return;
-      const body = await res.clone().json().catch(() => null);
-      if(!isObj(body) || body.format !== 1 || body.id !== id || !Array.isArray(body.lessons)) return;
-      await media.put(a, res); st.saved++;
+    const one = async id => {
+      let r;
+      try{ r = await netUnit(id); }catch(e){ net = true; return; }
+      if(r && r.kept) st.saved++;
     };
     await Promise.all(Array.from({length: WARM_AT_ONCE}, async () => { while(i < todo.length && !net && online()) await one(todo[i++]); }));
     if(net || !online()) return skip("net");
