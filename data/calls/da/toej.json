@@ -1,0 +1,176 @@
+{
+ "v": 1,
+ "id": "da-toej",
+ "lang": "dansk",
+ "city": "Copenhague",
+ "t": "La ropa de Zorro",
+ "lines": [
+  {
+   "say": "Hej! Det er Ræven! Det regner i København i dag.",
+   "es": "¡Hola! ¡Soy Zorro! Hoy llueve en Copenhague.",
+   "k": [
+    {
+     "t": "Hej",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "Jeg vil gå en tur i parken, så jeg skal have tøj på.",
+   "es": "Quiero dar un paseo por el parque, así que tengo que vestirme.",
+   "k": [
+    {
+     "t": "parken",
+     "r": "w06|parque"
+    },
+    {
+     "t": "tøj",
+     "r": "w05|ropa"
+    }
+   ]
+  },
+  {
+   "say": "Først tager jeg min regnjakke på. Den er gul.",
+   "es": "Primero me pongo el chubasquero. Es amarillo.",
+   "k": [
+    {
+     "t": "gul",
+     "r": "colores|Amarillo"
+    }
+   ]
+  },
+  {
+   "say": "Hvilken farve har min regnjakke?",
+   "es": "¿De qué color es mi chubasquero?",
+   "a": [
+    {
+     "r": "colores|Negro"
+    },
+    {
+     "r": "colores|Gris"
+    },
+    {
+     "r": "colores|Amarillo"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Ja, gul! Som en banan.",
+    "es": "¡Sí, amarillo! Como un plátano."
+   },
+   "no": {
+    "say": "Den er gul! Som en banan.",
+    "es": "¡Es amarillo! Como un plátano."
+   }
+  },
+  {
+   "say": "Så tager jeg støvler på. Plask, plask i vandpytterne!",
+   "es": "Luego me pongo las botas. ¡Chof, chof en los charcos!",
+   "k": [
+    {
+     "t": "støvler",
+     "r": "w05|bota"
+    }
+   ]
+  },
+  {
+   "say": "Hvad tager jeg på fødderne?",
+   "es": "¿Qué me pongo en los pies?",
+   "a": [
+    {
+     "r": "w05|sombrero"
+    },
+    {
+     "r": "w05|bota"
+    },
+    {
+     "r": "w05|camisa"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Ja, støvler! De er gode til regn.",
+    "es": "¡Sí, botas! Son buenas para la lluvia."
+   },
+   "no": {
+    "say": "Støvler! De er gode til regn.",
+    "es": "¡Botas! Son buenas para la lluvia."
+   }
+  },
+  {
+   "say": "Der kommer meget regn. Jeg har brug for noget stort og sort.",
+   "es": "Viene mucha lluvia. Necesito algo grande y negro.",
+   "k": [
+    {
+     "t": "regn",
+     "r": "w09|lluvia"
+    },
+    {
+     "t": "sort",
+     "r": "colores|Negro"
+    }
+   ]
+  },
+  {
+   "say": "Hvad har jeg brug for?",
+   "es": "¿Qué necesito?",
+   "a": [
+    {
+     "r": "w05|zapato"
+    },
+    {
+     "r": "w05|paraguas"
+    },
+    {
+     "r": "w05|bolsa, bolso"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Ja, min paraply! Nu er jeg tør.",
+    "es": "¡Sí, mi paraguas! Ahora estoy seco."
+   },
+   "no": {
+    "say": "Min paraply! Nu er jeg tør.",
+    "es": "¡Mi paraguas! Ahora estoy seco."
+   }
+  },
+  {
+   "say": "Og du? Hvad har du på i dag?",
+   "es": "¿Y tú? ¿Qué llevas puesto hoy?",
+   "a": [
+    {
+     "r": "w05|camiseta",
+     "re": {
+      "say": "En T-shirt! Hvor fin!",
+      "es": "¡Una camiseta! ¡Qué bonita!"
+     }
+    },
+    {
+     "r": "w05|vestido",
+     "re": {
+      "say": "En kjole! Den er flot!",
+      "es": "¡Un vestido! ¡Es precioso!"
+     }
+    },
+    {
+     "r": "w05|vaqueros",
+     "re": {
+      "say": "Jeans! Jeg elsker jeans!",
+      "es": "¡Vaqueros! ¡Me encantan los vaqueros!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Nu er jeg klar. Vi ses! Hej hej!",
+   "es": "Ya estoy listo. ¡Nos vemos! ¡Adiós!",
+   "k": [
+    {
+     "t": "Hej hej",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

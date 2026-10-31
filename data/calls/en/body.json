@@ -1,0 +1,188 @@
+{
+ "v": 1,
+ "id": "en-body",
+ "lang": "english",
+ "city": "Londres",
+ "t": "Zorro va al médico",
+ "lines": [
+  {
+   "say": "Hello! It's Fox! I'm calling from London.",
+   "es": "¡Hola! ¡Soy Zorro! Te llamo desde Londres.",
+   "k": [
+    {
+     "t": "Hello",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "I'm at the doctor's today. My ear hurts!",
+   "es": "Hoy estoy en el médico. ¡Me duele la oreja!",
+   "k": [
+    {
+     "t": "doctor",
+     "r": "profesiones|Médico/a"
+    },
+    {
+     "t": "ear",
+     "r": "w02|oreja, oído"
+    },
+    {
+     "t": "hurts",
+     "r": "w28|doler, hacer daño"
+    }
+   ]
+  },
+  {
+   "say": "What hurts?",
+   "es": "¿Qué me duele?",
+   "a": [
+    {
+     "r": "w02|nariz"
+    },
+    {
+     "r": "w02|pie"
+    },
+    {
+     "r": "w02|oreja, oído"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Yes, my ear! Ouch!",
+    "es": "¡Sí, la oreja! ¡Ay!"
+   },
+   "no": {
+    "say": "It's my ear. Ouch!",
+    "es": "Es la oreja. ¡Ay!"
+   }
+  },
+  {
+   "say": "The doctor is very nice. She looks in my ear with a little light.",
+   "es": "La médica es muy maja. Me mira la oreja con una lucecita.",
+   "k": [
+    {
+     "t": "light",
+     "r": "w04|luz"
+    }
+   ]
+  },
+  {
+   "say": "Then she says: Open your mouth, please! She looks at my teeth.",
+   "es": "Luego dice: «¡Abre la boca, por favor!». Me mira los dientes.",
+   "k": [
+    {
+     "t": "mouth",
+     "r": "w02|boca"
+    },
+    {
+     "t": "teeth",
+     "r": "w02|diente"
+    }
+   ]
+  },
+  {
+   "say": "What does the doctor look at?",
+   "es": "¿Qué me mira la médica?",
+   "a": [
+    {
+     "r": "w02|mano"
+    },
+    {
+     "r": "w02|diente"
+    },
+    {
+     "r": "w02|pierna"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Yes, my teeth! They're very white.",
+    "es": "¡Sí, los dientes! Están muy blancos."
+   },
+   "no": {
+    "say": "My teeth! She looks at my teeth.",
+    "es": "¡Los dientes! Me mira los dientes."
+   }
+  },
+  {
+   "say": "Now I've got some medicine. I feel much better!",
+   "es": "Ahora tengo una medicina. ¡Me encuentro mucho mejor!",
+   "k": [
+    {
+     "t": "medicine",
+     "r": "w02|medicina"
+    },
+    {
+     "t": "better",
+     "r": "w33|mejor|1"
+    }
+   ]
+  },
+  {
+   "say": "What has the doctor given me?",
+   "es": "¿Qué me ha dado la médica?",
+   "a": [
+    {
+     "r": "w02|medicina"
+    },
+    {
+     "r": "w03|sopa"
+    },
+    {
+     "r": "w10|libro"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, medicine! Now I feel better.",
+    "es": "¡Sí, una medicina! Ya me encuentro mejor."
+   },
+   "no": {
+    "say": "It's medicine. Now I feel better.",
+    "es": "Es una medicina. Ya me encuentro mejor."
+   }
+  },
+  {
+   "say": "And you? What do you like doing? Run, swim or dance?",
+   "es": "¿Y tú? ¿Qué te gusta hacer? ¿Correr, nadar o bailar?",
+   "a": [
+    {
+     "r": "w25|correr",
+     "re": {
+      "say": "Running! Fast, fast, fast!",
+      "es": "¡Correr! ¡Rápido, rápido, rápido!"
+     }
+    },
+    {
+     "r": "w28|nadar",
+     "re": {
+      "say": "Swimming! Splash, splash!",
+      "es": "¡Nadar! ¡Plaf, plaf!"
+     }
+    },
+    {
+     "r": "w28|bailar",
+     "re": {
+      "say": "Dancing! Let's dance together!",
+      "es": "¡Bailar! ¡Bailemos juntos!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Bye bye! Take care of your body!",
+   "es": "¡Adiós! ¡Cuida tu cuerpo!",
+   "k": [
+    {
+     "t": "Bye",
+     "r": "w43|adiós"
+    },
+    {
+     "t": "body",
+     "r": "w02|cuerpo"
+    }
+   ]
+  }
+ ]
+}

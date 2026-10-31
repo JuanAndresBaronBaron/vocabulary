@@ -1,0 +1,182 @@
+{
+ "v": 1,
+ "id": "fr-ecole",
+ "lang": "français",
+ "city": "París",
+ "t": "Zorro en el colegio",
+ "lines": [
+  {
+   "say": "Allô ! C'est Renard ! Je t'appelle de mon école, à Paris.",
+   "es": "¡Hola! ¡Soy Zorro! Te llamo desde mi colegio, en París.",
+   "k": [
+    {
+     "t": "école",
+     "r": "w10|escuela, colegio"
+    }
+   ]
+  },
+  {
+   "say": "Ma maîtresse est très gentille. C'est une vieille tortue !",
+   "es": "Mi maestra es muy amable. ¡Es una tortuga mayor!",
+   "k": [
+    {
+     "t": "tortue",
+     "r": "animales|Tortuga"
+    }
+   ]
+  },
+  {
+   "say": "Qui est ma maîtresse ?",
+   "es": "¿Quién es mi maestra?",
+   "a": [
+    {
+     "r": "animales|Gato"
+    },
+    {
+     "r": "animales|Perro"
+    },
+    {
+     "r": "animales|Tortuga"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Oui, une tortue ! Elle sait tout.",
+    "es": "¡Sí, una tortuga! Lo sabe todo."
+   },
+   "no": {
+    "say": "C'est une tortue ! Elle sait tout.",
+    "es": "¡Es una tortuga! Lo sabe todo."
+   }
+  },
+  {
+   "say": "Dans mon sac, j'ai un livre, un stylo et un crayon.",
+   "es": "En mi mochila tengo un libro, un bolígrafo y un lápiz.",
+   "k": [
+    {
+     "t": "sac",
+     "r": "w05|bolsa, bolso"
+    },
+    {
+     "t": "livre",
+     "r": "w10|libro"
+    },
+    {
+     "t": "crayon",
+     "r": "w10|lápiz"
+    }
+   ]
+  },
+  {
+   "say": "Aujourd'hui, on dessine des animaux. Avec quoi est-ce que je dessine ?",
+   "es": "Hoy dibujamos animales. ¿Con qué dibujo?",
+   "a": [
+    {
+     "r": "w10|libro"
+    },
+    {
+     "r": "w10|lápiz"
+    },
+    {
+     "r": "w03|manzana"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Oui, avec un crayon ! Je dessine un renard.",
+    "es": "¡Sí, con un lápiz! Dibujo un zorro."
+   },
+   "no": {
+    "say": "Avec un crayon ! Je dessine un renard.",
+    "es": "¡Con un lápiz! Dibujo un zorro."
+   }
+  },
+  {
+   "say": "À midi, je mange un sandwich au fromage et une pomme.",
+   "es": "A mediodía, me como un bocadillo de queso y una manzana.",
+   "k": [
+    {
+     "t": "sandwich",
+     "r": "w03|sándwich, bocadillo"
+    },
+    {
+     "t": "fromage",
+     "r": "w03|queso"
+    },
+    {
+     "t": "pomme",
+     "r": "w03|manzana"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce qu'il y a dans mon sandwich ?",
+   "es": "¿Qué hay en mi bocadillo?",
+   "a": [
+    {
+     "r": "w03|queso"
+    },
+    {
+     "r": "w03|huevo"
+    },
+    {
+     "r": "w03|chocolate"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, du fromage ! Miam !",
+    "es": "¡Sí, queso! ¡Ñam!"
+   },
+   "no": {
+    "say": "Du fromage ! Miam !",
+    "es": "¡Queso! ¡Ñam!"
+   }
+  },
+  {
+   "say": "Et toi, qu'est-ce que tu préfères à l'école : les livres, la musique ou le sport ?",
+   "es": "Y tú, ¿qué es lo que más te gusta del colegio: los libros, la música o el deporte?",
+   "a": [
+    {
+     "r": "w10|libro",
+     "re": {
+      "say": "Les livres ! Moi aussi, j'adore les histoires !",
+      "es": "¡Los libros! ¡A mí también me encantan los cuentos!"
+     }
+    },
+    {
+     "r": "w13|música",
+     "re": {
+      "say": "La musique ! La, la, la !",
+      "es": "¡La música! ¡La, la, la!"
+     }
+    },
+    {
+     "r": "w13|deporte",
+     "re": {
+      "say": "Le sport ! On court, on saute !",
+      "es": "¡El deporte! ¡Corremos y saltamos!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Oh, la cloche ! Je retourne en classe. Au revoir !",
+   "es": "¡Oh, la campana! Vuelvo a clase. ¡Adiós!",
+   "k": [
+    {
+     "t": "cloche",
+     "r": "w04|campana, timbre"
+    },
+    {
+     "t": "classe",
+     "r": "w10|clase"
+    },
+    {
+     "t": "Au revoir",
+     "r": "w43|adiós|1"
+    }
+   ]
+  }
+ ]
+}

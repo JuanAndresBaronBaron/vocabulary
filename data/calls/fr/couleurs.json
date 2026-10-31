@@ -1,0 +1,194 @@
+{
+ "v": 1,
+ "id": "fr-couleurs",
+ "lang": "français",
+ "city": "París",
+ "t": "Los colores de París",
+ "lines": [
+  {
+   "say": "Allô ! C'est moi, Renard ! Je t'appelle de Paris.",
+   "es": "¡Hola! ¡Soy yo, Zorro! Te llamo desde París."
+  },
+  {
+   "say": "Aujourd'hui, je peins un tableau de Paris. J'ai beaucoup de couleurs !",
+   "es": "Hoy pinto un cuadro de París. ¡Tengo muchos colores!",
+   "k": [
+    {
+     "t": "tableau",
+     "r": "w13|cuadro, pintura"
+    },
+    {
+     "t": "couleurs",
+     "r": "w16|color"
+    }
+   ]
+  },
+  {
+   "say": "D'abord, je peins la tour Eiffel. Elle est marron.",
+   "es": "Primero, pinto la torre Eiffel. Es marrón.",
+   "k": [
+    {
+     "t": "peins",
+     "r": "w28|pintar"
+    },
+    {
+     "t": "tour",
+     "r": "w06|torre"
+    },
+    {
+     "t": "marron",
+     "r": "colores|Marrón/Café"
+    }
+   ]
+  },
+  {
+   "say": "De quelle couleur est la tour Eiffel ?",
+   "es": "¿De qué color es la torre Eiffel?",
+   "a": [
+    {
+     "r": "colores|Verde"
+    },
+    {
+     "r": "colores|Marrón/Café"
+    },
+    {
+     "r": "colores|Azul"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Oui, marron ! Une grande tour marron.",
+    "es": "¡Sí, marrón! Una torre grande y marrón."
+   },
+   "no": {
+    "say": "Elle est marron ! Une grande tour marron.",
+    "es": "¡Es marrón! Una torre grande y marrón."
+   }
+  },
+  {
+   "say": "Maintenant, je peins le ciel. Aujourd'hui, il est bleu, avec un grand soleil.",
+   "es": "Ahora pinto el cielo. Hoy está azul, con un sol grande.",
+   "k": [
+    {
+     "t": "ciel",
+     "r": "w09|cielo"
+    },
+    {
+     "t": "bleu",
+     "r": "colores|Azul"
+    },
+    {
+     "t": "soleil",
+     "r": "w09|sol"
+    }
+   ]
+  },
+  {
+   "say": "De quelle couleur est le soleil ?",
+   "es": "¿De qué color es el sol?",
+   "a": [
+    {
+     "r": "colores|Amarillo"
+    },
+    {
+     "r": "colores|Negro"
+    },
+    {
+     "r": "colores|Gris"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, jaune ! Un beau soleil jaune.",
+    "es": "¡Sí, amarillo! Un sol amarillo precioso."
+   },
+   "no": {
+    "say": "Il est jaune ! Un beau soleil jaune.",
+    "es": "¡Es amarillo! Un sol amarillo precioso."
+   }
+  },
+  {
+   "say": "Puis je peins des fleurs dans un parc. Elles sont rouges.",
+   "es": "Luego pinto flores en un parque. Son rojas.",
+   "k": [
+    {
+     "t": "fleurs",
+     "r": "w09|flor"
+    },
+    {
+     "t": "parc",
+     "r": "w06|parque"
+    },
+    {
+     "t": "rouges",
+     "r": "colores|Rojo"
+    }
+   ]
+  },
+  {
+   "say": "De quelle couleur sont les fleurs ?",
+   "es": "¿De qué color son las flores?",
+   "a": [
+    {
+     "r": "colores|Azul"
+    },
+    {
+     "r": "colores|Verde"
+    },
+    {
+     "r": "colores|Rojo"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Oui, rouges ! De jolies fleurs rouges.",
+    "es": "¡Sí, rojas! Unas flores rojas muy bonitas."
+   },
+   "no": {
+    "say": "Elles sont rouges ! De jolies fleurs rouges.",
+    "es": "¡Son rojas! Unas flores rojas muy bonitas."
+   }
+  },
+  {
+   "say": "Et toi, quelle est ta couleur préférée ?",
+   "es": "Y tú, ¿cuál es tu color favorito?",
+   "a": [
+    {
+     "r": "colores|Azul",
+     "re": {
+      "say": "Le bleu ! Comme la mer. C'est joli !",
+      "es": "¡El azul! Como el mar. ¡Qué bonito!"
+     }
+    },
+    {
+     "r": "colores|Verde",
+     "re": {
+      "say": "Le vert ! Comme les arbres !",
+      "es": "¡El verde! ¡Como los árboles!"
+     }
+    },
+    {
+     "r": "colores|Naranja",
+     "re": {
+      "say": "L'orange ! Comme moi, le renard !",
+      "es": "¡El naranja! ¡Como yo, el zorro!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Mon tableau est fini. Merci ! Au revoir !",
+   "es": "Mi cuadro está terminado. ¡Gracias! ¡Adiós!",
+   "k": [
+    {
+     "t": "Merci",
+     "r": "w43|gracias"
+    },
+    {
+     "t": "Au revoir",
+     "r": "w43|adiós|1"
+    }
+   ]
+  }
+ ]
+}

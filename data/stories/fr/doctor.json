@@ -1,0 +1,593 @@
+{
+ "v": 1,
+ "id": "fr-doctor",
+ "lang": "français",
+ "n": 5,
+ "title": "Le renard va chez le médecin",
+ "es": "El zorro va al médico",
+ "short": "El médico",
+ "cover": "img/pj/oso.png",
+ "tint": "teal",
+ "words": [
+  {
+   "w": "le renard",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "malade",
+   "id": "w31|enfermo",
+   "img": "img/om_1F922.png"
+  },
+  {
+   "w": "la tête",
+   "id": "w02|cabeza"
+  },
+  {
+   "w": "le médecin, la médecin",
+   "id": "profesiones|Médico/a",
+   "img": "img/a043093157.png"
+  },
+  {
+   "w": "l'ours",
+   "id": "animales|Oso",
+   "img": "img/7b569303eb.png"
+  },
+  {
+   "w": "la bouche",
+   "id": "w02|boca",
+   "img": "img/om_1F444.png"
+  },
+  {
+   "w": "la dent",
+   "id": "w02|diente",
+   "img": "img/om_1F9B7.png"
+  },
+  {
+   "w": "l'oreille",
+   "id": "w02|oreja, oído",
+   "img": "img/om_1F442.png"
+  },
+  {
+   "w": "le nez",
+   "id": "w02|nariz",
+   "img": "img/om_1F443.png"
+  },
+  {
+   "w": "chaud, chaude",
+   "id": "w31|caliente, caluroso",
+   "img": "img/om_1F975.png"
+  },
+  {
+   "w": "le médicament",
+   "id": "w02|medicina",
+   "img": "img/om_1F48A.png"
+  },
+  {
+   "w": "le lit",
+   "id": "w04|cama",
+   "img": "img/om_1F6CF.png"
+  },
+  {
+   "w": "l'œil",
+   "id": "w02|ojo",
+   "img": "img/om_1F441.png"
+  }
+ ],
+ "gloss": {
+  "a mal": {
+   "es": "le duele",
+   "id": "w28|doler, hacer daño",
+   "ipa": "/a mal/",
+   "img": "img/om_1F915.png"
+  },
+  "apporte": {
+   "es": "trae",
+   "id": "w24|traer",
+   "ipa": "/apɔʁt/"
+  },
+  "au lit": {
+   "es": "en la cama",
+   "id": "w04|cama",
+   "ipa": "/o li/",
+   "img": "img/om_1F6CF.png"
+  },
+  "aujourd'hui": {
+   "es": "hoy",
+   "id": "w08|hoy",
+   "ipa": "/oʒuʁdɥi/"
+  },
+  "bon": {
+   "es": "bueno, rico",
+   "id": "w33|bueno",
+   "ipa": "/bɔ̃/",
+   "img": "img/om_1F44D.png"
+  },
+  "c'est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/sɛ/"
+  },
+  "chaude": {
+   "es": "caliente",
+   "id": "w31|caliente, caluroso",
+   "ipa": "/ʃod/",
+   "img": "img/om_1F975.png"
+  },
+  "chez": {
+   "es": "a casa de, al",
+   "ipa": "/ʃe/"
+  },
+  "dents": {
+   "es": "dientes",
+   "id": "w02|diente",
+   "ipa": "/dɑ̃/",
+   "img": "img/om_1F9B7.png"
+  },
+  "dit": {
+   "es": "dice",
+   "id": "w24|decir",
+   "ipa": "/di/"
+  },
+  "doit": {
+   "es": "tiene que",
+   "id": "w24|deber, tener que",
+   "ipa": "/dwa/"
+  },
+  "donne": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/dɔn/"
+  },
+  "est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɛ/"
+  },
+  "et": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/e/"
+  },
+  "ferme": {
+   "es": "cierra",
+   "id": "w28|cerrar",
+   "ipa": "/fɛʁm/"
+  },
+  "gentil": {
+   "es": "amable, bueno",
+   "id": "w32|simpático, amable",
+   "ipa": "/ʒɑ̃ti/",
+   "img": "img/om_263A.png"
+  },
+  "il": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/il/"
+  },
+  "jouer": {
+   "es": "jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ʒwe/",
+   "img": "img/om_1F3AE.png"
+  },
+  "la bouche": {
+   "es": "la boca",
+   "id": "w02|boca",
+   "ipa": "/la buʃ/",
+   "img": "img/om_1F444.png"
+  },
+  "la poule": {
+   "es": "la gallina",
+   "id": "animales|Gallina",
+   "ipa": "/la pul/",
+   "img": "img/f501d7335c.png"
+  },
+  "la soupe": {
+   "es": "la sopa",
+   "id": "w03|sopa",
+   "ipa": "/la sup/",
+   "img": "img/om_1F372.png"
+  },
+  "le chien": {
+   "es": "el perro",
+   "id": "animales|Perro",
+   "ipa": "/lə ʃjɛ̃/",
+   "img": "img/3e394d37a4.png"
+  },
+  "le lendemain": {
+   "es": "al día siguiente",
+   "ipa": "/lə lɑ̃dmɛ̃/"
+  },
+  "le médecin": {
+   "es": "el médico",
+   "id": "profesiones|Médico/a",
+   "ipa": "/lə medsɛ̃/",
+   "img": "img/a043093157.png"
+  },
+  "le renard": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/lə ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "le voir": {
+   "es": "a verlo",
+   "id": "w27|ver",
+   "ipa": "/lə vwaʁ/",
+   "img": "img/om_1F441.png"
+  },
+  "les yeux": {
+   "es": "los ojos",
+   "id": "w02|ojo",
+   "ipa": "/le zjø/",
+   "img": "img/om_1F441.png"
+  },
+  "lit": {
+   "es": "lee",
+   "id": "w28|leer",
+   "ipa": "/li/",
+   "img": "img/om_1F4D6.png"
+  },
+  "lui": {
+   "es": "le (a él)",
+   "id": "w41|él, lo, le",
+   "ipa": "/lɥi/"
+  },
+  "malade": {
+   "es": "enfermo",
+   "id": "w31|enfermo",
+   "ipa": "/malad/",
+   "img": "img/om_1F922.png"
+  },
+  "mange": {
+   "es": "come",
+   "id": "w28|comer",
+   "ipa": "/mɑ̃ʒ/",
+   "img": "img/om_1F374.png"
+  },
+  "miam": {
+   "es": "¡ñam! (¡qué rico!)",
+   "ipa": "/mjam/"
+  },
+  "nez": {
+   "es": "nariz",
+   "id": "w02|nariz",
+   "ipa": "/ne/",
+   "img": "img/om_1F443.png"
+  },
+  "oreilles": {
+   "es": "orejas",
+   "id": "w02|oreja, oído",
+   "ipa": "/ɔʁɛj/",
+   "img": "img/om_1F442.png"
+  },
+  "ou": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/u/"
+  },
+  "ours": {
+   "es": "oso",
+   "id": "animales|Oso",
+   "ipa": "/uʁs/",
+   "img": "img/7b569303eb.png"
+  },
+  "ouvre": {
+   "es": "abre",
+   "id": "w28|abrir",
+   "ipa": "/uvʁ/"
+  },
+  "peut": {
+   "es": "puede",
+   "id": "w24|poder",
+   "ipa": "/pø/"
+  },
+  "qui": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/ki/"
+  },
+  "regarde": {
+   "es": "mira",
+   "id": "w27|mirar, parecer",
+   "ipa": "/ʁəɡaʁd/",
+   "img": "img/om_1F440.png"
+  },
+  "rentre": {
+   "es": "vuelve",
+   "id": "w25|volver, devolver",
+   "ipa": "/ʁɑ̃tʁ/",
+   "img": "img/om_21A9.png"
+  },
+  "rester": {
+   "es": "quedarse",
+   "id": "w25|quedarse, alojarse",
+   "ipa": "/ʁɛste/"
+  },
+  "rouge": {
+   "es": "roja",
+   "id": "colores|Rojo",
+   "ipa": "/ʁuʒ/",
+   "img": "img/746cbfda58.png"
+  },
+  "s'il te plaît": {
+   "es": "por favor",
+   "id": "w43|por favor",
+   "ipa": "/sil tə plɛ/",
+   "img": "img/om_1F97A.png"
+  },
+  "sa": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/sa/"
+  },
+  "ses": {
+   "es": "sus",
+   "id": "w41|su (de él)",
+   "ipa": "/se/"
+  },
+  "son": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/sɔ̃/"
+  },
+  "toute": {
+   "es": "toda",
+   "id": "w41|todo, todos",
+   "ipa": "/tut/"
+  },
+  "très": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/tʁɛ/"
+  },
+  "tête": {
+   "es": "cabeza",
+   "id": "w02|cabeza",
+   "ipa": "/tɛt/"
+  },
+  "un grand": {
+   "es": "un… grande",
+   "id": "w31|grande",
+   "ipa": "/œ̃ ɡʁɑ̃/"
+  },
+  "un livre": {
+   "es": "un libro",
+   "id": "w10|libro",
+   "ipa": "/œ̃ livʁ/",
+   "img": "img/om_1F4D5.png"
+  },
+  "un médicament": {
+   "es": "una medicina",
+   "id": "w02|medicina",
+   "ipa": "/œ̃ medikamɑ̃/",
+   "img": "img/om_1F48A.png"
+  },
+  "une histoire": {
+   "es": "un cuento",
+   "id": "w13|historia, cuento",
+   "ipa": "/yn istwaʁ/",
+   "img": "img/om_1F4D6.png"
+  },
+  "une soupe": {
+   "es": "una sopa",
+   "id": "w03|sopa",
+   "ipa": "/yn sup/",
+   "img": "img/om_1F372.png"
+  },
+  "va": {
+   "es": "va",
+   "id": "w24|ir",
+   "ipa": "/va/"
+  },
+  "va bien": {
+   "es": "está bien",
+   "id": "w38|bien",
+   "ipa": "/va bjɛ̃/"
+  },
+  "vient": {
+   "es": "viene",
+   "id": "w24|venir",
+   "ipa": "/vjɛ̃/"
+  },
+  "à la maison": {
+   "es": "a casa, en casa",
+   "id": "w04|casa",
+   "ipa": "/a la mɛzɔ̃/",
+   "img": "img/om_1F3E0.png"
+  },
+  "à la tête": {
+   "es": "la cabeza",
+   "id": "w02|cabeza",
+   "ipa": "/a la tɛt/"
+  },
+  "à nouveau": {
+   "es": "otra vez",
+   "id": "w38|otra vez, de nuevo",
+   "ipa": "/a nuvo/",
+   "img": "img/om_1F501.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F912.png"
+   ],
+   "t": "Le renard est malade aujourd'hui. Il a mal à la tête.",
+   "es": "El zorro está enfermo hoy. Le duele la cabeza."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F9D1-200D-2695-FE0F.png"
+   ],
+   "t": "Il va chez le médecin. Le médecin est un grand ours très gentil.",
+   "es": "Va al médico. El médico es un oso grande muy simpático."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F444.png"
+   ],
+   "t": "« Ouvre la bouche, s'il te plaît ! » dit le médecin.",
+   "es": "«Abre la boca, por favor», dice el médico."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F9B7.png",
+    "img/om_1F442.png"
+   ],
+   "t": "Le médecin regarde ses dents et ses oreilles.",
+   "es": "El médico le mira los dientes y las orejas."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F321.png",
+    "img/om_1F443.png"
+   ],
+   "t": "Sa tête est chaude, et son nez est rouge.",
+   "es": "Tiene la cabeza caliente y la nariz roja."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F48A.png"
+   ],
+   "t": "Le médecin lui donne un médicament.",
+   "es": "El médico le da una medicina."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F6CF.png"
+   ],
+   "t": "Le renard rentre à la maison. Il doit rester au lit.",
+   "es": "El zorro se va a casa. Tiene que quedarse en la cama."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/pj/gallina.png",
+   "img/pj/perro.png"
+  ],
+  "t": "Le renard est au lit. Qui vient le voir ? La poule ou le chien ?",
+  "es": "El zorro está en la cama. ¿Quién viene a verlo? ¿La gallina o el perro?",
+  "opts": [
+   {
+    "key": "hen",
+    "t": "La poule",
+    "es": "La gallina",
+    "img": "img/pj/gallina.png",
+    "pages": [
+     {
+      "img": "img/pj/gallina.png",
+      "also": [
+       "img/om_1F372.png"
+      ],
+      "t": "La poule lui apporte une soupe chaude.",
+      "es": "La gallina le trae una sopa caliente."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F372.png"
+      ],
+      "t": "Le renard mange toute la soupe. Miam, c'est très bon !",
+      "es": "El zorro se come toda la sopa. ¡Ñam, qué rica!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F600.png"
+      ],
+      "t": "Le lendemain, le renard va bien. Il peut jouer à nouveau !",
+      "es": "Al día siguiente, el zorro está bien. ¡Ya puede jugar otra vez!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Qu'est-ce que la poule apporte ?",
+      "es": "¿Qué trae la gallina?",
+      "opts": [
+       "img/om_1F372.png",
+       "img/om_1F4D6.png",
+       "img/om_1F48A.png"
+      ],
+      "ok": 0
+     }
+    ]
+   },
+   {
+    "key": "dog",
+    "t": "Le chien",
+    "es": "El perro",
+    "img": "img/pj/perro.png",
+    "pages": [
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/om_1F4D6.png"
+      ],
+      "t": "Le chien lui apporte un livre.",
+      "es": "El perro le trae un libro."
+     },
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Le chien lui lit une histoire. Le renard ferme les yeux.",
+      "es": "El perro le lee un cuento. El zorro cierra los ojos."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F600.png"
+      ],
+      "t": "Le lendemain, le renard va bien. Il peut jouer à nouveau !",
+      "es": "Al día siguiente, el zorro está bien. ¡Ya puede jugar otra vez!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Qu'est-ce que le chien apporte ?",
+      "es": "¿Qué trae el perro?",
+      "opts": [
+       "img/om_1F372.png",
+       "img/om_1F48A.png",
+       "img/om_1F4D6.png"
+      ],
+      "ok": 2
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "Qui est le médecin ?",
+   "es": "¿Quién es el médico?",
+   "opts": [
+    "img/pj/gallina.png",
+    "img/pj/oso.png",
+    "img/pj/zorro.png"
+   ],
+   "ok": 1
+  },
+  {
+   "t": "Qu'est-ce que le médecin donne au renard ?",
+   "es": "¿Qué le da el médico al zorro?",
+   "opts": [
+    "img/om_1F6CF.png",
+    "img/om_1F321.png",
+    "img/om_1F48A.png"
+   ],
+   "ok": 2
+  }
+ ]
+}

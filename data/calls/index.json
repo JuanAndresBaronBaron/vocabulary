@@ -27,6 +27,31 @@
     "id": "en-birthday",
     "f": "en/birthday.json",
     "t": "¡Un cumpleaños!"
+   },
+   {
+    "id": "en-colours",
+    "f": "en/colours.json",
+    "t": "Los colores de Londres"
+   },
+   {
+    "id": "en-body",
+    "f": "en/body.json",
+    "t": "Zorro va al médico"
+   },
+   {
+    "id": "en-clothes",
+    "f": "en/clothes.json",
+    "t": "La ropa de Zorro"
+   },
+   {
+    "id": "en-school",
+    "f": "en/school.json",
+    "t": "Zorro en el colegio"
+   },
+   {
+    "id": "en-halloween",
+    "f": "en/halloween.json",
+    "t": "¡Feliz Halloween!"
    }
   ]
  },
@@ -57,6 +82,31 @@
     "id": "fr-anniversaire",
     "f": "fr/anniversaire.json",
     "t": "¡El cumpleaños de Zorro!"
+   },
+   {
+    "id": "fr-couleurs",
+    "f": "fr/couleurs.json",
+    "t": "Los colores de París"
+   },
+   {
+    "id": "fr-corps",
+    "f": "fr/corps.json",
+    "t": "Zorro va al médico"
+   },
+   {
+    "id": "fr-vetements",
+    "f": "fr/vetements.json",
+    "t": "La ropa de Zorro"
+   },
+   {
+    "id": "fr-ecole",
+    "f": "fr/ecole.json",
+    "t": "Zorro en el colegio"
+   },
+   {
+    "id": "fr-halloween",
+    "f": "fr/halloween.json",
+    "t": "¡Feliz Halloween!"
    }
   ]
  },
@@ -87,6 +137,31 @@
     "id": "da-familie",
     "f": "da/familie.json",
     "t": "La familia de Zorro"
+   },
+   {
+    "id": "da-farver",
+    "f": "da/farver.json",
+    "t": "Los colores de Copenhague"
+   },
+   {
+    "id": "da-krop",
+    "f": "da/krop.json",
+    "t": "Zorro va al médico"
+   },
+   {
+    "id": "da-toej",
+    "f": "da/toej.json",
+    "t": "La ropa de Zorro"
+   },
+   {
+    "id": "da-skole",
+    "f": "da/skole.json",
+    "t": "Zorro en el colegio"
+   },
+   {
+    "id": "da-jul",
+    "f": "da/jul.json",
+    "t": "¡Feliz Navidad!"
    }
   ]
  }

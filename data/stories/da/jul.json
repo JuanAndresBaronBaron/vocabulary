@@ -1,0 +1,574 @@
+{
+ "v": 1,
+ "id": "da-jul",
+ "lang": "dansk",
+ "n": 8,
+ "title": "Ræven holder jul",
+ "es": "El zorro celebra la Navidad",
+ "short": "Navidad",
+ "cover": "img/pj/gato.png",
+ "tint": "green",
+ "words": [
+  {
+   "w": "en ræv",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "en sne",
+   "id": "w09|nieve",
+   "img": "img/om_2744.png"
+  },
+  {
+   "w": "et træ",
+   "id": "w09|árbol",
+   "img": "img/om_1F333.png"
+  },
+  {
+   "w": "en stjerne",
+   "id": "w09|estrella",
+   "img": "img/om_2B50.png"
+  },
+  {
+   "w": "en kat",
+   "id": "animales|Gato",
+   "img": "img/ab47b70a6b.png"
+  },
+  {
+   "w": "et vindue",
+   "id": "w04|ventana",
+   "img": "img/om_1FA9F.png"
+  },
+  {
+   "w": "lille",
+   "id": "w31|pequeño"
+  },
+  {
+   "w": "en gave",
+   "id": "w13|regalo",
+   "img": "img/om_1F381.png"
+  },
+  {
+   "w": "glad",
+   "id": "w32|feliz",
+   "img": "img/om_1F600.png"
+  },
+  {
+   "w": "at danse",
+   "id": "w28|bailar",
+   "img": "img/om_1F483.png"
+  },
+  {
+   "w": "at synge",
+   "id": "w28|cantar",
+   "img": "img/om_1F9D1-200D-1F3A4.png"
+  },
+  {
+   "w": "en bold",
+   "id": "w13|pelota, balón",
+   "img": "img/om_1F3D0.png"
+  },
+  {
+   "w": "en bog",
+   "id": "w10|libro",
+   "img": "img/om_1F4D5.png"
+  },
+  {
+   "w": "at åbne",
+   "id": "w28|abrir"
+  }
+ ],
+ "gloss": {
+  "billeder": {
+   "es": "dibujos",
+   "id": "w13|imagen, cuadro, foto",
+   "ipa": "/ˈbeləðɐ/",
+   "img": "img/om_E142.png"
+  },
+  "bogen": {
+   "es": "el libro",
+   "id": "w10|libro",
+   "ipa": "/ˈbɔˀwən/",
+   "img": "img/om_1F4D5.png"
+  },
+  "bold": {
+   "es": "pelota",
+   "id": "w13|pelota, balón",
+   "ipa": "/ˈbʌlˀd/",
+   "img": "img/om_1F3D0.png"
+  },
+  "danser": {
+   "es": "bailan",
+   "id": "w28|bailar",
+   "ipa": "/ˈdansɐ/",
+   "img": "img/om_1F483.png"
+  },
+  "der er": {
+   "es": "hay",
+   "ipa": "/dɛɐ̯ ˈæɐ̯/"
+  },
+  "det er": {
+   "es": "es, está, hace",
+   "id": "w24|ser, estar",
+   "ipa": "/de ˈæɐ̯/"
+  },
+  "eller": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ˈɛlɐ/"
+  },
+  "en": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/en/"
+  },
+  "en bog": {
+   "es": "un libro",
+   "id": "w10|libro",
+   "ipa": "/ˈbɔˀw/",
+   "img": "img/om_1F4D5.png"
+  },
+  "en bold": {
+   "es": "una pelota",
+   "id": "w13|pelota, balón",
+   "ipa": "/en ˈbʌlˀd/",
+   "img": "img/om_1F3D0.png"
+  },
+  "en gave": {
+   "es": "un regalo",
+   "id": "w13|regalo",
+   "ipa": "/ˈgæːvə/",
+   "img": "img/om_1F381.png"
+  },
+  "en skål": {
+   "es": "un bol",
+   "id": "w03|cuenco, bol",
+   "ipa": "/en ˈsɡɔˀl/",
+   "img": "img/om_1F963.png"
+  },
+  "en stjerne": {
+   "es": "una estrella",
+   "id": "w09|estrella",
+   "ipa": "/ˈsdjæɐ̯nə/",
+   "img": "img/om_2B50.png"
+  },
+  "er": {
+   "es": "es, está, son",
+   "id": "w24|ser, estar",
+   "ipa": "/ˈæɐ̯/"
+  },
+  "er der": {
+   "es": "hay",
+   "ipa": "/æɐ̯ ˈdɛɐ̯/"
+  },
+  "et": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ed/"
+  },
+  "gaven": {
+   "es": "el regalo",
+   "id": "w13|regalo",
+   "ipa": "/ˈɡæːvən/",
+   "img": "img/om_1F381.png"
+  },
+  "giver": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/ˈɡiːɐ/"
+  },
+  "glad": {
+   "es": "contento, feliz",
+   "id": "w32|feliz",
+   "ipa": "/ˈglað/",
+   "img": "img/om_1F600.png"
+  },
+  "glædelig jul": {
+   "es": "¡feliz Navidad!",
+   "ipa": "/ˈɡlɛːðəli ˈjuˀl/"
+  },
+  "han": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/ˈhan/"
+  },
+  "har": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/ˈhɑː/"
+  },
+  "holder jul": {
+   "es": "celebra la Navidad",
+   "ipa": "/ˈhʌlɐ ˈjuˀl/"
+  },
+  "hvad": {
+   "es": "qué",
+   "id": "w43|qué, lo que",
+   "ipa": "/ˈvað/",
+   "img": "img/om_2753.png"
+  },
+  "i gaven": {
+   "es": "en el regalo",
+   "id": "w13|regalo",
+   "ipa": "/i ˈɡæːvən/",
+   "img": "img/om_1F381.png"
+  },
+  "i sneen": {
+   "es": "en la nieve",
+   "id": "w09|nieve",
+   "ipa": "/i ˈsneˀən/",
+   "img": "img/om_2744.png"
+  },
+  "ind ad": {
+   "es": "hacia dentro, por",
+   "id": "w40|en, dentro de (movimiento)",
+   "ipa": "/ˈenˀ að/"
+  },
+  "jul": {
+   "es": "Navidad",
+   "ipa": "/ˈjuˀl/"
+  },
+  "juletræ": {
+   "es": "árbol de Navidad",
+   "id": "w09|árbol",
+   "ipa": "/ˈjuːləˌtʁɛˀ/",
+   "img": "img/season/christmas-tree.png"
+  },
+  "juletræet": {
+   "es": "el árbol de Navidad",
+   "id": "w09|árbol",
+   "ipa": "/ˈjuːləˌtʁɛˀəð/",
+   "img": "img/season/christmas-tree.png"
+  },
+  "katten": {
+   "es": "el gato",
+   "id": "animales|Gato",
+   "ipa": "/ˈkadən/",
+   "img": "img/ab47b70a6b.png"
+  },
+  "kigger": {
+   "es": "mira",
+   "id": "w27|mirar, parecer",
+   "ipa": "/ˈkigɐ/",
+   "img": "img/om_1F440.png"
+  },
+  "lille": {
+   "es": "pequeño",
+   "id": "w31|pequeño",
+   "ipa": "/ˈlilə/"
+  },
+  "lægger": {
+   "es": "deja, pone",
+   "id": "w24|poner",
+   "ipa": "/ˈlɛɡɐ/"
+  },
+  "læser": {
+   "es": "lee, leen",
+   "id": "w28|leer",
+   "ipa": "/ˈlɛːsɐ/",
+   "img": "img/om_1F4D6.png"
+  },
+  "med": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/ˈmɛð/"
+  },
+  "nisse": {
+   "es": "duende (de la Navidad danesa)",
+   "ipa": "/ˈnesə/",
+   "img": "img/season/elf.png"
+  },
+  "nissen": {
+   "es": "el duende",
+   "ipa": "/ˈnesən/",
+   "img": "img/season/elf.png"
+  },
+  "og": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ʌ/"
+  },
+  "om": {
+   "es": "alrededor de",
+   "id": "w40|alrededor de",
+   "ipa": "/ʌm/"
+  },
+  "på gården": {
+   "es": "en la granja",
+   "id": "w09|granja",
+   "ipa": "/pɔ ˈɡɒˀn/"
+  },
+  "på toppen": {
+   "es": "en lo alto (del árbol)",
+   "ipa": "/pɔ ˈtʌbən/"
+  },
+  "risengrød": {
+   "es": "arroz con leche",
+   "id": "w03|arroz",
+   "ipa": "/ˈʁiːsənˌɡʁœðˀ/",
+   "img": "img/om_1F35A.png"
+  },
+  "ræven": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ˈʁɛwˀən/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "rød": {
+   "es": "rojo, roja",
+   "id": "colores|Rojo",
+   "ipa": "/ʁøðˀ/",
+   "img": "img/746cbfda58.png"
+  },
+  "sammen": {
+   "es": "juntos",
+   "id": "w38|juntos",
+   "ipa": "/ˈsamən/",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  "sne": {
+   "es": "nieve",
+   "id": "w09|nieve",
+   "ipa": "/ˈsneˀ/",
+   "img": "img/om_2744.png"
+  },
+  "spiller bold": {
+   "es": "juegan a la pelota",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ˈsbelɐ ˈbʌlˀd/",
+   "img": "img/om_1F3AE.png"
+  },
+  "stort": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/ˈsdoɐ̯ˀd/"
+  },
+  "synger": {
+   "es": "cantan",
+   "id": "w28|cantar",
+   "ipa": "/ˈsøŋɐ/",
+   "img": "img/om_1F9D1-200D-1F3A4.png"
+  },
+  "sætter": {
+   "es": "pone",
+   "id": "w24|poner",
+   "ipa": "/ˈsɛdɐ/"
+  },
+  "tak": {
+   "es": "gracias",
+   "id": "w43|gracias",
+   "ipa": "/ˈtag/",
+   "img": "img/om_1F64F.png"
+  },
+  "træet": {
+   "es": "el árbol",
+   "id": "w09|árbol",
+   "ipa": "/ˈtʁɛˀəð/",
+   "img": "img/om_1F333.png"
+  },
+  "under": {
+   "es": "debajo de",
+   "id": "w40|debajo de",
+   "ipa": "/ˈɔnɐ/",
+   "img": "img/om_2B07.png"
+  },
+  "vennerne": {
+   "es": "los amigos",
+   "id": "w01|amigo",
+   "ipa": "/ˈvɛnɐnə/",
+   "img": "img/om_1FAC2.png"
+  },
+  "vinduet": {
+   "es": "la ventana",
+   "id": "w04|ventana",
+   "ipa": "/ˈvenduəð/",
+   "img": "img/om_1FA9F.png"
+  },
+  "åbner": {
+   "es": "abre",
+   "id": "w28|abrir",
+   "ipa": "/ˈɔːbnɐ/"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/season/christmas-tree.png",
+   "also": [
+    "img/om_2744.png"
+   ],
+   "t": "Det er jul. Der er sne på gården.",
+   "es": "Es Navidad. Hay nieve en la granja."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/season/christmas-tree.png"
+   ],
+   "t": "Ræven har et stort juletræ.",
+   "es": "El zorro tiene un árbol de Navidad grande."
+  },
+  {
+   "img": "img/pj/gato.png",
+   "also": [
+    "img/om_2B50.png"
+   ],
+   "t": "Katten sætter en stjerne på toppen.",
+   "es": "El gato pone una estrella en lo alto."
+  },
+  {
+   "img": "img/season/elf.png",
+   "also": [
+    "img/om_1FA9F.png"
+   ],
+   "t": "En lille nisse kigger ind ad vinduet.",
+   "es": "Un pequeño duende mira por la ventana."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F963.png",
+    "img/om_1F35A.png"
+   ],
+   "t": "Ræven giver nissen en skål risengrød.",
+   "es": "El zorro le da al duende un bol de arroz con leche."
+  },
+  {
+   "img": "img/season/elf.png",
+   "also": [
+    "img/om_1F381.png"
+   ],
+   "t": "Nissen er glad. Han lægger en gave under træet.",
+   "es": "El duende está contento. Deja un regalo debajo del árbol."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/pj/gato.png",
+    "img/season/christmas-tree.png"
+   ],
+   "t": "Vennerne danser om juletræet og synger.",
+   "es": "Los amigos bailan alrededor del árbol de Navidad y cantan."
+  }
+ ],
+ "choice": {
+  "img": "img/om_1F381.png",
+  "also": [
+   "img/pj/zorro.png"
+  ],
+  "t": "Hvad er der i gaven? En bold eller en bog?",
+  "es": "¿Qué hay en el regalo? ¿Una pelota o un libro?",
+  "opts": [
+   {
+    "key": "ball",
+    "t": "En bold",
+    "es": "Una pelota",
+    "img": "img/om_1F3D0.png",
+    "pages": [
+     {
+      "img": "img/om_1F3D0.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Ræven åbner gaven. Det er en rød bold!",
+      "es": "El zorro abre el regalo. ¡Es una pelota roja!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/gato.png",
+       "img/om_1F3D0.png"
+      ],
+      "t": "Ræven og katten spiller bold i sneen.",
+      "es": "El zorro y el gato juegan a la pelota en la nieve."
+     },
+     {
+      "img": "img/season/elf.png",
+      "also": [
+       "img/om_2B50.png"
+      ],
+      "t": "Tak, lille nisse! Glædelig jul!",
+      "es": "¡Gracias, pequeño duende! ¡Feliz Navidad!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Hvad er der i gaven?",
+      "es": "¿Qué hay en el regalo?",
+      "opts": [
+       "img/om_1F4D5.png",
+       "img/om_1F3D0.png",
+       "img/om_2B50.png"
+      ],
+      "ok": 1
+     }
+    ]
+   },
+   {
+    "key": "book",
+    "t": "En bog",
+    "es": "Un libro",
+    "img": "img/om_1F4D5.png",
+    "pages": [
+     {
+      "img": "img/om_1F4D5.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Ræven åbner gaven. Det er en bog med billeder!",
+      "es": "El zorro abre el regalo. ¡Es un libro con dibujos!"
+     },
+     {
+      "img": "img/pj/gato.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Katten og ræven læser bogen sammen.",
+      "es": "El gato y el zorro leen el libro juntos."
+     },
+     {
+      "img": "img/season/elf.png",
+      "also": [
+       "img/om_2B50.png"
+      ],
+      "t": "Tak, lille nisse! Glædelig jul!",
+      "es": "¡Gracias, pequeño duende! ¡Feliz Navidad!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Hvad er der i gaven?",
+      "es": "¿Qué hay en el regalo?",
+      "opts": [
+       "img/om_1F4D5.png",
+       "img/om_1F3D0.png",
+       "img/om_1F381.png"
+      ],
+      "ok": 0
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "Hvad sætter katten på toppen?",
+   "es": "¿Qué pone el gato en lo alto del árbol?",
+   "opts": [
+    "img/om_2B50.png",
+    "img/om_2744.png",
+    "img/om_1F381.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Hvem kigger ind ad vinduet?",
+   "es": "¿Quién mira por la ventana?",
+   "opts": [
+    "img/pj/gato.png",
+    "img/pj/zorro.png",
+    "img/season/elf.png"
+   ],
+   "ok": 2
+  }
+ ]
+}

@@ -1,0 +1,626 @@
+{
+ "v": 1,
+ "id": "da-snow",
+ "lang": "dansk",
+ "n": 6,
+ "title": "Ræven leger i sneen",
+ "es": "El zorro juega en la nieve",
+ "short": "La nieve",
+ "cover": "img/pj/conejo.png",
+ "tint": "blue",
+ "words": [
+  {
+   "w": "en vinter",
+   "id": "w08|invierno",
+   "img": "img/om_2744.png"
+  },
+  {
+   "w": "en sne",
+   "id": "w09|nieve",
+   "img": "img/om_2744.png"
+  },
+  {
+   "w": "kold",
+   "id": "w31|frío",
+   "img": "img/om_1F976.png"
+  },
+  {
+   "w": "en T-shirt",
+   "id": "w05|camiseta",
+   "img": "img/om_1F455.png"
+  },
+  {
+   "w": "en frakke",
+   "id": "w05|abrigo",
+   "img": "img/om_1F9E5.png"
+  },
+  {
+   "w": "en sok",
+   "id": "w05|calcetín",
+   "img": "img/om_1F9E6.png"
+  },
+  {
+   "w": "en støvle",
+   "id": "w05|bota",
+   "img": "img/om_1F462.png"
+  },
+  {
+   "w": "en fod",
+   "id": "w02|pie",
+   "img": "img/om_1F9B6.png"
+  },
+  {
+   "w": "en hånd",
+   "id": "w02|mano",
+   "img": "img/om_270B.png"
+  },
+  {
+   "w": "en kanin",
+   "id": "animales|Conejo",
+   "img": "img/e096b975fd.png"
+  },
+  {
+   "w": "varm",
+   "id": "w31|caliente, caluroso",
+   "img": "img/om_1F975.png"
+  }
+ ],
+ "gloss": {
+  "bakke": {
+   "es": "colina",
+   "id": "w09|colina",
+   "ipa": "/ˈbagə/"
+  },
+  "brrr": {
+   "es": "¡brrr! (¡qué frío!)",
+   "ipa": "/bʁː/"
+  },
+  "chokolade": {
+   "es": "chocolate",
+   "id": "w03|chocolate",
+   "ipa": "/ɕogoˈlæːðə/",
+   "img": "img/om_1F36B.png"
+  },
+  "de": {
+   "es": "ellos",
+   "id": "w41|ellos, ellas",
+   "ipa": "/ˈdi/"
+  },
+  "der er": {
+   "es": "hay",
+   "ipa": "/dɛɐ̯ ˈæɐ̯/"
+  },
+  "derhjemme": {
+   "es": "en casa",
+   "id": "w04|casa, hogar",
+   "ipa": "/dɛɐ̯ˈjɛmə/",
+   "img": "img/om_1F3E1.png"
+  },
+  "det er": {
+   "es": "es, está, hace",
+   "id": "w24|ser, estar",
+   "ipa": "/de ˈæɐ̯/"
+  },
+  "drikker": {
+   "es": "beben",
+   "id": "w28|beber",
+   "ipa": "/ˈdʁegɐ/",
+   "img": "img/om_1F964.png"
+  },
+  "eller": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ˈɛlɐ/"
+  },
+  "en": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/en/"
+  },
+  "en gulerod": {
+   "es": "una zanahoria",
+   "id": "w03|zanahoria",
+   "ipa": "/ˈguləˌʁoðˀ/",
+   "img": "img/om_1F955.png"
+  },
+  "en kælk": {
+   "es": "un trineo",
+   "ipa": "/en ˈkɛlˀɡ/",
+   "img": "img/season/sledge.png"
+  },
+  "en snemand": {
+   "es": "un muñeco de nieve",
+   "ipa": "/en ˈsneˌmanˀ/",
+   "img": "img/season/snowman.png"
+  },
+  "en t-shirt": {
+   "es": "una camiseta",
+   "id": "w05|camiseta",
+   "ipa": "/ˈtiːˌɕœːd/",
+   "img": "img/om_1F455.png"
+  },
+  "er": {
+   "es": "es, está, son",
+   "id": "w24|ser, estar",
+   "ipa": "/ˈæɐ̯/"
+  },
+  "et halstørklæde": {
+   "es": "una bufanda",
+   "ipa": "/ed ˈhalsˌtœɐ̯klɛːðə/",
+   "img": "img/season/scarf.png"
+  },
+  "for": {
+   "es": "demasiado",
+   "id": "w38|también, demasiado",
+   "ipa": "/fʌ/"
+  },
+  "frakke": {
+   "es": "abrigo",
+   "id": "w05|abrigo",
+   "ipa": "/ˈfʁagə/",
+   "img": "img/om_1F9E5.png"
+  },
+  "fryser": {
+   "es": "tiene frío",
+   "id": "w31|frío",
+   "ipa": "/ˈfʁyːsɐ/",
+   "img": "img/om_1F976.png"
+  },
+  "giver": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/ˈɡiːɐ/"
+  },
+  "går op ad": {
+   "es": "suben por",
+   "id": "w38|arriba",
+   "ipa": "/ɡɔˀ ˈʌb að/",
+   "img": "img/om_2B06.png"
+  },
+  "halstørklæde": {
+   "es": "bufanda",
+   "ipa": "/ˈhalsˌtœɐ̯klɛːðə/",
+   "img": "img/season/scarf.png"
+  },
+  "han": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/ˈhan/"
+  },
+  "handsker": {
+   "es": "guantes",
+   "id": "w05|guante",
+   "ipa": "/ˈhansgɐ/",
+   "img": "img/om_1F9E4.png"
+  },
+  "hans": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/ˈhanˀs/"
+  },
+  "har": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/ˈhɑː/"
+  },
+  "hurtigt": {
+   "es": "rápido",
+   "id": "w38|rápidamente",
+   "ipa": "/ˈhuɐ̯dit/"
+  },
+  "hvad": {
+   "es": "qué",
+   "id": "w43|qué, lo que",
+   "ipa": "/ˈvað/",
+   "img": "img/om_2753.png"
+  },
+  "i": {
+   "es": "en",
+   "id": "w40|en, dentro de",
+   "ipa": "/ˈi/"
+  },
+  "juhuu": {
+   "es": "¡yupi!",
+   "ipa": "/juˈhuː/"
+  },
+  "kaninen": {
+   "es": "el conejo",
+   "id": "animales|Conejo",
+   "ipa": "/kaˈniˀnən/",
+   "img": "img/e096b975fd.png"
+  },
+  "koldt": {
+   "es": "frío",
+   "id": "w31|frío",
+   "ipa": "/ˈkʌlˀd/",
+   "img": "img/om_1F976.png"
+  },
+  "kælken": {
+   "es": "el trineo",
+   "ipa": "/ˈkɛlˀɡən/",
+   "img": "img/season/sledge.png"
+  },
+  "kører": {
+   "es": "van (en trineo)",
+   "id": "w25|conducir",
+   "ipa": "/ˈkøːɐ/",
+   "img": "img/om_1F697.png"
+  },
+  "laver": {
+   "es": "hacen",
+   "id": "w24|hacer, fabricar",
+   "ipa": "/ˈlæːvɐ/"
+  },
+  "lege": {
+   "es": "jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ˈlɑjə/",
+   "img": "img/om_1F3AE.png"
+  },
+  "leger": {
+   "es": "juega",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ˈlɑjɐ/",
+   "img": "img/om_1F3AE.png"
+  },
+  "med": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/ˈmɛð/"
+  },
+  "meget": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/ˈmɑːəð/"
+  },
+  "men": {
+   "es": "pero",
+   "id": "w42|pero",
+   "ipa": "/mɛn/"
+  },
+  "ned": {
+   "es": "abajo",
+   "id": "w38|abajo",
+   "ipa": "/ˈneð/",
+   "img": "img/om_2B07.png"
+  },
+  "nu": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/ˈnu/"
+  },
+  "næse": {
+   "es": "nariz",
+   "id": "w02|nariz",
+   "ipa": "/ˈnɛːsə/",
+   "img": "img/om_1F443.png"
+  },
+  "og": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ʌ/"
+  },
+  "også": {
+   "es": "también",
+   "id": "w38|también",
+   "ipa": "/ˈʌsə/"
+  },
+  "om halsen": {
+   "es": "alrededor del cuello",
+   "id": "w02|cuello",
+   "ipa": "/ʌm ˈhalsən/"
+  },
+  "på": {
+   "es": "en, sobre (tage … på: ponerse)",
+   "id": "w40|en, sobre",
+   "ipa": "/ˈpɔ/"
+  },
+  "på fødderne": {
+   "es": "en los pies",
+   "id": "w02|pie",
+   "ipa": "/pɔ ˈføðˀɐnə/",
+   "img": "img/om_1F9B6.png"
+  },
+  "på gården": {
+   "es": "en la granja",
+   "id": "w09|granja",
+   "ipa": "/pɔ ˈɡɒˀn/"
+  },
+  "på hænderne": {
+   "es": "en las manos",
+   "id": "w02|mano",
+   "ipa": "/pɔ ˈhɛnɐnə/",
+   "img": "img/om_270B.png"
+  },
+  "ræven": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ˈʁɛwˀən/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "sammen": {
+   "es": "juntos",
+   "id": "w38|juntos",
+   "ipa": "/ˈsamən/",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  "sit": {
+   "es": "su (suyo)",
+   "id": "w41|su (de él)",
+   "ipa": "/ˈsid/"
+  },
+  "sne": {
+   "es": "nieve",
+   "id": "w09|nieve",
+   "ipa": "/ˈsneˀ/",
+   "img": "img/om_2744.png"
+  },
+  "sneen": {
+   "es": "la nieve",
+   "id": "w09|nieve",
+   "ipa": "/ˈsneˀən/",
+   "img": "img/om_2744.png"
+  },
+  "snemand": {
+   "es": "muñeco de nieve",
+   "ipa": "/ˈsneˌmanˀ/",
+   "img": "img/season/snowman.png"
+  },
+  "snemanden": {
+   "es": "el muñeco de nieve",
+   "ipa": "/ˈsneˌmanˀən/",
+   "img": "img/season/snowman.png"
+  },
+  "sokker": {
+   "es": "calcetines",
+   "id": "w05|calcetín",
+   "ipa": "/ˈsʌgɐ/",
+   "img": "img/om_1F9E6.png"
+  },
+  "som": {
+   "es": "como, de",
+   "id": "w42|como, mientras",
+   "ipa": "/sʌm/"
+  },
+  "stor": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/ˈsdoɐ̯ˀ/"
+  },
+  "støvler": {
+   "es": "botas",
+   "id": "w05|bota",
+   "ipa": "/ˈsdøwlɐ/",
+   "img": "img/om_1F462.png"
+  },
+  "så": {
+   "es": "así que, luego",
+   "id": "w42|así que, por eso",
+   "ipa": "/ˈsʌ/"
+  },
+  "tager": {
+   "es": "se pone (tage … på: ponerse)",
+   "id": "w24|tomar, llevar",
+   "ipa": "/ˈtæˀɐ/"
+  },
+  "til": {
+   "es": "a, para",
+   "id": "w40|a, hacia, para",
+   "ipa": "/ˈtel/"
+  },
+  "udenfor": {
+   "es": "fuera",
+   "id": "w40|fuera de",
+   "ipa": "/ˈuːðənfʌ/"
+  },
+  "varm": {
+   "es": "calentito, caliente",
+   "id": "w31|caliente, caluroso",
+   "ipa": "/ˈvɑˀm/",
+   "img": "img/om_1F975.png"
+  },
+  "ven": {
+   "es": "amigo",
+   "id": "w01|amigo",
+   "ipa": "/ˈvɛn/",
+   "img": "img/om_1FAC2.png"
+  },
+  "vil": {
+   "es": "quiere",
+   "id": "w24|querer",
+   "ipa": "/ˈvel/"
+  },
+  "vil de": {
+   "es": "quieren",
+   "id": "w24|querer",
+   "ipa": "/vel di/"
+  },
+  "vinter": {
+   "es": "invierno",
+   "id": "w08|invierno",
+   "ipa": "/ˈvenˀdɐ/",
+   "img": "img/om_2744.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/om_2744.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "Det er vinter. Der er sne på gården!",
+   "es": "Es invierno. ¡Hay nieve en la granja!"
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F455.png"
+   ],
+   "t": "Ræven vil lege udenfor. Han tager en T-shirt på.",
+   "es": "El zorro quiere jugar fuera. Se pone una camiseta."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_2744.png"
+   ],
+   "t": "Brrr! Det er for koldt til en T-shirt.",
+   "es": "¡Brrr! Hace demasiado frío para una camiseta."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F9E5.png"
+   ],
+   "t": "Så tager han en varm frakke på.",
+   "es": "Así que se pone un abrigo calentito."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F9E6.png",
+    "img/om_1F462.png"
+   ],
+   "t": "Han tager sokker og støvler på fødderne.",
+   "es": "Se pone calcetines y botas en los pies."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F9E4.png",
+    "img/season/scarf.png"
+   ],
+   "t": "Så handsker på hænderne og et halstørklæde om halsen.",
+   "es": "Luego, guantes en las manos y una bufanda alrededor del cuello."
+  },
+  {
+   "img": "img/pj/conejo.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "Nu er ræven varm. Hans ven kaninen vil også lege!",
+   "es": "Ahora el zorro está calentito. ¡Su amigo el conejo también quiere jugar!"
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/season/snowman.png",
+   "img/season/sledge.png"
+  ],
+  "t": "Hvad vil de? En snemand eller kælken?",
+  "es": "¿Qué quieren? ¿Un muñeco de nieve o el trineo?",
+  "opts": [
+   {
+    "key": "snowman",
+    "t": "En snemand",
+    "es": "Un muñeco de nieve",
+    "img": "img/season/snowman.png",
+    "pages": [
+     {
+      "img": "img/season/snowman.png",
+      "also": [
+       "img/om_1F955.png"
+      ],
+      "t": "De laver en stor snemand med en gulerod som næse.",
+      "es": "Hacen un muñeco de nieve grande con una zanahoria de nariz."
+     },
+     {
+      "img": "img/season/snowman.png",
+      "also": [
+       "img/season/scarf.png"
+      ],
+      "t": "Ræven giver snemanden sit halstørklæde.",
+      "es": "El zorro le da su bufanda al muñeco de nieve."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/conejo.png"
+      ],
+      "t": "Nu er snemanden varm. Men ræven fryser!",
+      "es": "Ahora el muñeco de nieve está calentito. ¡Pero el zorro tiene frío!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Hvad giver ræven snemanden?",
+      "es": "¿Qué le da el zorro al muñeco de nieve?",
+      "opts": [
+       "img/season/scarf.png",
+       "img/om_1F9E6.png",
+       "img/om_1F462.png"
+      ],
+      "ok": 0
+     }
+    ]
+   },
+   {
+    "key": "sledge",
+    "t": "Kælken",
+    "es": "El trineo",
+    "img": "img/season/sledge.png",
+    "pages": [
+     {
+      "img": "img/season/sledge.png",
+      "also": [
+       "img/pj/conejo.png"
+      ],
+      "t": "Kaninen har en kælk. De går op ad en stor bakke.",
+      "es": "El conejo tiene un trineo. Suben por una colina grande."
+     },
+     {
+      "img": "img/season/sledge.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Så kører de ned, meget hurtigt! Juhuu!",
+      "es": "Luego bajan, ¡muy rápido! ¡Yupi!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_2615.png"
+      ],
+      "t": "Derhjemme drikker de varm chokolade sammen.",
+      "es": "En casa, beben chocolate caliente juntos."
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Hvem har en kælk?",
+      "es": "¿Quién tiene un trineo?",
+      "opts": [
+       "img/pj/zorro.png",
+       "img/pj/conejo.png",
+       "img/season/snowman.png"
+      ],
+      "ok": 1
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "Hvad tager ræven om halsen?",
+   "es": "¿Qué se pone el zorro alrededor del cuello?",
+   "opts": [
+    "img/om_1F9E6.png",
+    "img/season/scarf.png",
+    "img/om_1F455.png"
+   ],
+   "ok": 1
+  },
+  {
+   "t": "Hvad tager ræven på fødderne?",
+   "es": "¿Qué se pone el zorro en los pies?",
+   "opts": [
+    "img/om_1F9E4.png",
+    "img/om_1F9E5.png",
+    "img/om_1F462.png"
+   ],
+   "ok": 2
+  }
+ ]
+}

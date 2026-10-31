@@ -1,0 +1,164 @@
+{
+ "v": 1,
+ "id": "fr-halloween",
+ "lang": "français",
+ "city": "París",
+ "t": "¡Feliz Halloween!",
+ "lines": [
+  {
+   "say": "Allô ! Joyeux Halloween ! C'est Renard, de Paris.",
+   "es": "¡Hola! ¡Feliz Halloween! Soy Zorro, desde París."
+  },
+  {
+   "say": "Ce soir, il fait très noir, et la lune est grande et ronde.",
+   "es": "Esta noche está muy oscuro y la luna es grande y redonda.",
+   "k": [
+    {
+     "t": "lune",
+     "r": "w09|luna"
+    },
+    {
+     "t": "ronde",
+     "r": "w31|redondo"
+    }
+   ]
+  },
+  {
+   "say": "J'ai une grosse citrouille. De quelle couleur est-elle ?",
+   "es": "Tengo una calabaza grande. ¿De qué color es?",
+   "a": [
+    {
+     "r": "colores|Azul"
+    },
+    {
+     "r": "colores|Naranja"
+    },
+    {
+     "r": "colores|Verde"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Oui, orange ! Une grosse citrouille orange.",
+    "es": "¡Sí, naranja! Una calabaza naranja grande."
+   },
+   "no": {
+    "say": "Elle est orange ! Une grosse citrouille orange.",
+    "es": "¡Es naranja! Una calabaza naranja grande."
+   }
+  },
+  {
+   "say": "Mon ami porte un costume blanc. Hou hou ! Il fait très peur !",
+   "es": "Mi amigo lleva un disfraz blanco. ¡Uuuh! ¡Da mucho miedo!",
+   "k": [
+    {
+     "t": "ami",
+     "r": "w01|amigo"
+    },
+    {
+     "t": "blanc",
+     "r": "colores|Blanco"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce que c'est, mon ami ?",
+   "es": "¿De qué va mi amigo?",
+   "a": [
+    {
+     "r": "animales|Gato"
+    },
+    {
+     "r": "w14|fantasma"
+    },
+    {
+     "r": "animales|Búho"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Oui, un fantôme ! Mais c'est juste le chien !",
+    "es": "¡Sí, un fantasma! ¡Pero solo es el perro!"
+   },
+   "no": {
+    "say": "C'est un fantôme ! Mais c'est juste le chien !",
+    "es": "¡Va de fantasma! ¡Pero solo es el perro!"
+   }
+  },
+  {
+   "say": "On frappe aux portes, et les gens nous donnent du chocolat.",
+   "es": "Llamamos a las puertas y la gente nos da chocolate.",
+   "k": [
+    {
+     "t": "portes",
+     "r": "w04|puerta"
+    },
+    {
+     "t": "chocolat",
+     "r": "w03|chocolate"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce que les gens nous donnent ?",
+   "es": "¿Qué nos da la gente?",
+   "a": [
+    {
+     "r": "w03|sopa"
+    },
+    {
+     "r": "w03|zanahoria"
+    },
+    {
+     "r": "w03|chocolate"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Oui, du chocolat ! Miam !",
+    "es": "¡Sí, chocolate! ¡Ñam!"
+   },
+   "no": {
+    "say": "Du chocolat ! Miam, miam !",
+    "es": "¡Chocolate! ¡Ñam, ñam!"
+   }
+  },
+  {
+   "say": "Et toi, en quoi est-ce que tu veux te déguiser ?",
+   "es": "Y tú, ¿de qué te quieres disfrazar?",
+   "a": [
+    {
+     "r": "w14|fantasma",
+     "re": {
+      "say": "Un fantôme ! Hou hou ! Ça fait peur !",
+      "es": "¡Un fantasma! ¡Uuuh! ¡Qué miedo!"
+     }
+    },
+    {
+     "r": "animales|Gato",
+     "re": {
+      "say": "Un chat noir ! Miaou !",
+      "es": "¡Un gato negro! ¡Miau!"
+     }
+    },
+    {
+     "r": "animales|Araña",
+     "re": {
+      "say": "Une araignée ! Huit pattes ! Génial !",
+      "es": "¡Una araña! ¡Ocho patas! ¡Genial!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Joyeux Halloween ! Au revoir !",
+   "es": "¡Feliz Halloween! ¡Adiós!",
+   "k": [
+    {
+     "t": "Au revoir",
+     "r": "w43|adiós|1"
+    }
+   ]
+  }
+ ]
+}

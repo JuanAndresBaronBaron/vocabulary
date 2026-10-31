@@ -1,0 +1,602 @@
+{
+ "v": 1,
+ "id": "en-halloween",
+ "lang": "english",
+ "n": 8,
+ "title": "Halloween on the Farm",
+ "es": "Halloween en la granja",
+ "short": "Halloween",
+ "cover": "img/pj/gato.png",
+ "tint": "green",
+ "words": [
+  {
+   "w": "night",
+   "id": "w08|noche",
+   "img": "img/om_1F303.png"
+  },
+  {
+   "w": "moon",
+   "id": "w09|luna",
+   "img": "img/om_1F319.png"
+  },
+  {
+   "w": "sky",
+   "id": "w09|cielo"
+  },
+  {
+   "w": "orange",
+   "id": "colores|Naranja",
+   "img": "img/a99bad73df.png"
+  },
+  {
+   "w": "cat",
+   "id": "animales|Gato",
+   "img": "img/ab47b70a6b.png"
+  },
+  {
+   "w": "black",
+   "id": "colores|Negro",
+   "img": "img/73c8a4092d.png"
+  },
+  {
+   "w": "white",
+   "id": "colores|Blanco",
+   "img": "img/458f834f61.png"
+  },
+  {
+   "w": "owl",
+   "id": "animales|Búho",
+   "img": "img/7a0d4a0582.png"
+  },
+  {
+   "w": "door",
+   "id": "w04|puerta",
+   "img": "img/om_1F6AA.png"
+  },
+  {
+   "w": "dark",
+   "id": "w31|oscuro",
+   "img": "img/om_1F311.png"
+  },
+  {
+   "w": "tree",
+   "id": "w09|árbol",
+   "img": "img/om_1F333.png"
+  },
+  {
+   "w": "ghost",
+   "id": "w14|fantasma",
+   "img": "img/om_1F47B.png"
+  },
+  {
+   "w": "dog",
+   "id": "animales|Perro",
+   "img": "img/3e394d37a4.png"
+  },
+  {
+   "w": "home",
+   "id": "w04|casa, hogar",
+   "img": "img/om_1F3E1.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ə/"
+  },
+  "all": {
+   "es": "todos",
+   "id": "w41|todo, todos",
+   "ipa": "/ɔːl/"
+  },
+  "and": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ænd/"
+  },
+  "at home": {
+   "es": "en casa",
+   "id": "w04|casa, hogar",
+   "ipa": "/ət ˈhəʊm/",
+   "img": "img/om_1F3E1.png"
+  },
+  "behind": {
+   "es": "detrás de",
+   "id": "w40|detrás de",
+   "ipa": "/bɪˈhaɪnd/"
+  },
+  "big": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/bɪɡ/"
+  },
+  "black": {
+   "es": "negro",
+   "id": "colores|Negro",
+   "ipa": "/blæk/",
+   "img": "img/73c8a4092d.png"
+  },
+  "boooo": {
+   "es": "¡buuu!",
+   "ipa": "/buː/"
+  },
+  "cat": {
+   "es": "gato",
+   "id": "animales|Gato",
+   "ipa": "/kæt/",
+   "img": "img/ab47b70a6b.png"
+  },
+  "dark": {
+   "es": "oscuro",
+   "id": "w31|oscuro",
+   "ipa": "/dɑːk/",
+   "img": "img/om_1F311.png"
+  },
+  "dog": {
+   "es": "perro",
+   "id": "animales|Perro",
+   "ipa": "/dɒɡ/",
+   "img": "img/3e394d37a4.png"
+  },
+  "door": {
+   "es": "puerta",
+   "id": "w04|puerta",
+   "ipa": "/dɔː/",
+   "img": "img/om_1F6AA.png"
+  },
+  "eat": {
+   "es": "comen",
+   "id": "w28|comer",
+   "ipa": "/iːt/",
+   "img": "img/om_1F374.png"
+  },
+  "farm": {
+   "es": "granja",
+   "id": "w09|granja",
+   "ipa": "/fɑːm/"
+  },
+  "fast": {
+   "es": "rápido",
+   "id": "w31|rápido",
+   "ipa": "/fɑːst/",
+   "img": "img/om_1F407.png"
+  },
+  "fox": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/fɒks/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "friend": {
+   "es": "amigo",
+   "id": "w01|amigo",
+   "ipa": "/frend/",
+   "img": "img/om_1FAC2.png"
+  },
+  "ghost": {
+   "es": "fantasma",
+   "id": "w14|fantasma",
+   "ipa": "/ɡəʊst/",
+   "img": "img/om_1F47B.png"
+  },
+  "gives": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/ɡɪvz/"
+  },
+  "halloween": {
+   "es": "Halloween (la noche del 31 de octubre)",
+   "ipa": "/ˌhæləʊˈiːn/"
+  },
+  "happy": {
+   "es": "feliz",
+   "id": "w32|feliz",
+   "ipa": "/ˈhæpi/",
+   "img": "img/om_1F600.png"
+  },
+  "has": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/hæz/"
+  },
+  "he": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/hiː/"
+  },
+  "his": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/hɪz/"
+  },
+  "home": {
+   "es": "a casa",
+   "id": "w04|casa, hogar",
+   "ipa": "/həʊm/",
+   "img": "img/om_1F3E1.png"
+  },
+  "in": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/ɪn/"
+  },
+  "is": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪz/"
+  },
+  "it is": {
+   "es": "es, está, hace",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪt ɪz/"
+  },
+  "knock on": {
+   "es": "llaman a",
+   "id": "w28|llamar (a la puerta), golpear",
+   "ipa": "/ˈnɒk ɒn/",
+   "img": "img/om_1F6AA.png"
+  },
+  "laugh": {
+   "es": "se ríen",
+   "id": "w28|reír",
+   "ipa": "/lɑːf/",
+   "img": "img/om_1F602.png"
+  },
+  "look": {
+   "es": "mirar, miran",
+   "id": "w27|mirar, parecer",
+   "ipa": "/lʊk/",
+   "img": "img/om_1F440.png"
+  },
+  "lots of": {
+   "es": "muchos",
+   "id": "w41|mucho (a lot)",
+   "ipa": "/ˈlɒts əv/"
+  },
+  "mmm": {
+   "es": "¡mmm! (¡qué rico!)",
+   "ipa": "/mː/"
+  },
+  "moon": {
+   "es": "luna",
+   "id": "w09|luna",
+   "ipa": "/muːn/",
+   "img": "img/om_1F319.png"
+  },
+  "night": {
+   "es": "noche",
+   "id": "w08|noche",
+   "ipa": "/naɪt/",
+   "img": "img/om_1F303.png"
+  },
+  "no": {
+   "es": "no",
+   "id": "w43|no",
+   "ipa": "/nəʊ/",
+   "img": "img/om_274C.png"
+  },
+  "noise": {
+   "es": "ruido",
+   "id": "w16|ruido",
+   "ipa": "/nɔɪz/",
+   "img": "img/om_1F4E2.png"
+  },
+  "not": {
+   "es": "no",
+   "id": "w38|no",
+   "ipa": "/nɒt/"
+  },
+  "oh": {
+   "es": "¡oh!",
+   "id": "w43|oh",
+   "ipa": "/əʊ/"
+  },
+  "on": {
+   "es": "en, sobre",
+   "id": "w40|en, sobre",
+   "ipa": "/ɒn/"
+  },
+  "opens": {
+   "es": "abre",
+   "id": "w28|abrir",
+   "ipa": "/ˈəʊpənz/"
+  },
+  "or": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ɔː/"
+  },
+  "orange": {
+   "es": "naranja",
+   "id": "colores|Naranja",
+   "ipa": "/ˈɒrɪndʒ/",
+   "img": "img/a99bad73df.png"
+  },
+  "owl": {
+   "es": "búho",
+   "id": "animales|Búho",
+   "ipa": "/aʊl/",
+   "img": "img/7a0d4a0582.png"
+  },
+  "owl's": {
+   "es": "del búho",
+   "id": "animales|Búho",
+   "ipa": "/aʊlz/",
+   "img": "img/7a0d4a0582.png"
+  },
+  "pumpkin": {
+   "es": "calabaza",
+   "ipa": "/ˈpʌmpkɪn/",
+   "img": "img/season/pumpkin.png"
+  },
+  "run": {
+   "es": "correr, corren",
+   "id": "w25|correr",
+   "ipa": "/rʌn/",
+   "img": "img/om_1F3C3.png"
+  },
+  "share": {
+   "es": "comparten",
+   "id": "w28|compartir",
+   "ipa": "/ʃeə/"
+  },
+  "skeleton": {
+   "es": "esqueleto (disfraz)",
+   "ipa": "/ˈskelɪtn/",
+   "img": "img/season/skeleton.png"
+  },
+  "sky": {
+   "es": "cielo",
+   "id": "w09|cielo",
+   "ipa": "/skaɪ/"
+  },
+  "sweets": {
+   "es": "caramelos, chucherías",
+   "ipa": "/swiːts/",
+   "img": "img/season/sweets.png"
+  },
+  "the": {
+   "es": "el, la, los, las",
+   "id": "w41|el, la, los, las",
+   "ipa": "/ðə/"
+  },
+  "their": {
+   "es": "su, sus (de ellos)",
+   "id": "w41|su, sus (de ellos)",
+   "ipa": "/ðeə/"
+  },
+  "them": {
+   "es": "les, los",
+   "id": "w41|los, las, ellos",
+   "ipa": "/ðem/"
+  },
+  "then": {
+   "es": "luego",
+   "id": "w38|entonces, luego",
+   "ipa": "/ðen/"
+  },
+  "there is": {
+   "es": "hay",
+   "ipa": "/ðeər ɪz/"
+  },
+  "they": {
+   "es": "ellos, ellas",
+   "id": "w41|ellos, ellas",
+   "ipa": "/ðeɪ/"
+  },
+  "tree": {
+   "es": "árbol",
+   "id": "w09|árbol",
+   "ipa": "/triː/",
+   "img": "img/om_1F333.png"
+  },
+  "trick or treat": {
+   "es": "¡truco o trato!",
+   "ipa": "/ˌtrɪk ɔː ˈtriːt/"
+  },
+  "very": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/ˈveri/"
+  },
+  "walk": {
+   "es": "caminan",
+   "id": "w25|caminar",
+   "ipa": "/wɔːk/",
+   "img": "img/om_1F6B6.png"
+  },
+  "what a": {
+   "es": "¡qué…!",
+   "id": "w43|qué, lo que",
+   "ipa": "/ˈwɒt ə/",
+   "img": "img/om_2753.png"
+  },
+  "white": {
+   "es": "blanco",
+   "id": "colores|Blanco",
+   "ipa": "/waɪt/",
+   "img": "img/458f834f61.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/season/pumpkin.png",
+   "also": [
+    "img/om_1F319.png"
+   ],
+   "t": "It is Halloween night. The moon is in the sky.",
+   "es": "Es la noche de Halloween. La luna está en el cielo."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/season/pumpkin.png"
+   ],
+   "t": "The fox has a big orange pumpkin.",
+   "es": "El zorro tiene una calabaza naranja grande."
+  },
+  {
+   "img": "img/pj/gato.png",
+   "also": [
+    "img/season/skeleton.png"
+   ],
+   "t": "His friend the cat is a skeleton. He is black and white.",
+   "es": "Su amigo el gato va de esqueleto. Es negro y blanco."
+  },
+  {
+   "img": "img/om_1F6AA.png",
+   "also": [
+    "img/pj/zorro.png",
+    "img/pj/gato.png"
+   ],
+   "t": "They knock on the owl's door. Trick or treat!",
+   "es": "Llaman a la puerta del búho. ¡Truco o trato!"
+  },
+  {
+   "img": "img/pj/buho.png",
+   "also": [
+    "img/season/sweets.png"
+   ],
+   "t": "The owl opens the door. He gives them lots of sweets.",
+   "es": "El búho abre la puerta. Les da muchos caramelos."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/pj/gato.png"
+   ],
+   "t": "Then they walk home. It is very dark.",
+   "es": "Luego vuelven a casa andando. Está muy oscuro."
+  },
+  {
+   "img": "img/om_1F333.png",
+   "also": [
+    "img/om_1F47B.png"
+   ],
+   "t": "Oh! There is a noise behind a tree. Boooo!",
+   "es": "¡Oh! Hay un ruido detrás de un árbol. ¡Buuuu!"
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/pj/gato.png"
+  ],
+  "t": "Run home or look behind the tree?",
+  "es": "¿Correr a casa o mirar detrás del árbol?",
+  "opts": [
+   {
+    "key": "run",
+    "t": "Run home",
+    "es": "Correr a casa",
+    "img": "img/om_1F3C3.png",
+    "pages": [
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F3C3.png"
+      ],
+      "t": "The fox and the cat run home very fast.",
+      "es": "El zorro y el gato corren a casa muy rápido."
+     },
+     {
+      "img": "img/om_1F3E1.png",
+      "also": [
+       "img/season/sweets.png"
+      ],
+      "t": "At home, they eat their sweets. Mmm!",
+      "es": "En casa, se comen sus caramelos. ¡Mmm!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/gato.png"
+      ],
+      "t": "What a night! Happy Halloween!",
+      "es": "¡Qué noche! ¡Feliz Halloween!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Where do they eat their sweets?",
+      "es": "¿Dónde se comen los caramelos?",
+      "opts": [
+       "img/om_1F333.png",
+       "img/om_1F6AA.png",
+       "img/om_1F3E1.png"
+      ],
+      "ok": 2
+     }
+    ]
+   },
+   {
+    "key": "look",
+    "t": "Look",
+    "es": "Mirar",
+    "img": "img/om_1F440.png",
+    "pages": [
+     {
+      "img": "img/om_1F333.png",
+      "also": [
+       "img/om_1F47B.png"
+      ],
+      "t": "They look behind the tree. A ghost!",
+      "es": "Miran detrás del árbol. ¡Un fantasma!"
+     },
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/om_1F47B.png"
+      ],
+      "t": "No, it is not a ghost. It is the dog!",
+      "es": "No, no es un fantasma. ¡Es el perro!"
+     },
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/pj/zorro.png",
+       "img/pj/gato.png"
+      ],
+      "t": "They all laugh and share the sweets. Happy Halloween!",
+      "es": "Todos se ríen y comparten los caramelos. ¡Feliz Halloween!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Who is the ghost?",
+      "es": "¿Quién es el fantasma?",
+      "opts": [
+       "img/pj/buho.png",
+       "img/pj/perro.png",
+       "img/pj/gato.png"
+      ],
+      "ok": 1
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "What is the cat dressed as?",
+   "es": "¿De qué va disfrazado el gato?",
+   "opts": [
+    "img/om_1F47B.png",
+    "img/season/skeleton.png",
+    "img/season/pumpkin.png"
+   ],
+   "ok": 1
+  },
+  {
+   "t": "What does the owl give them?",
+   "es": "¿Qué les da el búho?",
+   "opts": [
+    "img/season/sweets.png",
+    "img/season/pumpkin.png",
+    "img/om_1F333.png"
+   ],
+   "ok": 0
+  }
+ ]
+}

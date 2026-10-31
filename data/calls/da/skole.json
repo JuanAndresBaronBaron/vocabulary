@@ -1,0 +1,182 @@
+{
+ "v": 1,
+ "id": "da-skole",
+ "lang": "dansk",
+ "city": "Copenhague",
+ "t": "Zorro en el colegio",
+ "lines": [
+  {
+   "say": "Hej! Det er Ræven! Jeg ringer fra min skole i København.",
+   "es": "¡Hola! ¡Soy Zorro! Te llamo desde mi colegio de Copenhague.",
+   "k": [
+    {
+     "t": "Hej",
+     "r": "w43|hola"
+    },
+    {
+     "t": "skole",
+     "r": "w10|escuela, colegio"
+    }
+   ]
+  },
+  {
+   "say": "Min lærer er meget sød. Hun er en klog ugle!",
+   "es": "Mi maestra es muy maja. ¡Es un búho muy listo!",
+   "k": [
+    {
+     "t": "lærer",
+     "r": "profesiones|Maestro/a"
+    },
+    {
+     "t": "klog",
+     "r": "w32|listo, inteligente"
+    }
+   ]
+  },
+  {
+   "say": "Hvem er min lærer?",
+   "es": "¿Quién es mi maestra?",
+   "a": [
+    {
+     "r": "animales|Gato"
+    },
+    {
+     "r": "animales|Búho"
+    },
+    {
+     "r": "animales|Perro"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Ja, en ugle! Hun ved alt.",
+    "es": "¡Sí, un búho! Lo sabe todo."
+   },
+   "no": {
+    "say": "Det er en ugle! Hun ved alt.",
+    "es": "¡Es un búho! Lo sabe todo."
+   }
+  },
+  {
+   "say": "I min taske har jeg en bog, en kuglepen og en blyant.",
+   "es": "En mi mochila tengo un libro, un bolígrafo y un lápiz.",
+   "k": [
+    {
+     "t": "taske",
+     "r": "w05|bolsa, bolso"
+    },
+    {
+     "t": "bog",
+     "r": "w10|libro"
+    },
+    {
+     "t": "blyant",
+     "r": "w10|lápiz"
+    }
+   ]
+  },
+  {
+   "say": "I dag tegner vi dyr. Hvad tegner jeg med?",
+   "es": "Hoy dibujamos animales. ¿Con qué dibujo?",
+   "a": [
+    {
+     "r": "w10|libro"
+    },
+    {
+     "r": "w03|manzana"
+    },
+    {
+     "r": "w10|lápiz"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Ja, med en blyant! Jeg tegner en ræv.",
+    "es": "¡Sí, con un lápiz! Dibujo un zorro."
+   },
+   "no": {
+    "say": "Med en blyant! Jeg tegner en ræv.",
+    "es": "¡Con un lápiz! Dibujo un zorro."
+   }
+  },
+  {
+   "say": "Til frokost har jeg en madpakke med rugbrød og et æble.",
+   "es": "Para comer llevo una fiambrera con pan de centeno y una manzana.",
+   "k": [
+    {
+     "t": "frokost",
+     "r": "w03|almuerzo, comida"
+    },
+    {
+     "t": "æble",
+     "r": "w03|manzana"
+    }
+   ]
+  },
+  {
+   "say": "Hvad har jeg i madpakken?",
+   "es": "¿Qué llevo en la fiambrera?",
+   "a": [
+    {
+     "r": "w03|manzana"
+    },
+    {
+     "r": "w03|chocolate"
+    },
+    {
+     "r": "w03|pastel, tarta"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, et æble! Og rugbrød, selvfølgelig.",
+    "es": "¡Sí, una manzana! Y pan de centeno, claro."
+   },
+   "no": {
+    "say": "Et æble! Og rugbrød, selvfølgelig.",
+    "es": "¡Una manzana! Y pan de centeno, claro."
+   }
+  },
+  {
+   "say": "Hvad kan du bedst lide i skolen: bøger, musik eller sport?",
+   "es": "¿Qué te gusta más del colegio: los libros, la música o el deporte?",
+   "a": [
+    {
+     "r": "w10|libro",
+     "re": {
+      "say": "Bøger! Også mig. Jeg elsker historier!",
+      "es": "¡Los libros! A mí también. ¡Me encantan los cuentos!"
+     }
+    },
+    {
+     "r": "w13|música",
+     "re": {
+      "say": "Musik! La, la, la!",
+      "es": "¡La música! ¡La, la, la!"
+     }
+    },
+    {
+     "r": "w13|deporte",
+     "re": {
+      "say": "Sport! Vi løber og hopper!",
+      "es": "¡El deporte! ¡Corremos y saltamos!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Åh, nu ringer klokken! Jeg skal tilbage til timen. Hej hej!",
+   "es": "¡Oh, suena el timbre! Tengo que volver a clase. ¡Adiós!",
+   "k": [
+    {
+     "t": "klokken",
+     "r": "w04|campana, timbre"
+    },
+    {
+     "t": "Hej hej",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

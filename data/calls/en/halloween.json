@@ -1,0 +1,186 @@
+{
+ "v": 1,
+ "id": "en-halloween",
+ "lang": "english",
+ "city": "Londres",
+ "t": "¡Feliz Halloween!",
+ "lines": [
+  {
+   "say": "Hello! Happy Halloween! It's Fox, calling from London.",
+   "es": "¡Hola! ¡Feliz Halloween! Soy Zorro y te llamo desde Londres.",
+   "k": [
+    {
+     "t": "Hello",
+     "r": "w43|hola"
+    },
+    {
+     "t": "Happy",
+     "r": "w32|feliz"
+    }
+   ]
+  },
+  {
+   "say": "Tonight it's very dark, and the moon is big and round.",
+   "es": "Esta noche está muy oscuro y la luna es grande y redonda.",
+   "k": [
+    {
+     "t": "dark",
+     "r": "w31|oscuro"
+    },
+    {
+     "t": "moon",
+     "r": "w09|luna"
+    },
+    {
+     "t": "round",
+     "r": "w31|redondo"
+    }
+   ]
+  },
+  {
+   "say": "I've got a big pumpkin. What colour is it?",
+   "es": "Tengo una calabaza grande. ¿De qué color es?",
+   "a": [
+    {
+     "r": "colores|Azul"
+    },
+    {
+     "r": "colores|Naranja"
+    },
+    {
+     "r": "colores|Verde"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Yes, orange! A big orange pumpkin.",
+    "es": "¡Sí, naranja! Una calabaza naranja grande."
+   },
+   "no": {
+    "say": "It's orange! A big orange pumpkin.",
+    "es": "¡Es naranja! Una calabaza naranja grande."
+   }
+  },
+  {
+   "say": "My friend is wearing a white costume. Woooo! He's very scary!",
+   "es": "Mi amigo lleva un disfraz blanco. ¡Uuuh! ¡Da mucho miedo!",
+   "k": [
+    {
+     "t": "friend",
+     "r": "w01|amigo"
+    },
+    {
+     "t": "white",
+     "r": "colores|Blanco"
+    },
+    {
+     "t": "scary",
+     "r": "w33|aterrador, que da miedo"
+    }
+   ]
+  },
+  {
+   "say": "What is my friend?",
+   "es": "¿De qué va mi amigo?",
+   "a": [
+    {
+     "r": "animales|Gato"
+    },
+    {
+     "r": "w14|fantasma"
+    },
+    {
+     "r": "animales|Búho"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Yes, a ghost! But it's only the dog!",
+    "es": "¡Sí, un fantasma! ¡Pero solo es el perro!"
+   },
+   "no": {
+    "say": "He's a ghost! But it's only the dog!",
+    "es": "¡Va de fantasma! ¡Pero solo es el perro!"
+   }
+  },
+  {
+   "say": "We knock on doors, and people give us chocolate.",
+   "es": "Llamamos a las puertas y la gente nos da chocolate.",
+   "k": [
+    {
+     "t": "knock",
+     "r": "w28|llamar (a la puerta), golpear"
+    },
+    {
+     "t": "doors",
+     "r": "w04|puerta"
+    },
+    {
+     "t": "chocolate",
+     "r": "w03|chocolate"
+    }
+   ]
+  },
+  {
+   "say": "What do people give us?",
+   "es": "¿Qué nos da la gente?",
+   "a": [
+    {
+     "r": "w03|sopa"
+    },
+    {
+     "r": "w03|zanahoria"
+    },
+    {
+     "r": "w03|chocolate"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Yes, chocolate! Yummy!",
+    "es": "¡Sí, chocolate! ¡Qué rico!"
+   },
+   "no": {
+    "say": "Chocolate! Yummy, yummy!",
+    "es": "¡Chocolate! ¡Qué rico!"
+   }
+  },
+  {
+   "say": "And you? What do you want to be for Halloween?",
+   "es": "¿Y tú? ¿De qué te quieres disfrazar en Halloween?",
+   "a": [
+    {
+     "r": "w14|fantasma",
+     "re": {
+      "say": "A ghost! Woooo! Very scary!",
+      "es": "¡Un fantasma! ¡Uuuh! ¡Qué miedo!"
+     }
+    },
+    {
+     "r": "animales|Gato",
+     "re": {
+      "say": "A black cat! Miaow!",
+      "es": "¡Un gato negro! ¡Miau!"
+     }
+    },
+    {
+     "r": "animales|Araña",
+     "re": {
+      "say": "A spider! Eight legs! Brilliant!",
+      "es": "¡Una araña! ¡Ocho patas! ¡Genial!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Happy Halloween! Bye!",
+   "es": "¡Feliz Halloween! ¡Adiós!",
+   "k": [
+    {
+     "t": "Bye",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

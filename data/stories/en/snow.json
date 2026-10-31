@@ -1,0 +1,613 @@
+{
+ "v": 1,
+ "id": "en-snow",
+ "lang": "english",
+ "n": 6,
+ "title": "The Fox Plays in the Snow",
+ "es": "El zorro juega en la nieve",
+ "short": "La nieve",
+ "cover": "img/pj/conejo.png",
+ "tint": "blue",
+ "words": [
+  {
+   "w": "winter",
+   "id": "w08|invierno",
+   "img": "img/om_2744.png"
+  },
+  {
+   "w": "snow",
+   "id": "w09|nieve",
+   "img": "img/om_2744.png"
+  },
+  {
+   "w": "cold",
+   "id": "w31|frío",
+   "img": "img/om_1F976.png"
+  },
+  {
+   "w": "T-shirt",
+   "id": "w05|camiseta",
+   "img": "img/om_1F455.png"
+  },
+  {
+   "w": "coat",
+   "id": "w05|abrigo",
+   "img": "img/om_1F9E5.png"
+  },
+  {
+   "w": "sock",
+   "id": "w05|calcetín",
+   "img": "img/om_1F9E6.png"
+  },
+  {
+   "w": "boot",
+   "id": "w05|bota",
+   "img": "img/om_1F462.png"
+  },
+  {
+   "w": "foot",
+   "id": "w02|pie",
+   "img": "img/om_1F9B6.png"
+  },
+  {
+   "w": "glove",
+   "id": "w05|guante",
+   "img": "img/om_1F9E4.png"
+  },
+  {
+   "w": "hand",
+   "id": "w02|mano",
+   "img": "img/om_270B.png"
+  },
+  {
+   "w": "rabbit",
+   "id": "animales|Conejo",
+   "img": "img/e096b975fd.png"
+  },
+  {
+   "w": "warm",
+   "id": "w31|cálido, templado"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ə/"
+  },
+  "and": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ænd/"
+  },
+  "around": {
+   "es": "alrededor de",
+   "id": "w40|alrededor de",
+   "ipa": "/əˈraʊnd/"
+  },
+  "at home": {
+   "es": "en casa",
+   "id": "w04|casa, hogar",
+   "ipa": "/ət ˈhəʊm/",
+   "img": "img/om_1F3E1.png"
+  },
+  "big": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/bɪɡ/"
+  },
+  "boots": {
+   "es": "botas",
+   "id": "w05|bota",
+   "ipa": "/buːts/",
+   "img": "img/om_1F462.png"
+  },
+  "brrr": {
+   "es": "¡brrr! (¡qué frío!)",
+   "ipa": "/brː/"
+  },
+  "but": {
+   "es": "pero",
+   "id": "w42|pero",
+   "ipa": "/bʌt/"
+  },
+  "carrot": {
+   "es": "de zanahoria",
+   "id": "w03|zanahoria",
+   "ipa": "/ˈkærət/",
+   "img": "img/om_1F955.png"
+  },
+  "chocolate": {
+   "es": "chocolate",
+   "id": "w03|chocolate",
+   "ipa": "/ˈtʃɒklət/",
+   "img": "img/om_1F36B.png"
+  },
+  "coat": {
+   "es": "abrigo",
+   "id": "w05|abrigo",
+   "ipa": "/kəʊt/",
+   "img": "img/om_1F9E5.png"
+  },
+  "cold": {
+   "es": "frío",
+   "id": "w31|frío",
+   "ipa": "/kəʊld/",
+   "img": "img/om_1F976.png"
+  },
+  "comes": {
+   "es": "viene",
+   "id": "w24|venir",
+   "ipa": "/kʌmz/"
+  },
+  "do they want": {
+   "es": "quieren",
+   "id": "w24|querer",
+   "ipa": "/də ðeɪ ˈwɒnt/"
+  },
+  "down": {
+   "es": "abajo",
+   "id": "w38|abajo",
+   "ipa": "/daʊn/",
+   "img": "img/om_2B07.png"
+  },
+  "drink": {
+   "es": "beben",
+   "id": "w28|beber",
+   "ipa": "/drɪŋk/",
+   "img": "img/om_1F964.png"
+  },
+  "farm": {
+   "es": "granja",
+   "id": "w09|granja",
+   "ipa": "/fɑːm/"
+  },
+  "fast": {
+   "es": "rápido",
+   "id": "w31|rápido",
+   "ipa": "/fɑːst/",
+   "img": "img/om_1F407.png"
+  },
+  "feet": {
+   "es": "pies",
+   "id": "w02|pie",
+   "ipa": "/fiːt/",
+   "img": "img/om_1F9B6.png"
+  },
+  "for": {
+   "es": "para",
+   "id": "w40|para, por",
+   "ipa": "/fɔː/"
+  },
+  "fox": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/fɒks/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "friend": {
+   "es": "amigo",
+   "id": "w01|amigo",
+   "ipa": "/frend/",
+   "img": "img/om_1FAC2.png"
+  },
+  "gives": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/ɡɪvz/"
+  },
+  "gloves": {
+   "es": "guantes",
+   "id": "w05|guante",
+   "ipa": "/ɡlʌvz/",
+   "img": "img/om_1F9E4.png"
+  },
+  "go": {
+   "es": "van",
+   "id": "w24|ir",
+   "ipa": "/ɡəʊ/"
+  },
+  "go up": {
+   "es": "suben",
+   "id": "w38|arriba",
+   "ipa": "/ɡəʊ ˈʌp/",
+   "img": "img/om_2B06.png"
+  },
+  "hands": {
+   "es": "manos",
+   "id": "w02|mano",
+   "ipa": "/hændz/",
+   "img": "img/om_270B.png"
+  },
+  "has": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/hæz/"
+  },
+  "he": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/hiː/"
+  },
+  "hill": {
+   "es": "colina",
+   "id": "w09|colina",
+   "ipa": "/hɪl/"
+  },
+  "his": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/hɪz/"
+  },
+  "hot": {
+   "es": "caliente",
+   "id": "w31|caliente, caluroso",
+   "ipa": "/hɒt/",
+   "img": "img/om_1F975.png"
+  },
+  "in": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/ɪn/"
+  },
+  "is": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪz/"
+  },
+  "it is": {
+   "es": "es, está, hace",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪt ɪz/"
+  },
+  "make": {
+   "es": "hacen",
+   "id": "w24|hacer, fabricar",
+   "ipa": "/meɪk/"
+  },
+  "neck": {
+   "es": "cuello",
+   "id": "w02|cuello",
+   "ipa": "/nek/"
+  },
+  "nose": {
+   "es": "nariz",
+   "id": "w02|nariz",
+   "ipa": "/nəʊz/",
+   "img": "img/om_1F443.png"
+  },
+  "now": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/naʊ/"
+  },
+  "on": {
+   "es": "en, sobre",
+   "id": "w40|en, sobre",
+   "ipa": "/ɒn/"
+  },
+  "or": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ɔː/"
+  },
+  "outside": {
+   "es": "fuera",
+   "id": "w40|fuera de",
+   "ipa": "/ˌaʊtˈsaɪd/"
+  },
+  "plays": {
+   "es": "juega",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/pleɪz/",
+   "img": "img/om_1F3AE.png"
+  },
+  "puts": {
+   "es": "se pone",
+   "id": "w24|poner",
+   "ipa": "/pʊts/"
+  },
+  "puts on": {
+   "es": "se pone",
+   "id": "w24|poner",
+   "ipa": "/pʊts ˈɒn/"
+  },
+  "rabbit": {
+   "es": "conejo",
+   "id": "animales|Conejo",
+   "ipa": "/ˈræbɪt/",
+   "img": "img/e096b975fd.png"
+  },
+  "scarf": {
+   "es": "bufanda",
+   "ipa": "/skɑːf/",
+   "img": "img/season/scarf.png"
+  },
+  "sledge": {
+   "es": "trineo",
+   "ipa": "/sledʒ/",
+   "img": "img/season/sledge.png"
+  },
+  "snow": {
+   "es": "nieve",
+   "id": "w09|nieve",
+   "ipa": "/snəʊ/",
+   "img": "img/om_2744.png"
+  },
+  "snowman": {
+   "es": "muñeco de nieve",
+   "ipa": "/ˈsnəʊmæn/",
+   "img": "img/season/snowman.png"
+  },
+  "so": {
+   "es": "así que",
+   "id": "w42|así que, por eso",
+   "ipa": "/səʊ/"
+  },
+  "socks": {
+   "es": "calcetines",
+   "id": "w05|calcetín",
+   "ipa": "/sɒks/",
+   "img": "img/om_1F9E6.png"
+  },
+  "t-shirt": {
+   "es": "camiseta",
+   "id": "w05|camiseta",
+   "ipa": "/ˈtiː ʃɜːt/",
+   "img": "img/om_1F455.png"
+  },
+  "the": {
+   "es": "el, la, los, las",
+   "id": "w41|el, la, los, las",
+   "ipa": "/ðə/"
+  },
+  "then": {
+   "es": "luego",
+   "id": "w38|entonces, luego",
+   "ipa": "/ðen/"
+  },
+  "there is": {
+   "es": "hay",
+   "ipa": "/ðeər ɪz/"
+  },
+  "they": {
+   "es": "ellos, ellas",
+   "id": "w41|ellos, ellas",
+   "ipa": "/ðeɪ/"
+  },
+  "to play": {
+   "es": "jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/tə ˈpleɪ/",
+   "img": "img/om_1F3AE.png"
+  },
+  "together": {
+   "es": "juntos",
+   "id": "w38|juntos",
+   "ipa": "/təˈɡeðə/",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  "too": {
+   "es": "demasiado",
+   "id": "w38|también, demasiado",
+   "ipa": "/tuː/"
+  },
+  "very": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/ˈveri/"
+  },
+  "wants": {
+   "es": "quiere",
+   "id": "w24|querer",
+   "ipa": "/wɒnts/"
+  },
+  "warm": {
+   "es": "calentito",
+   "id": "w31|cálido, templado",
+   "ipa": "/wɔːm/"
+  },
+  "what": {
+   "es": "qué",
+   "id": "w43|qué, lo que",
+   "ipa": "/wɒt/",
+   "img": "img/om_2753.png"
+  },
+  "wheee": {
+   "es": "¡yupiii!",
+   "ipa": "/wiː/"
+  },
+  "winter": {
+   "es": "invierno",
+   "id": "w08|invierno",
+   "ipa": "/ˈwɪntə/",
+   "img": "img/om_2744.png"
+  },
+  "with": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/wɪð/"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/om_2744.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "It is winter. There is snow on the farm!",
+   "es": "Es invierno. ¡Hay nieve en la granja!"
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F455.png"
+   ],
+   "t": "The fox wants to play outside. He puts on a T-shirt.",
+   "es": "El zorro quiere jugar fuera. Se pone una camiseta."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_2744.png"
+   ],
+   "t": "Brrr! It is too cold for a T-shirt.",
+   "es": "¡Brrr! Hace demasiado frío para una camiseta."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F9E5.png"
+   ],
+   "t": "So he puts on a warm coat.",
+   "es": "Así que se pone un abrigo calentito."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F9E6.png",
+    "img/om_1F462.png"
+   ],
+   "t": "He puts socks and boots on his feet.",
+   "es": "Se pone calcetines y botas en los pies."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F9E4.png",
+    "img/season/scarf.png"
+   ],
+   "t": "Then gloves on his hands and a scarf around his neck.",
+   "es": "Luego, guantes en las manos y una bufanda alrededor del cuello."
+  },
+  {
+   "img": "img/pj/conejo.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "Now the fox is warm. His friend the rabbit comes to play!",
+   "es": "Ahora el zorro está calentito. ¡Su amigo el conejo viene a jugar!"
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/season/snowman.png",
+   "img/season/sledge.png"
+  ],
+  "t": "What do they want? A snowman or the sledge?",
+  "es": "¿Qué quieren? ¿Un muñeco de nieve o el trineo?",
+  "opts": [
+   {
+    "key": "snowman",
+    "t": "A snowman",
+    "es": "Un muñeco de nieve",
+    "img": "img/season/snowman.png",
+    "pages": [
+     {
+      "img": "img/season/snowman.png",
+      "also": [
+       "img/om_1F955.png"
+      ],
+      "t": "They make a big snowman with a carrot nose.",
+      "es": "Hacen un muñeco de nieve grande con una nariz de zanahoria."
+     },
+     {
+      "img": "img/season/snowman.png",
+      "also": [
+       "img/season/scarf.png"
+      ],
+      "t": "The fox gives the snowman his scarf.",
+      "es": "El zorro le da su bufanda al muñeco de nieve."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/conejo.png"
+      ],
+      "t": "Now the snowman is warm. But the fox is cold!",
+      "es": "Ahora el muñeco de nieve está calentito. ¡Pero el zorro tiene frío!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "What does the fox give the snowman?",
+      "es": "¿Qué le da el zorro al muñeco de nieve?",
+      "opts": [
+       "img/season/scarf.png",
+       "img/om_1F9E6.png",
+       "img/om_1F462.png"
+      ],
+      "ok": 0
+     }
+    ]
+   },
+   {
+    "key": "sledge",
+    "t": "The sledge",
+    "es": "El trineo",
+    "img": "img/season/sledge.png",
+    "pages": [
+     {
+      "img": "img/season/sledge.png",
+      "also": [
+       "img/pj/conejo.png"
+      ],
+      "t": "The rabbit has a sledge. They go up a big hill.",
+      "es": "El conejo tiene un trineo. Suben una colina grande."
+     },
+     {
+      "img": "img/season/sledge.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Then down they go, very fast! Wheee!",
+      "es": "Luego bajan, ¡muy rápido! ¡Yupiii!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_2615.png"
+      ],
+      "t": "At home, they drink hot chocolate together.",
+      "es": "En casa, beben chocolate caliente juntos."
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Who has a sledge?",
+      "es": "¿Quién tiene un trineo?",
+      "opts": [
+       "img/pj/zorro.png",
+       "img/pj/conejo.png",
+       "img/season/snowman.png"
+      ],
+      "ok": 1
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "What does the fox put around his neck?",
+   "es": "¿Qué se pone el zorro alrededor del cuello?",
+   "opts": [
+    "img/om_1F9E6.png",
+    "img/season/scarf.png",
+    "img/om_1F455.png"
+   ],
+   "ok": 1
+  },
+  {
+   "t": "What does the fox put on his feet?",
+   "es": "¿Qué se pone el zorro en los pies?",
+   "opts": [
+    "img/om_1F9E4.png",
+    "img/om_1F9E5.png",
+    "img/om_1F462.png"
+   ],
+   "ok": 2
+  }
+ ]
+}

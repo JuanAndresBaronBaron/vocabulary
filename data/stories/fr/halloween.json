@@ -1,0 +1,639 @@
+{
+ "v": 1,
+ "id": "fr-halloween",
+ "lang": "français",
+ "n": 8,
+ "title": "Halloween à la ferme",
+ "es": "Halloween en la granja",
+ "short": "Halloween",
+ "cover": "img/pj/gato.png",
+ "tint": "green",
+ "words": [
+  {
+   "w": "la nuit",
+   "id": "w08|noche",
+   "img": "img/om_1F303.png"
+  },
+  {
+   "w": "la lune",
+   "id": "w09|luna",
+   "img": "img/om_1F319.png"
+  },
+  {
+   "w": "le ciel",
+   "id": "w09|cielo"
+  },
+  {
+   "w": "orange",
+   "id": "colores|Naranja",
+   "img": "img/a99bad73df.png"
+  },
+  {
+   "w": "le chat",
+   "id": "animales|Gato",
+   "img": "img/ab47b70a6b.png"
+  },
+  {
+   "w": "noir",
+   "id": "colores|Negro",
+   "img": "img/73c8a4092d.png"
+  },
+  {
+   "w": "blanc",
+   "id": "colores|Blanco",
+   "img": "img/458f834f61.png"
+  },
+  {
+   "w": "le hibou",
+   "id": "animales|Búho",
+   "img": "img/7a0d4a0582.png"
+  },
+  {
+   "w": "la porte",
+   "id": "w04|puerta",
+   "img": "img/om_1F6AA.png"
+  },
+  {
+   "w": "sombre",
+   "id": "w31|oscuro",
+   "img": "img/om_1F311.png"
+  },
+  {
+   "w": "l'arbre",
+   "id": "w09|árbol",
+   "img": "img/om_1F333.png"
+  },
+  {
+   "w": "le fantôme",
+   "id": "w14|fantasma",
+   "img": "img/om_1F47B.png"
+  },
+  {
+   "w": "le chien",
+   "id": "animales|Perro",
+   "img": "img/3e394d37a4.png"
+  },
+  {
+   "w": "la maison",
+   "id": "w04|casa",
+   "img": "img/om_1F3E0.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/a/"
+  },
+  "ami": {
+   "es": "amigo",
+   "id": "w01|amigo",
+   "ipa": "/ami/",
+   "img": "img/om_1FAC2.png"
+  },
+  "beaucoup de": {
+   "es": "muchos",
+   "id": "w41|mucho (a lot)",
+   "ipa": "/boku də/"
+  },
+  "blanc": {
+   "es": "blanco",
+   "id": "colores|Blanco",
+   "ipa": "/blɑ̃/",
+   "img": "img/458f834f61.png"
+  },
+  "bonbons": {
+   "es": "caramelos",
+   "ipa": "/bɔ̃bɔ̃/",
+   "img": "img/season/sweets.png"
+  },
+  "bouh": {
+   "es": "¡buuu!",
+   "ipa": "/bu/"
+  },
+  "c'est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/sɛ/"
+  },
+  "ce n'est pas": {
+   "es": "no es",
+   "id": "w24|ser, estar",
+   "ipa": "/sə nɛ pa/"
+  },
+  "citrouille": {
+   "es": "calabaza",
+   "ipa": "/sitʁuj/",
+   "img": "img/season/pumpkin.png"
+  },
+  "courent": {
+   "es": "corren",
+   "id": "w25|correr",
+   "ipa": "/kuʁ/",
+   "img": "img/om_1F3C3.png"
+  },
+  "d'halloween": {
+   "es": "de Halloween",
+   "ipa": "/dalɔwin/"
+  },
+  "dans": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/dɑ̃/"
+  },
+  "derrière": {
+   "es": "detrás de",
+   "id": "w40|detrás de",
+   "ipa": "/dɛʁjɛʁ/"
+  },
+  "des bonbons": {
+   "es": "caramelos",
+   "ipa": "/de bɔ̃bɔ̃/",
+   "img": "img/season/sweets.png"
+  },
+  "donne": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/dɔn/"
+  },
+  "du hibou": {
+   "es": "del búho",
+   "id": "animales|Búho",
+   "ipa": "/dy ibu/",
+   "img": "img/7a0d4a0582.png"
+  },
+  "déguisé en": {
+   "es": "disfrazado de",
+   "id": "w05|disfraz, traje",
+   "ipa": "/deɡize ɑ̃/"
+  },
+  "en courant": {
+   "es": "corriendo",
+   "id": "w25|correr",
+   "ipa": "/ɑ̃ kuʁɑ̃/",
+   "img": "img/om_1F3C3.png"
+  },
+  "est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɛ/"
+  },
+  "et": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/e/"
+  },
+  "frappent": {
+   "es": "llaman",
+   "id": "w28|llamar (a la puerta), golpear",
+   "ipa": "/fʁap/",
+   "img": "img/om_1F6AA.png"
+  },
+  "grosse": {
+   "es": "grande",
+   "id": "w31|gordo",
+   "ipa": "/ɡʁos/"
+  },
+  "halloween": {
+   "es": "Halloween (la noche del 31 de octubre)",
+   "ipa": "/alɔwin/"
+  },
+  "il": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/il/"
+  },
+  "il fait": {
+   "es": "hace",
+   "id": "w24|hacer",
+   "ipa": "/il fɛ/"
+  },
+  "il y a": {
+   "es": "hay",
+   "ipa": "/il i a/"
+  },
+  "ils": {
+   "es": "ellos",
+   "id": "w41|ellos, ellas",
+   "ipa": "/il/"
+  },
+  "joyeux": {
+   "es": "feliz",
+   "id": "w32|alegre",
+   "ipa": "/ʒwajø/",
+   "img": "img/om_1F604.png"
+  },
+  "l'arbre": {
+   "es": "el árbol",
+   "id": "w09|árbol",
+   "ipa": "/aʁbʁ/",
+   "img": "img/om_1F333.png"
+  },
+  "la lune": {
+   "es": "la luna",
+   "id": "w09|luna",
+   "ipa": "/la lyn/",
+   "img": "img/om_1F319.png"
+  },
+  "la nuit": {
+   "es": "la noche",
+   "id": "w08|noche",
+   "ipa": "/la nɥi/",
+   "img": "img/om_1F303.png"
+  },
+  "la porte": {
+   "es": "la puerta",
+   "id": "w04|puerta",
+   "ipa": "/pɔʁt/",
+   "img": "img/om_1F6AA.png"
+  },
+  "le chat": {
+   "es": "el gato",
+   "id": "animales|Gato",
+   "ipa": "/lə ʃa/",
+   "img": "img/ab47b70a6b.png"
+  },
+  "le chien": {
+   "es": "el perro",
+   "id": "animales|Perro",
+   "ipa": "/lə ʃjɛ̃/",
+   "img": "img/3e394d37a4.png"
+  },
+  "le ciel": {
+   "es": "el cielo",
+   "id": "w09|cielo",
+   "ipa": "/lə sjɛl/"
+  },
+  "le hibou": {
+   "es": "el búho",
+   "id": "animales|Búho",
+   "ipa": "/lə ibu/",
+   "img": "img/7a0d4a0582.png"
+  },
+  "le renard": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/lə ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "les bonbons": {
+   "es": "los caramelos",
+   "ipa": "/le bɔ̃bɔ̃/",
+   "img": "img/season/sweets.png"
+  },
+  "leur": {
+   "es": "les (a ellos)",
+   "id": "w41|los, las, ellos",
+   "ipa": "/lœʁ/"
+  },
+  "leurs": {
+   "es": "sus",
+   "id": "w41|su, sus (de ellos)",
+   "ipa": "/lœʁ/"
+  },
+  "mangent": {
+   "es": "comen",
+   "id": "w28|comer",
+   "ipa": "/mɑ̃ʒ/",
+   "img": "img/om_1F374.png"
+  },
+  "miam": {
+   "es": "¡ñam! (¡qué rico!)",
+   "ipa": "/mjam/"
+  },
+  "noir": {
+   "es": "negro",
+   "id": "colores|Negro",
+   "ipa": "/nwaʁ/",
+   "img": "img/73c8a4092d.png"
+  },
+  "non": {
+   "es": "no",
+   "id": "w43|no",
+   "ipa": "/nɔ̃/",
+   "img": "img/om_274C.png"
+  },
+  "nuit": {
+   "es": "noche",
+   "id": "w08|noche",
+   "ipa": "/nɥi/",
+   "img": "img/om_1F303.png"
+  },
+  "oh": {
+   "es": "¡oh!",
+   "id": "w43|oh",
+   "ipa": "/o/"
+  },
+  "orange": {
+   "es": "naranja",
+   "id": "colores|Naranja",
+   "ipa": "/ɔʁɑ̃ʒ/",
+   "img": "img/a99bad73df.png"
+  },
+  "ou": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/u/"
+  },
+  "ouvre": {
+   "es": "abre",
+   "id": "w28|abrir",
+   "ipa": "/uvʁ/"
+  },
+  "partagent": {
+   "es": "comparten",
+   "id": "w28|compartir",
+   "ipa": "/paʁtaʒ/"
+  },
+  "puis": {
+   "es": "luego",
+   "id": "w38|entonces, luego",
+   "ipa": "/pɥi/"
+  },
+  "quelle": {
+   "es": "¡qué…!",
+   "id": "w43|cuál, que",
+   "ipa": "/kɛl/"
+  },
+  "regardent": {
+   "es": "miran",
+   "id": "w27|mirar, parecer",
+   "ipa": "/ʁəɡaʁd/",
+   "img": "img/om_1F440.png"
+  },
+  "regarder": {
+   "es": "mirar",
+   "id": "w27|mirar, parecer",
+   "ipa": "/ʁəɡaʁde/",
+   "img": "img/om_1F440.png"
+  },
+  "rentrent": {
+   "es": "vuelven",
+   "id": "w25|volver, devolver",
+   "ipa": "/ʁɑ̃tʁ/",
+   "img": "img/om_21A9.png"
+  },
+  "rentrer": {
+   "es": "volver",
+   "id": "w25|volver, devolver",
+   "ipa": "/ʁɑ̃tʁe/",
+   "img": "img/om_21A9.png"
+  },
+  "rient": {
+   "es": "se ríen",
+   "id": "w28|reír",
+   "ipa": "/ʁi/",
+   "img": "img/om_1F602.png"
+  },
+  "sombre": {
+   "es": "oscuro",
+   "id": "w31|oscuro",
+   "ipa": "/sɔ̃bʁ/",
+   "img": "img/om_1F311.png"
+  },
+  "son": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/sɔ̃/"
+  },
+  "squelette": {
+   "es": "esqueleto",
+   "ipa": "/skəlɛt/",
+   "img": "img/season/skeleton.png"
+  },
+  "très": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/tʁɛ/"
+  },
+  "un arbre": {
+   "es": "un árbol",
+   "id": "w09|árbol",
+   "ipa": "/œ̃n‿aʁbʁ/",
+   "img": "img/om_1F333.png"
+  },
+  "un bruit": {
+   "es": "un ruido",
+   "id": "w16|ruido",
+   "ipa": "/œ̃ bʁɥi/",
+   "img": "img/om_1F4E2.png"
+  },
+  "un fantôme": {
+   "es": "un fantasma",
+   "id": "w14|fantasma",
+   "ipa": "/œ̃ fɑ̃tom/",
+   "img": "img/om_1F47B.png"
+  },
+  "un sort": {
+   "es": "un hechizo (des bonbons ou un sort: ¡truco o trato!)",
+   "ipa": "/œ̃ sɔʁ/"
+  },
+  "une": {
+   "es": "una",
+   "id": "w41|un, una",
+   "ipa": "/yn/"
+  },
+  "vite": {
+   "es": "rápido",
+   "id": "w38|rápidamente",
+   "ipa": "/vit/"
+  },
+  "à la ferme": {
+   "es": "en la granja",
+   "id": "w09|granja",
+   "ipa": "/a la fɛʁm/"
+  },
+  "à la maison": {
+   "es": "a casa, en casa",
+   "id": "w04|casa",
+   "ipa": "/a la mɛzɔ̃/",
+   "img": "img/om_1F3E0.png"
+  },
+  "à la porte": {
+   "es": "a la puerta",
+   "id": "w04|puerta",
+   "ipa": "/a la pɔʁt/",
+   "img": "img/om_1F6AA.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/season/pumpkin.png",
+   "also": [
+    "img/om_1F319.png"
+   ],
+   "t": "C'est la nuit d'Halloween. La lune est dans le ciel.",
+   "es": "Es la noche de Halloween. La luna está en el cielo."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/season/pumpkin.png"
+   ],
+   "t": "Le renard a une grosse citrouille orange.",
+   "es": "El zorro tiene una calabaza naranja grande."
+  },
+  {
+   "img": "img/pj/gato.png",
+   "also": [
+    "img/season/skeleton.png"
+   ],
+   "t": "Son ami le chat est déguisé en squelette. Il est noir et blanc.",
+   "es": "Su amigo el gato va disfrazado de esqueleto. Es negro y blanco."
+  },
+  {
+   "img": "img/om_1F6AA.png",
+   "also": [
+    "img/pj/zorro.png",
+    "img/pj/gato.png"
+   ],
+   "t": "Ils frappent à la porte du hibou. Des bonbons ou un sort !",
+   "es": "Llaman a la puerta del búho. ¡Truco o trato!"
+  },
+  {
+   "img": "img/pj/buho.png",
+   "also": [
+    "img/season/sweets.png"
+   ],
+   "t": "Le hibou ouvre la porte. Il leur donne beaucoup de bonbons.",
+   "es": "El búho abre la puerta. Les da muchos caramelos."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/pj/gato.png"
+   ],
+   "t": "Puis ils rentrent à la maison. Il fait très sombre.",
+   "es": "Luego vuelven a casa. Está muy oscuro."
+  },
+  {
+   "img": "img/om_1F333.png",
+   "also": [
+    "img/om_1F47B.png"
+   ],
+   "t": "Oh ! Il y a un bruit derrière un arbre. Bouh !",
+   "es": "¡Oh! Hay un ruido detrás de un árbol. ¡Buuu!"
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/pj/gato.png"
+  ],
+  "t": "Rentrer en courant ou regarder derrière l'arbre ?",
+  "es": "¿Volver corriendo a casa o mirar detrás del árbol?",
+  "opts": [
+   {
+    "key": "run",
+    "t": "Rentrer en courant",
+    "es": "Volver corriendo",
+    "img": "img/om_1F3C3.png",
+    "pages": [
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F3C3.png"
+      ],
+      "t": "Le renard et le chat courent à la maison, très vite.",
+      "es": "El zorro y el gato corren a casa, muy rápido."
+     },
+     {
+      "img": "img/om_1F3E1.png",
+      "also": [
+       "img/season/sweets.png"
+      ],
+      "t": "À la maison, ils mangent leurs bonbons. Miam !",
+      "es": "En casa, se comen sus caramelos. ¡Ñam!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/gato.png"
+      ],
+      "t": "Quelle nuit ! Joyeux Halloween !",
+      "es": "¡Qué noche! ¡Feliz Halloween!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Où est-ce qu'ils mangent les bonbons ?",
+      "es": "¿Dónde se comen los caramelos?",
+      "opts": [
+       "img/om_1F333.png",
+       "img/om_1F6AA.png",
+       "img/om_1F3E1.png"
+      ],
+      "ok": 2
+     }
+    ]
+   },
+   {
+    "key": "look",
+    "t": "Regarder",
+    "es": "Mirar",
+    "img": "img/om_1F440.png",
+    "pages": [
+     {
+      "img": "img/om_1F333.png",
+      "also": [
+       "img/om_1F47B.png"
+      ],
+      "t": "Ils regardent derrière l'arbre. Un fantôme !",
+      "es": "Miran detrás del árbol. ¡Un fantasma!"
+     },
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/om_1F47B.png"
+      ],
+      "t": "Non, ce n'est pas un fantôme. C'est le chien !",
+      "es": "No, no es un fantasma. ¡Es el perro!"
+     },
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/pj/zorro.png",
+       "img/pj/gato.png"
+      ],
+      "t": "Ils rient et partagent les bonbons. Joyeux Halloween !",
+      "es": "Se ríen y comparten los caramelos. ¡Feliz Halloween!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Qui est le fantôme ?",
+      "es": "¿Quién es el fantasma?",
+      "opts": [
+       "img/pj/buho.png",
+       "img/pj/perro.png",
+       "img/pj/gato.png"
+      ],
+      "ok": 1
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "En quoi le chat est-il déguisé ?",
+   "es": "¿De qué va disfrazado el gato?",
+   "opts": [
+    "img/om_1F47B.png",
+    "img/season/skeleton.png",
+    "img/season/pumpkin.png"
+   ],
+   "ok": 1
+  },
+  {
+   "t": "Qu'est-ce que le hibou leur donne ?",
+   "es": "¿Qué les da el búho?",
+   "opts": [
+    "img/season/sweets.png",
+    "img/season/pumpkin.png",
+    "img/om_1F333.png"
+   ],
+   "ok": 0
+  }
+ ]
+}

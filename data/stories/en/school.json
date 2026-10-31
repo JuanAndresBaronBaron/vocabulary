@@ -1,0 +1,645 @@
+{
+ "v": 1,
+ "id": "en-school",
+ "lang": "english",
+ "n": 7,
+ "title": "The Fox Goes to School",
+ "es": "El zorro va al colegio",
+ "short": "El colegio",
+ "cover": "img/pj/tortuga.png",
+ "tint": "yellow",
+ "words": [
+  {
+   "w": "school",
+   "id": "w10|escuela, colegio",
+   "img": "img/om_1F3EB.png"
+  },
+  {
+   "w": "first",
+   "id": "w16|primero",
+   "img": "img/om_1F947.png"
+  },
+  {
+   "w": "day",
+   "id": "w08|día"
+  },
+  {
+   "w": "bag",
+   "id": "w05|bolsa, bolso",
+   "img": "img/om_1F45C.png"
+  },
+  {
+   "w": "book",
+   "id": "w10|libro",
+   "img": "img/om_1F4D5.png"
+  },
+  {
+   "w": "pencil",
+   "id": "w10|lápiz",
+   "img": "img/om_270F.png"
+  },
+  {
+   "w": "teacher",
+   "id": "profesiones|Maestro/a",
+   "img": "img/c78e6923bb.png"
+  },
+  {
+   "w": "tortoise",
+   "id": "animales|Tortuga",
+   "img": "img/ec4e5cdc4c.png"
+  },
+  {
+   "w": "read",
+   "id": "w28|leer",
+   "img": "img/om_1F4D6.png"
+  },
+  {
+   "w": "draw",
+   "id": "w28|dibujar",
+   "img": "img/om_1F58D.png"
+  },
+  {
+   "w": "apple",
+   "id": "w03|manzana",
+   "img": "img/om_1F34E.png"
+  },
+  {
+   "w": "monkey",
+   "id": "animales|Mono",
+   "img": "img/a1aa85e4a9.png"
+  },
+  {
+   "w": "panda",
+   "id": "animales|Panda",
+   "img": "img/939f2be8fd.png"
+  },
+  {
+   "w": "football",
+   "id": "w13|fútbol",
+   "img": "img/om_26BD.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ə/"
+  },
+  "a little": {
+   "es": "un poco",
+   "id": "w31|pequeño; poco",
+   "ipa": "/ə ˈlɪtl/"
+  },
+  "an": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ən/"
+  },
+  "and": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ænd/"
+  },
+  "apple": {
+   "es": "manzana",
+   "id": "w03|manzana",
+   "ipa": "/ˈæpl/",
+   "img": "img/om_1F34E.png"
+  },
+  "are": {
+   "es": "son, están",
+   "id": "w24|ser, estar",
+   "ipa": "/ɑː/"
+  },
+  "at school": {
+   "es": "en el colegio",
+   "id": "w10|escuela, colegio",
+   "ipa": "/ət ˈskuːl/",
+   "img": "img/om_1F3EB.png"
+  },
+  "bag": {
+   "es": "mochila",
+   "id": "w05|bolsa, bolso",
+   "ipa": "/bæɡ/",
+   "img": "img/om_1F392.png"
+  },
+  "big": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/bɪɡ/"
+  },
+  "book": {
+   "es": "libro",
+   "id": "w10|libro",
+   "ipa": "/bʊk/",
+   "img": "img/om_1F4D5.png"
+  },
+  "come back": {
+   "es": "volver",
+   "id": "w24|venir",
+   "ipa": "/kʌm ˈbæk/"
+  },
+  "day": {
+   "es": "día",
+   "id": "w08|día",
+   "ipa": "/deɪ/"
+  },
+  "draw": {
+   "es": "dibujan",
+   "id": "w28|dibujar",
+   "ipa": "/drɔː/",
+   "img": "img/om_1F58D.png"
+  },
+  "draws": {
+   "es": "dibuja",
+   "id": "w28|dibujar",
+   "ipa": "/drɔːz/",
+   "img": "img/om_1F58D.png"
+  },
+  "eat": {
+   "es": "comen",
+   "id": "w28|comer",
+   "ipa": "/iːt/",
+   "img": "img/om_1F374.png"
+  },
+  "fast": {
+   "es": "rápido",
+   "id": "w31|rápido",
+   "ipa": "/fɑːst/",
+   "img": "img/om_1F407.png"
+  },
+  "first": {
+   "es": "primer, primero",
+   "id": "w16|primero",
+   "ipa": "/fɜːst/",
+   "img": "img/om_1F947.png"
+  },
+  "football": {
+   "es": "balón de fútbol",
+   "id": "w13|fútbol",
+   "ipa": "/ˈfʊtbɔːl/",
+   "img": "img/om_26BD.png"
+  },
+  "fox": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/fɒks/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "fox's": {
+   "es": "del zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ˈfɒksɪz/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "friendly": {
+   "es": "simpático, simpática",
+   "id": "w32|simpático, amable",
+   "ipa": "/ˈfrendli/",
+   "img": "img/om_263A.png"
+  },
+  "friends": {
+   "es": "amigos",
+   "id": "w01|amigo",
+   "ipa": "/frendz/",
+   "img": "img/om_1FAC2.png"
+  },
+  "gives": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/ɡɪvz/"
+  },
+  "goes": {
+   "es": "va",
+   "id": "w24|ir",
+   "ipa": "/ɡəʊz/"
+  },
+  "happy": {
+   "es": "contento, feliz",
+   "id": "w32|feliz",
+   "ipa": "/ˈhæpi/",
+   "img": "img/om_1F600.png"
+  },
+  "has": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/hæz/"
+  },
+  "he": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/hiː/"
+  },
+  "his": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/hɪz/"
+  },
+  "in": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/ɪn/"
+  },
+  "is": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪz/"
+  },
+  "it is": {
+   "es": "es, está, hace",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪt ɪz/"
+  },
+  "laughs": {
+   "es": "se ríe",
+   "id": "w28|reír",
+   "ipa": "/lɑːfs/",
+   "img": "img/om_1F602.png"
+  },
+  "loves": {
+   "es": "le encanta",
+   "id": "w27|amar, encantar",
+   "ipa": "/lʌvz/",
+   "img": "img/om_2764.png"
+  },
+  "lunch": {
+   "es": "almuerzo, comida",
+   "id": "w03|almuerzo, comida",
+   "ipa": "/lʌntʃ/",
+   "img": "img/om_1F371.png"
+  },
+  "monkey": {
+   "es": "mono",
+   "id": "animales|Mono",
+   "ipa": "/ˈmʌŋki/",
+   "img": "img/a1aa85e4a9.png"
+  },
+  "nervous": {
+   "es": "nervioso",
+   "id": "w32|nervioso",
+   "ipa": "/ˈnɜːvəs/",
+   "img": "img/om_1F62C.png"
+  },
+  "now": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/naʊ/"
+  },
+  "old": {
+   "es": "mayor, vieja",
+   "id": "w35|viejo, antiguo",
+   "ipa": "/əʊld/",
+   "img": "img/om_1F9D3.png"
+  },
+  "one": {
+   "es": "uno",
+   "id": "numeros|1",
+   "ipa": "/wʌn/"
+  },
+  "or": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ɔː/"
+  },
+  "panda": {
+   "es": "panda",
+   "id": "animales|Panda",
+   "ipa": "/ˈpændə/",
+   "img": "img/939f2be8fd.png"
+  },
+  "pencil": {
+   "es": "lápiz",
+   "id": "w10|lápiz",
+   "ipa": "/ˈpensl/",
+   "img": "img/om_270F.png"
+  },
+  "play": {
+   "es": "juegan",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/pleɪ/",
+   "img": "img/om_1F3AE.png"
+  },
+  "plays": {
+   "es": "juega",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/pleɪz/",
+   "img": "img/om_1F3AE.png"
+  },
+  "read": {
+   "es": "leen",
+   "id": "w28|leer",
+   "ipa": "/riːd/",
+   "img": "img/om_1F4D6.png"
+  },
+  "red": {
+   "es": "roja",
+   "id": "colores|Rojo",
+   "ipa": "/red/",
+   "img": "img/746cbfda58.png"
+  },
+  "runs": {
+   "es": "corre",
+   "id": "w25|correr",
+   "ipa": "/rʌnz/",
+   "img": "img/om_1F3C3.png"
+  },
+  "sandwiches": {
+   "es": "bocadillos",
+   "id": "w03|sándwich, bocadillo",
+   "ipa": "/ˈsænwɪdʒɪz/",
+   "img": "img/om_1F96A.png"
+  },
+  "says": {
+   "es": "dice",
+   "id": "w24|decir",
+   "ipa": "/sez/"
+  },
+  "school": {
+   "es": "colegio",
+   "id": "w10|escuela, colegio",
+   "ipa": "/skuːl/",
+   "img": "img/om_1F3EB.png"
+  },
+  "she": {
+   "es": "ella",
+   "id": "w41|ella",
+   "ipa": "/ʃiː/"
+  },
+  "teacher": {
+   "es": "maestra",
+   "id": "profesiones|Maestro/a",
+   "ipa": "/ˈtiːtʃə/",
+   "img": "img/c78e6923bb.png"
+  },
+  "the": {
+   "es": "el, la, los, las",
+   "id": "w41|el, la, los, las",
+   "ipa": "/ðə/"
+  },
+  "their": {
+   "es": "su, sus (de ellos)",
+   "id": "w41|su, sus (de ellos)",
+   "ipa": "/ðeə/"
+  },
+  "then": {
+   "es": "luego",
+   "id": "w38|entonces, luego",
+   "ipa": "/ðen/"
+  },
+  "they": {
+   "es": "ellos, ellas",
+   "id": "w41|ellos, ellas",
+   "ipa": "/ðeɪ/"
+  },
+  "time": {
+   "es": "la hora",
+   "id": "w08|tiempo, hora, vez",
+   "ipa": "/taɪm/",
+   "img": "img/om_231A.png"
+  },
+  "to": {
+   "es": "a, hacia",
+   "id": "w40|a, hacia, para",
+   "ipa": "/tuː/"
+  },
+  "to play": {
+   "es": "jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/tə ˈpleɪ/",
+   "img": "img/om_1F3AE.png"
+  },
+  "today": {
+   "es": "hoy",
+   "id": "w08|hoy",
+   "ipa": "/təˈdeɪ/"
+  },
+  "together": {
+   "es": "juntos",
+   "id": "w38|juntos",
+   "ipa": "/təˈɡeðə/",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  "tomorrow": {
+   "es": "mañana",
+   "ipa": "/təˈmɒrəʊ/"
+  },
+  "tortoise": {
+   "es": "tortuga",
+   "id": "animales|Tortuga",
+   "ipa": "/ˈtɔːtəs/",
+   "img": "img/ec4e5cdc4c.png"
+  },
+  "two": {
+   "es": "dos",
+   "id": "numeros|2",
+   "ipa": "/tuː/"
+  },
+  "very": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/ˈveri/"
+  },
+  "very good": {
+   "es": "muy bien",
+   "id": "w33|bueno",
+   "ipa": "/ˈveri ˈɡʊd/",
+   "img": "img/om_1F44D.png"
+  },
+  "wants": {
+   "es": "quiere",
+   "id": "w24|querer",
+   "ipa": "/wɒnts/"
+  },
+  "who": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/huː/"
+  },
+  "with": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/wɪð/"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/om_1F3EB.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "Today is the fox's first day at school.",
+   "es": "Hoy es el primer día de colegio del zorro."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F392.png",
+    "img/om_270F.png"
+   ],
+   "t": "In his bag, he has a book and a pencil.",
+   "es": "En su mochila lleva un libro y un lápiz."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F62C.png"
+   ],
+   "t": "The fox is a little nervous.",
+   "es": "El zorro está un poco nervioso."
+  },
+  {
+   "img": "img/pj/tortuga.png",
+   "also": [
+    "img/om_263A.png"
+   ],
+   "t": "The teacher is an old tortoise. She is very friendly.",
+   "es": "La maestra es una tortuga mayor. Es muy simpática."
+  },
+  {
+   "img": "img/pj/tortuga.png",
+   "also": [
+    "img/om_1F4D5.png"
+   ],
+   "t": "First, they read a book together.",
+   "es": "Primero, leen un libro todos juntos."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F58D.png",
+    "img/om_1F34E.png"
+   ],
+   "t": "Then they draw. The fox draws a big red apple.",
+   "es": "Luego dibujan. El zorro dibuja una manzana roja grande."
+  },
+  {
+   "img": "img/pj/tortuga.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "“Very good, Fox!” says the teacher. Now the fox is happy.",
+   "es": "«¡Muy bien, Zorro!», dice la maestra. Ahora el zorro está contento."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/pj/mono.png",
+   "img/pj/panda.png"
+  ],
+  "t": "Now it is time to play. Who plays with the fox? The monkey or the panda?",
+  "es": "Ahora es la hora de jugar. ¿Quién juega con el zorro? ¿El mono o el panda?",
+  "opts": [
+   {
+    "key": "monkey",
+    "t": "The monkey",
+    "es": "El mono",
+    "img": "img/pj/mono.png",
+    "pages": [
+     {
+      "img": "img/pj/mono.png",
+      "also": [
+       "img/om_26BD.png"
+      ],
+      "t": "The monkey has a football. They play together.",
+      "es": "El mono tiene un balón de fútbol. Juegan juntos."
+     },
+     {
+      "img": "img/pj/mono.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "The monkey runs very fast. The fox laughs and laughs.",
+      "es": "El mono corre muy rápido. El zorro se ríe y se ríe."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F3EB.png"
+      ],
+      "t": "The fox loves school. He wants to come back tomorrow!",
+      "es": "Al zorro le encanta el colegio. ¡Quiere volver mañana!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "What does the monkey have?",
+      "es": "¿Qué tiene el mono?",
+      "opts": [
+       "img/om_1F96A.png",
+       "img/om_26BD.png",
+       "img/om_1F34E.png"
+      ],
+      "ok": 1
+     }
+    ]
+   },
+   {
+    "key": "panda",
+    "t": "The panda",
+    "es": "El panda",
+    "img": "img/pj/panda.png",
+    "pages": [
+     {
+      "img": "img/pj/panda.png",
+      "also": [
+       "img/om_1F96A.png"
+      ],
+      "t": "The panda has two sandwiches. He gives one to the fox.",
+      "es": "El panda tiene dos bocadillos. Le da uno al zorro."
+     },
+     {
+      "img": "img/pj/panda.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "They eat their lunch together. Now they are friends.",
+      "es": "Comen juntos. Ahora son amigos."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F3EB.png"
+      ],
+      "t": "The fox loves school. He wants to come back tomorrow!",
+      "es": "Al zorro le encanta el colegio. ¡Quiere volver mañana!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "What does the panda give the fox?",
+      "es": "¿Qué le da el panda al zorro?",
+      "opts": [
+       "img/om_26BD.png",
+       "img/om_1F4D5.png",
+       "img/om_1F96A.png"
+      ],
+      "ok": 2
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "Who is the teacher?",
+   "es": "¿Quién es la maestra?",
+   "opts": [
+    "img/pj/mono.png",
+    "img/pj/panda.png",
+    "img/pj/tortuga.png"
+   ],
+   "ok": 2
+  },
+  {
+   "t": "What does the fox draw?",
+   "es": "¿Qué dibuja el zorro?",
+   "opts": [
+    "img/om_1F34E.png",
+    "img/om_1F4D5.png",
+    "img/om_270F.png"
+   ],
+   "ok": 0
+  }
+ ]
+}

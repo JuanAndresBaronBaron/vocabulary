@@ -1,0 +1,200 @@
+{
+ "v": 1,
+ "id": "da-farver",
+ "lang": "dansk",
+ "city": "Copenhague",
+ "t": "Los colores de Copenhague",
+ "lines": [
+  {
+   "say": "Hej! Det er Ræven! Jeg ringer fra København.",
+   "es": "¡Hola! ¡Soy Zorro! Te llamo desde Copenhague.",
+   "k": [
+    {
+     "t": "Hej",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "I dag maler jeg et billede af Nyhavn. Husene har mange farver!",
+   "es": "Hoy pinto un cuadro de Nyhavn. ¡Las casas tienen muchos colores!",
+   "k": [
+    {
+     "t": "maler",
+     "r": "w28|pintar"
+    },
+    {
+     "t": "billede",
+     "r": "w13|imagen, cuadro, foto"
+    },
+    {
+     "t": "farver",
+     "r": "w16|color"
+    }
+   ]
+  },
+  {
+   "say": "Det første hus er gult, som solen.",
+   "es": "La primera casa es amarilla, como el sol.",
+   "k": [
+    {
+     "t": "hus",
+     "r": "w04|casa"
+    },
+    {
+     "t": "gult",
+     "r": "colores|Amarillo"
+    },
+    {
+     "t": "solen",
+     "r": "w09|sol"
+    }
+   ]
+  },
+  {
+   "say": "Hvilken farve har det første hus?",
+   "es": "¿De qué color es la primera casa?",
+   "a": [
+    {
+     "r": "colores|Rojo"
+    },
+    {
+     "r": "colores|Amarillo"
+    },
+    {
+     "r": "colores|Azul"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Ja, gult! Et flot, gult hus.",
+    "es": "¡Sí, amarilla! Una casa amarilla preciosa."
+   },
+   "no": {
+    "say": "Det er gult! Et flot, gult hus.",
+    "es": "¡Es amarilla! Una casa amarilla preciosa."
+   }
+  },
+  {
+   "say": "Det næste hus er rødt, og det har en blå dør.",
+   "es": "La casa siguiente es roja y tiene una puerta azul.",
+   "k": [
+    {
+     "t": "rødt",
+     "r": "colores|Rojo"
+    },
+    {
+     "t": "blå",
+     "r": "colores|Azul"
+    },
+    {
+     "t": "dør",
+     "r": "w04|puerta"
+    }
+   ]
+  },
+  {
+   "say": "Hvilken farve har døren?",
+   "es": "¿De qué color es la puerta?",
+   "a": [
+    {
+     "r": "colores|Verde"
+    },
+    {
+     "r": "colores|Negro"
+    },
+    {
+     "r": "colores|Azul"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Ja, blå! En flot, blå dør.",
+    "es": "¡Sí, azul! Una puerta azul preciosa."
+   },
+   "no": {
+    "say": "Den er blå! En flot, blå dør.",
+    "es": "¡Es azul! Una puerta azul preciosa."
+   }
+  },
+  {
+   "say": "I vandet er der en lille båd. Den er hvid.",
+   "es": "En el agua hay un barquito. Es blanco.",
+   "k": [
+    {
+     "t": "båd",
+     "r": "w07|barco"
+    },
+    {
+     "t": "hvid",
+     "r": "colores|Blanco"
+    }
+   ]
+  },
+  {
+   "say": "Hvilken farve har båden?",
+   "es": "¿De qué color es el barco?",
+   "a": [
+    {
+     "r": "colores|Blanco"
+    },
+    {
+     "r": "colores|Naranja"
+    },
+    {
+     "r": "colores|Gris"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, hvid! En hvid båd på vandet.",
+    "es": "¡Sí, blanco! Un barco blanco en el agua."
+   },
+   "no": {
+    "say": "Den er hvid! En hvid båd på vandet.",
+    "es": "¡Es blanco! Un barco blanco en el agua."
+   }
+  },
+  {
+   "say": "Og du? Hvad er din yndlingsfarve?",
+   "es": "¿Y tú? ¿Cuál es tu color favorito?",
+   "a": [
+    {
+     "r": "colores|Azul",
+     "re": {
+      "say": "Blå! Som havet. Hvor flot!",
+      "es": "¡Azul! Como el mar. ¡Qué bonito!"
+     }
+    },
+    {
+     "r": "colores|Verde",
+     "re": {
+      "say": "Grøn! Som træerne!",
+      "es": "¡Verde! ¡Como los árboles!"
+     }
+    },
+    {
+     "r": "colores|Naranja",
+     "re": {
+      "say": "Orange! Ligesom mig, ræven!",
+      "es": "¡Naranja! ¡Como yo, el zorro!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Mit billede er færdigt. Tak for hjælpen! Hej hej!",
+   "es": "Mi cuadro está terminado. ¡Gracias por ayudarme! ¡Adiós!",
+   "k": [
+    {
+     "t": "Tak",
+     "r": "w43|gracias"
+    },
+    {
+     "t": "Hej hej",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

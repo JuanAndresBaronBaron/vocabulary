@@ -1,0 +1,196 @@
+{
+ "v": 1,
+ "id": "en-school",
+ "lang": "english",
+ "city": "Londres",
+ "t": "Zorro en el colegio",
+ "lines": [
+  {
+   "say": "Hello! It's Fox! I'm calling from my school in London.",
+   "es": "¡Hola! ¡Soy Zorro! Te llamo desde mi colegio de Londres.",
+   "k": [
+    {
+     "t": "Hello",
+     "r": "w43|hola"
+    },
+    {
+     "t": "school",
+     "r": "w10|escuela, colegio"
+    }
+   ]
+  },
+  {
+   "say": "My teacher is very nice. She's a clever owl!",
+   "es": "Mi maestra es muy maja. ¡Es un búho muy listo!",
+   "k": [
+    {
+     "t": "teacher",
+     "r": "profesiones|Maestro/a"
+    },
+    {
+     "t": "clever",
+     "r": "w32|listo, inteligente"
+    }
+   ]
+  },
+  {
+   "say": "Who is my teacher?",
+   "es": "¿Quién es mi maestra?",
+   "a": [
+    {
+     "r": "animales|Gato"
+    },
+    {
+     "r": "animales|Búho"
+    },
+    {
+     "r": "animales|Perro"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Yes, an owl! She knows everything.",
+    "es": "¡Sí, un búho! Lo sabe todo."
+   },
+   "no": {
+    "say": "It's an owl! She knows everything.",
+    "es": "¡Es un búho! Lo sabe todo."
+   }
+  },
+  {
+   "say": "In my bag, I've got a book, a pen and a pencil.",
+   "es": "En mi mochila tengo un libro, un bolígrafo y un lápiz.",
+   "k": [
+    {
+     "t": "bag",
+     "r": "w05|bolsa, bolso"
+    },
+    {
+     "t": "book",
+     "r": "w10|libro"
+    },
+    {
+     "t": "pencil",
+     "r": "w10|lápiz"
+    }
+   ]
+  },
+  {
+   "say": "Today we're drawing animals. What do I draw with?",
+   "es": "Hoy dibujamos animales. ¿Con qué dibujo?",
+   "k": [
+    {
+     "t": "drawing",
+     "r": "w13|dibujo"
+    }
+   ],
+   "a": [
+    {
+     "r": "w10|libro"
+    },
+    {
+     "r": "w03|manzana"
+    },
+    {
+     "r": "w10|lápiz"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Yes, a pencil! I draw a big fox.",
+    "es": "¡Sí, un lápiz! Dibujo un zorro grande."
+   },
+   "no": {
+    "say": "With a pencil! I draw a big fox.",
+    "es": "¡Con un lápiz! Dibujo un zorro grande."
+   }
+  },
+  {
+   "say": "At lunchtime, I eat a cheese sandwich and an apple.",
+   "es": "A la hora de comer, me como un bocadillo de queso y una manzana.",
+   "k": [
+    {
+     "t": "cheese",
+     "r": "w03|queso"
+    },
+    {
+     "t": "sandwich",
+     "r": "w03|sándwich, bocadillo"
+    },
+    {
+     "t": "apple",
+     "r": "w03|manzana"
+    }
+   ]
+  },
+  {
+   "say": "What's in my sandwich?",
+   "es": "¿Qué hay en mi bocadillo?",
+   "a": [
+    {
+     "r": "w03|queso"
+    },
+    {
+     "r": "w03|huevo"
+    },
+    {
+     "r": "w03|chocolate"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Yes, cheese! Yummy!",
+    "es": "¡Sí, queso! ¡Qué rico!"
+   },
+   "no": {
+    "say": "Cheese! A cheese sandwich. Yummy!",
+    "es": "¡Queso! Un bocadillo de queso. ¡Qué rico!"
+   }
+  },
+  {
+   "say": "What do you like best at school? Books, music or sport?",
+   "es": "¿Qué es lo que más te gusta del colegio? ¿Los libros, la música o el deporte?",
+   "a": [
+    {
+     "r": "w10|libro",
+     "re": {
+      "say": "Books! Me too. I love stories!",
+      "es": "¡Los libros! A mí también. ¡Me encantan los cuentos!"
+     }
+    },
+    {
+     "r": "w13|música",
+     "re": {
+      "say": "Music! La, la, la!",
+      "es": "¡La música! ¡La, la, la!"
+     }
+    },
+    {
+     "r": "w13|deporte",
+     "re": {
+      "say": "Sport! Run, jump, run!",
+      "es": "¡El deporte! ¡A correr y saltar!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Oh, there's the bell! I have to go back to class. Bye!",
+   "es": "¡Oh, el timbre! Tengo que volver a clase. ¡Adiós!",
+   "k": [
+    {
+     "t": "bell",
+     "r": "w04|campana, timbre"
+    },
+    {
+     "t": "class",
+     "r": "w10|clase"
+    },
+    {
+     "t": "Bye",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

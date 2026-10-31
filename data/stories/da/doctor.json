@@ -1,0 +1,591 @@
+{
+ "v": 1,
+ "id": "da-doctor",
+ "lang": "dansk",
+ "n": 5,
+ "title": "Ræven går til lægen",
+ "es": "El zorro va al médico",
+ "short": "El médico",
+ "cover": "img/pj/oso.png",
+ "tint": "teal",
+ "words": [
+  {
+   "w": "en ræv",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "syg",
+   "id": "w31|enfermo",
+   "img": "img/om_1F922.png"
+  },
+  {
+   "w": "et hoved",
+   "id": "w02|cabeza"
+  },
+  {
+   "w": "en læge",
+   "id": "profesiones|Médico/a",
+   "img": "img/a043093157.png"
+  },
+  {
+   "w": "en bjørn",
+   "id": "animales|Oso",
+   "img": "img/7b569303eb.png"
+  },
+  {
+   "w": "en mund",
+   "id": "w02|boca",
+   "img": "img/om_1F444.png"
+  },
+  {
+   "w": "en tand",
+   "id": "w02|diente",
+   "img": "img/om_1F9B7.png"
+  },
+  {
+   "w": "et øre",
+   "id": "w02|oreja, oído",
+   "img": "img/om_1F442.png"
+  },
+  {
+   "w": "en næse",
+   "id": "w02|nariz",
+   "img": "img/om_1F443.png"
+  },
+  {
+   "w": "varm",
+   "id": "w31|caliente, caluroso",
+   "img": "img/om_1F975.png"
+  },
+  {
+   "w": "en medicin",
+   "id": "w02|medicina",
+   "img": "img/om_1F48A.png"
+  },
+  {
+   "w": "en seng",
+   "id": "w04|cama",
+   "img": "img/om_1F6CF.png"
+  },
+  {
+   "w": "et øje",
+   "id": "w02|ojo",
+   "img": "img/om_1F441.png"
+  }
+ ],
+ "gloss": {
+  "al": {
+   "es": "toda",
+   "id": "w41|todo, todos",
+   "ipa": "/ˈalˀ/"
+  },
+  "bjørn": {
+   "es": "oso",
+   "id": "animales|Oso",
+   "ipa": "/ˈbjœɐ̯ˀn/",
+   "img": "img/7b569303eb.png"
+  },
+  "blive": {
+   "es": "quedarse",
+   "id": "w25|quedarse, alojarse",
+   "ipa": "/ˈbliːə/"
+  },
+  "dag": {
+   "es": "día",
+   "id": "w08|día",
+   "ipa": "/ˈdæˀ/"
+  },
+  "den": {
+   "es": "(ella: la sopa)",
+   "id": "w41|ello, lo (cosa)",
+   "ipa": "/ˈdɛn/"
+  },
+  "eller": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ˈɛlɐ/"
+  },
+  "en": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/en/"
+  },
+  "en bog": {
+   "es": "un libro",
+   "id": "w10|libro",
+   "ipa": "/ˈbɔˀw/",
+   "img": "img/om_1F4D5.png"
+  },
+  "en historie": {
+   "es": "un cuento",
+   "id": "w10|historia",
+   "ipa": "/en hiˈsdoɐ̯ˀiə/"
+  },
+  "er": {
+   "es": "es, está, son",
+   "id": "w24|ser, estar",
+   "ipa": "/ˈæɐ̯/"
+  },
+  "for": {
+   "es": "a, para",
+   "id": "w40|para, por",
+   "ipa": "/fʌ/"
+  },
+  "giver": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/ˈɡiːɐ/"
+  },
+  "god": {
+   "es": "buena, rica",
+   "id": "w33|bueno",
+   "ipa": "/ˈɡoˀð/",
+   "img": "img/om_1F44D.png"
+  },
+  "går": {
+   "es": "va",
+   "id": "w24|ir",
+   "ipa": "/ˈɡɔˀ/"
+  },
+  "går hjem": {
+   "es": "se va a casa",
+   "id": "w04|casa, hogar",
+   "ipa": "/ɡɔˀ ˈjɛmˀ/",
+   "img": "img/om_1F3E1.png"
+  },
+  "ham": {
+   "es": "él, lo, le",
+   "id": "w41|él, lo, le",
+   "ipa": "/ˈham/"
+  },
+  "han": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/ˈhan/"
+  },
+  "hans": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/ˈhanˀs/"
+  },
+  "har ondt": {
+   "es": "le duele",
+   "id": "w28|doler, hacer daño",
+   "ipa": "/hɑː ˈɔnˀd/",
+   "img": "img/om_1F915.png"
+  },
+  "hoved": {
+   "es": "cabeza",
+   "id": "w02|cabeza",
+   "ipa": "/ˈhoːəð/"
+  },
+  "hunden": {
+   "es": "el perro",
+   "id": "animales|Perro",
+   "ipa": "/ˈhunˀən/",
+   "img": "img/3e394d37a4.png"
+  },
+  "hvem": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/ˈvɛmˀ/"
+  },
+  "hønen": {
+   "es": "la gallina",
+   "id": "animales|Gallina",
+   "ipa": "/ˈhøːnən/",
+   "img": "img/f501d7335c.png"
+  },
+  "i dag": {
+   "es": "hoy",
+   "id": "w08|hoy",
+   "ipa": "/iˈdæˀ/"
+  },
+  "i hovedet": {
+   "es": "en la cabeza",
+   "id": "w02|cabeza",
+   "ipa": "/i ˈhoːəðəð/"
+  },
+  "i sengen": {
+   "es": "en la cama",
+   "id": "w04|cama",
+   "ipa": "/i ˈsɛŋˀən/",
+   "img": "img/om_1F6CF.png"
+  },
+  "igen": {
+   "es": "otra vez",
+   "id": "w38|otra vez, de nuevo",
+   "ipa": "/iˈgɛn/",
+   "img": "img/om_1F501.png"
+  },
+  "kan": {
+   "es": "puede",
+   "id": "w24|poder",
+   "ipa": "/ˈkan/"
+  },
+  "kigger på": {
+   "es": "mira",
+   "id": "w27|mirar, parecer",
+   "ipa": "/ˈkigɐ pɔ/",
+   "img": "img/om_1F440.png"
+  },
+  "kommer med": {
+   "es": "trae",
+   "id": "w24|traer",
+   "ipa": "/ˈkʌmɐ mɛð/"
+  },
+  "kommer på besøg": {
+   "es": "viene de visita",
+   "id": "w25|visitar",
+   "ipa": "/ˈkʌmɐ pɔ beˈsøˀ/"
+  },
+  "lege": {
+   "es": "jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ˈlɑjə/",
+   "img": "img/om_1F3AE.png"
+  },
+  "ligger": {
+   "es": "está tumbado",
+   "ipa": "/ˈleɡɐ/"
+  },
+  "lukker": {
+   "es": "cierra",
+   "id": "w28|cerrar",
+   "ipa": "/ˈlɔgɐ/"
+  },
+  "lægen": {
+   "es": "el médico",
+   "id": "profesiones|Médico/a",
+   "ipa": "/ˈlɛːjən/",
+   "img": "img/a043093157.png"
+  },
+  "læser": {
+   "es": "lee, leen",
+   "id": "w28|leer",
+   "ipa": "/ˈlɛːsɐ/",
+   "img": "img/om_1F4D6.png"
+  },
+  "medicin": {
+   "es": "medicina",
+   "id": "w02|medicina",
+   "ipa": "/mediˈsiˀn/",
+   "img": "img/om_1F48A.png"
+  },
+  "mmm": {
+   "es": "¡mmm! (¡qué rico!)",
+   "ipa": "/mː/"
+  },
+  "munden": {
+   "es": "la boca",
+   "id": "w02|boca",
+   "ipa": "/ˈmɔnˀən/",
+   "img": "img/om_1F444.png"
+  },
+  "noget": {
+   "es": "algo de",
+   "id": "w41|algún, algunos, algo de",
+   "ipa": "/ˈnoːəð/"
+  },
+  "næse": {
+   "es": "nariz",
+   "id": "w02|nariz",
+   "ipa": "/ˈnɛːsə/",
+   "img": "img/om_1F443.png"
+  },
+  "næste": {
+   "es": "siguiente",
+   "id": "w35|próximo, siguiente",
+   "ipa": "/ˈnɛsdə/"
+  },
+  "og": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ʌ/"
+  },
+  "rask": {
+   "es": "sano, curado",
+   "id": "w31|sano",
+   "ipa": "/ˈʁasɡ/"
+  },
+  "ræven": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ˈʁɛwˀən/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "rød": {
+   "es": "roja",
+   "id": "colores|Rojo",
+   "ipa": "/ʁøðˀ/",
+   "img": "img/746cbfda58.png"
+  },
+  "siger": {
+   "es": "dice",
+   "id": "w24|decir",
+   "ipa": "/ˈsiːɐ/"
+  },
+  "skal": {
+   "es": "tiene que",
+   "id": "w24|deber, tener que",
+   "ipa": "/sɡal/"
+  },
+  "spiser": {
+   "es": "come, comen",
+   "id": "w28|comer",
+   "ipa": "/ˈsbiːsɐ/",
+   "img": "img/om_1F374.png"
+  },
+  "stor": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/ˈsdoɐ̯ˀ/"
+  },
+  "suppe": {
+   "es": "sopa",
+   "id": "w03|sopa",
+   "ipa": "/ˈsɔbə/",
+   "img": "img/om_1F372.png"
+  },
+  "suppen": {
+   "es": "la sopa",
+   "id": "w03|sopa",
+   "ipa": "/ˈsɔbən/",
+   "img": "img/om_1F372.png"
+  },
+  "syg": {
+   "es": "enfermo",
+   "id": "w31|enfermo",
+   "ipa": "/ˈsyˀ/",
+   "img": "img/om_1F922.png"
+  },
+  "til": {
+   "es": "a, para",
+   "id": "w40|a, hacia, para",
+   "ipa": "/ˈtel/"
+  },
+  "tænder": {
+   "es": "dientes",
+   "id": "w02|diente",
+   "ipa": "/ˈtɛnɐ/",
+   "img": "img/om_1F9B7.png"
+  },
+  "varm": {
+   "es": "caliente, calentito",
+   "id": "w31|caliente, caluroso",
+   "ipa": "/ˈvɑˀm/",
+   "img": "img/om_1F975.png"
+  },
+  "varmt": {
+   "es": "caliente",
+   "id": "w31|caliente, caluroso",
+   "ipa": "/ˈvɑˀmd/",
+   "img": "img/om_1F975.png"
+  },
+  "venlig": {
+   "es": "simpático, simpática",
+   "id": "w32|simpático, amable",
+   "ipa": "/ˈvɛnli/",
+   "img": "img/om_263A.png"
+  },
+  "åbn": {
+   "es": "abre",
+   "id": "w28|abrir",
+   "ipa": "/ˈɔːbn/"
+  },
+  "øjnene": {
+   "es": "los ojos",
+   "id": "w02|ojo",
+   "ipa": "/ˈʌjnənə/",
+   "img": "img/om_1F441.png"
+  },
+  "ører": {
+   "es": "orejas",
+   "id": "w02|oreja, oído",
+   "ipa": "/ˈøːɐ/",
+   "img": "img/om_1F442.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F912.png"
+   ],
+   "t": "Ræven er syg i dag. Han har ondt i hovedet.",
+   "es": "El zorro está enfermo hoy. Le duele la cabeza."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F9D1-200D-2695-FE0F.png"
+   ],
+   "t": "Han går til lægen. Lægen er en stor, venlig bjørn.",
+   "es": "Va al médico. El médico es un oso grande y simpático."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F444.png"
+   ],
+   "t": "»Åbn munden!« siger lægen.",
+   "es": "«¡Abre la boca!», dice el médico."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F9B7.png",
+    "img/om_1F442.png"
+   ],
+   "t": "Lægen kigger på hans tænder og ører.",
+   "es": "El médico le mira los dientes y las orejas."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F321.png",
+    "img/om_1F443.png"
+   ],
+   "t": "Hans hoved er varmt, og hans næse er rød.",
+   "es": "Tiene la cabeza caliente y la nariz roja."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F48A.png"
+   ],
+   "t": "Lægen giver ham noget medicin.",
+   "es": "El médico le da una medicina."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F6CF.png"
+   ],
+   "t": "Ræven går hjem. Han skal blive i sengen.",
+   "es": "El zorro se va a casa. Tiene que quedarse en la cama."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/pj/gallina.png",
+   "img/pj/perro.png"
+  ],
+  "t": "Ræven ligger i sengen. Hvem kommer på besøg? Hønen eller hunden?",
+  "es": "El zorro está en la cama. ¿Quién viene a verlo? ¿La gallina o el perro?",
+  "opts": [
+   {
+    "key": "hen",
+    "t": "Hønen",
+    "es": "La gallina",
+    "img": "img/pj/gallina.png",
+    "pages": [
+     {
+      "img": "img/pj/gallina.png",
+      "also": [
+       "img/om_1F372.png"
+      ],
+      "t": "Hønen kommer med varm suppe til ham.",
+      "es": "La gallina le trae sopa caliente."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F372.png"
+      ],
+      "t": "Ræven spiser al suppen. Mmm, den er god!",
+      "es": "El zorro se come toda la sopa. ¡Mmm, qué rica!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F600.png"
+      ],
+      "t": "Næste dag er ræven rask. Han kan lege igen!",
+      "es": "Al día siguiente, el zorro está bien. ¡Ya puede jugar otra vez!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Hvad kommer hønen med?",
+      "es": "¿Qué trae la gallina?",
+      "opts": [
+       "img/om_1F372.png",
+       "img/om_1F4D6.png",
+       "img/om_1F48A.png"
+      ],
+      "ok": 0
+     }
+    ]
+   },
+   {
+    "key": "dog",
+    "t": "Hunden",
+    "es": "El perro",
+    "img": "img/pj/perro.png",
+    "pages": [
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/om_1F4D6.png"
+      ],
+      "t": "Hunden kommer med en bog til ham.",
+      "es": "El perro le trae un libro."
+     },
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Hunden læser en historie for ham. Ræven lukker øjnene.",
+      "es": "El perro le lee un cuento. El zorro cierra los ojos."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F600.png"
+      ],
+      "t": "Næste dag er ræven rask. Han kan lege igen!",
+      "es": "Al día siguiente, el zorro está bien. ¡Ya puede jugar otra vez!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Hvad kommer hunden med?",
+      "es": "¿Qué trae el perro?",
+      "opts": [
+       "img/om_1F372.png",
+       "img/om_1F48A.png",
+       "img/om_1F4D6.png"
+      ],
+      "ok": 2
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "Hvem er lægen?",
+   "es": "¿Quién es el médico?",
+   "opts": [
+    "img/pj/gallina.png",
+    "img/pj/oso.png",
+    "img/pj/zorro.png"
+   ],
+   "ok": 1
+  },
+  {
+   "t": "Hvad giver lægen ræven?",
+   "es": "¿Qué le da el médico al zorro?",
+   "opts": [
+    "img/om_1F6CF.png",
+    "img/om_1F321.png",
+    "img/om_1F48A.png"
+   ],
+   "ok": 2
+  }
+ ]
+}

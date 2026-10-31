@@ -1,0 +1,617 @@
+{
+ "v": 1,
+ "id": "da-school",
+ "lang": "dansk",
+ "n": 7,
+ "title": "Ræven skal i skole",
+ "es": "El zorro va al colegio",
+ "short": "El colegio",
+ "cover": "img/pj/tortuga.png",
+ "tint": "yellow",
+ "words": [
+  {
+   "w": "en skole",
+   "id": "w10|escuela, colegio",
+   "img": "img/om_1F3EB.png"
+  },
+  {
+   "w": "første",
+   "id": "w16|primero",
+   "img": "img/om_1F947.png"
+  },
+  {
+   "w": "en taske",
+   "id": "w05|bolsa, bolso",
+   "img": "img/om_1F45C.png"
+  },
+  {
+   "w": "en bog",
+   "id": "w10|libro",
+   "img": "img/om_1F4D5.png"
+  },
+  {
+   "w": "en blyant",
+   "id": "w10|lápiz",
+   "img": "img/om_270F.png"
+  },
+  {
+   "w": "en lærer",
+   "id": "profesiones|Maestro/a",
+   "img": "img/c78e6923bb.png"
+  },
+  {
+   "w": "en skildpadde",
+   "id": "animales|Tortuga",
+   "img": "img/ec4e5cdc4c.png"
+  },
+  {
+   "w": "at læse",
+   "id": "w28|leer",
+   "img": "img/om_1F4D6.png"
+  },
+  {
+   "w": "at tegne",
+   "id": "w28|dibujar",
+   "img": "img/om_1F58D.png"
+  },
+  {
+   "w": "et æble",
+   "id": "w03|manzana",
+   "img": "img/om_1F34E.png"
+  },
+  {
+   "w": "en abe",
+   "id": "animales|Mono",
+   "img": "img/a1aa85e4a9.png"
+  },
+  {
+   "w": "en panda",
+   "id": "animales|Panda",
+   "img": "img/939f2be8fd.png"
+  },
+  {
+   "w": "en fodbold",
+   "id": "w13|fútbol",
+   "img": "img/om_26BD.png"
+  }
+ ],
+ "gloss": {
+  "aben": {
+   "es": "el mono",
+   "id": "animales|Mono",
+   "ipa": "/ˈæːbən/",
+   "img": "img/a1aa85e4a9.png"
+  },
+  "de": {
+   "es": "ellos",
+   "id": "w41|ellos, ellas",
+   "ipa": "/ˈdi/"
+  },
+  "eller": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ˈɛlɐ/"
+  },
+  "elsker": {
+   "es": "le encanta",
+   "id": "w27|amar, encantar",
+   "ipa": "/ˈɛlsgɐ/",
+   "img": "img/om_2764.png"
+  },
+  "en": {
+   "es": "un, una; uno",
+   "id": "w41|un, una",
+   "ipa": "/en/"
+  },
+  "en blyant": {
+   "es": "un lápiz",
+   "id": "w10|lápiz",
+   "ipa": "/ˈblyˌanˀd/",
+   "img": "img/om_270F.png"
+  },
+  "en bog": {
+   "es": "un libro",
+   "id": "w10|libro",
+   "ipa": "/ˈbɔˀw/",
+   "img": "img/om_1F4D5.png"
+  },
+  "en fodbold": {
+   "es": "un balón de fútbol",
+   "id": "w13|fútbol",
+   "ipa": "/ˈfoðˌbʌlˀd/",
+   "img": "img/om_26BD.png"
+  },
+  "er": {
+   "es": "es, está, son",
+   "id": "w24|ser, estar",
+   "ipa": "/ˈæɐ̯/"
+  },
+  "et": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ed/"
+  },
+  "flot": {
+   "es": "¡muy bien!",
+   "id": "w33|bueno",
+   "ipa": "/ˈflʌd/",
+   "img": "img/om_1F44D.png"
+  },
+  "frokost": {
+   "es": "almuerzo, comida",
+   "id": "w03|almuerzo, comida",
+   "ipa": "/ˈfʁoˌkʌsd/",
+   "img": "img/om_1F371.png"
+  },
+  "først": {
+   "es": "primero",
+   "id": "w16|primero",
+   "ipa": "/ˈfœɐ̯sd/",
+   "img": "img/om_1F947.png"
+  },
+  "første": {
+   "es": "primer",
+   "id": "w16|primero",
+   "ipa": "/ˈfœɐ̯sdə/",
+   "img": "img/om_1F947.png"
+  },
+  "gammel": {
+   "es": "mayor, vieja",
+   "id": "w35|viejo, antiguo",
+   "ipa": "/ˈgaməl/",
+   "img": "img/om_1F9D3.png"
+  },
+  "giver": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/ˈɡiːɐ/"
+  },
+  "glad": {
+   "es": "contento, feliz",
+   "id": "w32|feliz",
+   "ipa": "/ˈglað/",
+   "img": "img/om_1F600.png"
+  },
+  "griner": {
+   "es": "se ríe",
+   "id": "w28|reír",
+   "ipa": "/ˈɡʁiːnɐ/",
+   "img": "img/om_1F602.png"
+  },
+  "han": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/ˈhan/"
+  },
+  "har": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/ˈhɑː/"
+  },
+  "hun": {
+   "es": "ella",
+   "id": "w41|ella",
+   "ipa": "/ˈhun/"
+  },
+  "hurtigt": {
+   "es": "rápido",
+   "id": "w38|rápidamente",
+   "ipa": "/ˈhuɐ̯dit/"
+  },
+  "hvem": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/ˈvɛmˀ/"
+  },
+  "i": {
+   "es": "en",
+   "id": "w40|en, dentro de",
+   "ipa": "/ˈi/"
+  },
+  "i dag": {
+   "es": "hoy",
+   "id": "w08|hoy",
+   "ipa": "/iˈdæˀ/"
+  },
+  "i morgen": {
+   "es": "mañana",
+   "ipa": "/iˈmɒːɒn/"
+  },
+  "i skole": {
+   "es": "al colegio",
+   "id": "w10|escuela, colegio",
+   "ipa": "/i ˈsɡoːlə/",
+   "img": "img/om_1F3EB.png"
+  },
+  "lege": {
+   "es": "jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ˈlɑjə/",
+   "img": "img/om_1F3AE.png"
+  },
+  "leger": {
+   "es": "juega",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ˈlɑjɐ/",
+   "img": "img/om_1F3AE.png"
+  },
+  "lidt": {
+   "es": "un poco",
+   "id": "w39|ligeramente",
+   "ipa": "/ˈled/"
+  },
+  "læreren": {
+   "es": "la maestra",
+   "id": "profesiones|Maestro/a",
+   "ipa": "/ˈlɛːɐɐn/",
+   "img": "img/c78e6923bb.png"
+  },
+  "læser": {
+   "es": "lee, leen",
+   "id": "w28|leer",
+   "ipa": "/ˈlɛːsɐ/",
+   "img": "img/om_1F4D6.png"
+  },
+  "løber": {
+   "es": "corre",
+   "id": "w25|correr",
+   "ipa": "/ˈløːbɐ/",
+   "img": "img/om_1F3C3.png"
+  },
+  "med": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/ˈmɛð/"
+  },
+  "meget": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/ˈmɑːəð/"
+  },
+  "nervøs": {
+   "es": "nervioso",
+   "id": "w32|nervioso",
+   "ipa": "/næɐ̯ˈvøˀs/",
+   "img": "img/om_1F62C.png"
+  },
+  "nu": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/ˈnu/"
+  },
+  "og": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ʌ/"
+  },
+  "pandaen": {
+   "es": "el panda",
+   "id": "animales|Panda",
+   "ipa": "/ˈpandaən/",
+   "img": "img/939f2be8fd.png"
+  },
+  "ræv": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ʁɛwˀ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "ræven": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ˈʁɛwˀən/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "rævens": {
+   "es": "del zorro",
+   "id": "animales|Zorro",
+   "ipa": "/ˈʁɛwˀəns/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "rødt": {
+   "es": "rojo, roja",
+   "id": "colores|Rojo",
+   "ipa": "/ˈʁœd/",
+   "img": "img/746cbfda58.png"
+  },
+  "sammen": {
+   "es": "juntos",
+   "id": "w38|juntos",
+   "ipa": "/ˈsamən/",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  "sandwicher": {
+   "es": "bocadillos",
+   "id": "w03|sándwich, bocadillo",
+   "ipa": "/ˈsanˌwitɕɐ/",
+   "img": "img/om_1F96A.png"
+  },
+  "siger": {
+   "es": "dice",
+   "id": "w24|decir",
+   "ipa": "/ˈsiːɐ/"
+  },
+  "sin": {
+   "es": "su",
+   "id": "w41|su (de él)",
+   "ipa": "/sin/"
+  },
+  "skal": {
+   "es": "va a, tiene que",
+   "id": "w24|deber, tener que",
+   "ipa": "/sɡal/"
+  },
+  "skildpadde": {
+   "es": "tortuga",
+   "id": "animales|Tortuga",
+   "ipa": "/ˈskelˌpaðə/",
+   "img": "img/ec4e5cdc4c.png"
+  },
+  "skoledag": {
+   "es": "día de colegio",
+   "id": "w10|escuela, colegio",
+   "ipa": "/ˈsɡoːləˌdæˀ/",
+   "img": "img/om_1F3EB.png"
+  },
+  "skolen": {
+   "es": "el colegio",
+   "id": "w10|escuela, colegio",
+   "ipa": "/ˈsɡoːlən/",
+   "img": "img/om_1F3EB.png"
+  },
+  "spiller": {
+   "es": "juegan",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ˈsbelɐ/",
+   "img": "img/om_1F3AE.png"
+  },
+  "spiser": {
+   "es": "come, comen",
+   "id": "w28|comer",
+   "ipa": "/ˈsbiːsɐ/",
+   "img": "img/om_1F374.png"
+  },
+  "stort": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/ˈsdoɐ̯ˀd/"
+  },
+  "så": {
+   "es": "luego, así que",
+   "id": "w38|entonces, luego",
+   "ipa": "/ˈsɔ/"
+  },
+  "taske": {
+   "es": "mochila",
+   "id": "w05|bolsa, bolso",
+   "ipa": "/ˈtasgə/",
+   "img": "img/om_1F392.png"
+  },
+  "tegner": {
+   "es": "dibuja, dibujan",
+   "id": "w28|dibujar",
+   "ipa": "/ˈtɑjnɐ/",
+   "img": "img/om_1F58D.png"
+  },
+  "til": {
+   "es": "a, para",
+   "id": "w40|a, hacia, para",
+   "ipa": "/ˈtel/"
+  },
+  "tilbage": {
+   "es": "volver (de vuelta)",
+   "id": "w25|volver, devolver",
+   "ipa": "/teˈbæːjə/",
+   "img": "img/om_21A9.png"
+  },
+  "to": {
+   "es": "dos",
+   "id": "numeros|2",
+   "ipa": "/toˀ/"
+  },
+  "venlig": {
+   "es": "simpático, simpática",
+   "id": "w32|simpático, amable",
+   "ipa": "/ˈvɛnli/",
+   "img": "img/om_263A.png"
+  },
+  "venner": {
+   "es": "amigos",
+   "id": "w01|amigo",
+   "ipa": "/ˈvɛnɐ/",
+   "img": "img/om_1FAC2.png"
+  },
+  "vil gerne": {
+   "es": "quiere",
+   "id": "w24|querer",
+   "ipa": "/vel ˈɡæɐ̯nə/"
+  },
+  "æble": {
+   "es": "manzana",
+   "id": "w03|manzana",
+   "ipa": "/ˈɛːblə/",
+   "img": "img/om_1F34E.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/om_1F3EB.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "I dag er rævens første skoledag.",
+   "es": "Hoy es el primer día de colegio del zorro."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F392.png",
+    "img/om_270F.png"
+   ],
+   "t": "I sin taske har han en bog og en blyant.",
+   "es": "En su mochila lleva un libro y un lápiz."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F62C.png"
+   ],
+   "t": "Ræven er lidt nervøs.",
+   "es": "El zorro está un poco nervioso."
+  },
+  {
+   "img": "img/pj/tortuga.png",
+   "also": [
+    "img/om_263A.png"
+   ],
+   "t": "Læreren er en gammel skildpadde. Hun er meget venlig.",
+   "es": "La maestra es una tortuga mayor. Es muy simpática."
+  },
+  {
+   "img": "img/pj/tortuga.png",
+   "also": [
+    "img/om_1F4D5.png"
+   ],
+   "t": "Først læser de en bog sammen.",
+   "es": "Primero, leen un libro todos juntos."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F58D.png",
+    "img/om_1F34E.png"
+   ],
+   "t": "Så tegner de. Ræven tegner et stort, rødt æble.",
+   "es": "Luego dibujan. El zorro dibuja una manzana roja grande."
+  },
+  {
+   "img": "img/pj/tortuga.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "»Flot, Ræv!« siger læreren. Nu er ræven glad.",
+   "es": "«¡Muy bien, Zorro!», dice la maestra. Ahora el zorro está contento."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/pj/mono.png",
+   "img/pj/panda.png"
+  ],
+  "t": "Nu skal de lege. Hvem leger med ræven? Aben eller pandaen?",
+  "es": "Ahora toca jugar. ¿Quién juega con el zorro? ¿El mono o el panda?",
+  "opts": [
+   {
+    "key": "monkey",
+    "t": "Aben",
+    "es": "El mono",
+    "img": "img/pj/mono.png",
+    "pages": [
+     {
+      "img": "img/pj/mono.png",
+      "also": [
+       "img/om_26BD.png"
+      ],
+      "t": "Aben har en fodbold. De spiller sammen.",
+      "es": "El mono tiene un balón de fútbol. Juegan juntos."
+     },
+     {
+      "img": "img/pj/mono.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Aben løber meget hurtigt. Ræven griner og griner.",
+      "es": "El mono corre muy rápido. El zorro se ríe y se ríe."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F3EB.png"
+      ],
+      "t": "Ræven elsker skolen. Han vil gerne tilbage i morgen!",
+      "es": "Al zorro le encanta el colegio. ¡Quiere volver mañana!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Hvad har aben?",
+      "es": "¿Qué tiene el mono?",
+      "opts": [
+       "img/om_1F96A.png",
+       "img/om_26BD.png",
+       "img/om_1F34E.png"
+      ],
+      "ok": 1
+     }
+    ]
+   },
+   {
+    "key": "panda",
+    "t": "Pandaen",
+    "es": "El panda",
+    "img": "img/pj/panda.png",
+    "pages": [
+     {
+      "img": "img/pj/panda.png",
+      "also": [
+       "img/om_1F96A.png"
+      ],
+      "t": "Pandaen har to sandwicher. Han giver en til ræven.",
+      "es": "El panda tiene dos bocadillos. Le da uno al zorro."
+     },
+     {
+      "img": "img/pj/panda.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "De spiser frokost sammen. Nu er de venner.",
+      "es": "Comen juntos. Ahora son amigos."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F3EB.png"
+      ],
+      "t": "Ræven elsker skolen. Han vil gerne tilbage i morgen!",
+      "es": "Al zorro le encanta el colegio. ¡Quiere volver mañana!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Hvad giver pandaen ræven?",
+      "es": "¿Qué le da el panda al zorro?",
+      "opts": [
+       "img/om_26BD.png",
+       "img/om_1F4D5.png",
+       "img/om_1F96A.png"
+      ],
+      "ok": 2
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "Hvem er læreren?",
+   "es": "¿Quién es la maestra?",
+   "opts": [
+    "img/pj/mono.png",
+    "img/pj/panda.png",
+    "img/pj/tortuga.png"
+   ],
+   "ok": 2
+  },
+  {
+   "t": "Hvad tegner ræven?",
+   "es": "¿Qué dibuja el zorro?",
+   "opts": [
+    "img/om_1F34E.png",
+    "img/om_1F4D5.png",
+    "img/om_270F.png"
+   ],
+   "ok": 0
+  }
+ ]
+}

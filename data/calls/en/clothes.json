@@ -1,0 +1,184 @@
+{
+ "v": 1,
+ "id": "en-clothes",
+ "lang": "english",
+ "city": "Londres",
+ "t": "La ropa de Zorro",
+ "lines": [
+  {
+   "say": "Hello! It's me, Fox! It's raining in London again!",
+   "es": "¡Hola! ¡Soy yo, Zorro! ¡Otra vez llueve en Londres!",
+   "k": [
+    {
+     "t": "Hello",
+     "r": "w43|hola"
+    },
+    {
+     "t": "again",
+     "r": "w38|otra vez, de nuevo"
+    }
+   ]
+  },
+  {
+   "say": "I want to go to the park, so I need my clothes.",
+   "es": "Quiero ir al parque, así que necesito mi ropa.",
+   "k": [
+    {
+     "t": "park",
+     "r": "w06|parque"
+    },
+    {
+     "t": "clothes",
+     "r": "w05|ropa"
+    }
+   ]
+  },
+  {
+   "say": "First, I put on my coat. It's long and brown.",
+   "es": "Primero, me pongo el abrigo. Es largo y marrón.",
+   "k": [
+    {
+     "t": "coat",
+     "r": "w05|abrigo"
+    },
+    {
+     "t": "brown",
+     "r": "colores|Marrón/Café"
+    }
+   ]
+  },
+  {
+   "say": "What do I put on first?",
+   "es": "¿Qué me pongo primero?",
+   "a": [
+    {
+     "r": "w05|vestido"
+    },
+    {
+     "r": "w05|camiseta"
+    },
+    {
+     "r": "w05|abrigo"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Yes, my coat! A long, brown coat.",
+    "es": "¡Sí, el abrigo! Un abrigo largo y marrón."
+   },
+   "no": {
+    "say": "My coat! A long, brown coat.",
+    "es": "¡El abrigo! Un abrigo largo y marrón."
+   }
+  },
+  {
+   "say": "Then I put on my boots. Splash, splash in the puddles!",
+   "es": "Luego me pongo las botas. ¡Chof, chof en los charcos!",
+   "k": [
+    {
+     "t": "boots",
+     "r": "w05|bota"
+    }
+   ]
+  },
+  {
+   "say": "What do I put on my feet?",
+   "es": "¿Qué me pongo en los pies?",
+   "a": [
+    {
+     "r": "w05|sombrero"
+    },
+    {
+     "r": "w05|bota"
+    },
+    {
+     "r": "w05|camisa"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Yes, boots! Great for the rain.",
+    "es": "¡Sí, botas! Geniales para la lluvia."
+   },
+   "no": {
+    "say": "Boots! Great for the rain.",
+    "es": "¡Botas! Geniales para la lluvia."
+   }
+  },
+  {
+   "say": "Oh no! It's raining a lot. I need something big and black.",
+   "es": "¡Oh, no! Llueve mucho. Necesito algo grande y negro.",
+   "k": [
+    {
+     "t": "big",
+     "r": "w31|grande"
+    },
+    {
+     "t": "black",
+     "r": "colores|Negro"
+    }
+   ]
+  },
+  {
+   "say": "What do I need?",
+   "es": "¿Qué necesito?",
+   "a": [
+    {
+     "r": "w05|zapato"
+    },
+    {
+     "r": "w05|bolsa, bolso"
+    },
+    {
+     "r": "w05|paraguas"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Yes, my umbrella! Now I'm dry.",
+    "es": "¡Sí, mi paraguas! Ahora estoy seco."
+   },
+   "no": {
+    "say": "My umbrella! Now I'm dry.",
+    "es": "¡Mi paraguas! Ahora estoy seco."
+   }
+  },
+  {
+   "say": "And you? What are you wearing today?",
+   "es": "¿Y tú? ¿Qué llevas puesto hoy?",
+   "a": [
+    {
+     "r": "w05|camiseta",
+     "re": {
+      "say": "A T-shirt! Very nice!",
+      "es": "¡Una camiseta! ¡Muy bonita!"
+     }
+    },
+    {
+     "r": "w05|vestido",
+     "re": {
+      "say": "A dress! Lovely!",
+      "es": "¡Un vestido! ¡Precioso!"
+     }
+    },
+    {
+     "r": "w05|vaqueros",
+     "re": {
+      "say": "Jeans! I love jeans!",
+      "es": "¡Vaqueros! ¡Me encantan los vaqueros!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "OK, I'm ready. Off to the park! Bye!",
+   "es": "Vale, estoy listo. ¡Al parque! ¡Adiós!",
+   "k": [
+    {
+     "t": "Bye",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

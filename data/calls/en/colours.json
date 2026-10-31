@@ -1,0 +1,192 @@
+{
+ "v": 1,
+ "id": "en-colours",
+ "lang": "english",
+ "city": "Londres",
+ "t": "Los colores de Londres",
+ "lines": [
+  {
+   "say": "Hello! It's me, Fox! I'm calling from London.",
+   "es": "¡Hola! ¡Soy yo, Zorro! Te llamo desde Londres.",
+   "k": [
+    {
+     "t": "Hello",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "Today I'm painting a picture of London. I've got lots of colours!",
+   "es": "Hoy estoy pintando un cuadro de Londres. ¡Tengo muchos colores!",
+   "k": [
+    {
+     "t": "picture",
+     "r": "w13|imagen, cuadro, foto"
+    },
+    {
+     "t": "colours",
+     "r": "w16|color"
+    }
+   ]
+  },
+  {
+   "say": "First, I paint a big London bus. London buses are red.",
+   "es": "Primero, pinto un autobús de Londres grande. Los autobuses de Londres son rojos.",
+   "k": [
+    {
+     "t": "paint",
+     "r": "w28|pintar"
+    },
+    {
+     "t": "bus",
+     "r": "w07|autobús"
+    },
+    {
+     "t": "red",
+     "r": "colores|Rojo"
+    }
+   ]
+  },
+  {
+   "say": "What colour is my bus?",
+   "es": "¿De qué color es mi autobús?",
+   "a": [
+    {
+     "r": "colores|Azul"
+    },
+    {
+     "r": "colores|Rojo"
+    },
+    {
+     "r": "colores|Amarillo"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Yes, red! Like all the buses in London.",
+    "es": "¡Sí, rojo! Como todos los autobuses de Londres."
+   },
+   "no": {
+    "say": "It's red! London buses are red.",
+    "es": "¡Es rojo! Los autobuses de Londres son rojos."
+   }
+  },
+  {
+   "say": "Now I paint the sky. Today the sky is grey, and it's raining.",
+   "es": "Ahora pinto el cielo. Hoy el cielo está gris y llueve.",
+   "k": [
+    {
+     "t": "sky",
+     "r": "w09|cielo"
+    },
+    {
+     "t": "grey",
+     "r": "colores|Gris"
+    }
+   ]
+  },
+  {
+   "say": "What colour is the sky today?",
+   "es": "¿De qué color está hoy el cielo?",
+   "a": [
+    {
+     "r": "colores|Verde"
+    },
+    {
+     "r": "colores|Naranja"
+    },
+    {
+     "r": "colores|Gris"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Yes, grey! A grey, rainy sky.",
+    "es": "¡Sí, gris! Un cielo gris de lluvia."
+   },
+   "no": {
+    "say": "It's grey today. A grey, rainy sky.",
+    "es": "Hoy está gris. Un cielo gris de lluvia."
+   }
+  },
+  {
+   "say": "Then I paint a park with lots of trees and green grass.",
+   "es": "Luego pinto un parque con muchos árboles y hierba verde.",
+   "k": [
+    {
+     "t": "park",
+     "r": "w06|parque"
+    },
+    {
+     "t": "trees",
+     "r": "w09|árbol"
+    },
+    {
+     "t": "green",
+     "r": "colores|Verde"
+    }
+   ]
+  },
+  {
+   "say": "What colour is the grass?",
+   "es": "¿De qué color es la hierba?",
+   "a": [
+    {
+     "r": "colores|Verde"
+    },
+    {
+     "r": "colores|Negro"
+    },
+    {
+     "r": "colores|Blanco"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "That's right! Green grass.",
+    "es": "¡Muy bien! Hierba verde."
+   },
+   "no": {
+    "say": "It's green! Green grass.",
+    "es": "¡Es verde! Hierba verde."
+   }
+  },
+  {
+   "say": "And you? What's your favourite colour?",
+   "es": "¿Y tú? ¿Cuál es tu color favorito?",
+   "a": [
+    {
+     "r": "colores|Azul",
+     "re": {
+      "say": "Blue! Like the sea. Lovely!",
+      "es": "¡Azul! Como el mar. ¡Qué bonito!"
+     }
+    },
+    {
+     "r": "colores|Rojo",
+     "re": {
+      "say": "Red! Like my London bus!",
+      "es": "¡Rojo! ¡Como mi autobús de Londres!"
+     }
+    },
+    {
+     "r": "colores|Amarillo",
+     "re": {
+      "say": "Yellow! Like the sun. Brilliant!",
+      "es": "¡Amarillo! Como el sol. ¡Genial!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "My picture is ready. Thank you for helping me! Bye!",
+   "es": "Mi cuadro está listo. ¡Gracias por ayudarme! ¡Adiós!",
+   "k": [
+    {
+     "t": "Bye",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

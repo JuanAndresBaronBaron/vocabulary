@@ -344,6 +344,314 @@
     }
    ],
    "pages": 9
+  },
+  {
+   "id": "en-doctor",
+   "file": "data/stories/en/doctor.json",
+   "n": 5,
+   "title": "The Fox Goes to the Doctor",
+   "es": "El zorro va al médico",
+   "short": "El médico",
+   "cover": "img/pj/oso.png",
+   "tint": "teal",
+   "words": [
+    {
+     "w": "fox",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "head",
+     "id": "w02|cabeza"
+    },
+    {
+     "w": "doctor",
+     "id": "profesiones|Médico/a",
+     "img": "img/a043093157.png"
+    },
+    {
+     "w": "bear",
+     "id": "animales|Oso",
+     "img": "img/7b569303eb.png"
+    },
+    {
+     "w": "mouth",
+     "id": "w02|boca",
+     "img": "img/om_1F444.png"
+    },
+    {
+     "w": "tooth",
+     "id": "w02|diente",
+     "img": "img/om_1F9B7.png"
+    },
+    {
+     "w": "ear",
+     "id": "w02|oreja, oído",
+     "img": "img/om_1F442.png"
+    },
+    {
+     "w": "nose",
+     "id": "w02|nariz",
+     "img": "img/om_1F443.png"
+    },
+    {
+     "w": "hot",
+     "id": "w31|caliente, caluroso",
+     "img": "img/om_1F975.png"
+    },
+    {
+     "w": "medicine",
+     "id": "w02|medicina",
+     "img": "img/om_1F48A.png"
+    },
+    {
+     "w": "bed",
+     "id": "w04|cama",
+     "img": "img/om_1F6CF.png"
+    },
+    {
+     "w": "eye",
+     "id": "w02|ojo",
+     "img": "img/om_1F441.png"
+    }
+   ],
+   "pages": 11
+  },
+  {
+   "id": "en-snow",
+   "file": "data/stories/en/snow.json",
+   "n": 6,
+   "title": "The Fox Plays in the Snow",
+   "es": "El zorro juega en la nieve",
+   "short": "La nieve",
+   "cover": "img/pj/conejo.png",
+   "tint": "blue",
+   "words": [
+    {
+     "w": "winter",
+     "id": "w08|invierno",
+     "img": "img/om_2744.png"
+    },
+    {
+     "w": "snow",
+     "id": "w09|nieve",
+     "img": "img/om_2744.png"
+    },
+    {
+     "w": "cold",
+     "id": "w31|frío",
+     "img": "img/om_1F976.png"
+    },
+    {
+     "w": "T-shirt",
+     "id": "w05|camiseta",
+     "img": "img/om_1F455.png"
+    },
+    {
+     "w": "coat",
+     "id": "w05|abrigo",
+     "img": "img/om_1F9E5.png"
+    },
+    {
+     "w": "sock",
+     "id": "w05|calcetín",
+     "img": "img/om_1F9E6.png"
+    },
+    {
+     "w": "boot",
+     "id": "w05|bota",
+     "img": "img/om_1F462.png"
+    },
+    {
+     "w": "foot",
+     "id": "w02|pie",
+     "img": "img/om_1F9B6.png"
+    },
+    {
+     "w": "glove",
+     "id": "w05|guante",
+     "img": "img/om_1F9E4.png"
+    },
+    {
+     "w": "hand",
+     "id": "w02|mano",
+     "img": "img/om_270B.png"
+    },
+    {
+     "w": "rabbit",
+     "id": "animales|Conejo",
+     "img": "img/e096b975fd.png"
+    },
+    {
+     "w": "warm",
+     "id": "w31|cálido, templado"
+    }
+   ],
+   "pages": 11
+  },
+  {
+   "id": "en-school",
+   "file": "data/stories/en/school.json",
+   "n": 7,
+   "title": "The Fox Goes to School",
+   "es": "El zorro va al colegio",
+   "short": "El colegio",
+   "cover": "img/pj/tortuga.png",
+   "tint": "yellow",
+   "words": [
+    {
+     "w": "school",
+     "id": "w10|escuela, colegio",
+     "img": "img/om_1F3EB.png"
+    },
+    {
+     "w": "first",
+     "id": "w16|primero",
+     "img": "img/om_1F947.png"
+    },
+    {
+     "w": "day",
+     "id": "w08|día"
+    },
+    {
+     "w": "bag",
+     "id": "w05|bolsa, bolso",
+     "img": "img/om_1F45C.png"
+    },
+    {
+     "w": "book",
+     "id": "w10|libro",
+     "img": "img/om_1F4D5.png"
+    },
+    {
+     "w": "pencil",
+     "id": "w10|lápiz",
+     "img": "img/om_270F.png"
+    },
+    {
+     "w": "teacher",
+     "id": "profesiones|Maestro/a",
+     "img": "img/c78e6923bb.png"
+    },
+    {
+     "w": "tortoise",
+     "id": "animales|Tortuga",
+     "img": "img/ec4e5cdc4c.png"
+    },
+    {
+     "w": "read",
+     "id": "w28|leer",
+     "img": "img/om_1F4D6.png"
+    },
+    {
+     "w": "draw",
+     "id": "w28|dibujar",
+     "img": "img/om_1F58D.png"
+    },
+    {
+     "w": "apple",
+     "id": "w03|manzana",
+     "img": "img/om_1F34E.png"
+    },
+    {
+     "w": "monkey",
+     "id": "animales|Mono",
+     "img": "img/a1aa85e4a9.png"
+    },
+    {
+     "w": "panda",
+     "id": "animales|Panda",
+     "img": "img/939f2be8fd.png"
+    },
+    {
+     "w": "football",
+     "id": "w13|fútbol",
+     "img": "img/om_26BD.png"
+    }
+   ],
+   "pages": 11
+  },
+  {
+   "id": "en-halloween",
+   "file": "data/stories/en/halloween.json",
+   "n": 8,
+   "title": "Halloween on the Farm",
+   "es": "Halloween en la granja",
+   "short": "Halloween",
+   "cover": "img/pj/gato.png",
+   "tint": "green",
+   "words": [
+    {
+     "w": "night",
+     "id": "w08|noche",
+     "img": "img/om_1F303.png"
+    },
+    {
+     "w": "moon",
+     "id": "w09|luna",
+     "img": "img/om_1F319.png"
+    },
+    {
+     "w": "sky",
+     "id": "w09|cielo"
+    },
+    {
+     "w": "orange",
+     "id": "colores|Naranja",
+     "img": "img/a99bad73df.png"
+    },
+    {
+     "w": "cat",
+     "id": "animales|Gato",
+     "img": "img/ab47b70a6b.png"
+    },
+    {
+     "w": "black",
+     "id": "colores|Negro",
+     "img": "img/73c8a4092d.png"
+    },
+    {
+     "w": "white",
+     "id": "colores|Blanco",
+     "img": "img/458f834f61.png"
+    },
+    {
+     "w": "owl",
+     "id": "animales|Búho",
+     "img": "img/7a0d4a0582.png"
+    },
+    {
+     "w": "door",
+     "id": "w04|puerta",
+     "img": "img/om_1F6AA.png"
+    },
+    {
+     "w": "dark",
+     "id": "w31|oscuro",
+     "img": "img/om_1F311.png"
+    },
+    {
+     "w": "tree",
+     "id": "w09|árbol",
+     "img": "img/om_1F333.png"
+    },
+    {
+     "w": "ghost",
+     "id": "w14|fantasma",
+     "img": "img/om_1F47B.png"
+    },
+    {
+     "w": "dog",
+     "id": "animales|Perro",
+     "img": "img/3e394d37a4.png"
+    },
+    {
+     "w": "home",
+     "id": "w04|casa, hogar",
+     "img": "img/om_1F3E1.png"
+    }
+   ],
+   "pages": 11
   }
  ],
  "français": [
@@ -690,6 +998,315 @@
     }
    ],
    "pages": 9
+  },
+  {
+   "id": "fr-doctor",
+   "file": "data/stories/fr/doctor.json",
+   "n": 5,
+   "title": "Le renard va chez le médecin",
+   "es": "El zorro va al médico",
+   "short": "El médico",
+   "cover": "img/pj/oso.png",
+   "tint": "teal",
+   "words": [
+    {
+     "w": "le renard",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "malade",
+     "id": "w31|enfermo",
+     "img": "img/om_1F922.png"
+    },
+    {
+     "w": "la tête",
+     "id": "w02|cabeza"
+    },
+    {
+     "w": "le médecin, la médecin",
+     "id": "profesiones|Médico/a",
+     "img": "img/a043093157.png"
+    },
+    {
+     "w": "l'ours",
+     "id": "animales|Oso",
+     "img": "img/7b569303eb.png"
+    },
+    {
+     "w": "la bouche",
+     "id": "w02|boca",
+     "img": "img/om_1F444.png"
+    },
+    {
+     "w": "la dent",
+     "id": "w02|diente",
+     "img": "img/om_1F9B7.png"
+    },
+    {
+     "w": "l'oreille",
+     "id": "w02|oreja, oído",
+     "img": "img/om_1F442.png"
+    },
+    {
+     "w": "le nez",
+     "id": "w02|nariz",
+     "img": "img/om_1F443.png"
+    },
+    {
+     "w": "chaud, chaude",
+     "id": "w31|caliente, caluroso",
+     "img": "img/om_1F975.png"
+    },
+    {
+     "w": "le médicament",
+     "id": "w02|medicina",
+     "img": "img/om_1F48A.png"
+    },
+    {
+     "w": "le lit",
+     "id": "w04|cama",
+     "img": "img/om_1F6CF.png"
+    },
+    {
+     "w": "l'œil",
+     "id": "w02|ojo",
+     "img": "img/om_1F441.png"
+    }
+   ],
+   "pages": 11
+  },
+  {
+   "id": "fr-snow",
+   "file": "data/stories/fr/snow.json",
+   "n": 6,
+   "title": "Le renard joue dans la neige",
+   "es": "El zorro juega en la nieve",
+   "short": "La nieve",
+   "cover": "img/pj/conejo.png",
+   "tint": "blue",
+   "words": [
+    {
+     "w": "l'hiver",
+     "id": "w08|invierno",
+     "img": "img/om_2744.png"
+    },
+    {
+     "w": "la neige",
+     "id": "w09|nieve",
+     "img": "img/om_2744.png"
+    },
+    {
+     "w": "froid, froide",
+     "id": "w31|frío",
+     "img": "img/om_1F976.png"
+    },
+    {
+     "w": "le tee-shirt",
+     "id": "w05|camiseta",
+     "img": "img/om_1F455.png"
+    },
+    {
+     "w": "le manteau",
+     "id": "w05|abrigo",
+     "img": "img/om_1F9E5.png"
+    },
+    {
+     "w": "la chaussette",
+     "id": "w05|calcetín",
+     "img": "img/om_1F9E6.png"
+    },
+    {
+     "w": "la botte",
+     "id": "w05|bota",
+     "img": "img/om_1F462.png"
+    },
+    {
+     "w": "le pied",
+     "id": "w02|pie",
+     "img": "img/om_1F9B6.png"
+    },
+    {
+     "w": "le gant",
+     "id": "w05|guante",
+     "img": "img/om_1F9E4.png"
+    },
+    {
+     "w": "la main",
+     "id": "w02|mano",
+     "img": "img/om_270B.png"
+    },
+    {
+     "w": "le lapin",
+     "id": "animales|Conejo",
+     "img": "img/e096b975fd.png"
+    },
+    {
+     "w": "chaud, chaude",
+     "id": "w31|caliente, caluroso",
+     "img": "img/om_1F975.png"
+    }
+   ],
+   "pages": 11
+  },
+  {
+   "id": "fr-school",
+   "file": "data/stories/fr/school.json",
+   "n": 7,
+   "title": "Le renard va à l'école",
+   "es": "El zorro va al colegio",
+   "short": "El colegio",
+   "cover": "img/pj/tortuga.png",
+   "tint": "yellow",
+   "words": [
+    {
+     "w": "l'école",
+     "id": "w10|escuela, colegio",
+     "img": "img/om_1F3EB.png"
+    },
+    {
+     "w": "premier, première",
+     "id": "w16|primero",
+     "img": "img/om_1F947.png"
+    },
+    {
+     "w": "le jour",
+     "id": "w08|día"
+    },
+    {
+     "w": "le sac",
+     "id": "w05|bolsa, bolso",
+     "img": "img/om_1F45C.png"
+    },
+    {
+     "w": "le livre",
+     "id": "w10|libro",
+     "img": "img/om_1F4D5.png"
+    },
+    {
+     "w": "le crayon",
+     "id": "w10|lápiz",
+     "img": "img/om_270F.png"
+    },
+    {
+     "w": "la tortue",
+     "id": "animales|Tortuga",
+     "img": "img/ec4e5cdc4c.png"
+    },
+    {
+     "w": "lire",
+     "id": "w28|leer",
+     "img": "img/om_1F4D6.png"
+    },
+    {
+     "w": "dessiner",
+     "id": "w28|dibujar",
+     "img": "img/om_1F58D.png"
+    },
+    {
+     "w": "la pomme",
+     "id": "w03|manzana",
+     "img": "img/om_1F34E.png"
+    },
+    {
+     "w": "le singe",
+     "id": "animales|Mono",
+     "img": "img/a1aa85e4a9.png"
+    },
+    {
+     "w": "le panda",
+     "id": "animales|Panda",
+     "img": "img/939f2be8fd.png"
+    },
+    {
+     "w": "le football",
+     "id": "w13|fútbol",
+     "img": "img/om_26BD.png"
+    }
+   ],
+   "pages": 11
+  },
+  {
+   "id": "fr-halloween",
+   "file": "data/stories/fr/halloween.json",
+   "n": 8,
+   "title": "Halloween à la ferme",
+   "es": "Halloween en la granja",
+   "short": "Halloween",
+   "cover": "img/pj/gato.png",
+   "tint": "green",
+   "words": [
+    {
+     "w": "la nuit",
+     "id": "w08|noche",
+     "img": "img/om_1F303.png"
+    },
+    {
+     "w": "la lune",
+     "id": "w09|luna",
+     "img": "img/om_1F319.png"
+    },
+    {
+     "w": "le ciel",
+     "id": "w09|cielo"
+    },
+    {
+     "w": "orange",
+     "id": "colores|Naranja",
+     "img": "img/a99bad73df.png"
+    },
+    {
+     "w": "le chat",
+     "id": "animales|Gato",
+     "img": "img/ab47b70a6b.png"
+    },
+    {
+     "w": "noir",
+     "id": "colores|Negro",
+     "img": "img/73c8a4092d.png"
+    },
+    {
+     "w": "blanc",
+     "id": "colores|Blanco",
+     "img": "img/458f834f61.png"
+    },
+    {
+     "w": "le hibou",
+     "id": "animales|Búho",
+     "img": "img/7a0d4a0582.png"
+    },
+    {
+     "w": "la porte",
+     "id": "w04|puerta",
+     "img": "img/om_1F6AA.png"
+    },
+    {
+     "w": "sombre",
+     "id": "w31|oscuro",
+     "img": "img/om_1F311.png"
+    },
+    {
+     "w": "l'arbre",
+     "id": "w09|árbol",
+     "img": "img/om_1F333.png"
+    },
+    {
+     "w": "le fantôme",
+     "id": "w14|fantasma",
+     "img": "img/om_1F47B.png"
+    },
+    {
+     "w": "le chien",
+     "id": "animales|Perro",
+     "img": "img/3e394d37a4.png"
+    },
+    {
+     "w": "la maison",
+     "id": "w04|casa",
+     "img": "img/om_1F3E0.png"
+    }
+   ],
+   "pages": 11
   }
  ],
  "dansk": [
@@ -1030,6 +1647,310 @@
     }
    ],
    "pages": 9
+  },
+  {
+   "id": "da-doctor",
+   "file": "data/stories/da/doctor.json",
+   "n": 5,
+   "title": "Ræven går til lægen",
+   "es": "El zorro va al médico",
+   "short": "El médico",
+   "cover": "img/pj/oso.png",
+   "tint": "teal",
+   "words": [
+    {
+     "w": "en ræv",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "syg",
+     "id": "w31|enfermo",
+     "img": "img/om_1F922.png"
+    },
+    {
+     "w": "et hoved",
+     "id": "w02|cabeza"
+    },
+    {
+     "w": "en læge",
+     "id": "profesiones|Médico/a",
+     "img": "img/a043093157.png"
+    },
+    {
+     "w": "en bjørn",
+     "id": "animales|Oso",
+     "img": "img/7b569303eb.png"
+    },
+    {
+     "w": "en mund",
+     "id": "w02|boca",
+     "img": "img/om_1F444.png"
+    },
+    {
+     "w": "en tand",
+     "id": "w02|diente",
+     "img": "img/om_1F9B7.png"
+    },
+    {
+     "w": "et øre",
+     "id": "w02|oreja, oído",
+     "img": "img/om_1F442.png"
+    },
+    {
+     "w": "en næse",
+     "id": "w02|nariz",
+     "img": "img/om_1F443.png"
+    },
+    {
+     "w": "varm",
+     "id": "w31|caliente, caluroso",
+     "img": "img/om_1F975.png"
+    },
+    {
+     "w": "en medicin",
+     "id": "w02|medicina",
+     "img": "img/om_1F48A.png"
+    },
+    {
+     "w": "en seng",
+     "id": "w04|cama",
+     "img": "img/om_1F6CF.png"
+    },
+    {
+     "w": "et øje",
+     "id": "w02|ojo",
+     "img": "img/om_1F441.png"
+    }
+   ],
+   "pages": 11
+  },
+  {
+   "id": "da-snow",
+   "file": "data/stories/da/snow.json",
+   "n": 6,
+   "title": "Ræven leger i sneen",
+   "es": "El zorro juega en la nieve",
+   "short": "La nieve",
+   "cover": "img/pj/conejo.png",
+   "tint": "blue",
+   "words": [
+    {
+     "w": "en vinter",
+     "id": "w08|invierno",
+     "img": "img/om_2744.png"
+    },
+    {
+     "w": "en sne",
+     "id": "w09|nieve",
+     "img": "img/om_2744.png"
+    },
+    {
+     "w": "kold",
+     "id": "w31|frío",
+     "img": "img/om_1F976.png"
+    },
+    {
+     "w": "en T-shirt",
+     "id": "w05|camiseta",
+     "img": "img/om_1F455.png"
+    },
+    {
+     "w": "en frakke",
+     "id": "w05|abrigo",
+     "img": "img/om_1F9E5.png"
+    },
+    {
+     "w": "en sok",
+     "id": "w05|calcetín",
+     "img": "img/om_1F9E6.png"
+    },
+    {
+     "w": "en støvle",
+     "id": "w05|bota",
+     "img": "img/om_1F462.png"
+    },
+    {
+     "w": "en fod",
+     "id": "w02|pie",
+     "img": "img/om_1F9B6.png"
+    },
+    {
+     "w": "en hånd",
+     "id": "w02|mano",
+     "img": "img/om_270B.png"
+    },
+    {
+     "w": "en kanin",
+     "id": "animales|Conejo",
+     "img": "img/e096b975fd.png"
+    },
+    {
+     "w": "varm",
+     "id": "w31|caliente, caluroso",
+     "img": "img/om_1F975.png"
+    }
+   ],
+   "pages": 11
+  },
+  {
+   "id": "da-school",
+   "file": "data/stories/da/school.json",
+   "n": 7,
+   "title": "Ræven skal i skole",
+   "es": "El zorro va al colegio",
+   "short": "El colegio",
+   "cover": "img/pj/tortuga.png",
+   "tint": "yellow",
+   "words": [
+    {
+     "w": "en skole",
+     "id": "w10|escuela, colegio",
+     "img": "img/om_1F3EB.png"
+    },
+    {
+     "w": "første",
+     "id": "w16|primero",
+     "img": "img/om_1F947.png"
+    },
+    {
+     "w": "en taske",
+     "id": "w05|bolsa, bolso",
+     "img": "img/om_1F45C.png"
+    },
+    {
+     "w": "en bog",
+     "id": "w10|libro",
+     "img": "img/om_1F4D5.png"
+    },
+    {
+     "w": "en blyant",
+     "id": "w10|lápiz",
+     "img": "img/om_270F.png"
+    },
+    {
+     "w": "en lærer",
+     "id": "profesiones|Maestro/a",
+     "img": "img/c78e6923bb.png"
+    },
+    {
+     "w": "en skildpadde",
+     "id": "animales|Tortuga",
+     "img": "img/ec4e5cdc4c.png"
+    },
+    {
+     "w": "at læse",
+     "id": "w28|leer",
+     "img": "img/om_1F4D6.png"
+    },
+    {
+     "w": "at tegne",
+     "id": "w28|dibujar",
+     "img": "img/om_1F58D.png"
+    },
+    {
+     "w": "et æble",
+     "id": "w03|manzana",
+     "img": "img/om_1F34E.png"
+    },
+    {
+     "w": "en abe",
+     "id": "animales|Mono",
+     "img": "img/a1aa85e4a9.png"
+    },
+    {
+     "w": "en panda",
+     "id": "animales|Panda",
+     "img": "img/939f2be8fd.png"
+    },
+    {
+     "w": "en fodbold",
+     "id": "w13|fútbol",
+     "img": "img/om_26BD.png"
+    }
+   ],
+   "pages": 11
+  },
+  {
+   "id": "da-jul",
+   "file": "data/stories/da/jul.json",
+   "n": 8,
+   "title": "Ræven holder jul",
+   "es": "El zorro celebra la Navidad",
+   "short": "Navidad",
+   "cover": "img/pj/gato.png",
+   "tint": "green",
+   "words": [
+    {
+     "w": "en ræv",
+     "id": "animales|Zorro",
+     "img": "img/d98dc83bdf.png"
+    },
+    {
+     "w": "en sne",
+     "id": "w09|nieve",
+     "img": "img/om_2744.png"
+    },
+    {
+     "w": "et træ",
+     "id": "w09|árbol",
+     "img": "img/om_1F333.png"
+    },
+    {
+     "w": "en stjerne",
+     "id": "w09|estrella",
+     "img": "img/om_2B50.png"
+    },
+    {
+     "w": "en kat",
+     "id": "animales|Gato",
+     "img": "img/ab47b70a6b.png"
+    },
+    {
+     "w": "et vindue",
+     "id": "w04|ventana",
+     "img": "img/om_1FA9F.png"
+    },
+    {
+     "w": "lille",
+     "id": "w31|pequeño"
+    },
+    {
+     "w": "en gave",
+     "id": "w13|regalo",
+     "img": "img/om_1F381.png"
+    },
+    {
+     "w": "glad",
+     "id": "w32|feliz",
+     "img": "img/om_1F600.png"
+    },
+    {
+     "w": "at danse",
+     "id": "w28|bailar",
+     "img": "img/om_1F483.png"
+    },
+    {
+     "w": "at synge",
+     "id": "w28|cantar",
+     "img": "img/om_1F9D1-200D-1F3A4.png"
+    },
+    {
+     "w": "en bold",
+     "id": "w13|pelota, balón",
+     "img": "img/om_1F3D0.png"
+    },
+    {
+     "w": "en bog",
+     "id": "w10|libro",
+     "img": "img/om_1F4D5.png"
+    },
+    {
+     "w": "at åbne",
+     "id": "w28|abrir"
+    }
+   ],
+   "pages": 11
   }
  ]
 }

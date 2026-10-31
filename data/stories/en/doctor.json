@@ -1,0 +1,593 @@
+{
+ "v": 1,
+ "id": "en-doctor",
+ "lang": "english",
+ "n": 5,
+ "title": "The Fox Goes to the Doctor",
+ "es": "El zorro va al médico",
+ "short": "El médico",
+ "cover": "img/pj/oso.png",
+ "tint": "teal",
+ "words": [
+  {
+   "w": "fox",
+   "id": "animales|Zorro",
+   "img": "img/d98dc83bdf.png"
+  },
+  {
+   "w": "head",
+   "id": "w02|cabeza"
+  },
+  {
+   "w": "doctor",
+   "id": "profesiones|Médico/a",
+   "img": "img/a043093157.png"
+  },
+  {
+   "w": "bear",
+   "id": "animales|Oso",
+   "img": "img/7b569303eb.png"
+  },
+  {
+   "w": "mouth",
+   "id": "w02|boca",
+   "img": "img/om_1F444.png"
+  },
+  {
+   "w": "tooth",
+   "id": "w02|diente",
+   "img": "img/om_1F9B7.png"
+  },
+  {
+   "w": "ear",
+   "id": "w02|oreja, oído",
+   "img": "img/om_1F442.png"
+  },
+  {
+   "w": "nose",
+   "id": "w02|nariz",
+   "img": "img/om_1F443.png"
+  },
+  {
+   "w": "hot",
+   "id": "w31|caliente, caluroso",
+   "img": "img/om_1F975.png"
+  },
+  {
+   "w": "medicine",
+   "id": "w02|medicina",
+   "img": "img/om_1F48A.png"
+  },
+  {
+   "w": "bed",
+   "id": "w04|cama",
+   "img": "img/om_1F6CF.png"
+  },
+  {
+   "w": "eye",
+   "id": "w02|ojo",
+   "img": "img/om_1F441.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "un, una",
+   "id": "w41|un, una",
+   "ipa": "/ə/"
+  },
+  "again": {
+   "es": "otra vez",
+   "id": "w38|otra vez, de nuevo",
+   "ipa": "/əˈɡen/",
+   "img": "img/om_1F501.png"
+  },
+  "all": {
+   "es": "toda, todo",
+   "id": "w41|todo, todos",
+   "ipa": "/ɔːl/"
+  },
+  "and": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/ænd/"
+  },
+  "bear": {
+   "es": "oso",
+   "id": "animales|Oso",
+   "ipa": "/beə/",
+   "img": "img/7b569303eb.png"
+  },
+  "bed": {
+   "es": "cama",
+   "id": "w04|cama",
+   "ipa": "/bed/",
+   "img": "img/om_1F6CF.png"
+  },
+  "big": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/bɪɡ/"
+  },
+  "book": {
+   "es": "libro",
+   "id": "w10|libro",
+   "ipa": "/bʊk/",
+   "img": "img/om_1F4D5.png"
+  },
+  "brings": {
+   "es": "trae",
+   "id": "w24|traer",
+   "ipa": "/brɪŋz/"
+  },
+  "can": {
+   "es": "puede",
+   "id": "w24|poder",
+   "ipa": "/kæn/"
+  },
+  "closes": {
+   "es": "cierra",
+   "id": "w28|cerrar",
+   "ipa": "/ˈkləʊzɪz/"
+  },
+  "comes": {
+   "es": "viene",
+   "id": "w24|venir",
+   "ipa": "/kʌmz/"
+  },
+  "day": {
+   "es": "día",
+   "id": "w08|día",
+   "ipa": "/deɪ/"
+  },
+  "doctor": {
+   "es": "médico",
+   "id": "profesiones|Médico/a",
+   "ipa": "/ˈdɒktə/",
+   "img": "img/a043093157.png"
+  },
+  "dog": {
+   "es": "perro",
+   "id": "animales|Perro",
+   "ipa": "/dɒɡ/",
+   "img": "img/3e394d37a4.png"
+  },
+  "ears": {
+   "es": "orejas",
+   "id": "w02|oreja, oído",
+   "ipa": "/ɪəz/",
+   "img": "img/om_1F442.png"
+  },
+  "eats": {
+   "es": "come",
+   "id": "w28|comer",
+   "ipa": "/iːts/",
+   "img": "img/om_1F374.png"
+  },
+  "eyes": {
+   "es": "ojos",
+   "id": "w02|ojo",
+   "ipa": "/aɪz/",
+   "img": "img/om_1F441.png"
+  },
+  "fox": {
+   "es": "zorro",
+   "id": "animales|Zorro",
+   "ipa": "/fɒks/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "friendly": {
+   "es": "simpático, simpática",
+   "id": "w32|simpático, amable",
+   "ipa": "/ˈfrendli/",
+   "img": "img/om_263A.png"
+  },
+  "gives": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/ɡɪvz/"
+  },
+  "goes": {
+   "es": "va",
+   "id": "w24|ir",
+   "ipa": "/ɡəʊz/"
+  },
+  "good": {
+   "es": "buena, rica",
+   "id": "w33|bueno",
+   "ipa": "/ɡʊd/",
+   "img": "img/om_1F44D.png"
+  },
+  "he": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/hiː/"
+  },
+  "head": {
+   "es": "cabeza",
+   "id": "w02|cabeza",
+   "ipa": "/hed/"
+  },
+  "hen": {
+   "es": "gallina",
+   "id": "animales|Gallina",
+   "ipa": "/hen/",
+   "img": "img/f501d7335c.png"
+  },
+  "him": {
+   "es": "él, lo, le",
+   "id": "w41|él, lo, le",
+   "ipa": "/hɪm/"
+  },
+  "his": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/hɪz/"
+  },
+  "home": {
+   "es": "a casa",
+   "id": "w04|casa, hogar",
+   "ipa": "/həʊm/",
+   "img": "img/om_1F3E1.png"
+  },
+  "hot": {
+   "es": "caliente",
+   "id": "w31|caliente, caluroso",
+   "ipa": "/hɒt/",
+   "img": "img/om_1F975.png"
+  },
+  "hurts": {
+   "es": "duele",
+   "id": "w28|doler, hacer daño",
+   "ipa": "/hɜːts/",
+   "img": "img/om_1F915.png"
+  },
+  "ill": {
+   "es": "enfermo",
+   "id": "w31|enfermo",
+   "ipa": "/ɪl/",
+   "img": "img/om_1F922.png"
+  },
+  "in": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/ɪn/"
+  },
+  "is": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪz/"
+  },
+  "it is": {
+   "es": "es, está, hace",
+   "id": "w24|ser, estar",
+   "ipa": "/ɪt ɪz/"
+  },
+  "looks at": {
+   "es": "mira",
+   "id": "w27|mirar, parecer",
+   "ipa": "/lʊks ət/",
+   "img": "img/om_1F440.png"
+  },
+  "medicine": {
+   "es": "una medicina",
+   "id": "w02|medicina",
+   "ipa": "/ˈmedsn/",
+   "img": "img/om_1F48A.png"
+  },
+  "mmm": {
+   "es": "¡mmm! (¡qué rico!)",
+   "ipa": "/mː/"
+  },
+  "mouth": {
+   "es": "boca",
+   "id": "w02|boca",
+   "ipa": "/maʊθ/",
+   "img": "img/om_1F444.png"
+  },
+  "must": {
+   "es": "tiene que",
+   "id": "w24|deber, tener que",
+   "ipa": "/mʌst/"
+  },
+  "next": {
+   "es": "siguiente",
+   "id": "w35|próximo, siguiente",
+   "ipa": "/nekst/"
+  },
+  "nose": {
+   "es": "nariz",
+   "id": "w02|nariz",
+   "ipa": "/nəʊz/",
+   "img": "img/om_1F443.png"
+  },
+  "open": {
+   "es": "abre",
+   "id": "w28|abrir",
+   "ipa": "/ˈəʊpən/"
+  },
+  "or": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/ɔː/"
+  },
+  "play": {
+   "es": "jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/pleɪ/",
+   "img": "img/om_1F3AE.png"
+  },
+  "please": {
+   "es": "por favor",
+   "id": "w43|por favor",
+   "ipa": "/pliːz/",
+   "img": "img/om_1F97A.png"
+  },
+  "reads": {
+   "es": "lee",
+   "id": "w28|leer",
+   "ipa": "/riːdz/",
+   "img": "img/om_1F4D6.png"
+  },
+  "red": {
+   "es": "roja",
+   "id": "colores|Rojo",
+   "ipa": "/red/",
+   "img": "img/746cbfda58.png"
+  },
+  "says": {
+   "es": "dice",
+   "id": "w24|decir",
+   "ipa": "/sez/"
+  },
+  "see": {
+   "es": "ver",
+   "id": "w27|ver",
+   "ipa": "/siː/",
+   "img": "img/om_1F441.png"
+  },
+  "some": {
+   "es": "un poco de",
+   "id": "w41|algún, algunos, algo de",
+   "ipa": "/sʌm/"
+  },
+  "soup": {
+   "es": "sopa",
+   "id": "w03|sopa",
+   "ipa": "/suːp/",
+   "img": "img/om_1F372.png"
+  },
+  "stay": {
+   "es": "quedarse",
+   "id": "w25|quedarse, alojarse",
+   "ipa": "/steɪ/"
+  },
+  "story": {
+   "es": "cuento",
+   "id": "w13|historia, cuento",
+   "ipa": "/ˈstɔːri/",
+   "img": "img/om_1F4D6.png"
+  },
+  "teeth": {
+   "es": "dientes",
+   "id": "w02|diente",
+   "ipa": "/tiːθ/",
+   "img": "img/om_1F9B7.png"
+  },
+  "the": {
+   "es": "el, la, los, las",
+   "id": "w41|el, la, los, las",
+   "ipa": "/ðə/"
+  },
+  "to": {
+   "es": "a, hacia",
+   "id": "w40|a, hacia, para",
+   "ipa": "/tuː/"
+  },
+  "today": {
+   "es": "hoy",
+   "id": "w08|hoy",
+   "ipa": "/təˈdeɪ/"
+  },
+  "very": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/ˈveri/"
+  },
+  "well": {
+   "es": "bien",
+   "id": "w38|bien",
+   "ipa": "/wel/"
+  },
+  "who": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/huː/"
+  },
+  "your": {
+   "es": "tu",
+   "id": "w41|tu, su, vuestro",
+   "ipa": "/jɔː/"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F912.png"
+   ],
+   "t": "The fox is ill today. His head hurts.",
+   "es": "El zorro está enfermo hoy. Le duele la cabeza."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F9D1-200D-2695-FE0F.png"
+   ],
+   "t": "He goes to the doctor. The doctor is a big, friendly bear.",
+   "es": "Va al médico. El médico es un oso grande y simpático."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F444.png"
+   ],
+   "t": "“Open your mouth, please,” says the doctor.",
+   "es": "«Abre la boca, por favor», dice el médico."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F9B7.png",
+    "img/om_1F442.png"
+   ],
+   "t": "The doctor looks at his teeth and his ears.",
+   "es": "El médico le mira los dientes y las orejas."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F321.png",
+    "img/om_1F443.png"
+   ],
+   "t": "His head is hot, and his nose is red.",
+   "es": "Tiene la cabeza caliente y la nariz roja."
+  },
+  {
+   "img": "img/pj/oso.png",
+   "also": [
+    "img/om_1F48A.png"
+   ],
+   "t": "The doctor gives him some medicine.",
+   "es": "El médico le da una medicina."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F6CF.png"
+   ],
+   "t": "The fox goes home. He must stay in bed.",
+   "es": "El zorro se va a casa. Tiene que quedarse en la cama."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/pj/gallina.png",
+   "img/pj/perro.png"
+  ],
+  "t": "The fox is in bed. Who comes to see him? The hen or the dog?",
+  "es": "El zorro está en la cama. ¿Quién viene a verlo? ¿La gallina o el perro?",
+  "opts": [
+   {
+    "key": "hen",
+    "t": "The hen",
+    "es": "La gallina",
+    "img": "img/pj/gallina.png",
+    "pages": [
+     {
+      "img": "img/pj/gallina.png",
+      "also": [
+       "img/om_1F372.png"
+      ],
+      "t": "The hen brings him some hot soup.",
+      "es": "La gallina le trae una sopa caliente."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F372.png"
+      ],
+      "t": "The fox eats all the soup. Mmm, it is very good!",
+      "es": "El zorro se come toda la sopa. ¡Mmm, qué rica!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F600.png"
+      ],
+      "t": "The next day, the fox is well. He can play again!",
+      "es": "Al día siguiente, el zorro está bien. ¡Ya puede jugar otra vez!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "What does the hen bring?",
+      "es": "¿Qué trae la gallina?",
+      "opts": [
+       "img/om_1F372.png",
+       "img/om_1F4D6.png",
+       "img/om_1F48A.png"
+      ],
+      "ok": 0
+     }
+    ]
+   },
+   {
+    "key": "dog",
+    "t": "The dog",
+    "es": "El perro",
+    "img": "img/pj/perro.png",
+    "pages": [
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/om_1F4D6.png"
+      ],
+      "t": "The dog brings him a book.",
+      "es": "El perro le trae un libro."
+     },
+     {
+      "img": "img/pj/perro.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "The dog reads him a story. The fox closes his eyes.",
+      "es": "El perro le lee un cuento. El zorro cierra los ojos."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F600.png"
+      ],
+      "t": "The next day, the fox is well. He can play again!",
+      "es": "Al día siguiente, el zorro está bien. ¡Ya puede jugar otra vez!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "What does the dog bring?",
+      "es": "¿Qué trae el perro?",
+      "opts": [
+       "img/om_1F372.png",
+       "img/om_1F48A.png",
+       "img/om_1F4D6.png"
+      ],
+      "ok": 2
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "Who is the doctor?",
+   "es": "¿Quién es el médico?",
+   "opts": [
+    "img/pj/gallina.png",
+    "img/pj/oso.png",
+    "img/pj/zorro.png"
+   ],
+   "ok": 1
+  },
+  {
+   "t": "What does the doctor give the fox?",
+   "es": "¿Qué le da el médico al zorro?",
+   "opts": [
+    "img/om_1F6CF.png",
+    "img/om_1F321.png",
+    "img/om_1F48A.png"
+   ],
+   "ok": 2
+  }
+ ]
+}

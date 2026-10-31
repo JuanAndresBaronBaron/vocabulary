@@ -1,0 +1,162 @@
+{
+ "v": 1,
+ "id": "da-jul",
+ "lang": "dansk",
+ "city": "Copenhague",
+ "t": "¡Feliz Navidad!",
+ "lines": [
+  {
+   "say": "Hej! Glædelig jul! Det er Ræven fra København.",
+   "es": "¡Hola! ¡Feliz Navidad! Soy Zorro, desde Copenhague.",
+   "k": [
+    {
+     "t": "Hej",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "Det sner, og alt er hvidt. Vi har et stort juletræ!",
+   "es": "Nieva y todo está blanco. ¡Tenemos un árbol de Navidad grande!",
+   "k": [
+    {
+     "t": "hvidt",
+     "r": "colores|Blanco"
+    }
+   ]
+  },
+  {
+   "say": "Hvad sætter vi på toppen af juletræet?",
+   "es": "¿Qué ponemos en lo alto del árbol de Navidad?",
+   "a": [
+    {
+     "r": "w09|sol"
+    },
+    {
+     "r": "w09|estrella"
+    },
+    {
+     "r": "w09|luna"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Ja, en stjerne! Den skinner.",
+    "es": "¡Sí, una estrella! Brilla."
+   },
+   "no": {
+    "say": "En stjerne! Den skinner.",
+    "es": "¡Una estrella! Brilla."
+   }
+  },
+  {
+   "say": "Juleaften spiser vi risengrød. Den er lavet af ris og mælk.",
+   "es": "En Nochebuena comemos arroz con leche. Se hace con arroz y leche.",
+   "k": [
+    {
+     "t": "ris",
+     "r": "w03|arroz"
+    },
+    {
+     "t": "mælk",
+     "r": "w03|leche"
+    }
+   ]
+  },
+  {
+   "say": "Hvad er risengrød lavet af?",
+   "es": "¿Con qué se hace el arroz con leche?",
+   "a": [
+    {
+     "r": "w03|zanahoria"
+    },
+    {
+     "r": "w03|arroz"
+    },
+    {
+     "r": "w03|huevo"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Ja, ris! Og der er en mandel i.",
+    "es": "¡Sí, arroz! Y dentro hay una almendra."
+   },
+   "no": {
+    "say": "Ris og mælk! Og der er en mandel i.",
+    "es": "¡Arroz y leche! Y dentro hay una almendra."
+   }
+  },
+  {
+   "say": "Den, der finder mandlen, får en gave. Det er mig!",
+   "es": "Quien encuentra la almendra recibe un regalo. ¡Me ha tocado a mí!",
+   "k": [
+    {
+     "t": "gave",
+     "r": "w13|regalo"
+    }
+   ]
+  },
+  {
+   "say": "Hvad får jeg?",
+   "es": "¿Qué me dan?",
+   "a": [
+    {
+     "r": "w13|regalo"
+    },
+    {
+     "r": "w03|sopa"
+    },
+    {
+     "r": "w04|cama"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, en gave! En lille bamse.",
+    "es": "¡Sí, un regalo! Un osito de peluche."
+   },
+   "no": {
+    "say": "En gave! En lille bamse.",
+    "es": "¡Un regalo! Un osito de peluche."
+   }
+  },
+  {
+   "say": "Og du? Hvad kan du bedst lide ved julen: sne, gaver eller småkager?",
+   "es": "¿Y tú? ¿Qué es lo que más te gusta de la Navidad: la nieve, los regalos o las galletas?",
+   "a": [
+    {
+     "r": "w09|nieve",
+     "re": {
+      "say": "Sne! Så kan vi lave en snemand!",
+      "es": "¡La nieve! ¡Así podemos hacer un muñeco de nieve!"
+     }
+    },
+    {
+     "r": "w13|regalo",
+     "re": {
+      "say": "Gaver! Hvor spændende!",
+      "es": "¡Los regalos! ¡Qué emoción!"
+     }
+    },
+    {
+     "r": "w03|galleta",
+     "re": {
+      "say": "Småkager! Mmm, de er søde!",
+      "es": "¡Las galletas! ¡Mmm, son dulces!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Glædelig jul! Hej hej!",
+   "es": "¡Feliz Navidad! ¡Adiós!",
+   "k": [
+    {
+     "t": "Hej hej",
+     "r": "w43|adiós"
+    }
+   ]
+  }
+ ]
+}

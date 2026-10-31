@@ -1,0 +1,180 @@
+{
+ "v": 1,
+ "id": "da-krop",
+ "lang": "dansk",
+ "city": "Copenhague",
+ "t": "Zorro va al médico",
+ "lines": [
+  {
+   "say": "Hej! Det er Ræven! Jeg ringer fra København.",
+   "es": "¡Hola! ¡Soy Zorro! Te llamo desde Copenhague.",
+   "k": [
+    {
+     "t": "Hej",
+     "r": "w43|hola"
+    }
+   ]
+  },
+  {
+   "say": "Jeg er hos lægen i dag. Jeg har ondt i øret!",
+   "es": "Hoy estoy en el médico. ¡Me duele el oído!",
+   "k": [
+    {
+     "t": "lægen",
+     "r": "profesiones|Médico/a"
+    },
+    {
+     "t": "øret",
+     "r": "w02|oreja, oído"
+    }
+   ]
+  },
+  {
+   "say": "Hvor har jeg ondt?",
+   "es": "¿Dónde me duele?",
+   "a": [
+    {
+     "r": "w02|nariz"
+    },
+    {
+     "r": "w02|pie"
+    },
+    {
+     "r": "w02|oreja, oído"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Ja, i øret! Av!",
+    "es": "¡Sí, en el oído! ¡Ay!"
+   },
+   "no": {
+    "say": "Jeg har ondt i øret. Av!",
+    "es": "Me duele el oído. ¡Ay!"
+   }
+  },
+  {
+   "say": "Lægen er meget sød. Hun kigger i mit øre med et lille lys.",
+   "es": "La médica es muy maja. Me mira el oído con una lucecita.",
+   "k": [
+    {
+     "t": "lys",
+     "r": "w04|luz"
+    }
+   ]
+  },
+  {
+   "say": "Så siger hun: »Gab op!« Hun kigger på mine tænder.",
+   "es": "Luego dice: «¡Abre la boca!». Me mira los dientes.",
+   "k": [
+    {
+     "t": "tænder",
+     "r": "w02|diente"
+    }
+   ]
+  },
+  {
+   "say": "Hvad kigger lægen på?",
+   "es": "¿Qué me mira la médica?",
+   "a": [
+    {
+     "r": "w02|mano"
+    },
+    {
+     "r": "w02|diente"
+    },
+    {
+     "r": "w02|pierna"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Ja, mine tænder! De er meget hvide.",
+    "es": "¡Sí, los dientes! Están muy blancos."
+   },
+   "no": {
+    "say": "Mine tænder! Hun kigger på mine tænder.",
+    "es": "¡Los dientes! Me mira los dientes."
+   }
+  },
+  {
+   "say": "Nu har jeg fået medicin. Jeg har det meget bedre!",
+   "es": "Ya me han dado una medicina. ¡Me encuentro mucho mejor!",
+   "k": [
+    {
+     "t": "medicin",
+     "r": "w02|medicina"
+    },
+    {
+     "t": "bedre",
+     "r": "w33|mejor|1"
+    }
+   ]
+  },
+  {
+   "say": "Hvad har lægen givet mig?",
+   "es": "¿Qué me ha dado la médica?",
+   "a": [
+    {
+     "r": "w02|medicina"
+    },
+    {
+     "r": "w03|sopa"
+    },
+    {
+     "r": "w10|libro"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Ja, medicin! Nu har jeg det bedre.",
+    "es": "¡Sí, una medicina! Ya me encuentro mejor."
+   },
+   "no": {
+    "say": "Medicin! Nu har jeg det bedre.",
+    "es": "¡Una medicina! Ya me encuentro mejor."
+   }
+  },
+  {
+   "say": "Og du? Hvad kan du bedst lide: at løbe, at svømme eller at danse?",
+   "es": "¿Y tú? ¿Qué te gusta más: correr, nadar o bailar?",
+   "a": [
+    {
+     "r": "w25|correr",
+     "re": {
+      "say": "At løbe! Hurtigt, hurtigt!",
+      "es": "¡Correr! ¡Rápido, rápido!"
+     }
+    },
+    {
+     "r": "w28|nadar",
+     "re": {
+      "say": "At svømme! Plask, plask!",
+      "es": "¡Nadar! ¡Plaf, plaf!"
+     }
+    },
+    {
+     "r": "w28|bailar",
+     "re": {
+      "say": "At danse! Skal vi danse sammen?",
+      "es": "¡Bailar! ¿Bailamos juntos?"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Hej hej! Pas godt på din krop!",
+   "es": "¡Adiós! ¡Cuida bien tu cuerpo!",
+   "k": [
+    {
+     "t": "Hej hej",
+     "r": "w43|adiós"
+    },
+    {
+     "t": "krop",
+     "r": "w02|cuerpo"
+    }
+   ]
+  }
+ ]
+}

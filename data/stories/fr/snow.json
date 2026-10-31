@@ -1,0 +1,625 @@
+{
+ "v": 1,
+ "id": "fr-snow",
+ "lang": "français",
+ "n": 6,
+ "title": "Le renard joue dans la neige",
+ "es": "El zorro juega en la nieve",
+ "short": "La nieve",
+ "cover": "img/pj/conejo.png",
+ "tint": "blue",
+ "words": [
+  {
+   "w": "l'hiver",
+   "id": "w08|invierno",
+   "img": "img/om_2744.png"
+  },
+  {
+   "w": "la neige",
+   "id": "w09|nieve",
+   "img": "img/om_2744.png"
+  },
+  {
+   "w": "froid, froide",
+   "id": "w31|frío",
+   "img": "img/om_1F976.png"
+  },
+  {
+   "w": "le tee-shirt",
+   "id": "w05|camiseta",
+   "img": "img/om_1F455.png"
+  },
+  {
+   "w": "le manteau",
+   "id": "w05|abrigo",
+   "img": "img/om_1F9E5.png"
+  },
+  {
+   "w": "la chaussette",
+   "id": "w05|calcetín",
+   "img": "img/om_1F9E6.png"
+  },
+  {
+   "w": "la botte",
+   "id": "w05|bota",
+   "img": "img/om_1F462.png"
+  },
+  {
+   "w": "le pied",
+   "id": "w02|pie",
+   "img": "img/om_1F9B6.png"
+  },
+  {
+   "w": "le gant",
+   "id": "w05|guante",
+   "img": "img/om_1F9E4.png"
+  },
+  {
+   "w": "la main",
+   "id": "w02|mano",
+   "img": "img/om_270B.png"
+  },
+  {
+   "w": "le lapin",
+   "id": "animales|Conejo",
+   "img": "img/e096b975fd.png"
+  },
+  {
+   "w": "chaud, chaude",
+   "id": "w31|caliente, caluroso",
+   "img": "img/om_1F975.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/a/"
+  },
+  "a chaud": {
+   "es": "está calentito (tiene calor)",
+   "id": "w31|caliente, caluroso",
+   "ipa": "/a ʃo/",
+   "img": "img/om_1F975.png"
+  },
+  "a froid": {
+   "es": "tiene frío",
+   "id": "w31|frío",
+   "ipa": "/a fʁwa/",
+   "img": "img/om_1F976.png"
+  },
+  "alors": {
+   "es": "así que",
+   "id": "w42|así que, por eso",
+   "ipa": "/alɔʁ/"
+  },
+  "ami": {
+   "es": "amigo",
+   "id": "w01|amigo",
+   "ipa": "/ami/",
+   "img": "img/om_1FAC2.png"
+  },
+  "au": {
+   "es": "al",
+   "id": "w40|a, hacia, para",
+   "ipa": "/o/"
+  },
+  "autour du cou": {
+   "es": "alrededor del cuello",
+   "id": "w02|cuello",
+   "ipa": "/otuʁ dy ku/"
+  },
+  "aux mains": {
+   "es": "en las manos",
+   "id": "w02|mano",
+   "ipa": "/o mɛ̃/",
+   "img": "img/om_270B.png"
+  },
+  "aux pieds": {
+   "es": "en los pies",
+   "id": "w02|pie",
+   "ipa": "/o pje/",
+   "img": "img/om_1F9B6.png"
+  },
+  "avec": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/avɛk/"
+  },
+  "boivent": {
+   "es": "beben",
+   "id": "w28|beber",
+   "ipa": "/bwav/",
+   "img": "img/om_1F964.png"
+  },
+  "bonhomme de neige": {
+   "es": "muñeco de nieve",
+   "ipa": "/bɔnɔm də nɛʒ/",
+   "img": "img/season/snowman.png"
+  },
+  "brrr": {
+   "es": "¡brrr! (¡qué frío!)",
+   "ipa": "/bʁː/"
+  },
+  "c'est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/sɛ/"
+  },
+  "chaud": {
+   "es": "calentito, caliente",
+   "id": "w31|caliente, caluroso",
+   "ipa": "/ʃo/",
+   "img": "img/om_1F975.png"
+  },
+  "colline": {
+   "es": "colina",
+   "id": "w09|colina",
+   "ipa": "/kɔlin/"
+  },
+  "dans": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/dɑ̃/"
+  },
+  "de la neige": {
+   "es": "nieve",
+   "id": "w09|nieve",
+   "ipa": "/də la nɛʒ/",
+   "img": "img/om_2744.png"
+  },
+  "dehors": {
+   "es": "fuera",
+   "id": "w38|fuera",
+   "ipa": "/dəɔʁ/"
+  },
+  "des bottes": {
+   "es": "botas",
+   "id": "w05|bota",
+   "ipa": "/de bɔt/",
+   "img": "img/om_1F462.png"
+  },
+  "des chaussettes": {
+   "es": "calcetines",
+   "id": "w05|calcetín",
+   "ipa": "/de ʃosɛt/",
+   "img": "img/om_1F9E6.png"
+  },
+  "des gants": {
+   "es": "guantes",
+   "id": "w05|guante",
+   "ipa": "/de ɡɑ̃/",
+   "img": "img/om_1F9E4.png"
+  },
+  "descendent": {
+   "es": "bajan",
+   "id": "w38|abajo",
+   "ipa": "/desɑ̃d/",
+   "img": "img/om_2B07.png"
+  },
+  "donne": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/dɔn/"
+  },
+  "du chocolat": {
+   "es": "chocolate",
+   "id": "w03|chocolate",
+   "ipa": "/dy ʃɔkɔla/",
+   "img": "img/om_1F36B.png"
+  },
+  "en carotte": {
+   "es": "de zanahoria",
+   "id": "w03|zanahoria",
+   "ipa": "/ɑ̃ kaʁɔt/",
+   "img": "img/om_1F955.png"
+  },
+  "ensemble": {
+   "es": "juntos",
+   "id": "w38|juntos",
+   "ipa": "/ɑ̃sɑ̃bl/",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  "et": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/e/"
+  },
+  "font": {
+   "es": "hacen",
+   "id": "w24|hacer, fabricar",
+   "ipa": "/fɔ̃/"
+  },
+  "froid": {
+   "es": "frío",
+   "id": "w31|frío",
+   "ipa": "/fʁwa/",
+   "img": "img/om_1F976.png"
+  },
+  "grand": {
+   "es": "grande",
+   "id": "w31|grande",
+   "ipa": "/ɡʁɑ̃/"
+  },
+  "il": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/il/"
+  },
+  "il fait": {
+   "es": "hace",
+   "id": "w24|hacer",
+   "ipa": "/il fɛ/"
+  },
+  "il y a": {
+   "es": "hay",
+   "ipa": "/il i a/"
+  },
+  "ils": {
+   "es": "ellos",
+   "id": "w41|ellos, ellas",
+   "ipa": "/il/"
+  },
+  "joue": {
+   "es": "juega",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ʒu/",
+   "img": "img/om_1F3AE.png"
+  },
+  "jouer": {
+   "es": "jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ʒwe/",
+   "img": "img/om_1F3AE.png"
+  },
+  "l'hiver": {
+   "es": "el invierno",
+   "id": "w08|invierno",
+   "ipa": "/livɛʁ/",
+   "img": "img/om_2744.png"
+  },
+  "la luge": {
+   "es": "el trineo",
+   "ipa": "/la lyʒ/",
+   "img": "img/season/sledge.png"
+  },
+  "la neige": {
+   "es": "la nieve",
+   "id": "w09|nieve",
+   "ipa": "/nɛʒ/",
+   "img": "img/om_2744.png"
+  },
+  "le": {
+   "es": "el",
+   "id": "w41|el, la, los, las",
+   "ipa": "/lə/"
+  },
+  "le lapin": {
+   "es": "el conejo",
+   "id": "animales|Conejo",
+   "ipa": "/lapɛ̃/",
+   "img": "img/e096b975fd.png"
+  },
+  "le renard": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/lə ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "maintenant": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/mɛ̃tnɑ̃/"
+  },
+  "mais": {
+   "es": "pero",
+   "id": "w42|pero",
+   "ipa": "/mɛ/"
+  },
+  "met": {
+   "es": "se pone",
+   "id": "w24|poner",
+   "ipa": "/mɛ/"
+  },
+  "montent": {
+   "es": "suben",
+   "id": "w38|arriba",
+   "ipa": "/mɔ̃t/",
+   "img": "img/om_2B06.png"
+  },
+  "ou": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/u/"
+  },
+  "pour": {
+   "es": "para",
+   "id": "w40|para, por",
+   "ipa": "/puʁ/"
+  },
+  "puis": {
+   "es": "luego",
+   "id": "w38|entonces, luego",
+   "ipa": "/pɥi/"
+  },
+  "qu'est-ce qu'ils veulent": {
+   "es": "¿qué quieren?",
+   "id": "w24|querer",
+   "ipa": "/kɛs kil vœl/"
+  },
+  "son": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/sɔ̃/"
+  },
+  "sur": {
+   "es": "a, sobre",
+   "id": "w40|en, sobre",
+   "ipa": "/syʁ/"
+  },
+  "trop": {
+   "es": "demasiado",
+   "id": "w38|también, demasiado",
+   "ipa": "/tʁo/"
+  },
+  "très": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/tʁɛ/"
+  },
+  "un": {
+   "es": "un, uno",
+   "id": "w41|un, una",
+   "ipa": "/œ̃/"
+  },
+  "un manteau": {
+   "es": "un abrigo",
+   "id": "w05|abrigo",
+   "ipa": "/œ̃ mɑ̃to/",
+   "img": "img/om_1F9E5.png"
+  },
+  "un nez": {
+   "es": "una nariz",
+   "id": "w02|nariz",
+   "ipa": "/œ̃ ne/",
+   "img": "img/om_1F443.png"
+  },
+  "un tee-shirt": {
+   "es": "una camiseta",
+   "id": "w05|camiseta",
+   "ipa": "/œ̃ tiʃœʁt/",
+   "img": "img/om_1F455.png"
+  },
+  "une grande": {
+   "es": "una… grande",
+   "id": "w31|grande",
+   "ipa": "/yn ɡʁɑ̃d/"
+  },
+  "une luge": {
+   "es": "un trineo",
+   "ipa": "/yn lyʒ/",
+   "img": "img/season/sledge.png"
+  },
+  "une écharpe": {
+   "es": "una bufanda",
+   "ipa": "/yn eʃaʁp/",
+   "img": "img/season/scarf.png"
+  },
+  "veut": {
+   "es": "quiere",
+   "id": "w24|querer",
+   "ipa": "/vø/"
+  },
+  "vient": {
+   "es": "viene",
+   "id": "w24|venir",
+   "ipa": "/vjɛ̃/"
+  },
+  "vite": {
+   "es": "rápido",
+   "id": "w38|rápidamente",
+   "ipa": "/vit/"
+  },
+  "youpi": {
+   "es": "¡yupi!",
+   "ipa": "/jupi/"
+  },
+  "à la ferme": {
+   "es": "en la granja",
+   "id": "w09|granja",
+   "ipa": "/a la fɛʁm/"
+  },
+  "à la maison": {
+   "es": "a casa, en casa",
+   "id": "w04|casa",
+   "ipa": "/a la mɛzɔ̃/",
+   "img": "img/om_1F3E0.png"
+  },
+  "écharpe": {
+   "es": "bufanda",
+   "ipa": "/eʃaʁp/",
+   "img": "img/season/scarf.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/om_2744.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "C'est l'hiver. Il y a de la neige à la ferme !",
+   "es": "Es invierno. ¡Hay nieve en la granja!"
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F455.png"
+   ],
+   "t": "Le renard veut jouer dehors. Il met un tee-shirt.",
+   "es": "El zorro quiere jugar fuera. Se pone una camiseta."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_2744.png"
+   ],
+   "t": "Brrr ! Il fait trop froid pour un tee-shirt.",
+   "es": "¡Brrr! Hace demasiado frío para una camiseta."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F9E5.png"
+   ],
+   "t": "Alors, il met un manteau chaud.",
+   "es": "Así que se pone un abrigo calentito."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F9E6.png",
+    "img/om_1F462.png"
+   ],
+   "t": "Il met des chaussettes et des bottes aux pieds.",
+   "es": "Se pone calcetines y botas en los pies."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F9E4.png",
+    "img/season/scarf.png"
+   ],
+   "t": "Puis des gants aux mains et une écharpe autour du cou.",
+   "es": "Luego, guantes en las manos y una bufanda alrededor del cuello."
+  },
+  {
+   "img": "img/pj/conejo.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "Maintenant, le renard a chaud. Son ami le lapin vient jouer !",
+   "es": "Ahora el zorro está calentito. ¡Su amigo el conejo viene a jugar!"
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/season/snowman.png",
+   "img/season/sledge.png"
+  ],
+  "t": "Qu'est-ce qu'ils veulent ? Un bonhomme de neige ou la luge ?",
+  "es": "¿Qué quieren? ¿Un muñeco de nieve o el trineo?",
+  "opts": [
+   {
+    "key": "snowman",
+    "t": "Un bonhomme de neige",
+    "es": "Un muñeco de nieve",
+    "img": "img/season/snowman.png",
+    "pages": [
+     {
+      "img": "img/season/snowman.png",
+      "also": [
+       "img/om_1F955.png"
+      ],
+      "t": "Ils font un grand bonhomme de neige avec un nez en carotte.",
+      "es": "Hacen un muñeco de nieve grande con una nariz de zanahoria."
+     },
+     {
+      "img": "img/season/snowman.png",
+      "also": [
+       "img/season/scarf.png"
+      ],
+      "t": "Le renard donne son écharpe au bonhomme de neige.",
+      "es": "El zorro le da su bufanda al muñeco de nieve."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/pj/conejo.png"
+      ],
+      "t": "Maintenant, le bonhomme de neige a chaud. Mais le renard a froid !",
+      "es": "Ahora el muñeco de nieve está calentito. ¡Pero el zorro tiene frío!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Qu'est-ce que le renard donne au bonhomme de neige ?",
+      "es": "¿Qué le da el zorro al muñeco de nieve?",
+      "opts": [
+       "img/season/scarf.png",
+       "img/om_1F9E6.png",
+       "img/om_1F462.png"
+      ],
+      "ok": 0
+     }
+    ]
+   },
+   {
+    "key": "sledge",
+    "t": "La luge",
+    "es": "El trineo",
+    "img": "img/season/sledge.png",
+    "pages": [
+     {
+      "img": "img/season/sledge.png",
+      "also": [
+       "img/pj/conejo.png"
+      ],
+      "t": "Le lapin a une luge. Ils montent sur une grande colline.",
+      "es": "El conejo tiene un trineo. Suben a una colina grande."
+     },
+     {
+      "img": "img/season/sledge.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Puis ils descendent, très vite ! Youpi !",
+      "es": "Luego bajan, ¡muy rápido! ¡Yupi!"
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_2615.png"
+      ],
+      "t": "À la maison, ils boivent du chocolat chaud ensemble.",
+      "es": "En casa, beben chocolate caliente juntos."
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Qui a une luge ?",
+      "es": "¿Quién tiene un trineo?",
+      "opts": [
+       "img/pj/zorro.png",
+       "img/pj/conejo.png",
+       "img/season/snowman.png"
+      ],
+      "ok": 1
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "Qu'est-ce que le renard met autour du cou ?",
+   "es": "¿Qué se pone el zorro alrededor del cuello?",
+   "opts": [
+    "img/om_1F9E6.png",
+    "img/season/scarf.png",
+    "img/om_1F455.png"
+   ],
+   "ok": 1
+  },
+  {
+   "t": "Qu'est-ce que le renard met aux pieds ?",
+   "es": "¿Qué se pone el zorro en los pies?",
+   "opts": [
+    "img/om_1F9E4.png",
+    "img/om_1F9E5.png",
+    "img/om_1F462.png"
+   ],
+   "ok": 2
+  }
+ ]
+}

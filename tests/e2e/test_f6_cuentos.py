@@ -267,7 +267,7 @@ def _read(page, key, how="buttons", wait_auto=False):
 
 # ---------------------------------------------------------------- 1. los datos
 def test_stories_format_corpus_and_images():
-    """Los 12 cuentos (4 por idioma, n = 1..4) tienen el formato de api: título y traducción, portada y tinte, palabras del
+    """Los 24 cuentos (8 por idioma, n = 1..8) tienen el formato de api: título y traducción, portada y tinte, palabras del
     cuento con su id del corpus (que existe y tiene ese idioma), glosa para cada palabra del texto (es, IPA /…/, id del
     corpus que existe, dibujo que existe), 8-12 páginas por camino, frases cortas (≤ 13 palabras, ≤ 3 frases por página),
     la elección con dos opciones distintas con dibujo, el ≥ 85 % de las palabras del texto del corpus, y cada dibujo
@@ -276,7 +276,7 @@ def test_stories_format_corpus_and_images():
     assert IDX.get("v") == 1, "data/stories/index.json sin v: 1"
     for L, ab in AB.items():
         lst = IDX.get(L) or []
-        if [e["n"] for e in lst] != [1, 2, 3, 4]:
+        if [e["n"] for e in lst] != list(range(1, 9)):
             probs.append(f"{L}: n de la estantería {[e.get('n') for e in lst]}")
         for e in lst:
             sid = e["id"]
@@ -877,7 +877,7 @@ def test_award_once_per_story_daily_cap_and_medal():
     finally:
         page.context.close()
     # la medalla con 4 cuentos
-    others = {e["id"]: {"d": today, "e": [], "n": 1, "p": 1} for e in IDX["english"] if e["id"] != "en-play"}
+    others = {e["id"]: {"d": today, "e": [], "n": 1, "p": 1} for e in [x for x in IDX["english"] if x["id"] != "en-play"][:3]}
     k = _keys(cuentos={"v": 1, "done": others, "pay": {"d": "2026-03-01", "n": 1}})
     page = _page()
     try:
@@ -962,7 +962,7 @@ def test_story_reads_offline_through_service_worker():
         n = page.evaluate("() => document.querySelectorAll('#st-grid .st-cv').length")
         js = page.evaluate("() => fetch('data/stories/en/colours.json').then(r => r.json()).then(d => d.id, () => 'falla')")
         miss = page.evaluate("u => fetch(u).then(r => 'ok ' + r.status, () => 'falla')", never)
-        if n != 4 or js != "en-colours":
+        if n != len(IDX["english"]) or js != "en-colours":
             probs.append(f"sin conexión: estantería {n} cuentos, otro cuento {js}")
         if miss != "falla":
             probs.append(f"sin conexión, {never} (nunca visto) responde {miss}: la prueba no estaría sin red")

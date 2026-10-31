@@ -1,0 +1,648 @@
+{
+ "v": 1,
+ "id": "fr-school",
+ "lang": "français",
+ "n": 7,
+ "title": "Le renard va à l'école",
+ "es": "El zorro va al colegio",
+ "short": "El colegio",
+ "cover": "img/pj/tortuga.png",
+ "tint": "yellow",
+ "words": [
+  {
+   "w": "l'école",
+   "id": "w10|escuela, colegio",
+   "img": "img/om_1F3EB.png"
+  },
+  {
+   "w": "premier, première",
+   "id": "w16|primero",
+   "img": "img/om_1F947.png"
+  },
+  {
+   "w": "le jour",
+   "id": "w08|día"
+  },
+  {
+   "w": "le sac",
+   "id": "w05|bolsa, bolso",
+   "img": "img/om_1F45C.png"
+  },
+  {
+   "w": "le livre",
+   "id": "w10|libro",
+   "img": "img/om_1F4D5.png"
+  },
+  {
+   "w": "le crayon",
+   "id": "w10|lápiz",
+   "img": "img/om_270F.png"
+  },
+  {
+   "w": "la tortue",
+   "id": "animales|Tortuga",
+   "img": "img/ec4e5cdc4c.png"
+  },
+  {
+   "w": "lire",
+   "id": "w28|leer",
+   "img": "img/om_1F4D6.png"
+  },
+  {
+   "w": "dessiner",
+   "id": "w28|dibujar",
+   "img": "img/om_1F58D.png"
+  },
+  {
+   "w": "la pomme",
+   "id": "w03|manzana",
+   "img": "img/om_1F34E.png"
+  },
+  {
+   "w": "le singe",
+   "id": "animales|Mono",
+   "img": "img/a1aa85e4a9.png"
+  },
+  {
+   "w": "le panda",
+   "id": "animales|Panda",
+   "img": "img/939f2be8fd.png"
+  },
+  {
+   "w": "le football",
+   "id": "w13|fútbol",
+   "img": "img/om_26BD.png"
+  }
+ ],
+ "gloss": {
+  "a": {
+   "es": "tiene",
+   "id": "w24|tener, haber",
+   "ipa": "/a/"
+  },
+  "adore": {
+   "es": "le encanta",
+   "id": "w27|amar, encantar",
+   "ipa": "/adɔʁ/",
+   "img": "img/om_2764.png"
+  },
+  "amis": {
+   "es": "amigos",
+   "id": "w01|amigo",
+   "ipa": "/ami/",
+   "img": "img/om_1FAC2.png"
+  },
+  "au renard": {
+   "es": "al zorro",
+   "id": "animales|Zorro",
+   "ipa": "/o ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "aujourd'hui": {
+   "es": "hoy",
+   "id": "w08|hoy",
+   "ipa": "/oʒuʁdɥi/"
+  },
+  "avec": {
+   "es": "con",
+   "id": "w40|con",
+   "ipa": "/avɛk/"
+  },
+  "c'est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/sɛ/"
+  },
+  "content": {
+   "es": "contento",
+   "id": "w32|contento",
+   "ipa": "/kɔ̃tɑ̃/",
+   "img": "img/om_1F642.png"
+  },
+  "court": {
+   "es": "corre",
+   "id": "w25|correr",
+   "ipa": "/kuʁ/",
+   "img": "img/om_1F3C3.png"
+  },
+  "d'abord": {
+   "es": "primero",
+   "id": "w16|primero",
+   "ipa": "/dabɔʁ/",
+   "img": "img/om_1F947.png"
+  },
+  "d'école": {
+   "es": "de colegio",
+   "id": "w10|escuela, colegio",
+   "ipa": "/dekɔl/",
+   "img": "img/om_1F3EB.png"
+  },
+  "dans": {
+   "es": "en, dentro de",
+   "id": "w40|en, dentro de",
+   "ipa": "/dɑ̃/"
+  },
+  "de foot": {
+   "es": "de fútbol",
+   "id": "w13|fútbol",
+   "ipa": "/də fut/",
+   "img": "img/om_26BD.png"
+  },
+  "de jouer": {
+   "es": "de jugar",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/də ʒwe/",
+   "img": "img/om_1F3AE.png"
+  },
+  "demain": {
+   "es": "mañana",
+   "ipa": "/dəmɛ̃/"
+  },
+  "dessine": {
+   "es": "dibuja",
+   "id": "w28|dibujar",
+   "ipa": "/desin/",
+   "img": "img/om_1F58D.png"
+  },
+  "dessinent": {
+   "es": "dibujan",
+   "id": "w28|dibujar",
+   "ipa": "/desin/",
+   "img": "img/om_1F58D.png"
+  },
+  "deux": {
+   "es": "dos",
+   "id": "numeros|2",
+   "ipa": "/dø/"
+  },
+  "dit": {
+   "es": "dice",
+   "id": "w24|decir",
+   "ipa": "/di/"
+  },
+  "donne": {
+   "es": "da",
+   "id": "w24|dar",
+   "ipa": "/dɔn/"
+  },
+  "du renard": {
+   "es": "del zorro",
+   "id": "animales|Zorro",
+   "ipa": "/dy ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "elle": {
+   "es": "ella",
+   "id": "w41|ella",
+   "ipa": "/ɛl/"
+  },
+  "ensemble": {
+   "es": "juntos",
+   "id": "w38|juntos",
+   "ipa": "/ɑ̃sɑ̃bl/",
+   "img": "img/om_1F9D1-200D-1F91D-200D-1F9D1.png"
+  },
+  "est": {
+   "es": "es, está",
+   "id": "w24|ser, estar",
+   "ipa": "/ɛ/"
+  },
+  "et": {
+   "es": "y",
+   "id": "w42|y",
+   "ipa": "/e/"
+  },
+  "gentille": {
+   "es": "amable, simpática",
+   "id": "w32|simpático, amable",
+   "ipa": "/ʒɑ̃tij/",
+   "img": "img/om_263A.png"
+  },
+  "grosse": {
+   "es": "grande",
+   "id": "w31|gordo",
+   "ipa": "/ɡʁos/"
+  },
+  "il": {
+   "es": "él",
+   "id": "w41|él",
+   "ipa": "/il/"
+  },
+  "ils": {
+   "es": "ellos",
+   "id": "w41|ellos, ellas",
+   "ipa": "/il/"
+  },
+  "joue": {
+   "es": "juega",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ʒu/",
+   "img": "img/om_1F3AE.png"
+  },
+  "jouent": {
+   "es": "juegan",
+   "id": "w28|jugar, tocar (música)",
+   "ipa": "/ʒu/",
+   "img": "img/om_1F3AE.png"
+  },
+  "jour": {
+   "es": "día",
+   "id": "w08|día",
+   "ipa": "/ʒuʁ/"
+  },
+  "l'heure": {
+   "es": "la hora",
+   "id": "w08|hora",
+   "ipa": "/lœʁ/",
+   "img": "img/om_231B.png"
+  },
+  "l'école": {
+   "es": "el colegio",
+   "id": "w10|escuela, colegio",
+   "ipa": "/lekɔl/",
+   "img": "img/om_1F3EB.png"
+  },
+  "la maîtresse": {
+   "es": "la maestra",
+   "id": "profesiones|Maestro/a",
+   "ipa": "/la mɛtʁɛs/",
+   "img": "img/c78e6923bb.png"
+  },
+  "le": {
+   "es": "el",
+   "id": "w41|el, la, los, las",
+   "ipa": "/lə/"
+  },
+  "le panda": {
+   "es": "el panda",
+   "id": "animales|Panda",
+   "ipa": "/pɑ̃da/",
+   "img": "img/939f2be8fd.png"
+  },
+  "le renard": {
+   "es": "el zorro",
+   "id": "animales|Zorro",
+   "ipa": "/lə ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "le singe": {
+   "es": "el mono",
+   "id": "animales|Mono",
+   "ipa": "/sɛ̃ʒ/",
+   "img": "img/a1aa85e4a9.png"
+  },
+  "lisent": {
+   "es": "leen",
+   "id": "w28|leer",
+   "ipa": "/liz/",
+   "img": "img/om_1F4D6.png"
+  },
+  "maintenant": {
+   "es": "ahora",
+   "id": "w38|ahora",
+   "ipa": "/mɛ̃tnɑ̃/"
+  },
+  "mangent": {
+   "es": "comen",
+   "id": "w28|comer",
+   "ipa": "/mɑ̃ʒ/",
+   "img": "img/om_1F374.png"
+  },
+  "nerveux": {
+   "es": "nervioso",
+   "id": "w32|nervioso",
+   "ipa": "/nɛʁvø/",
+   "img": "img/om_1F62C.png"
+  },
+  "ou": {
+   "es": "o",
+   "id": "w42|o",
+   "ipa": "/u/"
+  },
+  "pomme": {
+   "es": "manzana",
+   "id": "w03|manzana",
+   "ipa": "/pɔm/",
+   "img": "img/om_1F34E.png"
+  },
+  "premier": {
+   "es": "primer",
+   "id": "w16|primero",
+   "ipa": "/pʁəmje/",
+   "img": "img/om_1F947.png"
+  },
+  "puis": {
+   "es": "luego",
+   "id": "w38|entonces, luego",
+   "ipa": "/pɥi/"
+  },
+  "qui": {
+   "es": "quién",
+   "id": "w43|quién, que",
+   "ipa": "/ki/"
+  },
+  "renard": {
+   "es": "Zorro (su nombre)",
+   "id": "animales|Zorro",
+   "ipa": "/ʁənaʁ/",
+   "img": "img/d98dc83bdf.png"
+  },
+  "revenir": {
+   "es": "volver",
+   "id": "w25|volver, devolver",
+   "ipa": "/ʁəvniʁ/",
+   "img": "img/om_21A9.png"
+  },
+  "rit": {
+   "es": "se ríe",
+   "id": "w28|reír",
+   "ipa": "/ʁi/",
+   "img": "img/om_1F602.png"
+  },
+  "rouge": {
+   "es": "rojo, roja",
+   "id": "colores|Rojo",
+   "ipa": "/ʁuʒ/",
+   "img": "img/746cbfda58.png"
+  },
+  "sac": {
+   "es": "mochila",
+   "id": "w05|bolsa, bolso",
+   "ipa": "/sak/",
+   "img": "img/om_1F392.png"
+  },
+  "sandwichs": {
+   "es": "bocadillos",
+   "id": "w03|sándwich, bocadillo",
+   "ipa": "/sɑ̃dwitʃ/",
+   "img": "img/om_1F96A.png"
+  },
+  "son": {
+   "es": "su (de él)",
+   "id": "w41|su (de él)",
+   "ipa": "/sɔ̃/"
+  },
+  "sont": {
+   "es": "son, están",
+   "id": "w24|ser, estar",
+   "ipa": "/sɔ̃/"
+  },
+  "tortue": {
+   "es": "tortuga",
+   "id": "animales|Tortuga",
+   "ipa": "/tɔʁty/",
+   "img": "img/ec4e5cdc4c.png"
+  },
+  "très": {
+   "es": "muy",
+   "id": "w38|muy",
+   "ipa": "/tʁɛ/"
+  },
+  "très bien": {
+   "es": "muy bien",
+   "id": "w38|bien",
+   "ipa": "/tʁɛ bjɛ̃/"
+  },
+  "un ballon": {
+   "es": "una pelota",
+   "id": "w13|pelota, balón",
+   "ipa": "/œ̃ balɔ̃/",
+   "img": "img/om_1F3D0.png"
+  },
+  "un crayon": {
+   "es": "un lápiz",
+   "id": "w10|lápiz",
+   "ipa": "/œ̃ kʁɛjɔ̃/",
+   "img": "img/om_270F.png"
+  },
+  "un livre": {
+   "es": "un libro",
+   "id": "w10|libro",
+   "ipa": "/œ̃ livʁ/",
+   "img": "img/om_1F4D5.png"
+  },
+  "un peu": {
+   "es": "un poco",
+   "ipa": "/œ̃ pø/"
+  },
+  "un sandwich": {
+   "es": "un bocadillo",
+   "id": "w03|sándwich, bocadillo",
+   "ipa": "/œ̃ sɑ̃dwitʃ/",
+   "img": "img/om_1F96A.png"
+  },
+  "une": {
+   "es": "una",
+   "id": "w41|un, una",
+   "ipa": "/yn/"
+  },
+  "va": {
+   "es": "va",
+   "id": "w24|ir",
+   "ipa": "/va/"
+  },
+  "veut": {
+   "es": "quiere",
+   "id": "w24|querer",
+   "ipa": "/vø/"
+  },
+  "vieille": {
+   "es": "mayor, vieja",
+   "id": "w35|viejo, antiguo",
+   "ipa": "/vjɛj/",
+   "img": "img/om_1F9D3.png"
+  },
+  "vite": {
+   "es": "rápido",
+   "id": "w38|rápidamente",
+   "ipa": "/vit/"
+  },
+  "à l'école": {
+   "es": "al colegio",
+   "id": "w10|escuela, colegio",
+   "ipa": "/a lekɔl/",
+   "img": "img/om_1F3EB.png"
+  }
+ },
+ "pages": [
+  {
+   "img": "img/om_1F3EB.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "Aujourd'hui, c'est le premier jour d'école du renard.",
+   "es": "Hoy es el primer día de colegio del zorro."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F392.png",
+    "img/om_270F.png"
+   ],
+   "t": "Dans son sac, il a un livre et un crayon.",
+   "es": "En su mochila lleva un libro y un lápiz."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F62C.png"
+   ],
+   "t": "Le renard est un peu nerveux.",
+   "es": "El zorro está un poco nervioso."
+  },
+  {
+   "img": "img/pj/tortuga.png",
+   "also": [
+    "img/om_263A.png"
+   ],
+   "t": "La maîtresse est une vieille tortue. Elle est très gentille.",
+   "es": "La maestra es una tortuga mayor. Es muy simpática."
+  },
+  {
+   "img": "img/pj/tortuga.png",
+   "also": [
+    "img/om_1F4D5.png"
+   ],
+   "t": "D'abord, ils lisent un livre ensemble.",
+   "es": "Primero, leen un libro todos juntos."
+  },
+  {
+   "img": "img/pj/zorro.png",
+   "also": [
+    "img/om_1F58D.png",
+    "img/om_1F34E.png"
+   ],
+   "t": "Puis ils dessinent. Le renard dessine une grosse pomme rouge.",
+   "es": "Luego dibujan. El zorro dibuja una manzana roja grande."
+  },
+  {
+   "img": "img/pj/tortuga.png",
+   "also": [
+    "img/pj/zorro.png"
+   ],
+   "t": "« Très bien, Renard ! » dit la maîtresse. Maintenant, le renard est content.",
+   "es": "«¡Muy bien, Zorro!», dice la maestra. Ahora el zorro está contento."
+  }
+ ],
+ "choice": {
+  "img": "img/pj/zorro.png",
+  "also": [
+   "img/pj/mono.png",
+   "img/pj/panda.png"
+  ],
+  "t": "C'est l'heure de jouer. Qui joue avec le renard ? Le singe ou le panda ?",
+  "es": "Es la hora de jugar. ¿Quién juega con el zorro? ¿El mono o el panda?",
+  "opts": [
+   {
+    "key": "monkey",
+    "t": "Le singe",
+    "es": "El mono",
+    "img": "img/pj/mono.png",
+    "pages": [
+     {
+      "img": "img/pj/mono.png",
+      "also": [
+       "img/om_26BD.png"
+      ],
+      "t": "Le singe a un ballon de foot. Ils jouent ensemble.",
+      "es": "El mono tiene un balón de fútbol. Juegan juntos."
+     },
+     {
+      "img": "img/pj/mono.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Le singe court très vite. Le renard rit et rit.",
+      "es": "El mono corre muy rápido. El zorro se ríe y se ríe."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F3EB.png"
+      ],
+      "t": "Le renard adore l'école. Il veut revenir demain !",
+      "es": "Al zorro le encanta el colegio. ¡Quiere volver mañana!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Qu'est-ce que le singe a ?",
+      "es": "¿Qué tiene el mono?",
+      "opts": [
+       "img/om_1F96A.png",
+       "img/om_26BD.png",
+       "img/om_1F34E.png"
+      ],
+      "ok": 1
+     }
+    ]
+   },
+   {
+    "key": "panda",
+    "t": "Le panda",
+    "es": "El panda",
+    "img": "img/pj/panda.png",
+    "pages": [
+     {
+      "img": "img/pj/panda.png",
+      "also": [
+       "img/om_1F96A.png"
+      ],
+      "t": "Le panda a deux sandwichs. Il donne un sandwich au renard.",
+      "es": "El panda tiene dos bocadillos. Le da un bocadillo al zorro."
+     },
+     {
+      "img": "img/pj/panda.png",
+      "also": [
+       "img/pj/zorro.png"
+      ],
+      "t": "Ils mangent ensemble. Maintenant, ils sont amis.",
+      "es": "Comen juntos. Ahora son amigos."
+     },
+     {
+      "img": "img/pj/zorro.png",
+      "also": [
+       "img/om_1F3EB.png"
+      ],
+      "t": "Le renard adore l'école. Il veut revenir demain !",
+      "es": "Al zorro le encanta el colegio. ¡Quiere volver mañana!"
+     }
+    ],
+    "quiz": [
+     {
+      "t": "Qu'est-ce que le panda donne au renard ?",
+      "es": "¿Qué le da el panda al zorro?",
+      "opts": [
+       "img/om_26BD.png",
+       "img/om_1F4D5.png",
+       "img/om_1F96A.png"
+      ],
+      "ok": 2
+     }
+    ]
+   }
+  ]
+ },
+ "quiz": [
+  {
+   "t": "Qui est la maîtresse ?",
+   "es": "¿Quién es la maestra?",
+   "opts": [
+    "img/pj/mono.png",
+    "img/pj/panda.png",
+    "img/pj/tortuga.png"
+   ],
+   "ok": 2
+  },
+  {
+   "t": "Qu'est-ce que le renard dessine ?",
+   "es": "¿Qué dibuja el zorro?",
+   "opts": [
+    "img/om_1F34E.png",
+    "img/om_1F4D5.png",
+    "img/om_270F.png"
+   ],
+   "ok": 0
+  }
+ ]
+}

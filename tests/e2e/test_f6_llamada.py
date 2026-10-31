@@ -30,6 +30,9 @@ _PASS = "() => sessionStorage.setItem('vocab:gate', String(Date.now() + adultGat
 _AB = {"english": "en", "français": "fr", "dansk": "da"}
 _CITY = {"english": "Londres", "français": "París", "dansk": "Copenhague"}
 _CODE = {"english": "en-GB", "français": "fr-FR", "dansk": "da-DK"}
+# las llamadas en inglés menos en-zoo (se siembran como oídas hace días para que suene en-zoo)
+_EN_NOT_ZOO = tuple(c["id"] for c in json.loads((C.ROOT / "data/calls/index.json").read_text(encoding="utf-8"))["english"]["calls"]
+                    if c["id"] != "en-zoo")
 _WD = "Object.defineProperty(Navigator.prototype, 'webdriver', {get: () => false, configurable: true});"
 _SPY = r"""(() => {
   window.__played = []; window.__coins = [];
@@ -207,12 +210,12 @@ def _whole(say, t):
 
 
 def test_scripts_valid_and_drawings_load():
-    """Los 15 guiones (5 por idioma, data/calls/index.json con su ciudad) validan: v 1, id y idioma como en el índice,
+    """Los 30 guiones (10 por idioma, data/calls/index.json con su ciudad) validan: v 1, id y idioma como en el índice,
     de 3 a 4 preguntas con 2 o 3 respuestas (cada una con su palabra del corpus, su IPA y su dibujo), ok con yes y no o
     una contestación por respuesta, la última línea no es pregunta, cada frase con su español, las palabras clave
     enteras dentro de la frase, sin respuestas repetidas; en francés, el espacio fino delante de ! ? : ; » y detrás de «.
     Cada uno dura entre 1 y 2 minutos (cuenta aproximada de palabras y pausas). En el navegador, vocabCalls.get() de
-    los 15 resuelve y cada dibujo (y la foto del zorro) da 200 y es una imagen. Los 16 ficheros están en SHELL (sw.js)
+    los 30 resuelve y cada dibujo (y la foto del zorro) da 200 y es una imagen. Los 31 ficheros están en SHELL (sw.js)
     y en OFF_APP (index.html), y los dibujos propios (img/calls) en vocabCalls.images() para «Descargar todo»."""
     probs = []
     idx = json.loads((C.ROOT / "data/calls/index.json").read_text(encoding="utf-8"))
@@ -224,8 +227,8 @@ def test_scripts_valid_and_drawings_load():
         if L.get("city") != _CITY[lang]:
             probs.append(f"{lang}: la ciudad es {L.get('city')!r}")
         cs = L.get("calls") or []
-        if len(cs) != 5:
-            probs.append(f"{lang}: {len(cs)} llamadas (se esperaban 5)")
+        if len(cs) != 10:
+            probs.append(f"{lang}: {len(cs)} llamadas (se esperaban 10)")
         for c in cs:
             ids.append(c["id"])
             if not c["f"].startswith(ab + "/") or not c.get("t"):
@@ -285,7 +288,7 @@ def test_scripts_valid_and_drawings_load():
                     probs.append(f"{c['id']}: respuestas repetidas {words}")
             if not 60 <= secs <= 120:
                 probs.append(f"{c['id']}: dura unos {secs:.0f} s (entre 1 y 2 minutos)")
-    if len(ids) != 15 or len(set(ids)) != 15:
+    if len(ids) != 30 or len(set(ids)) != 30:
         probs.append(f"ids: {ids}")
     sw = (C.ROOT / "sw.js").read_text(encoding="utf-8")
     html = (C.ROOT / "index.html").read_text(encoding="utf-8")
@@ -295,7 +298,7 @@ def test_scripts_valid_and_drawings_load():
     try:
         _seed(page, armed=False)
         files = page.evaluate("() => vocabCalls.files()")
-        if len(files) != 16:
+        if len(files) != 31:
             probs.append(f"vocabCalls.files() da {len(files)} ficheros")
         for f in ["js/calls.js"] + files:
             if f'"{f}"' not in shell:
@@ -487,7 +490,7 @@ def test_answer_speaks_with_voice_and_tap_moves_on():
     page = _page()
     try:
         old = _day(C.FIXED_NOW, -9)
-        _seed(page, _keys(calls={"v": 1, "h": {i: old for i in ("en-rain", "en-breakfast", "en-family", "en-birthday")}}))
+        _seed(page, _keys(calls={"v": 1, "h": {i: old for i in _EN_NOT_ZOO}}))
         _ring(page)
         cur = page.evaluate(_CUR)
         if cur["id"] != "en-zoo" or cur["mode"] != "ring":
@@ -905,7 +908,7 @@ def test_drawings_big_on_phones():
         page = _page(viewport={"width": w, "height": h})
         try:
             old = _day(C.FIXED_NOW, -9)
-            _seed(page, _keys(calls={"v": 1, "h": {i: old for i in ("en-rain", "en-breakfast", "en-family", "en-birthday")}}))
+            _seed(page, _keys(calls={"v": 1, "h": {i: old for i in _EN_NOT_ZOO}}))
             _ring(page)
             pic = page.evaluate(_BOX, ".cl-pic")
             if not pic or pic["w"] < 200:
@@ -1044,7 +1047,7 @@ def test_captures_and_audit():
             page = _page(kind, color_scheme=scheme, reduced_motion="reduce")
             try:
                 old = _day(C.FIXED_NOW, -9)
-                _seed(page, _keys(calls={"v": 1, "h": {i: old for i in ("en-rain", "en-breakfast", "en-family", "en-birthday")}}))
+                _seed(page, _keys(calls={"v": 1, "h": {i: old for i in _EN_NOT_ZOO}}))
 
                 def snap(name, scope=("cl-",), a11y=True):
                     page.evaluate(_FINISH)

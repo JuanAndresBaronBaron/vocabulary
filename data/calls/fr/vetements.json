@@ -1,0 +1,180 @@
+{
+ "v": 1,
+ "id": "fr-vetements",
+ "lang": "français",
+ "city": "París",
+ "t": "La ropa de Zorro",
+ "lines": [
+  {
+   "say": "Allô ! C'est moi, Renard ! Il fait froid à Paris aujourd'hui !",
+   "es": "¡Hola! ¡Soy yo, Zorro! ¡Hoy hace frío en París!",
+   "k": [
+    {
+     "t": "froid",
+     "r": "w31|frío"
+    }
+   ]
+  },
+  {
+   "say": "Je vais au parc avec mon ami. Je mets mes vêtements chauds.",
+   "es": "Voy al parque con mi amigo. Me pongo la ropa de abrigo.",
+   "k": [
+    {
+     "t": "parc",
+     "r": "w06|parque"
+    },
+    {
+     "t": "vêtements",
+     "r": "w05|ropa"
+    }
+   ]
+  },
+  {
+   "say": "D'abord, je mets mon manteau. Il est long et marron.",
+   "es": "Primero, me pongo el abrigo. Es largo y marrón.",
+   "k": [
+    {
+     "t": "manteau",
+     "r": "w05|abrigo"
+    },
+    {
+     "t": "marron",
+     "r": "colores|Marrón/Café"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce que je mets d'abord ?",
+   "es": "¿Qué me pongo primero?",
+   "a": [
+    {
+     "r": "w05|vestido"
+    },
+    {
+     "r": "w05|camiseta"
+    },
+    {
+     "r": "w05|abrigo"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Oui, mon manteau ! Il est très chaud.",
+    "es": "¡Sí, el abrigo! Es muy calentito."
+   },
+   "no": {
+    "say": "Mon manteau ! Il est très chaud.",
+    "es": "¡El abrigo! Es muy calentito."
+   }
+  },
+  {
+   "say": "Ensuite, je mets un chapeau sur ma tête.",
+   "es": "Después, me pongo un sombrero en la cabeza.",
+   "k": [
+    {
+     "t": "chapeau",
+     "r": "w05|sombrero"
+    },
+    {
+     "t": "tête",
+     "r": "w02|cabeza"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce que je mets sur ma tête ?",
+   "es": "¿Qué me pongo en la cabeza?",
+   "a": [
+    {
+     "r": "w05|zapato"
+    },
+    {
+     "r": "w05|sombrero"
+    },
+    {
+     "r": "w05|calcetín"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Oui, un chapeau ! Il est joli, non ?",
+    "es": "¡Sí, un sombrero! Es bonito, ¿verdad?"
+   },
+   "no": {
+    "say": "Un chapeau ! Il est joli, non ?",
+    "es": "¡Un sombrero! Es bonito, ¿verdad?"
+   }
+  },
+  {
+   "say": "Brrr ! J'ai froid aux mains. J'ai besoin de quelque chose.",
+   "es": "¡Brrr! Tengo frío en las manos. Necesito algo.",
+   "k": [
+    {
+     "t": "mains",
+     "r": "w02|mano"
+    }
+   ]
+  },
+  {
+   "say": "De quoi est-ce que j'ai besoin ?",
+   "es": "¿Qué necesito?",
+   "a": [
+    {
+     "r": "w05|guante"
+    },
+    {
+     "r": "w05|bota"
+    },
+    {
+     "r": "w05|corbata"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, des gants ! Maintenant, mes mains ont chaud.",
+    "es": "¡Sí, guantes! Ahora tengo las manos calentitas."
+   },
+   "no": {
+    "say": "Des gants ! Maintenant, mes mains ont chaud.",
+    "es": "¡Guantes! Ahora tengo las manos calentitas."
+   }
+  },
+  {
+   "say": "Et toi, qu'est-ce que tu portes aujourd'hui ?",
+   "es": "Y tú, ¿qué llevas puesto hoy?",
+   "a": [
+    {
+     "r": "w05|camiseta",
+     "re": {
+      "say": "Un tee-shirt ! Très joli !",
+      "es": "¡Una camiseta! ¡Muy bonita!"
+     }
+    },
+    {
+     "r": "w05|vestido",
+     "re": {
+      "say": "Une robe ! C'est beau !",
+      "es": "¡Un vestido! ¡Qué bonito!"
+     }
+    },
+    {
+     "r": "w05|vaqueros",
+     "re": {
+      "say": "Un jean ! J'adore les jeans !",
+      "es": "¡Unos vaqueros! ¡Me encantan los vaqueros!"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Je suis prêt ! On va au parc ! Au revoir !",
+   "es": "¡Estoy listo! ¡Nos vamos al parque! ¡Adiós!",
+   "k": [
+    {
+     "t": "Au revoir",
+     "r": "w43|adiós|1"
+    }
+   ]
+  }
+ ]
+}

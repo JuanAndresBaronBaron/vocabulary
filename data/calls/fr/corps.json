@@ -1,0 +1,174 @@
+{
+ "v": 1,
+ "id": "fr-corps",
+ "lang": "français",
+ "city": "París",
+ "t": "Zorro va al médico",
+ "lines": [
+  {
+   "say": "Allô ! C'est Renard ! Je t'appelle de Paris.",
+   "es": "¡Hola! ¡Soy Zorro! Te llamo desde París."
+  },
+  {
+   "say": "Aujourd'hui, je suis chez le médecin. J'ai mal à l'oreille !",
+   "es": "Hoy estoy en el médico. ¡Me duele la oreja!",
+   "k": [
+    {
+     "t": "médecin",
+     "r": "profesiones|Médico/a"
+    },
+    {
+     "t": "oreille",
+     "r": "w02|oreja, oído"
+    }
+   ]
+  },
+  {
+   "say": "Où est-ce que j'ai mal ?",
+   "es": "¿Dónde me duele?",
+   "a": [
+    {
+     "r": "w02|nariz"
+    },
+    {
+     "r": "w02|pie"
+    },
+    {
+     "r": "w02|oreja, oído"
+    }
+   ],
+   "ok": 2,
+   "yes": {
+    "say": "Oui, à l'oreille ! Aïe !",
+    "es": "¡Sí, en la oreja! ¡Ay!"
+   },
+   "no": {
+    "say": "J'ai mal à l'oreille. Aïe !",
+    "es": "Me duele la oreja. ¡Ay!"
+   }
+  },
+  {
+   "say": "Le médecin est très gentil. Il regarde dans mon oreille avec une petite lumière.",
+   "es": "El médico es muy amable. Me mira la oreja con una lucecita.",
+   "k": [
+    {
+     "t": "lumière",
+     "r": "w04|luz"
+    }
+   ]
+  },
+  {
+   "say": "Puis il dit : « Ouvre la bouche ! » Il regarde mes dents.",
+   "es": "Luego dice: «¡Abre la boca!». Me mira los dientes.",
+   "k": [
+    {
+     "t": "bouche",
+     "r": "w02|boca"
+    },
+    {
+     "t": "dents",
+     "r": "w02|diente"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce que le médecin regarde ?",
+   "es": "¿Qué me mira el médico?",
+   "a": [
+    {
+     "r": "w02|mano"
+    },
+    {
+     "r": "w02|diente"
+    },
+    {
+     "r": "w02|pierna"
+    }
+   ],
+   "ok": 1,
+   "yes": {
+    "say": "Oui, mes dents ! Elles sont très blanches.",
+    "es": "¡Sí, los dientes! Están muy blancos."
+   },
+   "no": {
+    "say": "Mes dents ! Il regarde mes dents.",
+    "es": "¡Los dientes! Me mira los dientes."
+   }
+  },
+  {
+   "say": "Maintenant, j'ai un médicament. Je vais beaucoup mieux !",
+   "es": "Ahora tengo una medicina. ¡Me encuentro mucho mejor!",
+   "k": [
+    {
+     "t": "médicament",
+     "r": "w02|medicina"
+    }
+   ]
+  },
+  {
+   "say": "Qu'est-ce que le médecin m'a donné ?",
+   "es": "¿Qué me ha dado el médico?",
+   "a": [
+    {
+     "r": "w02|medicina"
+    },
+    {
+     "r": "w03|sopa"
+    },
+    {
+     "r": "w10|libro"
+    }
+   ],
+   "ok": 0,
+   "yes": {
+    "say": "Oui, un médicament ! Je vais mieux.",
+    "es": "¡Sí, una medicina! Ya me encuentro mejor."
+   },
+   "no": {
+    "say": "Un médicament ! Je vais mieux.",
+    "es": "¡Una medicina! Ya me encuentro mejor."
+   }
+  },
+  {
+   "say": "Et toi, qu'est-ce que tu aimes faire : courir, nager ou danser ?",
+   "es": "Y tú, ¿qué te gusta hacer: correr, nadar o bailar?",
+   "a": [
+    {
+     "r": "w25|correr",
+     "re": {
+      "say": "Courir ! Vite, vite, vite !",
+      "es": "¡Correr! ¡Rápido, rápido, rápido!"
+     }
+    },
+    {
+     "r": "w28|nadar",
+     "re": {
+      "say": "Nager ! Plouf !",
+      "es": "¡Nadar! ¡Plaf!"
+     }
+    },
+    {
+     "r": "w28|bailar",
+     "re": {
+      "say": "Danser ! On danse ensemble ?",
+      "es": "¡Bailar! ¿Bailamos juntos?"
+     }
+    }
+   ]
+  },
+  {
+   "say": "Au revoir ! Prends soin de ton corps !",
+   "es": "¡Adiós! ¡Cuida tu cuerpo!",
+   "k": [
+    {
+     "t": "Au revoir",
+     "r": "w43|adiós|1"
+    },
+    {
+     "t": "corps",
+     "r": "w02|cuerpo"
+    }
+   ]
+  }
+ ]
+}
