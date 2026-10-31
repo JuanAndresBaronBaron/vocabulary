@@ -170,7 +170,11 @@ def test_jet_mission():
             page.click("#fl-fire")
             page.wait_for_function("() => +document.querySelector('#gm-sc').textContent === 1", timeout=3000)
             assert page.locator(".fl-gate.shot.ok").count() == 1
-            # esperar a que algo de la acera esté en la zona y soltar lo que toca
+            # esperar a que algo de la acera esté en la zona y soltar lo que toca. Lo que dice la radio se lee en la
+            # misma tarea en que llega el punto 🎖 (un MutationObserver en #fl-mp): el juego sigue corriendo y, si se
+            # leyera después, un dron que choca o una puerta pasada por el carril malo ya lo habrían cambiado («Say again»)
+            page.evaluate("""() => { const el = document.querySelector('#fl-mp'), rd = document.querySelector('#fl-radio'); window.__mpRadio = [];
+              new MutationObserver(() => window.__mpRadio.push(rd.textContent)).observe(el, {childList: true, characterData: true, subtree: true}); }""")
             got = 0
             for _ in range(60):
                 k = page.evaluate("() => { const o = document.querySelector('.fl-obj.zone'); return o ? (o.classList.contains('camp') ? 'aid' : 'bomb') : ''; }")
@@ -178,8 +182,11 @@ def test_jet_mission():
                     page.click("#fl-aid" if k == "aid" else "#fl-bomb")
                     page.wait_for_function(f"() => +document.querySelector('#fl-mp').textContent > {got}", timeout=3000)
                     got = page.evaluate("+document.querySelector('#fl-mp').textContent")
-                    rd = page.evaluate("document.querySelector('#fl-radio').textContent")
+                    rd = page.evaluate("window.__mpRadio[window.__mpRadio.length - 1]")
                     assert any(w in rd for w in ("Roger", "Copy")), rd
+                    # «Roger»/«Copy» también los dice el disparo a la puerta (y el texto queda en #fl-radio al
+                    # esconderse): lo que prueba que la radio contesta a esta entrega es lo que solo escribe la entrega
+                    assert (("les llegó" in rd or "ayuda recibida" in rd) if k == "aid" else "barricada destruida" in rd), rd
                     if got >= 2:
                         break
                 page.wait_for_timeout(150)

@@ -36,6 +36,8 @@ CHOSEN = {"english": "Daniel", "français": "Thomas", "dansk": "Sara"}
 TINTS = {"green", "yellow", "blue", "teal"}
 TOK = re.compile(r"[^\W_]+(?:['’\-][^\W_]+)*")
 IPA_RE = re.compile(r"^/[^/]+/$")
+# lo que sw.js guarda al instalarse (vocab-shell-vN): ahí van también el zorro y el loro (img/pj/zorro.png, loro.png)
+SW_SHELL = set(re.findall(r'"([^"]+)"', (C.REPO / "sw.js").read_text(encoding="utf-8").split("const SHELL = [", 1)[1].split("];", 1)[0]))
 
 
 def _v(name, lang, local=True):
@@ -910,7 +912,8 @@ def test_award_once_per_story_daily_cap_and_medal():
 
 # ---------------------------------------------------------------- 6. sin conexión
 def test_story_reads_offline_through_service_worker():
-    """Con el service worker: se abre la estantería y el cuento con red (sus dibujos se guardan al abrirlo); con el
+    """Con el service worker: se abre la estantería y el cuento con red (sus dibujos se guardan al abrirlo en vocab-media;
+    los que son de SHELL, como el zorro img/pj/zorro.png, ya están en el shell desde la instalación); con el
     servidor parado, al recargar el cuento sale entero (texto y dibujos de cada página, la elección y el final), la
     estantería también, y otro cuento nunca abierto carga su texto del shell. Control: un dibujo nunca visto falla."""
     srv = C.Server(C.ROOT, "localhost")
@@ -931,18 +934,20 @@ def test_story_reads_offline_through_service_worker():
         need = sorted({*hero, s["cover"], *[p["img"] for p in s["pages"]], s["choice"]["img"], *[o["img"] for o in s["choice"]["opts"]],
                        *[a for p in s["pages"] for a in p.get("also") or []], *[p["img"] for o in s["choice"]["opts"] for p in o["pages"]],
                        *[a for o in s["choice"]["opts"] for p in o["pages"] for a in p.get("also") or []]})
+        shell = page.evaluate("async () => (await caches.keys()).find(n => /^vocab-shell-v/.test(n))")
+        sk = set(page.evaluate("async n => (await (await caches.open(n)).keys()).map(r => new URL(r.url).pathname.slice(1))", shell))
         t0 = time.time()
         missing = need
         while time.time() - t0 < 15:
             have = set(page.evaluate("async () => (await (await caches.open('vocab-media')).keys()).map(r => new URL(r.url).pathname.slice(1))"))
-            missing = [u for u in need if u not in have]
+            # los dibujos de SHELL (el zorro y el loro, img/pj/zorro.png…) ya están en el shell desde la instalación y
+            # sw.js los da de allí: no se copian a vocab-media; los demás, en vocab-media
+            missing = [u for u in need if u not in have and not (u in SW_SHELL and u in sk)]
             if not missing:
                 break
             page.wait_for_timeout(250)
         if missing:
             probs.append(f"dibujos del cuento sin guardar tras abrirlo: {missing}")
-        shell = page.evaluate("async () => (await caches.keys()).find(n => /^vocab-shell-v/.test(n))")
-        sk = set(page.evaluate("async n => (await (await caches.open(n)).keys()).map(r => new URL(r.url).pathname.slice(1))", shell))
         want = {"js/stories.js", "data/stories/index.json", "img/games/cuentos.png"} | {e["file"] for L in AB for e in IDX[L]}
         if want - sk:
             probs.append(f"faltan en el shell: {sorted(want - sk)}")
@@ -969,6 +974,11 @@ def test_story_reads_offline_through_service_worker():
             p0 = st["p"]
             page.locator("#st-next").click()
             _wait_state(page, f"s.p > {p0} || s.fin", 4000)
+        if _state(page)["fin"]:
+            # el final: el zorro (img/pj/zorro.png, del shell) y los dibujos de los finales, también sin conexión
+            page.wait_for_selector("#st-stage .st-end .st-fox img", timeout=5000)
+            page.wait_for_function("() => [...document.querySelectorAll('#st-stage .st-end img')].every(i => i.complete)", timeout=5000)
+            broken += page.evaluate("() => [...document.querySelectorAll('#st-stage .st-end img')].filter(i => !i.naturalWidth).map(i => i.getAttribute('src'))")
         if not _state(page)["fin"] or broken:
             probs.append(f"sin conexión: final {_state(page)['fin']}, dibujos rotos {broken}")
         C.goto(page, "#/cuentos")

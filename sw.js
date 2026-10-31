@@ -20,7 +20,9 @@
      próxima vez); tras una espera así, durante SLOW_FOR lo guardado sale enseguida (la red lenta no suma 3 s a cada
      dato) hasta que la red vuelve a contestar a tiempo; sin red, del shell actual, luego de vocab-media y por último de cualquier otra caché. Una página que
      no está guardada da index.html. La carpeta («./», start_url) es su index.html.
-   · imágenes y mp3: de vocab-media (o del shell, las de SHELL) y, si no están, de la red (y se guardan).
+   · imágenes y mp3: de vocab-media (o del shell, las de SHELL) y, si no están, de la red (y se guardan). Sin red, lo
+     guardado de ese mismo fichero aunque la URL lleve otro «?…» (o ninguno): un dibujo es el mismo con cualquier «?…»,
+     y el ya visto es mejor que uno roto.
    Las cachés viejas (vocab-v1 de «Descargar todo», vocab-vNN del sw anterior) pasan sus imágenes, audios y datos a
    vocab-media entrada a entrada y después se borran; si no cabe, se borran igual (todo se puede volver a bajar).
    Al subir VERSION se sube también OFF_SHELL y el «?v=» de los <script> de index.html y privacy.html, y el de ielts.html
@@ -248,7 +250,8 @@ async function sameUrl(req, e){
   }
 }
 
-/* imágenes y audios: de vocab-media (o del shell); si no están, de la red entera (sin Range) y se guardan */
+/* imágenes y audios: de vocab-media (o del shell); si no están, de la red entera (sin Range) y se guardan. Sin red, esa
+   misma URL guardada y, si no, el fichero guardado con otro «?…» o sin él (ignoreSearch) */
 async function mediaFirst(req, url, e){
   const media = await caches.open(MEDIA_CACHE), key = url.search ? req.url : keyOf(url);
   let res = await media.match(key);
@@ -258,7 +261,7 @@ async function mediaFirst(req, url, e){
       res = await fetch(req.url, {credentials: "same-origin"});
       if(res.status === 200 && !res.redirected) keep(e, MEDIA_CACHE, key, res);
     }catch(err){
-      res = await caches.match(key);
+      res = (await caches.match(key)) || (await caches.match(key, {ignoreSearch: true}));
       if(!res) return Response.error();
     }
   }
