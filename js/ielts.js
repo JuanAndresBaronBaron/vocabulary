@@ -12,7 +12,8 @@
        "ielts:data:bak-<ms>". Nothing is trimmed unless the browser refuses to save (then the caps below apply and a toast
        sends the learner to Settings › Your data).
      "ielts:ui" = {rate, accents: "mixed"|"gb", at}; "ielts:run:<lid>" = a lesson in progress (js/ielts-player.js, saved as
-     you go); "ielts:draft:<essayId>" = {text, blank, at, from} a revision being written (#/essays/<id>/revise).
+     you go); "ielts:draft:<essayId>" = {text, blank, at, from, alt?} a revision being written (#/essays/<id>/revise; alt =
+     the draft of the other mode, so «Write version N» and «Rewrite from memory» never open each other's draft).
    · Bands: attempt = the n-th test of that lesson; a test counts if it is the first attempt (or the previous one was 60+
      days earlier) and wasn't paused or played without sound. Listening and Reading come from the counted tests, newest
      first, pooled until there are 40 questions behind the band; latestInfo() adds the questions and a likely range
@@ -24,7 +25,7 @@
      at exam speed. It resolves false when stopped or when the engine fails. ensureVoices() → the number of English
      voices (waits up to 2 s once, then cached and refreshed on voiceschanged).
    · Routes: #/ (home: paints at once from index.json, then fills the counts, Continue and Up next in place as the units
-     arrive), #/unit/uNN, #/progress, #/essays, #/essays/<id>, #/essays/<id>/revise[?blank=1], #/essays/<id>/compare,
+     arrive; a unit that can't load is never skipped: Up next says so, with Try again), #/unit/uNN, #/progress, #/essays, #/essays/<id>, #/essays/<id>/revise[?blank=1], #/essays/<id>/compare,
      #/settings. The router looks ROUTES up at route time, so other files can add or wrap routes.
    · window.IE = {esc, md, ico, LS, isObj, data, band, bandRange, roundBand, fmtBand, prog, ui, uiSet, speak, stopSpeak,
      canSpeak, voices, ensureVoices, voiceTest, ROUTES, route, go, query, setTop, toast, KIND_T, when, words}.
@@ -150,7 +151,8 @@ const PK = "ielts:data", ESSAY_MAX = 1000, TEST_MAX = 500, SPEAK_MAX = 500, DAY 
 const SK = ["listening", "reading", "writing", "speaking"];
 const FULL = "Storage is full: download your data in Settings › Your data, then erase old results.";
 const NEWER = "Update the app to see your progress.";
-let RO = false, roAt = -1e9, roShown = false, bakTried = null;
+const NEWER_ERASE = "Update the app first: this device holds progress from a newer version.";
+let RO = false, NEWV = false, roAt = -1e9, roShown = false, bakTried = null;
 const fresh = () => ({v: 1, lessons: {}, tests: [], essays: [], speaking: []});
 function shape(d){
   if(!isObj(d.lessons)) d.lessons = {};
@@ -161,7 +163,7 @@ function warnNewer(again){ if((!roShown || again) && Date.now() - roAt > 4000){ 
 /* v1 passes through; a newer version's blob is left alone (read-only); anything else is damaged (null) */
 function migrate(o){
   if(isObj(o) && o.v === 1) return o;
-  if(isObj(o) && typeof o.v === "number" && o.v > 1){ RO = true; warnNewer(); return fresh(); }
+  if(isObj(o) && typeof o.v === "number" && o.v > 1){ RO = NEWV = true; warnNewer(); return fresh(); }
   return null;
 }
 /* a copy of a damaged blob before starting again (once: the same text is never copied twice) */
@@ -267,10 +269,14 @@ const prog = {
     d.tests.push(rec); pset(d); return rec;
   },
   tests: () => normTests(pget().tests),
+  /* deletes one result and numbers the other attempts of that lesson again (deleting an accidental first attempt makes
+     the next one the first, and it counts); paused and no-sound results still don't count */
   delTest(lid, at){
     const d = pget(), i = d.tests.findIndex(t => t.lid === lid && +t.at === +at);
     if(i < 0) return false;
-    d.tests.splice(i, 1); return pset(d);
+    d.tests.splice(i, 1);
+    d.tests = normTests(d.tests.map(t => { if(!isObj(t) || t.lid !== lid) return t; const r = Object.assign({}, t); delete r.attempt; delete r.counted; return r; }));
+    return pset(d);
   },
   addEssay(e){
     const d = pget(), rec = Object.assign({at: Date.now()}, e);
@@ -293,7 +299,14 @@ const prog = {
     return {band: v.length ? roundBand(v.reduce((a, b) => a + b, 0) / v.length) : null, skills: v.length, partial: v.length < 4};
   },
   overall(){ const o = prog.overallInfo(); return o.partial ? null : o.band; },
-  erase(){ for(const k of LS.keys()) if(k.startsWith("ielts:") && k !== "ielts:on" && k !== "ielts:ui") LS.del(k); },
+  /* erases this device's progress; never a newer version's data (the learner only sees it empty until the app updates) */
+  erase(){
+    pget(); if(NEWV) return false;
+    for(const k of LS.keys()) if(k.startsWith("ielts:") && k !== "ielts:on" && k !== "ielts:ui") LS.del(k);
+    return true;
+  },
+  /* the data on this device was written by a newer version of the app */
+  newer: () => (pget(), NEWV),
   /* every ielts:* key except the switch and the lessons in progress, for a file */
   backup(){
     const keys = {};
@@ -553,21 +566,24 @@ function scoreTiles(){
     <p class="t-min">Listening and Reading come from your timed tests: the more questions behind a band, the narrower its likely range. A repeat within 60 days, a paused test and a recording played without sound don't count. Writing and Speaking are your own estimates against the criteria.</p></section>`;
 }
 /* the first lesson not done (and not the one in progress), once the units before it have arrived: undefined = not yet
-   known, null = every lesson done, false = nothing left but the lesson in progress */
+   known, {failed: row} = a unit before it couldn't load (it may hold the next lesson, so it is never skipped),
+   null = every lesson done (every unit loaded), false = nothing left but the lesson in progress.
+   settled(id) is true once that unit has arrived or failed; a settled unit missing from UNITS failed */
 function findNext(settled, skip){
   const p = pget().lessons; let skipped = false;
   for(const r of data.avail()){
     if(!settled(r.id)) return undefined;
-    const u = UNITS[r.id]; if(!u) continue;
+    const u = UNITS[r.id]; if(!u) return {failed: r};
     const l = u.lessons.find(x => !(p[x.id] && p[x.id].done) && !(x.id === skip && (skipped = true)));
     if(l) return {lesson: l, unit: u};
   }
   return skipped ? false : null;
 }
+/* the first lesson not done; a unit that can't load rejects (it is never taken for a unit with nothing left) */
 async function nextLesson(){
   const p = pget().lessons;
   for(const r of data.avail()){
-    let u; try{ u = await data.unit(r.id); }catch(e){ continue; }
+    const u = await data.unit(r.id);
     const l = u.lessons.find(x => !(p[x.id] && p[x.id].done));
     if(l) return {lesson: l, unit: u};
   }
@@ -583,6 +599,9 @@ function unitRow(r, busy){
 const waitNext = () => `<div class="card ie-card ie-next is-wait" id="ie-next" aria-busy="true"><span class="ie-next-k">Up next</span><span class="ie-skel" aria-hidden="true"></span><span class="t-note">Loading the course…</span></div>`;
 function nextHtml(nx){
   if(!nx && nx !== null) return "";
+  if(nx.failed) return `<div class="card ie-card ie-next is-fail" id="ie-next" data-done="1" role="alert"><span class="ie-next-k">Up next</span>
+    <span class="t-3">Couldn't load Unit ${esc(nx.failed.n)}.</span><span class="t-note">Check the connection.</span>
+    <button type="button" class="glass-btn glass-btn--sm ie-next-b" data-retry>${ico("arrow-counter-clockwise", 18)}Try again</button></div>`;
   if(nx === null) return data.avail().length ? `<div class="card ie-card" id="ie-next" data-done="1"><h2 class="t-3">You've done every lesson</h2><p class="t-sub">Repeat the mock tests under exam conditions, a week apart.</p></div>` : "";
   const {lesson: l, unit: u} = nx, test = l.kind === "test";
   return `<a class="card ie-card ie-next" id="ie-next" data-done="1" href="#/lesson/${l.id}"><span class="ie-next-k">${doneCount(u.id) || Object.keys(pget().lessons).length ? "Up next" : "Start here"}</span>
@@ -621,7 +640,8 @@ ROUTES.home = async (_, a) => {
   </div>`;
   fillHome(a, gen, av, cont, busy);
 };
-/* then each unit fills its row, the Continue card and Up next in place, as it arrives (never all of #app again) */
+/* then each unit fills its row, the Continue card and Up next in place, as it arrives (never all of #app again).
+   done = the units settled, loaded or failed; failed ones stay out of UNITS, so findNext stops at them */
 function fillHome(a, gen, av, cont, busy){
   const done = new Set(av.filter(r => UNITS[r.id]).map(r => r.id));
   const live = () => gen === routeGen && a.isConnected;
@@ -629,7 +649,8 @@ function fillHome(a, gen, av, cont, busy){
     const slot = a.querySelector("#ie-next:not([data-done])"); if(!slot) return;
     const nx = findNext(id => done.has(id), cont && cont.lid); if(nx === undefined) return;
     const h = nextHtml(nx); if(!h){ slot.remove(); return; }
-    const n = D.createElement("div"); n.innerHTML = h; slot.replaceWith(n.firstElementChild);
+    const n = D.createElement("div"); n.innerHTML = h; const el = n.firstElementChild; slot.replaceWith(el);
+    const rt = el.querySelector("[data-retry]"); if(rt) rt.onclick = () => go("#/");
   };
   const settle = id => {
     done.add(id); if(!live()) return;
@@ -693,9 +714,12 @@ ROUTES.progress = async (_, a) => {
 };
 
 /* ---------- my writing: versions and revision ---------- */
-const CK = [["words", /^\d+ words?:/i, "Length"], ["paras", /paragraph/i, "Paragraphs"], ["overview", /overview/i, "Overview"], ["opinion", /opinions/i, "No opinions in Task 1"],
-  ["position", /position/i, "Clear position"], ["repeat", /repeated|overused/i, "Repetition"], ["linking", /linker|linking/i, "Linking"], ["cliche", /memorised/i, "Memorised phrases"],
-  ["contractions", /contraction/i, "Contractions"], ["sentences", /sentence/i, "Sentences"]];
+/* which check a message of IE.player.writingChecks() is: each pattern is anchored to the start of the message, and
+   repetition goes first, because "Repeated: “position” ×5" quotes the learner's own words */
+const CK = [["repeat", /^(Repeated:|No word is overused)/, "Repetition"], ["words", /^\d+ words?:/, "Length"], ["paras", /^\d+ paragraphs?[.:]/, "Paragraphs"],
+  ["overview", /^(There['’]s an overview|No clear overview)/, "Overview"], ["opinion", /^Task 1 reports data/, "No opinions in Task 1"],
+  ["position", /^(Your position|Make your position)/, "Clear position"], ["linking", /^(\d+ sentence-opening linkers|Linking isn['’]t)/, "Linking"],
+  ["cliche", /^Memorised/, "Memorised phrases"], ["contractions", /^Contractions/, "Contractions"], ["sentences", /^(\d+ sentences? over|Sentences average)/, "Sentences"]];
 const ckey = c => (CK.find(([, re]) => re.test(c.t)) || [c.t])[0];
 const cname = k => (CK.find(x => x[0] === k) || [0, 0, k])[2];
 function checksOf(text, it, e){
@@ -756,6 +780,15 @@ async function essayPage(id, a){
   a.querySelector("#ie-copy").onclick = () => { try{ navigator.clipboard.writeText(e.text).then(() => toast("Copied."), () => toast("Couldn't copy.")); }catch(err){ toast("Couldn't copy."); } };
 }
 const DRAFT = id => `ielts:draft:${id}`;
+/* the drafts of one revision by mode: ielts:draft:<id> holds the one typed last, and the other mode's draft under alt,
+   so pressing the other button never opens (or overwrites) a draft of the wrong kind */
+function draftsOf(id){
+  const o = LS.get(DRAFT(id)), out = {};
+  const ok = x => isObj(x) && typeof x.text === "string";
+  if(ok(o)){ out[!!o.blank] = o; if(ok(o.alt) && !!o.alt.blank !== !!o.blank) out[!!o.alt.blank] = Object.assign({}, o.alt, {blank: !!o.alt.blank}); }
+  return out;
+}
+const draftRec = (d, other) => { const r = {text: d.text, blank: !!d.blank, at: d.at, from: d.from}; if(other) r.alt = {text: other.text, blank: !!other.blank, at: other.at, from: other.from}; return r; };
 async function revise(id, a){
   const es = pget().essays, e = es.find(x => x.id === id); if(!e) throw new Error("That piece of writing isn't on this device.");
   const ch = chainOf(es, e), last = ch[ch.length - 1], nv = Math.max(...ch.map(x => x.v || 1)) + 1, rootId = chainKey(e);
@@ -766,8 +799,8 @@ async function revise(id, a){
     return;
   }
   const it = await data.item(e.iid), minW = it && it.minWords || (e.task === 1 ? 150 : 250);
-  const dr = LS.get(DRAFT(id)), resume = isObj(dr) && typeof dr.text === "string";
-  const blank = resume ? !!dr.blank : query().get("blank") === "1";
+  /* the button pressed decides the mode; a draft is resumed only when it was written in that mode */
+  const blank = query().get("blank") === "1", drs = draftsOf(id), dr = drs[blank] || null, other = drs[!blank] || null, resume = !!dr;
   const text = resume ? dr.text : blank ? "" : last.text;
   const todo = !blank ? (checksOf(last.text, it, last) || []).filter(c => !c.ok) : [];
   a.innerHTML = `<div class="ie-page ie-narrow ie-revise">
@@ -777,18 +810,22 @@ async function revise(id, a){
         : todo.length ? `<details class="ie-plan" open><summary class="t-head">${ico("list-checks", 18)}What to work on from version ${last.v || 1}</summary>${checksList(todo)}</details>` : ""}
       ${!blank && it && it.model ? `<div class="ie-rvmodel">${modelHtml(it.model, false)}</div>` : ""}</div>
     ${resume ? `<p class="t-note ie-pad ie-resume">You're continuing your draft from ${when(dr.at)}. <button type="button" class="ie-link" id="ie-rv-new">Start again</button></p>` : ""}
+    ${other ? `<p class="t-note ie-pad ie-resume" id="ie-rv-other">Your draft ${other.blank ? "from memory" : "with the model"} (${when(other.at)}) is kept too.
+      <a class="ie-link" href="#/essays/${enc(id)}/revise${other.blank ? "?blank=1" : ""}">Open it</a></p>` : ""}
     <div class="card ie-card"><textarea class="ie-ta" id="ie-ta" lang="en-GB" spellcheck="false" autocapitalize="sentences" aria-label="Version ${nv}" placeholder="${blank ? "Write the task again from memory. It's saved as you type." : "Improve your answer here. It's saved as you type."}">${esc(text)}</textarea>
       <p class="ie-wc t-note"><span id="ie-wc" class="t-num">${words(text)} words</span><span id="ie-rv-st" class="t-min">${resume ? "Draft saved" : "Saved as you type"}</span></p>
       <button type="button" class="glass-btn glass-btn--pri glass-btn--block" id="ie-rv-done">I've finished: compare</button></div></div>`;
   const ta = a.querySelector("#ie-ta"), wc = a.querySelector("#ie-wc"), st = a.querySelector("#ie-rv-st");
   let t0 = 0, dirty = false;
-  const save = () => { clearTimeout(t0); if(!dirty) return; dirty = false; if(LS.set(DRAFT(id), {text: ta.value, blank, at: Date.now(), from: last.id})) st.textContent = "Draft saved"; else toast(FULL, 7000); };
+  const save = () => { clearTimeout(t0); if(!dirty) return; dirty = false;
+    if(LS.set(DRAFT(id), draftRec({text: ta.value, blank, at: Date.now(), from: last.id}, other))) st.textContent = "Draft saved"; else toast(FULL, 7000); };
   const fit = () => { ta.style.height = "auto"; ta.style.height = Math.max(260, ta.scrollHeight + 4) + "px"; };
   if(!blank && it && it.model) wireModel(a, it.model);
   ta.addEventListener("input", () => { dirty = true; wc.textContent = `${words(ta.value)} words`; clearTimeout(t0); t0 = setTimeout(save, 300); fit(); });
   requestAnimationFrame(fit);
   const nb = a.querySelector("#ie-rv-new");
-  if(nb) nb.onclick = () => { if(!confirm("Clear this draft and start again?")) return; clearTimeout(t0); dirty = false; LS.del(DRAFT(id)); route(); };
+  /* clears this mode's draft only */
+  if(nb) nb.onclick = () => { if(!confirm("Clear this draft and start again?")) return; clearTimeout(t0); dirty = false; if(other) LS.set(DRAFT(id), draftRec(other)); else LS.del(DRAFT(id)); route(); };
   a.querySelector("#ie-rv-done").onclick = () => {
     const t = ta.value;
     if(!t.trim()){ toast("Write your new version first."); ta.focus(); return; }
@@ -843,7 +880,7 @@ async function compare(id, a){
   const box = a.querySelector("#ie-rv-self");
   if(box && typeof AS.wireSelf === "function") AS.wireSelf(box, kind, () => (prog.essay(cur.id) || cur).self, (c, b) => {
     const now = prog.essay(cur.id) || cur;
-    prog.addEssay(Object.assign({}, now, {self: c, band: b != null ? b : now.band}));
+    prog.addEssay(Object.assign({}, now, {self: c, band: b != null ? b : now.band, at: Date.now()}));   /* a new time, so a restore takes the marked copy */
   }, it);
 }
 
@@ -894,7 +931,8 @@ ROUTES.settings = async (_, a) => {
       <p class="t-sub">Listening and Reading bands use the usual conversion, approximate: cut-offs vary slightly between test versions. IELTS publishes only a few points of it (in Listening, 16 of 40 is band 5, 23 is band 6, 30 is band 7 and 35 is band 8). Writing and Speaking are your own estimates.</p>
       <p class="t-sub">Your progress stays on this device. Recordings stay on this device. Live transcript uses your browser's speech service, which may send your voice to its provider (Google in Chrome).</p></div></section>
     <section class="ie-block" aria-labelledby="ie-s-erase"><h2 class="ie-bh" id="ie-s-erase">${ico("trash", 20)}Start again</h2><div class="card ie-card">
-      <p class="t-sub">Erase your results, writing and drafts on this device. Download your data first if you might want them back.</p>
+      <p class="t-sub">${prog.newer() ? "This device holds progress from a newer version of the app. Update the app first: until then it can't be erased here."
+        : "Erase your results, writing and drafts on this device. Download your data first if you might want them back."}</p>
       <button type="button" class="glass-btn glass-btn--sm" id="ie-erase">${ico("trash", 18)}Erase my progress</button></div></section></div>`;
   if(canSpeak() && VCOUNT == null) ensureVoices().then(n => { const b = a.querySelector("#ie-vbox"); if(gen === routeGen && b) b.innerHTML = voiceHtml(n); });
   a.querySelectorAll("[data-rate]").forEach(b => b.onclick = () => {
@@ -914,7 +952,10 @@ ROUTES.settings = async (_, a) => {
     if(!confirm("Add the results, writing and settings in this file to the ones on this device?")) return;
     toast(restoreMsg(prog.restore(o)), 6000);
   };
-  a.querySelector("#ie-erase").onclick = () => { if(confirm("Erase all your IELTS Prep progress on this device?")){ prog.erase(); toast("Progress erased."); go("#/"); } };
+  a.querySelector("#ie-erase").onclick = () => {
+    if(prog.newer()){ toast(NEWER_ERASE, 7000); return; }
+    if(confirm("Erase all your IELTS Prep progress on this device?")){ if(prog.erase()){ toast("Progress erased."); go("#/"); } else toast(NEWER_ERASE, 7000); }
+  };
 };
 
 Object.assign(IE, {esc, md, ico, LS, isObj, data, band, bandRange, roundBand, fmtBand, prog, ui, uiSet, speak, stopSpeak, canSpeak, voices, ensureVoices, voiceTest,

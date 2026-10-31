@@ -453,19 +453,25 @@ def test_algo():
 - `test_ielts_core.py` (`js/ielts.js` y su sección `package: core` de `ielts.css`; corre con `--only test_ielts`):
   bandas con sentido (cada test lleva `attempt` y `counted`; no cuentan una repetición antes de 60 días, un test con el
   reloj parado ni uno sin sonido; Listening y Reading juntan los tests contados más nuevos hasta 40 preguntas, así que
-  un test de una parte tras un simulacro no reemplaza su banda; `latestInfo()` con las preguntas y el margen; las
-  fichas «from N questions», el global parcial «about 7 from 3 skills», «Repeat: not counted» y borrar un resultado en
-  `#/progress`); datos a salvo (los datos v1 no se reescriben, un `v` mayor queda de solo lectura con el aviso
-  «Update the app to see your progress», un JSON roto se copia a `ielts:data:bak-<ms>`, más de 60 redacciones, el aviso
+  un test de una parte tras un simulacro no reemplaza su banda, aunque se junta con él (30/40 y luego 10/10 = 7,5,
+  documentado); `latestInfo()` con las preguntas y el margen; las fichas «from N questions», el global parcial «about 7
+  from 3 skills», «Repeat: not counted» y borrar un resultado en `#/progress`, que vuelve a numerar los intentos de esa
+  lección: borrado el primero por error, el siguiente pasa a ser el 1 y cuenta); datos a salvo (los datos v1 no se
+  reescriben, un `v` mayor queda de solo lectura con el aviso «Update the app to see your progress» y «Erase my
+  progress» no lo borra, un JSON roto se copia a `ielts:data:bak-<ms>`, más de 60 redacciones, el aviso
   de almacenamiento lleno, `getJSON` se rinde a los 10 s con `page.clock.fast_forward`); las voces con un
   `speechSynthesis` de mentira (acentos gb/us/au/ie con vuelta a la británica, `alt`, `pitch` como multiplicador de 0,5
   a 2, «British only», un error del motor para todo y resuelve `false`, velocidad de examen dentro de un test,
   `IE.ensureVoices()` 0 tras 2 s y luego al instante, y la ayuda «No English voice on this device» con las rutas de
   Android, Windows e iPhone); el inicio pinta antes de las unidades (`page.route` las retiene 3 s) y las rellena en su
   sitio sin tocar lo que otro paquete ponga tras `.ie-hero`, con «Continue» y el tiempo que queda («34 min left») y
-  «In progress»; la reescritura en My writing (`#/essays/<id>/revise`, borrador en `ielts:draft:<id>` al escribir,
+  «In progress»; una unidad que no carga (`route.abort()`) nunca se salta: «Couldn't load Unit N.» con «Try again», y
+  nunca «You've done every lesson» si alguna falló; la reescritura en My writing (`#/essays/<id>/revise`, borrador en `ielts:draft:<id>` al escribir,
   `#/essays/<id>/compare` con lo que cambió, `{parent, v}`, «Rewrite from memory» sin el modelo, la autoevaluación solo
-  con `IE.assess` (de mentira en la prueba), como mucho 3 versiones agrupadas bajo la primera); la copia «Download my
+  con `IE.assess` (de mentira en la prueba), como mucho 3 versiones agrupadas bajo la primera; el botón pulsado decide
+  el modo y el borrador del otro modo se guarda aparte en `alt`; las comprobaciones se reconocen por el principio del
+  mensaje, así que «Repeated: “position” ×5» es Repetition y no Clear position; marcarse en la comparación pone una
+  hora nueva para que la restauración se quede con la copia marcada); la copia «Download my
   data» (`ielts-prep-AAAA-MM-DD.json`, sin `ielts:on` ni `ielts:run:*`) y «Restore from a file» que mezcla sin
   duplicar; el segmento elegido en azul con texto blanco en oscuro, objetivos de 44 px y «U17» en la barra por debajo
   de 400 px. Capturas `<360|1280>-<light|dark>-<página>.png` de inicio, ajustes, resultados, My writing, una

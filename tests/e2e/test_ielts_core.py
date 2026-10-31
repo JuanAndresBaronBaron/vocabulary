@@ -165,6 +165,36 @@ def test_core_bands():
         assert r2["one"]["band"] == 9 and r2["one"]["n"] == 10 and r2["one"]["range"] == [8.5, 9], r2["one"]
         assert r2["mock"]["band"] == 7 and r2["mock"]["n"] == 40 and r2["mock"]["range"][0] < 7 < r2["mock"]["range"][1], r2["mock"]
         assert r2["unc"]["uncounted"] is True and r2["unc"]["band"] == 6, r2["unc"]
+        # as task 2(b) specifies, a part test newer than a full paper pools with it: a 30/40 mock (7) and then a first
+        # Part 1 at 10/10 give 40 of 50 = 7.5 (n = 50); the redo of that Part 1 changes nothing
+        r5 = page.evaluate("""() => { const P = IE.prog; P.erase();
+          P.addTest({lid: 'u23-l1', skill: 'listening', got: 30, total: 40, band: 7});
+          const mock = P.latestInfo().listening;
+          P.addTest({lid: 'u03-l3', skill: 'listening', got: 10, total: 10, band: 9});
+          const pooled = P.latestInfo().listening;
+          P.addTest({lid: 'u03-l3', skill: 'listening', got: 10, total: 10, band: 9});
+          return {mock, pooled, redo: P.latestInfo().listening}; }""")
+        assert r5["mock"]["band"] == 7 and r5["mock"]["n"] == 40, r5["mock"]
+        assert r5["pooled"]["band"] == 7.5 and r5["pooled"]["n"] == 50 and r5["pooled"]["got"] == 40 and r5["redo"] == r5["pooled"], r5
+        # deleting an accidental first attempt numbers the others again: the retake becomes attempt 1 and counts,
+        # a later attempt is 2 (never a duplicate), and a paused result still doesn't count
+        r4 = page.evaluate("""() => { const P = IE.prog; P.erase(); const t0 = Date.now() - 5000;
+          const a = P.addTest({lid: 'u23-l1', skill: 'listening', got: 5, total: 40, band: 3, at: t0});
+          const b = P.addTest({lid: 'u23-l1', skill: 'listening', got: 33, total: 40, band: 7.5, at: t0 + 1000});
+          const before = P.latestInfo().listening;
+          P.addTest({lid: 'u04-l3', skill: 'listening', got: 6, total: 10, band: 6, paused: true, at: t0 + 2000});
+          const z = P.addTest({lid: 'u04-l3', skill: 'listening', got: 7, total: 10, band: 7, at: t0 + 3000});
+          const ok = P.delTest('u23-l1', a.at);
+          const after = P.tests().map(t => [t.lid, t.got, t.attempt, t.counted]), info = P.latestInfo().listening;
+          const c = P.addTest({lid: 'u23-l1', skill: 'listening', got: 35, total: 40, band: 8, at: t0 + 4000});
+          P.delTest('u04-l3', z.at);
+          return {ok, before, after, info, c: [c.attempt, c.counted], paused: P.tests().filter(t => t.lid === 'u04-l3').map(t => [t.attempt, t.counted]),
+            stored: JSON.parse(localStorage.getItem('ielts:data')).tests.map(t => [t.lid, t.attempt, t.counted])}; }""")
+        assert r4["ok"] is True and r4["before"]["band"] == 3, r4
+        assert r4["after"] == [["u23-l1", 33, 1, True], ["u04-l3", 6, 1, False], ["u04-l3", 7, 2, False]], r4["after"]
+        assert r4["info"]["band"] == 7.5 and r4["info"]["uncounted"] is False and r4["info"]["n"] == 40, r4["info"]
+        assert r4["c"] == [2, False] and r4["paused"] == [[1, False]], r4
+        assert r4["stored"] == [["u23-l1", 1, True], ["u04-l3", 1, False], ["u23-l1", 2, False]], r4["stored"]
         # old records without attempt get it from their order; reading them writes nothing
         old = {"v": 1, "lessons": {}, "tests": [{"lid": "u07-l3", "skill": "reading", "got": 10, "total": 13, "band": 7, "at": 1},
                                                {"lid": "u07-l3", "skill": "reading", "got": 13, "total": 13, "band": 9, "at": 2}], "essays": [], "speaking": []}
@@ -225,6 +255,15 @@ def test_core_data_safety():
           IE.prog.addEssay({id: 'x', task: 2, text: 'a', words: 1}); IE.prog.addSpeaking({band: 6}); IE.prog.delTest('u03-l3', 1); }""")
         assert page.evaluate("() => localStorage.getItem('ielts:data')") == v2
         assert page.evaluate("() => [IE.prog.readOnly(), IE.prog.restore({app: 'ielts-prep', keys: {'ielts:data': {v: 1, lessons: {}}}}).error]") == [True, "Update the app to see your progress."]
+        # «Erase my progress» never deletes a newer version's data (the learner sees empty progress and may try it)
+        assert page.evaluate("() => [IE.prog.newer(), IE.prog.erase()]") == [True, False]
+        assert page.evaluate("() => localStorage.getItem('ielts:data')") == v2
+        _open(page, "#/settings")
+        assert "holds progress from a newer version of the app" in page.inner_text("#app")
+        page.click("#ie-erase")
+        page.wait_for_timeout(200)
+        assert _toast(page) == "Update the app first: this device holds progress from a newer version.", _toast(page)
+        assert page.evaluate("() => localStorage.getItem('ielts:data')") == v2
         # damaged JSON is copied to ielts:data:bak-<ms> before starting empty
         _seed(page, {"ielts:data": "{oops, half a file"})
         _open(page, "#/", reload=True)
@@ -429,6 +468,47 @@ def test_core_home_paints_before_the_units():
         page.context.close()
 
 
+def _next_text(page):
+    page.wait_for_function("() => { const n = document.querySelector('#ie-next'); return n && !n.classList.contains('is-wait'); }", timeout=15000)
+    return re.sub(r"\s+", " ", page.evaluate("() => document.querySelector('#ie-next').textContent")).strip()
+
+
+def test_core_home_when_a_unit_fails():
+    page = _page("phone")
+    try:
+        # Unit 1 can't load: Up next says so (it never skips to Unit 2)
+        _seed(page, {})
+        page.route("**/data/ielts/u01.json", lambda r: r.abort())
+        _open(page, "#/", reload=True)
+        t = _next_text(page)
+        assert "Couldn't load Unit 1." in t and "Check the connection." in t and "Try again" in t and "Unit 2" not in t, t
+        assert page.locator("#ie-next[role=alert] [data-retry]").count() == 1
+        page.unroute("**/data/ielts/u01.json")
+        # every unit fails: never «You've done every lesson»
+        page.route("**/data/ielts/u*.json", lambda r: r.abort())
+        _open(page, "#/", reload=True)
+        t = _next_text(page)
+        assert "Couldn't load Unit 1." in t and "every lesson" not in t, t
+        # nextLesson() rejects rather than skipping a unit it couldn't load
+        assert page.evaluate("async () => { try { await IE.nextLesson(); return 'resolved'; } catch (e) { return 'rejected'; } }") == "rejected"
+        # with Unit 1 done and Unit 2 failing, Up next stops at Unit 2 instead of jumping on
+        page.unroute("**/data/ielts/u*.json")
+        page.route("**/data/ielts/u02.json", lambda r: r.abort())
+        u1 = json.loads((V.DATA / "u01.json").read_text(encoding="utf-8"))
+        _seed(page, {"ielts:data": {"v": 1, "lessons": {l["id"]: {"done": True, "at": 1} for l in u1["lessons"]}, "tests": [], "essays": [], "speaking": []}})
+        _open(page, "#/", reload=True)
+        t = _next_text(page)
+        assert "Couldn't load Unit 2." in t and "Unit 3" not in t, t
+        # Try again: once the connection is back, Up next is there
+        page.unroute("**/data/ielts/u02.json")
+        page.click("#ie-next [data-retry]")
+        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/'", timeout=15000)
+        t = _next_text(page)
+        assert t.startswith("Up next") and "Unit 2" in t and "Couldn't" not in t, t
+    finally:
+        page.context.close()
+
+
 # ---------------------------------------------------------------- 5. writing revision
 def test_core_writing_revision():
     page = _page("phone")
@@ -495,6 +575,79 @@ def test_core_writing_revision():
         assert [x.strip() for x in page.locator(".ie-vrow .ie-row-t").all_inner_texts()][0].startswith("Version 2")
         # the writing band comes from first versions only
         assert page.evaluate("() => IE.prog.latest().writing") == 6
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
+_POS1 = """Some people argue that every new building should last for a century. I believe this position is partly right, although it goes too far.
+
+The first position holds that durable homes save a great deal of carbon over their lifetimes.
+
+A second position concerns the character of streets and squares in older towns.
+
+However, the opposite position says that hospitals and factories must adapt as their uses evolve.
+
+In conclusion, my position is that the law should set different lifespans for different kinds of building."""
+
+
+def test_core_revision_drafts_and_check_keys():
+    page = _page("phone")
+    try:
+        e1 = _essay1()
+        _seed(page, {"ielts:data": {"v": 1, "lessons": {}, "tests": [], "essays": [e1], "speaking": []}})
+        # a draft of version 2, then «Rewrite from memory»: empty, no model, no earlier text; the other draft is kept
+        _open(page, "#/essays/u13-l2-i2-seed/revise", reload=True)
+        page.fill("#ie-ta", ESSAY2)
+        page.wait_for_timeout(700)
+        _open(page, "#/essays/u13-l2-i2-seed/revise?blank=1")
+        assert page.input_value("#ie-ta") == "" and page.locator(".ie-model").count() == 0 and page.locator(".ie-tip").count() == 1
+        t = page.inner_text("#app")
+        assert "From memory" in t and ESSAY1[:40] not in t and ESSAY2[:40] not in t and page.locator("#ie-rv-other").count() == 1, t[:600]
+        page.fill("#ie-ta", "Cities replace buildings quickly, and some want a law.")
+        page.wait_for_timeout(700)
+        dr = page.evaluate("() => JSON.parse(localStorage.getItem('ielts:draft:u13-l2-i2-seed'))")
+        assert dr["blank"] is True and dr["text"].startswith("Cities replace") and dr["alt"]["blank"] is False and dr["alt"]["text"] == ESSAY2, dr
+        # «Write version 2» again: its own draft, with the model; the memory draft isn't shown
+        _open(page, "#/essays/u13-l2-i2-seed/revise")
+        assert page.input_value("#ie-ta") == ESSAY2 and page.locator(".ie-model").count() == 1 and page.locator(".ie-tip").count() == 0
+        page.fill("#ie-ta", ESSAY2 + "\n\nOne more line.")
+        page.wait_for_timeout(700)
+        dr = page.evaluate("() => JSON.parse(localStorage.getItem('ielts:draft:u13-l2-i2-seed'))")
+        assert dr["blank"] is False and dr["text"].endswith("One more line.") and dr["alt"]["blank"] is True and dr["alt"]["text"].startswith("Cities replace"), dr
+        # «Start again» clears only this mode's draft
+        page.click("#ie-rv-new")
+        page.wait_for_timeout(300)
+        page.wait_for_function("() => document.getElementById('app').dataset.ready === '#/essays/u13-l2-i2-seed/revise'", timeout=10000)
+        assert page.input_value("#ie-ta") == ESSAY1 and page.locator(".ie-model").count() == 1 and page.locator(".ie-tip").count() == 0
+        dr = page.evaluate("() => JSON.parse(localStorage.getItem('ielts:draft:u13-l2-i2-seed'))")
+        assert dr["blank"] is True and dr["text"].startswith("Cities replace") and "alt" not in dr, dr
+        # (the blank draft didn't hide the model above, where the learner chose «Write version 2»); from memory, it resumes
+        _open(page, "#/essays/u13-l2-i2-seed/revise?blank=1")
+        assert page.input_value("#ie-ta").startswith("Cities replace") and page.locator(".ie-model").count() == 0
+        # the check keys: a version 1 that repeats «position» and states its position is filed under Repetition only
+        v1 = dict(e1, id="pos-v1", text=_POS1, words=len(re.findall(r"[A-Za-z0-9’'-]+", _POS1)), band=6, at=1773000000000)
+        pos2 = (_POS1.replace("this position", "this view").replace("first position", "first argument").replace("second position", "second argument")
+                .replace("opposite position", "opposing case").replace("my position is", "my view is"))
+        v2 = dict(v1, id="pos-v2", parent="pos-v1", v=2, text=pos2, band=None, self=None, at=1773000100000)
+        _seed(page, {"ielts:data": {"v": 1, "lessons": {}, "tests": [], "essays": [v1, v2], "speaking": []}})
+        _open(page, "#/essays", reload=True)
+        page.evaluate("""() => { IE.assess = {
+          selfHtml: () => '<div class="stub-self"><button type="button" id="stub-b">Band 7</button></div>',
+          wireSelf: (el, kind, get, set) => { el.querySelector('#stub-b').onclick = () => set({0: 7, 1: 7, 2: 7, 3: 7}, 7); } }; }""")
+        _open(page, "#/essays/pos-v2/compare")
+        rows = dict((r[0], r[1:]) for r in page.evaluate("() => [...document.querySelectorAll('.ie-ctab tbody tr')].map(r => [...r.children].map(c => c.textContent.trim()))"))
+        assert rows["Clear position"] == ["Fine", "Fine"] and rows["Repetition"] == ["To fix", "Fine"], rows
+        c = re.sub(r"\s+", " ", page.inner_text(".ie-changes"))
+        assert "Flags fixed: 1 (Repetition)" in c and "New flags" not in c and "Clear position" not in c.split("Check")[0], c
+        # marking yourself on the compare page sets a new time, so a restore over an older copy takes the marked one
+        b1 = page.evaluate("() => IE.prog.backup()")
+        at0 = page.evaluate("() => IE.prog.essay('pos-v2').at")
+        page.click("#stub-b")
+        r = page.evaluate("""b1 => { const e = IE.prog.essay('pos-v2'), b2 = IE.prog.backup();
+          localStorage.setItem('ielts:data', JSON.stringify(b1.keys['ielts:data']));
+          const n = IE.prog.restore(b2); return {at: e.at, band: e.band, n, after: IE.prog.essay('pos-v2')}; }""", b1)
+        assert r["band"] == 7 and r["at"] > at0 and r["n"]["essays"] == 1 and r["after"]["band"] == 7, r
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
