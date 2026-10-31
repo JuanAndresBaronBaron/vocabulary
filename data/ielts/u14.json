@@ -1,5 +1,6 @@
 {
  "format": 1,
+ "rev": 2,
  "id": "u14",
  "n": 14,
  "block": "writing",
@@ -18,7 +19,7 @@
      "title": "Questions with two jobs",
      "body": [
       "Many Task 2 questions ask two separate things: *What are the causes? What can be done?*, *What problems does this cause? How can they be solved?*, or a direct pair such as *Why is this happening? Is it a positive or negative development?*",
-      "Both parts carry equal weight. An essay that analyses causes brilliantly but gives one vague sentence on solutions cannot reach band 7 for Task Achievement, however good the language. Plan one body paragraph for each part and make them comparable in length and depth."
+      "Both parts carry equal weight. An essay that analyses causes brilliantly but gives one vague sentence on solutions cannot reach band 7 for Task Response, however good the language. Plan one body paragraph for each part and make them comparable in length and depth."
      ],
      "tip": "Copy the two questions into your plan as headings. When you finish each paragraph, check it against its heading."
     },
@@ -86,12 +87,12 @@
      "q": "Question: 'Many coastal towns that once depended on fishing or seaside holidays are now in decline. What problems does this cause, and what measures could be taken to revive them?' Which plan fulfils the task?",
      "options": [
       "Body 1: why fishing declined. Body 2: why seaside holidays declined.",
-      "Body 1: problems caused by the decline (jobs, young people leaving, empty buildings). Body 2: measures linked to those problems.",
       "Body 1: problems. Conclusion: the government should help.",
-      "Body 1: the history of seaside holidays. Body 2: my favourite coastal town."
+      "Body 1: the history of seaside holidays. Body 2: my favourite coastal town.",
+      "Body 1: problems caused by the decline (jobs, young people leaving, empty buildings). Body 2: measures linked to those problems."
      ],
-     "answer": 1,
-     "why": "B answers both questions in balanced paragraphs and links measures to problems. A answers a causes question that was not asked, C gives solutions only a token sentence, and D is off-topic."
+     "answer": 3,
+     "why": "D answers both questions in balanced paragraphs and links measures to problems. A answers a causes question that was not asked, B gives solutions only a token sentence, and C is off-topic."
     },
     {
      "id": "u14-l1-i6",
@@ -115,7 +116,7 @@
        "answer": 1
       },
       {
-       "label": "Improving rail links to the nearest city would allow residents to commute to jobs without leaving the town.",
+       "label": "The regional transport authority could improve rail links to the nearest city, allowing residents to commute to jobs without leaving the town.",
        "answer": 0
       },
       {
@@ -141,24 +142,23 @@
      "type": "gap",
      "text": "The loss of jobs has had a knock-on ___ on local shops, which depend on residents' spending.",
      "answer": [
-      "effect",
-      "impact"
+      "effect"
      ],
      "limit": "ONE WORD",
-     "why": "*A knock-on effect* is a natural collocation for an indirect consequence."
+     "why": "*A knock-on effect* is the fixed phrase for an indirect consequence. *Knock-on impact* is occasionally seen, but it is far less idiomatic."
     },
     {
      "id": "u14-l1-i9",
      "type": "pick",
      "q": "Which sentence hedges appropriately?",
      "options": [
-      "Remote working will definitely save every coastal town.",
       "Remote working may well help some coastal towns, as it allows people to earn city salaries while living by the sea.",
+      "Remote working will definitely save every coastal town.",
       "Remote working is maybe possibly a solution.",
       "Remote working is the only solution."
      ],
-     "answer": 1,
-     "why": "*May well help some* is cautious but still committed, and the reason makes it convincing. A and D overclaim, and C stacks hedges until it says nothing."
+     "answer": 0,
+     "why": "*May well help some* is cautious but still committed, and the reason makes it convincing. B and D overclaim, and C stacks hedges until it says nothing."
     },
     {
      "id": "u14-l1-i10",
@@ -213,7 +213,7 @@
      "id": "u14-l2-i2",
      "type": "writing",
      "task": 2,
-     "prompt": "Many coastal towns that once depended on fishing or seaside holidays are now in decline.\n\nWhat problems does this cause, and what measures could be taken to revive these towns?\n\nWrite at least 250 words.",
+     "prompt": "Many coastal towns that once depended on fishing or seaside holidays are now in decline.\n\nWhat problems does this cause, and what measures could be taken to revive these towns?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
      "minutes": 40,
      "minWords": 250,
      "plan": [
@@ -237,7 +237,25 @@
        "Lexis is precise and well collocated: *fall into disrepair*, *a sense of neglect*, *year-round activity*, *affordable workspaces*.",
        "Sequencers (*First*, *Second*, *Finally*) are used only where a genuine list exists, which is natural rather than mechanical."
       ]
-     }
+     },
+     "exemplars": [
+      {
+       "band": 7,
+       "text": [
+        "In recent decades, a lot of coastal towns which relied on fishing or tourism have started to decline. This essay will discuss the main problems that this causes and suggest some measures that could help these towns to recover.",
+        "The first problem is the unemployment. When the fishing industry closes or tourists choose to travel abroad, many local people lose their jobs, and the jobs which remain are often only available in summer. As a result, families have less money to spend, so other businesses such as shops and restaurants also suffer. Another problem is that young people tend to move to big cities to find better opportunities. This means that the population becomes older, and the town loses the energy and skills it needs. In addition, many buildings on the seafront are left empty and in bad condition, which makes the town less attractive for visitors and investors.",
+        "However, there are several ways to revive these towns. Firstly, the government should invest in new industries that do not depend on the season. For instance, some ports on the east coast of England have become bases for offshore wind farms, which provide jobs in maintenance all year round. Secondly, improving the internet connection and transport links would allow people to work from home for companies in other cities. Finally, local councils could transform old hotels and warehouses into cheap housing or cultural centres, so that the town centre becomes lively again.",
+        "In conclusion, the decline of coastal towns leads to unemployment, an ageing population and empty buildings. I believe that new industries, better connections and the reuse of old buildings are the most effective solutions, and the government and local councils should work together to make them possible."
+       ],
+       "notes": [
+        "TR 7: both questions are answered and the main points are relevant, but the problems are listed one after another rather than explored, and the measures are not tied back to them as clearly as in the model (which problem does a cultural centre solve?).",
+        "CC 7: clear paragraphing and a logical order, with some effective cause-and-effect links (*As a result*, *This means that*), but the formula *This essay will discuss* and the run of *Firstly*, *Secondly*, *Finally* are mechanical.",
+        "LR 7: a good range on the topic (*revive*, *ageing population*, *maintenance*, *transport links*), with a few less precise choices: *cheap housing* (*affordable housing*) and *attractive for* (*attractive to*).",
+        "GRA 7: relative clauses, conditionals and passives are used accurately and most sentences are free of error; one article slip (*the unemployment*: *unemployment*, since it is meant in general).",
+        "To reach band 8: answer the question in the introduction instead of announcing the essay, and follow each problem through to a consequence before moving on to the next."
+       ]
+      }
+     ]
     }
    ]
   },
@@ -267,7 +285,7 @@
      "id": "u14-l3-i2",
      "type": "writing",
      "task": 2,
-     "prompt": "Increasingly, people are choosing to rent everyday items such as tools, clothing and furniture rather than buy them.\n\nWhy is this happening? Is it a positive or negative development?\n\nWrite at least 250 words.",
+     "prompt": "Increasingly, people are choosing to rent everyday items such as tools, clothing and furniture rather than buy them.\n\nWhy is this happening? Is it a positive or negative development?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
      "minutes": 40,
      "minWords": 250,
      "plan": [

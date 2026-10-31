@@ -1,5 +1,6 @@
 {
  "format": 1,
+ "rev": 2,
  "id": "u18",
  "n": 18,
  "block": "speaking",
@@ -137,10 +138,11 @@
      "type": "gap",
      "text": "Q: 'Has tourism changed in your country?' A: 'Enormously. People ___ to go to the same beach every summer, whereas now they want something different every year.'",
      "answer": [
-      "used"
+      "used",
+      "tended"
      ],
      "limit": "ONE WORD",
-     "why": "*Used to* contrasts a past habit with the present."
+     "why": "*Used to* (or *tended to*) contrasts a past habit with the present."
     },
     {
      "id": "u18-l1-i8",
@@ -157,10 +159,11 @@
      "type": "gap",
      "text": "I ___ whether people will ever travel as much as they did before; the costs are rising too quickly.",
      "answer": [
-      "doubt"
+      "doubt",
+      "question"
      ],
      "limit": "ONE WORD",
-     "why": "*I doubt whether* is a natural way to express low probability."
+     "why": "*I doubt whether* is a natural way to express low probability; *I question whether* is a slightly more sceptical alternative."
     },
     {
      "id": "u18-l1-i10",
@@ -180,12 +183,12 @@
      "type": "pick",
      "q": "The examiner asks a question you have never thought about. What should you do?",
      "options": [
-      "Say 'I don't know' and wait for the next question.",
       "Acknowledge it naturally, then reason your way to a position aloud.",
+      "Say 'I don't know' and wait for the next question.",
       "Switch to a topic you have prepared.",
       "Repeat the question word for word slowly."
      ],
-     "answer": 1,
+     "answer": 0,
      "why": "Thinking aloud with natural markers (*I haven't really considered that, but I suppose...*) shows exactly the flexible, extended discourse examiners want."
     }
    ]
@@ -212,18 +215,19 @@
      "talk": 60,
      "model": {
       "text": [
-       "I think they still have a great deal to teach, but perhaps not in the areas we traditionally assumed. Technical knowledge dates very quickly, so my grandfather couldn't teach me much about software. What older people can offer is perspective: they've lived through crises and changes that we've only read about, and that often makes them far calmer about setbacks.",
-       "Hmm, I'd say less than it used to. In the past, families tended to live closer together, and children would spend a lot of time with grandparents almost by default. Now people move for work, so those everyday conversations happen over a video call once a week, if at all, and a lot of that informal learning gets lost.",
-       "Definitely, and I think it's underrated. Both my parents learnt to use their phones properly from my younger brother, not from any course. And it can be good for the relationship, because it reverses the usual roles for a moment, which I suspect both sides quite enjoy.",
-       "It wouldn't surprise me if they became more common. Some cities already have schemes where students live rent-free with older people in exchange for company and a bit of help around the house. That kind of arrangement seems to solve two problems at once: loneliness and housing costs.",
-       "That's a difficult one. I suppose schools could do more, but I'm wary of turning everything into a formal programme. The best intergenerational learning tends to happen when people are doing something together, cooking or fixing something, rather than when someone sets out to teach."
+       "I think they still have a great deal to teach, but perhaps not in the areas we traditionally assumed. Technical knowledge dates very quickly, so my grandfather couldn't teach me much about software. What older people can offer is perspective: they've lived through crises and changes that we've only read about, and that often makes them far calmer about setbacks. There's also something they can teach about relationships: how to keep a friendship going for fifty years, or how to put things right after an argument. That kind of wisdom doesn't come up in a search engine, and I think young people underestimate how much they could learn just by asking.",
+       "Hmm, I'd say less than they used to. In the past, families tended to live closer together, and children would spend a lot of time with grandparents almost by default. Now people move for work, so those everyday conversations happen over a video call once a week, if at all, and a lot of that informal learning gets lost. That said, it varies a lot. In smaller towns, where families haven't spread out so much, you still see grandparents doing the school run every day, and those children probably spend more time with older relatives than with anyone apart from their parents.",
+       "Definitely, and I think it's underrated. Both my parents learnt to use their phones properly from my younger brother, not from any course. And it can be good for the relationship, because it reverses the usual roles for a moment, which I suspect both sides quite enjoy. Beyond technology, younger people can also make older relatives rethink some of their attitudes, about mental health, for example, or about what counts as a proper job. It doesn't always go smoothly, but when it works, both generations come away with a slightly broader view of the world.",
+       "It wouldn't surprise me if they became more common. Some cities already have schemes where students live rent-free with older people in exchange for company and a bit of help around the house. That kind of arrangement seems to solve two problems at once: loneliness and housing costs. Of course, it depends on finding the right people. Not every student wants to spend their evenings chatting, and not every older person wants a stranger in the house. But with careful matching, and perhaps some support from the council, I can see it spreading, especially in cities where rents keep rising.",
+       "That's a difficult one. I suppose schools could do more, but I'm wary of turning everything into a formal programme. The best intergenerational learning tends to happen when people are doing something together, cooking or fixing something, rather than when someone sets out to teach. So rather than adding lessons, I'd create more shared spaces: community gardens, repair cafés, choirs where teenagers and pensioners actually mix. Once people are working side by side, the conversation tends to take care of itself, and the learning happens almost without anyone noticing, which is probably why it sticks."
       ],
       "notes": [
        "Each answer opens with a clear position and develops it with a reason and a concrete example.",
        "Time comparisons are handled with precise grammar (*would spend*, *used to*, *Now people move*).",
        "Hedging and speculation are natural and varied (*I'd say*, *I suspect*, *It wouldn't surprise me if*, *I'm wary of*).",
        "Time-buying phrases (*Hmm*, *That's a difficult one. I suppose...*) sound like genuine thought and lead straight into an answer.",
-       "Abstract vocabulary is used precisely (*perspective*, *intergenerational learning*, *reverses the usual roles*)."
+       "Abstract vocabulary is used precisely (*perspective*, *intergenerational learning*, *reverses the usual roles*).",
+       "Each answer runs to roughly 90-120 words, about 40-45 seconds at a natural pace: long enough to develop a position with a reason, an example and a qualification, short enough to stay a conversation."
       ]
      },
      "phrases": [
@@ -250,18 +254,19 @@
      "talk": 60,
      "model": {
       "text": [
-       "I think social media has a lot to do with it. People see the same five photographs of a place before they go, so they arrive wanting to recreate them, and they end up queueing for a picture rather than actually looking around. Less famous places don't come with that baggage, so you experience them more on their own terms.",
-       "Mostly, but not always. It brings money and jobs, obviously, but in some cities it's pushed rents up so far that locals can no longer afford to live in the centre. I'd say it's positive as long as the numbers are managed, and that's the hard part.",
-       "I suspect we'll see a shift towards slower, more local travel, partly because of cost and partly because people are more aware of the environmental impact of flying. Having said that, people have been predicting the end of cheap flights for years, and it hasn't happened yet, so I wouldn't bet on it.",
-       "In my parents' day, a holiday was a fixed event: the same place, the same two weeks every year, booked months in advance through an agent. Now it's much more spontaneous. People book a weekend away on their phone on a Thursday night. There's more choice, but I'm not sure people relax as much.",
-       "I think it's partly about curiosity and partly about status, if I'm honest. Saying you've been somewhere unusual has become a kind of social currency, whereas a generation ago just going abroad was impressive in itself."
+       "I think social media has a lot to do with it. People see the same five photographs of a place before they go, so they arrive wanting to recreate them, and they end up queueing for a picture rather than actually looking around. Less famous places don't come with that baggage, so you experience them more on their own terms. There's also the problem of expectations. If you've been told all your life that a building is one of the wonders of the world, it would be hard for anything to live up to that, especially when you're seeing it over the heads of three hundred other people.",
+       "Mostly, but not always. It brings money and jobs, obviously, but in some cities it's pushed rents up so far that locals can no longer afford to live in the centre. I'd say it's positive as long as the numbers are managed, and that's the hard part. There's an environmental cost too. Popular beaches and mountain paths can be badly damaged by sheer numbers of feet, and Venice has started charging day-trippers a fee on its busiest days. So I'd say the real question isn't whether tourism is good or bad, but how much a place can absorb.",
+       "I suspect we'll see a shift towards slower, more local travel, partly because of cost and partly because people are more aware of the environmental impact of flying. Having said that, people have been predicting the end of cheap flights for years, and it hasn't happened yet, so I wouldn't bet on it. One thing I'm fairly confident about is booking. I imagine more popular sites will use timed tickets, the way some museums already do, simply to control the crowds, and that could actually make visits more pleasant, even if it takes away some of the spontaneity.",
+       "In my parents' day, a holiday was a fixed event: the same place, the same two weeks every year, booked months in advance through an agent. Now it's much more spontaneous. People book a weekend away on their phone on a Thursday night. There's more choice, but I'm not sure people relax as much. My parents also say that being away meant being genuinely out of contact: no emails, no messages, just a postcard home. Now most people check their phones on the beach, so although we travel more often, I suspect we switch off less than they did.",
+       "I think it's partly about curiosity and partly about status, if I'm honest. Saying you've been somewhere unusual has become a kind of social currency, whereas a generation ago just going abroad was impressive in itself. There's a practical side as well. Unusual places tend to be cheaper and less crowded, and you're more likely to meet local people than other tourists. Personally, some of my best trips have been to towns I'd never even heard of before I arrived, precisely because I went there with no expectations at all."
       ],
       "notes": [
        "The answers combine personal perspective with general analysis, never slipping back into Part 2 storytelling.",
        "Balanced evaluation (*Mostly, but not always*; *as long as*) shows the ability to discuss complexity.",
        "Future speculation is hedged and then challenged (*Having said that... I wouldn't bet on it*), a sophisticated discourse move.",
        "Idiomatic language suits the spoken register (*come with that baggage*, *on their own terms*, *social currency*).",
-       "Past-present comparison is clear and grammatically accurate."
+       "Past-present comparison is clear and grammatically accurate.",
+       "Each answer runs to roughly 90-120 words, about 40-45 seconds at a natural pace: long enough to develop a position with a reason, an example and a qualification, short enough to stay a conversation."
       ]
      },
      "phrases": [
@@ -297,18 +302,19 @@
      "talk": 60,
      "model": {
       "text": [
-       "It depends on the skill. For something practical like coding or cooking, the internet probably has everything you need. But for anything where small errors become bad habits, a musical instrument, say, or a sport, I think a teacher is worth a great deal, because they can see things you can't see yourself.",
-       "Motivation, mainly. When you're paying a teacher and someone's expecting you on Tuesday, you turn up. When it's just you and a video, it's very easy to tell yourself you'll do it tomorrow, and tomorrow never comes.",
-       "Hugely. My parents would have needed a library, a class or someone who knew how to do it. Now you can learn almost anything for free, at any hour. The downside is the sheer quantity: knowing which source to trust has become a skill in itself.",
-       "Partly, yes. I think schools are still quite focused on content, whereas the most useful thing they could teach is how to learn: how to practise, how to deal with frustration, how to check your own progress. Those habits outlast any particular subject.",
-       "I'd like to think so. Employers are already starting to care more about what you can do than where you learnt it, and that would probably accelerate if there were reliable ways of testing skills directly. Whether traditional qualifications disappear, though, I doubt it. They're too embedded."
+       "It depends on the skill. For something practical like coding or cooking, the internet probably has everything you need. But for anything where small errors become bad habits, a musical instrument, say, or a sport, I think a teacher is worth a great deal, because they can see things you can't see yourself. For a lot of people, the best answer is probably a mixture: a few lessons at the start to get the basics right, then practising on your own with the occasional check-up. That way you avoid the bad habits without paying for years of classes.",
+       "Motivation, mainly. When you're paying a teacher and someone's expecting you on Tuesday, you turn up. When it's just you and a video, it's very easy to tell yourself you'll do it tomorrow, and tomorrow never comes. The other difficulty is knowing whether you're actually improving. Without someone to tell you, it's easy either to stay at the same level for months without realising it, or to give up because you think you're getting nowhere. I find that small, measurable targets help, like being able to play one particular piece by the end of the month.",
+       "Hugely. My parents would have needed a library, a class or someone who knew how to do it. Now you can learn almost anything for free, at any hour. The downside is the sheer quantity: knowing which source to trust has become a skill in itself. It's also changed people's sense of how long learning takes. People expect to pick up a skill from a ten-minute video, and for some things that works, but deeper skills still take months of practice. I think some people get discouraged when they discover that the internet can't shorten that part.",
+       "Partly, yes. I think schools are still quite focused on content, whereas the most useful thing they could teach is how to learn: how to practise, how to deal with frustration, how to check your own progress. Those habits outlast any particular subject. At the moment, many students only find out how to study effectively at university, or never at all. If they learnt early on, at secondary school, say, how memory works and why cramming the night before an exam is so ineffective, I think they'd do better in every subject, not just one.",
+       "I'd like to think so. Employers are already starting to care more about what you can do than where you learnt it, and that would probably accelerate if there were reliable ways of testing skills directly. Whether traditional qualifications disappear, though, I doubt it. They're too embedded. In some fields, like medicine or law, I'd actually be worried if qualifications mattered less, because the public needs a guarantee of competence. But in creative or technical work, I can easily imagine a portfolio of what you've actually made becoming at least as important as a certificate."
       ],
       "notes": [
        "Answers are qualified with *It depends* followed by a precise distinction, which is far stronger than a vague 'it depends'.",
        "Reasoning is explicit and causal (*because they can see things you can't*, *When... When...*).",
        "A second conditional and a past modal (*would have needed*) appear naturally in comparison and speculation.",
        "Abstract nouns are well controlled (*motivation*, *quantity*, *habits outlast any particular subject*).",
-       "The final answer combines optimism with doubt, showing nuanced speculation."
+       "The final answer combines optimism with doubt, showing nuanced speculation.",
+       "Each answer runs to roughly 90-120 words, about 40-45 seconds at a natural pace: long enough to develop a position with a reason, an example and a qualification, short enough to stay a conversation."
       ]
      },
      "phrases": [
@@ -336,18 +342,19 @@
      "talk": 60,
      "model": {
       "text": [
-       "I'd say we're less used to waiting rather than less patient by nature. When films, food and information all arrive instantly, any delay feels unusual, so it's more irritating. But put people in a situation where waiting is normal, like fishing or gardening, and many of them are perfectly patient.",
-       "Mostly through example, I think. Children watch how adults react to queues and delays. If a parent loses their temper every time a website is slow, the child learns that waiting is a kind of injustice. I suppose activities with a slow payoff, learning an instrument or growing plants, can help as well.",
-       "In some ways, yes. Technology has removed a lot of pointless waiting, like queueing at the bank, and that's a genuine improvement. The risk is that we lose the ability to tolerate the waiting that can't be removed, like recovering from an illness or building a career.",
-       "Probably jobs where results take years to appear: scientific research, teaching, medicine to some extent. A teacher may never see what becomes of most of their students, which must require a particular kind of patience.",
-       "I suspect so, though not necessarily in a bad way. Services will keep getting faster, so expectations will keep rising. But it wouldn't surprise me if there was a counter-movement too; you can already see it in the popularity of things like slow cooking and long walking holidays."
+       "I'd say we're less used to waiting rather than less patient by nature. When films, food and information all arrive instantly, any delay feels unusual, so it's more irritating. But put people in a situation where waiting is normal, like fishing or gardening, and many of them are perfectly patient. I'd also say patience depends a lot on whether we can see a reason for the delay. If a train is late and nobody explains why, people get angry very quickly, but if the driver announces a signal failure, most passengers just sigh and wait.",
+       "Mostly through example, I think. Children watch how adults react to queues and delays. If a parent loses their temper every time a website is slow, the child learns that waiting is a kind of injustice. I suppose activities with a slow payoff, learning an instrument or growing plants, can help as well. Another thing that helps, I think, is not filling every spare moment with a screen. If a child is handed a tablet the moment they're bored in a restaurant, they never get the chance to find out that boredom passes, or that they can entertain themselves.",
+       "Both, in a way. Technology has removed a lot of pointless waiting, like queueing at the bank, and that's a genuine improvement. The risk is that we lose the ability to tolerate the waiting that can't be removed, like recovering from an illness or building a career. And on a smaller scale, phones mean we never just sit with a delay any more. Ten minutes at a bus stop used to be a chance to think; now we fill it automatically, which probably makes the waiting feel easier but leaves us less practised at it.",
+       "Probably jobs where results take years to appear: scientific research, teaching, medicine to some extent. A teacher may never see what becomes of most of their students, which must require a particular kind of patience. Caring jobs come to mind as well, like nursing or looking after people with dementia, where you might have to answer the same question many times a day and still stay calm and kind. To be honest, I think that kind of patience is seriously undervalued, considering how hard it must be to keep it up day after day, often for quite low pay.",
+       "I suspect so, though not necessarily in a bad way. Services will keep getting faster, so expectations will keep rising. But it wouldn't surprise me if there was a counter-movement too; you can already see it in the popularity of things like slow cooking and long walking holidays. And I think younger people in particular are starting to notice that constant speed has a cost. Some of my friends deliberately leave their phones at home at weekends, which would have seemed odd ten years ago, so I'm not convinced the trend only goes one way."
       ],
       "notes": [
        "The first answer reframes the question with a precise distinction (*less used to waiting rather than less patient by nature*), a hallmark of band 9 discussion.",
        "Examples are brief and illustrative rather than full stories, which keeps the focus on general ideas.",
-       "Concession and contrast are handled smoothly (*In some ways, yes... The risk is that...*).",
+       "Concession and contrast are handled smoothly (*Both, in a way... The risk is that...*).",
        "Speculation is careful and two-sided, ending with a supported prediction (*you can already see it in...*).",
-       "Natural, precise collocations: *lose their temper*, *a slow payoff*, *tolerate the waiting*, *a counter-movement*."
+       "Natural, precise collocations: *lose their temper*, *a slow payoff*, *tolerate the waiting*, *a counter-movement*.",
+       "Each answer runs to roughly 90-120 words, about 40-45 seconds at a natural pace: long enough to develop a position with a reason, an example and a qualification, short enough to stay a conversation."
       ]
      },
      "phrases": [

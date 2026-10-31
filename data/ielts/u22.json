@@ -1,5 +1,6 @@
 {
  "format": 1,
+ "rev": 2,
  "id": "u22",
  "n": 22,
  "block": "language",
@@ -99,12 +100,12 @@
      "q": "Which sentence is most appropriate in a Task 2 essay?",
      "options": [
       "Kids these days spend loads of time on their phones.",
-      "Children now spend a considerable amount of time on their phones.",
       "Kiddos are always glued to their screens, aren't they?",
-      "You know how children are always on their phones."
+      "You know how children are always on their phones.",
+      "Children now spend a considerable amount of time on their phones."
      ],
-     "answer": 1,
-     "why": "B is formal-neutral and precise. A and C use informal vocabulary, C has a rhetorical tag question, and D addresses the reader as *you*."
+     "answer": 3,
+     "why": "D is formal-neutral and precise. A and B use informal vocabulary, B has a rhetorical tag question, and C addresses the reader as *you*."
     },
     {
      "id": "u22-l1-i6",
@@ -187,7 +188,7 @@
      ],
      "list": [
       "Natural in Speaking: *I'm in two minds about it*, *it's not really my thing*, *I've got a lot on at the moment*, *it was a bit of an eye-opener*, *it costs an arm and a leg* (used sparingly), *off the top of my head*",
-      "Overused and dated: *raining cats and dogs*, *a piece of cake*, *once in a blue moon* (in every answer), *as fit as a fiddle*, *over the moon*"
+      "Clichéd or overused by candidates: *a piece of cake*, *once in a blue moon* (in every answer), *over the moon*, and the dated *raining cats and dogs* and *as fit as a fiddle*"
      ],
      "tip": "Use an idiom only if you would genuinely say it to a friend in English, and only if it fits the meaning exactly."
     },
@@ -264,13 +265,13 @@
      "type": "pick",
      "q": "Which Part 1 answer uses idiomatic language most naturally? Q: 'Do you enjoy cooking?'",
      "options": [
-      "Cooking is a piece of cake and I am over the moon when I do it.",
       "Not really, to be honest. It's not my thing. I can throw something together, but I'd rather someone else did it.",
+      "Cooking is a piece of cake and I am over the moon when I do it.",
       "Once in a blue moon I cook, and it costs an arm and a leg, and it's raining cats and dogs.",
       "I enjoy cooking very much because it is enjoyable."
      ],
-     "answer": 1,
-     "why": "B uses natural, current expressions (*not my thing*, *throw something together*) that fit the meaning exactly. A and C pile up textbook idioms; D has no idiomatic language at all."
+     "answer": 0,
+     "why": "A uses natural, current expressions (*not my thing*, *throw something together*) that fit the meaning exactly. B and C pile up textbook idioms; D has no idiomatic language at all."
     },
     {
      "id": "u22-l2-i5",
@@ -322,11 +323,11 @@
      "q": "Which sentence uses an idiom with the wrong meaning?",
      "options": [
       "Learning to drive took a while, but once I got the hang of it, I loved it.",
-      "My exam was a real eye-opener, so I passed it easily.",
       "I've got a lot on at the moment, so I haven't been to the gym.",
-      "Off the top of my head, I'd say about twenty people came."
+      "Off the top of my head, I'd say about twenty people came.",
+      "My exam was a real eye-opener, so I passed it easily."
      ],
-     "answer": 1,
+     "answer": 3,
      "why": "*An eye-opener* means a surprising revelation, not something easy. The other idioms are used accurately."
     }
    ]
@@ -396,7 +397,7 @@
        "answer": 2
       },
       {
-       "label": "It is far easier to ___ (set up) a small business online than it once was.",
+       "label": "Further research is needed to ___ (find out) whether the effect is genuine.",
        "answer": 1
       },
       {
@@ -412,7 +413,7 @@
        "answer": 4
       }
      ],
-     "why": "Each single-word verb is more formal and precise than the phrasal verb in brackets. Note *was postponed* for the passive."
+     "why": "Each single-word verb is more formal and precise than the phrasal verb in brackets: *establish whether* means find out for certain. Note *was postponed* for the passive."
     },
     {
      "id": "u22-l3-i4",

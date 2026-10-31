@@ -458,7 +458,9 @@ compartida no responde).
   de verdad (servidor que corta la conexión): camino, gramática, lección, Memoria sin dibujos rotos y la página «Sin
   conexión» con «Reintentar» en un tema nunca abierto, que se pinta sola al volver la red; el sw da los js con
   `?v=VERSION` del shell, la página y los datos lentos a los 3 s de lo guardado (y luego sin esperar), nunca un fichero
-  de otro `?v=` y lo de LAZY ya usado pasa al shell nuevo; `calmCss` solo con «Reducir movimiento»; un guardado que no
+  de otro `?v=` y lo de LAZY ya usado pasa al shell nuevo, también por su nombre (sin red sale `ielts.css?v=` de la
+  versión nueva); `ielts.html` pide `ielts.css` y los cuatro `js/ielts*.js` con el `?v=` de `index.html`, que es
+  VERSION, y la cabecera de `sw.js` dice que se sube con ella; `calmCss` solo con «Reducir movimiento»; un guardado que no
   cabe sale en Ajustes › Para mayores («Libera espacio», «Descargar copia»); con un Drive de mentira (`page.route`) y
   dos aparatos: una partida de Drive de una versión más nueva nunca se pisa («Hay una versión nueva de la app. Recarga
   para seguir.»), `vocabSave.merge` (estrellas, repaso, días, álbum, récords, cuentos, temporada, sellos) y dos aparatos
@@ -503,3 +505,229 @@ def test_algo():
     finally:
         page.context.close()
 ```
+
+<!-- ---- paquete: content1 (IELTS Prep) ---- -->
+## IELTS Prep: contenido (paquete content1)
+
+`python3 tests/e2e/run.py --only test_ielts` corre `test_ielts.py` y `test_ielts_content1.py` (ambos empiezan por
+`test_ielts`). Los datos se validan con `python3 tests/e2e/ielts_validate.py` (imprime `OK`).
+
+- `test_ielts.py::test_ielts_validator_rules`: las reglas de examen de `ielts_validate.py`. Cada respuesta
+  aceptada de un hueco cabe en su límite (`fits`, `limit_of`, `count_answer`: «ONE WORD AND/OR A NUMBER» admite
+  `14th`, no `the fourteenth`); un set cuyo `instr` dice «Label the» lleva `visual`; en una lección `test` con 4 o
+  más `pick`, ninguna letra tiene más de la mitad de las claves; en una unidad con 3 o más `multi`, ningún par de
+  respuestas tiene más de la mitad. Siembra cada error en una copia de u03/u11 y comprueba que el validador lo ve;
+  también los campos nuevos (`exam`, `pause`, `accent`, `visual2`, `exemplars`, `followups`, `mark`, los marcadores
+  de 0 × 0 sin `shape`, `alt` solo en un `map`) y que los ids de `PENDING` (u23/u24, para content2) existen.
+- `test_ielts_content1.py` lee los JSON directamente (sin navegador), salvo la última prueba:
+  - `keys`: las claves corregidas y las variantes que deben puntuar (`£185`, `15 minutes`, `levelled off`…).
+  - `limits`: ninguna respuesta de u01-u12 pasa de su límite.
+  - `numbers`: un set «Questions a-b» lleva los números que le da el reproductor (`questions()` de
+    `js/ielts-player.js`); los huecos numerados de una tabla (`(10) ________`) y los marcadores de un diagrama son
+    los números de sus preguntas; las letras de un plano son las opciones.
+  - `plan`, `types`, `task1`, `spread`, `choose_two`, `ids`, `schema_doc`: el plano de u04 (y el `alt` del plano y
+    del diagrama, sin respuestas), los tipos de pregunta de u03-u10 (sentence, summary y table completion, short
+    answers, diagram labelling, Choose TWO), la cobertura de Task 1 en u11 (línea, barras, tartas, tabla y una prueba
+    de 20 minutos), el reparto de claves del diagnóstico de u02 y de los pares de Choose TWO, los ids nuevos (y que
+    los quitados no vuelven) y que SCHEMA.md documenta cada campo nuevo. El `alt` del plano sitúa las letras por
+    puntos cardinales, nunca con las palabras del guion (`left`, `right`, `behind`, `far`, `bank`…).
+  - `remap`: `REMAP` (índice viejo → nuevo de cada pregunta cuyas opciones se reordenaron) convierte cada clave
+    vieja (`OLD_KEY`, v38) en la clave actual. La migración única del integrador (`ielts:mig:content1`) aplica ese
+    mapa a las respuestas guardadas en `ielts:run:<lid>`, así que debe seguir al día con los datos. Cuando la
+    migración ya esté en `js/ielts.js`, su `MAP` debe ser `REMAP` y `prog.erase()` debe conservar las claves
+    `ielts:mig:*` («Erase my progress» no recarga la página: sin la bandera, la migración volvería a mover las
+    respuestas guardadas después de borrar, que ya usan el orden nuevo).
+  - `visuals_render`: dibuja con `IE.viz.html` el plano, el diagrama, las tablas y los gráficos nuevos a 360 px,
+    claro y oscuro: las barras tienen su altura (`rect.ie-col`; la clase `.ie-bar` es la barra de progreso del
+    reproductor y las aplastaba a 4 px), el eje llega al paso redondo siguiente (52 % → 60 %), los marcadores
+    salen, nada se sale de lado y ninguna etiqueta del SVG queda cortada. En los mapas (u12, el plano, el diagrama y
+    unas salas como las de u23) cada etiqueta cabe en su caja (se encoge hasta 3,2), un marcador sin `shape` lleva
+    su caja, uno de 0 × 0 es solo el círculo, y el `alt` está en la página, oculto a la vista. En las tartas de u11-l5
+    cada porción lleva su porcentaje, como en el examen: la de menos del 6 % («Other», 2 %) fuera del círculo con una
+    línea guía y el color del texto, sin cortes ni solapes.
+
+<!-- ---- paquete: content2 (IELTS Prep) ---- -->
+## IELTS Prep: los simulacros y las claves de u13-u24 (paquete content2)
+
+`python3 tests/e2e/run.py --only test_ielts` también corre `test_ielts_content2.py`. Todas sus pruebas leen los JSON
+de `data/ielts` directamente (sin navegador), salvo la última:
+
+- `rules`: las tres reglas de examen de content1 en u13-u24 (cada respuesta aceptada de un hueco cabe en su límite;
+  un set «Label the» lleva `visual`; en una lección `test` con 4 o más `pick`, ningún índice tiene más de la mitad de
+  las claves) y la forma de los campos nuevos: `exam`, `pause` (5-60 s, solo en una línea del narrador
+  `{id: 'nar', name: 'Narrator'}`), `accent`, `mark` (un sitio marcado con caja lleva `shape`, para que el plano no
+  dependa de cómo dibuja el viz un marcador sin ella), `followups` y `exemplars`.
+- `listening_exam`: u23-l1 y u24-l1 son exámenes enteros en modo examen: `exam: true`, cuarenta puntos numerados
+  1-40 sin huecos («Questions a-b.» en cada set), el narrador con una pausa a mitad de las partes 1-3 que anuncia el
+  set siguiente (la parte 4 va de un tirón), un acento que no es `gb` en las partes 2-4 y la duración de la tarjeta.
+- `keys`: las claves corregidas y las variantes que deben puntuar (`20 minutes`, `£120`, `£85`, `unihemispheric`…),
+  el plano dibujado de u23-l1-i3 (las letras A-H son las opciones), los ids que salen (`u24-l2-i4-q8`, `-q9`) y los
+  que entran, y que ningún id de ítem se repite en u01-u24.
+- `reading`: cuarenta puntos en 17 + 20 + 23 minutos; cada simulacro tiene short answer o sentence completion y una
+  tabla o un Choose TWO (con dos respuestas).
+- `writing`: la Task 1 del simulacro 1 es inédita (no repite u11-l2-i2), su modelo tiene 170-230 palabras, el
+  overview no lleva cifras y cada cifra está en el gráfico o en sus totales; las notas de los modelos de Task 1 de
+  u23 y u24 citan frases que están en el modelo; las líneas oficiales de la consigna; «Task Achievement» solo aparece
+  junto a «Task 1».
+- `speaking`: 12 preguntas de Part 1, `followups` y charlas de unas 300 palabras en Part 2, respuestas de Part 3 de
+  90-130 palabras (u17, u18, u23, u24).
+- `exemplars`: un ensayo de banda 7 junto al modelo en u13-l2-i2 y u14-l2-i2, con notas TR, CC, LR y GRA.
+- `collocations_and_keys`: las preguntas de colocaciones reescritas ofrecen colocados reales (no palabras
+  inventadas); el `why` pone en negrita la frase correcta y nombra cada distractor; las claves de las `pick` de cuatro
+  opciones de u13-u22 están repartidas (cada letra entre el 15 y el 35 %) y cada `why` que empieza por una letra
+  nombra la de la clave.
+- `visuals_render`: dibuja con `IE.viz.html` el plano, la tabla y el gráfico de barras nuevos en un teléfono, claro
+  y oscuro, sin scroll lateral ni etiquetas cortadas; las capturas van a `VOCAB_CAPTURAS/content2`.
+
+<!-- package: core (IELTS Prep, js/ielts.js) -->
+## IELTS Prep: el núcleo (`test_ielts_core.py`)
+
+- `test_ielts_core.py` (`js/ielts.js` y su sección `package: core` de `ielts.css`; corre con `--only test_ielts`):
+  bandas con sentido (cada test lleva `attempt` y `counted`; no cuentan una repetición antes de 60 días, un test con el
+  reloj parado ni uno sin sonido; Listening y Reading juntan los tests contados más nuevos hasta 40 preguntas, así que
+  un test de una parte tras un simulacro no reemplaza su banda, aunque se junta con él (30/40 y luego 10/10 = 7,5,
+  documentado); `latestInfo()` con las preguntas y el margen; las fichas «from N questions», el global parcial «about 7
+  from 3 skills», «Repeat: not counted» y borrar un resultado en `#/progress`, que vuelve a numerar los intentos de esa
+  lección: borrado el primero por error, el siguiente pasa a ser el 1 y cuenta); datos a salvo (los datos v1 no se
+  reescriben, un `v` mayor queda de solo lectura con el aviso «Update the app to see your progress» y «Erase my
+  progress» no lo borra, un JSON roto se copia a `ielts:data:bak-<ms>`, más de 60 redacciones, el aviso
+  de almacenamiento lleno, `getJSON` se rinde a los 10 s con `page.clock.fast_forward`); las voces con un
+  `speechSynthesis` de mentira (acentos gb/us/au/ie con vuelta a la británica, `alt`, `pitch` como multiplicador de 0,5
+  a 2, «British only», un error del motor para todo y resuelve `false`, velocidad de examen dentro de un test,
+  `IE.ensureVoices()` 0 tras 2 s y luego al instante, y la ayuda «No English voice on this device» con las rutas de
+  Android, Windows e iPhone); el inicio pinta antes de las unidades (`page.route` las retiene 3 s) y las rellena en su
+  sitio sin tocar lo que otro paquete ponga tras `.ie-hero`, con «Continue» y el tiempo que queda («34 min left») y
+  «In progress»; una unidad que no carga (`route.abort()`) nunca se salta: «Couldn't load Unit N.» con «Try again», y
+  nunca «You've done every lesson» si alguna falló; la reescritura en My writing (`#/essays/<id>/revise`, borrador en `ielts:draft:<id>` al escribir,
+  `#/essays/<id>/compare` con lo que cambió, `{parent, v}`, «Rewrite from memory» sin el modelo, la autoevaluación solo
+  con `IE.assess` (de mentira en la prueba), como mucho 3 versiones agrupadas bajo la primera; el botón pulsado decide
+  el modo y el borrador del otro modo se guarda aparte en `alt`; las comprobaciones se reconocen por el principio del
+  mensaje, así que «Repeated: “position” ×5» es Repetition y no Clear position; marcarse en la comparación pone una
+  hora nueva para que la restauración se quede con la copia marcada); la copia «Download my
+  data» (`ielts-prep-AAAA-MM-DD.json`, sin `ielts:on`, `ielts:run:*`, `ielts:mig:*` ni `ielts:sync`) y «Restore from a file» que mezcla sin
+  duplicar; el segmento elegido en azul con texto blanco en oscuro, objetivos de 44 px y «U17» en la barra por debajo
+  de 400 px. Capturas `<360|1280>-<light|dark>-<página>.png` de inicio, ajustes, resultados, My writing, una
+  redacción, la reescritura y la comparación en `capturas/ielts-core` (`VOCAB_CAPTURAS` cambia la carpeta), sin scroll
+  lateral, con la paleta, el contraste de lo nuevo, ortografía británica y nada fuera de `ielts:*`.
+
+<!-- package: player -->
+## IELTS Prep: el reproductor de lecciones (`test_ielts_player.py`)
+
+`test_ielts_player.py` (`js/ielts-player.js`; `--only test_ielts` lo corre junto con `test_ielts.py`, cuyo `_STEP`,
+`_open` e `_IN` reutiliza): cada fallo grave tiene su prueba, que fallaba con el reproductor de `72ee060`.
+- Reloj de los tests: `page.clock.fast_forward` de 8 s (página congelada) y de 25 min (portátil dormido, la página sigue
+  «visible») no quitan tiempo, suman a `run.away`; una página oculta (`visibilityState` y `visibilitychange` de mentira)
+  tampoco; con más de 2 min fuera, `prog.addTest` recibe `paused: true` y los resultados lo dicen. Doble clic en Finish:
+  un solo test en `ielts:data.tests`; `prog.done` envuelto lee la ejecución ya guardada (`finished`, `got`, `total`,
+  `band`, `at`). Con el tiempo ya acabado al volver, la tarjeta «Time is up» (Finish y Review), sin terminar sola; en
+  Review las respuestas quedan bloqueadas (`readonly`, `disabled`). Irse a otra pantalla, cerrar o recargar (de `run.at`
+  o `run.hid` a la carga siguiente, desde 5 s) y dormirse en modo examen (el vigilante de 1 s) también suman a
+  `run.away`: `paused: true` en el test con reloj y en el de examen; una recarga rápida no cuenta.
+- Speaking: Part 2 empezada y Continue, 61 s después ni «Please start speaking now» ni grabadora; Continue mientras se
+  contesta en Part 1 para la pista del micrófono; follow-ups de Part 2 (20 s, se para a 30), Parts 1 y 3 con el objetivo
+  en el reloj y la grabación hasta 45/90 s («The examiner would usually move on here.»), sin micrófono un reloj con Stop
+  hasta el objetivo (2:00, 30 s o 60 s, 20 s en los follow-ups), «Thank you» y «Try again»; `URL.revokeObjectURL` al
+  grabar otra vez.
+- Writing de práctica: sin «I've finished: compare» no hay Continue ni Finish; los resultados traen checks, modelo,
+  autoevaluación y «Revise it later in My writing» (`#/essays/<eid>/revise`). `writingChecks` sin fallos en los 14
+  modelos de banda 9 y un caso por regla (palabras del enunciado y de las etiquetas de `visual`/`visual2`, límite
+  max(6, ceil(palabras/40)), frases de más de 50 palabras, posición en Task 2, Task Response/Task Achievement, texto
+  copiado del enunciado en tramos de 5+ palabras).
+- Sin voz inglesa (`getVoices()` vacío y `window.IE = {ensureVoices: () => Promise.resolve(0)}` en un init script): la
+  transcripción abierta, `run.heard` sin marcar y `noaudio: true` en `prog.addTest`; un test `exam: true` pasa al reloj.
+- Listening: `IE.speak` espiado en un init script (`window.__said`): `voice`, `accent`, `alt`, `pitch` de cada hablante y
+  `rate: 1` en los tests; reanudar una grabación de test tras Next/Previous («Continue the recording», «Played» al final);
+  modo examen con `IE.player.EXAM = {preview: 1, check: 1, review: 2}` y datos servidos con `page.route` (`exam`, `pause`,
+  `accent`): orden de fases (registrado en `sessionStorage.__ph`), chip «Part N is playing», seguir a la parte nueva desde
+  la anterior o la tarjeta de inicio, recargar y seguir desde la línea guardada, fin solo y un único test; el caminante
+  de `test_ielts.py` termina u23-l1 y u24-l1 con `exam: true`. Una ejecución de u23-l1 de antes del modo examen (sin
+  `xmode`) que ya usó el reloj u oyó una parte sigue con el reloj («Played» sale de `heard`). El tiempo de lectura nombra
+  el rango que dice la voz (u24-l1 Part 2: 11 a 20, no el primer set), y fuera del modo examen la región viva
+  `#ie-lprog` lo dice una vez: los segundos van en `#ie-lclk` (`aria-hidden`). Con la grabación parada tras recargar
+  (esperando «Continue the recording»), el tiempo en pantalla suma a `run.away` (`page.clock.run_for(150000)`:
+  `paused: true`); los dos minutos para revisar siguen solos tras recargar y terminan el test. Una posición guardada
+  que los datos ya no tienen (una pausa quitada, un guion más corto) sigue desde el paso siguiente de esa parte, nunca
+  desde Part 1.
+- Lectura en el móvil: Check lleva a la primera explicación (el scroll guardado del panel no la tapa) y, desde Passage,
+  pasa a Questions (u07-l2, 390 px).
+- Lo demás: visuales en los sets y `visual2`, `IE.assess` de mentira (delegación de la autoevaluación), `counted: false`
+  de `prog.addTest`, «Part test», `back`/`backT` de la unidad, la región viva, `autocorrect`/`autocapitalize`, pestaña y
+  scroll de lectura por ítem, almacenamiento lleno. Capturas en `capturas/ielts-player` (360 y 390 claro y oscuro, 1280,
+  con «reducir movimiento»): sin scroll horizontal, objetivos de 44 px, paleta y contraste (`audit.js`, `a11y.js`).
+
+<!-- package: study (IELTS Prep, js/ielts-study.js) -->
+## IELTS Prep: el motor de estudio (`test_ielts_study.py`)
+
+- `test_ielts_study.py` (`js/ielts-study.js` y su sección `package: study` de `ielts.css`; corre con `--only test_ielts`):
+  el mazo de repaso en `ielts:study` (una lección *learn* terminada da una tarjeta por pregunta suelta: fallada a la
+  caja 0 para mañana, acertada a la 1 para dentro de 3 días; una pregunta fallada de un test de Reading o Listening da
+  una tarjeta «envuelta» con su texto o su transcripción `**Nombre:** línea`); `#/lesson/review` en el reproductor de
+  verdad, la nota que sube una caja al acertar y baja dos al fallar (nunca por debajo de 0), el tope por fecha de examen
+  (ningún intervalo mayor que el 20 % de los días que faltan, mínimo 1), la tarjeta segura que se retira (acierto en la
+  caja 4 o más con 3 aciertos) y vuelve si se falla en una lección; como mucho 20 tarjetas por sesión y 5 envueltas,
+  las más antiguas primero; las opciones se barajan solo si ni la pregunta ni la explicación las nombran por su letra
+  («(B)», «B is», «option C»; las letras de párrafo no cuentan) y la respuesta sigue a su opción; recargar devuelve la
+  misma sesión (y la respuesta guardada); una sesión nueva borra `ielts:run:review`; la primera carga crea el mazo con
+  las lecciones terminadas de antes, una sola vez por aparato (`ielts:mig:deck`); el cuaderno de errores (etiquetas *spelling*, *word limit*,
+  *number format*, *singular/plural*, *T↔NG*… con un registro sembrado, «Where my marks go» de 30 días, la tabla de
+  confusión TRUE/FALSE/NOT GIVEN y el acierto por tipo con los tres más flojos enlazados a su unidad); `IE.assess`
+  montado en un `div` (bandas 6-9 por criterio con la lista de descriptores, la estimación con las listas completas, el
+  aviso con una diferencia de 1 o más, cada toque guardado, los objetos viejos `{0..3}` igual que antes, la calibración
+  con ejemplos y su error medio, grupos de radio con nombre, flechas del teclado y botones de 44 px); la tarjeta
+  «Review · N due» antes de `.ie-scores`, el plan de examen (semanas, consejos, la línea de Elder & O'Loughlin) y
+  «Rewrite from memory»; `#/unit/review`; los iconos copiados tal cual de `index.html`; solo se escribe `ielts:study`
+  dentro de `ielts:*` y «Erase» la borra; los envoltorios se instalan una vez. Capturas en `capturas/ielts-study`
+  (`#/review`, el inicio y la autoevaluación a 360 y 1280 px, claro y oscuro, sin scroll lateral ni morado o rosa).
+
+<!-- integration (IELTS Prep: los cinco paquetes juntos) -->
+## IELTS Prep: la integración (`test_ielts_integration.py`)
+
+- `test_ielts_integration.py` (corre con `--only test_ielts`): lo que solo existe con los cinco paquetes juntos.
+  - Las respuestas guardadas: la migración única de `js/ielts.js` (banderas `ielts:mig:content1` y
+    `ielts:mig:content2`) mueve los índices de opción de `ielts:run:<lid>` y de la sesión de repaso
+    (`ielts:study.session.ord` y `ielts:run:review`) al orden nuevo: una respuesta buena sigue buena y una mala,
+    mala; una opción que ya no existe deja la pregunta sin contestar; una ejecución guardada por esta versión
+    (`run.at`) no se toca; una u09-l3 terminada con las preguntas quitadas se borra; q8/q9 de u24-l2 pasan a la
+    Choose TWO q11; el Task 1 sustituido de u23-l3 queda en My writing con su enunciado viejo (su página lo dice y no
+    enseña el gráfico nuevo); u23-l4 sigue en su ítem; las tarjetas de preguntas quitadas salen del mazo; una ejecución
+    terminada apunta en `run.unseen` las preguntas que no llegó a ver (q14-q16 de u09-l2, la frase nueva de u24-l2): el
+    mazo no las califica y la revisión del test dice «Added since you did this lesson: not in your score.». Al recargar
+    no se mueve nada otra vez, y «Erase my progress» conserva las banderas.
+  - Con el almacenamiento lleno (`__full`: `localStorage` rechaza esas claves): una ejecución que no se puede guardar
+    se queda como estaba, las banderas pasan a `0` y la carga siguiente la mueve, una sola vez (cada ejecución movida
+    lleva `mig: 2` en la misma escritura; u01-l3-i8 se movería de vuelta si se moviera dos veces); la sesión de repaso
+    que no se puede guardar empieza de nuevo (sin `ielts:run:review`) y el reintento no la toca; el Task 1 de u23-l3
+    guardado en My writing antes de que fallara su ejecución no se guarda dos veces, y si My writing no cabe, la
+    ejecución entera espera.
+  - El mazo con las lecciones terminadas antes de esta versión (ejecuciones sin `fin`): una vez por aparato
+    (`ielts:mig:deck`, que no viaja ni va en las copias), también si `ielts:study` ya trae tarjetas de otro aparato
+    (la mezcla de Drive); una carga que tiene que esperar (`IE.migPending`) apunta la lección terminada en ella y la
+    siguiente añade las de antes sin repetirla, también una vieja que el reproductor guardó con hora mientras tanto; y
+    una ejecución que no se pudo mover, abierta en esa carga con sitio otra vez, se mueve antes de que el reproductor
+    la guarde (`IE.migRun`).
+  - Unidades viejas guardadas (`rev`): una copia de u01.json de la versión anterior (sin `rev`, con las opciones de
+    antes) en `vocab-media`, con la red lenta (el service worker da lo guardado a los 3 s): `data.unit()` la vuelve a
+    pedir a la red, la guarda, y el mazo hecho con una u01-l3 vieja terminada da bien su respuesta buena; sin red
+    después, la copia guardada es la nueva. Sin red y solo con la copia vieja, la unidad dice «This unit was updated:
+    open it once with a connection.» y el mazo espera a una carga con red. Esta prueba no usa `page.route`: con la
+    intercepción de Playwright, Chromium pasa al service worker las peticiones `cache: "no-store"` como normales.
+    `IE.warmUnits()` también cambia una copia vieja guardada, y una versión nueva de la app que se instala con red
+    (sw.js con VERSION + 1) también: sin red después, la unidad abre y el mazo se monta.
+  - La comparación de versiones: «N words copied from the question» es su propia comprobación («Copied from the
+    question»), no el texto del mensaje.
+  - Sin conexión: con el service worker al mando (entrando por la app, como un adulto), IELTS Prep guarda en segundo
+    plano todas las unidades en `vocab-media`; sin red (servidor caído y contexto offline) se abren unidades y una
+    lección nunca vistas, sin errores en la consola.
+  - Google Drive (`js/ielts-boot.js` en `index.html`, con `TC.FakeDrive`): su propio archivo
+    `vocabulary-ieltsprep.json` en appDataFolder con solo `ielts:data`, `ielts:study` (sin la sesión de repaso ni
+    `mig`) e `ielts:ui` (sin `attempt` ni `counted` en los tests); dos aparatos acaban con la misma mezcla y el
+    segundo repaso no sube nada; gana el registro más nuevo; un resultado borrado (`ielts:data.gone`) no vuelve; un
+    «Erase» de antes de enlazar no viaja; «Erase my progress» (Ajustes dice cuándo se guardó la copia) se sube al
+    volver a la app y en el otro aparato se va lo de antes y se queda lo de después; una copia de una versión más
+    nueva o ajena nunca se mezcla ni se pisa; un estado vacío nunca se sube sobre uno lleno; con IELTS Prep apagado o
+    sin Google no se hace nada; el archivo del niño nunca lleva `ielts:`. Tras un «Erase» de otro aparato se van
+    también las `ielts:run:*` e `ielts:draft:*` de antes (o sin hora; una terminada sin hora, de un reproductor viejo,
+    lleva la de su resultado en ese aparato, y una a medias con un texto escrito se queda), y el mazo de ese aparato
+    solo trae lo de después; una mezcla sin borrado no quita ninguna. Y `vocabIelts.sync.merge`, pura: empates para este
+    aparato, tests por lid+at, lápidas, la hora del borrado (también cuando Drive ya no tiene `ielts:study`) y la fecha
+    del examen por su `examAt` (una fecha quitada o cambiada no vuelve aunque el otro aparato repasara después).

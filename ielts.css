@@ -224,7 +224,6 @@ a.ie-row:active{background:var(--fill2)}
 .ie-ln{fill:none;stroke:var(--c);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
 .ie-s1 .ie-ln{stroke-dasharray:9 5}.ie-s3 .ie-ln{stroke-dasharray:3 4}
 .ie-pt{fill:var(--c)}
-.ie-bar{fill:var(--c)}
 .ie-slice path,.ie-slice circle{fill:var(--c);stroke:var(--card-2);stroke-width:2}
 .ie-pctl{fill:#fff;font:700 15px var(--f-text)}
 :root[data-theme=dark] .ie-s1 .ie-pctl,:root[data-theme=dark] .ie-s2 .ie-pctl,:root[data-theme=dark] .ie-s4 .ie-pctl,:root[data-theme=dark] .ie-s5 .ie-pctl{fill:#000}
@@ -273,3 +272,240 @@ a.ie-row:active{background:var(--fill2)}
 .ie-toast.is-on{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){.ie-toast,.ie-bar span,.ie-lbar span{transition:none}}
 :root[data-motion=calm] .ie-toast,:root[data-motion=calm] .ie-bar span{transition:none}
+
+/* ---- package: content1 ---- */
+/* map and plan labels: bigger, on a halo so they read over any shape (js/ielts-viz.js sizes the wrapping to match) */
+.ie-mlab{font-size:4.2px;paint-order:stroke;stroke:#fff;stroke-width:.9px;stroke-linejoin:round}
+:root[data-theme=dark] .ie-mlab{stroke:#1C1C1E}
+.ie-mlab.is-on-dark,:root[data-theme=dark] .ie-mlab.is-on-dark{stroke:#26394A}
+/* markers (mark: true): the letter or number a learner matches, bold in a circle */
+.ie-mk-c{fill:#fff;stroke:#0B2545;stroke-width:.7}
+.ie-mk-t{fill:#0B2545;font:700 4.7px var(--f-text)}
+:root[data-theme=dark] .ie-mk-c{fill:#1C1C1E;stroke:#E5E5EA}
+:root[data-theme=dark] .ie-mk-t{fill:#fff}
+/* a single plan or diagram does not need the full desktop width */
+.ie-maps>.ie-map:only-child{width:100%;max-width:520px;justify-self:center}
+/* tables of words (a table to complete) read left to right; tables of figures stay right-aligned */
+.ie-table.is-words th,.ie-table.is-words td{text-align:left;vertical-align:top}
+/* chart columns: the player's progress bar owns .ie-bar (height:4px), which flattened every SVG bar, so the bars use .ie-col */
+.ie-col{fill:var(--c)}
+/* on a phone a three-column table of words fits without sideways scrolling: tighter cells, and a long word may wrap */
+@media (max-width:600px){.ie-table.is-words th,.ie-table.is-words td{padding:8px 5px}.ie-table.is-words td{overflow-wrap:anywhere;hyphens:auto}}
+/* pie slices under 6%: the figure sits outside the circle, on a leader line, in the text colour */
+:root .ie-pie .ie-slice text.ie-pctl.ie-pcto{fill:var(--label)}
+.ie-pcll{stroke:var(--label2);stroke-width:1.2}
+
+/* ---- package: core ---- */
+/* targets: every segment and every gap at least 44 px (owner rule) */
+.ie-seg>button{min-height:44px}
+.ie-in{min-height:44px}
+/* the chosen segment in the brand fill, in both themes (dark grey on dark grey was about 1.2:1) */
+.ie-seg>button[aria-checked=true],.ie-seg>button[aria-selected=true],
+:root[data-theme] .ie-seg>button[aria-checked=true],:root[data-theme] .ie-seg>button[aria-selected=true]{background:var(--brand-fill);color:#fff;font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.18)}
+.ie-sh{margin:18px 0 0}
+.ie-sh+.ie-seg{margin-top:8px}
+
+/* top bar: below 400 px the back link is the chevron and a short label ("U17"); its aria-label says it in full */
+.ie-back-s{display:none}
+@media (max-width:399.98px){.ie-back .ie-back-l{display:none}.ie-back .ie-back-s{display:inline}}
+
+/* bands: the questions behind each band and its likely range; a partial overall */
+.ie-tile small{display:block;max-width:100%;font:400 var(--fs-tab)/1.3 var(--f-text);color:var(--label2);overflow-wrap:anywhere}
+.ie-tile .ie-tile-r{font:600 var(--fs-min)/1.2 var(--f-round);color:var(--label);font-variant-numeric:tabular-nums}
+.ie-sc-head{flex-wrap:wrap}
+.ie-overall{flex-wrap:wrap;justify-content:flex-end}
+.ie-ov-part{display:inline-flex;align-items:baseline;gap:6px;color:var(--label2);font:400 var(--fs-note)/1.2 var(--f-text)}
+
+/* home: Continue, and Up next while the units arrive */
+.ie-cont{background:linear-gradient(135deg,rgba(0,129,152,.14),rgba(11,37,69,.06)),var(--card)}
+:root[data-theme=dark] .ie-cont{background:linear-gradient(135deg,rgba(0,210,224,.14),rgba(64,156,255,.06)),var(--card)}
+.ie-cont .ie-left{font-weight:600;color:var(--label)}
+.ie-next.is-wait{min-height:150px}
+.ie-skel{display:block;width:min(60%,280px);height:1.4em;border-radius:8px;background:var(--fill2)}
+/* a unit before the next lesson couldn't load: say so, never "you've done every lesson" */
+.ie-next.is-fail{background:linear-gradient(135deg,rgba(184,134,11,.12),rgba(11,37,69,.04)),var(--card)}
+
+/* my results: why a test doesn't count, and deleting one */
+.ie-tag{align-self:flex-start;margin-top:4px;padding:3px 10px;border-radius:var(--r-pill);background:var(--fill2);color:var(--label2);font:600 var(--fs-min)/1.3 var(--f-text)}
+.ie-tag.is-ok{background:var(--ok-soft);color:var(--ok-ink)}
+.ie-del{flex:none;display:inline-grid;place-items:center;width:44px;height:44px;margin-right:-8px;padding:0;border:0;border-radius:50%;background:transparent;color:var(--label2)}
+.ie-del:hover{background:var(--fill2)}
+.ie-del:active{background:var(--fill)}
+
+/* my writing: versions under the first one */
+.ie-essays .ie-chain{color:var(--brand-ink);font-weight:600;font-variant-numeric:tabular-nums}
+.ie-vrow{padding-left:34px;border-top-style:dashed}
+.ie-vnum{width:30px;height:30px;background:var(--brand-soft);color:var(--brand-ink)}
+.ie-vnav{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:0 4px}
+.ie-vpill{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 14px;border-radius:var(--r-pill);background:var(--card);color:var(--label);text-decoration:none;font:600 var(--fs-note)/1.2 var(--f-text)}
+.ie-vpill b{font:800 var(--fs-sub)/1 var(--f-round);color:var(--brand-ink)}
+.ie-vpill[aria-current=page]{background:var(--brand-fill);color:#fff}
+.ie-vpill[aria-current=page] b{color:#fff}
+.ie-varr{color:var(--label2)}
+.ie-improve .ie-row-b{margin-top:12px}
+.ie-resume{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.ie-link{min-height:44px;padding:0 6px;border:0;background:transparent;color:var(--brand-ink);font:600 var(--fs-note)/1.2 var(--f-text);text-decoration:underline;text-underline-offset:3px}
+a.ie-link{display:inline-flex;align-items:center}
+.ie-revise .ie-tip{margin:12px 0 0}
+.ie-revise .ie-plan{margin-top:12px}
+.ie-revise .ie-plan .ie-checks{margin-top:8px}
+
+/* compare two versions */
+.ie-cmp{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media (min-width:700px){.ie-cmp{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:start}}
+.ie-cmp h2{margin:0 0 12px}
+.ie-cmp .ie-plan{margin-top:10px}
+.ie-cmp .ie-essay{margin-top:8px}
+.ie-changes h2{margin:0 0 12px}
+.ie-ctab{width:100%;margin-top:14px;border-collapse:collapse;table-layout:fixed;font:400 var(--fs-note)/1.3 var(--f-text)}
+.ie-ctab th,.ie-ctab td{padding:8px 6px;border-top:.5px solid var(--sep);text-align:left;vertical-align:middle;overflow-wrap:break-word}
+.ie-ctab thead th:first-child{width:42%}
+.ie-ctab thead th{border-top:0;color:var(--label2);font-weight:600}
+.ie-ctab tbody th{font-weight:600}
+.ie-ctab td .ico{margin-right:4px;vertical-align:-3px}
+.ie-ctab td.is-ok .ico{color:var(--ok-ink)}
+.ie-ctab td.is-miss .ico{color:var(--gold-ink)}
+.ie-center{justify-content:center}
+
+/* settings: no English voice, and the data file */
+.ie-vnone{margin:0 0 4px;padding:14px 16px;border-radius:var(--r-md);background:var(--gold-soft)}
+.ie-vnone p{margin:0 0 6px}
+.ie-help{margin:4px 0 8px;padding-left:1.2em;font:400 var(--fs-sub)/1.45 var(--f-text)}
+.ie-help li{margin:4px 0}
+#ie-vbox>p{margin:0 0 6px}
+.ie-file{cursor:pointer}
+.ie-file:focus-within{outline:3px solid var(--brand-tint);outline-offset:2px}
+/* the back link on the light glass bar: brand ink measured 4.39:1 there, this darker blue 5.3:1 */
+:root:not([data-theme=dark]) .ie-back{color:#1450B8}
+
+/* ---- package: player ---- */
+/* js/ielts-player.js: exam-style Listening (status line, chip, «Continue the recording»), no-voice note, results notes,
+   follow-up questions, set visuals and desktop writing (task and answer side by side from 960 px). */
+.ie-xbar{position:sticky;top:calc(60px + var(--safe-t));z-index:6;display:flex;justify-content:center}
+.ie-xbar:empty{display:none}
+.ie-xbar>.ie-xgo{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding:16px 20px}
+.ie-xbar>.ie-xgo p{margin:0}
+.ie-xchip{display:inline-flex;align-items:center;gap:8px;min-height:44px;max-width:100%;padding:8px 18px;border:0;border-radius:var(--r-pill);
+  background:var(--navy);color:#fff;font:600 var(--fs-note)/1.25 var(--f-text);text-align:left;box-shadow:0 4px 14px rgba(11,37,69,.28);cursor:pointer}
+.ie-xchip .ico{flex:none}
+:root[data-theme=dark] .ie-xchip{background:var(--teal);color:#000;box-shadow:none}
+.ie-xstat{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .35em;min-height:44px;margin-top:14px;padding:11px 14px;border-radius:var(--r-md);
+  background:var(--card-2);font:600 var(--fs-sub)/1.35 var(--f-text)}
+.ie-xstat #ie-xclk{color:var(--brand-ink);font-variant-numeric:tabular-nums}
+.ie-noaudio{display:flex;gap:10px;align-items:flex-start;margin:14px 0 0;padding:12px 14px;border-radius:var(--r-md);background:var(--gold-soft);
+  font:400 var(--fs-sub)/1.45 var(--f-text)}
+.ie-noaudio .ico{flex:none;color:var(--gold-ink);margin-top:2px}
+:root[data-theme=dark] .ie-noaudio .ico{color:var(--gold)}
+.ie-timeup .ie-row-b{justify-content:center;margin-top:6px}
+.ie-locked{display:flex;gap:10px;align-items:flex-start;margin:0;padding:12px 14px;border-radius:var(--r-md);background:var(--fill2);
+  font:400 var(--fs-sub)/1.45 var(--f-text)}
+.ie-locked .ico{flex:none;margin-top:2px}
+.ie-player>#ie-lclk{margin-left:-6px;font-variant-numeric:tabular-nums}
+.ie-player>#ie-lclk:empty{display:none}
+.ie-rnote{padding:8px 12px;border-radius:var(--r-sm);background:var(--fill2);color:var(--label)!important}
+/* the results link «Revise it later» (a <p>): core uses .ie-revise for its whole revise page, so this stays on p */
+p.ie-revise{display:flex;justify-content:center;margin:0}
+.ie-wchecks{scroll-margin-top:calc(72px + var(--safe-t))}
+.ie-srnote{margin:-4px 0 8px}
+.ie-fu{margin-top:6px;padding-top:12px;border-top:.5px solid var(--sep)}
+.ie-fu>h2{margin:0 0 4px}
+.ie-fu>.ie-sq:first-of-type{border-top:0}
+.ie-set>.ie-viz{margin:0 0 16px}
+.ie-set>.ie-viz .ie-maps{max-width:460px;margin-inline:auto}
+.ie-wtask>.ie-viz+.ie-viz{margin-top:12px}
+@media (min-width:960px){
+  .ie-page:has(#ie-item > .ie-wtask){max-width:1180px}
+  .ie-page:has(#ie-item > .ie-wtask) .ie-dock{padding-left:max(var(--gutter),var(--safe-l),calc(50% - 590px));padding-right:max(var(--gutter),var(--safe-r),calc(50% - 590px))}
+  #ie-item:has(> .ie-wtask){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+  #ie-item:has(> .ie-wtask)>*{grid-column:1 / -1}
+  #ie-item:has(> .ie-wtask)>.ie-wtask{grid-column:1;grid-row:1;position:sticky;top:calc(64px + var(--safe-t));max-height:calc(100vh - 160px);overflow:auto;overscroll-behavior:contain}
+  #ie-item:has(> .ie-wtask)>.ie-wans{grid-column:2;grid-row:1}
+  #ie-item:has(> .ie-wtask) .ie-ta{min-height:min(58vh,560px)}
+  /* once compared, the checks, the model and the self-marking run full width below: the task stops sticking (sticky in
+     a grid sticks to the whole grid, so it would cover them) */
+  #ie-item:has(> .ie-wchecks)>.ie-wtask{position:static;max-height:none;overflow:visible}
+}
+/* the player's controls reach 44 px, and the low-time clock keeps 4.5:1 on the light glass bar */
+.ie-seg>button{min-height:44px}
+.ie-in{min-height:44px}
+:root:not([data-theme=dark]) .ie-timer.is-low{color:var(--gold-on)}
+@media (prefers-reduced-motion:reduce){.ie-xchip{transition:none}}
+
+/* ---- package: study ---- */
+/* js/ielts-study.js: the Review card on home, #/review (deck, notebook, exam plan) and IE.assess (descriptor checklists
+   and exemplar calibration). Right in green, wrong in grey, never red. */
+.ie-rvcard{display:flex;align-items:center;gap:14px;text-decoration:none;color:var(--label);padding:16px 18px}
+.ie-rvc-ico{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;background:rgba(0,129,152,.14);color:var(--teal)}
+.ie-rvc-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ie-rvc-t .t-note{margin:0}
+a.ie-rvcard:active{background:var(--fill2)}
+.ie-rv-deck h2{margin:0 0 6px}
+.ie-rv-deck .t-sub{margin:0 0 14px}
+.ie-rv-go{margin:0 0 4px}
+.ie-rv-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0 0}
+.ie-rv-stats>div{padding:10px 8px;border-radius:var(--r-md);background:var(--card-2);text-align:center;min-width:0}
+.ie-rv-stats dt{font:400 var(--fs-min)/1.3 var(--f-text);color:var(--label2)}
+.ie-rv-stats dd{margin:2px 0 0;font:700 var(--fs-head)/1.2 var(--f-round);overflow-wrap:anywhere}
+.ie-rv-last{margin:12px 0 0}
+.ie-rv-marks>.t-note{margin:0 0 12px}
+.ie-rv-tags{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.ie-rv-tags li{display:flex;gap:12px;align-items:flex-start;font:400 var(--fs-sub)/1.4 var(--f-text)}
+.ie-rv-n{flex:none;display:grid;place-items:center;min-width:34px;height:34px;padding:0 6px;border-radius:10px;background:var(--gold-soft);color:var(--gold-ink);font:700 var(--fs-note)/1 var(--f-round)}
+.ie-rv-conf td,.ie-rv-conf th{text-align:center}
+.ie-rv-conf th:first-child{text-align:left}
+.ie-rv-conf td.is-ok{background:var(--ok-soft);color:var(--ok-ink);font-weight:700}
+.ie-rv-conf td.is-miss{background:var(--miss-fill);font-weight:700}
+.ie-rv-accl{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.ie-rv-a{padding:10px 0;border-top:.5px solid var(--sep)}
+.ie-rv-a:first-child{border-top:0;padding-top:0}
+.ie-rv-ah{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.ie-rv-at{min-width:0;font:500 var(--fs-sub)/1.3 var(--f-text)}
+.ie-rv-a.is-weak .ie-rv-at{font-weight:700}
+.ie-rv-pc{flex:none;white-space:nowrap;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
+.ie-rv-pc b{font:700 var(--fs-sub)/1.2 var(--f-round);color:var(--label)}
+.ie-rv-link{display:flex;align-items:center;gap:4px;min-height:44px;color:var(--brand-ink);font:500 var(--fs-note)/1.25 var(--f-text);text-decoration:none}
+.ie-rv-bar{display:block;height:6px;margin:6px 0 0;border-radius:3px;background:var(--fill2);overflow:hidden}
+.ie-rv-bar span{display:block;height:100%;background:var(--teal)}
+.ie-rv-a.is-weak .ie-rv-bar span{background:var(--gold-deep)}
+.ie-rv-plan .ie-rv-dl{display:block;font:600 var(--fs-sub)/1.3 var(--f-text);margin:0 0 6px}
+.ie-rv-date{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.ie-rv-in{margin:0;min-height:44px;width:auto;max-width:100%;font-size:var(--fs-sub)}
+.ie-rv-wk{margin:0 0 6px;color:var(--brand-ink)}
+.ie-rv-adv{margin:0 0 10px}
+.ie-rv-plan .t-note{margin:0 0 10px}
+.ie-rv-plan .t-min{margin:0}
+
+/* IE.assess: self-marking */
+.ie-ck{margin:8px 0 0;border-radius:var(--r-md);background:var(--card-2)}
+.ie-ck summary{display:flex;align-items:center;flex-wrap:wrap;gap:6px 8px;min-height:44px;padding:8px 12px;cursor:pointer;list-style:none;color:var(--brand-ink);font:600 var(--fs-note)/1.25 var(--f-text)}
+.ie-ck summary::-webkit-details-marker{display:none}
+.ie-ck-st{margin-left:auto;color:var(--label2);font-weight:400}
+.ie-ck[open] summary{border-bottom:.5px solid var(--sep)}
+.ie-ck-b{margin:0;padding:10px 12px 2px;color:var(--teal);font:700 var(--fs-min)/1.2 var(--f-text);text-transform:uppercase;letter-spacing:.04em}
+.ie-st{display:flex;align-items:center;gap:10px;padding:6px 12px}
+.ie-st-t{flex:1;min-width:0;font:400 var(--fs-note)/1.4 var(--f-text)}
+.ie-yn{flex:none;display:flex;gap:2px;padding:2px;border-radius:12px;background:var(--fill2)}
+.ie-yn>button{min-width:60px;min-height:44px;padding:0 10px;border:0;border-radius:10px;background:transparent;font:600 var(--fs-note)/1 var(--f-text);color:var(--label)}
+.ie-yn>button[data-yn="1"][aria-checked=true]{background:var(--brand-fill);color:#fff}
+.ie-yn>button[data-yn="0"][aria-checked=true]{background:var(--miss-on);color:var(--card)}
+.ie-ck .ie-st:last-child{padding-bottom:12px}
+@media (max-width:480px){.ie-st{flex-direction:column;align-items:stretch;gap:6px}.ie-yn{align-self:flex-end}}
+.ie-ck-res{margin:6px 0 0;font:400 var(--fs-note)/1.4 var(--f-text);color:var(--label2)}
+.ie-ck-res:empty{display:none}
+.ie-ck-res.is-gap{padding:10px 12px;border-radius:var(--r-md);background:var(--gold-soft);color:var(--label)}
+.ie-bands>button{min-height:44px}
+.ie-calib{margin:0 0 18px;padding:14px;border-radius:var(--r-md);border:1.5px solid var(--sep)}
+.ie-calib h3{display:flex;align-items:center;gap:8px;margin:0 0 4px}
+.ie-calib h3 .ico{color:var(--teal)}
+.ie-calib>.t-note{margin:0 0 10px}
+.ie-cal1+.ie-cal1{margin-top:16px;padding-top:16px;border-top:.5px solid var(--sep)}
+.ie-cal1 .t-note{margin:0}
+.ie-cal-res:empty{display:none}
+.ie-cal-res{margin:10px 0 0;padding:12px 14px;border-radius:var(--r-md);background:var(--brand-soft)}
+.ie-cal-res .t-head{margin:0 0 6px}
+.ie-cal-avg{margin:12px 0 0!important}
+.ie-cal-avg:empty{display:none}
+.ie-bands>button:disabled{cursor:default;opacity:.7}
+.ie-bands>button:disabled[aria-checked=true]{opacity:1}
+:root[data-theme=dark] .ie-yn>button[data-yn="0"][aria-checked=true]{background:#AEAEB2;color:#000}
+@media (prefers-reduced-motion:reduce){.ie-rv-bar span{transition:none}}

@@ -23,9 +23,11 @@
    · imágenes y mp3: de vocab-media (o del shell, las de SHELL) y, si no están, de la red (y se guardan).
    Las cachés viejas (vocab-v1 de «Descargar todo», vocab-vNN del sw anterior) pasan sus imágenes, audios y datos a
    vocab-media entrada a entrada y después se borran; si no cabe, se borran igual (todo se puede volver a bajar).
-   Al subir VERSION se sube también OFF_SHELL y el «?v=» de los <script> de index.html y privacy.html: GitHub Pages manda
-   max-age=600 y, sin eso, la caché HTTP daría el index.html nuevo con módulos viejos. El shell se guarda sin el «?v=»:
-   es de una sola versión, la de su nombre. */
+   Al subir VERSION se sube también OFF_SHELL y el «?v=» de los <script> de index.html y privacy.html, y el de ielts.html
+   (ielts.css y los cuatro js/ielts*.js): GitHub Pages manda max-age=600 y, sin eso, la caché HTTP daría la página nueva
+   con módulos viejos; y un «?v=» que no es VERSION va a sameUrl, que sin red no encuentra las copias que carryLazy pasa
+   por su nombre (IELTS Prep se rompería sin conexión tras cada actualización). El shell se guarda sin el «?v=»: es de
+   una sola versión, la de su nombre. */
 const VERSION = 38;
 const SHELL_CACHE = "vocab-shell-v" + VERSION;
 const MEDIA_CACHE = "vocab-media";
@@ -72,7 +74,7 @@ const SHELL = [
 const LAZY = [
   "img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg",
   "js/tech.js", "js/tech-lesson.js", "js/tech-pages.js",
-  "ielts.html", "ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js", "data/ielts/index.json",
+  "ielts.html", "ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js", "js/ielts-study.js", "data/ielts/index.json",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */
 const NET_WAIT = 3000;                                      /* la red tarda más: se da lo guardado */
@@ -115,22 +117,51 @@ self.addEventListener("install", e => {
     const missing = REQUIRED.filter(u => failed.includes(u));
     if(missing.length) throw new Error("[sw] sin " + missing.join(", ") + ": se queda la versión anterior");
     await carryLazy(c);
+    await freshIelts();
     await self.skipWaiting();
   })());
 });
-/* lo de LAZY que ya se usó (está en un shell de antes): se baja otra vez para esta versión, con la misma URL. Si falla,
-   se pedirá al usarlo. */
+/* lo de LAZY que ya se usó (está en un shell de antes): se baja otra vez para esta versión, con la misma URL y también
+   por su nombre sin «?…», que es como shellFirst lo busca cuando la página nueva lo pide con «?v=» de esta versión
+   (ielts.html pasa de «?v=» viejo a VERSION: sin su copia por nombre, IELTS Prep abriría sin css ni js sin conexión).
+   Si falla, se pedirá al usarlo. */
 async function carryLazy(c){
   try{
     for(const n of (await caches.keys()).filter(n => SHELL_RE.test(n) && n !== SHELL_CACHE)){
       const old = await caches.open(n);
       for(const req of await old.keys()){
         const url = new URL(req.url);
-        if(url.origin !== location.origin || !LAZY_PATHS.has(url.pathname) || await c.match(req.url)) continue;
-        await c.add(new Request(req.url, {cache: "reload"})).catch(() => {});
+        if(url.origin !== location.origin || !LAZY_PATHS.has(url.pathname)) continue;
+        for(const u of new Set([req.url, keyOf(url)])) if(!(await c.match(u))) await c.add(new Request(u, {cache: "reload"})).catch(() => {});
       }
     }
   }catch(err){ console.warn("[sw] no se pudo volver a bajar lo ya usado:", msg(err)); }
+}
+
+/* IELTS Prep: las unidades (data/ielts/uNN.json) que una versión vieja dejó en vocab-media con un «rev» menor que el de
+   esta (IELTS_REV, igual que REV de js/ielts.js; se suben juntos) se vuelven a bajar ahora, que la red funciona: sin
+   conexión js/ielts.js no usa esas copias (calificaría con las opciones viejas) y diría «This unit was updated» hasta
+   abrir IELTS Prep con red. Solo las que ya estaban (lo que el adulto abrió); si falla, js/ielts.js las cambia al
+   abrirlas con red. Nunca impide instalar la versión nueva. */
+const IELTS_REV = 2, IELTS_RE = /\/data\/ielts\/u\d{2}\.json$/;
+async function freshIelts(){
+  try{
+    const m = await caches.open(MEDIA_CACHE);
+    const old = [];
+    for(const req of await m.keys()){
+      const url = new URL(req.url);
+      if(url.origin !== location.origin || !IELTS_RE.test(url.pathname)) continue;
+      const rev = await m.match(req).then(r => r.json()).then(u => u && u.rev, () => null);
+      if(!(rev >= IELTS_REV)) old.push(req.url);
+    }
+    await Promise.all(old.map(async u => {
+      try{
+        const res = await fetch(u, {cache: "reload"});
+        const d = good(res) ? await res.clone().json().catch(() => null) : null;
+        if(d && d.rev >= IELTS_REV) await m.put(u, res);
+      }catch(err){}
+    }));
+  }catch(err){ console.warn("[sw] no se pudieron poner al día las unidades de IELTS Prep:", msg(err)); }
 }
 
 self.addEventListener("activate", e => {
