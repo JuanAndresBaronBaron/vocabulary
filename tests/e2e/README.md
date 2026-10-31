@@ -338,6 +338,15 @@ compartida no responde).
   de otra cosa de su familia; con `Math.random` fijo, también el niño de impostor que adivina la palabra) y Ordenar
   (cestas con nombre, IPA, dibujo y altavoz; tocar y arrastrar; gris con ✗ y la buena iluminada al segundo fallo;
   estrellas, récord «N a la primera» y monedas), en francés y danés, y capturas en `capturas/juegos-grupo`.
+- `test_juegos_hub.py` (`js/games.js`, el centro de juegos): el menú (reto, «Seguir jugando» por `at`, una fila por
+  sección que se desliza con scroll-snap y la de enlaces al final; ≤ 2 pantallas a 390×844, nada de lado a 360/390,
+  rejilla con ratón, «Soldados» primero con su tema y en oscuro con candado sin él, «Nuevo» con fecha); el «Reto de
+  hoy» (sin monedas anunciadas, solo desde su tarjeta, sorpresa de 10-20 una vez, ✓ y el punto de la semana en
+  `"games:reto"`); el resultado de Globos a 360 px (falladas primero con ✗, IPA, una columna, nada partido; al repaso
+  las que ya estaban para hoy y 3 nuevas como mucho; «Jugar con estas»); «¡Vamos otra vez!» sin aciertos (con juegos
+  de prueba registrados y `played`); los niveles 1-3 (Memoria 16 cartas, Globos 6 sin ojo, largos de Letras,
+  `api.level`); la IPA en los 4 clásicos; las teclas solo con teclado y las explicaciones ≤ 15 palabras. Capturas en
+  `capturas/juegos`.
 - `test_pajarito.py` (`js/flyer.js`, «Pajarito volador»): la tarjeta en Juegos, la ciudad de cada idioma (Londres,
   París, Copenhague), 3 puertas con palabras, el pajarito ≥ 96 px y la calle hasta abajo en 360 y 390 px, mover con
   toque, flechas y teclas, acertar (+1) y fallar (−1 corazón) hasta el resultado con récord, la pausa que para las

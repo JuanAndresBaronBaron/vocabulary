@@ -20,7 +20,9 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
    "*" = cualquier JSON válido (la app ya se defiende de valores raros).
    Exactas:
      game (monedas, personaje, compras) · act (actividad por día) · lang · rate · theme · mute (sfx.js) · mapLv ·
-     prEx · prAuto · prPrefs (prácticas) · farm:state (farm.js) · games:best · games:topic · games:day (games.js) ·
+     prEx · prAuto · prPrefs (prácticas) · farm:state (farm.js) · games:best · games:topic · games:day · games:reto
+     (el «Reto de hoy»: los días conseguidos; games.js) · gram:lv (el nivel A1-C2 de los juegos de gramática por
+     idioma, js/grammargames.js y js/learn.js) ·
      buddy:hide · buddy:missions · buddy:wotd (buddy.js) · album:tab (album.js)
      season (fiestas: puertas, pegatinas y ventanitas por año, js/season.js)
      sc:prefs (atajos de Hoy fijados y ocultos, interruptor y pregunta de la tortuga, js/shortcuts.js)
@@ -57,7 +59,7 @@ const now = () => Date.now();          /* las pruebas pueden mover el reloj sust
 const EXACT = {
   game: "o", act: "o", prPrefs: "o", "farm:state": "o",
   lang: "*", rate: "*", theme: "*", mute: "*", mapLv: "*", prEx: "*", prAuto: "*",
-  "games:best": "*", "games:topic": "*", "games:day": "*",
+  "games:best": "*", "games:topic": "*", "games:day": "*", "games:reto": "*", "gram:lv": "*",
   "buddy:hide": "*", "buddy:missions": "*", "buddy:wotd": "*", "album:tab": "*",
   season: "o",
   "sc:prefs": "o",

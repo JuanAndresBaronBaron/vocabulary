@@ -1,27 +1,57 @@
 /* módulo games: minijuegos para aprender jugando.
    Rutas: #/juegos (menú) · #/juegos/memoria · #/juegos/lluvia · #/juegos/globos · #/juegos/letras y los juegos que
           registran otros módulos con vocabGames.register (js/lince.js: #/juegos/lince, «Oído de lince»).
-   Menú (plan-doc «Jugar › Juegos»): la pastilla «Tema: … ▾» abre una hoja con «Mis palabras» primero y luego los
-     temas (se recuerda en "games:topic"); tarjetas sólidas con su dibujo y el récord en estrellas, por secciones
-     (SECS: palabras, concursos, gramática, en grupo, soldados y «Leer, escuchar y crear»; def.sec o SEC_OF). Tocar = jugar;
-     mantener pulsado (G.hold) = vistazo: hoja pequeña con cómo se juega, el récord y con qué palabras.
+   Menú (plan-doc «Jugar › Juegos»; a 390 px cabe en 2 alturas de pantalla): la pastilla «Tema: … ▾» abre una hoja con
+     «Mis palabras» primero y luego los temas (se recuerda en "games:topic"). Debajo, por este orden:
+     · «Reto de hoy»: una tarjeta grande (p. ej. «Topos · Comida — consigue ★★») elegida con la fecha (azar con semilla,
+       como js/buddy.js) entre los juegos que salen con el tema elegido (def.show) y que no se jugaron los 3 días antes
+       de hoy; lleva a #/juegos/<juego>?t=<tema>. La tarjeta no anuncia monedas: jugado DESDE ella, ★★ o más da una
+       vez una sorpresa de 10 a 20 monedas (con la fecha; en el mismo award del resultado, «¡Reto conseguido! Sorpresa:
+       +N»), sale ✓ y se llena su punto en la fila de 7 (L…D; un día sin reto es un punto gris vacío).
+     · «Seguir jugando»: los 3 últimos juegos jugados (por "games:best".<juego>.at).
+     · Las secciones (SECS: palabras, concursos, gramática, en grupo, soldados; def.sec o SEC_OF) en filas de tarjetas
+       pequeñas que se deslizan de lado (scroll-snap; con ratón o desde 900 px, en rejilla) y, al final, las tarjetas que
+       solo llevan a otra pantalla (sección «mas») en una fila compacta. Con el tema «Soldados» su sección va primero;
+       las tarjetas que no salen con el tema (def.show) quedan en oscuro con candado.
+     Tocar = jugar; mantener pulsado (G.hold) = vistazo: hoja pequeña con el subtítulo, cómo se juega, el récord, el
+     nivel y con qué palabras. «Nuevo» sale con def.fresh: true hasta la primera partida, o con fresh: "AAAA-MM-DD" los
+     14 días siguientes a esa fecha (y tampoco si ya se jugó).
    Partida: la explicación (intro) sale solo la primera vez de cada juego; después empieza directo. Si se entra sin
      haber tocado nada (al recargar o con Atrás) sale una tarjeta corta «¡A jugar!» para que no empiece solo. El botón
      «?» de arriba vuelve a explicarlo con la partida en pausa. Modo foco, pausa con Esc y con la ✕ («¿Paramos aquí?»)
      y, al terminar, las monedas vuelan desde «+N» hasta el contador: finish() llama a award(n, "", false, desde),
      el único camino de monedas de los juegos.
    Enlace directo con tema: #/juegos/<juego>?t=<tema> juega con ese tema sin cambiar "games:topic" (atajos de Hoy).
+   Resultado (finish): estrellas, récord, monedas y las palabras del juego (10 como mucho, las falladas primero con ✗
+     gris, cada una con su IPA; a menos de 380 px en una columna y la letra se achica para que ninguna se parta). Las
+     falladas van solas al repaso: las que ya están en él se ponen para hoy y las nuevas entran con srsAdd(doc, [fila],
+     0), 3 como mucho por partida (nunca con Soldados ni en los juegos de gramática: def.words "Gramática" o
+     def.noReview); sale «✓ N palabras irán a tu repaso» y el botón «Jugar con estas» (Globos con esas palabras, más
+     las del tema hasta 4). Solo cuentan las palabras con k = "<doc>|<es>" (la clave del repaso, srsK de index.html).
+     Una partida sin ningún acierto (api.answer(true, …) no se llamó; p. ej. dejar pasar el tiempo sin tocar nada) no
+     da estrellas, monedas, récord ni "game-done": sale «¡Vamos otra vez!». finish(run, g, {played: true}) o
+     def.played lo saltan; los de «Para jugar en grupo» (sección "grupo") lo saltan siempre salvo con def.played: false
+     (en El impostor en grupo votan las personas: no hay respuestas del niño).
+   Niveles 1-3 (def.levels: true; los 4 juegos de aquí): "games:best".<juego>.lv; ★★★ en el nivel N abre el N+1 (chip
+     «¡Nivel 2!» en el resultado y «Nivel 2» en la tarjeta). Memoria 6/8/10 parejas, Globos 4/6 globos (sin el ojo en
+     el 3), Letras palabras de 3-5, 4-7 y 6-8 letras, Lluvia más rápida.
    Emite: bus "game-done" {game, score, stars, tries?, tp? (el tema, en los juegos con tema)} · "answer" {ok, es, word, where: "game"}
-   Guarda: store "games:best" {juego: {score, stars, tries?, plays}} · "games:topic" (tema elegido) · "games:day"
-           (partidas de hoy) · "vocab:ui".gmIntro (juegos cuya explicación ya se vio; solo de este aparato)
+   Guarda: store "games:best" {juego: {score, stars, tries?, plays, at (ms de la última partida), lv? (nivel ≥ 2)}} ·
+           "games:topic" (tema elegido) · "games:day" (partidas de hoy) · "games:reto" {d, g, tp (el último reto
+           conseguido), days: ["AAAA-MM-DD", …] (los días con reto conseguido, 14 como mucho)} · "vocab:ui".gmIntro
+           (juegos cuya explicación ya se vio; solo de este aparato). También escribe en el repaso (srs:<idioma>).
    API: window.vocabGames = {pause(desde), paused, how(desde), openTopics(desde), peek(id, desde), list(), images(),
         register(id, def), meta(id) → {id, t, img, topic} | null, topic(id) → {id, name, img} | null,
         pic(src) → el dibujo que usan los juegos para src (img/fam_X.png → img/fam2/fam_X.png; «Descargar todo» los
-        guarda también)}.
-        register: def = {t, sub, how, img, sec (sección del menú), words (texto en lugar del tema), rec(best) → texto del récord, fresh (chip
-        «Nuevo» en su tarjeta hasta la primera partida), start(app, api, intro)}; start monta el juego con
+        guarda también), level(id) → 1-3}.
+        register: def = {t, sub, how (15 palabras como mucho), keys (texto: las teclas; la explicación y el «?» lo
+        enseñan solo si se usa el teclado: api.kbd() o un ratón, (hover:hover) and (pointer:fine)), img, sec (sección
+        del menú), words (texto en lugar del tema), rec(best) → texto del récord, fresh (true o "AAAA-MM-DD": chip
+        «Nuevo», ver arriba), levels (true: niveles 1-3), noReview (true: sus fallos no van al repaso), played (true:
+        sin «¡Vamos otra vez!»), start(app, api, intro)}; start monta el juego con
         api = {mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml,
-        dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla), topicPool(g, need, fit) → {tp, name, P,
+        dotsHtml, nav, here, nm, kbd (true si la última entrada fue una tecla), level(id) → el nivel 1-3 con el que se
+        juega ahora (solo sube con def.levels), topicPool(g, need, fit) → {tp, name, P,
         mil} (las palabras del tema elegido, para los juegos con def.topic: true)}. def.show(tema) → false esconde la
         tarjeta (en oscuro, con candado y el aviso def.off) con ese tema (los juegos de soldados solo se activan con el
         tema «Soldados», "militar").
@@ -33,15 +63,19 @@
 const MIS = "mis";
 const num = v => Number.isFinite(+v) ? +v : 0;
 const GAMES = {
-  memoria: {t: "Memoria",            sub: "Busca las parejas",       img: "img/games/memoria.png", need: 6, how: "Da la vuelta a dos cartas. Busca cada dibujo con su palabra.",
+  memoria: {t: "Memoria",            sub: "Busca las parejas",       img: "img/games/memoria.png", need: 6, levels: true, how: "Da la vuelta a dos cartas. Busca cada dibujo con su palabra.",
     rec: b => num(b.tries) ? `${num(b.tries)} intentos` : "Récord"},
-  lluvia:  {t: "Lluvia de palabras", sub: "Atrapa la palabra buena", img: "img/games/lluvia.png",  need: 4, how: "Toca solo las burbujas de la palabra que te pido. ¡Cuidado con las otras!",
+  lluvia:  {t: "Lluvia de palabras", sub: "Atrapa la palabra buena", img: "img/games/lluvia.png",  need: 4, levels: true, how: "Toca solo las burbujas de la palabra que te pido. ¡Cuidado con las otras!",
     rec: b => `${num(b.score)} atrapadas`},
-  globos:  {t: "Globos",             sub: "Escucha y explota",       img: "img/games/globos.png",  need: 4, how: "Escucha la palabra y explota el globo de su dibujo.",
+  globos:  {t: "Globos",             sub: "Escucha y explota",       img: "img/games/globos.png",  need: 4, levels: true, how: "Escucha la palabra y explota el globo de su dibujo.",
     rec: b => `${num(b.score)} de 10`},
-  letras:  {t: "Letras locas",       sub: "Ordena las letras",       img: "img/games/letras.png",  need: 3, how: "Toca las letras en orden (o arrástralas) para escribir la palabra.",
+  letras:  {t: "Letras locas",       sub: "Ordena las letras",       img: "img/games/letras.png",  need: 3, levels: true, how: "Toca las letras en orden (o arrástralas) para escribir la palabra.",
+    keys: "Con el teclado: escribe las letras y borra con ⌫.",
     rec: b => `${num(b.score)} puntos`},
 };
+/* niveles 1-3 ("games:best".<juego>.lv; sin lv, el 1) */
+const lvOf = b => b && typeof b === "object" ? Math.max(1, Math.min(3, Math.round(num(b.lv)) || 1)) : 1;
+const DAY_MS = 864e5;
 /* temas con muchas imágenes: [id, dibujo (OpenMoji ya guardado en img/om_<código>.png), nombre, para empezar].
    En la hoja de temas van agrupados como en Palabras: «Temas» y «Las 3000» (los documentos wNN); los de empezar, primero */
 const TOPICS = [
@@ -92,8 +126,11 @@ function speak(t, slow){
 }
 /* la primera voz tiene que nacer de un toque (iOS): se llama dentro del toque que lleva a la partida */
 function unlockVoice(){ try{ if(!("speechSynthesis" in window)) return; const u = new SpeechSynthesisUtterance(" "); if(typeof useVoice === "function") useVoice(u, lang); speechSynthesis.speak(u); }catch(e){} }
-/* cada respuesta cuenta para las misiones («Acierta 15 respuestas»); el sonido ya lo pone el propio juego */
-const answer = (ok, it) => { try{ bus.emit("answer", {ok: !!ok, es: it && it.es, word: it && it.word, where: "game"}); }catch(e){} tell(ok, it); };
+/* cada respuesta cuenta para las misiones («Acierta 15 respuestas»); el sonido ya lo pone el propio juego. Los aciertos
+   de la partida se cuentan (run.right): sin ninguno, finish() no premia (se dejó pasar el tiempo sin tocar nada) */
+const answer = (ok, it) => { if(ok) gotRight(RUN); try{ bus.emit("answer", {ok: !!ok, es: it && it.es, word: it && it.word, where: "game"}); }catch(e){} tell(ok, it); };
+/* un acierto que no va a las misiones (en los juegos de aquí, el que llega al segundo intento) */
+function gotRight(run){ if(run && run.alive) run.right = (run.right || 0) + 1; }
 /* y lo dice la región viva de la partida (.gm-live, la pone mount(); no .gm-say, que es el altavoz redondo de 52 px de
    algunos juegos): «¡Bien! dog» o «Casi, prueba otra vez» */
 function tell(ok, it){
@@ -109,6 +146,13 @@ const pick = a => a[Math.floor(Math.random() * a.length)];
 const nm = () => LANGS[lang].name;
 const Nm = () => { const s = nm(); return s.charAt(0).toUpperCase() + s.slice(1); };
 const fs = w => { const n = [...w].length; return n <= 5 ? "1.5rem" : n <= 8 ? "1.25rem" : n <= 12 ? "1.05rem" : ".92rem"; };
+/* la letra de una palabra de la lista del resultado (luego fitList() la achica si aun así no cabe) */
+const wfs = w => { const n = [...String(w || "")].length; return n <= 8 ? "1.0625rem" : n <= 12 ? ".97rem" : ".9rem"; };
+const code = () => (LANGS[lang] || LANGS.english).code;
+/* la IPA de una palabra (ipaHtml de index.html, que respeta ipaOn()) */
+const ipaOf = (it, cls = "") => it && it.ipa && typeof ipaHtml === "function" ? ipaHtml(it.ipa, code(), cls) : "";
+/* ¿se juega con teclado? (la última entrada fue una tecla, o hay ratón): entonces se enseña def.keys */
+const kbdOn = () => { if(KBD) return true; try{ return matchMedia("(hover:hover) and (pointer:fine)").matches; }catch(e){ return false; } };
 /* estrellas de oro (★★☆) dibujadas con el icono del sprite; las que faltan, en gris */
 const starsHtml = (n, z = 18) => `<span class="gm-st" aria-hidden="true">${[0, 1, 2].map(i => `<i class="${i < n ? "on" : ""}">${IC("star", "fill", z)}</i>`).join("")}</span>`;
 const dotsHtml = n => `<div class="gm-dots" id="gm-dots">${Array.from({length: n}, () => "<i></i>").join("")}</div>`;
@@ -167,7 +211,7 @@ function markSeen(g){
 
 /* gestos del menú (G.hold de cada tarjeta): se quitan al repintar o al salir */
 let GEST = [];
-const clearGest = () => { GEST.forEach(off => { try{ off(); }catch(e){} }); GEST = []; };
+const clearGest = () => { [...GEST, ...GEST_TOP].forEach(off => { try{ off(); }catch(e){} }); GEST = []; GEST_TOP = []; };
 
 addEventListener("hashchange", () => { if(!/^#\/?juegos/.test(location.hash)){ NAV++; stop(); clearGest(); closeSheets(); } });
 bus.on("route", d => { if(!String((d && d.h) || "").startsWith("juegos")){ NAV++; stop(); clearGest(); closeSheets(); } });
@@ -265,7 +309,10 @@ function how(from){
   const run = RUN; if(!live(run)) return false;
   const G0 = GAMES[run.g]; if(!G0) return false;
   const p = run.root.querySelector("#gm-in-p");
-  if(p && p.isConnected){ p.hidden = false; const b = run.root.querySelector("#gm-in-how"); if(b) b.hidden = true; return true; }
+  if(p && p.isConnected){
+    p.hidden = false; const k = run.root.querySelector("#gm-in-k"); if(k) k.hidden = false;
+    const b = run.root.querySelector("#gm-in-how"); if(b) b.hidden = true; return true;
+  }
   if(run.paused) return false;
   css();
   const d = mkSheet("gm-how", "gm-how-t");
@@ -276,7 +323,7 @@ function how(from){
   }
   d.innerHTML = `<div class="m-head"><h2 id="gm-how-t">Cómo se juega</h2></div>
     <div class="gm-how"><img class="gm-how-i" src="${esc(G0.img)}" alt="" width="72" height="72" draggable="false">
-      <p class="gm-how-p">${esc(G0.how)}</p></div>
+      <div><p class="gm-how-p">${esc(G0.how)}</p>${keysHtml(G0)}</div></div>
     <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" data-close autofocus>Seguir</button>`;
   run.paused = true; HW.run = run;
   try{ if("speechSynthesis" in window) speechSynthesis.cancel(); }catch(e){}
@@ -284,6 +331,9 @@ function how(from){
   return true;
 }
 function howClose(){ if(HW && HW.d.open){ HW.run = null; sheetClose(HW.d, true); } }
+/* las teclas del juego (def.keys), solo si se juega con teclado */
+const keysHtml = (G0, id = "", hidden = false) => G0 && typeof G0.keys === "string" && G0.keys && kbdOn()
+  ? `<p class="gm-keys"${id ? ` id="${id}"` : ""}${hidden ? " hidden" : ""}>${IC("keyboard", "bold", 18)}<span>${esc(G0.keys)}</span></p>` : "";
 document.addEventListener("click", e => { const b = e.target.closest && e.target.closest("[data-gm-how]"); if(b){ e.preventDefault(); how(b); } });
 
 /* ---------- palabras ---------- */
@@ -364,7 +414,8 @@ async function pool(src){
 const topicId = () => { const t = store.get("games:topic", "animales"); return typeof t === "string" && (t === MIS || TOPICS.some(x => x[0] === t)) ? t : "animales"; };
 const isTopic = t => typeof t === "string" && (t === MIS || TOPICS.some(x => x[0] === t));
 /* #/juegos/<juego>?t=<tema> (los atajos de Hoy, js/shortcuts.js): juega con ese tema sin cambiar el elegido (games:topic) */
-const hashTopic = () => { try{ const t = new URLSearchParams(location.hash.split("?")[1] || "").get("t"); return isTopic(t) ? t : null; }catch(e){ return null; } };
+const hashTopicOf = h => { try{ const t = new URLSearchParams(String(h || "").split("?")[1] || "").get("t"); return isTopic(t) ? t : null; }catch(e){ return null; } };
+const hashTopic = () => hashTopicOf(location.hash);
 const topicInfo = id => id === MIS ? MIS_INFO : (TOPICS.find(x => x[0] === id) || TOPICS[0]);
 const topicName = id => topicInfo(id)[2];
 const topicImg = id => `img/om_${topicInfo(id)[1]}.png`;
@@ -423,36 +474,77 @@ const CSS = `
 .gm-tip{color:var(--label2);text-align:center;margin:12px 0 0;font:400 var(--fs-note)/1.35 var(--f-text)}
 /* menú: la pastilla del tema y las tarjetas (sólidas; el color solo en el dibujo y en las estrellas) */
 .gm.gm-menu{max-width:none;margin:0}
-.gm-bar{display:flex;align-items:center;gap:8px;margin:0 0 16px;min-width:0}
+.gm-bar{display:flex;align-items:center;gap:8px;margin:0 0 12px;min-width:0}
 .gm-tpill{gap:6px;font-size:var(--fs-sub);font-weight:400;min-height:var(--tap);padding:0 14px 0 16px;max-width:100%}
 .gm-tpill b{font-weight:600;overflow:hidden;text-overflow:ellipsis}
 .gm-tpill .ico{flex:none;color:var(--label2)}
-.gm-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(156px,1fr));gap:12px;margin:0 0 24px}
-/* las secciones del menú: un título corto encima de cada rejilla */
-.gm-sh2{margin:4px 0 10px;font:700 var(--fs-head)/1.25 var(--f-round);color:var(--label)}
-.gm-grp+.gm-grp .gm-sh2{margin-top:8px}
-/* en el ordenador, 4 columnas como mucho: con 6, las tarjetas bajaban de 170 px y el récord no cabía */
-@media (min-width:1000px){.gm-cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
+/* el menú cabe en 2 alturas de pantalla en el móvil: el reto, «Seguir jugando» y una fila que se desliza por sección.
+   Las filas llegan al borde de la pantalla y la primera tarjeta queda en el margen de 16 px (--gm-gl/--gm-gr) */
+.gm-menu{--gm-gl:max(16px,var(--safe-l,0px));--gm-gr:max(16px,var(--safe-r,0px));--gm-cw:136px;--gm-ci:56px}
+.gm-grp{margin:0 0 8px}
+.gm-sh2{margin:0 0 2px;font:700 var(--fs-sub)/1.25 var(--f-round);color:var(--label)}
+/* las filas (y «Seguir jugando») llegan a los bordes y se deslizan; el primer elemento queda en el margen */
+:is(.gm-row,.gm-cnt){display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:none;
+  scroll-padding-inline:var(--gm-gl) var(--gm-gr);margin:0 calc(-1 * var(--gm-gr)) 0 calc(-1 * var(--gm-gl));padding:3px var(--gm-gr) 5px var(--gm-gl)}
+.gm-row{scroll-snap-type:x mandatory}
+:is(.gm-row,.gm-cnt)::-webkit-scrollbar{display:none}
+.gm-row>.gm-card{flex:0 0 var(--gm-cw);scroll-snap-align:start}
+/* las que solo llevan a otra pantalla: una fila compacta, el dibujo a la izquierda */
+.gm-row-l>.gm-card{flex-basis:236px;flex-direction:row;align-items:center;gap:12px}
+.gm-lk{display:flex;flex-direction:column;gap:2px;min-width:0}
+.gm-row-l .gm-cr{padding-top:0;margin-top:0}
+/* con ratón (o pantalla ancha) no se desliza: una rejilla */
+@media (min-width:900px),(hover:hover) and (pointer:fine){
+  .gm-menu{--gm-ci:64px}
+  .gm-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;overflow:visible;margin:0;padding:2px 0 4px;scroll-snap-type:none}
+  .gm-row-l{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+  .gm-cnt{flex-wrap:wrap;overflow:visible;margin:0;padding:2px 0 4px}
+  .gm-grp{margin-bottom:16px}}
+/* «Reto de hoy»: una tarjeta grande con el juego, el tema, ★★ y la semana (L…D) */
+.gm-reto{position:relative;display:flex;align-items:center;gap:14px;margin:0 0 10px;padding:10px 14px;border-radius:var(--r-card);background:var(--card);color:var(--label);
+  text-decoration:none;box-shadow:inset 0 0 0 2px var(--gold-soft),0 1px 3px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
+.gm-reto-i{flex:none;width:64px;height:64px;pointer-events:none}
+.gm-reto-b{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.gm-reto-k{font:700 var(--fs-min)/1.2 var(--f-text);color:var(--gold-ink);letter-spacing:.02em}
+.gm-reto-t{font:700 var(--fs-head)/1.2 var(--f-round);color:var(--label)}
+.gm-reto-g{display:flex;align-items:center;flex-wrap:wrap;gap:2px 8px;font:600 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
+.gm-reto-g .gm-st{vertical-align:middle}
+.gm-reto-ok .gm-reto-g{color:var(--ok-ink)}
+.gm-reto-v{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--ok-fill);color:#fff}
+.gm-wk{display:flex;gap:6px;margin-top:6px}
+.gm-wk>span{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:14px;font:600 11px/1 var(--f-text);color:var(--label2)}
+.gm-wk i{width:12px;height:12px;border-radius:50%;background:var(--fill)}
+.gm-wk .on i{background:var(--gold);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.gm-wk .now i{outline:2px solid var(--brand-tint);outline-offset:1px}
+@media (min-width:600px){.gm-reto{max-width:620px}}
+/* «Seguir jugando»: los 3 últimos, en pastillas (el dibujo pequeño y el nombre) */
+.gm-cg{flex:none;display:inline-flex;align-items:center;gap:8px;min-height:48px;box-sizing:border-box;padding:4px 16px 4px 6px;border-radius:999px;background:var(--card);
+  color:var(--label);text-decoration:none;white-space:nowrap;font:700 var(--fs-note)/1.2 var(--f-round);box-shadow:0 1px 3px rgba(0,0,0,.06);
+  -webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
+.gm-cg img{flex:none;width:40px;height:40px;pointer-events:none}
+:is(.gm-card,.gm-reto,.gm-cg):focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
+.gm-card{position:relative;box-sizing:border-box;display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px 12px;border-radius:var(--r-card);
+  background:var(--card);color:var(--label);text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
+.gm-ci{flex:none;width:var(--gm-ci,56px);height:var(--gm-ci,56px);margin:0;pointer-events:none}
+/* arriba: el dibujo y, a su lado, las estrellas (o «Nuevo»), el nivel y el candado */
+.gm-ch{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;width:100%;margin:0 0 4px}
+.gm-cside{display:flex;flex-direction:column;align-items:flex-end;gap:5px;min-width:0;padding-top:2px}
+.gm-ct{font:700 var(--fs-sub)/1.2 var(--f-round);color:var(--label);max-width:100%;overflow-wrap:break-word}
+/* el récord: el texto entero debajo del nombre (nunca se corta con «…») */
+.gm-cr{box-sizing:border-box;margin-top:auto;padding-top:2px;width:100%;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:3px}
+.gm-rt{max-width:100%;min-width:0;font:600 var(--fs-min)/1.25 var(--f-text);color:var(--label2);font-variant-numeric:tabular-nums}
+.gm-new,.gm-lvb{display:inline-flex;align-items:center;min-height:22px;padding:0 8px;border-radius:999px;white-space:nowrap;
+  background:var(--gold-soft);color:var(--gold-ink);font:700 var(--fs-min)/1 var(--f-text)}
+.gm-lvb{background:var(--brand-soft,var(--fill));color:var(--brand-ink)}
+.gm-clk{display:none}
 /* un juego que no se activa con este tema (def.show): en oscuro, con candado y su aviso; tocarlo explica por qué
    (sin relleno: más oscura que las demás en los dos temas; el aviso va donde estaba el récord) */
 .gm-card.gm-off{background:transparent;box-shadow:inset 0 0 0 1.5px var(--sep)}
 .gm-card.gm-off .gm-ci{filter:grayscale(1);opacity:.5}
-.gm-lockb{display:none;box-sizing:border-box;margin-top:auto;width:100%;align-items:center;gap:6px;padding:6px 10px;border-radius:12px;
-  background:var(--label);color:var(--bg);font:700 var(--fs-min)/1.25 var(--f-text)}
-.gm-lockb .ico,.gm-lockb svg{flex:none}
-.gm-off .gm-lockb{display:flex}
-.gm-off .gm-cr,.gm-off .gm-new{display:none}
-.gm-card{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:184px;padding:16px;border-radius:var(--r-card);
-  background:var(--card);color:var(--label);text-decoration:none;box-shadow:0 1px 3px rgba(0,0,0,.06);-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none}
-.gm-ci{width:64px;height:64px;margin:0 0 8px;pointer-events:none}
-.gm-ct{font:700 var(--fs-head)/1.2 var(--f-round);color:var(--label)}
-.gm-cs{font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
-/* el récord: en la línea de las estrellas; si no cabe a su lado, pasa entero a la línea de debajo (no se corta con «…») */
-.gm-cr{box-sizing:border-box;margin-top:auto;padding-top:12px;min-height:36px;width:100%;min-width:0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
-.gm-cr .gm-st{flex:none}
-.gm-rt{flex:none;max-width:100%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:600 var(--fs-min)/1.2 var(--f-text);color:var(--label2);font-variant-numeric:tabular-nums}
-.gm-new{position:absolute;top:12px;right:12px;display:inline-flex;align-items:center;min-height:24px;padding:0 8px;border-radius:999px;
-  background:var(--gold-soft);color:var(--gold-ink);font:700 var(--fs-min)/1 var(--f-text)}
+.gm-off .gm-clk{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--label);color:var(--bg)}
+.gm-lockb{display:none;margin-top:auto;padding-top:2px;max-width:100%;font:600 var(--fs-min)/1.25 var(--f-text);color:var(--label2)}
+.gm-off .gm-lockb{display:block}
+.gm-off :is(.gm-cr,.gm-new,.gm-lvb,.gm-cside>.gm-st){display:none}
 .gm-st{display:inline-flex;gap:1px;line-height:0}
 .gm-st i{display:inline-grid;color:var(--fill2,rgba(120,120,128,.24))}
 .gm-st i.on{color:var(--gold)}
@@ -472,6 +564,11 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-pk{display:flex;align-items:flex-start;gap:16px;margin:4px 4px 16px}
 .gm-pk-i{flex:none;width:72px;height:72px}
 .gm-pk-p{margin:0;font:400 var(--fs-body)/1.4 var(--f-text);color:var(--label)}
+.gm-pk-s{margin:0 0 4px;font:600 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
+/* las teclas del juego (def.keys), solo con teclado */
+.gm-keys{display:flex;align-items:flex-start;gap:8px;margin:8px 0 0;font:400 var(--fs-note)/1.35 var(--f-text);color:var(--label2);text-align:left}
+.gm-keys .ico{flex:none;margin-top:1px}
+.gm-keys[hidden]{display:none}
 .gm-pk-g{margin:0 0 16px;padding:4px 0}
 .gm-pk-r{display:flex;align-items:center;gap:12px;min-height:var(--row);padding:8px 16px;font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label)}
 .gm-pk-r+.gm-pk-r{border-top:.5px solid var(--sep)}
@@ -488,6 +585,7 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-intro-i{width:96px;height:96px}
 .gm-intro-t{margin:0;font:700 var(--fs-t2)/1.15 var(--f-round);color:var(--label)}
 .gm-intro-p{margin:0 0 4px;font:400 var(--fs-body)/1.4 var(--f-text);color:var(--label)}
+.gm-intro .gm-keys{margin:0 0 6px;justify-content:center}
 .gm-intro-tp{display:inline-block;margin:0 0 12px;padding:6px 12px;border-radius:999px;background:var(--fill);font:600 var(--fs-note)/1.2 var(--f-text);color:var(--label)}
 .gm-intro-back,.gm-intro-how{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;margin-top:4px;padding:0 12px;border:0;background:none;
   color:var(--brand-ink);font:600 var(--fs-sub)/1.2 var(--f-text);text-decoration:none;border-radius:12px;cursor:pointer}
@@ -496,7 +594,7 @@ dialog.gm-sh .st-g{background:var(--card)}
 @keyframes gm-fade{from{opacity:0}}
 @keyframes gm-in{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
 /* memoria */
-.gm-board{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:620px;margin:0 auto}
+.gm-board{display:grid;grid-template-columns:repeat(var(--mc,4),minmax(0,1fr));gap:12px;max-width:620px;margin:0 auto}
 .gm-mc{position:relative;aspect-ratio:4/5;border:0;padding:0;background:none;border-radius:16px;touch-action:manipulation;cursor:pointer;perspective:900px}
 .gm-mc-in{position:absolute;inset:0;transition:transform .5s cubic-bezier(.3,1.35,.5,1);transform-style:preserve-3d}
 @media (hover:hover){.gm-mc:not(.up):hover .gm-mc-in{transform:translateY(-3px) rotate(-1deg)}}
@@ -509,7 +607,10 @@ dialog.gm-sh .st-g{background:var(--card)}
 /* en oscuro, la cara del dibujo en blanco: los dibujos opacos (familia) no quedan como un rectángulo blanco sobre gris */
 [data-theme=dark] .gm-mc-face.k-img{background:#fff}
 .gm-mc-face.k-word{background:var(--card);padding:6px}
+.gm-mwb{display:flex;flex-direction:column;align-items:center;gap:2px;max-width:100%}
 .gm-mw{font-weight:900;line-height:1.15;text-align:center;overflow-wrap:anywhere;color:var(--label)}
+/* la IPA bajo la palabra de la carta (fitWords() la achica si no cabe) */
+.gm-mwb .ipa{display:block;font-size:.8rem;line-height:1.2;text-align:center;white-space:nowrap}
 .gm-mc.ok .gm-mc-face{border-color:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 30%,transparent)}
 .gm-mc.ok{animation:gm-yay .55s}
 .gm-mc.ok::after,.gm-mc.no::after{position:absolute;right:-6px;top:-6px;width:28px;height:28px;border-radius:50%;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(0,0,0,.2);z-index:2}
@@ -544,6 +645,8 @@ dialog.gm-sh .st-g{background:var(--card)}
 @keyframes gm-burst{50%{transform:scale(1.3)}100%{transform:scale(1.6);opacity:0}}
 .gm-float{position:absolute;z-index:5;font-weight:900;color:#fff;font-size:1.35rem;pointer-events:none;animation:gm-up 1s forwards;text-shadow:0 2px 0 rgba(0,0,0,.35);white-space:nowrap;transform:translateX(-50%)}
 .gm-float.bad{background:#6C6C70;color:#fff;border-radius:999px;padding:2px 12px;font-size:1.05rem;text-shadow:none}
+.gm-float .gm-fw{display:block;text-align:center;font-size:1.05rem}
+.gm-float .ipa{display:block;color:#fff;font-size:.85rem;font-weight:600;text-align:center}
 @keyframes gm-up{to{translate:0 -60px;opacity:0}}
 .gm-over{position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;background:rgba(5,15,30,.5);color:#fff;font-size:2rem;font-weight:900;text-align:center;animation:gm-fade .3s;padding:16px}
 .gm-over span{font-size:4rem;line-height:1}
@@ -581,6 +684,7 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-bal-g .gm-ltxt b{line-height:1}
 /* el acierto, en la misma frase (un solo mensaje): verde y en negrita */
 .gm-ltxt .gm-reveal{color:var(--ok-ink);font-weight:800}
+.gm-ltxt .ipa{font-size:.92em;font-weight:400;white-space:nowrap}
 .gm-air{position:relative;display:grid;grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));column-gap:16px;row-gap:8px;align-content:space-evenly;padding:12px 8px 0;
   min-height:var(--airh,300px);height:var(--airh,auto);border-radius:22px;overflow:hidden;
   background:radial-gradient(ellipse 120px 34px at 12% 100%,rgba(255,255,255,.95) 98%,transparent),radial-gradient(ellipse 160px 40px at 62% 102%,rgba(255,255,255,.9) 98%,transparent),radial-gradient(ellipse 110px 30px at 95% 100%,rgba(255,255,255,.95) 98%,transparent),linear-gradient(180deg,#bfe0ff 0%,#e6f3ff 100%)}
@@ -648,6 +752,7 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-lt-acts{display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
 .gm-lt-ok{margin-top:14px;background:color-mix(in srgb,var(--ok) 15%,var(--card));color:var(--ok-ink);border-radius:16px;padding:12px;font-weight:800;font-size:1.15rem;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;animation:gm-in .3s both}
 .gm-lt-ok span{color:var(--label);font-weight:700}
+.gm-lt-ok .ipa{color:var(--label2);font-weight:400;font-size:1rem}
 .gm-lt-ok .gm-say{width:48px;height:48px}
 .gm-lt.solved .gm-tiles,.gm-lt.solved .gm-lt-acts{display:none}
 /* resultado: una tarjeta sólida; las monedas salen volando de «+N» (#gm-plus) hasta el contador */
@@ -666,31 +771,37 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-plus{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 14px 0 8px;border-radius:999px;background:var(--fill);color:var(--label);font:800 var(--fs-head)/1 var(--f-round);font-variant-numeric:tabular-nums}
 .gm-plus .coin-ico{width:24px;height:24px;flex:none}
 .gm-end-n{margin:4px 0 0;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
+.gm-lvup{background:var(--brand-soft,var(--fill));color:var(--brand-ink)}
+.gm-rok{background:var(--ok-soft);color:var(--ok-ink)}
 .gm-wt{margin:16px 0 8px;font:600 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
-/* las palabras del juego: rejilla de 2 columnas, cada palabra a lo ancho de su columna y alineada a la izquierda */
+/* las palabras del juego: rejilla de 2 columnas (una sola a menos de 380 px, o si una palabra no cabe ni con la letra
+   más pequeña: .gm-wl1), las falladas primero con su ✗ gris; nunca se parte una palabra (fitList() achica la letra) */
 .gm-wl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;max-width:440px;margin:0 auto}
-.gm-wc{display:flex;width:100%;min-width:0;align-items:center;gap:8px;min-height:52px;border:0;background:var(--fill);color:var(--label);border-radius:14px;padding:4px 12px 4px 4px;text-align:left;font:inherit;cursor:pointer}
-.gm-wc>span:not(.gm-wn){flex:1;min-width:0;overflow-wrap:anywhere}
+.gm-wl.gm-wl1{grid-template-columns:minmax(0,1fr);max-width:360px}
+@media (max-width:379px){.gm-wl{grid-template-columns:minmax(0,1fr)}}
+.gm-wc{display:flex;width:100%;min-width:0;align-items:center;gap:8px;min-height:52px;border:0;background:var(--fill);color:var(--label);border-radius:14px;padding:5px 12px 5px 5px;text-align:left;font:inherit;cursor:pointer}
 @media (hover:hover){.gm-wc:hover{box-shadow:inset 0 0 0 2px var(--brand-tint)}}
-.gm-wc img,.gm-wc .gm-wn{width:40px;height:40px;object-fit:contain;background:var(--gm-tile);border-radius:10px;padding:3px;flex:none}
+.gm-wi{position:relative;flex:none;width:40px;height:40px}
+.gm-wc img,.gm-wc .gm-wn{box-sizing:border-box;width:40px;height:40px;object-fit:contain;background:var(--gm-tile);border-radius:10px;padding:3px;flex:none}
 .gm-wc .gm-wn{display:grid;place-items:center;color:var(--brand-tint);background:var(--card)}
-.gm-wc b{display:block;line-height:1.15}
-.gm-wc small{display:block;color:var(--label2);font-size:.8rem}
+.gm-wtx{flex:1;min-width:0;overflow:hidden}
+.gm-wtx b{display:block;line-height:1.15;overflow-wrap:normal;word-break:normal;hyphens:manual}
+.gm-wtx .ipa{display:block;font-size:.8rem;line-height:1.25;white-space:nowrap}
+.gm-wc small{display:block;color:var(--label2);font-size:.8rem;overflow-wrap:break-word}
 .gm-wc>.ico{color:var(--label2);flex:none}
 .gm-wc.gm-miss{box-shadow:inset 0 0 0 2px var(--miss)}
+/* la ✗ del fallo, gris sólido con la ✗ blanca, en la esquina del dibujo */
+.gm-wx{position:absolute;left:-5px;top:-5px;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;background:var(--miss);color:#fff;
+  font:900 12px/1 var(--f-text);box-shadow:0 0 0 2px var(--card)}
+.gm-rv{display:flex;align-items:center;justify-content:center;gap:6px;margin:12px 0 0;font:600 var(--fs-sub)/1.3 var(--f-text);color:var(--ok-ink)}
+.gm-rv .ico{flex:none}
 .gm-end-b{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:24px;width:100%;max-width:440px}
 .gm-end-b>*{flex:1}
+.gm-end-b>#gm-these{flex-basis:100%}
 @media (max-width:560px){
   .gm-name .t{display:none}
   .gm-pill{padding:0 12px}
-  .gm-card{min-height:176px;padding:12px}
-  .gm-ci{width:56px;height:56px}
-  .gm-board{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-  /* dos columnas en el móvil; si sobra una tarjeta, va a lo ancho (dibujo a la izquierda) */
-  .gm-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .gm-card:last-child:nth-child(odd){grid-column:1/-1;min-height:0;display:grid;grid-template-columns:auto minmax(0,1fr);column-gap:16px;align-content:center;align-items:center}
-  .gm-card:last-child:nth-child(odd) .gm-ci{grid-row:1/4;margin:0}
-  .gm-card:last-child:nth-child(odd) .gm-cr{padding-top:4px}
+  .gm-board{grid-template-columns:repeat(var(--mcm,3),minmax(0,1fr));gap:8px}
   .gm-mc{aspect-ratio:1/1.08}
   .gm-catch{gap:8px;padding-left:12px}
   .gm-catch b{font-size:1.35rem}
@@ -702,7 +813,7 @@ dialog.gm-sh .st-g{background:var(--card)}
 .gm-mfit .gm-board,.gm-mland .gm-board{grid-auto-rows:var(--mrow)}
 .gm-mfit .gm-mc,.gm-mland .gm-mc{aspect-ratio:auto}
 .gm-mfit .gm-tip,.gm-mland .gm-tip{display:none}
-.gm-mland .gm-board{grid-template-columns:repeat(6,minmax(0,1fr));max-width:var(--mbw,none)}
+.gm-mland .gm-board{grid-template-columns:repeat(var(--mcl,6),minmax(0,1fr));max-width:var(--mbw,none)}
 /* Globos en pantallas bajas (.gm-cmp): la tarjeta de escuchar más compacta para que los globos crezcan.
    Móvil tumbado (.gm-land): la tarjeta de escuchar a la izquierda y los globos a la derecha, bajo la fila de arriba */
 :root[data-gm-play=globos] main{padding-bottom:calc(var(--safe-b) + 12px)}
@@ -729,7 +840,7 @@ dialog.gm-sh .st-g{background:var(--card)}
 /* versión compacta cuando el juego no cabe en la pantalla (móviles bajitos) */
 .gm-short .gm-top{margin-bottom:8px}
 .gm-short .gm-tip{display:none}
-.gm-short .gm-board{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.gm-short .gm-board{grid-template-columns:repeat(var(--mc,4),minmax(0,1fr));gap:8px}
 .gm-short .gm-mc{aspect-ratio:4/5}
 .gm-short .gm-mc-back span{font-size:1.6rem}
 .gm-short .gm-listen{min-height:0;padding:8px 10px;gap:8px;margin-bottom:8px}
@@ -798,8 +909,18 @@ function autoFit(run, el, after, pad){
 /* que cada palabra quepa en su carta sin partirse por la mitad */
 function fitWords(root){
   root.querySelectorAll(".gm-mw").forEach(el => {
-    const face = el.parentNode, maxW = face.clientWidth - 12, maxH = face.clientHeight - 12;
+    const face = el.closest(".gm-mc-face") || el.parentNode, maxW = face.clientWidth - 12;
     if(maxW <= 0) return;
+    /* la IPA de debajo: primero ella, más pequeña si no cabe a lo ancho (sin partirse); lo que ocupa se le quita a la palabra */
+    const ip = face.querySelector(".ipa");
+    let ih = 0;
+    if(ip){
+      ip.style.transition = "none"; ip.style.fontSize = "";
+      let g = parseFloat(getComputedStyle(ip).fontSize), j = 0;
+      while(j++ < 12 && g > 9 && ip.scrollWidth > maxW){ g -= 1; ip.style.fontSize = g + "px"; }
+      ih = ip.offsetHeight + 2;
+    }
+    const maxH = face.clientHeight - 12 - ih;
     if(!el.dataset.fs) el.dataset.fs = parseFloat(getComputedStyle(el).fontSize);
     let f = +el.dataset.fs, k = 0;
     /* sin transición (con «Reducir movimiento» todo lleva una corta): se mide el tamaño de letra de verdad */
@@ -818,7 +939,7 @@ function intro(run, g, go){
   run.root.insertAdjacentHTML("beforeend", `<div class="gm-intro" role="dialog" aria-modal="true" aria-labelledby="gm-in-t">
     <div class="gm-intro-c"><img class="gm-intro-i" src="${esc(G0.img)}" alt="" width="96" height="96" draggable="false">
     <h2 class="gm-intro-t" id="gm-in-t">${esc(G0.t)}</h2>
-    <p class="gm-intro-p" id="gm-in-p"${full ? "" : " hidden"}>${esc(G0.how)}</p>
+    <p class="gm-intro-p" id="gm-in-p"${full ? "" : " hidden"}>${esc(G0.how)}</p>${keysHtml(G0, "gm-in-k", !full)}
     <div class="gm-intro-tp">${esc(wordsLabel(g))} · ${esc(Nm())}</div>
     <button type="button" class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block gm-go" data-key="enter">${IC("play", "fill", 22)}¡A jugar!</button>
     ${full ? `<a class="gm-intro-back" href="#/juegos">Elegir otro juego</a>`
@@ -854,6 +975,15 @@ const usesTopic = g => !!GAMES[g] && (!!GAMES[g].topic || (!GAMES[g].start && !G
 const shown = (id, tp = topicId()) => { const f = GAMES[id] && GAMES[id].show; try{ return typeof f !== "function" || !!f(tp); }catch(e){ return true; } };
 const offMsg = id => (GAMES[id] && GAMES[id].off) || "Se activa con otro tema";
 const offToast = id => toast(`${offMsg(id)}. Elígelo arriba, en «Tema».`, IC("lock", "bold", 20));
+/* «Nuevo»: fresh true = hasta la primera partida (los de antes); fresh "AAAA-MM-DD" = los 14 días siguientes (y sin jugar) */
+function isNew(id, b){
+  const f = GAMES[id] && GAMES[id].fresh;
+  if(b) return false;
+  if(f === true) return true;
+  if(typeof f !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(f)) return false;
+  const t0 = new Date(f + "T00:00:00").getTime();
+  return Number.isFinite(t0) && Date.now() - t0 < 14 * DAY_MS;
+}
 /* con «Soldados», su sección va la primera; con los demás temas, en su sitio */
 function orderSecs(){
   const box = document.getElementById("gm-cards"), sol = box && box.querySelector('.gm-grp[data-sec="soldados"]'); if(!sol) return;
@@ -870,64 +1000,149 @@ function paintCards(){
     if(on){ c.removeAttribute("aria-disabled"); c.setAttribute("aria-label", name); }
     else{ c.setAttribute("aria-disabled", "true"); c.setAttribute("aria-label", `${sent(offMsg(c.dataset.g))} ${name}`); }
   });
+  paintTop();
 }
 function linkHtml(id){
   const G0 = GAMES[id]; let line = "";
   try{ line = typeof G0.line === "function" ? String(G0.line() || "") : ""; }catch(e){ console.error(e); }
   return `<a class="gm-card card gm-link" href="${esc(G0.href)}" data-g="${esc(id)}" draggable="false"
     aria-label="${esc(sent(G0.t))}${G0.sub ? " " + esc(sent(G0.sub)) : ""}${line ? " " + esc(sent(line)) : ""}">
-    <img class="gm-ci" src="${esc(G0.img)}" alt="" width="64" height="64" draggable="false">
-    <b class="gm-ct">${esc(G0.t)}</b><small class="gm-cs">${esc(G0.sub)}</small>
-    <span class="gm-cr" aria-hidden="true"><span class="gm-rt">${esc(line)}</span></span></a>`;
+    <img class="gm-ci" src="${esc(G0.img)}" alt="" width="56" height="56" draggable="false">
+    <span class="gm-lk"><b class="gm-ct">${esc(G0.t)}</b>
+    <span class="gm-cr" aria-hidden="true"><span class="gm-rt">${esc(line)}</span></span></span></a>`;
 }
+/* la tarjeta de un juego: dibujo, nombre y récord (el subtítulo va en el vistazo y en el nombre accesible) */
 function cardHtml(id, b){
   if(isLink(id)) return linkHtml(id);
   const G0 = GAMES[id], st = b && typeof b === "object" ? Math.max(0, Math.min(3, num(b.stars))) : 0, rec = recLine(id, b);
-  const fresh = !!G0.fresh && !b;   /* un juego nuevo lleva «Nuevo» hasta su primera partida */
+  const fresh = isNew(id, b), lv = G0.levels ? lvOf(b) : 1;
+  /* arriba, el dibujo y a su lado las estrellas (o «Nuevo»), el nivel y, si no sale con este tema, el candado */
   return `<a class="gm-card card" href="#/juegos/${esc(id)}" data-g="${esc(id)}" draggable="false"
-    aria-label="${fresh ? "Nuevo. " : ""}${esc(sent(G0.t))} ${G0.sub ? esc(sent(G0.sub)) + " " : ""}${b ? `Récord: ${esc(rec)}, ${st} de 3 estrellas` : "Sin récord todavía"}">
-    ${fresh ? `<span class="gm-new" aria-hidden="true">Nuevo</span>` : ""}
-    <img class="gm-ci" src="${esc(G0.img)}" alt="" width="64" height="64" draggable="false">
-    <b class="gm-ct">${esc(G0.t)}</b><small class="gm-cs">${esc(G0.sub)}</small>
-    ${G0.show ? `<span class="gm-lockb" aria-hidden="true">${IC("lock", "bold", 14)}${esc(offMsg(id))}</span>` : ""}
-    <span class="gm-cr" aria-hidden="true">${starsHtml(st, 18)}<span class="gm-rt">${esc(rec)}</span></span></a>`;
+    aria-label="${fresh ? "Nuevo. " : ""}${esc(sent(G0.t))} ${G0.sub ? esc(sent(G0.sub)) + " " : ""}${lv > 1 ? `Nivel ${lv}. ` : ""}${b ? `Récord: ${esc(rec)}, ${st} de 3 estrellas` : "Sin récord todavía"}">
+    <span class="gm-ch"><img class="gm-ci" src="${esc(G0.img)}" alt="" width="56" height="56" draggable="false">
+      <span class="gm-cside" aria-hidden="true">${fresh ? `<span class="gm-new">Nuevo</span>` : starsHtml(st, 14)}${lv > 1 ? `<span class="gm-lvb">Nivel ${lv}</span>` : ""}${G0.show ? `<span class="gm-clk">${IC("lock", "bold", 16)}</span>` : ""}</span></span>
+    <b class="gm-ct">${esc(G0.t)}</b>
+    ${G0.show ? `<span class="gm-lockb" aria-hidden="true">${esc(offMsg(id))}</span>` : ""}
+    <span class="gm-cr" aria-hidden="true"><span class="gm-rt">${esc(rec)}</span></span></a>`;
 }
-/* el menú va por secciones (def.sec de cada juego; los de antes, por su id en SEC_OF). Las tarjetas que solo llevan a
-   otra pantalla van en «Leer, escuchar y crear». Con el tema «Soldados», su sección sale primero */
+/* el menú va por secciones (def.sec de cada juego; los de antes, por su id en SEC_OF), cada una en una fila que se
+   desliza. Las tarjetas que solo llevan a otra pantalla van al final («mas»), en una fila compacta. Con el tema
+   «Soldados», su sección sale primero */
 const SECS = [["palabras", "Juegos de palabras"], ["concursos", "Concursos"], ["gramatica", "Gramática"], ["grupo", "Para jugar en grupo"],
   ["soldados", "Soldados"], ["mas", "Leer, escuchar y crear"]];
 const SEC_OF = {memoria: "palabras", lluvia: "palabras", globos: "palabras", letras: "palabras", lince: "palabras", pajarito: "palabras", topos: "palabras",
   impostor: "grupo", ordenar: "grupo", soldados: "soldados"};
-const secFor = id => { const s = GAMES[id].sec || SEC_OF[id] || (isLink(id) ? "mas" : "palabras"); return SECS.some(x => x[0] === s) ? s : "palabras"; };
+const secFor = id => { const s = isLink(id) ? "mas" : GAMES[id].sec || SEC_OF[id] || "palabras"; return SECS.some(x => x[0] === s) ? s : "palabras"; };
 function cardsHtml(best){
   return SECS.map(([sec, t]) => {
     const ids = Object.keys(GAMES).filter(id => secFor(id) === sec);
     return ids.length ? `<section class="gm-grp" data-sec="${sec}" aria-labelledby="gm-sh-${sec}"><h2 class="gm-sh2" id="gm-sh-${sec}">${esc(t)}</h2>
-      <div class="gm-cards">${ids.map(id => cardHtml(id, best[id])).join("")}</div></section>` : "";
+      <div class="gm-row${sec === "mas" ? " gm-row-l" : ""}">${ids.map(id => cardHtml(id, best[id])).join("")}</div></section>` : "";
   }).join("");
 }
+
+/* ---------- «Reto de hoy» ----------
+   Un juego al día, elegido con la fecha (azar con semilla, como js/buddy.js) entre los que salen con el tema elegido y
+   no se jugaron los 3 días antes de hoy (las partidas de hoy no cuentan: el reto no cambia al jugarlo). Solo cuenta si
+   se juega desde su tarjeta (RETO se apunta al tocarla y sigue con «Otra vez»). La tarjeta no promete monedas (un
+   premio anunciado quita las ganas de jugar por jugar): ★★ o más da una vez una sorpresa de 10 a 20 monedas
+   (retoBonus, con la fecha), que sale en el resultado: «¡Reto conseguido! Sorpresa: +N».
+   "games:reto" = {d, g, tp (el último conseguido), days: [los días conseguidos, 14 como mucho]} */
+const RETO_KEY = "games:reto";
+let RETO = null;   /* {g, d}: la partida que se empezó desde la tarjeta del reto */
+function rng(seed){
+  let h = 2166136261 >>> 0;
+  for(let i = 0; i < seed.length; i++){ h ^= seed.charCodeAt(i); h = Math.imul(h, 16777619); }
+  let a = h >>> 0;
+  return () => { a = (a + 0x6D2B79F5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+const dayNow = () => dayKey(new Date());
+/* la sorpresa del reto conseguido: 10 a 20 monedas, la misma todo el día (no se anuncia en la tarjeta) */
+const retoBonus = day => 10 + Math.floor(rng("sorpresa|" + day)() * 11);
+function retoSt(){
+  const o = obj(RETO_KEY), days = Array.isArray(o.days) ? o.days.filter(d => typeof d === "string" && /^\d{4}-\d{2}-\d{2}$/.test(d)) : [];
+  return {d: typeof o.d === "string" ? o.d : "", g: typeof o.g === "string" ? o.g : "", tp: typeof o.tp === "string" ? o.tp : "", days};
+}
+/* el reto de hoy: {g, tp, done} o null */
+function retoPick(){
+  const day = dayNow(), st = retoSt();
+  if(st.d === day && GAMES[st.g] && !isLink(st.g)) return {g: st.g, tp: isTopic(st.tp) ? st.tp : topicId(), done: true};
+  const tp = topicId(), B = obj("games:best"), d0 = new Date(); d0.setHours(0, 0, 0, 0);
+  const t0 = d0.getTime(), from = t0 - 3 * DAY_MS;
+  const all = Object.keys(GAMES).filter(id => !isLink(id) && shown(id, tp)).sort();
+  const rest = all.filter(id => { const at = num(B[id] && B[id].at); return !(at >= from && at < t0); });
+  const ids = rest.length ? rest : all;
+  if(!ids.length) return null;
+  return {g: ids[Math.floor(rng("reto|" + day)() * ids.length)], tp, done: false};
+}
+const retoHref = r => `#/juegos/${r.g}${usesTopic(r.g) ? `?t=${encodeURIComponent(r.tp)}` : ""}`;
+/* la semana (lunes a domingo) con los días del reto conseguido: un día sin reto es solo un punto gris vacío */
+function weekHtml(days){
+  const now = new Date(), k = (now.getDay() + 6) % 7, has = new Set(days);
+  return `<span class="gm-wk" aria-hidden="true">${["L", "M", "X", "J", "V", "S", "D"].map((l, i) => {
+    const d = new Date(now); d.setDate(now.getDate() - k + i);
+    return `<span class="${has.has(dayKey(d)) ? "on" : ""}${i === k ? " now" : ""}">${l}<i></i></span>`;
+  }).join("")}</span>`;
+}
+/* n estrellas de oro (las del reto: «consigue ★★») */
+const goldStars = (n, z) => `<span class="gm-st" aria-hidden="true">${Array.from({length: n}, () => `<i class="on">${IC("star", "fill", z)}</i>`).join("")}</span>`;
+function retoHtml(){
+  const r = retoPick(); if(!r) return "";
+  const G0 = GAMES[r.g], st = retoSt(), done = r.done;
+  const what = usesTopic(r.g) ? `${G0.t} · ${topicName(r.tp)}` : G0.t;
+  return `<a class="gm-reto${done ? " gm-reto-ok" : ""}" id="gm-reto" href="${esc(retoHref(r))}" data-rg="${esc(r.g)}" draggable="false"
+    aria-label="${done ? `Reto de hoy conseguido: ${esc(what)}.` : `Reto de hoy: ${esc(what)}. Consigue 2 estrellas.`}">
+    <img class="gm-reto-i" src="${esc(G0.img)}" alt="" width="64" height="64" draggable="false">
+    <span class="gm-reto-b"><span class="gm-reto-k">Reto de hoy</span><b class="gm-reto-t">${esc(what)}</b>
+      <span class="gm-reto-g">${done ? `${IC("check-circle", "fill", 18)}¡Conseguido!` : `<span>Consigue ${goldStars(2, 16)}</span>`}</span>
+      ${weekHtml(st.days)}</span>
+    ${done ? `<span class="gm-reto-v" aria-hidden="true">${IC("check", "bold", 18)}</span>` : ""}</a>`;
+}
+/* «Seguir jugando»: los 3 últimos juegos jugados que salen con este tema */
+function contHtml(B){
+  const ids = Object.keys(B).filter(id => GAMES[id] && !isLink(id) && B[id] && num(B[id].at) > 0 && shown(id))
+    .sort((a, b) => num(B[b].at) - num(B[a].at)).slice(0, 3);
+  if(!ids.length) return "";
+  return `<section class="gm-grp gm-cont" id="gm-cont" aria-labelledby="gm-sh-cont"><h2 class="gm-sh2" id="gm-sh-cont">Seguir jugando</h2>
+    <div class="gm-cnt">${ids.map(id => `<a class="gm-cg" href="#/juegos/${esc(id)}" data-cg="${esc(id)}" draggable="false">
+      <img src="${esc(GAMES[id].img)}" alt="" width="40" height="40" draggable="false"><span>${esc(GAMES[id].t)}</span></a>`).join("")}</div></section>`;
+}
+/* el reto y «Seguir jugando» se repintan al cambiar de tema (lo que sale depende de él) */
+let GEST_TOP = [];
+function paintTop(){
+  const box = document.getElementById("gm-top"); if(!box) return;
+  box.innerHTML = retoHtml() + contHtml(obj("games:best"));
+  GEST_TOP.forEach(off => { try{ off(); }catch(e){} }); GEST_TOP = [];
+  if(window.G && typeof window.G.hold === "function")
+    box.querySelectorAll("[data-rg],[data-cg]").forEach(c => GEST_TOP.push(window.G.hold(c, {onHold: () => { haptic("selection"); peek(c.dataset.rg || c.dataset.cg, c); }})));
+}
+
 const pillHtml = tp => `<span>Tema:</span> <b>${esc(topicName(tp))}</b>${IC("caret-down", "bold", 16)}`;
 function paintPill(){ const p = document.getElementById("gm-tpill"); if(p) p.innerHTML = pillHtml(topicId()); }
 async function menu(){
   const my = NAV, app = $("#app"), best = obj("games:best");
   clearGest();
+  RETO = null;
   app.innerHTML = `<div class="gm gm-menu" id="gm-menu">
     <div class="gm-bar"><button type="button" class="glass-btn gm-tpill" id="gm-tpill" aria-haspopup="dialog">${pillHtml(topicId())}</button></div>
+    <div id="gm-top"></div>
     <div class="gm-secs" id="gm-cards">${cardsHtml(best)}</div>
   </div>`;
   $("#gm-tpill").onclick = e => openTopics(e.currentTarget);
-  const cards = [...app.querySelectorAll(".gm-card")];
-  /* tocar = jugar (el enlace); dentro del toque se desbloquea la voz para que la partida pueda hablar (iOS) */
-  $("#gm-cards").addEventListener("click", e => {
-    const c = e.target.closest(".gm-card"); if(!c) return;
+  const cards = [...app.querySelectorAll("#gm-cards .gm-card")];
+  /* tocar = jugar (el enlace); dentro del toque se desbloquea la voz para que la partida pueda hablar (iOS). El reto
+     solo cuenta si se toca su tarjeta */
+  $("#gm-menu").addEventListener("click", e => {
+    const c = e.target.closest(".gm-card,.gm-reto,.gm-cg"); if(!c) return;
     if(c.classList.contains("gm-off")){ e.preventDefault(); haptic("selection"); offToast(c.dataset.g); return; }
+    RETO = c.dataset.rg && !c.classList.contains("gm-reto-ok") ? {g: c.dataset.rg, d: dayNow()} : null;
     unlockVoice();
   });
   paintCards();
   /* mantener pulsado = vistazo (cómo se juega y el récord) */
   if(window.G && typeof window.G.hold === "function") cards.filter(c => !isLink(c.dataset.g)).forEach(c => GEST.push(window.G.hold(c, {onHold: () => { haptic("selection"); if(c.classList.contains("gm-off")) offToast(c.dataset.g); else peek(c.dataset.g, c); }})));
   /* la pista del vistazo (una por pantalla y sesión, 3 veces como mucho; nunca en partida). Sale debajo de la primera
-     tarjeta, sobre la parte de arriba (el dibujo) de la fila siguiente: no tapa ni la pastilla del tema ni ningún récord */
+     tarjeta, sobre el título de la sección siguiente: no tapa ni la pastilla del tema ni ningún récord */
   setTimeout(() => {
     const c = cards[0];
     if(!here(my) || !c || !c.isConnected || !window.G || typeof window.G.hint !== "function") return;
@@ -996,35 +1211,53 @@ function peek(id, from){
   const G0 = GAMES[id]; if(!G0 || isLink(id)) return false;
   css();
   const b = obj("games:best")[id], st = b && typeof b === "object" ? Math.max(0, Math.min(3, num(b.stars))) : 0;
+  /* desde la tarjeta del reto, «Jugar» juega el reto (con su tema) */
+  const reto = !!(from && from.dataset && from.dataset.rg === id && !from.classList.contains("gm-reto-ok"));
+  const href = reto ? from.getAttribute("href") : `#/juegos/${id}`, lv = G0.levels ? lvOf(b) : 0;
+  const tp = reto ? (hashTopicOf(href) || topicId()) : topicId();
   const d = mkSheet("gm-peek", "gm-pk-t");
   if(!d.dataset.wired){
     d.dataset.wired = "1";
     d.addEventListener("click", e => {
       if(e.target.closest("[data-close]")){ sheetClose(d); return; }
       const go = e.target.closest("[data-go]");
-      if(go){ e.preventDefault(); unlockVoice(); const to = go.getAttribute("href"); sheetClose(d, true); location.hash = to; }
+      if(go){
+        e.preventDefault(); unlockVoice();
+        const to = go.getAttribute("href"), g = (to.split("/")[2] || "").split("?")[0];
+        RETO = go.hasAttribute("data-reto") ? {g, d: dayNow()} : null;
+        sheetClose(d, true); location.hash = to;
+      }
     });
   }
   d.innerHTML = `<div class="m-head"><h2 id="gm-pk-t">${esc(G0.t)}</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
-    <div class="gm-pk"><img class="gm-pk-i" src="${esc(G0.img)}" alt="" width="72" height="72" draggable="false"><p class="gm-pk-p">${esc(G0.how)}</p></div>
+    <div class="gm-pk"><img class="gm-pk-i" src="${esc(G0.img)}" alt="" width="72" height="72" draggable="false">
+      <div>${G0.sub ? `<p class="gm-pk-s">${esc(G0.sub)}</p>` : ""}<p class="gm-pk-p">${esc(G0.how)}</p>${keysHtml(G0)}</div></div>
     <div class="st-g gm-pk-g">
       <div class="gm-pk-r"><span>Récord</span>${b ? `<span class="gm-st-l" role="img" aria-label="${st} de 3 estrellas">${starsHtml(st, 20)}</span><b>${esc(recLine(id, b))}</b>` : "<b>Aún sin récord</b>"}</div>
-      <div class="gm-pk-r">${G0.words ? `<b>${esc(G0.words)}</b>` : `<span>Palabras</span><b>${esc(topicName(topicId()))}</b>`}</div>
+      ${lv ? `<div class="gm-pk-r"><span>Nivel</span><b>${lv} de 3</b></div>` : ""}
+      <div class="gm-pk-r">${G0.words ? `<b>${esc(G0.words)}</b>` : `<span>Palabras</span><b>${esc(topicName(tp))}</b>`}</div>
       ${b && num(b.plays) ? `<div class="gm-pk-r"><span>Partidas</span><b>${num(b.plays)}</b></div>` : ""}
     </div>
-    <a class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" href="#/juegos/${esc(id)}" data-go>${IC("play", "fill", 22)}Jugar</a>`;
+    <a class="glass-btn glass-btn--pri glass-btn--lg glass-btn--block" href="${esc(href)}" data-go${reto ? " data-reto" : ""}>${IC("play", "fill", 22)}Jugar</a>`;
   sheetOpen(d, from);
   return true;
 }
 
 /* ---------- arranque de un juego ---------- */
+/* «Jugar con estas» (el resultado): Globos con las palabras falladas de la partida; se gasta al empezar */
+let PRESET = null;   /* {g: "globos", words: [...]} */
 async function play(g, withIntro){
   const my = NAV, app = $("#app"), G0 = GAMES[g];
   /* un enlace directo a un juego que no se activa con este tema: de vuelta al menú, con el aviso */
   if(!shown(g, hashTopic() || topicId())){ offToast(g); location.replace("#/juegos"); return; }   /* ?t=militar (atajos de Hoy) vale */
   const mode = !withIntro ? "" : !introSeen(g) ? "full" : tappedNow(g) ? "" : "ready";
+  /* el reto sigue solo en su juego (también con «Otra vez») y solo hoy */
+  if(!(RETO && RETO.g === g && RETO.d === dayNow())) RETO = null;
+  const pre = PRESET && PRESET.g === g && Array.isArray(PRESET.words) ? PRESET.words : null;
+  PRESET = null;
   app.innerHTML = `<div class="gm"><p class="gm-wait">Preparando el juego…</p></div>`;
   if(typeof G0.start === "function"){   /* un juego de otro módulo (vocabGames.register) */
+    CUR_TP = null;   /* lo pone topicPool() en los juegos con tema */
     try{ await G0.start(app, API, mode); }
     catch(e){ console.error(e); if(here(my, g)) app.innerHTML = emptyHtml(); }
     return;
@@ -1040,9 +1273,18 @@ async function play(g, withIntro){
     toast(`${topicName(tp)} tiene pocas palabras para este juego. ¡Jugamos con Animales!`);
     tp = "animales";
   }
+  /* las palabras de «Jugar con estas», más las del tema hasta 4; las del tema también sirven de globos de más */
+  let focus = null;
+  if(pre){
+    const key = x => x.k || x.img || x.word, have = new Set();
+    focus = pre.filter(w => w && w.img && w.word && !have.has(key(w)) && have.add(key(w)));
+    for(const x of shuffle(P)){ if(focus.length >= 4) break; if(!have.has(key(x))){ have.add(key(x)); focus.push(x); } }
+    P = [...focus, ...P.filter(x => !focus.some(f => key(f) === key(x) || f.img === x.img))];
+    if(focus.length < 1) focus = null;
+  }
   if(usable(g, P) < G0.need){ app.innerHTML = emptyHtml(); return; }
   CUR_TP = tp;
-  ({memoria, lluvia, globos, letras})[g](app, P, mode);
+  ({memoria, lluvia, globos, letras})[g](app, P, mode, focus);
 }
 const emptyHtml = () => `<div class="gm"><div class="gm-empty"><p>No hay palabras para este juego todavía.</p>
   <a class="glass-btn" href="#/juegos">${IC("caret-left", "bold", 18)}Juegos</a></div></div>`;
@@ -1050,43 +1292,95 @@ function mount(app, html, mode){
   app.innerHTML = html;
   const run = begin(app.querySelector(".gm"));
   run.intro = typeof mode === "string" ? mode : mode ? "full" : "";
+  run.right = 0;
   /* lo que pasa al contestar, para el lector de pantalla (si el juego no trae ya su propia región viva) */
   if(run.root && !run.root.querySelector("[aria-live]")) run.root.insertAdjacentHTML("beforeend", `<p class="vh gm-live" role="status" aria-live="polite" aria-atomic="true"></p>`);
   return run;
 }
 
 /* ---------- resultado ---------- */
-function finish(run, g, o){
-  if(!live(run) || run.finished) return;
-  run.finished = true;
-  const B = obj("games:best"), prev = B[g] && typeof B[g] === "object" ? B[g] : null;
-  const better = g === "memoria" ? (!prev || !(prev.tries > 0) || o.tries < prev.tries) : (!prev || !Number.isFinite(prev.score) || o.score > prev.score);
-  B[g] = {score: better ? o.score : prev.score, stars: Math.max(prev ? +prev.stars || 0 : 0, o.stars), plays: (prev ? +prev.plays || 0 : 0) + 1};
-  if(g === "memoria") B[g].tries = better ? o.tries : prev.tries;
-  store.set("games:best", B);
-  /* después de 8 partidas en un día, cada partida da lo mínimo */
-  const day = dayKey(new Date()), D = obj("games:day");
-  if(D.k !== day || !Number.isFinite(D.n)){ D.k = day; D.n = 0; }
-  D.n++; store.set("games:day", D);
-  const coins = D.n > 8 ? 5 : [5, 5, 10, 15][o.stars];
-  try{ logAct(1); }catch(e){}
-  markSeen(g);
-  const title = o.stars === 3 ? "¡Increíble!" : o.stars === 2 ? "¡Muy bien!" : "¡Bien hecho!";
-  const words = (o.words || []).slice(0, 10), code = LANGS[lang].code;
-  run.root.innerHTML = `<div class="gm-end" id="gm-end">
-    <div class="gm-end-hero">${heroHtml(84)}</div>
-    <h1 class="gm-end-t">${title}</h1>
-    <div class="gm-end-st" role="img" aria-label="${o.stars} de 3 estrellas">${[0, 1, 2].map(i => `<span class="gm-es${i < o.stars ? " on" : ""}" style="--i:${i}">${IC("star", "fill", 44)}</span>`).join("")}</div>
-    <p class="gm-end-l">${esc(o.line)}</p>
-    <div class="gm-end-c">${better && prev ? `<span class="gm-rec">${IC("trophy", "fill", 18)}¡Nuevo récord!</span>` : !prev ? `<span class="gm-rec">${IC("trophy", "fill", 18)}¡Tu primer récord!</span>` : ""}
-      <span class="gm-plus" id="gm-plus" aria-label="${coins} monedas">${COIN}+${coins}</span></div>
-    ${D.n > 8 ? `<p class="gm-end-n">¡Hoy ya jugaste mucho! Ahora cada partida da 5.</p>` : ""}
-    ${words.length ? `<p class="gm-wt">Palabras del juego · toca para oírlas</p>
-    <div class="gm-wl">${words.map(w => `<button type="button" class="gm-wc${w.miss ? " gm-miss" : ""}" data-say="${esc(w.word)}" aria-label="Escuchar ${esc(w.word)}">${w.img ? imgTag(w) : `<span class="gm-wn" aria-hidden="true">${IC("speaker-high", "fill", 20)}</span>`}<span><b lang="${esc(code)}">${esc(w.word)}</b><small>${esc(w.es)}</small></span>${IC("speaker-high", "bold", 18)}</button>`).join("")}</div>` : ""}
-    <div class="gm-end-b"><a class="glass-btn glass-btn--lg" href="#/juegos" id="gm-menu-b">Juegos</a>
-      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="gm-again" data-key="enter">${IC("arrow-counter-clockwise", "bold", 20)}Otra vez</button></div></div>`;
+/* las palabras del resultado: sin repetir, las falladas primero (el orden de cada grupo, el del juego) y 10 como mucho */
+function endWords(ws){
+  const seen = new Set(), out = [];
+  for(const w of Array.isArray(ws) ? ws : []){
+    if(!w || typeof w !== "object") continue;
+    if(w.k){ if(seen.has(w.k)) continue; seen.add(w.k); }
+    out.push(w);
+  }
+  return out.sort((a, b) => (b.miss ? 1 : 0) - (a.miss ? 1 : 0)).slice(0, 10);
+}
+/* las falladas van solas al repaso: las que ya están en él, para hoy; las nuevas (3 como mucho por partida), con
+   srsAdd(doc, [fila], 0) como Palabras. Nunca con Soldados ni en los juegos de gramática (def.words "Gramática" o
+   def.noReview). Solo las que traen k = "<doc>|<es>" (la clave del repaso). Devuelve {n (cuántas irán al repaso),
+   play (las falladas con dibujo, para «Jugar con estas»)} */
+function toReview(g, ws){
+  const G0 = GAMES[g] || {}, out = {n: 0, play: []};
+  if(G0.noReview || G0.words === "Gramática" || secFor(g) === "soldados" || (usesTopic(g) && CUR_TP === MIL)) return out;
+  let m = null; try{ m = srsAll(); }catch(e){}
+  if(!m || typeof m !== "object") return out;
+  const t = today(), add = [], seen = new Set();
+  let due = 0, put = false;
+  for(const w of Array.isArray(ws) ? ws : []){
+    if(!w || !w.miss || typeof w.k !== "string" || seen.has(w.k)) continue;
+    const i = w.k.indexOf("|"), d = i > 0 ? w.k.slice(0, i) : "", es = i > 0 ? w.k.slice(i + 1) : "";
+    if(!d || !es || d === MIL || d === MIS) continue;
+    seen.add(w.k);
+    if(w.img && w.word) out.play.push(w);
+    const x = m[w.k];
+    if(x && typeof x === "object"){ if(!(x.due <= t)){ x.due = t; put = true; } due++; }
+    else if(add.length < 3) add.push({d, es});
+  }
+  try{
+    if(put) srsPut(m);
+    for(const a of add) srsAdd(a.d, [{es: a.es}], 0);
+  }catch(e){ console.error(e); return {n: 0, play: out.play}; }
+  out.n = due + add.length;
+  return out;
+}
+function listHtml(ws, mark){
+  if(!ws.length) return "";
+  const c = code();
+  return `<p class="gm-wt">Palabras del juego · toca para oírlas</p>
+    <div class="gm-wl" id="gm-wl">${ws.map(w => {
+      const miss = mark && !!w.miss, word = String(w.word || ""), f = wfs(word);
+      return `<button type="button" class="gm-wc${miss ? " gm-miss" : ""}" data-say="${esc(word)}" aria-label="Escuchar ${esc(word)}${miss ? ". Para repasar" : ""}">
+      <span class="gm-wi">${w.img ? imgTag(w) : `<span class="gm-wn" aria-hidden="true">${IC("speaker-high", "fill", 20)}</span>`}${miss ? `<span class="gm-wx" aria-hidden="true">✗</span>` : ""}</span>
+      <span class="gm-wtx"><b lang="${esc(c)}" data-fs="${f}" style="font-size:${f}">${esc(word)}</b>${ipaOf(w)}<small>${esc(w.es)}</small></span>${IC("speaker-high", "bold", 18)}</button>`;
+    }).join("")}</div>`;
+}
+/* que ninguna palabra (ni su IPA) se parta: la letra baja hasta que cabe; si una no cabe ni así, una sola columna */
+function fitList(wl){
+  if(!wl || !wl.isConnected) return;
+  const fit = () => {
+    let bad = false;
+    wl.querySelectorAll(".gm-wtx").forEach(box => {
+      box.querySelectorAll("b, .ipa").forEach(el => {
+        el.style.transition = "none";
+        el.style.fontSize = el.dataset.fs || "";
+        const min = el.tagName === "B" ? 13 : 10;
+        let f = parseFloat(getComputedStyle(el).fontSize), k = 0;
+        while(k++ < 24 && f > min && el.scrollWidth > el.clientWidth + .5){ f -= .5; el.style.fontSize = f + "px"; }
+        if(el.scrollWidth > el.clientWidth + .5) bad = true;
+      });
+    });
+    return bad;
+  };
+  wl.classList.remove("gm-wl1");
+  if(fit()){ wl.classList.add("gm-wl1"); fit(); }
+}
+const endBtns = these => `<div class="gm-end-b"><a class="glass-btn glass-btn--lg" href="#/juegos" id="gm-menu-b">Juegos</a>
+      <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="gm-again" data-key="enter">${IC("arrow-counter-clockwise", "bold", 20)}Otra vez</button>
+      ${these ? `<button type="button" class="glass-btn glass-btn--lg" id="gm-these">${IC("balloon", "fill", 20)}Jugar con estas</button>` : ""}</div>`;
+/* «Jugar con estas»: Globos con las falladas (y el tema de la partida para rellenar) */
+function playThese(list){
+  PRESET = {g: "globos", words: list.slice(0, 10)};
+  TAP = {g: "globos", t: Date.now()};
+  const tp = CUR_TP && isTopic(CUR_TP) ? CUR_TP : null, to = `#/juegos/globos${tp ? `?t=${encodeURIComponent(tp)}` : ""}`;
+  if(location.hash === to) play("globos", false); else location.hash = to;
+}
+/* el resultado es una fase nueva: limpia lo del juego, sale del modo foco y deja solo sus propios botones */
+function endPhase(run, g, these){
   window.scrollTo(0, 0);
-  /* el resultado es una fase nueva: limpia lo del juego y deja solo sus propios temporizadores */
   run.timers.forEach(clearTimeout); run.timers = [];
   if(run.raf){ cancelAnimationFrame(run.raf); run.raf = 0; }
   run.clean.forEach(f => { try{ f(); }catch(e){} }); run.clean = [];
@@ -1096,35 +1390,105 @@ function finish(run, g, o){
   /* fuera del modo foco: vuelven las barras y las monedas vuelan desde «+N» hasta la pastilla de arriba */
   playMark(null);
   try{ if(typeof updFocus === "function") updFocus(); }catch(e){}
-  award(coins, "", false, run.root.querySelector("#gm-plus"));
-  bus.emit("game-done", Object.assign({game: g, score: o.score, stars: o.stars}, g === "memoria" ? {tries: o.tries} : {},
-    usesTopic(g) && CUR_TP ? {tp: CUR_TP} : {}));   /* tp: el tema de la partida */
-  snd("fanfare");
-  /* las estrellas salen de una en una, cada una con una nota más aguda */
-  for(let i = 0; i < o.stars; i++) later(run, () => note(i + 2), RM() ? 120 : 200 + (i + 1) * 280);
-  if(o.stars === 3) later(run, () => sparks(run.root.querySelector(".gm-end-st"), 14), 1100);
+  /* las palabras caben sin partirse (también al girar el aparato y cuando llega la letra) */
+  const wl = run.root.querySelector("#gm-wl");
+  if(wl){
+    const fit = () => { if(live(run)) fitList(wl); };
+    fit(); requestAnimationFrame(fit);
+    try{ document.fonts.ready.then(fit); }catch(e){}
+    addEventListener("resize", fit); run.clean.push(() => removeEventListener("resize", fit));
+  }
   /* dos toques rápidos no se saltan el resultado: 0,6 s sin hacer caso a los botones */
   const t0 = performance.now(), INERT = RM() ? 300 : 600;
   const inert = () => performance.now() - t0 < INERT;
   run.root.addEventListener("click", e => { if(inert() && e.target.closest("a,button")){ e.preventDefault(); e.stopPropagation(); } }, true);
   const again = () => { if(inert()) return; play(g, false); };
   run.root.querySelector("#gm-again").onclick = again;
+  const th = run.root.querySelector("#gm-these");
+  if(th) th.onclick = () => { if(!inert() && these && these.length) playThese(these); };
   keys(run, e => { if(e.key === "Enter" && !(e.target.closest && e.target.closest("a,button:not(#gm-again)"))){ e.preventDefault(); again(); } });
+}
+function finish(run, g, o){
+  if(!live(run) || run.finished) return;
+  run.finished = true;
+  o = o && typeof o === "object" ? o : {};
+  const G0 = GAMES[g] || {}, ws = endWords(o.words);
+  markSeen(g);
+  /* sin ningún acierto (se dejó pasar el tiempo sin tocar nada): ni estrellas, ni monedas, ni récord, ni "game-done" */
+  if(!(o.played || G0.played || (G0.played !== false && secFor(g) === "grupo")) && !(num(run.right) > 0)){
+    run.root.innerHTML = `<div class="gm-end gm-end0" id="gm-end">
+      <div class="gm-end-hero">${heroHtml(84)}</div>
+      <h1 class="gm-end-t">¡Vamos otra vez!</h1>
+      <p class="gm-end-l" role="status">¡Seguro que ahora te sale!</p>
+      ${listHtml(ws, false)}
+      ${endBtns(null)}</div>`;
+    endPhase(run, g, null);
+    return;
+  }
+  const B = obj("games:best"), prev = B[g] && typeof B[g] === "object" ? B[g] : null;
+  const stars = Math.max(0, Math.min(3, Math.round(num(o.stars))));
+  const better = g === "memoria" ? (!prev || !(prev.tries > 0) || o.tries < prev.tries) : (!prev || !Number.isFinite(prev.score) || o.score > prev.score);
+  B[g] = {score: better ? o.score : prev.score, stars: Math.max(prev ? +prev.stars || 0 : 0, stars), plays: (prev ? +prev.plays || 0 : 0) + 1, at: Date.now()};
+  if(g === "memoria") B[g].tries = better ? o.tries : prev.tries;
+  /* el nivel se guarda aunque B[g] se rehace; ★★★ en el nivel de ahora abre el siguiente */
+  const lv0 = lvOf(prev), lvUp = !!G0.levels && stars === 3 && lv0 < 3 && !(num(o.lv) > 0 && num(o.lv) < lv0), lv = lvUp ? lv0 + 1 : lv0;
+  if(lv > 1 || (prev && prev.lv != null)) B[g].lv = lv;
+  store.set("games:best", B);
+  /* el reto de hoy: jugado desde su tarjeta, con ★★ o más, da una sorpresa (10-20 monedas, con la fecha) una vez */
+  const day = dayNow(), rs = retoSt(), retoOk = !!(RETO && RETO.g === g && RETO.d === day && stars >= 2 && rs.d !== day);
+  const bonus = retoOk ? retoBonus(day) : 0;
+  if(retoOk){
+    store.set(RETO_KEY, {d: day, g, tp: usesTopic(g) && CUR_TP ? CUR_TP : "", days: [...rs.days.filter(d => d !== day), day].slice(-14)});
+    RETO = null;
+  }
+  /* después de 8 partidas en un día, cada partida da lo mínimo */
+  const D = obj("games:day");
+  if(D.k !== day || !Number.isFinite(D.n)){ D.k = day; D.n = 0; }
+  D.n++; store.set("games:day", D);
+  const coins = (D.n > 8 ? 5 : [5, 5, 10, 15][stars]) + bonus;
+  try{ logAct(1); }catch(e){}
+  /* las falladas, al repaso (con todas las del juego, no solo las 10 de la lista) */
+  const rv = toReview(g, o.words);
+  const title = stars === 3 ? "¡Increíble!" : stars === 2 ? "¡Muy bien!" : "¡Bien hecho!";
+  run.root.innerHTML = `<div class="gm-end" id="gm-end">
+    <div class="gm-end-hero">${heroHtml(84)}</div>
+    <h1 class="gm-end-t">${title}</h1>
+    <div class="gm-end-st" role="img" aria-label="${stars} de 3 estrellas">${[0, 1, 2].map(i => `<span class="gm-es${i < stars ? " on" : ""}" style="--i:${i}">${IC("star", "fill", 44)}</span>`).join("")}</div>
+    <p class="gm-end-l">${esc(o.line)}</p>
+    <div class="gm-end-c">${better && prev ? `<span class="gm-rec">${IC("trophy", "fill", 18)}¡Nuevo récord!</span>` : !prev ? `<span class="gm-rec">${IC("trophy", "fill", 18)}¡Tu primer récord!</span>` : ""}
+      ${lvUp ? `<span class="gm-rec gm-lvup" id="gm-lvup">${IC("sparkle", "fill", 18)}¡Nivel ${lv}!</span>` : ""}
+      ${retoOk ? `<span class="gm-rec gm-rok" id="gm-rok">${IC("check-circle", "fill", 18)}¡Reto conseguido! Sorpresa: +${bonus}</span>` : ""}
+      <span class="gm-plus" id="gm-plus" aria-label="${coins} monedas">${COIN}+${coins}</span></div>
+    ${D.n > 8 ? `<p class="gm-end-n">¡Hoy ya jugaste mucho! Ahora cada partida da 5.</p>` : ""}
+    ${listHtml(ws, true)}
+    ${rv.n ? `<p class="gm-rv" id="gm-rv">${IC("check", "bold", 18)}${rv.n === 1 ? "1 palabra irá a tu repaso" : `${rv.n} palabras irán a tu repaso`}</p>` : ""}
+    ${endBtns(rv.play.length ? rv.play : null)}</div>`;
+  endPhase(run, g, rv.play);
+  award(coins, "", false, run.root.querySelector("#gm-plus"));
+  bus.emit("game-done", Object.assign({game: g, score: o.score, stars}, g === "memoria" ? {tries: o.tries} : {},
+    usesTopic(g) && CUR_TP ? {tp: CUR_TP} : {}));   /* tp: el tema de la partida */
+  snd("fanfare");
+  /* las estrellas salen de una en una, cada una con una nota más aguda */
+  for(let i = 0; i < stars; i++) later(run, () => note(i + 2), RM() ? 120 : 200 + (i + 1) * 280);
+  if(stars === 3) later(run, () => sparks(run.root.querySelector(".gm-end-st"), 14), 1100);
 }
 
 /* =====================================================================
-   1. MEMORIA — 6 parejas dibujo ↔ palabra
+   1. MEMORIA — 6, 8 o 10 parejas dibujo ↔ palabra (niveles 1, 2 y 3)
    ===================================================================== */
 function memoria(app, P, mode){
-  const items = shuffle(P).slice(0, 6), N = items.length;
+  const lv = lvOf(obj("games:best").memoria);
+  const items = shuffle(P).slice(0, [6, 8, 10][lv - 1]), N = items.length;
   const cards = shuffle(items.flatMap((it, i) => [{i, kind: "img", it}, {i, kind: "word", it}]));
+  /* columnas: en el ordenador 4 (5 con 10 parejas), de pie en el móvil 3 (4 con más de 6) y tumbado, 2 filas */
+  const mc = N > 8 ? 5 : 4, mcm = N > 6 ? 4 : 3, mcl = N;
   preload(items);
   const run = mount(app, `<div class="gm gm-mem">
     ${topHtml("memoria", `<span class="gm-pill" title="Intentos">${IC("arrow-counter-clockwise", "bold", 18)}<b id="gm-tries">0</b></span><span class="gm-pill" title="Parejas">${IC("check-circle", "fill", 18)}<span><b id="gm-pairs">0</b>/${N}</span></span>`)}
-    <div class="gm-board" id="gm-board">${cards.map((c, k) => `
+    <div class="gm-board" id="gm-board" data-lv="${lv}" style="--mc:${mc};--mcm:${mcm};--mcl:${mcl}">${cards.map((c, k) => `
       <button class="gm-mc" data-k="${k}" data-press="sink" aria-label="Carta tapada">
         <span class="gm-mc-in"><span class="gm-mc-f gm-mc-back" aria-hidden="true"><span>?</span></span>
-        <span class="gm-mc-f gm-mc-face k-${c.kind}">${c.kind === "img" ? imgTag(c.it) : `<span class="gm-mw" lang="${LANGS[lang].code}" style="font-size:${fs(c.it.word)}">${esc(c.it.word)}</span>`}</span></span></button>`).join("")}</div>
+        <span class="gm-mc-f gm-mc-face k-${c.kind}">${c.kind === "img" ? imgTag(c.it) : `<span class="gm-mwb"><span class="gm-mw" lang="${code()}" style="font-size:${fs(c.it.word)}">${esc(c.it.word)}</span>${ipaOf(c.it)}</span>`}</span></span></button>`).join("")}</div>
     <p class="gm-tip">Busca cada dibujo con su palabra en ${esc(nm())}.</p></div>`, mode);
   let tries = 0, pairs = 0, open = [], lock = false, started = false;
   const misses = new Set();
@@ -1143,8 +1507,9 @@ function memoria(app, P, mode){
       speak(c.it.word);
       later(run, () => { a.classList.add("ok"); b.classList.add("ok"); snd("ok"); sparks(b, 10); a.disabled = b.disabled = true; bump($("#gm-pairs") && $("#gm-pairs").parentNode); }, 380);
       if(pairs === N) later(run, () => {
-        const stars = tries <= N + 3 ? 3 : tries <= N + 7 ? 2 : 1;
-        finish(run, "memoria", {score: Math.max(10, 100 - (tries - N) * 6), tries, stars,
+        /* con 6 parejas, ★★★ hasta 9 intentos y ★★ hasta 13; con más parejas, un poco más de margen */
+        const stars = tries <= N + Math.max(3, Math.round(N / 2)) ? 3 : tries <= N + Math.max(7, N) ? 2 : 1;
+        finish(run, "memoria", {score: Math.max(10, 100 - (tries - N) * 6), tries, stars, lv,
           line: `¡Encontraste las ${N} parejas en ${tries} intentos!`, words: items.map(it => Object.assign({miss: misses.has(it.k)}, it))});
       }, 1500);
     } else {
@@ -1160,8 +1525,8 @@ function memoria(app, P, mode){
     }
   }
   board.onclick = e => { const b = e.target.closest(".gm-mc"); if(b) flip(b); };
-  /* en el móvil las cartas crecen hasta llenar el alto (sin scroll): de pie, 4 filas de 3; tumbado, 2 filas de 6.
-     En la tableta y el ordenador, como siempre (4 columnas; .gm-short si no cabe) */
+  /* en el móvil las cartas crecen hasta llenar el alto (sin scroll): de pie, 4 filas de 3 (con más parejas, de 4);
+     tumbado, 2 filas. En la tableta y el ordenador, como siempre (4 o 5 columnas; .gm-short si no cabe) */
   const fitMem = () => {
     if(!live(run) || !board.isConnected) return;
     const root = run.root, land = innerWidth > innerHeight && innerHeight < 540 && innerWidth >= 560;
@@ -1170,7 +1535,7 @@ function memoria(app, P, mode){
     board.style.removeProperty("--mbw");
     if(!land && !phone){ board.style.removeProperty("--mrow"); return false; }
     root.classList.remove("gm-short");
-    const cs = getComputedStyle(board), gap = parseFloat(cs.rowGap) || 8, cols = land ? 6 : 3, rows = Math.ceil(cards.length / cols);
+    const cs = getComputedStyle(board), gap = parseFloat(cs.rowGap) || 8, cols = land ? mcl : mcm, rows = Math.ceil(cards.length / cols);
     const br = board.getBoundingClientRect(), main = board.closest("main");
     const below = main ? Math.max(0, main.getBoundingClientRect().bottom - br.bottom) : 24;
     const H = innerHeight - (br.top + scrollY) - below;
@@ -1199,6 +1564,8 @@ function memoria(app, P, mode){
    ===================================================================== */
 function lluvia(app, P, mode){
   const DUR = 60, LIVES = 3;
+  /* nivel 2 y 3: las burbujas caen más rápido y salen más seguidas */
+  const lv = lvOf(obj("games:best").lluvia), SPD = [1, 1.25, 1.5][lv - 1];
   preload(P.slice(0, 40));
   const run = mount(app, `<div class="gm gm-rain">
     ${topHtml("lluvia", `<span class="gm-pill gm-lives" id="gm-lives" role="img" aria-label="${LIVES} vidas">${`<i>${IC("heart", "fill", 18)}${IC("heart", "bold", 18)}</i>`.repeat(LIVES)}</span><span class="gm-pill" title="Atrapadas">${IC("star", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
@@ -1255,7 +1622,7 @@ function lluvia(app, P, mode){
     el.className = "gm-bub"; el.style.setProperty("--bs", bs + "px"); el.style.width = bw + "px";
     el.setAttribute("aria-label", it.word);
     el.innerHTML = `<span class="gm-bub-i">${imgTag(it)}</span><span class="gm-bub-w" style="font-size:${[...it.word].length > 11 ? ".8rem" : ".95rem"}">${esc(it.word)}</span>`;
-    const fall = Math.max(2.6, 7.4 - 4 * Math.min(1, t / DUR) - Math.min(1.2, score * .06));
+    const fall = Math.max(2.6, 7.4 - 4 * Math.min(1, t / DUR) - Math.min(1.2, score * .06)) / SPD;
     const b = {el, it, x: lane * laneW + (laneW - bw) / 2, y: -bs * 1.5, v: (H + bs * 1.6) / fall, ph: Math.random() * 6, dead: false};
     el.style.transform = `translate3d(${b.x}px,${b.y}px,0)`;
     el.addEventListener("pointerdown", e => { e.preventDefault(); try{ el.setPointerCapture(e.pointerId); }catch(err){} b.pid = e.pointerId; });
@@ -1264,10 +1631,16 @@ function lluvia(app, P, mode){
     el.addEventListener("click", e => { if(e.detail === 0) hit(b); });
     sky.appendChild(el); bubbles.push(b);
   }
-  function floatTxt(b, txt, bad){
+  /* lo que sube al tocar: «+1» (o la racha) con la palabra atrapada y su IPA; o «✗ …» en gris. Siempre dentro del cielo */
+  function floatTxt(b, txt, bad, it){
     const f = document.createElement("div"); f.className = "gm-float" + (bad ? " bad" : "");
-    f.textContent = txt; f.style.left = (b.x + BW() / 2) + "px"; f.style.top = Math.max(10, b.y) + "px";
-    sky.appendChild(f); later(run, () => f.remove(), 1000);
+    f.textContent = txt;
+    if(it && !bad) f.insertAdjacentHTML("beforeend", `<span class="gm-fw" lang="${esc(code())}">${esc(it.word)}</span>${ipaOf(it)}`);
+    f.style.top = Math.max(10, b.y) + "px";
+    sky.appendChild(f);
+    const half = f.offsetWidth / 2 + 6;
+    f.style.left = Math.max(half, Math.min(W - half, b.x + BW() / 2)) + "px";
+    later(run, () => f.remove(), 1000);
   }
   function hit(b){
     if(b.dead || ended || !running || !live(run)) return;
@@ -1276,7 +1649,7 @@ function lluvia(app, P, mode){
       got.push(b.it);
       snd("pop"); later(run, () => snd("ok"), 90);
       sparks(b.el.querySelector(".gm-bub-i"), 10);
-      floatTxt(b, streak >= 3 ? `+1 · ¡racha ${streak}! 🔥` : `+1 ${b.it.word}`);
+      floatTxt(b, streak >= 3 ? `+1 · ¡racha ${streak}! 🔥` : "+1", false, b.it);
       const sc = $("#gm-sc"); if(sc){ sc.textContent = score; bump(sc.parentNode); }
       const el = b.el; later(run, () => el.remove(), 340);
       setTarget();
@@ -1300,7 +1673,7 @@ function lluvia(app, P, mode){
       const stars = score >= 12 ? 3 : score >= 6 ? 2 : 1;
       const uniq = []; const seen = new Set();
       for(const it of [...got, ...P.filter(x => missed.has(x.k))]) if(!seen.has(it.k)){ seen.add(it.k); uniq.push(Object.assign({miss: missed.has(it.k)}, it)); }
-      finish(run, "lluvia", {score, stars, words: uniq,
+      finish(run, "lluvia", {score, stars, words: uniq, lv,
         line: score ? `¡Atrapaste ${score} palabra${score === 1 ? "" : "s"}!` : "¡Casi! La próxima vez atraparás muchas."});
     }, 1500);
   }
@@ -1313,7 +1686,7 @@ function lluvia(app, P, mode){
       if(DUR - t < 10) $("#gm-tbar") && $("#gm-tbar").classList.add("low");
       spawnIn -= dt;
       const alive = bubbles.filter(b => !b.dead).length;
-      if(spawnIn <= 0 && alive < 7){ spawn(); spawnIn = Math.max(.62, 1.3 - .6 * (t / DUR)); }
+      if(spawnIn <= 0 && alive < 7){ spawn(); spawnIn = Math.max(.62, 1.3 - .6 * (t / DUR)) / Math.sqrt(SPD); }
       for(const b of bubbles){
         if(b.dead) continue;
         b.y += b.v * dt; b.ph += dt * 2.2;
@@ -1337,23 +1710,25 @@ function lluvia(app, P, mode){
 }
 
 /* =====================================================================
-   3. GLOBOS — escucha y explota el globo correcto (10 rondas)
+   3. GLOBOS — escucha y explota el globo correcto (10 rondas; 4 globos, 6 en los niveles 2 y 3, y en el 3 sin el ojo).
+      focus: las palabras de «Jugar con estas» (las que se preguntan; los demás globos, del tema)
    ===================================================================== */
-function globos(app, P, mode){
-  const R = 10;
+function globos(app, P, mode, focus){
+  const R = 10, lv = lvOf(obj("games:best").globos), NB = lv > 1 ? 6 : 4, PEEK = lv < 3;
+  const T = focus && focus.length ? focus : P;
   let order = [];
-  while(order.length < R){ const s = shuffle(P); if(order.length && s[0] === order[order.length - 1]) s.push(s.shift()); order.push(...s); }
+  while(order.length < R){ const s = shuffle(T); if(order.length && s[0] === order[order.length - 1]) s.push(s.shift()); order.push(...s); }
   order = order.slice(0, R);
-  preload(P.slice(0, 40));
+  preload([...T, ...P].slice(0, 40));
   const run = mount(app, `<div class="gm gm-bal-g">
     ${topHtml("globos", `<span class="gm-pill" title="Ronda">${IC("balloon", "fill", 18)}<span><b id="gm-rd">1</b>/${R}</span></span><span class="gm-pill" title="Aciertos">${IC("star", "fill", 18, "gm-gold")}<b id="gm-sc">0</b></span>`)}
     <div class="gm-listen" id="gm-listen">
       <button type="button" class="gm-bigsay" id="gm-play" aria-label="Escuchar la palabra">${IC("speaker-high", "fill", 34)}</button>
       <button type="button" class="gm-sec" id="gm-slow" aria-label="Escuchar despacio">${IC("turtle", "fill", 28)}</button>
-      <button type="button" class="gm-sec" id="gm-peek" aria-label="Ver la palabra escrita">${IC("eye", "fill", 28)}</button>
+      ${PEEK ? `<button type="button" class="gm-sec" id="gm-peek" aria-label="Ver la palabra escrita">${IC("eye", "fill", 28)}</button>` : ""}
       <div class="gm-ltxt" id="gm-ltxt">Escucha y toca el globo correcto</div>
     </div>
-    <div class="gm-air" id="gm-air"></div>
+    <div class="gm-air" id="gm-air" data-lv="${lv}"></div>
     ${dotsHtml(R)}</div>`, mode);
   const air = run.root.querySelector("#gm-air");
   let r = 0, score = 0, first = true, busy = true, cur = null, opts = [];
@@ -1361,7 +1736,7 @@ function globos(app, P, mode){
   const dots = () => { const ds = run.root.querySelectorAll("#gm-dots i"); ds.forEach((d, i) => { d.className = i < res.length ? (res[i] ? "ok" : "meh") : i === r ? "now" : ""; }); };
   function round(){
     cur = order[r]; first = true; busy = false;
-    const others = shuffle(P.filter(x => x !== cur && x.img !== cur.img)).slice(0, 3);
+    const others = shuffle(P.filter(x => x !== cur && x.img !== cur.img && x.word !== cur.word)).slice(0, NB - 1);
     opts = shuffle([cur, ...others]);
     const cols = shuffle(BALLOONS);
     air.innerHTML = opts.map((o, k) => `<button class="gm-bal" data-k="${k}" style="--bc:${cols[k]};--d:${k * 110}ms" aria-label="Globo ${k + 1}: ${esc(o.es)}">
@@ -1377,12 +1752,12 @@ function globos(app, P, mode){
     const b = e.target.closest(".gm-bal"); if(!b || busy || b.disabled || !live(run)) return;
     const o = opts[+b.dataset.k];
     if(o === cur){
-      busy = true; if(first){ score++; answer(true, cur); } res.push(first); haptic("success");
+      busy = true; if(first){ score++; answer(true, cur); } else gotRight(run); res.push(first); haptic("success");
       b.classList.add("pop"); b.insertAdjacentHTML("beforeend", `<span class="gm-bang" aria-hidden="true">💥</span>`);
       snd("pop"); later(run, () => snd("ok"), 120);
       sparks(b.querySelector(".gm-bal-b"), 14);
       air.querySelectorAll(".gm-bal").forEach(x => { if(x !== b){ x.disabled = true; x.classList.add("dim"); } });
-      const lt = $("#gm-ltxt"); if(lt) lt.innerHTML = `<span class="gm-reveal">✓ ${first ? "¡Sí! " : ""}<span lang="${LANGS[lang].code}">${esc(cur.word)}</span> = ${esc(cur.es)}</span>`;
+      const lt = $("#gm-ltxt"); if(lt) lt.innerHTML = `<span class="gm-reveal">✓ ${first ? "¡Sí! " : ""}<span lang="${code()}">${esc(cur.word)}</span> ${ipaOf(cur)} = ${esc(cur.es)}</span>`;
       const sc = $("#gm-sc"); if(sc){ sc.textContent = score; bump(sc.parentNode); }
       dots();
       later(run, () => speak(cur.word), 250);
@@ -1393,7 +1768,7 @@ function globos(app, P, mode){
           const stars = score >= 9 ? 3 : score >= 6 ? 2 : 1;
           const seen = new Set(), words = [];
           order.forEach((it, i) => { if(!seen.has(it.k)){ seen.add(it.k); words.push(Object.assign({miss: !res[i]}, it)); } });
-          finish(run, "globos", {score, stars, words, line: `¡Acertaste ${score} de ${R} a la primera!`});
+          finish(run, "globos", {score, stars, words, lv, line: `¡Acertaste ${score} de ${R} a la primera!`});
         }
       }, 1900);
     } else {
@@ -1406,9 +1781,11 @@ function globos(app, P, mode){
   };
   $("#gm-play").onclick = () => { if(cur) speak(cur.word); };
   $("#gm-slow").onclick = () => { if(cur) speak(cur.word, true); };
-  $("#gm-peek").onclick = () => { if(!cur) return; const lt = $("#gm-ltxt"); if(lt) lt.innerHTML = `La palabra es: <b lang="${LANGS[lang].code}">${esc(cur.word)}</b>`; speak(cur.word); };
+  const pk = run.root.querySelector("#gm-peek");
+  if(pk) pk.onclick = () => { if(!cur) return; const lt = $("#gm-ltxt"); if(lt) lt.innerHTML = `La palabra es: <b lang="${code()}">${esc(cur.word)}</b> ${ipaOf(cur)}`; speak(cur.word); };
   /* el tamaño de los globos sale del hueco que queda en la pantalla (sin scroll en ningún aparato), no de topes fijos:
-     prueba 2×2 y 1×4 y se queda con la que da el globo más grande; si sobra alto, cuerdas más largas */
+     prueba las rejillas que caben (2×2 y 1×4; con 6, 3×2, 2×3 y 1×6) y se queda con la que da el globo más grande;
+     si sobra alto, cuerdas más largas */
   const BAL = 11 / 9, GX = 16, GY = 8, STR = 8, SH0 = 16, SHMAX = 40, BWMAX = 220;
   function fitBal(){
     if(!live(run) || !air.isConnected) return;
@@ -1422,7 +1799,8 @@ function globos(app, P, mode){
     const below = main ? Math.max(0, main.getBoundingClientRect().bottom - ar.bottom) : 40;
     const H = Math.max(160, Math.floor(innerHeight - (ar.top + scrollY) - below) - 1);
     let best = null;
-    for(const [c, rows] of [[2, 2], [4, 1]]){
+    const n = opts.length || NB, grids = n > 4 ? [[3, 2], [2, 3], [n, 1]] : [[2, 2], [n, 1]];
+    for(const [c, rows] of grids){
       const rowH = (H - padT - padB - GY * (rows - 1)) / rows;
       const bw = Math.floor(Math.min((wz - GX * (c - 1)) / c, (rowH - STR - SH0) / BAL, BWMAX));
       if(!best || bw > best.bw) best = {c, rows, bw, rowH};
@@ -1467,8 +1845,11 @@ function globos(app, P, mode){
    4. LETRAS LOCAS — ordena las letras de la palabra (sin artículo)
    ===================================================================== */
 function letras(app, P, mode){
-  const cand = shuffle(P.map(it => ({it, x: letrasOf(it)})).filter(o => o.x));
-  const list = cand.slice(0, 5).sort((a, b) => [...a.x.base].length - [...b.x.base].length);
+  /* nivel 1: palabras de 3 a 5 letras; 2: de 4 a 7; 3: de 6 a 8. Si el tema no tiene bastantes, las más parecidas */
+  const lv = lvOf(obj("games:best").letras), [lo, hi] = [[3, 5], [4, 7], [6, 8]][lv - 1];
+  const len = o => [...o.x.base].length, off = o => Math.max(0, lo - len(o), len(o) - hi);
+  const cand = shuffle(P.map(it => ({it, x: letrasOf(it)})).filter(o => o.x)).sort((a, b) => off(a) - off(b));
+  const list = cand.slice(0, 5).sort((a, b) => len(a) - len(b));
   const NW = list.length;
   preload(list.map(o => o.it));
   const run = mount(app, `<div class="gm gm-let">
@@ -1554,7 +1935,7 @@ function letras(app, P, mode){
     const okAll = S.ans.every((ch, i) => S.tiles[S.slots[i]].ch === ch);
     const els = box.querySelectorAll(".gm-slot");
     if(okAll){
-      S.done = true; if(!S.errs) answer(true, S.it);
+      S.done = true; if(!S.errs) answer(true, S.it); else gotRight(run);
       haptic("success");
       const pts = Math.max(1, 3 - Math.min(2, S.hints + S.errs));
       total += pts; res.push(pts);
@@ -1566,7 +1947,7 @@ function letras(app, P, mode){
       paintDots();
       const last = w + 1 >= NW;
       box.classList.add("solved");
-      $("#gm-fb").innerHTML = `<div class="gm-lt-ok">✓ ${pts === 3 ? "¡Perfecto!" : "¡Muy bien!"} <span lang="${LANGS[lang].code}">${esc(S.it.word)}</span><span>= ${esc(S.it.es)}</span>
+      $("#gm-fb").innerHTML = `<div class="gm-lt-ok">✓ ${pts === 3 ? "¡Perfecto!" : "¡Muy bien!"} <span lang="${code()}">${esc(S.it.word)}</span>${ipaOf(S.it)}<span>= ${esc(S.it.es)}</span>
         <button type="button" class="gm-say" id="gm-again-say" aria-label="Escuchar otra vez">${IC("speaker-high", "fill", 24)}</button>
         <button type="button" class="glass-btn glass-btn--pri" id="gm-next">${last ? "Ver el premio" : "Siguiente"}${IC("caret-right", "bold", 20)}</button></div>`;
       $("#gm-again-say").onclick = () => speak(S.it.word);
@@ -1589,7 +1970,7 @@ function letras(app, P, mode){
     if(w < NW) word();
     else {
       const max = 3 * NW, ratio = total / max, stars = ratio >= .85 ? 3 : ratio >= .6 ? 2 : 1;
-      finish(run, "letras", {score: total, stars, words: list.map((o, i) => Object.assign({miss: res[i] < 3}, o.it)),
+      finish(run, "letras", {score: total, stars, lv, words: list.map((o, i) => Object.assign({miss: res[i] < 3}, o.it)),
         line: `¡Escribiste ${NW} palabras! Puntos: ${total} de ${max}.`});
     }
   }
@@ -1666,7 +2047,7 @@ async function topicPool(g, need, fit){
   return {tp, name: topicName(tp), P, mil: tp === MIL};
 }
 const API = Object.freeze({mount, intro, later, keys, live, finish, answer, haptic, speak, snd, bump, autoFit, topHtml, starsHtml, dotsHtml, nm, topicPool,
-  nav: () => NAV, here: (my, g) => here(my, g), kbd: () => KBD});
+  nav: () => NAV, here: (my, g) => here(my, g), kbd: () => KBD, level: id => lvOf(obj("games:best")[id])});
 function register(id, def){
   if(typeof id !== "string" || !/^[a-z][a-z0-9-]*$/.test(id) || GAMES[id] || !def || !def.t || !def.img) return false;
   /* sin start, solo una tarjeta que lleva a otra pantalla de la app (href "#/…") */
@@ -1686,6 +2067,8 @@ Object.assign(window.vocabGames = window.vocabGames || {}, {
   /* para los atajos de Hoy (js/shortcuts.js): un juego (topic: si se juega con un tema) y un tema */
   meta: id => GAMES[id] ? {id, t: GAMES[id].t, img: GAMES[id].img, topic: usesTopic(id)} : null,
   topic: id => isTopic(id) ? {id, name: topicName(id), img: topicImg(id)} : null,
+  /* el nivel 1-3 de un juego ("games:best".<juego>.lv) */
+  level: id => lvOf(obj("games:best")[id]),
 });
 Object.defineProperty(window.vocabGames, "paused", {configurable: true, enumerable: true, get: () => !!(RUN && RUN.paused)});
 ROUTES["juegos"] = async parts => {
