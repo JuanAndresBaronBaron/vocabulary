@@ -372,6 +372,7 @@ def test_ielts_content2_visuals_render():
                   const cw = document.documentElement.clientWidth;
                   return {err: !!f.querySelector('.t-sub'), w: document.documentElement.scrollWidth - cw, cw,
                           svgW: svg ? svg.getBoundingClientRect().width : 0, rects: svg ? svg.querySelectorAll('rect').length : 0,
+                          tallest: svg ? Math.max(0, ...[...svg.querySelectorAll('rect')].map(x => x.getBBox().height)) : 0,
                           txt, rows: f.querySelectorAll('table.ie-table tbody tr').length, text: f.innerText,
                           out: [...f.querySelectorAll('svg text')].filter(t => { const b = t.getBoundingClientRect(), s = t.ownerSVGElement.getBoundingClientRect();
                             return b.left < s.left - 1 || b.right > s.right + 1; }).map(t => t.textContent)};
@@ -384,6 +385,9 @@ def test_ielts_content2_visuals_render():
                     assert r["rows"] == len(v["rows"]) and all(f"({n})" in r["text"] for n in range(31, 36)), r
                 else:
                     assert r["rects"] == sum(len(s["values"]) for s in v["series"]) and set(v["x"]) <= set(r["txt"]), r
+                    # the bars have their height (17 h is about 230 of the 272 units of the plot), not the 4 px of the
+                    # player's progress bar (.ie-bar), which once flattened every column
+                    assert r["tallest"] > 100, r["tallest"]
                 assert not r["out"], (scheme, name, r["out"])
                 C.shot(page, f"{name}-phone-{scheme}", folder, full_page=True)
             assert not C.errors(page), C.errors(page)[:5]

@@ -37,7 +37,7 @@ NEW_FILES = ["img/games/memoria.png", "img/games/lluvia.png", "img/games/globos.
              "img/games/lince.png", "img/pj/zorro.png", "img/pj/loro.png"]
 LAZY = ["img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg", "js/tech.js", "js/tech-lesson.js",
         "js/tech-pages.js", "ielts.html", "ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js",
-        "data/ielts/index.json"]
+        "js/ielts-study.js", "data/ielts/index.json"]
 NEWER = "Hay una versión nueva de la app. Recarga para seguir."
 
 

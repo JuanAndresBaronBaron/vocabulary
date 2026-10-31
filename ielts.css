@@ -224,7 +224,6 @@ a.ie-row:active{background:var(--fill2)}
 .ie-ln{fill:none;stroke:var(--c);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
 .ie-s1 .ie-ln{stroke-dasharray:9 5}.ie-s3 .ie-ln{stroke-dasharray:3 4}
 .ie-pt{fill:var(--c)}
-.ie-bar{fill:var(--c)}
 .ie-slice path,.ie-slice circle{fill:var(--c);stroke:var(--card-2);stroke-width:2}
 .ie-pctl{fill:#fff;font:700 15px var(--f-text)}
 :root[data-theme=dark] .ie-s1 .ie-pctl,:root[data-theme=dark] .ie-s2 .ie-pctl,:root[data-theme=dark] .ie-s4 .ie-pctl,:root[data-theme=dark] .ie-s5 .ie-pctl{fill:#000}

@@ -672,3 +672,30 @@ de `data/ielts` directamente (sin navegador), salvo la última:
   «Rewrite from memory»; `#/unit/review`; los iconos copiados tal cual de `index.html`; solo se escribe `ielts:study`
   dentro de `ielts:*` y «Erase» la borra; los envoltorios se instalan una vez. Capturas en `capturas/ielts-study`
   (`#/review`, el inicio y la autoevaluación a 360 y 1280 px, claro y oscuro, sin scroll lateral ni morado o rosa).
+
+<!-- integration (IELTS Prep: los cinco paquetes juntos) -->
+## IELTS Prep: la integración (`test_ielts_integration.py`)
+
+- `test_ielts_integration.py` (corre con `--only test_ielts`): lo que solo existe con los cinco paquetes juntos.
+  - Las respuestas guardadas: la migración única de `js/ielts.js` (banderas `ielts:mig:content1` y
+    `ielts:mig:content2`) mueve los índices de opción de `ielts:run:<lid>` y de la sesión de repaso
+    (`ielts:study.session.ord` y `ielts:run:review`) al orden nuevo: una respuesta buena sigue buena y una mala,
+    mala; una opción que ya no existe deja la pregunta sin contestar; una ejecución guardada por esta versión
+    (`run.at`) no se toca; una u09-l3 terminada con las preguntas quitadas se borra; q8/q9 de u24-l2 pasan a la
+    Choose TWO q11; el Task 1 sustituido de u23-l3 queda en My writing con su enunciado viejo (su página lo dice y no
+    enseña el gráfico nuevo); u23-l4 sigue en su ítem; las tarjetas de preguntas quitadas salen del mazo. Al recargar
+    no se mueve nada otra vez, y «Erase my progress» conserva las banderas.
+  - La comparación de versiones: «N words copied from the question» es su propia comprobación («Copied from the
+    question»), no el texto del mensaje.
+  - Sin conexión: con el service worker al mando (entrando por la app, como un adulto), IELTS Prep guarda en segundo
+    plano todas las unidades en `vocab-media`; sin red (servidor caído y contexto offline) se abren unidades y una
+    lección nunca vistas, sin errores en la consola.
+  - Google Drive (`js/ielts-boot.js` en `index.html`, con `TC.FakeDrive`): su propio archivo
+    `vocabulary-ieltsprep.json` en appDataFolder con solo `ielts:data`, `ielts:study` (sin la sesión de repaso ni
+    `mig`) e `ielts:ui` (sin `attempt` ni `counted` en los tests); dos aparatos acaban con la misma mezcla y el
+    segundo repaso no sube nada; gana el registro más nuevo; un resultado borrado (`ielts:data.gone`) no vuelve; un
+    «Erase» de antes de enlazar no viaja; «Erase my progress» (Ajustes dice cuándo se guardó la copia) se sube al
+    volver a la app y en el otro aparato se va lo de antes y se queda lo de después; una copia de una versión más
+    nueva o ajena nunca se mezcla ni se pisa; un estado vacío nunca se sube sobre uno lleno; con IELTS Prep apagado o
+    sin Google no se hace nada; el archivo del niño nunca lleva `ielts:`. Y `vocabIelts.sync.merge`, pura: empates
+    para este aparato, tests por lid+at, lápidas, la hora del borrado (también cuando Drive ya no tiene `ielts:study`).

@@ -10,7 +10,7 @@
    "id": "u23-l1",
    "title": "Listening test",
    "kind": "test",
-   "minutes": 40,
+   "minutes": 25,
    "timed": 2400,
    "exam": true,
    "items": [
@@ -390,6 +390,7 @@
        "visual": {
         "kind": "map",
         "title": "Central Library, ground floor (North is at the top; the main entrance is at the bottom)",
+        "alt": "A ground-floor plan with north at the top and the main entrance at the bottom, in the centre. Top row, left to right: C in the north-west corner, E in the middle, F in the north-east corner. Middle row: B on the west side, D in the centre (the largest room), H on the east side. Bottom row: A to the left of the main entrance, G to the right.",
         "maps": [
          {
           "title": "Ground floor",
@@ -1870,7 +1871,7 @@
       "notes": [
        "Each answer opens with a clear position and then develops it with reasons, examples or a qualification, which is the core of Part 3.",
        "The speaker challenges assumptions ('not for the reasons people usually give') and weighs both sides, showing the flexibility of thought examiners reward at bands 8-9.",
-       "Abstract, precise vocabulary used naturally: 'linear careers', 'front-loading education', 'patchy knowledge', 'dip in and out of'.",
+       "Abstract, precise vocabulary used naturally: 'careers aren't as linear', 'front-loading education', 'patchy knowledge', 'dip in and out of'.",
        "Hedging is natural and varied: 'I'd say', 'arguably', 'to some extent', 'I suspect', 'It's a mixed picture'.",
        "Complex structures (relative clauses, conditionals, cleft-style emphasis) appear without strain or error.",
        "Each answer runs to roughly 100-115 words, about 40-45 seconds at a natural pace: long enough to develop a position with a reason, an example and a qualification, short enough to stay a conversation."

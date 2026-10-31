@@ -783,7 +783,9 @@ def test_core_backup_round_trip():
         page.wait_for_timeout(300)
         assert _toast(page) == "That file isn't an IELTS Prep backup."
         t = page.inner_text("#app")
-        assert "A copy in Google Drive will come later." in t
+        # the Drive copy is made by the main app (js/ielts-boot.js): this page only says so, or when it last saved
+        assert "Once the family's Google account is connected in the main app, a copy of your progress is kept in its Google Drive too" in t
+        assert "will come later" not in t
         assert "Recordings stay on this device. Live transcript uses your browser's speech service, which may send your voice to its provider (Google in Chrome)." in t
         assert not C.errors(page), C.errors(page)
     finally:

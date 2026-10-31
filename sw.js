@@ -72,7 +72,7 @@ const SHELL = [
 const LAZY = [
   "img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg",
   "js/tech.js", "js/tech-lesson.js", "js/tech-pages.js",
-  "ielts.html", "ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js", "data/ielts/index.json",
+  "ielts.html", "ielts.css", "js/ielts.js", "js/ielts-viz.js", "js/ielts-player.js", "js/ielts-study.js", "data/ielts/index.json",
 ];
 const REQUIRED = ["index.html"];                            /* sin esto la versión nueva no se instala */
 const NET_WAIT = 3000;                                      /* la red tarda más: se da lo guardado */

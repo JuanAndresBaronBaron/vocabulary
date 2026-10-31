@@ -3,14 +3,18 @@
    no medals, no streak) and needs nothing but the browser: data/ielts/*.json, speechSynthesis and the microphone.
    · Entry: js/ielts-boot.js (in index.html) passes the adult gate and sets sessionStorage "ielts:in" = "1"; without it,
      or with the switch "ielts:on" off, this page only shows how to open it.
-   · State (localStorage, this device only; nothing outside ielts:*):
+   · State (localStorage; nothing outside ielts:*; with the family's Google Drive connected in the app, js/ielts-boot.js
+     keeps a copy of ielts:data, ielts:study and ielts:ui there and merges it with the other devices'):
      "ielts:data" = {v:1, lessons:{lid:{done, at, got, total, band, best}},
        tests:[{lid, title, skill, got, total, band, at, attempt, counted, paused?, noaudio?}],
-       essays:[{id, iid, task, prompt, text, words, self, band, at, parent?, v?}], speaking:[{iid?, title, self?, band, at}]}.
+       essays:[{id, iid, task, prompt, text, words, self, band, at, parent?, v?}], speaking:[{iid?, title, self?, band, at}],
+       gone?:[{lid, at, del}] (deleted results, so that no copy brings them back), erased? (the time of the last erase)}.
        v stays 1: new fields are added, never reshaped. migrate() lets v1 through; a higher v (a newer version of the app
        wrote it) opens read-only and pset() never writes; a blob that isn't valid v1 JSON is copied first to
        "ielts:data:bak-<ms>". Nothing is trimmed unless the browser refuses to save (then the caps below apply and a toast
        sends the learner to Settings › Your data).
+     "ielts:sync" = the state of this device's Drive copy (js/ielts-boot.js); "ielts:mig:content1|2" = the one-time
+     migration of saved answers (below).
      "ielts:ui" = {rate, accents: "mixed"|"gb", at}; "ielts:run:<lid>" = a lesson in progress (js/ielts-player.js, saved as
      you go); "ielts:draft:<essayId>" = {text, blank, at, from, alt?} a revision being written (#/essays/<id>/revise; alt =
      the draft of the other mode, so «Write version N» and «Rewrite from memory» never open each other's draft; finishing
@@ -227,9 +231,17 @@ function sInfo(sp){ const s = sp.filter(x => x.band != null).pop(); return s ? {
 const chainKey = e => e.parent || e.id;
 function chainOf(list, e){ const k = chainKey(e); return list.filter(x => chainKey(x) === k).sort((a, b) => (a.v || 1) - (b.v || 1) || (a.at || 0) - (b.at || 0)); }
 const stamp = o => isObj(o) ? +(o.at || o.updated || o.saved || 0) || 0 : 0;
-const BK_SKIP = k => k === "ielts:on" || k.startsWith("ielts:run:");
+/* left out of a backup: the switch, the lessons in progress, the migration flags (they describe this device's runs) and
+   the state of this device's Google Drive copy (js/ielts-boot.js) */
+const SYNCK = "ielts:sync", GONE_MAX = 500;
+const BK_SKIP = k => k === "ielts:on" || k === SYNCK || k.startsWith("ielts:run:") || k.startsWith("ielts:mig:");
+const tkey = t => `${t.lid}|${+t.at || 0}`;
+/* a file's results added to this device's (the Drive copy in js/ielts-boot.js merges with the same rules). A result deleted
+   on either side (gone: {lid, at, del}) never comes back; erased (the time of «Erase my progress», which the Drive copy
+   uses) is only ever this device's own */
 function mergeData(cur, inc, n){
   const out = Object.assign({}, inc, cur, {v: 1});   /* fields this core doesn't know: this device's copy wins */
+  delete out.erased; if(cur.erased) out.erased = cur.erased;
   out.lessons = Object.assign({}, cur.lessons);
   for(const [lid, r] of Object.entries(isObj(inc.lessons) ? inc.lessons : {})){
     if(!isObj(r)) continue; const c = out.lessons[lid];
@@ -241,7 +253,10 @@ function mergeData(cur, inc, n){
     for(const x of b) if(!m.has(key(x))){ m.set(key(x), x); n[cnt]++; }
     return [...m.values()].sort((x, y) => (+x.at || 0) - (+y.at || 0));
   };
-  out.tests = union(cur.tests, arr(inc.tests), t => `${t.lid}|${t.at}`, "tests");
+  const gone = new Map();
+  for(const g of [...arr(cur.gone), ...arr(inc.gone)]) if(g.lid != null){ const o = gone.get(tkey(g)); gone.set(tkey(g), {lid: g.lid, at: +g.at || 0, del: Math.max(+g.del || 0, o ? o.del : 0)}); }
+  if(gone.size) out.gone = [...gone.values()].sort((x, y) => x.del - y.del).slice(-GONE_MAX); else delete out.gone;
+  out.tests = union(cur.tests, arr(inc.tests).filter(t => !gone.has(tkey(t))), t => `${t.lid}|${t.at}`, "tests");
   /* two devices may each hold a first attempt: number them again in time order */
   if(n.tests) out.tests = normTests(out.tests.map(t => { const r = Object.assign({}, t); delete r.attempt; delete r.counted; return r; }));
   const es = new Map(cur.essays.map(e => [e.id, e]));
@@ -276,6 +291,8 @@ const prog = {
     const d = pget(), i = d.tests.findIndex(t => t.lid === lid && +t.at === +at);
     if(i < 0) return false;
     d.tests.splice(i, 1);
+    /* remembered, so that a copy from another device or from Drive doesn't bring it back */
+    d.gone = (Array.isArray(d.gone) ? d.gone.filter(isObj) : []).concat({lid, at: +at, del: Date.now()}).slice(-GONE_MAX);
     d.tests = normTests(d.tests.map(t => { if(!isObj(t) || t.lid !== lid) return t; const r = Object.assign({}, t); delete r.attempt; delete r.counted; return r; }));
     return pset(d);
   },
@@ -303,13 +320,17 @@ const prog = {
   /* erases this device's progress; never a newer version's data (the learner only sees it empty until the app updates) */
   erase(){
     pget(); if(NEWV) return false;
-    for(const k of LS.keys()) if(k.startsWith("ielts:") && k !== "ielts:on" && k !== "ielts:ui") LS.del(k);
+    /* the switch, the settings, the one-time migration flags (erasing doesn't reload the page: runs saved after it already
+       use the new option orders and must never be mapped again) and the Drive copy's state stay */
+    for(const k of LS.keys()) if(k.startsWith("ielts:") && k !== "ielts:on" && k !== "ielts:ui" && k !== SYNCK && !k.startsWith("ielts:mig:")) LS.del(k);
     RO = false; bakTried = null;   /* the damaged blob that couldn't be copied is gone: saving works again */
+    /* the time of the erase: the Drive copy (js/ielts-boot.js) then forgets what came before it on the other devices too */
+    LS.set(PK, Object.assign(fresh(), {erased: Date.now()}));
     return true;
   },
   /* the data on this device was written by a newer version of the app */
   newer: () => (pget(), NEWV),
-  /* every ielts:* key except the switch and the lessons in progress, for a file */
+  /* every ielts:* key except the switch, the lessons in progress and the migration flags, for a file */
   backup(){
     const keys = {};
     for(const k of LS.keys().sort()) if(k.startsWith("ielts:") && !BK_SKIP(k)){
@@ -335,6 +356,118 @@ const prog = {
     return n;
   },
 };
+
+/* ---------- once per device: saved answers follow the options of this version (packages content1 and content2) ----------
+   A run (ielts:run:<lid>) keeps a pick or multi answer as the index of the option chosen, and this version reordered
+   the options of 20 questions in u01-u12 (MAP) and 53 in u13-u24 (MAP2; in 10 of them some options were rewritten).
+   For each question, the new index of every old option; "x" (null) = an option that is gone, always a wrong one: the
+   answer becomes unanswered and stays wrong, while a right answer always maps to the new key. Also: u09-l3-i1-q6..q9
+   are gone (a finished u09-l3 run that answered them is cleared: its review would show q14-q17 unanswered against the
+   stored score, which stays in ielts:data); u24-l2-i4-q2 is a new statement (its answer goes); the Choose TWO
+   u24-l2-i4-q11 replaced the picks q8 and q9 (a right answer becomes its right letter, B or E, a wrong one a wrong
+   letter, A or D: the same marks); u23-l3-i2 is a new Task 1 (an essay not yet in My writing is kept there with its
+   old prompt, then leaves the run); u23-l4 and u24-l4 have new items (an unfinished run stays on its item). In a review
+   session (ielts:study.session.ord, places on screen) a question whose options were only reordered keeps its places;
+   otherwise that shuffle and its answer go. Cards of questions that are gone leave the deck.
+   Never twice: the flags ielts:mig:content1 and ielts:mig:content2 are written first (if they can't be, nothing
+   changes and the next load tries again); prog.erase() keeps ielts:mig:*; and a lesson run saved by this version (it
+   has run.at, which older players never wrote) is never touched. The flags describe this device's runs, so backups
+   and the Drive copy leave them out. It runs while this file loads, before js/ielts-player.js opens a run and before
+   js/ielts-study.js builds the deck from finished runs. */
+(function migrateAnswers(){
+  const F1 = "ielts:mig:content1", F2 = "ielts:mig:content2", do1 = !LS.get(F1), do2 = !LS.get(F2);
+  if(!do1 && !do2) return;
+  const at = Date.now();
+  if(do1 && !LS.set(F1, at)) return;
+  if(do2 && !LS.set(F2, at)){ if(do1) LS.del(F1); return; }
+  const MAP = {"u01-l3-i8": [1, 0, 2, 3], "u01-l3-i10": [0, 3, 1, 2], "u01-l3-i11": [0, 2, 1, 3],
+    "u02-l1-i2-q9": [0, 2, 1], "u02-l1-i3-q1": [1, 0, 2], "u02-l1-i3-q4": [0, 2, 1], "u02-l1-i3-q5": [1, 0, 2, 3, 4],
+    "u04-l1-i9": [0, 2, 1], "u04-l1-i10": [1, 0, 2], "u04-l2-i1-q6": [0, 2, 1], "u04-l3-i1-q2": [0, 1, 2, 4, 3],
+    "u05-l1-i8-q1": [1, 0, 2, 4, 3], "u05-l1-i9": [1, 0, 2], "u05-l1-i10": [0, 2, 1], "u05-l2-i1-q5": [1, 0, 3, 2, 4],
+    "u05-l3-i1-q2": [1, 0, 2], "u05-l3-i1-q3": [0, 2, 1], "u05-l3-i1-q4": [0, 2, 1, 4, 3],
+    "u09-l2-i1-q9": [0, 3, 1, 2], "u10-l2-i1-q9": [1, 0, 2, 3]};
+  const MAP2 = {"u13-l1-i6": "0312", "u13-l1-i10": "1023", "u13-l1-i11": "0312",
+    "u14-l1-i5": "0312", "u14-l1-i9": "1023",
+    "u15-l1-i4": "0312", "u15-l2-i4": "x0xx", "u15-l2-i10": "x2xx", "u15-l3-i4": "1023", "u15-l4-i8": "0312",
+    "u16-l1-i6": "1023", "u16-l1-i8": "0312", "u17-l1-i5": "1023", "u18-l1-i11": "1023", "u19-l3-i9": "0312",
+    "u20-l1-i3": "x3xx", "u20-l1-i4": "2xxx", "u20-l1-i10": "x1xx", "u20-l1-i11": "x3xx", "u20-l2-i3": "0xxx",
+    "u20-l2-i10": "x0xx", "u20-l2-i11": "x3xx", "u20-l3-i10": "x2xx", "u20-l3-i11": "1023",
+    "u21-l1-i13": "0312", "u21-l2-i8": "1023", "u21-l2-i9": "0312",
+    "u22-l1-i5": "0312", "u22-l2-i4": "1023", "u22-l2-i9": "0312",
+    "u23-l1-i3-q3": "102", "u23-l1-i3-q4": "021", "u23-l1-i3-q5": "102", "u23-l1-i4-q1": "021",
+    "u23-l1-i4-q2": "102", "u23-l1-i4-q3": "102", "u23-l1-i4-q4": "021", "u23-l1-i4-q5": "10243",
+    "u23-l2-i4-q7": "0231", "u23-l2-i4-q8": "1023", "u23-l2-i4-q9": "0312", "u23-l2-i4-q10": "0213",
+    "u24-l1-i3-q2": "102", "u24-l1-i3-q3": "021", "u24-l1-i3-q4": "021", "u24-l1-i4-q2": "021",
+    "u24-l1-i4-q3": "102", "u24-l1-i4-q4": "021", "u24-l1-i4-q5": "021", "u24-l2-i3-q2": "0312",
+    "u24-l2-i3-q3": "1023", "u24-l2-i4-q7": "0213", "u24-l2-i4-q10": "0312"};
+  const M = {};
+  if(do1) Object.assign(M, MAP);
+  if(do2) for(const [q, s] of Object.entries(MAP2)) M[q] = [...s].map(c => c === "x" ? null : +c);
+  const GONE = do1 ? ["u09-l3-i1-q6", "u09-l3-i1-q7", "u09-l3-i1-q8", "u09-l3-i1-q9"] : [];
+  const DROP = new Set([...GONE, ...(do2 ? ["u24-l2-i4-q8", "u24-l2-i4-q9"] : [])]);   /* questions that left the course */
+  const POS = do2 ? {"u23-l4": [0, 2, 3, 4, 5], "u24-l4": [0, 3, 4, 5]} : {};
+  const W1 = "u23-l3-i2", W1P = "You should spend about 20 minutes on this task.\n\nThe graph below shows the main mode of travel used by commuters in the city of Westhaven between 2000 and 2020.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.";
+  /* an index in range moves (undefined: its option is gone); anything else is left as it was */
+  const to = (m, x) => Number.isInteger(x) && x >= 0 && x < m.length ? (m[x] == null ? undefined : m[x]) : x;
+  const only = m => m.every(x => x != null) && m.slice().sort((a, b) => a - b).every((x, i) => x === i);
+  /* the review session's shuffles: ord[i] = the original index shown at place i */
+  const st = LS.get("ielts:study"), ss = isObj(st) && isObj(st.session) ? st.session : null, ord = ss && isObj(ss.ord) ? ss.ord : {};
+  const shuf = {};   /* qid → true: kept (the same options in the same places), false: dropped */
+  let stCh = false;
+  for(const [q, m] of Object.entries(M)) if(Array.isArray(ord[q])){
+    shuf[q] = only(m) && ord[q].length === m.length; stCh = true;
+    if(shuf[q]) ord[q] = ord[q].map(i => m[i]); else delete ord[q];
+  }
+  if(isObj(st) && isObj(st.cards)) for(const q of DROP) if(st.cards[q]){ delete st.cards[q]; stCh = true; }
+  if(ss && Array.isArray(ss.ids) && ss.ids.some(q => DROP.has(q))){ ss.ids = ss.ids.filter(q => !DROP.has(q)); stCh = true; }
+  if(stCh) LS.set("ielts:study", st);
+  /* My writing can take the old Task 1 only from valid data of this version (never a newer version's or a damaged blob) */
+  const dataOk = () => { const raw = LS.raw(PK); if(raw == null) return true; try{ const o = JSON.parse(raw); return isObj(o) && o.v === 1; }catch(e){ return false; } };
+  for(const k of LS.keys()){
+    const km = /^ielts:run:(u\d{2}-l\d+|review)$/.exec(k); if(!km) continue;
+    const lid = km[1], rev = lid === "review";
+    try{
+      const run = LS.get(k); if(!isObj(run) || !isObj(run.ans)) continue;
+      if(!rev && run.at != null) continue;   /* saved by this version: already in the new order */
+      const A = run.ans, before = JSON.stringify(run);
+      if(lid === "u09-l3" && run.finished && GONE.some(q => q in A)){ LS.del(k); continue; }
+      const forget = q => { delete A[q]; if(isObj(run.checked)){ delete run.checked[q]; delete run.checked["rv-" + q]; } };
+      for(const [q, m] of Object.entries(M)){
+        if(rev && q in shuf){ if(!shuf[q]) forget(q); continue; }   /* A[q] is a place on screen */
+        if(!(q in A)) continue;
+        const v = A[q];
+        if(Array.isArray(v)) A[q] = v.map(x => to(m, x)).filter(x => x !== undefined);
+        else{ const n = to(m, v); if(n === undefined) delete A[q]; else A[q] = n; }
+      }
+      if(do2){
+        if("u24-l2-i4-q2" in A) forget("u24-l2-i4-q2");
+        if(lid === "u24-l2" && !("u24-l2-i4-q11" in A)){
+          const two = [], q8 = A["u24-l2-i4-q8"], q9 = A["u24-l2-i4-q9"];
+          if(typeof q8 === "number") two.push(q8 === 0 ? 1 : 0);
+          if(typeof q9 === "number") two.push(q9 === 2 ? 4 : 3);
+          if(two.length) A["u24-l2-i4-q11"] = two;
+        }
+        if(lid === "u24-l2"){ delete A["u24-l2-i4-q8"]; delete A["u24-l2-i4-q9"]; }
+        if(lid === "u23-l3" && W1 in A && dataOk()){
+          const t = String(A[W1] || ""), eid = isObj(run.eid) ? run.eid[W1] : null;
+          let kept = !t.trim() || !!(eid && prog.essay(eid));
+          if(!kept){
+            const id = eid || `${W1}-${at.toString(36)}`;
+            prog.addEssay({id, iid: W1, task: 1, prompt: W1P, text: t, words: words(t), self: isObj(run.self) && run.self[W1] || null, band: null});
+            kept = !!prog.essay(id);
+          }
+          if(kept){   /* never dropped before it is safe in My writing */
+            delete A[W1];
+            for(const b of ["self", "eid", "wt", "checked", "sband"]) if(isObj(run[b])) delete run[b][W1];
+          }
+        }
+        const pos = POS[lid];
+        if(pos && !run.finished && typeof run.i === "number" && pos[run.i] != null) run.i = pos[run.i];
+      }
+      if(JSON.stringify(run) !== before) LS.set(k, run);
+    }catch(e){ console.error(e); }
+  }
+})();
 
 /* ---------- voice (the browser's English voices, by accent) ---------- */
 const UIK = "ielts:ui";
@@ -505,6 +638,7 @@ async function route(){
   if(gen !== routeGen) return;
   if(!D.activeElement || D.activeElement === D.body) a.focus({preventScroll: true});
   a.dataset.ready = location.hash || "#/";   /* painted (the tests wait for it) */
+  warmSoon();
 }
 const fail = msg => `<div class="ie-page"><div class="card ie-card ie-empty">${ico("warning-circle", 40)}<h2 class="t-3">Something went wrong</h2>
   <p class="t-sub">${esc(msg)}</p><a class="glass-btn glass-btn--sm" href="#/">Back to IELTS Prep</a></div></div>`;
@@ -618,7 +752,10 @@ function contInner(c){
     <span class="glass-btn glass-btn--pri glass-btn--sm ie-next-b">${ico("play", 18)}Continue</span>`;
   const test = L.kind === "test", left = test ? (+L.timed || 0) - (+r.el || 0) / 1000 : 0;
   const leftT = left <= 0 ? "time's up" : left < 60 ? "under a minute left" : `${Math.floor(left / 60)} min left`;
-  const where = test ? leftT : `${Math.min((+r.i || 0) + 1, L.items.length)} of ${L.items.length}`;
+  /* an exam-style Listening has no clock: the recording sets the pace, so the part it stopped in */
+  const parts = L.items.filter(x => x.type === "listening").length, x = isObj(r.x) ? r.x : null;
+  const examT = x && x.phase === "review" ? "checking your answers" : `Part ${Math.min(parts, (x ? +x.k || 0 : 0) + 1)} of ${parts}`;
+  const where = test && L.exam === true && r.xmode === "exam" ? examT : test ? leftT : `${Math.min((+r.i || 0) + 1, L.items.length)} of ${L.items.length}`;
   return `<span class="ie-next-k">Continue</span><span class="t-3">${esc(L.title)}</span>
     <span class="t-note">Unit ${u.n} · ${esc(u.title)} · <b class="ie-left">${esc(where)}</b></span>
     <span class="glass-btn glass-btn--pri glass-btn--sm ie-next-b">${ico("play", 18)}${test ? "Resume the test" : "Continue"}</span>`;
@@ -687,7 +824,7 @@ ROUTES.unit = async ([id], a) => {
       const bits = [KIND_T[l.kind] || "", `${l.minutes} min`, res, open.has(l.id) ? "In progress" : ""].filter(Boolean).join(" · ");
       return `<a class="ie-row" href="#/lesson/${l.id}" data-l="${l.id}"><span class="ie-num t-num${rec && rec.done ? " is-done" : ""}">${rec && rec.done ? ico("check", 18) : i + 1}</span>
         <span class="ie-row-t">${esc(l.title)}<small>${esc(bits)}</small></span>
-        ${l.kind === "test" ? `<span class="ie-pill">${ico("timer", 16)}${Math.round(l.timed / 60)} min</span>` : ""}${ico("caret-right", 18, "ie-chev")}</a>`;
+        ${l.kind === "test" ? `<span class="ie-pill">${ico("timer", 16)}${l.exam === true ? l.minutes : Math.round(l.timed / 60)} min</span>` : ""}${ico("caret-right", 18, "ie-chev")}</a>`;
     }).join("")}</div>
   </div>`;
 };
@@ -720,7 +857,8 @@ ROUTES.progress = async (_, a) => {
 /* ---------- my writing: versions and revision ---------- */
 /* which check a message of IE.player.writingChecks() is: each pattern is anchored to the start of the message, and
    repetition goes first, because "Repeated: “position” ×5" quotes the learner's own words */
-const CK = [["repeat", /^(Repeated:|No word is overused)/, "Repetition"], ["words", /^\d+ words?:/, "Length"], ["paras", /^\d+ paragraphs?[.:]/, "Paragraphs"],
+const CK = [["repeat", /^(Repeated:|No word is overused)/, "Repetition"], ["words", /^\d+ words?(?: of your own)?:/, "Length"],
+  ["copied", /^\d+ words? copied from the question/, "Copied from the question"], ["paras", /^\d+ paragraphs?[.:]/, "Paragraphs"],
   ["overview", /^(There['’]s an overview|No clear overview)/, "Overview"], ["opinion", /^Task 1 reports data/, "No opinions in Task 1"],
   ["position", /^(Your position|Make your position)/, "Clear position"], ["linking", /^(\d+ sentence-opening linkers|Linking isn['’]t)/, "Linking"],
   ["cliche", /^Memorised/, "Memorised phrases"], ["contractions", /^Contractions/, "Contractions"], ["sentences", /^(\d+ sentences? over|Sentences average)/, "Sentences"]];
@@ -728,7 +866,7 @@ const ckey = c => (CK.find(([, re]) => re.test(c.t)) || [c.t])[0];
 const cname = k => (CK.find(x => x[0] === k) || [0, 0, k])[2];
 function checksOf(text, it, e){
   const P = IE.player; if(!P || typeof P.writingChecks !== "function") return null;
-  try{ return P.writingChecks(text, it || {task: e.task, minWords: e.task === 1 ? 150 : 250}); }catch(err){ console.error(err); return null; }
+  try{ return P.writingChecks(text, it || {task: e.task, minWords: e.task === 1 ? 150 : 250, prompt: e.prompt}); }catch(err){ console.error(err); return null; }
 }
 const checksList = c => `<ul class="ie-checks">${c.map(x => `<li class="${x.ok ? "is-ok" : "is-miss"}">${ico(x.ok ? "check-circle" : "warning-circle", 18)}<span>${esc(x.t)}</span></li>`).join("")}</ul>`;
 const paras = t => String(t || "").split(/\n\s*\n|\n/).filter(s => s.trim()).map(p => `<p>${esc(p)}</p>`).join("");
@@ -737,7 +875,13 @@ const modelHtml = (m, open = true) => `<details class="ie-model"${open ? " open"
   <button type="button" class="glass-btn glass-btn--sm" data-say-model>${ico("speaker-high", 18)}Listen</button>
   ${m.notes && m.notes.length ? `<h4 class="t-head">Why it scores high</h4><ul class="ie-notes">${m.notes.map(n => `<li>${md(n)}</li>`).join("")}</ul>` : ""}</details>`;
 const wireModel = (a, m) => a.querySelectorAll("[data-say-model]").forEach(b => b.onclick = () => speak(m.text.join(" ").replace(/\*/g, ""), {voice: "f"}));
-const vizHtml = it => it && it.visual && IE.viz && typeof IE.viz.html === "function" ? `<figure class="ie-viz">${IE.viz.html(it.visual)}</figure>` : "";
+const vizHtml = it => it && IE.viz && typeof IE.viz.html === "function" ? [it.visual, it.visual2].filter(Boolean).map(v => `<figure class="ie-viz">${IE.viz.html(v)}</figure>`).join("") : "";
+/* a task replaced under the same id: writing saved for the old one keeps its own prompt, without the new chart, model or
+   checks against the new prompt (u23-l3-i2 was a line graph of commuters in Westhaven until v39) */
+const REPLACED = {"u23-l3-i2": "Westhaven"};
+const replaced = e => !!REPLACED[e.iid] && String(e.prompt || "").includes(REPLACED[e.iid]);
+const itemFor = e => replaced(e) ? Promise.resolve(null) : data.item(e.iid);
+const goneNote = e => replaced(e) ? `<p class="t-note">This task has since been replaced in the course, so its chart and model answer aren't shown.</p>` : "";
 const enc = encodeURIComponent;
 const vband = e => e.band != null ? fmtBand(e.band) : "–";
 function versionsNav(ch, e){
@@ -767,9 +911,9 @@ async function essayPage(id, a){
   const es = pget().essays, e = es.find(x => x.id === id); if(!e) throw new Error("That piece of writing isn't on this device.");
   const ch = chainOf(es, e), last = ch[ch.length - 1], nv = Math.max(...ch.map(x => x.v || 1)) + 1;
   setTop({title: ch.length > 1 ? `Task ${e.task} · v${e.v || 1}` : `Task ${e.task}`, back: "#/essays", backT: "My writing"});
-  const it = await data.item(e.iid), checks = checksOf(e.text, it, e);
+  const it = await itemFor(e), checks = checksOf(e.text, it, e);
   a.innerHTML = `<div class="ie-page"><div class="card ie-card"><p class="ie-kicker">${when(e.at)} · ${e.words} words${ch.length > 1 ? ` · version ${e.v || 1}` : ""}${e.band != null ? ` · your estimate: band ${fmtBand(e.band)}` : ""}</p>
-      <p class="ie-prompt">${md(e.prompt)}</p>${vizHtml(it)}</div>
+      <p class="ie-prompt">${md(e.prompt)}</p>${vizHtml(it)}${goneNote(e)}</div>
     ${ch.length > 1 ? versionsNav(ch, e) : ""}
     <article class="card ie-card ie-essay" lang="en-GB">${paras(e.text)}</article>
     ${checks ? `<div class="card ie-card"><h2 class="t-3">Checks</h2>${checksList(checks)}<p class="t-min">Automatic checks only catch the surface. Compare with the model for what examiners mark.</p></div>` : ""}
@@ -802,7 +946,7 @@ async function revise(id, a){
       <p class="t-sub">That's the most kept for one piece of writing. For more practice, try a new task of the same kind.</p><a class="glass-btn glass-btn--sm" href="#/essays/${enc(id)}">See your writing</a></div></div>`;
     return;
   }
-  const it = await data.item(e.iid), minW = it && it.minWords || (e.task === 1 ? 150 : 250);
+  const it = await itemFor(e), minW = it && it.minWords || (e.task === 1 ? 150 : 250);
   /* the button pressed decides the mode; a draft is resumed only when it was written in that mode */
   const blank = query().get("blank") === "1", drs = draftsOf(id), dr = drs[blank] || null, other = drs[!blank] || null, resume = !!dr;
   const text = resume ? dr.text : blank ? "" : last.text;
@@ -854,14 +998,14 @@ async function compare(id, a){
   const ch = chainOf(es, cur), i = ch.indexOf(cur), prev = i > 0 ? ch[i - 1] : null;
   if(!prev) return essayPage(id, a);
   setTop({title: `Version ${cur.v || 1}`, back: `#/essays/${enc(id)}`, backT: `Task ${cur.task}`});
-  const it = await data.item(cur.iid), c0 = checksOf(prev.text, it, prev) || [], c1 = checksOf(cur.text, it, cur) || [];
+  const it = await itemFor(cur), c0 = checksOf(prev.text, it, prev) || [], c1 = checksOf(cur.text, it, cur) || [];
   const m0 = new Map(c0.map(c => [ckey(c), c])), m1 = new Map(c1.map(c => [ckey(c), c]));
   const keys = [...new Set([...m0.keys(), ...m1.keys()])];
   const flag0 = k => m0.has(k) && !m0.get(k).ok, flag1 = k => m1.has(k) && !m1.get(k).ok;
   const fixed = keys.filter(k => flag0(k) && !flag1(k)), added = keys.filter(k => !flag0(k) && flag1(k)), still = keys.filter(k => flag0(k) && flag1(k));
   const dw = cur.words - prev.words, pv = prev.v || 1, cv = cur.v || 1;
-  /* contractions, memorised phrases and opinions in Task 1 only appear when found: absent means fine */
-  const cell = (m, k) => { const c = m.get(k) || (["cliche", "contractions", "opinion"].includes(k) ? {ok: true, t: ""} : null); return !c ? `<td>–</td>` : `<td class="${c.ok ? "is-ok" : "is-miss"}">${ico(c.ok ? "check-circle" : "warning-circle", 18)}<span>${k === "words" ? esc(String(c.t).split(":")[0]) : c.ok ? "Fine" : "To fix"}</span></td>`; };
+  /* contractions, memorised phrases, opinions in Task 1 and words copied from the question only appear when found: absent means fine */
+  const cell = (m, k) => { const c = m.get(k) || (["cliche", "contractions", "opinion", "copied"].includes(k) ? {ok: true, t: ""} : null); return !c ? `<td>–</td>` : `<td class="${c.ok ? "is-ok" : "is-miss"}">${ico(c.ok ? "check-circle" : "warning-circle", 18)}<span>${k === "words" ? esc(String(c.t).split(":")[0]) : c.ok ? "Fine" : "To fix"}</span></td>`; };
   const list = ks => ks.map(cname).join(", ");
   const AS = IE.assess, kind = cur.task === 1 ? "w1" : "w2";
   const self = AS && typeof AS.selfHtml === "function" ? AS.selfHtml(kind, cur.self, it) : "";
@@ -917,6 +1061,14 @@ function voiceHtml(n){
   return `<p class="t-sub" id="ie-vinfo">Listening recordings are read by this device's ${V && V.gb ? "British" : "English"} voices${V && V.f !== V.m ? ` (${esc(V.f.name)} and ${esc(V.m.name)})` : ""}. The exam speaks at normal speed.</p>
     <p class="t-note" id="ie-vacc">${esc(accentLine(V))}</p>`;
 }
+/* the Google Drive copy is made by the main app (js/ielts-boot.js), never on this page: here only when it last saved */
+function driveLine(){
+  const s = LS.get(SYNCK), t = isObj(s) ? +s.lastSync || 0 : 0;
+  if(!t) return "Once the family's Google account is connected in the main app, a copy of your progress is kept in its Google Drive too and shared with your other devices.";
+  const d = new Date(t), today = new Date().toDateString() === d.toDateString();
+  const when = today ? `today at ${d.toLocaleTimeString("en-GB", {hour: "2-digit", minute: "2-digit"})}` : d.toLocaleDateString("en-GB", {day: "numeric", month: "long", year: "numeric"});
+  return `A copy is kept in the family's Google Drive and shared with your other devices: last saved ${when}. It saves again each time you go back to the app.`;
+}
 ROUTES.settings = async (_, a) => {
   setTop({title: "Settings", back: "#/", backT: "IELTS Prep", right: "<span></span>"});
   const rate = ui().rate || 1, acc = accents(), gen = routeGen;
@@ -931,17 +1083,18 @@ ROUTES.settings = async (_, a) => {
       <p class="t-note">The exam uses British, Australian, New Zealand and North American speakers. British only reads every recording with a British voice.</p>
       <button type="button" class="glass-btn glass-btn--sm" id="ie-vt">${ico("play", 18)}Try the voices</button></div></section>
     <section class="ie-block" aria-labelledby="ie-s-data"><h2 class="ie-bh" id="ie-s-data">${ico("notebook", 20)}Your data</h2><div class="card ie-card">
-      <p class="t-sub">Your results, writing, drafts and settings for IELTS Prep, in one file: keep it somewhere safe, or open it on another device. A copy in Google Drive will come later.</p>
+      <p class="t-sub">Your results, writing, drafts and settings for IELTS Prep, in one file: keep it somewhere safe, or open it on another device.</p>
+      <p class="t-sub" id="ie-drive">${esc(driveLine())}</p>
       <div class="ie-row-b"><button type="button" class="glass-btn glass-btn--sm" id="ie-dl">${ico("copy", 18)}Download my data</button>
         <label class="glass-btn glass-btn--sm ie-file">${ico("arrow-counter-clockwise", 18)}Restore from a file<input type="file" id="ie-restore" class="vh" accept=".json,application/json"></label></div>
       <p class="t-min">Restoring adds what's in the file to what's on this device; nothing here is lost. Lessons in progress aren't in the file.</p></div></section>
     <section class="ie-block" aria-labelledby="ie-s-about"><h2 class="ie-bh" id="ie-s-about">${ico("info", 20)}About</h2><div class="card ie-card">
       <p class="t-sub">All material here is original and written for this app; it is not affiliated with IELTS, the British Council, IDP or Cambridge.</p>
       <p class="t-sub">Listening and Reading bands use the usual conversion, approximate: cut-offs vary slightly between test versions. IELTS publishes only a few points of it (in Listening, 16 of 40 is band 5, 23 is band 6, 30 is band 7 and 35 is band 8). Writing and Speaking are your own estimates.</p>
-      <p class="t-sub">Your progress stays on this device. Recordings stay on this device. Live transcript uses your browser's speech service, which may send your voice to its provider (Google in Chrome).</p></div></section>
+      <p class="t-sub">Your progress stays on this device, with a copy in the family's Google Drive when it is connected in the app. Recordings stay on this device. Live transcript uses your browser's speech service, which may send your voice to its provider (Google in Chrome).</p></div></section>
     <section class="ie-block" aria-labelledby="ie-s-erase"><h2 class="ie-bh" id="ie-s-erase">${ico("trash", 20)}Start again</h2><div class="card ie-card">
       <p class="t-sub">${prog.newer() ? "This device holds progress from a newer version of the app. Update the app first: until then it can't be erased here."
-        : "Erase your results, writing and drafts on this device. Download your data first if you might want them back."}</p>
+        : "Erase your results, writing and drafts on this device, and in the Google Drive copy the next time it saves. Download your data first if you might want them back."}</p>
       <button type="button" class="glass-btn glass-btn--sm" id="ie-erase">${ico("trash", 18)}Erase my progress</button></div></section></div>`;
   if(canSpeak() && VCOUNT == null) ensureVoices().then(n => { const b = a.querySelector("#ie-vbox"); if(gen === routeGen && b) b.innerHTML = voiceHtml(n); });
   a.querySelectorAll("[data-rate]").forEach(b => b.onclick = () => {
@@ -963,12 +1116,70 @@ ROUTES.settings = async (_, a) => {
   };
   a.querySelector("#ie-erase").onclick = () => {
     if(prog.newer()){ toast(NEWER_ERASE, 7000); return; }
-    if(confirm("Erase all your IELTS Prep progress on this device?")){ if(prog.erase()){ toast("Progress erased."); go("#/"); } else toast(NEWER_ERASE, 7000); }
+    if(confirm("Erase all your IELTS Prep progress on this device and in its Google Drive copy?")){ if(prog.erase()){ toast("Progress erased."); go("#/"); } else toast(NEWER_ERASE, 7000); }
   };
 };
 
+/* ---------- offline: the unit files, quietly in the background ----------
+   sw.js keeps every data/ielts/uNN.json the page fetches in vocab-media (kept from one version of the app to the next),
+   but a learner only fetches the units they open. So when IELTS Prep opens online, with the service worker in control,
+   no new version of the app installing, the page in view and the browser idle (requestIdleCallback, at most 8 s),
+   the unit files that aren't in vocab-media yet are saved there, two at a time, never blocking anything: a learner who
+   has opened IELTS Prep once can study every unit offline. A file is kept only if it is a valid unit. It asks with
+   cache:"no-store" (sw.js lets such requests through and doesn't save them twice). It does nothing offline, with
+   Data Saver on or with storage nearly full (under 40 MB free or over 90 % used), stops at the first network error,
+   and never writes to the console. Once a page load has saved everything it doesn't run again; until then it tries
+   again on the next route and when the connection comes back. warmUnits() resolves {saved, have, skipped?}. */
+const MEDIA = "vocab-media", WARM_ROOM = 40 * 1048576, WARM_AT_ONCE = 2;
+let warmRun = null, warmT = 0, warmed = false;
+const online = () => navigator.onLine !== false;
+function warmSoon(){
+  if(warmed || warmRun || warmT || !("caches" in W) || !("serviceWorker" in navigator) || !online()) return;
+  warmT = setTimeout(() => {
+    warmT = 0;
+    const go = () => { if(D.visibilityState !== "hidden") warmUnits().catch(() => {}); };
+    if("requestIdleCallback" in W) requestIdleCallback(go, {timeout: 8000}); else go();
+  }, 2000);
+}
+function warmUnits(){
+  if(warmRun) return warmRun;
+  warmRun = (async () => {
+    const st = {saved: 0, have: 0};
+    const skip = why => { st.skipped = why; return st; };
+    if(!("caches" in W) || !("serviceWorker" in navigator) || !navigator.serviceWorker.controller) return skip("no-sw");
+    if(!online()) return skip("offline");
+    if(navigator.connection && navigator.connection.saveData) return skip("save-data");
+    const reg = await navigator.serviceWorker.getRegistration().catch(() => null);
+    if(!reg || reg.installing || reg.waiting) return skip("update");   /* requests now would keep the old worker busy */
+    if(navigator.storage && navigator.storage.estimate){
+      const q = await navigator.storage.estimate().catch(() => null);
+      if(q && q.quota && (q.quota - (q.usage || 0) < WARM_ROOM || (q.usage || 0) > .9 * q.quota)) return skip("space");
+    }
+    await data.index();
+    const media = await caches.open(MEDIA), todo = [];
+    for(const r of data.avail()){
+      const u = `data/ielts/${r.id}.json`, a = new URL(u, location.href).href;
+      if(await media.match(a)) st.have++; else todo.push([r.id, u, a]);
+    }
+    let i = 0, net = false;
+    const one = async ([id, u, a]) => {
+      let res;
+      try{ res = await fetch(u, {cache: "no-store"}); }catch(e){ net = true; return; }
+      if(res.status !== 200) return;
+      const body = await res.clone().json().catch(() => null);
+      if(!isObj(body) || body.format !== 1 || body.id !== id || !Array.isArray(body.lessons)) return;
+      await media.put(a, res); st.saved++;
+    };
+    await Promise.all(Array.from({length: WARM_AT_ONCE}, async () => { while(i < todo.length && !net && online()) await one(todo[i++]); }));
+    if(net || !online()) return skip("net");
+    warmed = st.have + st.saved >= data.avail().length;
+    return st;
+  })().catch(() => ({saved: 0, have: 0, skipped: "error"})).finally(() => { warmRun = null; });
+  return warmRun;
+}
+
 Object.assign(IE, {esc, md, ico, LS, isObj, data, band, bandRange, roundBand, fmtBand, prog, ui, uiSet, speak, stopSpeak, canSpeak, voices, ensureVoices, voiceTest,
-  ROUTES, route, go, query, setTop, toast, KIND_T, when, words, nextLesson});
+  ROUTES, route, go, query, setTop, toast, KIND_T, when, words, nextLesson, warmUnits});
 
 /* ---------- start ---------- */
 function locked(){
@@ -988,6 +1199,7 @@ function start(){
   }
   pget();   /* a newer version's data or a damaged blob says so at once */
   addEventListener("hashchange", route);
+  addEventListener("online", warmSoon);
   route();
 }
 if(D.readyState === "loading") D.addEventListener("DOMContentLoaded", start); else start();

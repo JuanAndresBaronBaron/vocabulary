@@ -653,7 +653,10 @@ def test_study_home_plan_icons_storage_and_erase():
         for n in ("cards-bold", "calendar-blank-bold", "target-bold", "eye-bold", "eye-slash-bold", "shuffle-bold"):
             m = re.search(rf'<symbol id="i-{n}".*?</symbol>', idx, re.S)
             assert m and ie.count(m.group(0)) == 1, n
-        assert ie.index("js/ielts-player.js") < ie.index('<script src="js/ielts-study.js?v=29"></script>')
+        assert ie.index("js/ielts-player.js") < ie.index('<script src="js/ielts-study.js?v=')
+        # the stylesheet and the four IELTS scripts change together (one ?v= for all, so a phone never mixes versions)
+        vs = re.findall(r'(?:href|src)="(?:ielts\.css|js/ielts(?:-viz|-player|-study)?\.js)\?v=(\d+)"', ie)
+        assert len(vs) == 5 and len(set(vs)) == 1, vs
 
         _open(page)
         card = page.locator("#ie-rvcard")

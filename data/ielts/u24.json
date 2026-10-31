@@ -10,7 +10,7 @@
    "id": "u24-l1",
    "title": "Listening test",
    "kind": "test",
-   "minutes": 40,
+   "minutes": 25,
    "timed": 2400,
    "exam": true,
    "items": [
@@ -1573,7 +1573,7 @@
    "id": "u24-l4",
    "title": "Speaking test",
    "kind": "practice",
-   "minutes": 15,
+   "minutes": 20,
    "items": [
     {
      "id": "u24-l4-i1",
@@ -1755,13 +1755,13 @@
       "notes": [
        "Each answer takes a position, explains it and adds a qualification or example, without drifting into a story.",
        "Hedging and speculation are varied and precise (*I suspect*, *it may balance out*, *It wouldn't surprise me if*).",
-       "Abstract ideas are expressed clearly in natural spoken language (*the rhythm is set by the task rather than the clock*).",
+       "Abstract ideas are expressed clearly in natural spoken language (*the rhythm is often set by the task rather than the clock*).",
        "Comparison across time is handled accurately (*than they used to*, *Work is increasingly judged by...*).",
        "Each answer runs to roughly 100-110 words, about 40-45 seconds at a natural pace, and ends with a qualification or a conclusion rather than trailing off."
       ]
      },
      "phrases": [
-      "the rhythm is set by the task rather than the clock",
+      "the rhythm is often set by the task rather than the clock",
       "it may balance out",
       "as long as the flexibility works for both sides",
       "children absorb that",

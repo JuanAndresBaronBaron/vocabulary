@@ -29,9 +29,9 @@ AMERICAN = re.compile(r"\b(color|colors|favorite|center|centers|analyze|analyzed
                       r"utilize|utilized|fiber|liter|meter|meters|centimeter|kilometer)\b")
 MARKUP = re.compile(r"<[a-z/][^>]*>|\[[^\]]+\]\(", re.I)
 ACCENTS = {"gb", "us", "ca", "au", "nz", "ie", "za"}
-# Package content2 fixes these in u23 and u24: errors of the exam rules on these ids are skipped.
-# the integrator empties this after merging content2
-PENDING = {"u23-l1-i2-q10", "u24-l1-i2-q4", "u23-l1-i3", "u23-l1", "u23-l2", "u24-l1", "u24-l2"}
+# Ids whose exam-rule errors are skipped while a content package still has to fix them. Empty since content2 was
+# merged: every unit passes the three rules.
+PENDING = set()
 
 # ---------- word limits (ielts.org: "You will lose the mark for writing more than the word limit.") ----------
 _LIMIT = re.compile(r"(?:NO MORE THAN )?(ONE|TWO|THREE)(?: OR (TWO|THREE))? WORDS?(?: ONLY)?( AND/OR A NUMBER)?")

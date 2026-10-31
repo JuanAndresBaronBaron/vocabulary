@@ -461,7 +461,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
         <p class="t-sub">${ico("speaker-high", 18)} You can move between parts while the recording plays. If you leave the test, the recording stops, and a pause of more than two minutes isn't counted as exam conditions. Tests always play at exam speed. Use headphones.</p>`
       : `<p class="t-sub">${Math.round(L.timed / 60)} minutes${nq ? ` · ${nq} questions` : ""}. Like the real exam: no answers until you finish, and the clock keeps going between parts. The clock stops only while this test isn't on screen, and a pause of more than two minutes isn't counted as exam conditions.</p>
         ${skill === "listening" ? `<p class="t-sub">${ico("speaker-high", 18)} Each recording plays once. Read the questions before you press play. Tests always play at exam speed. Use headphones.</p>` : ""}`}
-      ${skill === "writing" ? `<p class="t-sub">${ico("pencil-simple", 18)} Spend about 20 minutes on Task 1 and 40 on Task 2: Task 2 counts twice as much.</p>` : ""}
+      ${skill === "writing" ? (() => { const has = n => L.items.some(x => x.type === "writing" && x.task === n), m = Math.round(L.timed / 60); return `<p class="t-sub">${ico("pencil-simple", 18)} ${has(1) && has(2) ? "Spend about 20 minutes on Task 1 and 40 on Task 2: Task 2 counts twice as much." : has(1) ? `Spend the ${m} minutes on Task 1: plan, write, then check your figures.` : `Spend the ${m} minutes on Task 2: plan, write, then check your argument.`}</p>`; })() : ""}
       <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="ie-go">Start</button></div></div>`;
     const go = a.querySelector("#ie-go");
     go.onclick = async () => {

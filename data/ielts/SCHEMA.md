@@ -131,7 +131,12 @@ numbers), a `table` for table completion, with each blank written as its questio
 
 ## Bands
 
-Tests use the usual Academic conversion, approximate (cut-offs vary slightly between versions; ielts.org publishes the anchors 16 = 5, 23 = 6, 30 = 7, 35 = 8) for a 40-question paper and scale shorter tests to 40:
+Tests use the usual conversion, approximate: cut-offs vary slightly between test versions (ielts.org publishes only the
+anchors 16 = 5, 23 = 6, 30 = 7 and 35 = 8 for Listening, and 15 = 5, 23 = 6, 30 = 7 and 35 = 8 for Academic Reading:
+https://ielts.org/organisations/ielts-for-organisations/ielts-scoring-in-detail). Shorter tests are scaled to 40:
 Listening 39-40 = 9, 37-38 = 8.5, 35-36 = 8, 32-34 = 7.5, 30-31 = 7, 26-29 = 6.5, 23-25 = 6, 18-22 = 5.5, 16-17 = 5,
 13-15 = 4.5, 10-12 = 4. Academic Reading 39-40 = 9, 37-38 = 8.5, 35-36 = 8, 33-34 = 7.5, 30-32 = 7, 27-29 = 6.5,
 23-26 = 6, 19-22 = 5.5, 15-18 = 5, 13-14 = 4.5, 10-12 = 4.
+
+Band estimates in the app count only first attempts (or a repeat 60+ days later) and pool the newest counted tests up to
+40 questions (js/ielts.js, prog.latestInfo).
