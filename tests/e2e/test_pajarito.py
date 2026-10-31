@@ -184,6 +184,9 @@ def test_jet_mission():
                     got = page.evaluate("+document.querySelector('#fl-mp').textContent")
                     rd = page.evaluate("window.__mpRadio[window.__mpRadio.length - 1]")
                     assert any(w in rd for w in ("Roger", "Copy")), rd
+                    # «Roger»/«Copy» también los dice el disparo a la puerta (y el texto queda en #fl-radio al
+                    # esconderse): lo que prueba que la radio contesta a esta entrega es lo que solo escribe la entrega
+                    assert (("les llegó" in rd or "ayuda recibida" in rd) if k == "aid" else "barricada destruida" in rd), rd
                     if got >= 2:
                         break
                 page.wait_for_timeout(150)
