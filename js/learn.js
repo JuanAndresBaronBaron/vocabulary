@@ -8,6 +8,9 @@
      sus palabras y «Repetir». Si la lección actual no se ve, la pastilla flotante «Mi lección» (↓ o ↑) baja o sube hasta ella con
      scroll suave. Al entrar por la pestaña no se mueve (se ven el título y los segmentos); con un nivel en la ruta o al
      volver de una lección baja hasta la lección actual (como en F2). Guarda el nivel en store "mapLv", como antes.
+     Al empezar una unidad (la lección actual es la primera de la unidad, ninguna hecha, y ya hay alguna lección hecha en
+     el idioma), bajo su cabecera sale «¿Ya lo sabes? · Prueba rápida de la unidad» (#cm-ut → #/leccion/<nivel>-U<nn>,
+     en js/lesson.js): opcional, nunca bloquea nada.
    - #/palabras → palabras(): lista agrupada como Ajustes del iPhone: «Temas», «Las 3000» y «Avanzado» (plegado; si se
      abre, se recuerda en la sesión). Cada fila: dibujo, nombre, número de palabras, anillo de progreso (las del tema que
      ya están en srs:<idioma> / las del tema) y la flecha. Usa data/index.json.
@@ -172,6 +175,16 @@ const CSS = `
 .cm .nd .glbl.l{right:calc(100% + 12px);text-align:right}
 .cm .nd .glbl small{display:block;font:600 var(--fs-min)/1.3 var(--f-text);color:var(--label2)}
 .cm-next{margin:0 0 24px;text-align:center}
+/* «¿Ya lo sabes?» al empezar una unidad: opcional, bajo su cabecera */
+.cm .unit:has(+ .cm-ut){margin-bottom:12px}
+.cm-ut{display:flex;justify-content:center;width:100%;margin:0 0 28px}
+.cm-ut-b{display:inline-flex;align-items:center;gap:10px;min-height:52px;max-width:100%;padding:8px 20px 8px 14px;border-radius:var(--r-pill);
+  background:var(--brand-soft);color:var(--brand-ink);text-decoration:none;-webkit-tap-highlight-color:transparent}
+.cm-ut-b .ico{flex:none}
+.cm-ut-b span{display:flex;flex-direction:column;min-width:0;text-align:left}
+.cm-ut-b b{font:700 var(--fs-sub)/1.2 var(--f-round)}
+.cm-ut-b small{font:400 var(--fs-note)/1.25 var(--f-text);color:var(--label2)}
+.cm-ut-b:focus-visible{outline:3px solid var(--brand-tint);outline-offset:3px}
 @media (max-width:560px){.cm .nd{transform:translateX(calc(var(--x) * .7))}.cm .nd .glbl{width:110px}}
 .cm-jump{--g-lite:rgba(255,255,255,.95);--g-lite-d:rgba(44,44,46,.95);position:fixed;z-index:9;left:50%;bottom:calc(var(--tabbar-b) + var(--tabbar-h) + 12px);
   translate:-50% 0;display:inline-flex;align-items:center;gap:6px;min-height:var(--tap);margin:0;padding:0 18px 0 14px;border:0;border-radius:var(--r-pill);
@@ -569,9 +582,14 @@ async function mapa(lv){
   store.set("mapLv", lv);
   jumpOff(); clearGest();
   const ls = lvLessons(lv), cur = lvCur(lv, P), done = ls.filter(l => P[l.id]).length;
+  /* «¿Ya lo sabes?»: al empezar una unidad (la siguiente lección es la primera de la unidad y no hay ninguna hecha), si
+     el niño ya hizo alguna lección en este idioma. Es opcional: no bloquea nada */
+  const anyDone = Object.keys(P).length > 0, VL = W.vocabLesson;
   let k = 0, html = "";
   for(const [ui, u] of lvUnits(lv).entries()){
     html += `<div class="unit"><span>Unidad ${ui + 1} · <a href="#/doc/${esc(u.doc)}">${esc(u.t)}</a></span></div>`;
+    if(anyDone && k === cur && VL && typeof VL.unitTestable === "function" && VL.unitTestable(lv, ui + 1))
+      html += `<div class="cm-ut"><a class="cm-ut-b" id="cm-ut" href="#/leccion/${lv}-U${String(ui + 1).padStart(2, "0")}" data-press="sink">${ico("lightning", "bold", 20)}<span><b>¿Ya lo sabes?</b><small>Prueba rápida de la unidad</small></span></a></div>`;
     for(const l of u.ls){
       const st = P[l.id] || 0, isCur = k === cur, lock = k > cur, gram = !l.w, x = X[k % X.length];
       const name = gram ? `Gramática: ${l.t}` : `Lección ${k + 1}`;

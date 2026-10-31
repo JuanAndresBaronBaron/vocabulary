@@ -44,7 +44,17 @@ def test_learning_word_never_splits():
             C.goto(page, "#/leccion/" + R.LESSON)
             page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-page')", timeout=8000)
             seen = []
-            while page.evaluate(L._ST)["t"] == "learn":
+            # las palabras nuevas salen de 3 en 3 entre preguntas: se contestan bien hasta ver «granddaughter»
+            for _ in range(60):
+                st = page.evaluate(L._ST)
+                if not st or st["ended"] or "granddaughter" in seen:
+                    break
+                if st["t"] != "learn":
+                    L._pick(page, st["right"])
+                    page.wait_for_function("() => { const g = document.getElementById('ls-go'); return g && !g.hidden; }", timeout=6000)
+                    if page.evaluate(L._ST)["i"] == st["i"]:
+                        L._go(page)
+                    continue
                 page.wait_for_timeout(120)
                 m = page.evaluate(_ONE_LINE, f"{_PAGE} .ls-word")
                 seen.append(m["t"])
@@ -281,14 +291,15 @@ def test_mic_unavailable_offline_or_missing():
 
 
 # ---------------------------------------------------------------- lección guardada
-_CUR = """() => { const s = vocabLesson.state, st = s.steps[s.i]; return {i: s.i, n: s.steps.length, t: st && st.t,
-  es: st && st.w && st.w.r.es, rest: s.steps.slice(s.i).map(x => x.w.r.es)}; }"""
+# cada palabra por su clave (tema:fila); «Empareja» no tiene una sola palabra
+_CUR = """() => { const s = vocabLesson.state, st = s.steps[s.i]; return {i: s.i, n: s.steps.length, t: st && st.t, re: !!(st && st.re),
+  k: st && st.w && st.w.k, rest: s.steps.slice(s.i).map(x => x.w ? x.w.k : x.t), left: s.steps.slice(s.i).filter(x => x.re && !x.done).map(x => x.w.k)}; }"""
 
 
 def test_saved_lesson_keeps_reasks_and_rejects_bad_values():
     """Recargar a mitad: las repeticiones que faltaban son las de verdad (una palabra fallada dos veces sigue pendiente;
-    otra fallada y luego acertada, no), gracias a «left» en lo guardado. Un 'vocab:ls' raro (n: 5e7, i: 5000, i > n,
-    negativo) no cuelga la pestaña ni hace una lección de 5008 pasos: la lección empieza de cero."""
+    otra fallada y luego acertada, no), gracias a «left» y al plan en lo guardado. Un 'vocab:ls' raro (n: 5e7, i: 5000,
+    i > n, negativo) no cuelga la pestaña ni hace una lección de 5008 pasos: la lección empieza de cero."""
     probs = []
     page = C.new_page("phone")
     try:
@@ -296,17 +307,28 @@ def test_saved_lesson_keeps_reasks_and_rejects_bad_values():
         page.evaluate(L._HOOK)
         page.evaluate(L._FAKE_AUDIO)
         page.evaluate("() => { window.__audioD = 0; }")
-        while page.evaluate(L._ST)["t"] == "learn":
-            L._go(page)
-        plan = {0: "wrong", 1: "wrong", 8: "wrong", 9: "right"}
+        # las dos primeras preguntas mal (x, y), que vuelven 3-5 pasos después: x mal otra vez (y vuelve otra vez), y
+        # bien; se para en cuanto han salido las dos repeticiones
         x = y = None
-        for q in range(10):
+        q = xre = 0
+        yre = False
+        for _ in range(140):
             st, cur = page.evaluate(L._ST), page.evaluate(_CUR)
+            if st["ended"] or (xre and yre):
+                break
+            if st["t"] == "learn":
+                L._go(page)
+                continue
             if q == 0:
-                x = cur["es"]
+                x = cur["k"]
             if q == 1:
-                y = cur["es"]
-            if plan.get(q, "right") == "wrong":
+                y = cur["k"]
+            wrong = q < 2 or (cur["re"] and cur["k"] == x and xre == 0)
+            if cur["re"] and cur["k"] == x:
+                xre += 1
+            if cur["re"] and cur["k"] == y:
+                yre = True
+            if wrong:
                 L._pick(page, L._wrong(page, st["right"]))
                 page.wait_for_function("() => { const g = document.getElementById('ls-go'); return g && !g.hidden; }", timeout=3000)
                 L._go(page)
@@ -314,30 +336,35 @@ def test_saved_lesson_keeps_reasks_and_rejects_bad_values():
                 L._pick(page, st["right"])
                 L._wait_change(page, st["i"], 9000)
                 page.wait_for_timeout(250)
+            q += 1
+        # x sigue pendiente si su segunda repetición no ha salido aún (si salió, se acertó); y ya no
+        exp = [x] if xre == 1 else []
         before = page.evaluate(_CUR)
-        if before["rest"] != [x]:
-            probs.append(f"antes de recargar quedan {before['rest']} (se esperaba [{x}])")
+        if not (xre and yre) or before["left"] != exp:
+            probs.append(f"antes de recargar faltan las repeticiones {before['left']} (se esperaba {exp}; x salió {xre} veces, y {yre})")
         sv = page.evaluate(L._SAVED)
-        if sv.get("left") != [x]:
+        if sv.get("left") != exp:
             probs.append(f"lo guardado no lleva las repeticiones pendientes: {sv}")
         C.reload(page)
         page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-page')", timeout=8000)
         after = page.evaluate(_CUR)
-        if after["rest"] != [x] or after["i"] != before["i"] or after["n"] != before["n"]:
+        if after["left"] != exp or after["rest"] != before["rest"] or after["i"] != before["i"] or after["n"] != before["n"]:
             probs.append(f"tras recargar: {after} (antes {before}; {y} ya estaba bien)")
         # valores raros: de cero, y enseguida
-        es = page.evaluate("() => vocabLesson.state.words[0].r.es")
+        es, k0 = page.evaluate("() => [vocabLesson.state.words[0].r.es, vocabLesson.state.words[0].k]")
+        sv = page.evaluate(L._SAVED)
         for bad in ({"n": 50000000, "i": 9}, {"n": 5008, "i": 5000}, {"n": 12, "i": 14}, {"n": 12, "i": -3}):
-            v = {"id": R.LESSON, "first": [], "miss": [es], "lang": "english", **bad}
-            page.evaluate("v => { sessionStorage.setItem('vocab:ls', JSON.stringify(v)); localStorage.removeItem('vocab:lsdraft'); }", v)
-            C.reload(page)
-            try:
-                page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-page')", timeout=5000)
-                st = page.evaluate(L._ST)
-                if st["i"] != 0 or st["n"] > 8 + 8 * 4:
-                    probs.append(f"con {bad}: la lección no empieza de cero: {st}")
-            except Exception:  # noqa: BLE001
-                probs.append(f"con {bad}: la lección no se abre en 5 s")
+            # como antes (sin v) y con el formato de ahora (v: 2, el plan de verdad) pero con los números raros
+            for v in ({"id": R.LESSON, "first": [], "miss": [es], "lang": "english", **bad}, dict(sv, miss=[k0], **bad)):
+                page.evaluate("v => { sessionStorage.setItem('vocab:ls', JSON.stringify(v)); localStorage.removeItem('vocab:lsdraft'); }", v)
+                C.reload(page)
+                try:
+                    page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-page')", timeout=5000)
+                    st = page.evaluate(L._ST)
+                    if st["i"] != 0 or st["n"] > 40:
+                        probs.append(f"con {bad} (v {v.get('v')}): la lección no empieza de cero: {st}")
+                except Exception:  # noqa: BLE001
+                    probs.append(f"con {bad} (v {v.get('v')}): la lección no se abre en 5 s")
         probs += C.errors(page)
     finally:
         page.context.close()

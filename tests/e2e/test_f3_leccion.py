@@ -19,15 +19,21 @@ from pathlib import Path
 import common as C
 import routes as R
 
-LESSON = R.LESSON                 # A1-010 en la partida sembrada (8 palabras)
+LESSON = R.LESSON                 # A1-010 en la partida sembrada (7 palabras: «cousin» sale una vez)
 GRAM = R.GRAM_LESSON              # G-A1-02
 BASE_REV = "3396fc7"              # la versión de antes de F3 (lección en index.html)
 
-# estado de la lección en marcha (vocabulario o gramática)
+# estado de la lección en marcha (vocabulario o gramática). t: learn · pick · listen · spell («Ordena las letras») ·
+# fill («Completa la frase») · match («Empareja») · gq (gramática); rv: palabra de repaso
 _ST = """() => { const s = window.vocabLesson && vocabLesson.state; if (!s) return null; const st = s.steps[s.i];
   return {id: s.id, i: s.i, n: s.steps.length, ended: s.ended, saved: s.saved, t: st ? st.t : null, done: !!(st && st.done),
+    rv: !!(st && st.w && st.w.rv), key: st && st.w ? st.w.k : null,
     right: st ? (st.right != null ? st.right : (st.q ? st.q.o[st.q.a] : null)) : null}; }"""
 _OPTS = """() => [...document.querySelectorAll('.ls-stage > .ls-page:not(.ls-ghost) .ls-opt .ls-ot')].map(e => e.textContent)"""
+_TILES = """() => [...document.querySelectorAll('.ls-stage > .ls-page:not(.ls-ghost) .ls-tile')].map((t, k) => ({k, ch: t.dataset.ch,
+  used: t.classList.contains('is-used'), wait: !!t.dataset.wait}))"""
+WRONG = "__mal__"                 # _wrong() en «Ordena las letras» y «Empareja» (sin opciones que elegir)
+_CUR_PG = ".ls-stage > .ls-page:not(.ls-ghost)"
 _SAVED = "() => JSON.parse(sessionStorage.getItem('vocab:ls'))"
 _CHANGED = "i0 => { const s = window.vocabLesson && vocabLesson.state; return !s || s.ended || s.i !== i0; }"
 # espías: cambios de paso, respuestas, audio, monedas, sonidos, vibración, temblor, confeti y notas
@@ -75,19 +81,54 @@ def _go(page):
     page.wait_for_timeout(240)
 
 
+def _spell(page, ok=True):
+    """«Ordena las letras»: toca las fichas en orden. Sin ok, antes toca 2 que no van (cuenta como fallada)."""
+    word = page.evaluate(_ST)["right"]
+    loc = page.locator(f"{_CUR_PG} .ls-tile")
+    if not ok:
+        bad = [t for t in page.evaluate(_TILES) if not t["used"] and t["ch"].lower() != word[0].lower()]
+        for t in (bad[:2] if len(bad) >= 2 else bad * 2):
+            page.wait_for_function("k => !document.querySelectorAll('.ls-stage > .ls-page:not(.ls-ghost) .ls-tile')[k].dataset.wait", arg=t["k"], timeout=3000)
+            loc.nth(t["k"]).click()
+        page.wait_for_timeout(700)
+    for ch in word:
+        t = next(t for t in page.evaluate(_TILES) if not t["used"] and t["ch"].lower() == ch.lower())
+        loc.nth(t["k"]).click()
+
+
+def _match(page, ok=True):
+    """«Empareja»: cada dibujo con su palabra (sin ok, antes una pareja que no va, que no cuenta como fallo)."""
+    cell = lambda side, m: page.locator(f"{_CUR_PG} .ls-mc[data-side='{side}'][data-m='{m}']")  # noqa: E731
+    if not ok:
+        cell("p", 0).click()
+        cell("w", 1).click()
+        page.wait_for_timeout(760)
+    for m in range(4):
+        cell("p", m).click()
+        cell("w", m).click()
+
+
 def _pick(page, text):
+    st = page.evaluate(_ST)
+    if st and st["t"] == "spell":
+        return _spell(page, ok=text != WRONG and text == st["right"])
+    if st and st["t"] == "match":
+        return _match(page, ok=text != WRONG)
     opts = page.evaluate(_OPTS)
-    page.locator(".ls-stage > .ls-page:not(.ls-ghost) .ls-opt").nth(opts.index(text)).click()
+    page.locator(f"{_CUR_PG} .ls-opt").nth(opts.index(text)).click()
 
 
 def _wrong(page, right):
+    st = page.evaluate(_ST)
+    if st and st["t"] in ("spell", "match"):
+        return WRONG
     return next(o for o in page.evaluate(_OPTS) if o != right)
 
 
-def _play(page, miss=(), auto=True, max_steps=80):
+def _play(page, miss=(), auto=True, max_steps=140):
     """Juega la lección abierta hasta el final: las palabras nuevas con «Continuar» (la teoría con «Practicar») y las
-    preguntas bien, salvo las de miss (0 = la primera pregunta), que se fallan y siguen con «Seguir». Devuelve cuántas
-    preguntas contestó."""
+    preguntas bien, salvo las de miss (0 = la primera pregunta), que se fallan y siguen con «Seguir» («Empareja» no se
+    puede fallar: se juega bien). Devuelve cuántas preguntas contestó."""
     q = 0
     for _ in range(max_steps):
         st = page.evaluate(_ST)
@@ -96,7 +137,7 @@ def _play(page, miss=(), auto=True, max_steps=80):
         if st["t"] in (None, "learn"):
             _go(page)
             continue
-        if q in miss:
+        if q in miss and st["t"] != "match":
             _pick(page, _wrong(page, st["right"]))
             page.wait_for_function("() => { const g = document.getElementById('ls-go'); return g && !g.hidden; }", timeout=3000)
             _go(page)
@@ -113,10 +154,12 @@ def _play(page, miss=(), auto=True, max_steps=80):
 
 # ---------------------------------------------------------------- acertar todo: pasa sola y termina una vez
 def test_right_answers_advance_alone_and_lesson_ends_once():
-    """Toda la lección bien: cada acierto pasa solo ≤ 1,2 s después de acabar el audio y nunca antes de 0,9 s (audio de
-    0 y de 1 s), con ✓ verde, sonido «ok» y vibración de éxito. Racha: chip con la llama a los 3 seguidos. Al final, 3
+    """Toda la lección bien (aprender y preguntar mezclados, con «Ordena las letras», «Completa la frase», «Empareja» y
+    las de repaso): cada acierto pasa solo ≤ 1,2 s después de acabar el audio y nunca antes de 0,9 s (audio de 0 y de
+    1 s), con ✓ verde, sonido «ok» y vibración de éxito. Racha: chip con la llama a los 3 seguidos. Al final, 3
     estrellas de una en una (≈150 ms, notas que suben), «+25» y las monedas sumadas una sola vez, «Mañana repasas estas N
-    palabras» con la cuenta real, confeti una vez (solo aquí), «Siguiente lección» y «Repetir»; 'vocab:ls' borrado."""
+    palabras» con la cuenta real, confeti una vez (solo aquí), «Siguiente lección» y «Repetir» (sin «Repasa tus fallos»);
+    'vocab:ls' borrado."""
     page = C.new_page("phone")
     probs = []
     try:
@@ -124,9 +167,10 @@ def test_right_answers_advance_alone_and_lesson_ends_once():
         page.evaluate(_HOOK)
         page.evaluate(_FAKE_AUDIO)
         coins0 = page.evaluate("game().coins")
+        nq = page.evaluate("() => vocabLesson.state.steps.filter(st => st.t !== 'learn').length")
         q = 0
         streak_seen = {}
-        for _ in range(60):
+        for _ in range(140):
             st = page.evaluate(_ST)
             if st["ended"]:
                 break
@@ -135,21 +179,25 @@ def test_right_answers_advance_alone_and_lesson_ends_once():
                 continue
             d = 0 if q % 2 else 1000
             page.evaluate("d => { window.__audioD = d; }", d)
-            n_ans, n_aud = page.evaluate("[__t.ans.length, __t.audio.length]")
+            n_aud = page.evaluate("__t.audio.length")
             _pick(page, st["right"])
             page.wait_for_timeout(120)
+            # ✓ verde en la elegida, las letras en su sitio o las 4 parejas hechas
             look = page.evaluate("""() => { const p = document.querySelector('.ls-stage > .ls-page:not(.ls-ghost)'), ok = p.querySelector('.ls-opt.is-ok');
               const k = p.querySelector('.ls-streak b');
-              return {ok: !!ok && !!ok.querySelector('svg.chk'), miss: !!p.querySelector('.is-miss'), streak: k ? +k.textContent : 0}; }""")
+              return {ok: (!!ok && !!ok.querySelector('svg.chk')) || !!p.querySelector('.ls-sp.is-done') || (!!p.querySelector('.ls-mt') && !p.querySelector('.ls-mc:not(.is-ok)')),
+                miss: !!p.querySelector('.is-miss'), streak: k ? +k.textContent : 0}; }""")
             if not look["ok"] or look["miss"]:
-                probs.append(f"pregunta {q}: al acertar {look}")
-            streak_seen[q + 1] = look["streak"]
+                probs.append(f"pregunta {q} ({st['t']}): al acertar {look}")
+            if st["t"] != "match":                 # «Empareja» no lleva el chip (no cabe en la cabecera)
+                streak_seen[q + 1] = look["streak"]
             _wait_change(page, st["i"], 9000)
             # el espía de pasos mira cada 8 ms con setInterval: con la página ocupada pintando el paso nuevo puede ir
             # detrás de wait_for_function (que ya vio el cambio); se espera a que lo apunte
             page.wait_for_function("i0 => __t.chg.length && __t.chg[__t.chg.length - 1].i !== i0", arg=st["i"], timeout=3000)
-            t = page.evaluate("""([na, nu, i0]) => { const a = __t.ans[na], au = __t.audio.slice(nu).find(x => x.s >= a.t),
-              c = __t.chg.find(x => x.t > a.t && x.i !== i0); return {a: a.t, s: au && au.s, e: au && au.e, c: c && c.t}; }""", [n_ans, n_aud, st["i"]])
+            # la última respuesta del paso («Empareja» manda una por pareja)
+            t = page.evaluate("""([nu, i0]) => { const a = __t.ans[__t.ans.length - 1], au = __t.audio.slice(nu).find(x => x.s >= a.t),
+              c = __t.chg.find(x => x.t > a.t && x.i !== i0); return {a: a.t, s: au && au.s, e: au && au.e, c: c && c.t}; }""", [n_aud, st["i"]])
             if t["e"] is None or t["c"] is None:
                 probs.append(f"pregunta {q}: sin audio o sin cambio de paso {t}")
             else:
@@ -161,9 +209,9 @@ def test_right_answers_advance_alone_and_lesson_ends_once():
                     probs.append(f"pregunta {q} (audio {d} ms): pasó antes de acabar el audio")
             page.wait_for_timeout(240)
             q += 1
-        if q != 8:
-            probs.append(f"se contestaron {q} preguntas (se esperaban 8)")
-        if streak_seen.get(2) or streak_seen.get(3) != 3 or streak_seen.get(5) != 5:
+        if q != nq or q < 14:
+            probs.append(f"se contestaron {q} preguntas (el plan tiene {nq}, y deberían ser 14 o más)")
+        if streak_seen.get(2) or streak_seen.get(3) != 3 or streak_seen.get(5, 5) != 5:
             probs.append(f"chip de racha por acierto: {streak_seen}")
         page.wait_for_selector(".ls-end", timeout=5000)
         page.wait_for_timeout(3200)            # estrellas y monedas en vuelo
@@ -176,9 +224,11 @@ def test_right_answers_advance_alone_and_lesson_ends_once():
           old: /Volver al mapa|Acertaste a la primera/.test(document.getElementById('app').textContent),
           due1: (vocabLesson.state.words || []).filter(w => { const x = srsAll()[srsK(w.doc, w.r)]; return x && x.due === today() + 1; }).length,
           nw: (vocabLesson.state.words || []).length, saved: sessionStorage.getItem('vocab:ls'),
-          coins: game().coins})""")
+          fix: !!document.getElementById('ls-fix'), coins: game().coins})""")
         if end["t"] != "¡Lección completada!" or end["plus"] != "+25" or end["stars"] != 3 or not end["fox"]:
             probs.append(f"final: {end}")
+        if end["fix"]:
+            probs.append("sin fallos sale «Repasa tus fallos»")
         # solo las palabras de esta lección que vuelven mañana (no todo el repaso)
         if end["due1"] != end["nw"] or end["tmr"] != f"Mañana repasas estas {end['nw']} palabras":
             probs.append(f"«Mañana repasas…»: {end['tmr']!r} (de la lección vencen mañana {end['due1']} de {end['nw']})")
@@ -201,9 +251,11 @@ def test_right_answers_advance_alone_and_lesson_ends_once():
             probs.append(f"las estrellas no salen de una en una cada ≈150 ms: {gaps}")
         if T["notes"][:3] != sorted(T["notes"][:3]) or len(set(T["notes"][:3])) != 3:
             probs.append(f"las notas de las estrellas no suben: {T['notes'][:6]}")
-        if T["snd"].count("ok") != 8 or "bad" in T["snd"]:
-            probs.append(f"sonidos: {T['snd']}")
-        if T["hap"].count("success") != 9:      # una por acierto y otra al terminar la lección (F6a, js/navmotion.js)
+        n_ok = sum(1 for a in T["ans"] if a["ok"])      # «Empareja» cuenta una por pareja
+        if T["snd"].count("ok") != n_ok or "bad" in T["snd"] or len(T["ans"]) != n_ok:
+            probs.append(f"sonidos: {T['snd']} ({n_ok} aciertos de {len(T['ans'])})")
+        # una por pregunta (en «Empareja», al hacer la última pareja) y otra al terminar la lección (F6a, js/navmotion.js)
+        if T["hap"].count("success") != nq + 1:
             probs.append(f"vibraciones de éxito: {T['hap']}")
         if T["nope"]:
             probs.append(f"M.nope se llamó {T['nope']} veces")
@@ -262,7 +314,7 @@ def test_miss_is_gray_green_and_quiet():
             if st2["i"] != st["i"]:
                 probs.append(f"{scheme}: al fallar pasó solo al paso {st2['i']}")
             sv = page.evaluate(_SAVED)
-            if not sv or sv.get("miss") != [page.evaluate("() => { const s = vocabLesson.state; return s.steps[s.i].w.r.es; }")]:
+            if not sv or sv.get("miss") != [page.evaluate("() => { const s = vocabLesson.state; return s.steps[s.i].w.k; }")]:
                 probs.append(f"{scheme}: 'vocab:ls' tras fallar: {sv}")
             _go(page)
             st3 = page.evaluate(_ST)
@@ -526,13 +578,16 @@ def _base_tree():
         return None
 
 
-_KEYS = ("map:english", "srs:english", "act")
+# el repaso y la actividad ya no son los de BASE_REV a propósito: la lección pregunta 2-3 palabras del repaso (srsGrade)
+# y las falladas van a la caja 0; el camino y las monedas siguen igual
+_KEYS = ("map:english",)
 
 
 def test_progress_saved_like_before():
-    """Para la misma secuencia (todo bien, y fallando la primera pregunta) el camino (map:<idioma>), el repaso
-    (srs:<idioma>), la actividad y las monedas quedan exactamente igual que con la versión anterior (BASE_REV); y, sin
-    ella, como dicta el formato: la lección con sus estrellas y cada palabra en la caja 1 para mañana."""
+    """Para la misma secuencia (todo bien, y fallando la primera pregunta) el camino (map:<idioma>) y las monedas
+    quedan exactamente igual que con la versión anterior (BASE_REV); y, con o sin ella, el repaso como dicta el formato:
+    la lección con sus estrellas, la palabra fallada en la caja 0 (hoy), las demás en la caja 1 (mañana), las de repaso
+    que salen en la lección calificadas como en el repaso (caja + 1) y el resto del repaso sin tocar."""
     probs = []
     tmp = _base_tree()
     try:
@@ -548,15 +603,20 @@ def test_progress_saved_like_before():
                     C.goto(page, "#/leccion/" + LESSON)
                     if impl == "new":
                         page.wait_for_function("() => window.vocabLesson && vocabLesson.state", timeout=8000)
+                        plan = page.evaluate("""() => { const s = vocabLesson.state, q = s.steps.find(st => st.t !== 'learn');
+                          return {miss: srsK(q.w.doc, q.w.r), rv: s.rvw.map(w => srsK(w.doc, w.r)), iv: IV}; }""")
                         _play(page, miss=miss, auto=False)
                     else:
                         page.wait_for_function("() => typeof LS !== 'undefined' && LS && LS.steps", timeout=8000)
                         _play_base(page, miss=miss)
                     page.wait_for_timeout(2800)
                     after = C.export(page)
+                    # las que se enseñan: la que repite la palabra del idioma de otra anterior («Prima», cousin) no
                     words = page.evaluate("""async id => { await getMap(); const lv = id.slice(0, 2), l = MAP[lv].flatMap(u => u.ls).find(l => l.id === id);
-                      const out = []; for (const [d, i] of l.w) { const doc = await getDoc(d), r = doc.rows[i]; if (r && r.l && r.l[lang]) out.push(srsK(d, r)); } return {keys: out, t: today()}; }""", LESSON)
-                    res[impl] = {"before": before, "after": after, "words": words}
+                      const out = [], seen = new Set(); for (const [d, i] of l.w) { const doc = await getDoc(d), r = doc.rows[i]; if (!r || !r.l || !r.l[lang]) continue;
+                        const w = String(r.l[lang].word).normalize('NFC').toLowerCase().trim(); if (seen.has(w)) continue; seen.add(w); out.push(srsK(d, r)); }
+                      return {keys: out, t: today()}; }""", LESSON)
+                    res[impl] = {"before": before, "after": after, "words": words, "plan": plan if impl == "new" else None}
                     if impl == "new":
                         probs += [f"{label}: {e}" for e in C.errors(page)]
                 finally:
@@ -568,16 +628,25 @@ def test_progress_saved_like_before():
             if ma != exp_map:
                 probs.append(f"{label}: map:english {ma} (se esperaba {exp_map})")
             sb, sa = json.loads(kb["srs:english"]), json.loads(ka["srs:english"])
-            t1 = new["words"]["t"] + 1
+            t0 = new["words"]["t"]
+            t1, pl = t0 + 1, new["plan"]
+            if not 2 <= len(pl["rv"]) <= 3:
+                probs.append(f"{label}: la lección trae {len(pl['rv'])} palabras de repaso (se esperaban 2 o 3)")
             for k in new["words"]["keys"]:
-                x = sa.get(k)
+                x, box = sa.get(k), 0 if (miss and k == pl["miss"]) else 1
                 if k not in sb:
-                    if not x or x.get("b") != 1 or x.get("due") != t1 or x.get("n") != 0 or set(x) != {"d", "e", "b", "due", "n"}:
-                        probs.append(f"{label}: srs {k} = {x}")
-                elif sb[k].get("b", 0) < 1 and (x.get("b") != 1 or x.get("due") != t1):
+                    if not x or x.get("b") != box or x.get("due") != t0 + pl["iv"][box] or x.get("n") != 0 or set(x) != {"d", "e", "b", "due", "n"}:
+                        probs.append(f"{label}: srs {k} = {x} (se esperaba la caja {box})")
+                elif sb[k].get("b", 0) < box and (x.get("b") != box or x.get("due") != t0 + pl["iv"][box]):
                     probs.append(f"{label}: srs {k} {sb[k]} → {x}")
-            others = {k: v for k, v in sa.items() if k not in new["words"]["keys"]}
-            if others != {k: v for k, v in sb.items() if k not in new["words"]["keys"]}:
+            for k in pl["rv"]:                      # acertadas en la lección: como «la sabía» en el repaso
+                x, b0 = sa.get(k), sb.get(k, {})
+                b1 = min(len(pl["iv"]) - 1, b0.get("b", 0) + 1)
+                if not x or x.get("b") != b1 or x.get("due") != t0 + pl["iv"][b1] or x.get("n") != b0.get("n", 0) + 1:
+                    probs.append(f"{label}: repaso {k} {b0} → {x} (se esperaba la caja {b1})")
+            mine = set(new["words"]["keys"]) | set(pl["rv"])
+            others = {k: v for k, v in sa.items() if k not in mine}
+            if others != {k: v for k, v in sb.items() if k not in mine}:
                 probs.append(f"{label}: cambian otras palabras del repaso")
             gb, ga = json.loads(kb["game"]), json.loads(ka["game"])
             if ga["coins"] - gb["coins"] != coins:
