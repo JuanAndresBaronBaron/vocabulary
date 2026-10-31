@@ -2,18 +2,21 @@
    · learn and practice lessons: one item per screen, «Check» gives the answer and why at once (and says it in a polite
      live region). A writing task can't be passed until «I've finished: compare» shows the checks, the band 9 model and
      the self-marking; the results show them again with a link to revise it later in My writing.
-   · test lessons: an intro, then the clock ("timed" seconds). It counts only while the page is visible: a frozen or
-     sleeping page (a gap of 5 s or more between ticks) and a hidden page add to run.away instead, and more than two
-     minutes away is reported as "not under exam conditions" (prog.addTest paused). If the time is already up when the
-     learner comes back, a «Time is up» card offers Finish and Review instead of finishing silently. Free movement
-     between items, no feedback until «Finish» (guarded: one click, one stored test), then the band (Listening/Reading
-     conversion) and a full review.
+   · test lessons: an intro, then the clock ("timed" seconds). It counts only while the test is on screen: a frozen or
+     sleeping page (a gap of 5 s or more between ticks, also watched in exam mode), a hidden page (run.hid) and the time
+     spent off the lesson, closed or reloading (from run.at, the last save, to the next load) add to run.away instead,
+     and more than two minutes away is reported as "not under exam conditions" (prog.addTest paused). If the time is
+     already up when the learner comes back, a «Time is up» card offers Finish and Review (the answers locked, run.over)
+     instead of finishing silently. Free movement between items, no feedback until «Finish» (guarded: one click, one
+     stored test), then the band (Listening/Reading conversion) and a full review.
    · Listening tests with "exam": true (the computer-delivered exam): after «Start» one controller plays every part in
      order, with no Play buttons: the context, reading time (EXAM.preview s), the script with its pauses (a line's
      "pause": N s), "That is the end of Part N." and checking time (EXAM.check s); after the last part, two minutes to
      check (EXAM.review s, in the top timer), then it finishes by itself. The timed clock doesn't run: the recording sets
      the pace. Moving between items doesn't stop it (a chip offers to go to the part that is playing); leaving or
-     reloading does, and «Continue the recording» resumes from the saved line (run.x = {s, k, line, phase, left}).
+     reloading does, and «Continue the recording» resumes from the saved line (run.x = {s, k, line, phase, left}). The
+     reading time shows the range the voice has just named. A mock started before exam mode (no run.xmode) that has
+     already used the clock or played a part keeps the timed clock.
      Other test recordings play once; Next, Previous or leaving keeps the line (run.lpos) and «Continue the recording»
      resumes from it. «Played» only once the last line has ended (run.played).
    · No English voice (IE.ensureVoices() resolves 0, the browser can't speak, or the first line's speech fails without
@@ -27,13 +30,14 @@
      "visual" drawn by IE.viz), reading (passage and questions side by side, or switched on a phone, keeping the pane and
      the scroll of each pane per item), listening, writing (word count, clock, automatic checks, a band 9 model and marking
      yourself; "visual" and "visual2" drawn above), speaking (the examiner's voice, recording to listen back, a live
-     transcript where the browser can, or a timer when there's no microphone; Part 2 follow-up questions), say.
+     transcript where the browser can, or a timer to the target when there's no microphone; Part 2 follow-up questions),
+     say.
    · Self-marking goes through IE.assess ({selfHtml, wireSelf, selfBand}, with descriptors) when it exists, else the
      local versions below.
    · Every screen is a "view": show(), intro(), the «Time is up» card and the results start a new one, which stops the
      microphone and every timer of the old one (a Part 2 preparation can't speak or record on another screen).
    · A lesson in progress is saved as you go ("ielts:run:<lid>" = {v:1, i, ans, checked, heard, self, el, started,
-     finished, got, total, band, at} plus away, paused, over, xmode, x, lpos, played, noaudio, panes, rpos, eid, wt,
+     finished, got, total, band, at} plus away, hid, paused, over, xmode, x, lpos, played, noaudio, panes, rpos, eid, wt,
      smode, sband, fu, counted, attempt): reloading or coming back later picks it up. finish() saves the finished run
      before IE.prog.done(lid, rec) and uses what IE.prog.addTest() returns ({attempt, counted}). */
 (() => {
@@ -58,6 +62,9 @@ const words = t => (String(t || "").match(/[A-Za-z0-9’'-]+/g) || []).filter(w 
 const plain = s => String(s == null ? "" : s).replace(/\*/g, "");
 const calm = () => { try{ return matchMedia("(prefers-reduced-motion: reduce)").matches || D.documentElement.dataset.motion === "calm"; }catch(e){ return false; } };
 const fig = v => v && IE.viz ? `<figure class="ie-viz">${IE.viz.html(v)}</figure>` : "";
+/* "…you have some time to look at questions 7 to 10." */
+const RANGE = /questions?\s+(\d+)\s*(?:to|and|-|–)\s*(\d+)/i;
+const readLabel = t => { const m = RANGE.exec(plain(t)); return m ? `Time to read questions ${m[1]} to ${m[2]}` : "Reading time"; };
 
 /* ---------- questions: numbering and marking ---------- */
 /* every scored question of a lesson, in order, with its exam number(s) */
@@ -108,15 +115,16 @@ function shuffled(n, seed){
 }
 
 /* ---------- question views ---------- */
-/* fb: null while answering; true once checked (shows right/wrong and why) */
+/* fb: null while answering; true once checked (shows right/wrong and why). lock: shown as answered, nothing can change
+   (a test whose time is up, reviewed before Finish) */
 /* options that already start with their letter ("A one week") lose it: the letter is drawn beside them */
 const optText = (q, i) => q.options.every((o, j) => new RegExp(`^${String.fromCharCode(65 + j)}[.)]?\\s+`).test(o)) ? q.options[i].replace(/^[A-Z][.)]?\s+/, "") : q.options[i];
-function qHtml(q, a, num, fb){
+function qHtml(q, a, num, fb, lock){
   const lab = num ? `<span class="ie-qn t-num">${num}</span>` : "";
   const res = fb ? mark(q, a) : 0, full = fb && res === marks(q);
   const why = fb ? `<div class="ie-why ${full ? "is-ok" : "is-miss"}" role="note">${ico(full ? "check-circle" : "x-circle", 18)}<div>
       ${!full && q.type !== "select" ? `<p><b>Answer:</b> ${md(answerText(q))}</p>` : ""}${q.why ? `<p>${md(q.why)}</p>` : ""}</div></div>` : "";
-  const dis = fb ? " disabled" : "";
+  const dis = fb || lock ? " disabled" : "";
   switch(q.type){
     case "pick": return `<fieldset class="ie-q" data-q="${esc(q.id)}"><legend>${lab}${md(q.q)}</legend><div class="ie-opts">
       ${q.options.map((o, i) => `<button type="button" class="ie-opt${a === i ? " is-on" : ""}${fb && i === q.answer ? " is-right" : ""}${fb && a === i && i !== q.answer ? " is-wrong" : ""}" data-v="${i}" aria-pressed="${a === i}"${dis}>
@@ -129,7 +137,7 @@ function qHtml(q, a, num, fb){
     case "tfng": return `<fieldset class="ie-q" data-q="${esc(q.id)}"><legend>${lab}${md(q.statement)}</legend><div class="ie-tf">
       ${TF[q.mode].map(([v, t]) => `<button type="button" class="ie-opt${a === v ? " is-on" : ""}${fb && v === q.answer ? " is-right" : ""}${fb && a === v && v !== q.answer ? " is-wrong" : ""}" data-v="${v}" aria-pressed="${a === v}"${dis}>${t}</button>`).join("")}</div>${why}</fieldset>`;
     case "gap": { const [b, af] = q.text.split("___"), ok = fb && res;
-      return `<div class="ie-q" data-q="${esc(q.id)}"><p class="ie-gap">${lab}${md(b)}<input type="text" class="ie-in${fb ? ok ? " is-right" : " is-wrong" : ""}" value="${esc(a || "")}" aria-label="Answer${num ? " " + num : ""}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"${fb ? " readonly" : ""}>${md(af)}</p>
+      return `<div class="ie-q" data-q="${esc(q.id)}"><p class="ie-gap">${lab}${md(b)}<input type="text" class="ie-in${fb ? ok ? " is-right" : " is-wrong" : ""}" value="${esc(a || "")}" aria-label="Answer${num ? " " + num : ""}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"${fb || lock ? " readonly" : ""}>${md(af)}</p>
         <p class="t-min">${esc(q.limit)}</p>${why}</div>`; }
     case "select": { const s = isObj(a) ? a : {};
       return `<div class="ie-q" data-q="${esc(q.id)}"><p class="ie-qtext">${num ? `<span class="ie-qn t-num">${num}${q.rows.length > 1 ? "–" + (num + q.rows.length - 1) : ""}</span>` : ""}${md(q.q)}</p>
@@ -141,8 +149,8 @@ function qHtml(q, a, num, fb){
     case "order": { const s = Array.isArray(a) ? a : [], pool = shuffled(q.items.length, q.id).filter(i => !s.includes(i));
       return `<div class="ie-q" data-q="${esc(q.id)}"><p class="ie-qtext">${lab}${md(q.q)}</p>
         <ol class="ie-ord">${s.map(i => `<li><button type="button" class="ie-opt is-on" data-rm="${i}"${dis}>${md(q.items[i])}</button></li>`).join("")}</ol>
-        ${fb ? "" : `<div class="ie-opts ie-pool">${pool.map(i => `<button type="button" class="ie-opt" data-add="${i}">${md(q.items[i])}</button>`).join("")}</div>
-        <p class="t-min">${pool.length ? "Tap them in the right order. Tap a chosen one to take it back." : "Tap one to take it back."}</p>`}${why}</div>`; }
+        ${fb ? "" : `<div class="ie-opts ie-pool">${pool.map(i => `<button type="button" class="ie-opt" data-add="${i}"${dis}>${md(q.items[i])}</button>`).join("")}</div>
+        ${lock ? "" : `<p class="t-min">${pool.length ? "Tap them in the right order. Tap a chosen one to take it back." : "Tap one to take it back."}</p>`}`}${why}</div>`; }
   }
   return "";
 }
@@ -309,8 +317,8 @@ function transcribe(max, tick, onText){
 /* no microphone: only the clock runs, up to max seconds */
 function timerOnly(max, tick){
   const t0 = Date.now(); let res, over = false; const done = new Promise(r => { res = r; });
-  const stop = () => { if(over) return; over = true; clearInterval(iv); res({url: null, secs: (Date.now() - t0) / 1000}); };
-  const iv = setInterval(() => { const s = (Date.now() - t0) / 1000; if(tick) tick(s); if(s >= max) stop(); }, 250);
+  const stop = () => { if(over) return; over = true; clearInterval(iv); res({url: null, secs: Math.min(max, (Date.now() - t0) / 1000)}); };
+  const iv = setInterval(() => { const s = (Date.now() - t0) / 1000; if(tick) tick(Math.min(s, max)); if(s >= max) stop(); }, 250);
   return {stop, done};
 }
 function speechStats(text, secs){
@@ -355,6 +363,17 @@ IE.ROUTES.lesson = async ([lid], a) => {
   const viewCleanups = [], cleanups = [];
   const exam = () => examLesson && run.xmode !== "timed";
   const running = () => test && !!run.started && !run.finished;
+  const locked = () => test && !!run.over && !run.finished;
+  /* a mock started before exam mode (no xmode): one that has already used the clock or played a part keeps the timed clock */
+  if(examLesson && run.started && !run.finished && run.xmode == null){ run.xmode = run.el > 0 || Object.keys(run.heard).length ? "timed" : "exam"; save(); }
+  /* the time away from a running test (another screen, the page closed or reloaded, a hidden page that was discarded) isn't
+     exam time either: run.hid (hidden since) or run.at (the last save) to now, from 5 s */
+  if(running()){
+    const since = +run.hid || +run.at || 0, gap = since ? Date.now() - since : 0;
+    delete run.hid;
+    if(gap >= 5000) run.away = (run.away || 0) + gap;
+    save();
+  }
   const virtual = !!(U.back && U.backT);
   const back = virtual ? U.back : `#/unit/${U.id}`, backT = virtual ? U.backT : `Unit ${U.n}`;
   const tag = !virtual && U.n != null ? ` · Unit ${U.n}` : "";
@@ -387,20 +406,22 @@ IE.ROUTES.lesson = async ([lid], a) => {
   /* ----- the test clock: only visible time counts ----- */
   let last = Date.now(), hiddenAt = 0, ticks = 0;
   const stopClock = () => { clearInterval(timer); timer = 0; };
+  /* it ticks in exam mode too, only as the watchdog for a frozen or sleeping page (the recording sets the pace) */
   function tickStart(){
-    if(!running() || exam() || !alive){ stopClock(); return; }
+    if(!running() || !alive){ stopClock(); return; }
     if(timer) return;
     last = Date.now();
     timer = setInterval(tick, 1000);
   }
   function paintClock(left){ const t = D.getElementById("ie-timer"); if(t){ t.textContent = fmtTime(left); t.classList.toggle("is-low", left < 300); } }
   function tick(){
-    if(!alive) return stopClock();
+    if(!alive || !running()) return stopClock();
     const n = Date.now(), dt = n - last; last = n;
     if(D.visibilityState === "visible"){
-      if(dt >= 0 && dt < 5000) run.el += dt;
-      else if(dt >= 5000 && !hiddenAt) run.away = (run.away || 0) + dt;   /* a frozen or sleeping page: not exam time */
+      if(dt >= 0 && dt < 5000){ if(!exam()) run.el += dt; }
+      else if(dt >= 5000 && !hiddenAt){ run.away = (run.away || 0) + dt; save(); }   /* a frozen or sleeping page: not exam time */
     }
+    if(exam()) return;
     const left = L.timed - run.el / 1000;
     paintClock(left);
     if(++ticks % 5 === 0) save();
@@ -409,10 +430,12 @@ IE.ROUTES.lesson = async ([lid], a) => {
       if(D.visibilityState === "visible" && dt < 5000){ toast("Time's up."); finish(); } else timeUp();
     }
   }
-  function goneAway(){ if(running() && !hiddenAt) hiddenAt = Date.now(); save(); }
+  /* run.hid keeps "hidden since" in the saved run, so a hidden page that is closed or discarded is counted when it comes back */
+  function goneAway(){ if(running() && !hiddenAt){ hiddenAt = Date.now(); run.hid = hiddenAt; } save(); }
+  const addHidden = () => { if(hiddenAt){ run.away = (run.away || 0) + Math.max(0, Date.now() - hiddenAt); hiddenAt = 0; } delete run.hid; };
   function cameBack(){
     if(D.visibilityState !== "visible") return;
-    if(hiddenAt){ run.away = (run.away || 0) + Math.max(0, Date.now() - hiddenAt); hiddenAt = 0; save(); }
+    if(hiddenAt){ addHidden(); save(); }
     last = Date.now();
     if(running() && !exam() && !run.over && screen === "items" && L.timed - run.el / 1000 <= 0) timeUp();
   }
@@ -428,8 +451,8 @@ IE.ROUTES.lesson = async ([lid], a) => {
     a.innerHTML = `<div class="ie-page ie-narrow"><div class="card ie-card ie-intro">${ico("timer", 40)}
       <h1 class="t-2">${esc(L.title)}</h1>
       ${ex ? `<p class="t-sub">${LIS.length} part${LIS.length > 1 ? "s" : ""}${nq ? ` · ${nq} questions` : ""}. Like the computer-delivered exam: the recording plays once, straight through, and sets the pace. Before each part there is time to read the questions, after each part time to check them, and at the end two minutes to check your answers. Then the test finishes by itself.</p>
-        <p class="t-sub">${ico("speaker-high", 18)} You can move between parts while the recording plays. Tests always play at exam speed. Use headphones.</p>`
-      : `<p class="t-sub">${Math.round(L.timed / 60)} minutes${nq ? ` · ${nq} questions` : ""}. Like the real exam: no answers until you finish, and the clock keeps going between parts. The clock stops only while this page is hidden, and a pause of more than two minutes isn't counted as exam conditions.</p>
+        <p class="t-sub">${ico("speaker-high", 18)} You can move between parts while the recording plays. If you leave the test, the recording stops, and a pause of more than two minutes isn't counted as exam conditions. Tests always play at exam speed. Use headphones.</p>`
+      : `<p class="t-sub">${Math.round(L.timed / 60)} minutes${nq ? ` · ${nq} questions` : ""}. Like the real exam: no answers until you finish, and the clock keeps going between parts. The clock stops only while this test isn't on screen, and a pause of more than two minutes isn't counted as exam conditions.</p>
         ${skill === "listening" ? `<p class="t-sub">${ico("speaker-high", 18)} Each recording plays once. Read the questions before you press play. Tests always play at exam speed. Use headphones.</p>` : ""}`}
       ${skill === "writing" ? `<p class="t-sub">${ico("pencil-simple", 18)} Spend about 20 minutes on Task 1 and 40 on Task 2: Task 2 counts twice as much.</p>` : ""}
       <button type="button" class="glass-btn glass-btn--pri glass-btn--lg" id="ie-go">Start</button></div></div>`;
@@ -481,6 +504,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
     a.innerHTML = `<div class="ie-page${it.type === "reading" ? " ie-wide" : " ie-narrow"}">
       <div class="ie-bar" aria-hidden="true"><span style="width:${(run.i + (fb ? 1 : 0)) / L.items.length * 100}%"></span></div>
       ${exam() ? `<div class="ie-xbar" id="ie-xbar"></div>` : ""}
+      ${locked() ? `<p class="ie-locked" role="note">${ico("lock", 18)}<span>Time is up: you can look through your answers but not change them. Press Finish to see your result.</span></p>` : ""}
       <div id="ie-item">${itemHtml(it, fb)}</div>
       <div class="ie-dock" id="ie-dock">${dockHtml(it, fb)}</div></div>`;
     wireItem(it, fb);
@@ -530,7 +554,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
   }
 
   /* ----- items ----- */
-  const setBody = (s, fb) => `<section class="ie-set"><p class="ie-instr">${md(s.instr)}</p>${s.visual ? fig(s.visual) : ""}${s.items.map(q => qHtml(q, ans(q.id), NUM[q.id], fb)).join("")}</section>`;
+  const setBody = (s, fb) => `<section class="ie-set"><p class="ie-instr">${md(s.instr)}</p>${s.visual ? fig(s.visual) : ""}${s.items.map(q => qHtml(q, ans(q.id), NUM[q.id], fb, !fb && locked())).join("")}</section>`;
   function setHtml(it, fb){
     return it.sets.map(s => setBody(s, fb)).join("")
       + (fb ? `<p class="ie-score t-head">${(() => { const qs = it.sets.flatMap(s => s.items), g = qs.reduce((t, q) => t + mark(q, ans(q.id)), 0), m = qs.reduce((t, q) => t + marks(q), 0); return `${g} of ${m} correct`; })()}</p>` : "");
@@ -544,7 +568,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
           <p>${md(x.text)}${x.note ? `<small>${md(x.note)}</small>` : ""}</p></div>`).join("")}</div>` : ""}
         ${it.tip ? `<p class="ie-tip">${ico("lightbulb", 18)}<span>${md(it.tip)}</span></p>` : ""}</article>`;
       case "pick": case "multi": case "tfng": case "gap": case "select": case "order":
-        return `<div class="card ie-card">${qHtml(it, ans(it.id), null, fb)}</div>`;
+        return `<div class="card ie-card">${qHtml(it, ans(it.id), null, fb, !fb && locked())}</div>`;
       case "reading": { const p = pane(it);
         return `<div class="ie-read" data-pane="${p}">
         <div class="ie-seg ie-rtog" role="tablist"><button type="button" role="tab" data-pane="text" aria-selected="${p === "text"}">Passage</button><button type="button" role="tab" data-pane="qs" aria-selected="${p === "qs"}">Questions</button></div>
@@ -575,16 +599,16 @@ IE.ROUTES.lesson = async ([lid], a) => {
     const n = it.script.length + 1, w = done ? 100 : cont ? (+bag("lpos")[it.id] || 0) / n * 100 : 0;
     return head(`<div class="ie-player"><button type="button" class="glass-btn glass-btn--pri" id="ie-play"${done ? " disabled" : ""}>${ico("play", 20)}${test ? done ? "Played" : cont ? "Continue the recording" : "Play" : run.heard[it.id] ? "Play again" : "Play"}</button>
         ${test ? "" : `<button type="button" class="glass-btn glass-btn--icon" id="ie-stop" aria-label="Stop" hidden>${ico(STOP_ICO, 20)}</button>`}
-        <span class="ie-prog t-note" id="ie-lprog" aria-live="polite">${test ? done ? "You've heard this recording." : cont ? "The recording stopped when you left: it goes on from there. What has already played can't be heard again." : "You'll hear the recording once." : ""}</span></div>
+        <span class="ie-prog t-note" id="ie-lprog" aria-live="polite">${test ? done ? "You've heard this recording." : cont ? "The recording stopped when you left: it goes on from there. What has already played can't be heard again." : "You'll hear the recording once." : ""}</span><span class="ie-lclk t-note t-num" id="ie-lclk" aria-hidden="true"></span></div>
         <div class="ie-lbar" aria-hidden="true"><span id="ie-lbar" style="width:${w}%"></span></div>`)
       + setHtml(it, fb) + (fb ? transcriptHtml(it, true) : "");
   }
   function writingHtml(it){
-    const v = ans(it.id) || "", done = !test && run.checked[it.id];
+    const v = ans(it.id) || "", done = !test && run.checked[it.id], ro = done || locked();
     return `<div class="card ie-card ie-wtask"><p class="ie-kicker">${ico("pencil-simple", 18)}Writing Task ${it.task} · about ${it.minutes} minutes · at least ${it.minWords} words</p>
         <p class="ie-prompt">${md(it.prompt)}</p>${fig(it.visual)}${fig(it.visual2)}
         ${it.plan && !test ? `<details class="ie-plan"><summary class="t-head">${ico("list-checks", 18)}How to plan it</summary><ol>${it.plan.map(p => `<li>${md(p)}</li>`).join("")}</ol></details>` : ""}</div>
-      <div class="card ie-card ie-wans"><textarea class="ie-ta" id="ie-ta" lang="en-GB" spellcheck="false" autocorrect="off" autocapitalize="${test ? "none" : "sentences"}" aria-label="Your answer" placeholder="Write your answer here. It's saved as you type."${done ? " readonly" : ""}>${esc(v)}</textarea>
+      <div class="card ie-card ie-wans"><textarea class="ie-ta" id="ie-ta" lang="en-GB" spellcheck="false" autocorrect="off" autocapitalize="${test ? "none" : "sentences"}" aria-label="Your answer" placeholder="Write your answer here. It's saved as you type."${ro ? " readonly" : ""}>${esc(v)}</textarea>
         <p class="ie-wc t-note"><span id="ie-wc" class="t-num">${words(v)} words</span>${test ? "" : `<span id="ie-wclock" class="t-num"></span>`}</p>
         ${!test && !done ? `<button type="button" class="glass-btn glass-btn--pri glass-btn--block" id="ie-wdone">I've finished: compare</button>` : ""}</div>
       ${done ? writingFeedback(it) : ""}`;
@@ -627,7 +651,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
   function wireItem(it, fb){
     const el = a.querySelector("#ie-item");
     const qs = it.sets ? it.sets.flatMap(s => s.items) : SCORED.has(it.type) ? [it] : [];
-    if(!fb) for(const q of qs) wireQ(el, q, () => ans(q.id), setAns);
+    if(!fb && !locked()) for(const q of qs) wireQ(el, q, () => ans(q.id), setAns);
     el.querySelectorAll("[data-say-model]").forEach(b => b.onclick = () => say(plain(it.model.text.join(" ")), {voice: "f"}));
     if(it.type === "card") el.querySelectorAll("[data-ex]").forEach(b => b.onclick = () => say(plain(it.examples[+b.dataset.ex].text), {voice: "f"}));
     if(it.type === "reading") wireReading(it, el);
@@ -684,16 +708,21 @@ IE.ROUTES.lesson = async ([lid], a) => {
   }
   function wireListen(it, el){
     if(exam() || bag("noaudio")[it.id]) return;
-    const play = el.querySelector("#ie-play"), stop = el.querySelector("#ie-stop"), pr = el.querySelector("#ie-lprog"), bar = el.querySelector("#ie-lbar");
+    const play = el.querySelector("#ie-play"), stop = el.querySelector("#ie-stop"), pr = el.querySelector("#ie-lprog"), bar = el.querySelector("#ie-lbar"), clk = el.querySelector("#ie-lclk");
     if(!play) return;
     const vo = voicesOf(it), lines = [{s: null, t: it.context}].concat(it.script), my = view;
     let gen = 0;
     const gone = g => !alive || g !== gen || my !== view;
     const wait = (ms, g) => new Promise(r => setTimeout(r, ms)).then(() => !gone(g));
-    const count = (secs, g) => new Promise(res => {
-      const end = Date.now() + secs * 1000;
-      const step = () => { if(gone(g)){ clearInterval(iv); return res(false); } const left = Math.max(0, (end - Date.now()) / 1000); pr.textContent = `Reading time · ${fmtTime(Math.ceil(left))}`; if(left <= 0){ clearInterval(iv); res(true); } };
-      const iv = setInterval(step, 250); step(); viewCleanups.push(() => { clearInterval(iv); res(false); });
+    /* a pause line's reading time: the polite live region says what it is once, the digits tick in an aria-hidden span */
+    const count = (secs, g, label) => new Promise(res => {
+      const end = Date.now() + secs * 1000; let shown = -1;
+      if(pr.textContent !== label) pr.textContent = label;
+      const over = ok => { clearInterval(iv); clk.textContent = ""; res(ok); };
+      const step = () => { if(gone(g)) return over(false);
+        const left = Math.max(0, Math.ceil((end - Date.now()) / 1000)); if(left !== shown){ shown = left; clk.textContent = `· ${fmtTime(left)}`; }
+        if(Date.now() >= end) over(true); };
+      const iv = setInterval(step, 250); step(); viewCleanups.push(() => over(false));
     });
     play.onclick = async () => {
       if(test && play.disabled) return;
@@ -713,7 +742,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
         if(!ok && i === from && !run.heard[it.id]) return noAudio(it);   /* the first line couldn't be spoken, and we didn't stop it */
         if(ok && !run.heard[it.id]){ run.heard[it.id] = true; save(); }
         if(!(await wait(i === 0 ? 900 : 280, g))) return;
-        if(+lines[i].pause > 0 && !(await count(+lines[i].pause, g))) return;
+        if(+lines[i].pause > 0 && !(await count(+lines[i].pause, g, readLabel(lines[i].t)))) return;
       }
       if(gone(g)) return;
       bar.style.width = "100%"; pr.textContent = "That is the end of the recording.";
@@ -728,18 +757,20 @@ IE.ROUTES.lesson = async ([lid], a) => {
   let XST = null, xgen = 0, xrun = false;
   const FINAL = "That is the end of the Listening test. You now have two minutes to check your answers.";
   const qRange = qs => qs.length ? [NUM[qs[0].id], NUM[qs[qs.length - 1].id] + marks(qs[qs.length - 1]) - 1] : null;
+  /* the range the voice has just named ("…look at questions 11 to 20"), else the part's first set */
+  const named = t => { const m = RANGE.exec(plain(t)); return m ? [m[1], m[2]] : null; };
   /* every step of the recording: what is said (say) or a countdown (secs) */
   function xSteps(){
     const out = [];
     LIS.forEach((it, k) => {
       const nar = narrator(it), vo = voicesOf(it), end = it.script.length, lastPart = k === LIS.length - 1;
-      const r = qRange(it.sets && it.sets[0] ? it.sets[0].items : []);
+      const r = named(it.context) || qRange(it.sets && it.sets[0] ? it.sets[0].items : []);
       out.push({k, line: -1, phase: "ctx", say: it.context, o: nar, after: 900});
       out.push({k, line: -1, phase: "preview", secs: () => EX().preview, label: r ? `Time to read questions ${r[0]} to ${r[1]}` : "Time to read the questions"});
       it.script.forEach((l, i) => {
         out.push({k, line: i, phase: "line", say: l.t, o: lineOpts(vo, l), after: 280});
         const p = +l.pause;
-        if(p > 0){ const m = /questions?\s+(\d+)\s*(?:to|and|-|–)\s*(\d+)/i.exec(plain(l.t)); out.push({k, line: i, phase: "pause", secs: () => p, label: m ? `Time to read questions ${m[1]} to ${m[2]}` : "Reading time"}); }
+        if(p > 0) out.push({k, line: i, phase: "pause", secs: () => p, label: readLabel(l.t)});
       });
       out.push({k, line: end, phase: "end", say: lastPart ? FINAL : `That is the end of Part ${it.part}.`, o: nar, after: 400});
       out.push({k, line: end, phase: lastPart ? "review" : "check", secs: () => lastPart ? EX().review : EX().check, label: "Time to check your answers"});
@@ -912,7 +943,8 @@ IE.ROUTES.lesson = async ([lid], a) => {
         else if(kind === "rec") c = await record(max, tick);
       }catch(e){ c = null; }
       if(gone()){ if(c) c.stop(); return; }
-      if(!c){ if(kind !== "none") toast("The microphone isn't available: answer aloud while the timer runs."); kind = "none"; c = timerOnly(max, tick); }
+      /* no microphone: the timer runs to the target (30 s, 60 s, 2:00, 20 s for a follow-up): no recording to cap */
+      if(!c){ if(kind !== "none") toast("The microphone isn't available: answer aloud while the timer runs."); kind = "none"; c = timerOnly(tgt, tick); }
       recCtl = c; tick(0);
       viewCleanups.push(() => { try{ c.stop(); }catch(e){} });
       const label = btn ? btn.innerHTML : "";
@@ -973,7 +1005,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
   function finish(){
     if(run.finished) return;
     stopClock(); xgen++; xrun = false; hush(); if(recCtl){ try{ recCtl.stop(); }catch(e){} recCtl = null; }
-    if(hiddenAt){ run.away = (run.away || 0) + Math.max(0, Date.now() - hiddenAt); hiddenAt = 0; }
+    addHidden();
     const got = QS.reduce((s, x) => s + mark(x.q, ans(x.q.id)), 0), total = QS.reduce((s, x) => s + x.m, 0);
     const b = (skill === "listening" || skill === "reading") && total ? band(skill, got, total) : null;
     run.finished = true; run.got = got; run.total = total; run.band = b;
@@ -1050,7 +1082,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
   /* leaving the page: save, stop the clock, the recording, the voice and the microphone */
   return () => {
     alive = false; stopClock(); clearTimeout(st); clearTimeout(liveT); xgen++;
-    if(hiddenAt){ run.away = (run.away || 0) + Math.max(0, Date.now() - hiddenAt); hiddenAt = 0; }
+    addHidden();
     save(); hush(); view++; flushView();
     cleanups.forEach(f => { try{ f(); }catch(e){} });
     live.remove();

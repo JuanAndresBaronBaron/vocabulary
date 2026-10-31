@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import copy
 import json
+import re
 
 import common as C
 import ielts_validate as V
@@ -280,7 +281,7 @@ def test_clock_ignores_freeze_sleep_and_hidden_time_and_finish_counts_once():
         assert "Part test:" in t, t
         page.wait_for_function("() => document.querySelector('.ie-result a[href^=\"#/lesson/\"]')", timeout=5000)
         assert "Band" in page.evaluate("() => document.getElementById('ie-live').textContent")
-        assert "The clock stops only while this page is hidden, and a pause of more than two minutes isn't counted as exam conditions." in intro, intro
+        assert "The clock stops only while this test isn't on screen, and a pause of more than two minutes isn't counted as exam conditions." in intro, intro
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
@@ -298,9 +299,19 @@ def test_time_up_on_coming_back_asks_first():
         assert page.locator("#ie-fin").is_visible() and page.locator("#ie-review").is_visible()
         page.click("#ie-review")
         page.wait_for_selector(".ie-read")
+        # Review looks through the answers: nothing can be changed once the time is up
+        assert "you can look through your answers but not change them" in page.inner_text(".ie-locked")
+        lk = page.evaluate("""() => ({ins: [...document.querySelectorAll('.ie-qpane input.ie-in')].map(i => i.readOnly),
+          opts: [...document.querySelectorAll('.ie-qpane .ie-opt')].map(b => b.disabled)})""")
+        assert lk["ins"] and all(lk["ins"]) and lk["opts"] and all(lk["opts"]), lk
+        page.evaluate("""() => { document.querySelector('.ie-qpane .ie-opt').click(); const i = document.querySelector('.ie-qpane input.ie-in');
+          i.value = 'late'; i.dispatchEvent(new Event('input')); }""")
         page.wait_for_timeout(2500)
+        assert _run(page, "u07-l3")["ans"] == {}, _run(page, "u07-l3")["ans"]
         assert _text(page, "#ie-timer") == "0:00"
         assert not _tests(page), "Review finished the test by itself"
+        page.click(".ie-rtog [data-pane='qs']")
+        assert page.locator(".ie-qpane .ie-in >> nth=0").is_visible()
         page.click("#ie-fin")
         page.wait_for_selector(".ie-result")
         assert len(_tests(page)) == 1
@@ -311,6 +322,69 @@ def test_time_up_on_coming_back_asks_first():
         page.wait_for_timeout(2600)
         page.wait_for_selector(".ie-result, .ie-timeup")
         assert page.locator(".ie-result").count() == 1, "the time ran out in front of the learner: it finishes"
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
+def test_time_off_the_lesson_counts_as_a_pause():
+    """Leaving the test for another screen, closing it or sleeping in exam mode is not exam time (prog.addTest paused)."""
+    page = _page("phone", init=[TC.SPEECH, SPY])
+    try:
+        _serve(page, "u23", _exam_unit)
+        _serve(page, "u24", lambda u: _lesson(u, "u24-l1").__setitem__("exam", True))
+        # a timed test left for the home screen for 3 minutes
+        T._open(page, "#/lesson/u07-l3")
+        page.click("#ie-go")
+        page.wait_for_selector("#ie-timer")
+        page.wait_for_timeout(1200)
+        T._open(page, "#/")
+        page.clock.fast_forward("03:00")
+        T._open(page, "#/lesson/u07-l3")
+        page.wait_for_selector("#ie-timer")
+        r = _run(page, "u07-l3")
+        assert r["away"] >= 180000 and r["el"] < 5000, r
+        page.click("#ie-fin")
+        page.wait_for_selector(".ie-result")
+        t = _tests(page)
+        assert len(t) == 1 and t[0]["paused"] is True, t
+        assert "Paused for more than two minutes: not under exam conditions." in page.inner_text(".ie-result")
+        # closed and opened again 3 minutes later (its last save is 3 minutes old); a quick reload isn't a pause
+        _seed_run(page, "u08-l3", {"v": 1, "i": 0, "ans": {}, "checked": {}, "heard": {}, "self": {}, "el": 60000, "started": True,
+                                   "at": page.evaluate("Date.now()") - 180000})
+        T._open(page, "#/lesson/u08-l3")
+        page.wait_for_selector("#ie-timer")
+        a1 = _run(page, "u08-l3")["away"]
+        assert a1 >= 180000, a1
+        page.reload()
+        page.wait_for_selector("#ie-timer")
+        page.wait_for_timeout(300)
+        assert _run(page, "u08-l3")["away"] == a1, (_run(page, "u08-l3"), a1)
+        # exam mode: left for 3 minutes in the middle of the recording, then «Continue the recording» to the end
+        T._open(page, "#/lesson/u23-l1")
+        page.evaluate("() => { IE.player.EXAM = {preview: 1, check: 1, review: 2}; }")
+        page.click("#ie-go")
+        page.wait_for_function("() => { const r = JSON.parse(localStorage.getItem('ielts:run:u23-l1')); return r.x && r.x.phase === 'line'; }", timeout=8000)
+        T._open(page, "#/")
+        page.clock.fast_forward("03:00")
+        T._open(page, "#/lesson/u23-l1")
+        page.wait_for_selector("#ie-xgo")
+        assert _run(page, "u23-l1")["away"] >= 180000, _run(page, "u23-l1")
+        page.evaluate("() => { IE.player.EXAM = {preview: 1, check: 1, review: 2}; }")
+        page.click("#ie-xgo")
+        page.wait_for_selector(".ie-result", timeout=30000)
+        t = [x for x in _tests(page) if x["lid"] == "u23-l1"]
+        assert len(t) == 1 and t[0]["paused"] is True, t
+        # exam mode: a laptop asleep for 3 minutes during the reading time (the page stays visible, nothing ticks)
+        T._open(page, "#/lesson/u24-l1")
+        page.evaluate("() => { IE.player.EXAM = {preview: 30, check: 1, review: 2}; }")
+        page.click("#ie-go")
+        page.wait_for_function("() => /^Time to read questions 1 to 10/.test((document.getElementById('ie-xst') || {}).textContent || '')", timeout=8000)
+        a0 = _run(page, "u24-l1").get("away", 0)
+        page.clock.fast_forward("03:00")
+        page.wait_for_timeout(1500)
+        r = _run(page, "u24-l1")
+        assert r["away"] - a0 >= 180000, (a0, r.get("away"))
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
@@ -403,12 +477,16 @@ def test_part2_follow_ups_targets_and_no_microphone():
         page.wait_for_function("() => window.__said.some(x => x.t === 'Thank you.')", timeout=5000)
         page.wait_for_function("() => /Try again/.test(document.getElementById('ie-prep').textContent)")
         assert page.locator("#ie-fu").is_visible() and page.locator("[data-frec='0']").is_visible()
+        # Parts 1 and 3: the timer runs to the target (30 s here), with no recording to cap
         T._open(page, "#/lesson/u16-l2")
+        page.evaluate("() => { window.__said = []; }")
         page.click("[data-rec='0']")
         page.wait_for_timeout(400)
         assert _text(page, "#ie-clock-0").endswith("/ 0:30")
-        page.clock.fast_forward(46000)
-        page.wait_for_function("() => /move on here/.test(document.getElementById('ie-out-0').textContent)", timeout=5000)
+        page.clock.fast_forward(31000)
+        page.wait_for_function("() => /You spoke for 0:30\\./.test(document.getElementById('ie-out-0').textContent)", timeout=5000)
+        assert "move on here" not in _text(page, "#ie-out-0"), _text(page, "#ie-out-0")
+        page.wait_for_function("() => window.__said.some(x => x.t === 'Thank you.')", timeout=5000)
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
@@ -672,6 +750,67 @@ def test_exam_finish_early_asks_and_walker_finishes_mocks():
         assert "The recording hasn't finished. Finish anyway?" in msgs, msgs
         tests = _tests(page)
         assert [t["lid"] for t in tests] == ["u23-l1", "u24-l1"], tests
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
+def test_a_mock_started_before_exam_mode_keeps_its_clock():
+    """A u23-l1 run from before exam mode (no run.xmode) that used the clock or played a part stays timed under exam:true."""
+    page = _page("phone", init=[TC.SPEECH, SPY])
+    try:
+        _serve(page, "u23", lambda u: _lesson(u, "u23-l1").__setitem__("exam", True))
+        _seed_run(page, "u23-l1", {"v": 1, "i": 1, "ans": {}, "checked": {}, "heard": {"u23-l1-i2": True}, "self": {}, "el": 600000, "started": True})
+        T._open(page, "#/lesson/u23-l1")
+        page.wait_for_selector("#ie-timer")
+        assert page.locator("#ie-xbar, #ie-xgo, #ie-xst").count() == 0
+        assert _run(page, "u23-l1")["xmode"] == "timed"
+        assert "Played" in page.inner_text("#ie-play") and page.is_disabled("#ie-play")
+        page.wait_for_timeout(600)
+        assert _said(page) == [], "Part 1 played again"
+        page.click("#ie-next")
+        page.wait_for_selector("#ie-play")
+        assert page.inner_text("#ie-play").strip() == "Play" and not page.is_disabled("#ie-play")
+        # started but not yet timed or played: it goes on in exam mode
+        _seed_run(page, "u23-l1", {"v": 1, "i": 0, "ans": {}, "checked": {}, "heard": {}, "self": {}, "el": 0, "started": True})
+        T._open(page, "#/lesson/u23-l1")
+        page.wait_for_selector("#ie-xgo")
+        assert "Start the recording" in page.inner_text("#ie-xgo") and page.locator("#ie-timer").count() == 0
+        assert _run(page, "u23-l1")["xmode"] == "exam"
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
+def test_reading_time_names_the_voices_range_and_keeps_its_digits_quiet():
+    def pause(u):
+        it = _item(u, "u05-l2-i1")
+        it["script"].insert(1, {"s": it["script"][0]["s"], "t": "Now you have some time to look at questions 5 to 7.", "pause": 3})
+    page = _page("phone", init=[TC.SPEECH, SPY])
+    try:
+        _serve(page, "u24", lambda u: _lesson(u, "u24-l1").__setitem__("exam", True))
+        _serve(page, "u05", pause)
+        # exam mode, u24-l1 Part 2: the voice says "questions 11 to 20" (its first set is 11 to 14)
+        _seed_run(page, "u24-l1", {"v": 1, "i": 2, "ans": {}, "checked": {}, "heard": {"u24-l1-i2": True}, "self": {}, "el": 0, "started": True,
+                                   "xmode": "exam", "played": {"u24-l1-i2": True}, "x": {"k": 1, "line": -1, "phase": "preview"}})
+        T._open(page, "#/lesson/u24-l1")
+        page.wait_for_selector("#ie-xgo")
+        page.evaluate("() => { IE.player.EXAM = {preview: 5, check: 1, review: 2}; }")
+        page.click("#ie-xgo")
+        page.wait_for_function("() => /^Time to read questions 11 to 20 · 0:0\\d$/.test(document.querySelector('.ie-xstat').textContent.trim())", timeout=5000)
+        # practice, a pause line: the live region says what it is once, the digits tick in an aria-hidden span
+        T._open(page, "#/lesson/u05-l2")
+        page.evaluate("""() => { window.__lp = []; const el = document.getElementById('ie-lprog');
+          new MutationObserver(() => window.__lp.push(el.textContent)).observe(el, {childList: true, characterData: true, subtree: true}); }""")
+        page.click("#ie-play")
+        page.wait_for_function("() => /^· 0:0[1-3]$/.test(document.getElementById('ie-lclk').textContent)", timeout=8000)
+        assert _text(page, "#ie-lprog") == "Time to read questions 5 to 7"
+        assert page.get_attribute("#ie-lclk", "aria-hidden") == "true"
+        page.wait_for_function("() => window.__lp.length && !/Time to read/.test(window.__lp[window.__lp.length - 1])", timeout=8000)
+        lp = page.evaluate("() => window.__lp")
+        assert [x for x in lp if "Time to read" in x] == ["Time to read questions 5 to 7"], lp
+        assert not [x for x in lp if re.search(r"\d:\d\d", x)], lp
+        assert _text(page, "#ie-lclk") == ""
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
