@@ -648,3 +648,27 @@ de `data/ielts` directamente (sin navegador), salvo la última:
   de `prog.addTest`, «Part test», `back`/`backT` de la unidad, la región viva, `autocorrect`/`autocapitalize`, pestaña y
   scroll de lectura por ítem, almacenamiento lleno. Capturas en `capturas/ielts-player` (360 y 390 claro y oscuro, 1280,
   con «reducir movimiento»): sin scroll horizontal, objetivos de 44 px, paleta y contraste (`audit.js`, `a11y.js`).
+
+<!-- package: study (IELTS Prep, js/ielts-study.js) -->
+## IELTS Prep: el motor de estudio (`test_ielts_study.py`)
+
+- `test_ielts_study.py` (`js/ielts-study.js` y su sección `package: study` de `ielts.css`; corre con `--only test_ielts`):
+  el mazo de repaso en `ielts:study` (una lección *learn* terminada da una tarjeta por pregunta suelta: fallada a la
+  caja 0 para mañana, acertada a la 1 para dentro de 3 días; una pregunta fallada de un test de Reading o Listening da
+  una tarjeta «envuelta» con su texto o su transcripción `**Nombre:** línea`); `#/lesson/review` en el reproductor de
+  verdad, la nota que sube una caja al acertar y baja dos al fallar (nunca por debajo de 0), el tope por fecha de examen
+  (ningún intervalo mayor que el 20 % de los días que faltan, mínimo 1), la tarjeta segura que se retira (acierto en la
+  caja 4 o más con 3 aciertos) y vuelve si se falla en una lección; como mucho 20 tarjetas por sesión y 5 envueltas,
+  las más antiguas primero; las opciones se barajan solo si ni la pregunta ni la explicación las nombran por su letra
+  («(B)», «B is», «option C»; las letras de párrafo no cuentan) y la respuesta sigue a su opción; recargar devuelve la
+  misma sesión (y la respuesta guardada); una sesión nueva borra `ielts:run:review`; la primera carga crea el mazo con
+  las lecciones terminadas de antes, una sola vez; el cuaderno de errores (etiquetas *spelling*, *word limit*,
+  *number format*, *singular/plural*, *T↔NG*… con un registro sembrado, «Where my marks go» de 30 días, la tabla de
+  confusión TRUE/FALSE/NOT GIVEN y el acierto por tipo con los tres más flojos enlazados a su unidad); `IE.assess`
+  montado en un `div` (bandas 6-9 por criterio con la lista de descriptores, la estimación con las listas completas, el
+  aviso con una diferencia de 1 o más, cada toque guardado, los objetos viejos `{0..3}` igual que antes, la calibración
+  con ejemplos y su error medio, grupos de radio con nombre, flechas del teclado y botones de 44 px); la tarjeta
+  «Review · N due» antes de `.ie-scores`, el plan de examen (semanas, consejos, la línea de Elder & O'Loughlin) y
+  «Rewrite from memory»; `#/unit/review`; los iconos copiados tal cual de `index.html`; solo se escribe `ielts:study`
+  dentro de `ielts:*` y «Erase» la borra; los envoltorios se instalan una vez. Capturas en `capturas/ielts-study`
+  (`#/review`, el inicio y la autoevaluación a 360 y 1280 px, claro y oscuro, sin scroll lateral ni morado o rosa).
