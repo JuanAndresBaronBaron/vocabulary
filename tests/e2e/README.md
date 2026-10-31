@@ -598,7 +598,7 @@ de `data/ielts` directamente (sin navegador), salvo la última:
   el modo y el borrador del otro modo se guarda aparte en `alt`; las comprobaciones se reconocen por el principio del
   mensaje, así que «Repeated: “position” ×5» es Repetition y no Clear position; marcarse en la comparación pone una
   hora nueva para que la restauración se quede con la copia marcada); la copia «Download my
-  data» (`ielts-prep-AAAA-MM-DD.json`, sin `ielts:on` ni `ielts:run:*`) y «Restore from a file» que mezcla sin
+  data» (`ielts-prep-AAAA-MM-DD.json`, sin `ielts:on`, `ielts:run:*`, `ielts:mig:*` ni `ielts:sync`) y «Restore from a file» que mezcla sin
   duplicar; el segmento elegido en azul con texto blanco en oscuro, objetivos de 44 px y «U17» en la barra por debajo
   de 400 px. Capturas `<360|1280>-<light|dark>-<página>.png` de inicio, ajustes, resultados, My writing, una
   redacción, la reescritura y la comparación en `capturas/ielts-core` (`VOCAB_CAPTURAS` cambia la carpeta), sin scroll

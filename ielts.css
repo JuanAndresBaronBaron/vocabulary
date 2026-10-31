@@ -421,6 +421,9 @@ p.ie-revise{display:flex;justify-content:center;margin:0}
   #ie-item:has(> .ie-wtask)>.ie-wtask{grid-column:1;grid-row:1;position:sticky;top:calc(64px + var(--safe-t));max-height:calc(100vh - 160px);overflow:auto;overscroll-behavior:contain}
   #ie-item:has(> .ie-wtask)>.ie-wans{grid-column:2;grid-row:1}
   #ie-item:has(> .ie-wtask) .ie-ta{min-height:min(58vh,560px)}
+  /* once compared, the checks, the model and the self-marking run full width below: the task stops sticking (sticky in
+     a grid sticks to the whole grid, so it would cover them) */
+  #ie-item:has(> .ie-wchecks)>.ie-wtask{position:static;max-height:none;overflow:visible}
 }
 /* the player's controls reach 44 px, and the low-time clock keeps 4.5:1 on the light glass bar */
 .ie-seg>button{min-height:44px}
