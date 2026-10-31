@@ -14,7 +14,9 @@
      "pause": N s), "That is the end of Part N." and checking time (EXAM.check s); after the last part, two minutes to
      check (EXAM.review s, in the top timer), then it finishes by itself. The timed clock doesn't run: the recording sets
      the pace. Moving between items doesn't stop it (a chip offers to go to the part that is playing); leaving or
-     reloading does, and «Continue the recording» resumes from the saved line (run.x = {s, k, line, phase, left}). The
+     reloading does, and «Continue the recording» resumes from the saved line (run.x = {s, k, line, phase, left}); if
+     that step is no longer in the data, from the next one that is (never back to Part 1). The time on screen with the
+     recording stopped adds to run.away, and the two minutes to check go on by themselves after a reload. The
      reading time shows the range the voice has just named. A mock started before exam mode (no run.xmode) that has
      already used the clock or played a part keeps the timed clock.
      Other test recordings play once; Next, Previous or leaving keeps the line (run.lpos) and «Continue the recording»
@@ -418,7 +420,12 @@ IE.ROUTES.lesson = async ([lid], a) => {
     if(!alive || !running()) return stopClock();
     const n = Date.now(), dt = n - last; last = n;
     if(D.visibilityState === "visible"){
-      if(dt >= 0 && dt < 5000){ if(!exam()) run.el += dt; }
+      if(dt >= 0 && dt < 5000){
+        if(!exam()) run.el += dt;
+        /* exam mode with the recording stopped (after a reload or coming back, before «Continue the recording»):
+           the questions are on screen but nothing sets the pace, so that time is a pause too */
+        else if(xStopped()){ run.away = (run.away || 0) + dt; if(++ticks % 5 === 0) save(); }
+      }
       else if(dt >= 5000 && !hiddenAt){ run.away = (run.away || 0) + dt; save(); }   /* a frozen or sleeping page: not exam time */
     }
     if(exam()) return;
@@ -489,7 +496,8 @@ IE.ROUTES.lesson = async ([lid], a) => {
     W.scrollTo(0, 0);
   }
 
-  function show(){
+  /* o.keepScroll: the caller scrolls (Check on a reading item), so the pane's saved scroll isn't restored over it */
+  function show(o){
     if(!alive) return;
     if(run.finished) return results();
     if(test && !run.started) return intro();
@@ -509,9 +517,14 @@ IE.ROUTES.lesson = async ([lid], a) => {
       <div class="ie-dock" id="ie-dock">${dockHtml(it, fb)}</div></div>`;
     wireItem(it, fb);
     wireDock(it, fb);
-    if(exam()) xPaint();
+    if(exam()){
+      xPaint();
+      /* the two minutes to check have no audio: after a reload or coming back they go on by themselves */
+      if(!xrun && isObj(run.x) && run.x.phase === "review") xPlay();
+    }
     const h = a.querySelector("#ie-item h1, #ie-item h2, #ie-item legend, #ie-item .ie-qtext"); if(h && run.i > 0){ h.setAttribute("tabindex", "-1"); h.focus({preventScroll: true}); }
-    if(it.type === "reading") restoreScroll(it); else W.scrollTo(0, 0);
+    if(it.type !== "reading") W.scrollTo(0, 0);
+    else if(!(isObj(o) && o.keepScroll)) restoreScroll(it);
   }
 
   /* what goes in the dock under the item */
@@ -546,7 +559,11 @@ IE.ROUTES.lesson = async ([lid], a) => {
     if(q("#ie-check")) q("#ie-check").onclick = () => {
       const qs = it.sets ? it.sets.flatMap(s => s.items) : [it];
       if(qs.every(x => !answered(x, ans(x.id))) && !confirm("You haven't answered yet. Show the answers?")) return;
-      run.checked[it.id] = true; save(); hush(); show();
+      run.checked[it.id] = true;
+      /* reading on a phone: the answers and reasons are in the Questions pane, and the scroll to the first one wins */
+      const rd = it.type === "reading";
+      if(rd && pane(it) !== "qs"){ rpos(it)[pane(it)] = Math.round(W.scrollY); bag("panes")[it.id] = "qs"; }
+      save(); hush(); show({keepScroll: rd});
       const g = qs.reduce((t, x) => t + mark(x, ans(x.id)), 0), m = qs.reduce((t, x) => t + marks(x), 0);
       announce(!it.sets && it.type !== "select" ? (g === m ? "Correct." : `Not quite. The answer is ${plain(answerText(it))}.`) : `${g} of ${m} correct.`);
       const w = a.querySelector(".ie-why.is-miss, .ie-why"); if(w && it.sets) w.scrollIntoView({block: "center", behavior: calm() ? "auto" : "smooth"});
@@ -778,12 +795,26 @@ IE.ROUTES.lesson = async ([lid], a) => {
     return out;
   }
   const steps = () => XST || (XST = xSteps());
+  /* the recording is stopped while a started exam waits for «Continue the recording» (or hasn't started it) */
+  const xStopped = () => exam() && running() && !xrun && !(isObj(run.x) && run.x.phase === "done");
+  /* where a step sits in its part: ctx, preview (line -1), then each line and its pause, then end and check/review */
+  const RANK = {ctx: 0, preview: 1, line: 0, pause: 1, end: 0, check: 1, review: 1};
+  const same = (t, x) => !!t && t.k === x.k && t.phase === x.phase && t.line === x.line;
   function xFind(S){
     const x = run.x; if(!isObj(x)) return 0;
     if(x.phase === "done") return S.length;
-    if(Number.isInteger(x.s) && S[x.s] && S[x.s].k === x.k && S[x.s].phase === x.phase && S[x.s].line === x.line) return x.s;
-    const j = S.findIndex(t => t.k === x.k && t.phase === x.phase && t.line === x.line);
-    return j >= 0 ? j : 0;
+    if(Number.isInteger(x.s) && same(S[x.s], x)) return x.s;
+    const j = S.findIndex(t => same(t, x));
+    if(j >= 0) return j;
+    /* the saved step isn't in the data any more (a pause line removed, a script shortened): go on from the next step
+       that is there, never back to Part 1, as what has already played is lost */
+    if(!Number.isInteger(x.k) || x.k < 0) return 0;
+    if(x.k >= LIS.length) return S.length - 1;           /* the part is gone: every part has played, the review is left */
+    const end = LIS[x.k].script.length;
+    let line = Number.isInteger(x.line) ? x.line : -1, r = RANK[x.phase] != null ? RANK[x.phase] : 0;
+    if(line > end){ line = end; if(x.phase === "pause") r = 0; }   /* past a shorter script: its end */
+    const n = S.findIndex(t => t.k > x.k || (t.k === x.k && (t.line > line || (t.line === line && RANK[t.phase] >= r))));
+    return n >= 0 ? n : S.length - 1;
   }
   /* a new part starts: follow it from the part before or from the intro card, else offer it in a chip */
   function xFollow(k){
@@ -800,7 +831,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
     xPaint();
     for(; s < S.length; s++){
       const t = S[s], it = LIS[t.k];
-      const resume = isObj(run.x) && run.x.s === s && run.x.left != null && t.secs ? +run.x.left : null;
+      const resume = isObj(run.x) && same(t, run.x) && run.x.left != null && t.secs ? +run.x.left : null;
       run.x = {s, k: t.k, line: t.line, phase: t.phase}; save();
       if(t.phase === "ctx") xFollow(t.k);
       if(t.phase === "review") top();
@@ -860,7 +891,7 @@ IE.ROUTES.lesson = async ([lid], a) => {
     const bar = D.getElementById("ie-xbar");
     if(bar){
       let h = "";
-      if(!xrun && !(x && x.phase === "done")) h = `<div class="card ie-card ie-xgo"><p class="t-sub">${x ? "The recording stopped when you left. It goes on from where it stopped: what has already played can't be heard again." : "The recording hasn't started yet."}</p>
+      if(!xrun && !(x && x.phase === "done")) h = `<div class="card ie-card ie-xgo"><p class="t-sub">${x ? "The recording stopped when you left: it goes on from there, and what has played can't be heard again." : "The recording hasn't started yet."} Until it plays, the time counts as a pause.</p>
         <button type="button" class="glass-btn glass-btn--pri" id="ie-xgo">${ico("play", 20)}${x ? "Continue the recording" : "Start the recording"}</button></div>`;
       else if(xrun && cur && L.items[run.i] !== cur && x.phase !== "review") h = `<button type="button" class="ie-xchip" id="ie-xchip">${ico("speaker-high", 18)}<span>Part ${cur.part} is playing · Go to Part ${cur.part}</span></button>`;
       if(bar.dataset.h !== h){

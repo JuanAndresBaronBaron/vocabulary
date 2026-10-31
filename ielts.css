@@ -285,7 +285,7 @@ a.ie-row:active{background:var(--fill2)}
   background:var(--navy);color:#fff;font:600 var(--fs-note)/1.25 var(--f-text);text-align:left;box-shadow:0 4px 14px rgba(11,37,69,.28);cursor:pointer}
 .ie-xchip .ico{flex:none}
 :root[data-theme=dark] .ie-xchip{background:var(--teal);color:#000;box-shadow:none}
-.ie-xstat{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 2px;min-height:44px;margin-top:14px;padding:11px 14px;border-radius:var(--r-md);
+.ie-xstat{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 .35em;min-height:44px;margin-top:14px;padding:11px 14px;border-radius:var(--r-md);
   background:var(--card-2);font:600 var(--fs-sub)/1.35 var(--f-text)}
 .ie-xstat #ie-xclk{color:var(--brand-ink);font-variant-numeric:tabular-nums}
 .ie-noaudio{display:flex;gap:10px;align-items:flex-start;margin:14px 0 0;padding:12px 14px;border-radius:var(--r-md);background:var(--gold-soft);

@@ -10,11 +10,12 @@ Every high bug has a regression test that failed before the fix (the old player 
   self-marking and «Revise it later in My writing»;
 - no English voice (IE.ensureVoices() = 0): the transcript, run.heard not set, noaudio reaches prog.addTest.
 Then: exam:true Listening (previews, pause lines, check time, two minutes to check and the automatic finish, in order;
-moving between items doesn't stop the audio; a reload resumes from the saved line; one test stored; test_ielts.py's
-walker still finishes u23-l1 and u24-l1 with exam:true), resuming a test recording after Next/Previous, the voice
+moving between items doesn't stop the audio; a reload resumes from the saved line, or from the next step the data still
+has; time on screen with the recording stopped is a pause, and the two minutes to check go on by themselves after a
+reload; one test stored; test_ielts.py's walker still finishes u23-l1 and u24-l1 with exam:true), resuming a test recording after Next/Previous, the voice
 options of each speaker (accent, alt, pitch) and rate 1 in tests, writingChecks on the band 9 models and its rules, set
 visuals and visual2, Part 2 follow-ups, no microphone, IE.assess delegation, results labels (addTest's counted, part
-tests, unit.back/backT), the live region, reading panes and scroll, storage full, and screenshots at 360, 390 and
+tests, unit.back/backT), the live region, reading panes and scroll (Check shows the first reason), storage full, and screenshots at 360, 390 and
 1280 px, light and dark, with reduced motion (no horizontal scroll, 44 px targets, palette and contrast).
 New data fields are served with page.route (the data in this branch doesn't have them yet).
 """
@@ -782,6 +783,83 @@ def test_a_mock_started_before_exam_mode_keeps_its_clock():
         page.context.close()
 
 
+def _clock_secs(page):
+    m, s = (_text(page, "#ie-timer") or "0:00").split(":")
+    return int(m) * 60 + int(s)
+
+
+def test_exam_stopped_recording_counts_as_a_pause_and_the_review_goes_on():
+    """After a reload the exam waits for «Continue the recording»: that time on screen, with the questions open and nothing
+    setting the pace, is a pause (over two minutes: paused). The two minutes to check have no audio: they go on by themselves."""
+    page = _page("phone", init=[TC.SPEECH, SPY])
+    try:
+        u = _serve(page, "u23", _exam_unit)
+        les = _lesson(u, "u23-l1")
+        parts = [it for it in les["items"] if it["type"] == "listening"]
+        last, p1 = len(les["items"]) - 1, parts[0]["id"]
+        # stopped in Part 2's reading time, on screen for 2.5 minutes without «Continue the recording»
+        _seed_run(page, "u23-l1", {"v": 1, "i": last, "ans": {}, "checked": {}, "heard": {p1: True}, "self": {}, "el": 0, "started": True,
+                                   "xmode": "exam", "played": {p1: True}, "x": {"k": 1, "line": -1, "phase": "preview", "left": 20}})
+        T._open(page, "#/lesson/u23-l1")
+        page.wait_for_selector("#ie-xgo")
+        assert "the time counts as a pause" in page.inner_text("#ie-xbar")
+        page.clock.run_for(150000)
+        r = _run(page, "u23-l1")
+        assert r.get("away", 0) >= 145000 and r["x"]["phase"] == "preview", r
+        assert page.locator("#ie-xgo").count() == 1 and _said(page) == []
+        page.click("#ie-fin")
+        page.wait_for_selector(".ie-result")
+        t = _tests(page)
+        assert len(t) == 1 and t[0]["paused"] is True, t
+        assert "Paused for more than two minutes: not under exam conditions." in page.inner_text(".ie-result")
+        # stopped in the two minutes to check, 1:40 left: after the reload they go on and the test finishes by itself
+        allp = {p["id"]: True for p in parts}
+        _seed_run(page, "u23-l1", {"v": 1, "i": last, "ans": {}, "checked": {}, "heard": dict(allp), "self": {}, "el": 0, "started": True,
+                                   "xmode": "exam", "played": dict(allp),
+                                   "x": {"k": len(parts) - 1, "line": len(parts[-1]["script"]), "phase": "review", "left": 100}})
+        T._open(page, "#/lesson/u23-l1")
+        page.wait_for_selector("#ie-timer")
+        assert page.locator("#ie-xgo").count() == 0
+        assert 98 <= _clock_secs(page) <= 100, _text(page, "#ie-timer")
+        page.clock.run_for(30000)
+        assert 68 <= _clock_secs(page) <= 71, _text(page, "#ie-timer")
+        page.clock.run_for(72000)
+        page.wait_for_selector(".ie-result")
+        t = [x for x in _tests(page) if x["lid"] == "u23-l1"]
+        assert len(t) == 2 and t[-1]["paused"] is False, t
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
+def test_exam_resumes_from_the_next_step_the_data_still_has():
+    """A saved exam position the data no longer has (a pause line removed, a script shortened) goes on from the next step
+    there, never back to Part 1: what has already played is lost."""
+    page = _page("phone", init=[TC.SPEECH, SPY])
+    try:
+        u = _serve(page, "u23", _exam_unit)
+        les = _lesson(u, "u23-l1")
+        parts = [it for it in les["items"] if it["type"] == "listening"]
+        for k, x, first in ((2, {"s": 40, "k": 2, "line": 1, "phase": "pause", "left": 2}, parts[2]["script"][2]["t"]),
+                            (1, {"k": 1, "line": 9, "phase": "line"}, f"That is the end of Part {parts[1]['part']}.")):
+            heard = {p["id"]: True for p in parts[:k + 1]}
+            _seed_run(page, "u23-l1", {"v": 1, "i": les["items"].index(parts[k]), "ans": {}, "checked": {}, "heard": heard, "self": {}, "el": 0,
+                                       "started": True, "xmode": "exam", "played": {p["id"]: True for p in parts[:k]}, "x": x})
+            T._open(page, "#/lesson/u23-l1")
+            page.wait_for_selector("#ie-xgo")
+            page.evaluate("() => { IE.player.EXAM = {preview: 1, check: 1, review: 2}; }")
+            n = len(_said(page))
+            page.click("#ie-xgo")
+            page.wait_for_function("n => window.__said.length > n", arg=n)
+            said = _said(page)[n]
+            assert said == first.replace("*", ""), (x, said)
+            r = _run(page, "u23-l1")
+            assert r["x"]["k"] == k, (x, r["x"])
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
 def test_reading_time_names_the_voices_range_and_keeps_its_digits_quiet():
     def pause(u):
         it = _item(u, "u05-l2-i1")
@@ -842,6 +920,36 @@ def test_reading_keeps_pane_and_scroll_per_item():
         page.wait_for_selector(".ie-read[data-pane='text']")
         page.click("#ie-prev")
         page.wait_for_selector(".ie-read[data-pane='qs']")
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
+def test_check_on_a_reading_item_shows_the_first_reason():
+    """On a phone, Check scrolls to the first answer and reason: the pane's saved scroll doesn't win over it, and from the
+    Passage pane it switches to Questions, where the reasons are."""
+    page = _page("phone", reduced_motion="reduce")
+    try:
+        for start in ("qs", "text"):
+            T._open(page, "#/")
+            page.evaluate("() => localStorage.removeItem('ielts:run:u07-l2')")
+            T._open(page, "#/lesson/u07-l2")
+            page.wait_for_selector(".ie-read")
+            if start == "qs":
+                page.click(".ie-rtog [data-pane='qs']")
+            page.wait_for_timeout(300)
+            page.evaluate("() => window.scrollTo(0, document.documentElement.scrollHeight)")
+            page.wait_for_timeout(300)
+            assert page.evaluate("scrollY") > 1000, (start, page.evaluate("scrollY"))
+            page.click("#ie-check")
+            page.wait_for_selector(".ie-why")
+            page.wait_for_timeout(400)
+            box = page.evaluate("() => { const r = document.querySelector('.ie-why').getBoundingClientRect(); return [r.top, r.bottom, innerHeight]; }")
+            assert 0 <= box[0] < box[2], (start, box)
+            assert page.get_attribute(".ie-read", "data-pane") == "qs"
+            page.wait_for_timeout(600)
+            y = page.evaluate("scrollY")
+            assert abs(_run(page, "u07-l2")["rpos"]["u07-l2-i1"]["qs"] - y) <= 2, (start, y, _run(page, "u07-l2")["rpos"])
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()

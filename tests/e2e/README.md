@@ -480,7 +480,13 @@ def test_algo():
   de `test_ielts.py` termina u23-l1 y u24-l1 con `exam: true`. Una ejecución de u23-l1 de antes del modo examen (sin
   `xmode`) que ya usó el reloj u oyó una parte sigue con el reloj («Played» sale de `heard`). El tiempo de lectura nombra
   el rango que dice la voz (u24-l1 Part 2: 11 a 20, no el primer set), y fuera del modo examen la región viva
-  `#ie-lprog` lo dice una vez: los segundos van en `#ie-lclk` (`aria-hidden`).
+  `#ie-lprog` lo dice una vez: los segundos van en `#ie-lclk` (`aria-hidden`). Con la grabación parada tras recargar
+  (esperando «Continue the recording»), el tiempo en pantalla suma a `run.away` (`page.clock.run_for(150000)`:
+  `paused: true`); los dos minutos para revisar siguen solos tras recargar y terminan el test. Una posición guardada
+  que los datos ya no tienen (una pausa quitada, un guion más corto) sigue desde el paso siguiente de esa parte, nunca
+  desde Part 1.
+- Lectura en el móvil: Check lleva a la primera explicación (el scroll guardado del panel no la tapa) y, desde Passage,
+  pasa a Questions (u07-l2, 390 px).
 - Lo demás: visuales en los sets y `visual2`, `IE.assess` de mentira (delegación de la autoevaluación), `counted: false`
   de `prog.addTest`, «Part test», `back`/`backT` de la unidad, la región viva, `autocorrect`/`autocapitalize`, pestaña y
   scroll de lectura por ítem, almacenamiento lleno. Capturas en `capturas/ielts-player` (360 y 390 claro y oscuro, 1280,
