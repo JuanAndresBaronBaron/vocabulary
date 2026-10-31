@@ -65,7 +65,7 @@ const RK = lid => `ielts:run:${lid}`;
 const fmtTime = s => { s = Math.max(0, Math.round(s)); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; };
 const words = t => (String(t || "").match(/[A-Za-z0-9’'-]+/g) || []).filter(w => /[A-Za-z0-9]/.test(w)).length;
 const plain = s => String(s == null ? "" : s).replace(/\*/g, "");
-const calm = () => { try{ return matchMedia("(prefers-reduced-motion: reduce)").matches || D.documentElement.dataset.motion === "calm"; }catch(e){ return false; } };
+const calm = () => { try{ return window.M && typeof M.rm === "function" ? !!M.rm() : matchMedia("(prefers-reduced-motion: reduce)").matches || D.documentElement.dataset.motion === "calm"; }catch(e){ return false; } };
 const fig = v => v && IE.viz ? `<figure class="ie-viz">${IE.viz.html(v)}</figure>` : "";
 /* "…you have some time to look at questions 7 to 10." */
 const RANGE = /questions?\s+(\d+)\s*(?:to|and|-|–)\s*(\d+)/i;
