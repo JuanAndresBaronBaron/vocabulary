@@ -368,6 +368,18 @@
       "t": "Maintenant, il est fatigué. Bonne nuit, renard !",
       "es": "Ahora está cansado. ¡Buenas noches, zorro!"
      }
+    ],
+    "quiz": [
+     {
+      "t": "Qu'est-ce que le renard boit ?",
+      "es": "¿Qué bebe el zorro?",
+      "opts": [
+       "img/om_1F95B.png",
+       "img/om_1F4D6.png",
+       "img/om_1F319.png"
+      ],
+      "ok": 0
+     }
     ]
    },
    {
@@ -392,8 +404,42 @@
       "t": "Maintenant, il est fatigué. Bonne nuit, renard !",
       "es": "Ahora está cansado. ¡Buenas noches, zorro!"
      }
+    ],
+    "quiz": [
+     {
+      "t": "Qui lit une histoire ?",
+      "es": "¿Quién lee un cuento?",
+      "opts": [
+       "img/pj/buho.png",
+       "img/pj/oveja.png",
+       "img/pj/vaca.png"
+      ],
+      "ok": 0
+     }
     ]
    }
   ]
- }
+ },
+ "quiz": [
+  {
+   "t": "Qu'est-ce qui est dans le ciel ?",
+   "es": "¿Qué hay en el cielo?",
+   "opts": [
+    "img/om_1F319.png",
+    "img/om_1F6CF.png",
+    "img/om_1F95B.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Qui est réveillé ?",
+   "es": "¿Quién está despierto?",
+   "opts": [
+    "img/pj/buho.png",
+    "img/pj/vaca.png",
+    "img/pj/cerdo.png"
+   ],
+   "ok": 0
+  }
+ ]
 }

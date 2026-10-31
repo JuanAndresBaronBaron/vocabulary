@@ -347,6 +347,18 @@
       "t": "Nu er han træt. Godnat, ræv!",
       "es": "Ahora está cansado. ¡Buenas noches, zorro!"
      }
+    ],
+    "quiz": [
+     {
+      "t": "Hvad drikker ræven?",
+      "es": "¿Qué bebe el zorro?",
+      "opts": [
+       "img/om_1F95B.png",
+       "img/om_1F4D6.png",
+       "img/om_1F319.png"
+      ],
+      "ok": 0
+     }
     ]
    },
    {
@@ -371,8 +383,42 @@
       "t": "Nu er han træt. Godnat, ræv!",
       "es": "Ahora está cansado. ¡Buenas noches, zorro!"
      }
+    ],
+    "quiz": [
+     {
+      "t": "Hvem læser en historie?",
+      "es": "¿Quién lee un cuento?",
+      "opts": [
+       "img/pj/buho.png",
+       "img/pj/oveja.png",
+       "img/pj/vaca.png"
+      ],
+      "ok": 0
+     }
     ]
    }
   ]
- }
+ },
+ "quiz": [
+  {
+   "t": "Hvad er på himlen?",
+   "es": "¿Qué hay en el cielo?",
+   "opts": [
+    "img/om_1F319.png",
+    "img/om_1F6CF.png",
+    "img/om_1F95B.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Hvem er vågen?",
+   "es": "¿Quién está despierto?",
+   "opts": [
+    "img/pj/buho.png",
+    "img/pj/vaca.png",
+    "img/pj/cerdo.png"
+   ],
+   "ok": 0
+  }
+ ]
 }

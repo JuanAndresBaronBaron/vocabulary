@@ -38,10 +38,20 @@
      preguntas de gustos («¿Cuál es tu animal favorito?») no tienen mala: el zorro contesta a lo elegido. «Dilo»
      (micrófono, solo si canListen() y hay internet) escucha con listen() y lo compara con vocabReview.matches; tocar
      siempre vale. Si nadie contesta en NUDGE_MS, repite la pregunta una vez.
+   · Las respuestas salen en otro orden cada vez que se contesta una llamada (mix(): nunca dentro de get(), que se
+     guarda; ok se vuelve a contar y cada contestación «re» sigue con su respuesta), así la buena no es siempre la primera.
+   · «Dilo conmigo»: tras cada respuesta (y lo que dice el zorro), la voz dice «Say it with me:» / «Répète avec moi :» /
+     «Sig det med mig:» y la palabra suena con su mp3 (sayWord); luego ECHO_MS de pausa con una boca que late y «¡Dilo
+     tú!». Si se puede escuchar (canListen(), con internet y con el permiso del micrófono ya dado o tras usar «Dilo»; nunca
+     pide el permiso por sorpresa), escucha ECHO_LISTEN ms y, si oye algo, «¡Te he oído!» (no corrige: no es un examen).
    · «Otra vez» (Espacio), «Despacio» (la tortuga, Mayús+Espacio) y «Colgar» (Esc). Al acabar o colgar, «Llamada
      terminada · m:ss». Contestadas todas las preguntas: award(COINS) una vez por llamada y día (PAID_MAX llamadas
      pagadas al día como mucho). Colgar antes no paga y no deja llamada perdida.
    · El dialog lleva data-no-renew (js/sync.js no pide el permiso de Google con sus toques) y la fila perdida también.
+   «Llamar al zorro» (#/llamadas, de Juegos: la tarjeta de vocabGames con href, sección «mas»; ‹ Juegos): las llamadas del
+   idioma (primero las que aún no se han oído; ✓ en las oídas). Tocar una empieza ya hablando (como devolver la llamada,
+   dentro del toque). Las sorpresas siguen como siempre y las monedas igual (PAID_MAX pagadas al día). Sin voz del idioma
+   no se puede llamar (lo dice).
    Llamadas: data/calls/index.json = {v: 1, <english|français|dansk>: {city, calls: [{id, f, t}]}} y cada
    data/calls/<en|fr|da>/<nombre>.json = {v: 1, id: "<en|fr|da>-<nombre>", lang, city, t (título en español), lines: [
      {say, es, k?: [{t, r}]}                              una frase del zorro (es = su español)
@@ -54,10 +64,11 @@
    Guardado: localStorage "calls" (EXACT en js/save.js: va en la partida; solo se escribe cuando suena una llamada o
    alguien hace algo, nunca al arrancar) = {v: 1, off?: true (interruptor apagado), d?: "AAAA-MM-DD" (la última que
    sonó), miss?: {id, d} (la perdida), h?: {id: "AAAA-MM-DD"} (cuándo sonó o se oyó cada una; suena la más antigua),
-   paid?: {id: "AAAA-MM-DD"} (las pagadas hoy)}.
+   paid?: {id: "AAAA-MM-DD"} (las pagadas hoy), heard?: {id: "AAAA-MM-DD"} (las que se contestaron: el ✓ de la lista)}.
    API: window.vocabCalls = {KEY, CHANCE, GAP, state(), blocked(), calm(), check(), ring(id?) → Promise<boolean>,
      answer(), pick(i), replay(slow), hangUp(), notNow(), callBack(), list(lang?), get(id), setOff(off), slot,
-     adultHtml(), images(), files(), get current()}. */
+     adultHtml(), images(), files(), mix(llamada), call(id) (llamar desde la lista), get current() (con ok: la buena de la
+     pregunta en pantalla, en el orden que se ve; -1 si es de gustos)}. */
 (() => {
 "use strict";
 const W = window, D = document, ROOT = D.documentElement;
@@ -68,6 +79,8 @@ const OPEN_MS = 180000;             /* solo en los primeros 3 minutos de la sesi
 const WAKE_MS = 30 * 60000;         /* volver tras 30 minutos sin ver la app es otra sesión */
 const RING_DELAY = 2500, RING_MS = 30000, MISS_DAYS = 3, NUDGE_MS = 15000, REACT_MS = 900, END_MS = 1300, RETRY_MS = 4000;
 const COINS = 5, PAID_MAX = 2;
+const ECHO_MS = 2500, ECHO_LISTEN = 3000;   /* «Dilo conmigo»: la pausa para repetir y lo que escucha si puede */
+const ECHO = {english: "Say it with me:", "français": "Répète avec moi\u202F:", dansk: "Sig det med mig:"};
 const CALM = new Set(["", "juegos", "album", "granja", "mapa", "palabras", "gramatica", "progreso", "mizorro"]);
 const DK = /^\d{4}-\d{2}-\d{2}$/, ID = /^(en|fr|da)-[a-z0-9-]{1,40}$/;
 const isObj = v => !!v && typeof v === "object" && !Array.isArray(v);
@@ -84,6 +97,8 @@ const hasTTS = () => "speechSynthesis" in W && typeof W.SpeechSynthesisUtterance
 const stopSpeech = () => { try{ if("speechSynthesis" in W) speechSynthesis.cancel(); else if(typeof stopClip === "function") stopClip(); }catch(e){} };
 const haptic = k => { try{ if(W.G && typeof G.haptic === "function") G.haptic(k); }catch(e){} };
 const mmss = s => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+/* la boca que late en «Dilo conmigo» (dibujo propio) */
+const MOUTH = `<svg viewBox="0 0 64 48" width="44" height="33" aria-hidden="true" focusable="false"><path d="M6 18c8-10 44-10 52 0-4 22-48 22-52 0z" fill="#7A2E2E"/><path d="M6 18c8-10 44-10 52 0-14 5-38 5-52 0z" fill="#fff"/><path d="M20 34c6-6 18-6 24 0-8 4-16 4-24 0z" fill="#E07A6B"/><path d="M6 18c8-10 44-10 52 0-4 22-48 22-52 0z" fill="none" stroke="#3A1A1A" stroke-width="3" stroke-linejoin="round"/></svg>`;
 const CHK = `<svg class="chk" viewBox="0 0 256 256" width="18" height="18" aria-hidden="true" focusable="false"><polyline points="40 144 96 200 224 72" fill="none" stroke="currentColor" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 /* ---------- lo guardado ("calls") ---------- */
@@ -96,7 +111,7 @@ function load(){
   const o = store.get(KEY, null), s = isObj(o) ? o : {};
   const miss = isObj(s.miss) && typeof s.miss.id === "string" && ID.test(s.miss.id) && typeof s.miss.d === "string" && DK.test(s.miss.d)
     ? {id: s.miss.id, d: s.miss.d} : null;
-  return {v: 1, off: s.off === true, d: typeof s.d === "string" && DK.test(s.d) ? s.d : "", miss, h: days(s.h), paid: days(s.paid)};
+  return {v: 1, off: s.off === true, d: typeof s.d === "string" && DK.test(s.d) ? s.d : "", miss, h: days(s.h), paid: days(s.paid), heard: days(s.heard)};
 }
 function save(s){
   const t = tKey(), o = {v: 1};
@@ -107,6 +122,8 @@ function save(s){
   if(hk.length) o.h = Object.fromEntries(hk.map(k => [k, s.h[k]]));
   const pk = Object.keys(s.paid).filter(k => s.paid[k] === t);   /* solo cuentan las de hoy */
   if(pk.length) o.paid = Object.fromEntries(pk.map(k => [k, t]));
+  const ok = Object.keys(s.heard || {}).sort((a, b) => s.heard[b].localeCompare(s.heard[a])).slice(0, 30);
+  if(ok.length) o.heard = Object.fromEntries(ok.map(k => [k, s.heard[k]]));
   store.set(KEY, o);
 }
 function setOff(off){
@@ -220,6 +237,18 @@ function get(id){
     return resolve(c, L);
   })().catch(e => { delete CALLS[id]; throw e; });
   return CALLS[id];
+}
+/* la llamada con las respuestas de cada pregunta en otro orden (copia: la de get() no cambia). ok se vuelve a contar;
+   yes/no son de la pregunta y cada «re» va dentro de su respuesta, así que siguen con la suya */
+function mix(c){
+  return Object.assign({}, c, {lines: c.lines.map(l => {
+    if(!l.a) return l;
+    const ix = l.a.map((_, i) => i);
+    for(let i = ix.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [ix[i], ix[j]] = [ix[j], ix[i]]; }
+    const o = Object.assign({}, l, {a: ix.map(i => l.a[i])});
+    if(typeof l.ok === "number") o.ok = ix.indexOf(l.ok);
+    return o;
+  })});
 }
 const pre = src => { if(!src) return; try{ const i = new Image(); i.decoding = "async"; i.src = src; }catch(e){} };
 const preload = c => { pre(IMG); c.lines.forEach(l => (l.a || []).forEach(a => pre(a.w.img))); };
@@ -397,7 +426,7 @@ function talkHtml(c){
     <div class="cl-head"><span class="cl-av" aria-hidden="true"><img src="${IMG}" alt="" width="256" height="224" draggable="false"></span>
       <div class="cl-hn"><h2 id="cl-name" tabindex="-1">Zorro · ${h(c.city)}</h2><span class="cl-time" id="cl-time" aria-hidden="true">0:00</span></div></div>
     <div class="cl-sub"><p class="cl-say" id="cl-say" lang="${h(code(c.lang))}" data-a11y-small></p><p class="cl-es" id="cl-es" lang="es" data-hide></p></div>
-    <div class="cl-mid"><div class="cl-big" id="cl-big" aria-hidden="true"><span class="cl-av"><img src="${IMG}" alt="" width="256" height="224" draggable="false"></span>
+    <div class="cl-mid" id="cl-mid"><div class="cl-big" id="cl-big" aria-hidden="true"><span class="cl-av"><img src="${IMG}" alt="" width="256" height="224" draggable="false"></span>
         <span class="cl-wave"><i></i><i></i><i></i><i></i></span></div>
       <div class="cl-ans" id="cl-ans" hidden></div>
       <p class="cl-st" id="cl-st" role="status"></p></div>
@@ -410,15 +439,16 @@ function talkHtml(c){
 }
 function talk(c){
   const d = $id("cl-dlg") || dlg();
-  const C = CUR = Object.assign(CUR && CUR.call === c ? CUR : {}, {call: c, mode: "talk", tok: (CUR && CUR.tok) || 0, i: -1, phase: "",
-    done: new Set(), t0: Date.now(), listening: false, noMic: false, nudged: -1});
+  const C = CUR = Object.assign(CUR && CUR.call === c ? CUR : {}, {call: mix(c), mode: "talk", tok: (CUR && CUR.tok) || 0, i: -1, phase: "",
+    done: new Set(), t0: Date.now(), listening: false, noMic: false, micUsed: false, nudged: -1});
   clearTimeout(C.ringT);
   if(C.offSwipe){ try{ C.offSwipe(); }catch(e){} C.offSwipe = null; }
   d.classList.remove("ringing");
   d.innerHTML = talkHtml(c);
   const n = $id("cl-name"); if(n) try{ n.focus({preventScroll: true}); }catch(e){}
   C.clockT = setInterval(() => { const el = $id("cl-time"); if(el) el.textContent = mmss(Math.floor((Date.now() - C.t0) / 1000)); }, 1000);
-  const s = load(); s.miss = null; s.h[c.id] = tKey(); save(s);
+  const s = load(); if(s.miss && s.miss.id === c.id) s.miss = null;
+  s.h[c.id] = s.heard[c.id] = tKey(); save(s);
   step(0);   /* la primera frase, dentro del toque */
 }
 function answer(){
@@ -542,7 +572,7 @@ async function step(i){
   step(i + 1);
 }
 function replay(slow){
-  const C = CUR; if(!C || C.mode !== "talk" || C.phase === "react" || C.phase === "end") return;
+  const C = CUR; if(!C || C.mode !== "talk" || C.phase === "react" || C.phase === "echo" || C.phase === "end") return;
   const line = C.call.lines[C.i]; if(!line) return;
   if(C.listening) try{ stopListen(); }catch(e){}
   const tok = ++C.tok;
@@ -594,9 +624,48 @@ async function pick(j, how){
   }
   if(!alive(C, tok)) return;
   showEs();
-  if(!(await wait(REACT_MS + 600, C, tok))) return;
+  if(!(await wait(REACT_MS, C, tok))) return;
+  if(!(await echo(C, tok, open ? line.a[j].w : right.w))) return;
+  if(!(await wait(600, C, tok))) return;
   step(C.i + 1);
 }
+/* «Dilo conmigo»: la voz dice la frase («Say it with me:») y la palabra suena con su mp3; después la boca late con «¡Dilo
+   tú!» ECHO_MS (o, si se puede escuchar, ECHO_LISTEN ms escuchando; si oye algo, «¡Te he oído!»). false si se colgó */
+async function echo(C, tok, w){
+  if(!alive(C, tok) || !w) return false;
+  C.phase = "echo";
+  const fr = ECHO[C.call.lang] || ECHO.english, fin = C.call.lang === "français" ? "\u202F!" : "!";
+  const say = `${fr} ${w.say}${fin}`, s0 = fr.length + 1;
+  paintLine({say, es: `Dilo conmigo: «${String(w.es || "").toLocaleLowerCase("es")}».`, keys: [{s: s0, e: s0 + w.say.length, w}]});
+  await speakLine(fr, false);
+  if(!alive(C, tok)) return false;
+  light(s0);
+  await sayWord(w);
+  if(!alive(C, tok)) return false;
+  light(null); showEs();
+  const box = $id("cl-mid"), el = D.createElement("div");
+  el.className = "cl-echo"; el.id = "cl-echo"; el.setAttribute("aria-hidden", "true");
+  el.innerHTML = `<span class="cl-mouth">${MOUTH}</span><b>¡Dilo tú!</b>`;
+  if(box) box.append(el);
+  status("¡Dilo tú!");
+  let ok = true;
+  if(micOk(C)){
+    C.listening = true;
+    const r = await listen({ms: ECHO_LISTEN, lang: code(C.call.lang)});
+    C.listening = false;
+    ok = alive(C, tok);
+    if(ok && r && r.status === "ok" && (r.alts || []).some(a => String(a || "").trim())){
+      el.classList.add("heard"); el.querySelector("b").textContent = "¡Te he oído!"; status("¡Te he oído!");
+      ok = await wait(900, C, tok);
+    }
+  } else ok = await wait(ECHO_MS, C, tok);
+  el.remove(); if(alive(C, tok)) status("");
+  return ok && alive(C, tok);
+}
+/* escuchar sin preguntar: solo si el micrófono ya tiene permiso (o ya se usó «Dilo» en esta llamada) */
+let MIC = "";
+try{ if(navigator.permissions && navigator.permissions.query) navigator.permissions.query({name: "microphone"}).then(p => { MIC = p.state; p.onchange = () => { MIC = p.state; }; }, () => {}); }catch(e){}
+const micOk = C => !C.noMic && typeof canListen === "function" && canListen() && navigator.onLine !== false && (C.micUsed || MIC === "granted");
 const heard = (alts, w) => {
   try{ if(W.vocabReview && typeof vocabReview.matches === "function") return vocabReview.matches(alts, w.word, lang); }catch(e){}
   const n = s => String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^\p{L}\p{N} ]/gu, " ").replace(/\s+/g, " ").trim();
@@ -612,6 +681,7 @@ async function hear(){
   status("Te escucho…");
   const r = await listen({ms: 6000, lang: code(C.call.lang)});
   C.listening = false;
+  if(r.status !== "denied" && r.status !== "unavailable" && r.status !== "unsupported") C.micUsed = true;
   if(b) b.classList.remove("on");
   if(!alive(C, tok) || C.phase !== "wait") return;
   if(r.status === "ok"){ const j = line.a.findIndex(a => heard(r.alts, a.w)); if(j >= 0) return pick(j, "voz"); }
@@ -658,7 +728,7 @@ function closePop(){
   const C = CUR; if(!C || C.mode !== "talk") return;
   const ph = C.resume; C.resume = null;
   stopSpeech();
-  if(ph === "react") return step(C.i + 1);
+  if(ph === "react" || ph === "echo") return step(C.i + 1);
   if(ph === "wait"){ C.phase = "wait"; micShow(true); return; }
   if(ph === "line" || ph === "gap") return replay(false);
 }
@@ -680,6 +750,7 @@ function end(){
     closeDlg(C);
     if(full) pay(C.call);
     if(hadRow && onHoy() && typeof route === "function") route();
+    if(onList()) paintList();
   }, rm() ? 700 : END_MS);
 }
 function hangUp(){ const C = CUR; if(!C) return; if(C.mode === "ring") return notNow(); end(); }
@@ -717,6 +788,57 @@ function callBack(){
   return true;
 }
 D.addEventListener("click", e => { if(e.target.closest && e.target.closest("#cl-row")) callBack(); });
+
+/* ---------- «Llamar al zorro» (#/llamadas) ---------- */
+const onList = () => secOf(hashPath()) === "llamadas";
+const LISTC = new Map();   /* id → llamada ya cargada (tocar empieza a hablar dentro del toque) */
+let LN = 0, IDXV = null;
+function startCall(id){
+  if(CUR) return false;
+  const c = LISTC.get(id); if(!c) return false;
+  CUR = {call: c, mode: "ring", tok: 0};
+  dlg();
+  talk(c);
+  return true;
+}
+async function paintList(){
+  const my = ++LN, L = lang, app = $id("app");
+  let ms = [];
+  try{ ms = await list(L); }catch(e){ ms = null; }
+  if(my !== LN || !onList() || !app) return;
+  if(!ms){ app.innerHTML = `<div class="cl-list"><div class="card cl-lerr"><p>No se pudieron cargar las llamadas.</p><a class="glass-btn glass-btn--pri" href="#/juegos">Volver a Juegos</a></div></div>`; return; }
+  const got = await Promise.all(ms.map(async m => { try{ const c = await get(m.id); LISTC.set(m.id, c); return {m, c}; }catch(e){ return null; } }));
+  if(my !== LN || !onList()) return;
+  const s = load(), rows = got.filter(Boolean).map((x, i) => Object.assign(x, {i, heard: !!s.heard[x.m.id]}))
+    .sort((a, b) => (a.heard - b.heard) || (a.heard ? (s.heard[a.m.id] || "").localeCompare(s.heard[b.m.id] || "") : 0) || a.i - b.i);
+  const mute = !hasTTS() || (Array.isArray(voices) && voices.length > 0 && !voiceOk());
+  const city = (rows[0] && rows[0].c.city) || "";
+  app.innerHTML = `<div class="cl-list" id="cl-list" data-no-renew>
+    <header class="cl-lh"><span class="cl-av cl-lav" aria-hidden="true"><img src="${IMG}" alt="" width="256" height="224" draggable="false"></span>
+      <div class="cl-lht"><h1 class="cl-lt">Llamar al zorro</h1><p class="cl-ls">Elige de qué quieres hablar. Zorro te contesta desde ${h(city)}, en ${h(LANGS[L].name)}.</p></div></header>
+    ${mute ? `<p class="cl-lnote" role="status">Para hablar con el zorro hace falta la voz del ${h(LANGS[L].name)}. Un mayor puede añadirla en Ajustes › Voz y velocidad.</p>` : ""}
+    <ul class="cl-ll">${rows.map(({m, c, heard}) => {
+      const q = c.lines.find(l => l.a), pic = q ? q.a[0].w.img : IMG;
+      return `<li><button type="button" class="card cl-li${heard ? " is-heard" : ""}" data-id="${h(m.id)}"${mute ? " disabled" : ""} aria-label="${h(m.t)}. ${heard ? "Ya la has oído. " : ""}Llamar">
+        <span class="cl-li-pic" aria-hidden="true"><img src="${h(pic)}" alt="" width="64" height="64" draggable="false"></span>
+        <span class="cl-li-t" aria-hidden="true"><b>${h(m.t)}</b><small>${heard ? `<span class="cl-li-ok">${CHK} Oída</span>` : "Nueva"}</small></span>
+        <span class="cl-cb" aria-hidden="true">${IC("phone", "fill", 20)}</span></button></li>`; }).join("")}</ul></div>`;
+  const ul = app.querySelector(".cl-ll");
+  if(ul) ul.addEventListener("click", e => { const b = e.target.closest(".cl-li"); if(b && !b.disabled) startCall(b.dataset.id); });
+}
+ROUTES.llamadas = () => paintList();
+ROUTES.llamadas.load = () => list().then(ms => Promise.all(ms.map(m => get(m.id).catch(() => null))));
+try{
+  const T = TABS.find(t => t.id === "jugar");
+  if(T){ if(!T.secs.includes("llamadas")) T.secs.push("llamadas"); const sg = (T.segs || []).find(x => x.h === "#/juegos"); if(sg && !sg.secs.includes("llamadas")) sg.secs.push("llamadas"); }
+}catch(e){ console.error(e); }
+try{
+  if(W.vocabGames && typeof vocabGames.register === "function")
+    vocabGames.register("llamar", {t: "Llamar al zorro", sub: "Habla con él por teléfono", img: "img/games/llamar.png", href: "#/llamadas", sec: "mas",
+      line: () => { const L = IDXV && IDXV[lang], n = L && Array.isArray(L.calls) ? L.calls.length : 0, hd = load().heard;
+        const k = n ? L.calls.filter(c => c && hd[c.id]).length : 0; return !n ? "Elige una llamada" : k ? `Oídas: ${k} de ${n}` : `${n} llamadas`; }});
+}catch(e){ console.error(e); }
+setTimeout(() => { index().then(x => { IDXV = x; }, () => {}); }, 600);
 
 /* ---------- Ajustes › Para mayores ---------- */
 function adultHtml(){
@@ -877,6 +999,36 @@ const CSS = `
 .cl-pop small{display:block;font:400 var(--fs-note)/1.3 var(--f-text);color:var(--label2)}
 .cl-pop-say{flex:none;display:grid;place-items:center;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:50%;background:var(--brand-fill);color:#fff;cursor:pointer}
 .cl-pop-x{flex:none;display:grid;place-items:center;width:44px;height:44px;margin:0;padding:0;border:0;background:none;color:var(--label2);cursor:pointer}
+/* «Dilo conmigo»: la boca que late */
+.cl-echo{display:flex;align-items:center;justify-content:center;gap:12px;align-self:center;min-height:64px;padding:8px 22px 8px 12px;border-radius:32px;background:#fff;color:#0B2545;
+  box-shadow:0 8px 24px rgba(0,0,0,.25);font:800 min(calc(1.375rem*var(--k)),28px)/1.1 var(--f-round)}
+.cl-echo.heard{background:#E3F6EA}
+/* con «¡Dilo tú!» a la vista, el aviso (role=status) solo para el lector de pantalla: no se repite escrito */
+.cl-mid:has(.cl-echo) .cl-st{position:absolute;width:1px;height:1px;min-height:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.cl-mouth{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;background:#FFE7A3;animation:cl-talk .55s ease-in-out infinite alternate}
+@keyframes cl-talk{from{scale:.86}to{scale:1.08}}
+/* «Llamar al zorro» */
+.cl-list{display:grid;gap:14px;max-width:640px;margin:0 auto}
+.cl-lh{display:flex;align-items:center;gap:14px;padding:0 4px}
+.cl-lav{width:72px;height:72px;box-shadow:inset 0 0 0 1px var(--fill)}
+.cl-lht{flex:1;min-width:0}
+.cl-lt{margin:0;font:800 var(--fs-t1)/1.15 var(--f-round);color:var(--label)}
+.cl-ls{margin:4px 0 0;color:var(--label2);font:400 var(--fs-sub)/1.35 var(--f-text)}
+.cl-lnote{margin:0;padding:10px 14px;border-radius:var(--r-md);background:var(--fill2);color:var(--label);font:400 var(--fs-note)/1.4 var(--f-text)}
+.cl-ll{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.cl-li{display:flex;align-items:center;gap:12px;width:100%;min-height:84px;margin:0;padding:10px 14px 10px 10px;border:0;border-radius:var(--r-card);background:var(--card);color:var(--label);
+  font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.cl-li:disabled{cursor:default;opacity:.55}
+.cl-li:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
+.cl-li-pic{flex:none;display:grid;place-items:center;width:64px;height:64px;border-radius:16px;background:#fff;box-shadow:inset 0 0 0 1px var(--fill)}
+.cl-li-pic img{width:56px;height:56px;object-fit:contain}
+.cl-li-t{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.cl-li-t b{font:800 var(--fs-head)/1.2 var(--f-round);overflow-wrap:anywhere}
+.cl-li-t small{color:var(--label2);font:600 var(--fs-note)/1.3 var(--f-text)}
+.cl-li-ok{display:inline-flex;align-items:center;gap:4px;color:var(--ok-ink)}
+.cl-li-ok .chk{width:14px;height:14px}
+.cl-li .cl-cb{width:44px;height:44px;background:var(--ok-fill);color:#fff}
+.cl-lerr{padding:20px;text-align:center}
 /* la fila de Hoy */
 .cl-ric{background:#fff;overflow:hidden;box-shadow:inset 0 0 0 1px var(--fill)}
 .cl-ric img{width:30px;height:auto;translate:0 2px}
@@ -886,7 +1038,9 @@ const CSS = `
   .cl-dlg.ringing .cl-pic::before,.cl-dlg.ringing .cl-pic::after{animation:none}
   .cl-knob{transition:translate .12s ease}.cl-es,.cl-k{transition-duration:.12s}
   .cl-dlg.talking .cl-wave i{animation:none;height:14px}
+  .cl-mouth{animation:none}
 }
+:root[data-motion=calm] .cl-mouth{animation:none}
 :root[data-motion=calm] .cl-dlg.talking .cl-wave i{animation:none;height:14px}
 :root[data-motion=calm] .cl-dlg[open]{animation:cl-fade .14s ease}
 :root[data-motion=calm] .cl-dlg.ringing .cl-pic::before,:root[data-motion=calm] .cl-dlg.ringing .cl-pic::after{animation:none}
@@ -897,6 +1051,8 @@ const CSS = `
 if(!$id("css-calls")){ const st = D.createElement("style"); st.id = "css-calls"; st.textContent = CSS; D.head.append(st); }
 
 W.vocabCalls = Object.freeze({KEY, CHANCE, GAP, state: load, blocked, calm, check, ring, answer, pick: j => pick(j, "toque"), replay, hangUp, notNow, callBack,
-  list, get, setOff, slot, adultHtml, images, files, get current(){ const C = CUR; return C ? {id: C.call.id, mode: C.mode, i: C.i, phase: C.phase,
-    answered: C.done ? C.done.size : 0, qs: C.call.qs} : null; }});
+  list, get, setOff, slot, adultHtml, images, files, mix, call: startCall, get current(){ const C = CUR; if(!C) return null;
+    const l = C.mode === "talk" && C.call.lines[C.i];
+    return {id: C.call.id, mode: C.mode, i: C.i, phase: C.phase, answered: C.done ? C.done.size : 0, qs: C.call.qs,
+      ok: l && l.a ? (typeof l.ok === "number" ? l.ok : -1) : null}; }});
 })();

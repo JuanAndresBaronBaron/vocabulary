@@ -406,6 +406,18 @@
       "t": "Les amis mangent le gâteau ensemble. Ils sont très contents.",
       "es": "Los amigos comen el pastel juntos. Están muy contentos."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Qui lui donne des pommes ?",
+      "es": "¿Quién le da manzanas?",
+      "opts": [
+       "img/pj/caballo.png",
+       "img/pj/cerdo.png",
+       "img/pj/vaca.png"
+      ],
+      "ok": 0
+     }
     ]
    },
    {
@@ -439,8 +451,42 @@
       "t": "Les amis mangent le gâteau ensemble. Ils sont très contents.",
       "es": "Los amigos comen el pastel juntos. Están muy contentos."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Qui lui donne du chocolat ?",
+      "es": "¿Quién le da chocolate?",
+      "opts": [
+       "img/pj/cerdo.png",
+       "img/pj/caballo.png",
+       "img/pj/gallina.png"
+      ],
+      "ok": 0
+     }
     ]
    }
   ]
- }
+ },
+ "quiz": [
+  {
+   "t": "Qui lui donne des œufs ?",
+   "es": "¿Quién le da huevos?",
+   "opts": [
+    "img/pj/gallina.png",
+    "img/pj/vaca.png",
+    "img/pj/caballo.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Qui lui donne du lait ?",
+   "es": "¿Quién le da leche?",
+   "opts": [
+    "img/pj/vaca.png",
+    "img/pj/cerdo.png",
+    "img/pj/gallina.png"
+   ],
+   "ok": 0
+  }
+ ]
 }

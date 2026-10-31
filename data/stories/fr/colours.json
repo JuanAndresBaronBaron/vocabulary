@@ -373,6 +373,18 @@
       "t": "Le renard et le tigre jouent toute la journée.",
       "es": "El zorro y el tigre juegan todo el día."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Qui est orange comme le renard ?",
+      "es": "¿Quién es naranja como el zorro?",
+      "opts": [
+       "img/pj/tigre.png",
+       "img/pj/abeja.png",
+       "img/pj/rana.png"
+      ],
+      "ok": 0
+     }
     ]
    },
    {
@@ -398,8 +410,42 @@
       "t": "Mais c'est une bonne amie. Le renard est content !",
       "es": "Pero es una buena amiga. ¡El zorro está contento!"
      }
+    ],
+    "quiz": [
+     {
+      "t": "Qui est jaune et noir ?",
+      "es": "¿Quién es amarillo y negro?",
+      "opts": [
+       "img/pj/abeja.png",
+       "img/pj/tigre.png",
+       "img/pj/oveja.png"
+      ],
+      "ok": 0
+     }
     ]
    }
   ]
- }
+ },
+ "quiz": [
+  {
+   "t": "De quelle couleur est le cochon ?",
+   "es": "¿De qué color es el cerdo?",
+   "opts": [
+    "img/b2ee2b0aa3.png",
+    "img/2368d85824.png",
+    "img/73c8a4092d.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Qui est vert ?",
+   "es": "¿Quién es verde?",
+   "opts": [
+    "img/pj/rana.png",
+    "img/pj/gato.png",
+    "img/pj/oveja.png"
+   ],
+   "ok": 0
+  }
+ ]
 }

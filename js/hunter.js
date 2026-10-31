@@ -18,7 +18,9 @@
        diario, la palabra otra vez y una foto pequeña a «Mi casa». Con poca luz, o con otro color, lo dice.
      - Sin cámara, sin permiso, si está ocupada o si se prefiere («Jugar tocando»; abajo, «Tocar»): el modo tocar, con 4
        dibujos (uno del color pedido y uno de cada uno de los otros), cada uno con su palabra en el idioma (del corpus:
-       «apple», «la pomme», «et æble»…), su IPA y el español pequeño; así nunca se queda atascado. Fallar: el dibujo en
+       «apple», «la pomme», «et æble»…), su IPA y el español pequeño; así nunca se queda atascado. Primero se escucha:
+       arriba solo un altavoz grande (y la tortuga) con «Escucha y toca lo que es de ese color»; el color escrito, su
+       muestra y su IPA salen al contestar (sin audio grabado ni voz del idioma, se ve escrito desde el principio). Fallar: el dibujo en
        gris con ✗ y el bueno con ✓, sin sonido triste y sin vibrar. El resultado sale en la tarjeta de la pregunta y en
        el móvil todo cabe sin scroll (fitTap() encoge los dibujos lo justo, nunca por debajo de 118 px de alto).
      - Muchas cosas seguidas: al encontrar un color el vídeo sigue en marcha (en el iPhone, pause() y play() con la
@@ -533,8 +535,15 @@ function topHtml(){
     return `<span class="hn-dot ${cls}" data-c="${id}" style="--c:${c.hex}">${cls === "is-ok" ? CHK(16) : ""}</span>`;
   }).join("")}</div></div>`;
 }
+/* jugando tocando, primero se escucha: sin texto ni muestra hasta contestar (si se puede oír) */
+const listenFirst = c => !!S && S.mode === "tap" && S.step === "ask" && (typeof canHear !== "function" || canHear(word(c)[0]));
 function askHtml(c){
   const L = lang, p = phrase(c, L), [w, ipa] = word(c, L), cd = code(L);
+  if(listenFirst(c)) return `<section class="hn-ask is-listen" id="hn-ask" aria-labelledby="hn-lt" style="--c:${c.hex}">
+    <div class="hn-lis"><button type="button" class="hn-spk hn-big" id="hn-say" data-key="space" aria-label="Escuchar otra vez" title="Escuchar">${ico("speaker-high", "fill", 40)}</button>
+      <p class="hn-lt" id="hn-lt">Escucha y toca lo que es de ese color.</p>
+      <button type="button" class="hn-slow" id="hn-slow" data-key="shift+space" aria-label="Escuchar despacio" title="Despacio">${ico("turtle", "fill", 26)}</button></div>
+  </section>`;
   /* jugando tocando, el resultado ocupa el sitio de la pregunta (así todo cabe sin scroll en el móvil) */
   const got = S.mode === "tap" && S.step !== "ask";
   return `<section class="hn-ask" id="hn-ask"${got ? "" : ` aria-labelledby="hn-q"`} style="--c:${c.hex}">
@@ -570,13 +579,13 @@ function camHtml(c){
 }
 function tapHtml(c){
   if(!S.tap) S.tap = tapOpts(c);
-  const cd = code();
-  return `<div class="hn-opts" id="hn-opts" role="group" aria-label="Toca lo que es ${esc(c.n)}">${S.tap.map((o, i) => { const w = thingWord(o.ref);
+  const cd = code(), lf = listenFirst(c);
+  return `<div class="hn-opts" id="hn-opts" role="group" aria-label="${lf ? "Toca lo que has oído" : `Toca lo que es ${esc(c.n)}`}">${S.tap.map((o, i) => { const w = thingWord(o.ref);
     return `<button type="button" class="hn-opt" data-i="${i}" data-c="${o.color}" data-key="${i + 1}" data-key-pos="in">
       <span class="hn-opt-pic"><img src="${esc(o.img)}" alt="" width="160" height="160" draggable="false"></span>
       ${w ? `<span class="hn-opt-t" lang="${cd}">${esc(w[0])}</span>${ipaHtml(w[1], cd)}<small class="hn-opt-es">${esc(o.t)}<span class="vh"></span></small>`
         : `<span class="hn-opt-t">${esc(o.t)}<span class="vh"></span></span>`}<span class="hn-mk" aria-hidden="true"></span></button>`; }).join("")}</div>
-  ${S.step !== "ask" ? "" : `<p class="vh" id="hn-tip" role="status">${tipStart(c)}</p>`}`;
+  ${S.step !== "ask" ? "" : `<p class="vh" id="hn-tip" role="status">${lf ? "Escucha y toca lo que es de ese color." : tipStart(c)}</p>`}`;
 }
 function introHtml(){
   const api = camApi(), blocked = CAM.perm === "denied" || CAM.denied;
@@ -627,6 +636,9 @@ function paintTop(){ const t = $id("hn-top"); if(t && S) t.outerHTML = topHtml()
 function swapTip(){
   const t = $id("hn-tip"), g = $id("hn-got"), html = gotHtml();
   if(S && S.mode === "tap"){
+    /* escuchando primero: ahora se ve el color escrito, su muestra y su IPA (con el resultado) */
+    const la = $id("hn-ask");
+    if(la && la.classList.contains("is-listen")){ if(t) t.remove(); la.outerHTML = askHtml(cur()); fitTap(true); return; }
     /* tocando: el resultado va en la tarjeta de la pregunta, en lugar de «Find something red!» */
     const q = $id("hn-q"), a = $id("hn-ask");
     if(t) t.remove();
@@ -863,6 +875,9 @@ const STYLE = `
 .hn-q{margin:0;font:800 var(--fs-t2)/1.25 var(--f-round);text-wrap:balance;overflow-wrap:anywhere}
 .hn-cw{background:none;color:inherit;text-decoration:underline;text-decoration-color:var(--c);text-decoration-thickness:.2em;text-underline-offset:.14em;text-decoration-skip-ink:none}
 .hn-wr{display:flex;align-items:center;gap:10px}
+.hn-lis{display:flex;align-items:center;gap:14px}
+.hn-spk.hn-big{width:76px;height:76px}
+.hn-lt{flex:1;min-width:0;margin:0;font:800 var(--fs-head)/1.3 var(--f-round);text-wrap:balance}
 .hn-sw{flex:none;width:56px;height:56px;box-sizing:border-box;padding:4px;border-radius:14px;background:var(--fill2);object-fit:contain}
 .hn-wt{flex:1;min-width:0;display:flex;flex-wrap:wrap;align-items:baseline;gap:0 10px;margin:0}
 .hn-wt b{font:800 var(--fs-t3)/1.2 var(--f-round)}
