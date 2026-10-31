@@ -53,7 +53,8 @@ def _map_pos():
 # ---------------------------------------------------------------- cuentos
 def test_story_locks_open_early_and_learn_these_words():
     """Datos: el 90 % de las palabras de cada cuento 3 y 4 sale como muy tarde en la lección 60 del Camino (antes: 92,
-    123, 237 y 133). La hoja: «Para abrir este cuento» con más de 3 por aprender y «¡Casi lo abres!» con 3 o menos.
+    123, 237 y 133); los cuentos 5 a 8 (la segunda estantería, v38) reciclan palabras de A1 y comienzos de A2, así que
+    les basta la lección 140. La hoja: «Para abrir este cuento» con más de 3 por aprender y «¡Casi lo abres!» con 3 o menos.
     «Aprender estas palabras» enseña una tarjeta por palabra (dibujo ≥ 160 px a 360, la palabra, su IPA, el español, su
     sonido al salir) con «1 de N»; al acabar, cada una está en el repaso (caja 1), la hoja se cierra con «¡Cuento
     abierto!», el cuento sale abierto en la estantería y no se ha ganado ninguna moneda. Cerrar a medias deja en el repaso
@@ -68,7 +69,7 @@ def test_story_locks_open_early_and_learn_these_words():
                 continue
             ps = sorted(pos.get(w["id"], 9999) for w in e["words"])
             need = math.ceil(0.9 * len(ps) - 1e-9)
-            if ps[need - 1] > 60:
+            if ps[need - 1] > (60 if e["n"] <= 4 else 140):
                 probs.append(f"{e['id']}: se abre en la lección {ps[need - 1]} ({len(ps)} palabras)")
     known = ST._seed_srs()
     cake = next(e for e in ST.IDX["english"] if e["id"] == "en-cake")
