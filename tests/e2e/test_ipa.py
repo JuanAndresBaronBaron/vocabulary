@@ -68,11 +68,14 @@ _LINES = """sel => { const e = typeof sel === 'string' ? document.querySelector(
   if (cur) out.push(cur); return out; }"""
 
 
-def _keys(lang="english", ui=None, text=""):
+def _keys(lang="english", ui=None, text="", cards=False):
     """La partida sembrada en ese idioma (el repaso, el álbum y la Palabra del día con las palabras del inglés) y
-    vocab:ui = ui (sin la clave ipa si ui es None) con las pistas de gestos ya vistas."""
+    vocab:ui = ui (sin la clave ipa si ui es None) con las pistas de gestos ya vistas. cards: las pendientes, en la caja
+    4, para que el repaso las enseñe con la tarjeta de siempre (que gira y tiene reverso)."""
     k = C.seed_keys()
     k["lang"] = json.dumps(lang)
+    if cards:
+        k["srs:english"] = V._card_keys()["srs:english"]
     if lang != "english":
         for base in ("srs", "album:seen", "album:done", "album:uniq"):
             k[f"{base}:{lang}"] = k[f"{base}:english"]
@@ -170,7 +173,7 @@ def _lesson_sites(page, lang, code, on, probs, tag):
 
 
 def _review_sites(page, lang, code, on, probs, tag):
-    C.seed(page, keys=_keys(lang, on), hash="#/repaso")
+    C.seed(page, keys=_keys(lang, on, cards=True), hash="#/repaso")
     page.wait_for_selector("#rv-card", timeout=10000)
     vis = on is None or on.get("ipa") is not False
     q = page.evaluate(_SEE, "#rv-card .rv-q .ipa")
@@ -448,7 +451,7 @@ def test_ipa_style_and_font():
                 st = look("«Cómo suena»", "#ls-how .ipa", "#ls-how .ls-how-p")
                 if st and abs(st["fs"] - 17) > .6:
                     probs.append(f"{tag} · «Cómo suena»: la IPA a {st['fs']} px (subtítulo, 17)")
-                C.seed(page, keys=_keys(lang), hash="#/repaso")
+                C.seed(page, keys=_keys(lang, cards=True), hash="#/repaso")
                 page.wait_for_selector("#rv-card", timeout=10000)
                 V._tap_card(page)
                 page.wait_for_timeout(450)
@@ -529,7 +532,7 @@ def test_today_lesson_review_fit_without_scroll():
                     if f["sh"] > f["ih"] or y:
                         probs.append(f"{tag}: «¿Cuál es…?» tras un fallo baja ({f}, scrollY {y})")
                 # el repaso girado: nada se corta dentro de la tarjeta
-                C.seed(page, keys=_keys("english", None, text), hash="#/repaso")
+                C.seed(page, keys=_keys("english", None, text, cards=True), hash="#/repaso")
                 page.wait_for_selector("#rv-card", timeout=10000)
                 V._tap_card(page)
                 page.wait_for_timeout(500)
@@ -1151,7 +1154,7 @@ def test_captures():
             L._pick(page, L._wrong(page, st["right"]))
             page.wait_for_timeout(900)
             sh("leccion-fallo")
-            C.seed(page, keys=_keys(), hash="#/repaso")
+            C.seed(page, keys=_keys(cards=True), hash="#/repaso")
             page.wait_for_selector("#rv-card", timeout=10000)
             V._tap_card(page)
             page.wait_for_timeout(700)

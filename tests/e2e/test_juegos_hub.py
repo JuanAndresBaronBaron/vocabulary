@@ -34,7 +34,7 @@ CLASSIC = ["memoria", "lluvia", "globos", "letras"]
 SECS = ["palabras", "concursos", "gramatica", "grupo", "soldados", "mas"]
 _ART = re.compile(r"^(?:the|an?|to)\s+", re.I)
 _GD = "() => { if (window.__gdOn) return; window.__gdOn = true; window.__gd = []; bus.on('game-done', d => __gd.push(d)); }"
-_SRS = "() => JSON.parse(localStorage.getItem('srs:english') || '{}')"
+_SRS = "() => (srsFlush(), JSON.parse(localStorage.getItem('srs:english') || '{}'))"   # el repaso se escribe 250 ms después
 
 
 def _es_short(es):

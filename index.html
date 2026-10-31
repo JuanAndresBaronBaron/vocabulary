@@ -943,9 +943,10 @@ const LANGS = {
   "français":{label:"🇫🇷 Français", name:"francés", code:"fr-FR"},
   dansk:    {label:"🇩🇰 Dansk",    name:"danés",   code:"da-DK"},
 };
+/* "srs:<idioma>" (el repaso) va por su mapa en memoria: srsMem/srsSet/srsFlush, más abajo */
 const store = {
-  get(k,d){try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},
-  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+  get(k,d){if(/^srs:/.test(k))return srsMem(k.slice(4)).m;try{const v=localStorage.getItem(k);return v===null?d:JSON.parse(v)}catch(e){return d}},
+  set(k,v){if(/^srs:/.test(k)){srsSet(k.slice(4),v);srsFlush();return}try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 };
 let lang = store.get("lang","english"); if(!LANGS[lang]) lang="english";
 let rate = store.get("rate",0.9);
@@ -1825,19 +1826,85 @@ bus.on("voices", () => {
 /* hasta que js/settings.js ponga la hoja de Ajustes (o si no cargara), el engranaje abre la de voz */
 window.openSettings = (after, from) => openCfg(typeof after === "function" ? after : null, from && from.nodeType === 1 ? from : null);
 
-/* ---------- repaso espaciado, actividad y progreso ---------- */
+/* ---------- repaso espaciado, actividad y progreso ----------
+   Cajas de Leitner: la caja b da los días hasta el siguiente repaso (IV[b]). srsGrade(id, fila, g, o) con g = 2 bien a la
+   primera · 1 bien con ayuda (pista o segundo intento) · 0 mal:
+   - 2 sube una caja. 1 se queda con su intervalo (no lo parte) y cada dos «1» seguidos sube una caja (x.h los cuenta).
+     0 baja dos cajas (no a la 0 de golpe) y vuelve hoy; en la vuelta de una fallada en el mismo repaso (o.again) un 0 ya
+     no baja más y vuelve mañana.
+   - o.self: la nota la puso el niño («¡Sí!» de la tarjeta, sin comprobar: los niños creen saber más de lo que saben). Así
+     no sube de la caja 3 si la anterior también fue suya (x.s = 1) y nunca llega a dominada.
+   - Dominada (caja ≥ MASTER): solo tras recordarla bien, comprobado por la app, con 30 días o más de intervalo (desde la
+     caja 5). La primera vez: bus "mastered" {k, doc, es, lang} (x.m = 1, para no repetirlo).
+   - Ajuste por niño: "rv:stat" {v, r} guarda las últimas 50 respuestas comprobadas por la app ("1" bien, "0" mal); con
+     20 o más, más del 95 % bien alarga los intervalos ×1,3 y menos del 75 % los acorta ×0,7 (srsFactor()); desde la
+     caja 5, nunca menos de 30 días.
+   - El repaso de cada idioma vive en memoria (srsMem): srsAll(), store.get("srs:…") y la copia de js/save.js leen el
+     mismo mapa. Se escribe 250 ms después de un cambio y al esconder o cerrar la app (srsFlush); si otro cambia
+     localStorage (otra pestaña, una partida cargada), se nota al leer y se lee de nuevo.
+   - Lo que no se pudo abrir sin conexión (SRS_OFF: sus temas) no cuenta como pendiente hasta que vuelve la red. */
 const today = () => { const d = new Date(); return Math.floor((d - d.getTimezoneOffset()*60000) / 864e5); };
 const IV = [0, 1, 3, 7, 14, 30, 60, 120];   /* días hasta el siguiente repaso según la caja */
-const MASTER = 4;                            /* desde 14 días se considera dominada */
-const srsAll = () => store.get("srs:"+lang, {});
+const MASTER = 6;                            /* dominada: la caja 6, a la que solo se llega recordándola bien a los 30 días */
+const SELF_MAX = 3;                          /* lo que puntúa el niño solo no sube de aquí si lo anterior también fue suyo */
+const SRS_OFF = new Set();
+function srsMem(L){
+  const C = srsMem.c || (srsMem.c = {}), c = C[L];
+  let raw = null; try{ raw = localStorage.getItem("srs:" + L); }catch(e){}
+  if(c && c.raw === raw) return c;
+  /* lo guardado cambió por fuera (otra pestaña, una partida cargada): manda eso, también sobre lo aún no escrito */
+  let m = null; try{ m = raw === null ? null : JSON.parse(raw); }catch(e){}
+  return C[L] = {m: m && typeof m === "object" && !Array.isArray(m) ? m : {}, raw, dirty: false};
+}
+function srsSet(L, m){
+  const c = srsMem(L); c.m = m && typeof m === "object" && !Array.isArray(m) ? m : {}; c.dirty = true;
+  if(!srsFlush.t) srsFlush.t = setTimeout(srsFlush, 250);
+}
+function srsFlush(){
+  clearTimeout(srsFlush.t); srsFlush.t = 0;
+  const C = srsMem.c || {};
+  for(const L of Object.keys(C)){
+    const c = C[L]; if(!c.dirty) continue;
+    const raw = JSON.stringify(c.m);
+    try{ localStorage.setItem("srs:" + L, raw); c.raw = raw; c.dirty = false; }catch(e){}   /* sin sitio: sigue en memoria */
+  }
+}
+addEventListener("pagehide", srsFlush);
+document.addEventListener("visibilitychange", () => { if(document.hidden) srsFlush(); });
+addEventListener("online", () => { if(SRS_OFF.size){ SRS_OFF.clear(); updBadge(); } });
+const srsAll = () => srsMem(lang).m;
 const srsK = (id, r) => id + "|" + r.es;
-function srsPut(m){ store.set("srs:"+lang, m); updBadge(); }
-function srsNext(x, g){ const b = x ? x.b : 0; return g===0 ? 0 : g===1 ? Math.max(1, Math.round(IV[b]/2)) : IV[Math.min(IV.length-1, b+1)]; }
-function srsGrade(id, r, g){            /* g: 0 no la sabía · 1 difícil · 2 la sabía */
-  const m = srsAll(), k = srsK(id, r), x = m[k] || {d:id, e:r.es, b:0, n:0};
-  const days = srsNext(m[k], g);
-  if(g===0) x.b = 0; else if(g===2) x.b = Math.min(IV.length-1, x.b+1);
-  x.due = today() + days; x.n = (x.n||0) + 1; m[k] = x; srsPut(m); logAct();
+function srsPut(m){ srsSet(lang, m); updBadge(); }
+const STAT_K = "rv:stat", STAT_N = 50;
+function srsStat(){ const o = store.get(STAT_K, null); return o && typeof o.r === "string" ? o.r.replace(/[^01]/g, "").slice(-STAT_N) : ""; }
+function srsFactor(){
+  const r = srsStat(); if(r.length < 20) return 1;
+  const p = r.replace(/0/g, "").length / r.length;
+  return p > .95 ? 1.3 : p < .75 ? .7 : 1;
+}
+/* la caja, la cuenta de «1» seguidos y los días que tocan tras la nota g (sin escribir nada) */
+function srsStep(x, g, o = {}){
+  const top = IV.length - 1, b0 = Math.max(0, Math.min(top, Math.floor(+(x && x.b) || 0)));
+  if(g === 0) return {b: o.again ? b0 : Math.max(0, b0 - 2), h: 0, days: o.again ? 1 : 0};
+  let b = b0, h = 0;
+  if(g === 2) b = Math.min(top, b0 + 1);
+  else { h = (+(x && x.h) || 0) + 1; if(h >= 2){ b = Math.min(top, b0 + 1); h = 0; } }
+  if(o.self && b > b0) b = Math.max(b0, Math.min(b, x && x.s ? SELF_MAX : MASTER - 1));
+  /* desde la caja 5 nunca menos de 30 días: la que la deja dominada es siempre un recuerdo a los 30 días o más */
+  const days = Math.max(1, Math.round(IV[b] * srsFactor()));
+  return {b, h, days: b >= MASTER - 1 ? Math.max(days, IV[MASTER - 1]) : days};
+}
+const srsNext = (x, g, o) => srsStep(x, g, o).days;
+function srsGrade(id, r, g, o = {}){    /* g: 0 no la sabía · 1 con ayuda · 2 a la primera; o: {self, again} */
+  const m = srsAll(), k = srsK(id, r), x = m[k] || {d:id, e:r.es, b:0, n:0}, b0 = +x.b || 0, st = srsStep(m[k], g, o);
+  x.b = st.b; x.due = today() + st.days; x.n = (x.n||0) + 1;
+  if(st.h) x.h = st.h; else delete x.h;
+  if(o.self) x.s = 1; else delete x.s;
+  const fresh = !o.self && st.b >= MASTER && b0 < MASTER && !x.m;
+  if(fresh) x.m = 1;
+  m[k] = x; srsPut(m); logAct();
+  if(!o.self) store.set(STAT_K, {v: 1, r: (srsStat() + (g > 0 ? "1" : "0")).slice(-STAT_N)});
+  if(fresh) bus.emit("mastered", {k, doc: id, es: r.es, lang});
 }
 function srsAdd(id, rows, box){         /* añade al repaso; box 0 = hoy, 1 = mañana, 2 = en 3 días */
   const m = srsAll(); let c = 0;
@@ -1848,7 +1915,56 @@ function srsAdd(id, rows, box){         /* añade al repaso; box 0 = hoy, 1 = ma
   }
   srsPut(m); return c;
 }
-const dueList = () => Object.values(srsAll()).filter(x => x.due <= today());
+/* quita del repaso las claves de palabras que ya no existen en su tema */
+function srsDrop(keys){ const m = srsAll(); let n = 0; for(const k of keys) if(m[k]){ delete m[k]; n++; } if(n) srsPut(m); return n; }
+const dueList = () => { const t = today(); return Object.values(srsAll()).filter(x => x && x.due <= t && !SRS_OFF.has(x.d)); };
+/* una vez: en «nacionalidades» el español decía el país («España») y la palabra es la nacionalidad («Spanish»); ahora
+   dice la nacionalidad («español, española»). Lo guardado con el español de antes (las claves «nacionalidades|España»
+   del repaso, el álbum, las frases, el loro…) pasa al nuevo al arrancar, en las claves de la partida y de este aparato.
+   Si cambia algo se apunta en "mig" {nac: 1}, y ya no se mira más. */
+const NAC_OLD = "Francia|España|Reino Unido|Inglaterra|Alemania|Italia|Portugal|Rusia|Bélgica|Suiza|Países Bajos|Grecia|Turquía|Polonia|Suecia|Noruega|Dinamarca|Irlanda|Austria|Ucrania|Rumania|Estados Unidos|Canadá|México|Guatemala|Cuba|República Dominicana|Haití|Colombia|Venezuela|Ecuador|Perú|Bolivia|Brasil|Chile|Argentina|Uruguay|Paraguay|Marruecos|Argelia|Túnez|Senegal|Costa de Marfil|Egipto|Sudáfrica|Nigeria|Israel|Líbano|Arabia Saudita|Irán|China|Japón|Corea del Sur|India|Vietnam|Australia";
+const NAC_NEW = "francés, francesa|español, española|británico, británica|inglés, inglesa|alemán, alemana|italiano, italiana|portugués, portuguesa|ruso, rusa|belga|suizo, suiza|neerlandés, neerlandesa|griego, griega|turco, turca|polaco, polaca|sueco, sueca|noruego, noruega|danés, danesa|irlandés, irlandesa|austriaco, austriaca|ucraniano, ucraniana|rumano, rumana|estadounidense|canadiense|mexicano, mexicana|guatemalteco, guatemalteca|cubano, cubana|dominicano, dominicana|haitiano, haitiana|colombiano, colombiana|venezolano, venezolana|ecuatoriano, ecuatoriana|peruano, peruana|boliviano, boliviana|brasileño, brasileña|chileno, chilena|argentino, argentina|uruguayo, uruguaya|paraguayo, paraguaya|marroquí|argelino, argelina|tunecino, tunecina|senegalés, senegalesa|marfileño, marfileña|egipcio, egipcia|sudafricano, sudafricana|nigeriano, nigeriana|israelí|libanés, libanesa|saudí|iraní|chino, china|japonés, japonesa|surcoreano, surcoreana|indio, india|vietnamita|australiano, australiana";
+function migNac(){
+  try{
+    const mg = store.get("mig", null); if(mg && typeof mg === "object" && mg.nac) return 0;
+    const D = "nacionalidades", O = NAC_OLD.split("|"), N = NAC_NEW.split("|"), E = new Map(O.map((o, i) => [o, N[i]]));
+    /* «nacionalidades|España» (y «nacionalidades|España|1») → «nacionalidades|español, española» */
+    const ref = s => {
+      if(typeof s !== "string" || !s.startsWith(D + "|")) return s;
+      const t = s.slice(D.length + 1), j = t.indexOf("|"), e = j < 0 ? t : t.slice(0, j);
+      return E.has(e) ? D + "|" + E.get(e) + (j < 0 ? "" : t.slice(j)) : s;
+    };
+    /* si dos entradas del repaso acaban en la misma clave, se queda la de caja más alta */
+    const best = (a, b) => typeof a === "number" && typeof b === "number" ? Math.max(a, b)
+      : a && b && typeof a === "object" && typeof b === "object" && "b" in a && (+a.b || 0) > (+b.b || 0) ? a : b;
+    const fix = v => {
+      if(typeof v === "string") return ref(v);
+      if(Array.isArray(v)) return v.map(fix);
+      if(!v || typeof v !== "object") return v;
+      const o = {};
+      for(const [k, x] of Object.entries(v)){ const nk = ref(k), nx = fix(x); o[nk] = nk in o ? best(o[nk], nx) : nx; }
+      if(o.d === D && E.has(o.e)) o.e = E.get(o.e);
+      if(o.doc === D && E.has(o.es)) o.es = E.get(o.es);
+      return o;
+    };
+    const S = window.vocabSave, dev = S && S.inventory ? S.inventory.deviceOnly : [];
+    const mine = k => S && typeof S.typeOf === "function" ? !!S.typeOf(k) || dev.includes(k) : /^(srs|album|phrase|parrot|buddy|mail|games|cuentos|calls|hunt)\b/.test(k);
+    let n = 0;
+    for(const k of Object.keys(localStorage)){
+      if(!mine(k)) continue;
+      const raw = localStorage.getItem(k); if(!raw || !raw.includes(D)) continue;
+      let v; try{ v = JSON.parse(raw); }catch(e){ continue; }
+      const out = JSON.stringify(fix(v));
+      if(out === raw) continue;
+      if(k.startsWith("srs:")) store.set(k, JSON.parse(out)); else localStorage.setItem(k, out);
+      n++;
+    }
+    if(n) store.set("mig", Object.assign(mg && typeof mg === "object" ? mg : {}, {nac: 1}));
+    return n;
+  }catch(e){ console.error(e); return 0; }
+}
+/* antes que nada del arranque (la insignia, Hoy, el álbum): lo guardado, ya con el español nuevo */
+document.addEventListener("DOMContentLoaded", migNac);
 const dayKey = d => d.toLocaleDateString("sv");
 function logAct(n=1){ const a = store.get("act", {}), k = dayKey(new Date()); a[k] = (a[k]||0) + n; store.set("act", a); }
 function streak(){
@@ -3067,7 +3183,8 @@ function achList(){
     ["t10","🎽","Con estilo","Consigue 10 premios de la tienda", things, 10],
     ["k4","🔖","Ratón de biblioteca","Lee 4 cuentos del zorro", window.vocabStories ? vocabStories.doneCount() : 0, 4],
   ];
-  return A.map(([id, e, t, d, v, goal]) => ({id, e, t, d, v: Math.min(v, goal), goal, ok: v >= goal}));
+  /* una medalla ganada no se pierde (p. ej. «Memoria de oro» de antes de que dominar pidiera 30 días) */
+  return A.map(([id, e, t, d, v, goal]) => { const ok = v >= goal || !!(g.ach && g.ach[id]); return {id, e, t, d, v: ok ? goal : Math.min(v, goal), goal, ok}; });
 }
 let achBusy = false;
 function checkAch(){

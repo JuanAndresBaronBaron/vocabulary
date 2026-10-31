@@ -76,15 +76,26 @@ compartida no responde).
   de una en una, monedas una vez, «Mañana repasas N palabras», confeti), la gramática, «Cómo suena» y el camino y las
   monedas guardados igual que en la versión anterior (commit 3396fc7) para la misma secuencia; el repaso, como dicta el
   formato de ahora (la fallada a la caja 0, las demás a la 1, las de repaso con `srsGrade`).
-- `test_f3_repaso.py` (F3b, `js/review.js`): `#/repaso` directo a la primera tarjeta en modo foco, girar (350 ms, con
-  «Reducir movimiento» un fundido), las notas 2 · 1 · 0 comparadas con lo que escribe el `srsGrade` de siempre (y
-  `srsGrade`/`srsNext` iguales a los del commit 1721796), deslizar con PointerEvents sintéticos igual que los botones,
+- `test_f3_repaso.py` (F3b, `js/review.js`): la tarjeta de siempre (pendientes sembradas en la caja 4): `#/repaso`
+  directo a la primera tarjeta en modo foco, girar (350 ms, con «Reducir movimiento» un fundido), las notas 2 · 1 · 0
+  comparadas con lo que escribe `srsGrade(…, {self})` (1 moneda por tarjeta; la de 0 vuelve 3 a 5 tarjetas después),
+  deslizar con PointerEvents sintéticos igual que los botones,
   la pista del gesto en el segundo giro, «Ver» como botón principal, las dos pistas (artículo y primera letra, luego
   la primera sílaba y las letras que faltan), «Dilo en …» con un `SpeechRecognition` simulado (acierto que puntúa solo,
   comparación estricta que no acepta otra palabra conocida, fallo que nunca pone 0, «No me sale» solo tras un fallo y
   que da 0 y la vuelve a preguntar, los 7 s de `listen()`, sin permiso, sin red, sin micrófono), sin reconocedor
   «Piénsala… y toca para ver», el final en su tarjeta que paga una vez y va a Hoy, «Todo repasado», «¿Paramos aquí?»
   con el accesorio y la auditoría.
+- `test_repaso_metodo.py` (el repaso con método, `metodo.md`): el español único por tema e idioma en `data/*.json` y
+  nacionalidades con la nacionalidad (y su paso, una vez, de las claves guardadas con el país, apuntado en `mig`); las
+  reglas de `srsStep`/`srsGrade` (cajas, «1» que mantiene el intervalo, 0 que baja dos, tope de lo que puntúa el niño,
+  dominada en la caja 6 solo comprobada y a 30 días o más con `bus` "mastered" una vez, ajuste por niño con `rv:stat`);
+  el mapa en memoria (una escritura a los 250 ms y al esconder o cerrar, `vocabSave.snapshot()` al día); repasos de 20
+  ordenados y «Otra tanda (N más)»; «Escucha y elige», «¿Cuál es…?» y las letras corregidas por la app (monedas = nota,
+  fallo en gris con ✗ y la respuesta entera, vuelta 3 a 5 tarjetas después que vale 1); lo que ya no existe se quita;
+  «Sin conexión» sin contar lo que no se puede abrir; capturas en `<VOCAB_CAPTURAS>/repaso` a 360, 390 y 1280 px, en
+  oscuro y con reducir movimiento, con la auditoría de contraste y colores. Las pruebas que leen `srs:<idioma>` de
+  `localStorage` justo después de una nota llaman antes a `srsFlush()` (`C.storage()` ya lo hace).
 - `test_f3_fix.py` (arreglos de la revisión de F3): la palabra nueva de la lección nunca se parte, dos toques rápidos
   no se saltan el final (lección y repaso), decir la palabra y salir antes de decidir sigue puntuando, una tarjeta
   que vuelve cuenta como mucho una vez, el micrófono sin red o sin aparato, la lección guardada conserva las

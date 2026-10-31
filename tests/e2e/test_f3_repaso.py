@@ -1,7 +1,8 @@
-"""F3b: Aprender › Repasar (#/repaso) en js/review.js, con «Dilo primero».
+"""F3b: Aprender › Repasar (#/repaso) en js/review.js, con «Dilo primero»: la tarjeta de siempre (palabras de la caja 4
+o más; las de las cajas 0 a 3 las corrige la app y van en test_repaso_metodo).
 #/repaso con pendientes entra directo a la primera tarjeta en modo foco (sin pantalla intermedia), con «¿Cómo se dice en
 inglés?» y el botón principal «Ver»; tocar la tarjeta (o «Ver») la gira y suena; «¡Sí!» rápido y sin pista es nota 2,
-con pista (o tarde, > 8 s) nota 1 y «No» nota 0, escritas por el srsGrade de siempre (mismo formato en srs:<idioma>);
+con pista (o tarde, > 8 s) nota 1 y «No» nota 0, escritas por srsGrade con self (mismo formato en srs:<idioma>);
 deslizar la tarjeta girada a la derecha es «¡Sí!» y a la izquierda «No»; la pista va por escalones (artículo y primera
 letra, primera sílaba con huecos; luego «Ver»); con un reconocedor de voz simulado, «Dilo en inglés» puntúa solo si dice
 la palabra (nunca otra palabra de verdad) y no oírla bien nunca pone un 0; «No me sale» (solo tras intentarlo) es un 0
@@ -11,7 +12,6 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 
 import common as C
 
@@ -36,20 +36,22 @@ _LOOK = """() => { const q = s => document.querySelector(s), vis = el => !!el &&
     good: txt(q('.rv-good')), said: vis(q('.rv-said')), steps: [...document.querySelectorAll('#rv-hints .rv-h')].map(h => h.textContent),
     prog: q('#rv-prog') ? [q('#rv-prog').getAttribute('role'), q('#rv-prog').getAttribute('aria-valuenow'), q('#rv-prog').getAttribute('aria-valuemax')] : null,
     tabbar: vis(q('#tabbar')), x: vis(q('#fx-x')), xhref: q('#fx-x') && q('#fx-x').getAttribute('href'), app: txt(q('#app'))}; }"""
-# antes de puntuar: srs:<idioma> y act tal cual
-_SNAP = "() => ({srs: localStorage.getItem('srs:' + lang), act: localStorage.getItem('act')})"
-# lo que habría escrito el srsGrade de siempre con la misma nota: se vuelve a lo de antes, se llama a srsGrade(id, r, g)
-# y se compara; después se deja lo que había escrito el repaso
-_EXPECT = """([key, g, before]) => {
+# antes de puntuar: srs:<idioma>, act y rv:stat tal cual (el repaso se escribe 250 ms después: srsFlush() lo escribe ya)
+_SNAP = "() => { srsFlush(); return {srs: localStorage.getItem('srs:' + lang), act: localStorage.getItem('act'), stat: localStorage.getItem('rv:stat')}; }"
+# lo que habría escrito srsGrade con la misma nota (self: la nota la puso el niño; again: la vuelta de una fallada): se
+# vuelve a lo de antes, se llama a srsGrade(id, r, g, {self, again}) y se compara; después se deja lo que había escrito
+# el repaso
+_EXPECT = """([key, g, before, self, again]) => {
+  srsFlush();
   const K = 'srs:' + lang, put = (k, v) => v === null ? localStorage.removeItem(k) : localStorage.setItem(k, v);
-  const after = {srs: localStorage.getItem(K), act: localStorage.getItem('act')};
-  put(K, before.srs); put('act', before.act);
+  const after = {srs: localStorage.getItem(K), act: localStorage.getItem('act'), stat: localStorage.getItem('rv:stat')};
+  put(K, before.srs); put('act', before.act); put('rv:stat', before.stat);
   const i = key.indexOf('|'), id = key.slice(0, i), es = key.slice(i + 1);
   const r = CACHE[id].rows.find(r => r.es === es && r.l && r.l[lang]);
-  srsGrade(id, r, g);
-  const exp = {srs: localStorage.getItem(K), act: localStorage.getItem('act')};
-  put(K, after.srs); put('act', after.act); updBadge();
-  return {same: after.srs === exp.srs && after.act === exp.act, entry: JSON.parse(after.srs)[key] || null,
+  srsGrade(id, r, g, {self, again}); srsFlush();
+  const exp = {srs: localStorage.getItem(K), act: localStorage.getItem('act'), stat: localStorage.getItem('rv:stat')};
+  put(K, after.srs); put('act', after.act); put('rv:stat', after.stat); updBadge();
+  return {same: after.srs === exp.srs && after.act === exp.act && after.stat === exp.stat, entry: JSON.parse(after.srs)[key] || null,
     want: JSON.parse(exp.srs)[key] || null, was: JSON.parse(before.srs)[key] || null}; }"""
 # apunta las llamadas a award(n, por qué, quiet, from), a M.coins, a sayP y los avisos del bus del repaso
 _SPY = """() => { if (window.__spy) return; window.__spy = 1;
@@ -124,8 +126,23 @@ def _page(init=None, **kw):
     return page
 
 
+def _card_keys():
+    """La partida de ejemplo con sus 12 pendientes en la caja 4: la tarjeta de siempre (las cajas 0 a 3 las corrige la
+    app, en test_repaso_metodo)."""
+    keys = C.seed_keys()
+    m, t = json.loads(keys["srs:english"]), C.day_num(C.FIXED_NOW)
+    for x in m.values():
+        if x["due"] <= t:
+            x["b"] = 4
+    keys["srs:english"] = C._dumps(m)
+    return keys
+
+
 def _open(page, keys=None, frm=None):
-    """Partida sembrada y #/repaso (por defecto, cargando la URL directamente; con frm, entrando desde esa ruta)."""
+    """Partida sembrada (por defecto, con las pendientes en la caja 4: la tarjeta de siempre) y #/repaso (cargando la
+    URL directamente; con frm, entrando desde esa ruta)."""
+    if keys is None:
+        keys = _card_keys()
     if frm is None:
         C.seed(page, keys=keys, hash="#/repaso")
     else:
@@ -149,12 +166,13 @@ def _wait_next(page, i0, timeout=6000):
     page.wait_for_function("i0 => { const s = window.vocabReview && vocabReview.state; return !!s && s.i > i0; }", arg=i0, timeout=timeout)
 
 
-def _graded(page, st0, before, g, label, probs):
-    """Comprueba que la tarjeta st0 quedó con la nota g, igual que con el srsGrade de siempre, y que pasó a la siguiente."""
+def _graded(page, st0, before, g, label, probs, self=True):
+    """Comprueba que la tarjeta st0 quedó con la nota g, igual que con srsGrade (self: la puso el niño, con «¡Sí!» o
+    «No»; False si la corrigió la app, al decirla bien con el micrófono), y que pasó a la siguiente."""
     st = page.evaluate(_ST)
     if not st or st["i"] != st0["i"] + 1:
         probs.append(f"{label}: no pasa a la siguiente tarjeta ({st0['i']} → {st and st['i']})")
-    r = page.evaluate(_EXPECT, [st0["key"], g, before])
+    r = page.evaluate(_EXPECT, [st0["key"], g, before, self, bool(st0.get("again"))])
     if not r["same"]:
         probs.append(f"{label}: srs:<idioma> no es el de srsGrade(…, {g}): {r['entry']} (se esperaba {r['want']}, antes {r['was']})")
     return r
@@ -162,6 +180,12 @@ def _graded(page, st0, before, g, label, probs):
 
 def _awards(page):
     return page.evaluate("() => window.__aw || []")
+
+
+def _back_in(page, st0):
+    """Cuántas tarjetas hay entre la fallada st0 y su vuelta (con again) en la cola; None si no vuelve."""
+    return page.evaluate("""([i0, key]) => { const k = rv.q.findIndex((x, j) => j > i0 && x.again && srsK(x.id, x.r) === key);
+      return k < 0 ? null : {gap: k - i0 - 1, last: k === rv.q.length - 1, n: rv.q.length}; }""", [st0["i"], st0["key"]])
 
 
 # ---------------------------------------------------------------- entrar y girar
@@ -261,19 +285,11 @@ def test_reduced_motion_crossfades():
 
 # ---------------------------------------------------------------- notas
 def test_grades_match_base_srs():
-    """«¡Sí!» rápido = 2, con pista = 1, girada después de 8 s = 1, «No» = 0 (y vuelve al final de la cola); → y ← hacen
-    lo mismo. Lo escrito en srs:<idioma> es exactamente lo que escribe el srsGrade de siempre con esa nota, y cada nota
-    da esas monedas (award(g, "", true)). srsGrade y srsNext son los de la versión anterior."""
+    """«¡Sí!» rápido = 2, con pista = 1, girada después de 8 s = 1, «No» = 0 (y vuelve 3 a 5 tarjetas después); → y ←
+    hacen lo mismo. Lo escrito en srs:<idioma> es exactamente lo que escribe srsGrade con esa nota y self (la puso el
+    niño), y cada tarjeta da 1 moneda por terminarla, diga «¡Sí!» o «No» (award(1, "", true)). Las reglas de srsGrade
+    (cajas, tope de lo que puntúa él, dominada) se prueban en test_repaso_metodo."""
     probs = []
-    # el algoritmo no cambia: srsNext y srsGrade, letra por letra los de antes del rediseño
-    try:
-        old = subprocess.run(["git", "-C", str(C.REPO), "show", "1721796:index.html"], capture_output=True, text=True, timeout=30).stdout
-    except Exception:  # noqa: BLE001
-        old = ""
-    if old:
-        cut = lambda s: s[s.index("function srsNext("):s.index("function srsAdd(")]  # noqa: E731
-        if cut(old) != cut((C.REPO / "index.html").read_text(encoding="utf-8")):
-            probs.append("srsNext/srsGrade no son los de la versión anterior")
     page = _page()
     try:
         _open(page)
@@ -297,17 +313,17 @@ def test_grades_match_base_srs():
             _wait_next(page, st0["i"])
             _graded(page, st0, before, g, label, probs)
             aw = _awards(page)[n_aw:]
-            if aw != ([[g, "", True, None]] if g else []):
-                probs.append(f"{label}: monedas {aw} (se esperaba award({g}, '', true))")
-            q = page.evaluate("() => ({n: rv.q.length, last: srsK(rv.q[rv.q.length - 1].id, rv.q[rv.q.length - 1].r)})")
-            if g == 0 and (q["n"] != q_len + 1 or q["last"] != st0["key"]):
-                probs.append(f"{label}: la tarjeta con 0 no vuelve al final de la cola: {q}")
-            if g and q["n"] != q_len:
-                probs.append(f"{label}: con nota {g} la cola cambia de {q_len} a {q['n']}")
+            if aw != [[1, "", True, None]]:
+                probs.append(f"{label}: monedas {aw} (se esperaba award(1, '', true): 1 por terminar la tarjeta)")
+            q_n, back = page.evaluate("() => rv.q.length"), _back_in(page, st0)
+            if g == 0 and (q_n != q_len + 1 or not back or not 3 <= back["gap"] <= 5):
+                probs.append(f"{label}: la tarjeta con 0 no vuelve 3 a 5 tarjetas después: {back} (cola {q_len} → {q_n})")
+            if g and q_n != q_len:
+                probs.append(f"{label}: con nota {g} la cola cambia de {q_len} a {q_n}")
             page.wait_for_selector("#rv-card:not(.is-flipped)", timeout=3000)
         st = page.evaluate(_ST)
         if st["done"] != 4 or st["coins"] != 6:
-            probs.append(f"tras 4 aciertos y 2 fallos: hechas {st['done']}, monedas {st['coins']} (4 y 6)")
+            probs.append(f"tras 4 aciertos y 2 fallos: hechas {st['done']}, monedas {st['coins']} (4 y 6: 1 por tarjeta)")
         if page.evaluate("() => document.getElementById('rv-prog').getAttribute('aria-valuenow')") != "4":
             probs.append("la barra de progreso no avanza con las tarjetas hechas")
         cards = page.evaluate("() => window.__cards.map(c => c.grade)")
@@ -506,12 +522,12 @@ def test_mic_right_word_grades_itself():
             page.wait_for_function("() => vocabReview.state && vocabReview.state.said", timeout=4000)
             _wait_flip(page)
             lk = page.evaluate(_LOOK)
-            if not lk["said"] or lk["good"] != "¡Muy bien!" or lk["yes"] is not None:
+            if not lk["said"] or lk["good"] != "La dijiste bien." or lk["yes"] is not None:
                 probs.append(f"{label}: tras acertar: ✓ {lk['said']}, «{lk['good']}», botones {lk['yes']!r}")
             if page.evaluate(_SNAP) != before:
                 probs.append(f"{label}: puntúa antes de que suene la palabra")
             _wait_next(page, st0["i"], timeout=10000)
-            _graded(page, st0, before, g, label, probs)
+            _graded(page, st0, before, g, label, probs, self=False)
             if _awards(page)[n_aw:] != [[g, "", True, None]]:
                 probs.append(f"{label}: monedas {_awards(page)[n_aw:]}")
             page.wait_for_selector("#rv-card:not(.is-flipped)", timeout=3000)
@@ -547,7 +563,7 @@ def test_mic_wrong_word_never_zero():
     """Si el reconocedor oye otra cosa (o nada) no hay nota: «No te he oído bien», «Otra vez» y «No me sale»; a la
     segunda, el micrófono se va («¡No pasa nada! Mírala y dime si la sabías.») y decide él con «Ver» y los botones.
     «No me sale» gira la tarjeta, suena y dice «Así se dice. ¡La verás otra vez!» con un solo «Seguir» (o → / Intro):
-    nota 0 y vuelve al final de la cola; nunca «¿La sabías?». Sin permiso del micrófono se quita «Dilo»."""
+    nota 0 y vuelve 3 a 5 tarjetas después; nunca «¿La sabías?». Sin permiso del micrófono se quita «Dilo»."""
     probs = []
     page = _page(init=_FAKE_SR)
     try:
@@ -600,9 +616,9 @@ def test_mic_wrong_word_never_zero():
                 page.keyboard.press("ArrowRight")
             _wait_next(page, st0["i"])
             _graded(page, st0, before, 0, label, probs)
-            q = page.evaluate("() => ({n: rv.q.length, last: srsK(rv.q[rv.q.length - 1].id, rv.q[rv.q.length - 1].r), again: !!rv.q[rv.q.length - 1].again})")
-            if q["n"] != q_len + 1 or q["last"] != st0["key"] or not q["again"]:
-                probs.append(f"{label}: no vuelve al final de la cola: {q}")
+            q_n, back = page.evaluate("() => rv.q.length"), _back_in(page, st0)
+            if q_n != q_len + 1 or not back or not 3 <= back["gap"] <= 5:
+                probs.append(f"{label}: no vuelve 3 a 5 tarjetas después: {back} (cola {q_len} → {q_n})")
         # sin permiso: fuera el micrófono
         page.wait_for_selector("#rv-card:not(.is-flipped)", timeout=3000)
         page.evaluate("() => { window.__srMode = 'denied'; }")
@@ -665,8 +681,8 @@ def test_end_pays_once_and_goes_home():
         page.wait_for_timeout(400)
         t = page.locator("#rv-end-t").text_content()
         earn = page.locator("#rv-earn").text_content().strip()
-        if t != "¡Repasaste 12 palabras!" or earn != "+34":
-            probs.append(f"final: {t!r}, monedas {earn!r} (12 × 2 + 10)")
+        if t != "¡Repasaste 12 palabras!" or earn != "+22":
+            probs.append(f"final: {t!r}, monedas {earn!r} (12 × 1 por terminar cada tarjeta + 10)")
         streak = page.evaluate("() => streak()")
         chip = page.locator(".rv-chip:not(.coin)").text_content().strip()
         if str(max(1, streak)) not in chip:

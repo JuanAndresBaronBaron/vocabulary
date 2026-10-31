@@ -314,6 +314,16 @@ def test_hoy_review_row_to_end_and_back_home():
             st = page.evaluate("() => vocabReview.state")
             if not st or st.get("end"):
                 break
+            if st.get("kind", "card") != "card":
+                # cajas 0 a 3: la corrige la app (elegir o escribir con las letras) y pasa sola
+                if st["kind"] == "spell":
+                    for ch in st["letters"]:
+                        page.keyboard.press(ch)
+                else:
+                    page.keyboard.press(str(st["right"] + 1))
+                page.wait_for_function("i0 => { const s = vocabReview.state; return !s || s.end || s.i > i0; }", arg=st["i"], timeout=10000)
+                page.wait_for_timeout(450)
+                continue
             page.locator("#rv-card").click()
             page.wait_for_function("() => { const c = document.getElementById('rv-card'); return c && c.classList.contains('is-flipped'); }", timeout=5000)
             page.wait_for_timeout(120)
@@ -364,10 +374,10 @@ def test_words_topic_questions_and_grammar_practice():
             probs.append("la ficha no abre en Tarjetas")
         page.locator("#dv-tab-test").click()
         page.wait_for_selector("#view .qz-opt", timeout=5000)
-        srs0 = page.evaluate("localStorage.getItem('srs:english')")
+        srs0 = page.evaluate("() => { srsFlush(); return localStorage.getItem('srs:english'); }")   # el repaso se escribe 250 ms después
         page.locator("#view .qz-opt").first.click()
         page.wait_for_selector("#nextq:not([hidden])", timeout=3000)
-        q = page.evaluate("""() => ({ok: document.querySelectorAll('#view .qz-opt.is-ok').length, miss: document.querySelectorAll('#view .qz-opt.is-miss').length,
+        q = page.evaluate("""() => (srsFlush(), {ok: document.querySelectorAll('#view .qz-opt.is-ok').length, miss: document.querySelectorAll('#view .qz-opt.is-miss').length,
             fb: document.getElementById('qz-fb').textContent, srs: localStorage.getItem('srs:english'),
             missBg: (() => { const m = document.querySelector('#view .qz-opt.is-miss'); return m ? getComputedStyle(m).backgroundColor : null; })()})""")
         if q["ok"] != 1 or q["miss"] > 1 or not q["fb"]:

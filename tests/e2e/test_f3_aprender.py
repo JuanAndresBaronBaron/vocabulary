@@ -70,18 +70,20 @@ _SWIPE = """async ([sel, dxs]) => {
 # lo que habría escrito la función de siempre: se vuelve a srs:<idioma> de antes, se llama a fn(id, fila, arg) y se
 # compara; después se deja lo que había escrito la pantalla
 _EXPECT = """([fn, id, es, arg, before]) => {
+  srsFlush();   /* el repaso se escribe 250 ms después: srsFlush() lo escribe ya */
   const K = 'srs:' + lang, put = v => v === null ? localStorage.removeItem(K) : localStorage.setItem(K, v);
   const after = localStorage.getItem(K), actA = localStorage.getItem('act');
   put(before.srs); if (before.act === null) localStorage.removeItem('act'); else localStorage.setItem('act', before.act);
   const r = CACHE[id].rows.find(r => r.es === es && r.l && r.l[lang]);
   if (fn === 'add') srsAdd(id, [r], arg); else srsGrade(id, r, arg);
+  srsFlush();
   const exp = localStorage.getItem(K), actE = localStorage.getItem('act');
   put(after); if (actA === null) localStorage.removeItem('act'); else localStorage.setItem('act', actA);
   updBadge();
   const k = id + '|' + es;
   return {same: after === exp && actA === actE, entry: JSON.parse(after || '{}')[k] || null, want: JSON.parse(exp || '{}')[k] || null,
     was: JSON.parse(before.srs || '{}')[k] || null}; }"""
-_SNAP = "() => ({srs: localStorage.getItem('srs:' + lang), act: localStorage.getItem('act')})"
+_SNAP = "() => (srsFlush(), {srs: localStorage.getItem('srs:' + lang), act: localStorage.getItem('act')})"
 
 
 def _rgb(s):
@@ -352,7 +354,7 @@ def test_palabras_groups_and_rings():
             img: (a.querySelector('.wl-ic img') || {}).getAttribute ? a.querySelector('.wl-ic img').getAttribute('src') : null,
             t: (a.querySelector('.wl-t') || {}).textContent, small: (a.querySelector('small') || {}).textContent,
             ring: a.querySelector('.wl-ring') ? a.querySelector('.wl-ring').getAttribute('aria-label') : null, chev: !!a.querySelector('.wl-chev')}));
-          const srs = JSON.parse(localStorage.getItem('srs:' + lang) || '{}'), by = {};
+          srsFlush(); const srs = JSON.parse(localStorage.getItem('srs:' + lang) || '{}'), by = {};
           for (const x of Object.values(srs)) if (x && x.d) by[x.d] = (by[x.d] || 0) + 1;
           return {secs, rows, by, sub: document.querySelectorAll('#app p.sub').length, grid: !!document.querySelector('#app .grid')}; }""")
         hs = [re.sub(r"\s*·.*", "", s["h"]).strip() for s in st["secs"]]
@@ -478,7 +480,7 @@ def test_doc_modes_list_and_swipe():
         page.locator("#dv-tab-lista").click()
         page.wait_for_timeout(250)
         TOP = R.TOPIC_3000
-        pick = page.evaluate("""id => { const m = JSON.parse(localStorage.getItem('srs:' + lang) || '{}');
+        pick = page.evaluate("""id => { srsFlush(); const m = JSON.parse(localStorage.getItem('srs:' + lang) || '{}');
           const rows = [...document.querySelectorAll('#app .dl-r')]; const i = rows.findIndex(r => !m[id + '|' + CACHE[id].rows[+r.dataset.i].es]);
           if (i >= 0) rows[i].setAttribute('data-swipe', '1');
           return i < 0 ? null : {n: i, es: CACHE[id].rows[+rows[i].dataset.i].es}; }""", TOP)
@@ -503,7 +505,7 @@ def test_doc_modes_list_and_swipe():
             if not page.evaluate("es => [...document.querySelectorAll('#app .dl-r')].some(r => r.classList.contains('in-srs') && r.querySelector('.dl-es').textContent === es)", pick["es"]):
                 probs.append("la fila deslizada no se marca como «en el repaso»")
             # el botón «Al repaso» del detalle hace lo mismo
-            pick2 = page.evaluate("""id => { const m = JSON.parse(localStorage.getItem('srs:' + lang) || '{}');
+            pick2 = page.evaluate("""id => { srsFlush(); const m = JSON.parse(localStorage.getItem('srs:' + lang) || '{}');
               const rows = [...document.querySelectorAll('#app .dl-r')]; const i = rows.findIndex(r => !m[id + '|' + CACHE[id].rows[+r.dataset.i].es]);
               return i < 0 ? null : {n: i, es: CACHE[id].rows[+rows[i].dataset.i].es}; }""", TOP)
             if pick2:
