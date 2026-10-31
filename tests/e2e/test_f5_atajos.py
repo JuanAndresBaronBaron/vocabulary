@@ -700,9 +700,10 @@ def test_piece_rule_short_names_prune_and_listens():
 # ---------------------------------------------------------------- Hoy sin scroll · tableta · a medias
 def test_hoy_fits_at_390x844_with_the_row():
     """Con la partida sembrada (y su frase de la cena), 3 atajos y un HOME_SLOT de prueba más, Hoy cabe sin scroll a
-    390×844: la fila manda y homeSlots() da un solo HOME_SLOT (y fit() aún puede quitarlo: desde el paquete «Inicio» la
-    frase de la cena se va antes que la semana de Hoy). También con la tarjeta en la lección y la fila «Repasar 6», en
-    oscuro y en un móvil bajo (375×667). Piezas de 44 px o más, con nombre, dibujo y su tecla 1-3."""
+    390×844: la fila manda y queda un solo HOME_SLOT (homeSlots() da uno y fit() no lo quita: si falta sitio, antes se
+    van la semana y los dibujos de la tarjeta, que llegaron con el paquete «Inicio»). También con la tarjeta en la
+    lección y la fila «Repasar 6», en oscuro y en un móvil bajo (375×667). Piezas de 44 px o más, con nombre, dibujo y
+    su tecla 1-3."""
     probs = []
     sc = _sc({GLOBOS: 3, MEMORIA: 4, GRAM: 2.5})
     for label, kw, few in (("390×844", {}, False), ("390×844 oscuro, lección + Repasar", {"color_scheme": "dark"}, True),
@@ -725,8 +726,8 @@ def test_hoy_fits_at_390x844_with_the_row():
                 continue
             if label == "390×844":
                 n = page.evaluate("async () => (await homeSlots()).length")
-                if n != 1 or m["slots"] > 1:
-                    probs.append(f"{label}: con la fila homeSlots() debe dar 1 HOME_SLOT, da {n} (y se ven {m['slots']})")
+                if n != 1 or m["slots"] != 1:
+                    probs.append(f"{label}: con la fila debe quedar 1 HOME_SLOT: homeSlots() da {n} y se ven {m['slots']}")
             if few and not page.locator("#hm-rev").count():
                 probs.append(f"{label}: no sale la fila «Repasar»")
             for i, it in enumerate(row["items"]):

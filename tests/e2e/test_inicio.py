@@ -12,13 +12,16 @@
 - Los dibujos de lo que toca en la tarjeta y Hoy sin scroll a 360×740 y 390×844, también con letra grande."""
 from __future__ import annotations
 
+import datetime as dt
 import json
 import time
+from zoneinfo import ZoneInfo
 
 import common as C
 import test_voces as V
 
 OUT = C.CAPTURAS / "inicio"
+_HALLOWEEN = dt.datetime(2026, 10, 28, 10, 0, 0, tzinfo=ZoneInfo(C.TZ))   # en plena temporada de Halloween (por la fecha)
 _FIT = "() => ({sh: document.documentElement.scrollHeight, ih: innerHeight})"
 _FEW = """() => { const k = 'srs:english', m = JSON.parse(localStorage.getItem(k)), t = today(); let n = 0;
   for (const x of Object.values(m)) if (x.due <= t && n < 6) { x.due = t + 3; n++; }
@@ -508,10 +511,19 @@ def test_no_google_button_in_the_top_bar():
 
 
 # ---------------------------------------------------------------- los dibujos y Hoy sin scroll
+_TILES = """() => [...document.querySelectorAll('.hm-tile')].filter(t => t.getClientRects().length && getComputedStyle(t).display !== 'none')
+  .map(t => ({w: Math.round(t.getBoundingClientRect().width), ok: t.querySelector('img').complete && t.querySelector('img').naturalWidth > 0}))"""
+_HERO = """() => { const h = document.getElementById('hm-hero'); return {no: h.classList.contains('hm-notiles'), sm: h.classList.contains('hm-smtiles'), tight: h.classList.contains('hm-tight')}; }"""
+
+
 def test_card_tiles_and_hoy_fits_without_scroll():
     """La tarjeta enseña 3 dibujos de 64 px de lo que toca (3 palabras pendientes en el repaso, los de la lección), 2 de
-    48 px en un móvil bajo. Hoy no necesita scroll a 360×740 ni a 390×844, con letra normal o grande, con el repaso, la
-    lección, «hecho» y Halloween."""
+    48 px en un móvil bajo; si con dos filas en Hoy no caben, antes que quitarlos la tarjeta se compacta como en un móvil
+    bajo (#hm-hero.hm-tight) y luego son 3 de 48 px (#hm-hero.hm-smtiles); a 390×844 con letra normal, el repaso
+    enseña los 3 de 64 px. Hoy no necesita scroll a 360×740 ni a 390×844, con letra normal o grande, con el repaso, la
+    lección, «hecho» y Halloween. En Halloween sin atajos, a 390×844 con letra normal, salen las dos filas (la temporada y
+    «La frase de la cena»; con la partida de FIXED_NOW, la granja y la temporada) y la tarjeta sigue con sus 3 dibujos
+    (de 64 o de 48 px)."""
     probs = []
     for w, h in ((390, 844), (360, 740)):
         for large in (False, True):
@@ -519,15 +531,17 @@ def test_card_tiles_and_hoy_fits_without_scroll():
             page = _page(w, h, large=large)
             try:
                 page.wait_for_function("() => [...document.querySelectorAll('.hm-tile img')].every(i => i.complete)", timeout=5000)
-                r = page.evaluate("""() => [...document.querySelectorAll('.hm-tile')].filter(t => t.getClientRects().length && getComputedStyle(t).display !== 'none')
-                  .map(t => ({w: Math.round(t.getBoundingClientRect().width), ok: t.querySelector('img').complete && t.querySelector('img').naturalWidth > 0}))""")
-                notiles = page.evaluate("() => document.getElementById('hm-hero').classList.contains('hm-notiles')")
+                r = page.evaluate(_TILES)
+                hero = page.evaluate(_HERO)
+                notiles = hero["no"]
                 if not notiles:
-                    want = [{"w": 64, "ok": True}] * 3 if h > 760 else [{"w": 48, "ok": True}] * 2
+                    want = ([{"w": 48 if (large and hero["sm"]) else 64, "ok": True}] * 3) if h > 760 else [{"w": 48, "ok": True}] * 2
                     if r != want:
-                        probs.append(f"{tag}, repaso: dibujos {r}")
+                        probs.append(f"{tag}, repaso: dibujos {r} ({hero})")
                 elif not large:
                     probs.append(f"{tag}: sin dibujos con letra normal")
+                if not large and hero["sm"]:
+                    probs.append(f"{tag}: dibujos de 48 px con letra normal")
                 _fits(page, f"{tag} repaso", probs)
                 if not large:
                     C.shot(page, f"inicio-hoy-{w}-repaso", OUT, full_page=False)
@@ -554,6 +568,34 @@ def test_card_tiles_and_hoy_fits_without_scroll():
                     probs.append(f"{tag}: errores {C.errors(page)}")
             finally:
                 page.context.close()
+    # Halloween sin atajos: dos filas (la temporada y la frase de la cena; con la partida de FIXED_NOW, la granja con
+    # «4 animales están en el refugio» y la temporada); antes de irse, la tarjeta se compacta y los dibujos se achican
+    for name, seed, want_slots in (("Halloween", _HALLOWEEN, ("season", "phrase")), ("Halloween FIXED_NOW", C.FIXED_NOW, ("granja", "season"))):
+        tag = f"390×844 {name}"
+        k = C.seed_keys(seed)
+        k["vocab:ui"] = json.dumps({"hints": {"sc-hold": 1000, "gm-peek": 1000, "al-swipe": 1000, "fm-regadera": 1000}})
+        page = _page(390, 844, keys=k, now=_HALLOWEEN)
+        try:
+            page.wait_for_selector(f"#hm-slots > .hm-slot[data-slot={want_slots[-1]}]", timeout=6000)
+            C.goto(page, "#/mapa")
+            C.goto(page, "")
+            page.wait_for_selector(f"#hm-slots > .hm-slot[data-slot={want_slots[-1]}]", timeout=6000)
+            page.wait_for_timeout(500)
+            page.wait_for_function("() => [...document.querySelectorAll('.hm-tile img')].every(i => i.complete)", timeout=5000)
+            slots = page.evaluate("() => [...document.querySelectorAll('#hm-slots > .hm-slot')].filter(e => !e.hidden).map(e => e.dataset.slot || '?')")
+            hero, r = page.evaluate(_HERO), page.evaluate(_TILES)
+            if page.evaluate("() => +(document.documentElement.dataset.sc || 0)"):
+                probs.append(f"{tag}: sale la fila de atajos sin atajos")
+            if any(s not in slots for s in want_slots):
+                probs.append(f"{tag}: faltan filas en Hoy ({want_slots}): {slots}")
+            if hero["no"] or r not in ([{"w": 64, "ok": True}] * 3, [{"w": 48, "ok": True}] * 3) or (r[:1] == [{"w": 48, "ok": True}]) != hero["sm"]:
+                probs.append(f"{tag} con {slots}: la tarjeta sin sus 3 dibujos ({hero}, {r})")
+            _fits(page, tag, probs)
+            C.shot(page, f"inicio-hoy-390-{name.lower().replace(' ', '-')}", OUT, full_page=False)
+            if C.errors(page):
+                probs.append(f"{tag}: errores {C.errors(page)}")
+        finally:
+            page.context.close()
     page = _page(1280, 800, color_scheme="dark")
     try:
         page.wait_for_timeout(400)

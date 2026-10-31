@@ -24,9 +24,9 @@
      (js/keys.js). Mantener pulsada una pieza (G.hold: se hunde y crece al cumplirse) o «Editar» (al final de la
      cabecera de la sección) abre una hoja con «Fijar» ↔ «Fijado» (conmutador) y «No sugerir» (30 días; M.toast «Ya no
      sale en Hoy» con «Deshacer» 9 s). Hoy sigue sin scroll: con la fila, en el móvil (< 744 px) homeSlots() deja 1 HOME_SLOT
-     (wantsRow()) y, si aun así no cabe, fit() quita la frase de la cena, la semana y los HOME_SLOTS que sobren, del
-     último al primero (la fila manda, salvo ante una carta sin abrir); en un móvil muy bajo compacta la fila, quita los
-     dibujos de la tarjeta de Hoy y, como último recurso, quita la fila.
+     (wantsRow()) y, si aun así no cabe, fit() quita la semana, compacta la tarjeta de Hoy, achica y luego quita sus dibujos y
+     los HOME_SLOTS que sobren, del último al primero (la frase de la cena la primera; la fila manda, salvo ante una
+     carta sin abrir); en un móvil muy bajo compacta la fila y, como último recurso, la quita.
      html[data-sc] = cuántas piezas enseña.
    - «¿Lo pongo siempre despacio?»: si de las últimas 20 escuchas tocadas (altavoces y tortugas) el 60 % o más fueron
      con la tortuga, el zorro lo pregunta una vez en Hoy. «Sí, despacio» pone la velocidad «Lenta» del ajuste de siempre
@@ -330,27 +330,31 @@ function render(res, slots){
   fit(true);   /* la medida buena llega con "acc", tras "route" (con la cabecera de Hoy y el accesorio ya puestos), y al cargar la letra */
   try{ if(D.fonts && D.fonts.status !== "loaded") D.fonts.ready.then(() => { if(sec.isConnected) fit(); }); }catch(e){}
 }
-/* Hoy sin scroll. Si no cabe, se va (de lo menos a lo más importante): 0) «La frase de la cena» (el HOME_SLOT phrase;
-   sigue en Juegos › Frases mágicas); 1) la semana (#hm-week, los 7 días de Hoy); 2) la fila de la temporada y la de la
-   carta con candado (season y mail-lock: a la temporada también se llega por el dibujo de la esquina de la tarjeta);
-   3) los 3 dibujos de la tarjeta de Hoy (#hm-hero.hm-notiles; no en la medida suave; en el móvil, < 744 px, con la fila
-   de atajos no hay dibujos nunca: la fila ya es de dibujos y así queda donde siempre, sin que la tape la hoja de una
-   pieza); 4) los demás HOME_SLOTS, del
-   último al primero; 5) la fila se compacta (piezas de 44 px con el dibujo al lado; «Editar» sigue en la cabecera);
-   6) si aun así no cabe (un móvil bajo con mucho en Hoy), la fila se va (y vuelven las filas que entonces quepan). Al
-   final, si hay sitio, la semana vuelve.
+/* Hoy sin scroll. Si no cabe, se va (de lo menos a lo más importante; antes lo que solo adorna que una fila que lleva a
+   algo): 1) la semana (#hm-week, los 7 días de Hoy; también está en Premios); 2) para que sigan los 3 dibujos de la
+   tarjeta de Hoy (son para quien aún no lee: antes pequeños que ninguno), la tarjeta se compacta como en un móvil bajo
+   (#hm-hero.hm-tight: menos relleno y el zorro de 40 px), luego los dibujos se achican a 48 px (#hm-hero.hm-smtiles)
+   y, si aun así no cabe, se van (#hm-hero.hm-notiles; la tarjeta queda como era si así cabe y, si no, sigue compacta);
+   nada de eso en la medida suave; en el móvil, < 744 px, con la fila de atajos no hay dibujos nunca: la fila ya es de
+   dibujos y así queda donde siempre, sin que la tape la hoja de una pieza); 3) «La frase de la cena» (el HOME_SLOT
+   phrase; sigue en Juegos › Frases mágicas); 4) la fila de la temporada y la de la carta con candado (season y
+   mail-lock: a la temporada también se llega por el dibujo de la esquina de la tarjeta); 5) los demás HOME_SLOTS, del
+   último al primero; 6) la fila se compacta (piezas de 44 px con el dibujo al lado; «Editar» sigue en la cabecera);
+   7) si aun así no cabe (un móvil bajo con mucho en Hoy), la fila se va (y vuelven las filas que entonces quepan). Al
+   final, si hay sitio, vuelven los dibujos (de 64 px con la tarjeta como era, de 64 px con la tarjeta compacta o, si
+   no, de 48 px) y luego la semana.
    La carta sin abrir («¡Tienes carta!», el primer HOME_SLOT cuando la hay: llega pocas veces y es de alguien de casa) va
-   antes que la fila: en el paso 4 se queda y, si con la fila compacta sigue sin caber, se va la fila (los atajos siguen
+   antes que la fila: en el paso 5 se queda y, si con la fila compacta sigue sin caber, se va la fila (los atajos siguen
    en Juegos). Salvo si la fila hace de accesorio «Seguir» (su pieza a medias): entonces la fila manda.
    Se puede volver a llamar (con "route", "acc", al cargar la letra o al girar): antes de medir, vuelve a poner lo que
    quitó, en su orden (data-ord).
-   soft: sin los pasos 3 y 6 (al pintar, antes de que route() ponga la cabecera de Hoy); ahí la carta también se va, y
+   soft: sin los pasos 2 y 7 (al pintar, antes de que route() ponga la cabecera de Hoy); ahí la carta también se va, y
    vuelve con la medida buena ("acc").
-   Los pasos 0-4 valen también sin la fila (atajos apagados o aún sin atajos). Un HOME_SLOT que se va llama a su
+   Los pasos 1-5 valen también sin la fila (atajos apagados o aún sin atajos). Un HOME_SLOT que se va llama a su
    .skip(), si la tiene (así no gasta su vez). */
 const FIRST = new Set(["mail"]);              /* los HOME_SLOTS que van antes que la fila de atajos */
-const LAST = new Set(["phrase"]);             /* los que se van antes que la semana */
-const MID = new Set(["season", "mail-lock"]); /* los que se van antes que los dibujos de la tarjeta */
+const LAST = new Set(["phrase"]);             /* la fila que se va antes que las demás (después de la semana y los dibujos) */
+const MID = new Set(["season", "mail-lock"]); /* las que se van después de la frase y antes que las demás */
 let CUT = [];
 function fit(soft){
   const sec = D.getElementById("hm-sc"), box = D.getElementById("hm-slots"), wk = D.getElementById("hm-week"), hero = D.getElementById("hm-hero");
@@ -363,11 +367,13 @@ function fit(soft){
   };
   if(sec) sec.classList.remove("sc-tight");
   if(wk) wk.hidden = false;
-  if(hero) hero.classList.remove("hm-notiles");
+  if(hero) hero.classList.remove("hm-notiles", "hm-smtiles", "hm-tight");
   if(CUT.box !== box) CUT = [];
   back();
   slots().forEach((el, i) => { if(el.dataset.ord == null) el.dataset.ord = String(i); });
-  if(sec && !TABLET.matches && hero && hero.querySelector(".hm-tiles")) hero.classList.add("hm-notiles");
+  /* con la fila de atajos en el móvil, sin dibujos (siempre, quepan o no) */
+  const rowPics = () => !!(D.getElementById("hm-sc") && !TABLET.matches);
+  if(rowPics() && hero && hero.querySelector(".hm-tiles")) hero.classList.add("hm-notiles");
   if(!over()) return;
   /* quita filas del final mientras no quepa (only: solo esas; keep: deja las primeras) */
   const trim = (keep = 0, only = null) => {
@@ -379,27 +385,46 @@ function fit(soft){
       try{ const f = typeof HOME_SLOTS !== "undefined" && HOME_SLOTS.find(s => s && s.id && s.id === el.dataset.slot); if(f && typeof f.skip === "function") f.skip(); }catch(e){}
     }
   };
-  const tiles = () => { if(!soft && over() && hero && hero.querySelector(".hm-tiles")) hero.classList.add("hm-notiles"); };
-  const week = () => { if(wk && wk.hidden){ wk.hidden = false; if(over()) wk.hidden = true; } };
+  const week = () => { if(over() && wk) wk.hidden = true; };
+  const pics = () => !soft && !!hero && !!hero.querySelector(".hm-tiles") && !hero.classList.contains("hm-notiles");
+  /* sin dibujos, la tarjeta queda como era (sin .hm-smtiles ni .hm-tight), salvo si aun así no cabe: entonces sigue
+     compacta antes de que se vaya una fila (el zorro pequeño adorna; la fila lleva a algo) */
+  const none = () => { hero.classList.remove("hm-smtiles", "hm-tight"); hero.classList.add("hm-notiles"); if(over()) hero.classList.add("hm-tight"); };
+  const tight = () => { if(over() && pics()) hero.classList.add("hm-tight"); };
+  const small = () => { if(over() && pics()) hero.classList.add("hm-smtiles"); };
+  const tiles = () => { if(over() && pics()) none(); };
+  /* al final, lo que adorna vuelve si cabe: antes los dibujos (salvo con la fila en el móvil), de 64 px con la tarjeta
+     como era, de 64 px con la tarjeta compacta o si no de 48, y luego la semana */
+  const again = () => {
+    if(hero && !rowPics() && hero.querySelector(".hm-tiles") && ["hm-notiles", "hm-smtiles", "hm-tight"].some(c => hero.classList.contains(c))){
+      hero.classList.remove("hm-notiles", "hm-smtiles", "hm-tight");
+      if(over()) hero.classList.add("hm-tight");
+      if(over()) hero.classList.add("hm-smtiles");
+      if(over()) none();
+    }
+    if(wk && wk.hidden){ wk.hidden = false; if(over()) wk.hidden = true; }
+  };
   const first = box.querySelector(":scope > .hm-slot");
   const keep = sec && !COVER && first && FIRST.has(first.dataset.slot) ? 1 : 0;
-  trim(keep, LAST);
-  if(over() && wk) wk.hidden = true;
-  trim(keep, MID);
+  week();
+  tight();
+  small();
   tiles();
+  trim(keep, LAST);
+  trim(keep, MID);
   trim(keep);
-  if(!sec){ week(); return; }
+  if(!sec){ again(); return; }
   if(over()) sec.classList.add("sc-tight");
   if(over() && soft) trim();
   if(over() && !soft){
     sec.remove(); clearGest(); ROOT.removeAttribute("data-sc"); SHOWN = [];
-    if(hero) hero.classList.remove("hm-notiles");   /* sin la fila vuelven los dibujos y las filas… */
+    if(hero) hero.classList.remove("hm-notiles", "hm-smtiles", "hm-tight");   /* sin la fila vuelven los dibujos y las filas… */
     back();
-    trim(0, LAST); trim(0, MID); tiles(); trim();     /* …las que quepan */
+    tight(); small(); tiles(); trim(0, LAST); trim(0, MID); trim();     /* …las que quepan */
     /* la pieza a medias se fue: sale el accesorio «Seguir» y, con "acc", se vuelve a medir */
     if(COVER){ COVER = null; try{ W.vocabAccessory && vocabAccessory.refresh(); }catch(e){} }
   }
-  week();
+  again();
 }
 let FIT_T = 0;
 W.addEventListener("resize", () => { clearTimeout(FIT_T); FIT_T = setTimeout(fit, 150); });

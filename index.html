@@ -531,8 +531,9 @@ button.st-r:disabled .st-ic{background:#8E8E93}
    52 px («Repasar N» y lo que devuelven los HOME_SLOTS con homeRow()); .hm-pair, las dos piezas de buddy.js (Misiones y
    Palabra del día); los HOME_SLOTS; .hm-week, la semana (L…D) con la llama; y «Privacidad». Columna de 600 px como
    mucho; desde 820 px, dos columnas. El título y la columna empiezan donde en las otras pestañas (el mismo marco .wrap):
-   cambiar de pestaña no mueve el título. Si algo no cabe, fit() de js/shortcuts.js quita antes la frase de la cena y la
-   semana y, más tarde, los dibujos (en el móvil, con «Tus atajos» no hay dibujos: la fila ya es de dibujos). */
+   cambiar de pestaña no mueve el título. Si algo no cabe, fit() de js/shortcuts.js quita antes la semana, compacta la
+   tarjeta, achica los dibujos a 48 px y luego los quita (lo que adorna) y solo después las filas, empezando por la frase
+   de la cena (en el móvil, con «Tus atajos» no hay dibujos: la fila ya es de dibujos). */
 .hm{display:flex;flex-direction:column;gap:12px;max-width:600px}
 /* tableta pequeña (744-819 px): la columna, de todo el ancho como el título (no apoyada a la izquierda con un hueco) */
 @media (min-width:744px) and (max-width:819px){.hm{max-width:none}}
@@ -556,13 +557,23 @@ button.st-r:disabled .st-ic{background:#8E8E93}
 :root:not([data-es-voice]) .hm-say{padding-right:16px}
 .hm-t{margin:12px 0 0;font:700 var(--fs-t2)/1.2 var(--f-round);color:var(--label);text-wrap:balance;overflow-wrap:anywhere}
 .hm-sub{margin:2px 0 0;font:400 var(--fs-sub)/1.3 var(--f-text);color:var(--label2)}
-/* los dibujos de lo que toca (3 de 64 px; en un móvil bajo, 2 de 48 px) */
+/* los dibujos de lo que toca (3 de 64 px; sin sitio, 3 de 48 px; en un móvil bajo, 2 de 48 px) */
 .hm-tiles{display:flex;justify-content:center;gap:12px;margin:10px 0 0}
 .hm-tile{flex:none;display:grid;place-items:center;width:64px;height:64px;border-radius:16px;background:var(--card-2)}
 .hm-tile img{display:block;width:52px;height:52px;max-width:none;object-fit:contain;-webkit-user-drag:none;user-select:none}
 .hm-notiles .hm-tiles{display:none}
 .hm-go{margin-top:16px}
 .hm-tiles+.hm-go,.hm-tiles+.hm-two{margin-top:12px}
+/* sin sitio para los de 64 px (fit() de js/shortcuts.js, con dos filas en Hoy): los 3 dibujos, de 48 px como en un móvil
+   bajo, antes que ninguno */
+.hm-smtiles .hm-tiles{margin-top:8px}
+.hm-smtiles .hm-tile{width:48px;height:48px;border-radius:12px}
+.hm-smtiles .hm-tile img{width:40px;height:40px}
+.hm-smtiles .hm-tiles+.hm-go,.hm-smtiles .hm-tiles+.hm-two{margin-top:10px}
+/* y antes de achicarlos, la tarjeta se compacta como en un móvil bajo (fit(): #hm-hero.hm-tight; sin los dibujos solo
+   sigue así si no, se iría una fila): menos relleno y el zorro de 40 px (#hm-hero, para que gane también a la tableta) */
+#hm-hero.hm-tight{padding:12px 16px}
+#hm-hero.hm-tight .hm-fox .hero{font-size:40px!important}
 /* «¡Lo de hoy, hecho!»: dos botones, la granja y los juegos */
 .hm-two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px;margin-top:16px}
 .hm-two .glass-btn{min-width:0;padding:0 12px}
@@ -631,8 +642,12 @@ button.st-r:disabled .st-ic{background:#8E8E93}
   .hm-two{margin-top:12px;gap:8px}
   .hm-week{display:none}
   .hm-priv{margin-top:-4px}
-  :root[data-tab=hoy]:not([data-acc]) main{padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 8px)}   /* «Privacidad», justo encima de la barra */
-  :root[data-tab=hoy][data-acc]:not([data-focus]) main{padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 20px + var(--tap-bar))}   /* y del accesorio */
+}
+/* en el móvil y la tableta pequeña (la barra abajo), «Privacidad» va justo encima de la barra (y del accesorio): su
+   enlace de 44 px ya lleva aire alrededor del texto, y Hoy no baja (así caben la semana y los dibujos con las filas) */
+@media (max-width:819px){
+  :root[data-tab=hoy]:not([data-acc]) main{padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 8px)}
+  :root[data-tab=hoy][data-acc]:not([data-focus]) main{padding-bottom:calc(var(--tabbar-h) + var(--tabbar-b) + 20px + var(--tap-bar))}
 }
 /* texto más grande: 4 px menos de aire para que siga cabiendo */
 :root[data-text=large] .hm-t{margin-top:8px}
@@ -2969,10 +2984,10 @@ async function homeSlots(){
      candado aún cerrada y cómo va (mail-lock, js/mailbox.js): dura pocos días; 6) «La frase de la cena» (phrase,
      js/phrases.js): sale cada día y también está en Juegos › Frases mágicas; 7) el resto. (Google no tiene fila: la
      partida se guarda sola y su estado está en Ajustes › Para mayores.)
-     fit() de js/shortcuts.js quita del final, así que lo último en irse es lo primero de esta lista (la frase de la cena
-     se va antes que la semana de .hm-week; la temporada y la carta con candado, antes que los dibujos de la tarjeta; las
-     demás, después). Una fila que no cabe no gasta su vez: se llama a su .skip(), si la tiene (así puede volver a salir
-     en esta visita). */
+     fit() de js/shortcuts.js quita del final, así que lo último en irse es lo primero de esta lista (antes que ninguna
+     fila se van la semana de .hm-week y los dibujos de la tarjeta, que antes se achican; luego la frase de la cena, la
+     temporada y la carta con candado, y las demás). Una fila que no cabe no gasta su vez: se llama a su .skip(), si la
+     tiene (así puede volver a salir en esta visita). */
   const PRI = {mail: 7, granja: 6, call: 5, season: 4, "mail-lock": 2, phrase: 1}, pri = i => PRI[(HOME_SLOTS[i] || {}).id] || 0;
   const ord = vals.map((v, i) => i).sort((a, b) => pri(b) - pri(a) || a - b);
   ord.forEach(i => {

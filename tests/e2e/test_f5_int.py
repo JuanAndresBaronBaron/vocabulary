@@ -470,6 +470,32 @@ def test_hoy_everything_at_once_priority_and_no_scroll():
 _HOYM = """() => ({sh: document.documentElement.scrollHeight, ih: innerHeight, sc: +(document.documentElement.dataset.sc || 0),
   acc: document.documentElement.hasAttribute('data-acc'),
   slots: [...document.querySelectorAll('#hm-slots > .hm-slot')].filter(e => !e.hidden).map(e => e.dataset.slot || '?')})"""
+_HALF = {}
+
+
+def _half_lesson(now=HALLOWEEN, lesson="A1-010", steps=3):
+    """La lección a medias tal como la guarda la lección ('vocab:ls' en el formato de ahora, {v: 2, …, plan}; desde el
+    paquete «Lecciones», lo de antes sin v empieza de cero al abrir la lección y se borra): se abre con la partida
+    sembrada y se pasan sus primeras palabras nuevas con «Continuar». Devuelve el JSON (una vez por día y lección)."""
+    key = (now, lesson, steps)
+    if key not in _HALF:
+        page = C.new_page("phone", now=now)
+        try:
+            C.seed(page, _keys(now), now=now)
+            C.goto(page, "#/leccion/" + lesson)
+            page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-page')", timeout=9000)
+            for _ in range(steps):
+                page.wait_for_timeout(800)          # (los botones de abajo no responden los primeros 0,7 s)
+                i0 = page.evaluate("() => vocabLesson.state.i")
+                page.locator("#ls-go").click()
+                page.wait_for_function("i => vocabLesson.state && vocabLesson.state.i !== i", arg=i0, timeout=6000)
+            sv = page.evaluate("() => sessionStorage.getItem('vocab:ls')")
+        finally:
+            page.context.close()
+        v = json.loads(sv or "null")
+        assert v and v.get("v") == 2 and v.get("id") == lesson and v.get("i") == steps, f"la lección no guarda lo hecho: {v}"
+        _HALF[key] = sv
+    return _HALF[key]
 
 
 def test_hoy_with_the_follow_accessory_keeps_rows_and_fits():
@@ -487,7 +513,7 @@ def test_hoy_with_the_follow_accessory_keeps_rows_and_fits():
                 try:
                     C.seed(page, _keys(HALLOWEEN, sc=sc), now=HALLOWEEN)
                     page.evaluate("o => vocabMailbox.receive(o)", LET)
-                    page.evaluate("sessionStorage.setItem('vocab:ls', JSON.stringify({id: 'A1-010', i: 3, first: [], miss: []}))")
+                    page.evaluate("v => sessionStorage.setItem('vocab:ls', v)", _half_lesson())
                     C.goto(page, via)
                     page.wait_for_timeout(400)
                     C.goto(page, "")
@@ -832,9 +858,30 @@ def test_key_tags_never_touch_their_neighbours():
 
 
 # ---------------------------------------------------------------- recorrido en inglés, francés y danés
+# dónde está el elemento sel respecto del foco: "here", "fwd" (después, se llega con Tab), "back" (antes: Mayús+Tab) o
+# "none" (no está o no se puede enfocar con Tab)
+_TAB_DIR = """s => { const t = document.querySelector(s), a = document.activeElement;
+  if (!t || t.disabled || t.tabIndex < 0 || !t.getClientRects().length) return 'none';
+  if (t === a) return 'here';
+  return a && a !== document.body && (a.compareDocumentPosition(t) & Node.DOCUMENT_POSITION_PRECEDING) ? 'back' : 'fwd'; }"""
+
+
+def _tab_to(page, sel, n=30):
+    """Llega a sel solo con Tab (o Mayús+Tab, si está antes del foco), como quien usa el teclado; False si no llega en n
+    pulsaciones."""
+    for _ in range(n):
+        d = page.evaluate(_TAB_DIR, sel)
+        if d in ("here", "none"):
+            return d == "here"
+        page.keyboard.press("Shift+Tab" if d == "back" else "Tab")
+    return page.evaluate(_TAB_DIR, sel) == "here"
+
+
 def _lesson_by_keys(page, max_steps=70):
     """Hace la lección abierta solo con el teclado (Enter en las palabras nuevas y tras contestar; la tecla de la buena en
-    cada pregunta). Devuelve los problemas."""
+    cada pregunta; en «Ordena las letras», la tecla de cada letra; en «Empareja», que no tiene teclas propias, Tab (o
+    Mayús+Tab) hasta cada dibujo y su palabra y Enter: los dos ejercicios llegaron con el paquete «Lecciones»). Devuelve
+    los problemas."""
     probs = []
     page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-page')", timeout=9000)
     page.evaluate(K._SPY)
@@ -847,6 +894,28 @@ def _lesson_by_keys(page, max_steps=70):
         page.evaluate(K._RESET)
         if st["t"] == "learn" or st["done"]:
             page.keyboard.press("Enter")
+        elif st["t"] == "spell":
+            for ch in st["right"]:
+                if ch.isascii():
+                    page.keyboard.press(ch)
+                else:   # é, æ, ø, å…: teclas de un teclado francés o danés que el de Playwright (EE. UU.) no tiene
+                    page.evaluate("k => document.dispatchEvent(new KeyboardEvent('keydown', {key: k, bubbles: true, cancelable: true}))", ch)
+                page.wait_for_timeout(40)
+        elif st["t"] == "match":
+            cur = ".ls-stage > .ls-page:not(.ls-ghost) .ls-mc"
+            for m in range(page.locator(f"{cur}[data-side='p']").count()):
+                page.evaluate(K._RESET)
+                for side in ("p", "w"):
+                    if not _tab_to(page, f"{cur}[data-side='{side}'][data-m='{m}']"):
+                        probs.append(f"«Empareja»: con Tab no se llega a la pieza {side}{m} en el paso {st['i']}")
+                        break
+                    page.keyboard.press("Enter")
+                # la pareja se elige por data-m: lo único bueno es una respuesta acertada y esas dos piezas emparejadas
+                ans = page.evaluate(K._K)["ans"]
+                got = page.evaluate("s => [...document.querySelectorAll(s)].filter(b => b.classList.contains('is-ok')).length", f"{cur}[data-m='{m}']")
+                if ans != [True] or got != 2:
+                    probs.append(f"«Empareja» con el teclado: la pareja {m} da {ans} y {got} de 2 piezas emparejadas en el paso {st['i']}")
+            page.evaluate(K._RESET)
         else:
             opts = page.evaluate(K._OPTS)
             if st["right"] not in opts:
