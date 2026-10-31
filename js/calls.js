@@ -838,7 +838,17 @@ try{
       line: () => { const L = IDXV && IDXV[lang], n = L && Array.isArray(L.calls) ? L.calls.length : 0, hd = load().heard;
         const k = n ? L.calls.filter(c => c && hd[c.id]).length : 0; return !n ? "Elige una llamada" : k ? `Oídas: ${k} de ${n}` : `${n} llamadas`; }});
 }catch(e){ console.error(e); }
-setTimeout(() => { index().then(x => { IDXV = x; }, () => {}); }, 600);
+/* el índice para esa línea, al poco de abrir. Sin conexión solo se pide si un service worker lo da de su copia guardada
+   (está en SHELL); si no, se espera al evento online: pedirlo a la red sin conexión deja un error en la consola */
+function warm(){
+  if(IDXV) return;
+  let sw = false;
+  try{ sw = !!(navigator.serviceWorker && navigator.serviceWorker.controller); }catch(e){}
+  if(navigator.onLine === false && !sw) return;
+  index().then(x => { IDXV = x; }, () => {});
+}
+setTimeout(warm, 600);
+addEventListener("online", warm);
 
 /* ---------- Ajustes › Para mayores ---------- */
 function adultHtml(){

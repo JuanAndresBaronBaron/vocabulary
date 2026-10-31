@@ -16,7 +16,8 @@
         grabada ya lleva el artículo («en hund») y el color no cabe en medio: allí es otra vez el nivel 2, más rápido.
    Unirse al rap: con el micrófono (opcional, botón del micro; solo mide el volumen, no reconoce palabras) cuenta la voz
      después de cada «¡Tú!» y el zorro baila al oírla; sin micrófono, tocar el escenario (o Espacio) a tiempo con el
-     «¡Tú!». Nunca se falla: lo que no se une, pasa. Estrellas por unirse (70 % ★★★, 35 % ★★, si no ★).
+     «¡Tú!». Nunca se falla: lo que no se une, pasa. Estrellas por unirse (70 % ★★★, 35 % ★★, si no ★); sin unirse
+     ninguna vez, el «¡Vamos otra vez!» de Juegos (finish con played: score > 0).
    Para las pruebas: root.rap() → el estado (palabras, rondas, lo programado y los «¡Tú!»); window.__rapRounds = N juega
      solo N rondas. */
 (() => {
@@ -438,8 +439,10 @@ async function start(app, api, mode){
     micOff();
     const N = SLOTS.length, stars = score >= N * .7 ? 3 : score >= N * .35 ? 2 : 1;
     const seen = new Map(); RD.forEach(r => r.a.forEach(x => { if(!seen.has(x.it.k)) seen.set(x.it.k, {word: x.it.word, es: x.it.es, img: x.it.img, ipa: x.it.ipa, miss: false}); }));
-    api.later(run, () => api.finish(run, ID, {score, stars, words: [...seen.values()],
-      line: score ? `¡Rapeaste con el zorro ${score} de ${N} veces!` : "¡Buen ritmo! La próxima vez, repite con el zorro cuando salga «¡Tú!»."}), 900);
+    /* unirse no es contestar (no llama a api.answer: no cuenta para las misiones), así que Juegos lo sabe por played:
+       con una vez basta; sin ninguna, su «¡Vamos otra vez!» sin estrellas ni monedas, como cualquier partida sin aciertos */
+    api.later(run, () => api.finish(run, ID, {score, stars, words: [...seen.values()], played: score > 0,
+      line: `¡Rapeaste con el zorro ${score} de ${N} veces!`}), 900);
   }
   goB.onclick = () => go();
   micB.onclick = () => { if(stream) micOff(); else micOn(); };

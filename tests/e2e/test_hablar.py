@@ -38,7 +38,9 @@ FRAME = {"english": "Touch the", "français": "Touche", "dansk": "Find"}
 AND = {"english": "and the", "français": "et", "dansk": "og"}
 ECHO = {"english": "Say it with me:", "français": "Répète avec moi :", "dansk": "Sig det med mig:"}
 STORIES = [f"{ab}/{n}" for ab in ("en", "fr", "da") for n in ("cake", "colours", "night", "play")]
-OLD4 = ("en-rain", "en-breakfast", "en-family", "en-birthday")
+# las llamadas en inglés menos en-zoo (todas las de data/calls/index.json): se siembran como sonadas hace días para que
+# suene en-zoo, la que hace más que no sonaba (entre las que nunca sonaron, js/calls.js elige al azar)
+NOT_ZOO = CL._EN_NOT_ZOO
 _FINISH = CU._FINISH
 
 # el AudioContext de verdad, contado (y si nació dentro de un toque); el micrófono, un tono que se enciende con __micG
@@ -147,7 +149,7 @@ def test_calls_answers_shuffled_with_their_reactions():
     probs = []
     page = CL._page()
     try:
-        CL._seed(page, CL._keys(calls={"v": 1, "h": {i: CL._day(C.FIXED_NOW, -9) for i in OLD4}}))
+        CL._seed(page, CL._keys(calls={"v": 1, "h": {i: CL._day(C.FIXED_NOW, -9) for i in NOT_ZOO}}))
         out = page.evaluate("""async () => {
           const out = [], ids = (await vocabCalls.list('english')).map(m => m.id);
           if (ids.length < 5) out.push('pocas llamadas: ' + ids);
@@ -215,7 +217,7 @@ def test_say_it_with_me_after_each_answer():
     probs = []
     page = CL._page()
     try:
-        CL._seed(page, CL._keys(calls={"v": 1, "h": {i: CL._day(C.FIXED_NOW, -9) for i in OLD4}}))
+        CL._seed(page, CL._keys(calls={"v": 1, "h": {i: CL._day(C.FIXED_NOW, -9) for i in NOT_ZOO}}))
         CL._ring(page)
         CL._answer(page)
         lines = page.evaluate("""async () => (await vocabCalls.get('en-zoo')).lines.map(l => !l.a ? null :
@@ -1145,7 +1147,7 @@ def test_captures_audit_three_configs():
         page = CL._page(kind, **kw)
         try:
             old = CL._day(C.FIXED_NOW, -9)
-            CL._seed(page, CL._keys(calls={"v": 1, "h": {i: old for i in OLD4}, "heard": {"en-rain": old}}), hash="#/llamadas", armed=False)
+            CL._seed(page, CL._keys(calls={"v": 1, "h": {i: old for i in NOT_ZOO}, "heard": {"en-rain": old}}), hash="#/llamadas", armed=False)
             page.wait_for_selector("#cl-list .cl-li", timeout=8000)
             _audit(page, f"{tag}-llamadas", ("cl-l",), probs)
             C.shot(page, f"{tag}-llamadas", OUT, full_page=False)

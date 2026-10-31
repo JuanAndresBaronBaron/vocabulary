@@ -27,9 +27,13 @@ GAMES = ["memoria", "lluvia", "globos", "letras", "lince"]
 # los juegos en grupo de js/party.js (El impostor y Ordenar por grupo), el Pajarito volador (js/flyer.js) y Topos
 # (js/topos.js), con su chip «Nuevo» como «Oído de lince»
 NEW = ["adivina", "sopa", "crucigrama", "concurso", "verdadero", "cajas", "flechas", "ordenafrase", "completa", "detective"]
+# los de hablar y escuchar: «Rap del zorro» (js/chant.js), «El zorro dice» (js/simon.js) y «¿Qué oíste?» (js/oido.js),
+# también en «Juegos de palabras», detrás de los de js/wordplay.js (el orden de sus <script>); su «Nuevo» va por fecha
+# (fresh "2026-10-31": los 14 días siguientes, y antes de esa fecha, como con el reloj de las pruebas)
+VOICE = ["rap", "zorrodice", "oido"]
 # en el orden de las secciones del menú (palabras, concursos, gramática, en grupo); cuartel y soldados salen en oscuro
-CARDS = GAMES + ["pajarito", "topos"] + NEW + ["impostor", "ordenar"]
-FRESH = {"lince", "impostor", "ordenar", "pajarito", "topos", *NEW}
+CARDS = GAMES + ["pajarito", "topos"] + NEW[:3] + VOICE + NEW[3:] + ["impostor", "ordenar"]
+FRESH = {"lince", "impostor", "ordenar", "pajarito", "topos", *NEW, *VOICE}
 AB = {"english": "en", "français": "fr", "dansk": "da"}
 _ARTS = {"english": re.compile(r"^(?:the|an?|to)\s+", re.I),   # los artículos de js/lince.js (ARTS)
          "français": re.compile(r"^(?:les|le|la|une|un|des|du|se)\s+|^(?:l|s|d)['’]", re.I),
