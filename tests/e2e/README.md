@@ -62,8 +62,9 @@ compartida no responde).
   PointerEvents sintéticos igual que «Continuar», recargar a mitad sigue donde estaba, Atrás a mitad pregunta
   «¿Paramos aquí?» (guarda de salida) y «Salir» deja lo hecho en `vocab:ls` para la cápsula «Seguir · Lección N»
   (plan-doc), el accesorio «Seguir · Lección N», el final (estrellas
-  de una en una, monedas una vez, «Mañana repasas N palabras», confeti), la gramática, «Cómo suena» y el camino y el
-  repaso guardados igual que en la versión anterior (commit 3396fc7) para la misma secuencia.
+  de una en una, monedas una vez, «Mañana repasas N palabras», confeti), la gramática, «Cómo suena» y el camino y las
+  monedas guardados igual que en la versión anterior (commit 3396fc7) para la misma secuencia; el repaso, como dicta el
+  formato de ahora (la fallada a la caja 0, las demás a la 1, las de repaso con `srsGrade`).
 - `test_f3_repaso.py` (F3b, `js/review.js`): `#/repaso` directo a la primera tarjeta en modo foco, girar (350 ms, con
   «Reducir movimiento» un fundido), las notas 2 · 1 · 0 comparadas con lo que escribe el `srsGrade` de siempre (y
   `srsGrade`/`srsNext` iguales a los del commit 1721796), deslizar con PointerEvents sintéticos igual que los botones,
@@ -362,6 +363,13 @@ compartida no responde).
 - `test_cuartel.py` (`js/cuartel.js`, «Defensa del cuartel»): solo con el tema «Soldados»; robots, drones y tanques por
   3 carriles, el cargador de 6 balas, recargar respondiendo (bien: lleno; mal: 2 balas), los corazones, las oleadas y
   el final con récord. Capturas en `capturas/cuartel`.
+- `test_lecciones.py` (`js/lesson.js` y el «¿Ya lo sabes?» de `js/learn.js`): cada palabra por su sitio (tema:fila) y
+  nunca dos respuestas buenas (Primo/Prima, phone/telephone; «la maison» se enseña una vez); el plan aprende 3 →
+  pregunta esas 3 → … (trozos de 3 como mucho, cada palabra 2 veces con 3 pasos o más entre medias y la segunda
+  recordando) con 2-3 palabras del repaso calificadas con `srsGrade`; la fallada vuelve 3-5 pasos después y va a la
+  caja 0; «Repasa tus fallos»; recargar sigue el mismo plan; «Ordena las letras» (artículo puesto, æøå, teclado),
+  «Completa la frase», «Empareja»; los números enteros sin dibujo; «¿Ya lo sabes?» (10 de 12: 1 estrella y caja 2;
+  menos: nada cambia); todo cabe a 360×740 y 390×844, claro y oscuro. Capturas en `capturas/lecciones`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

@@ -40,6 +40,14 @@ _UI = "() => { try { return JSON.parse(localStorage.getItem('vocab:ui')); } catc
 _HINTS = {k: 1000 for k in ["ls-swipe", "rv-swipe", "doc-swipe", "gm-peek", "al-swipe", "fm-regadera", "fm-lift", "map-peek"]}
 _FIT = "() => ({sh: document.documentElement.scrollHeight, ih: innerHeight})"
 _CUR = ".ls-stage > .ls-page:not(.ls-ghost)"
+
+
+def _right(page, st):
+    """Contesta bien la pregunta de la lección (de cualquier tipo) y sigue con «Seguir» si no ha pasado sola."""
+    L._pick(page, st["right"])
+    page.wait_for_function("() => { const g = document.getElementById('ls-go'); return g && !g.hidden; }", timeout=6000)
+    if page.evaluate(L._ST)["i"] == st["i"]:
+        L._go(page)
 # lo que se ve de cada .ipa dentro de sel: el texto (sin el «IPA:» oculto ni los «word joiner» U+2060 de ipaHtml()), si
 # se ve, el idioma y el color
 _SEE = """sel => [...document.querySelectorAll(sel)].map(e => { const cs = getComputedStyle(e), vh = e.querySelector('.vh');
@@ -972,9 +980,10 @@ def test_long_words_fit_without_scroll():
                 page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-learn')", timeout=8000)
                 page.evaluate(L._HOOK)
                 page.evaluate(L._FAKE_AUDIO)
-                for _ in range(60):
+                # las palabras nuevas salen de 3 en 3 entre preguntas: se juega entera (los «¿Cuál es…?», mal; lo demás, bien)
+                for _ in range(160):
                     st = page.evaluate(L._ST)
-                    if not st or st["t"] not in ("learn", "pick", "listen"):
+                    if not st or st["ended"]:
                         break
                     if st["t"] == "learn":
                         page.wait_for_timeout(450)
@@ -1001,9 +1010,7 @@ def test_long_words_fit_without_scroll():
                         page.locator("#ls-go").click()
                         page.wait_for_timeout(500)
                         continue
-                    L._pick(page, st["right"])
-                    L._wait_change(page, st["i"], 9000)
-                    page.wait_for_timeout(250)
+                    _right(page, st)
                 probs += [f"{tag}: {e}" for e in C.errors(page)]
             finally:
                 page.context.close()
@@ -1026,9 +1033,9 @@ def test_small_phone_no_worse_than_without_ipa():
             page.wait_for_function("() => window.vocabLesson && vocabLesson.state && document.querySelector('.ls-stage .ls-learn')", timeout=8000)
             page.evaluate(L._HOOK)
             page.evaluate(L._FAKE_AUDIO)
-            for _ in range(60):
+            for _ in range(160):
                 st = page.evaluate(L._ST)
-                if not st or st["t"] not in ("learn", "pick", "listen"):
+                if not st or st["ended"]:
                     break
                 if st["t"] == "learn":
                     page.wait_for_timeout(450)
@@ -1045,9 +1052,7 @@ def test_small_phone_no_worse_than_without_ipa():
                     page.locator("#ls-go").click()
                     page.wait_for_timeout(500)
                     continue
-                L._pick(page, st["right"])
-                L._wait_change(page, st["i"], 9000)
-                page.wait_for_timeout(250)
+                _right(page, st)
             C.seed(page, keys=_keys("english", ui), hash="#/album/colores")
             page.wait_for_selector(".al-st.got", timeout=8000)
             page.locator(".al-st.got").first.click()
