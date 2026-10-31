@@ -22,8 +22,8 @@
      ahora», que un mayor puede tocar cuando quiera). Si Google contesta tarde, el permiso vale igual.
    - Interfaz: el bloque va en Ajustes › Para mayores (js/settings.js avisa por el bus «settings»; se llega tras la
      Puerta de mayores) y el estado en la fila «Para mayores» de Ajustes ([data-sync-cfg]). Entrar, salir o cambiar la
-     partida pasan por la Puerta (window.adultGate). Mientras no hay Google, además un botón con la G en la barra de
-     arriba (#tb-google, topPaint): Puerta y el mismo «Entrar con Google» de Para mayores; conectado, se quita.
+     partida pasan por la Puerta (window.adultGate). En la barra de arriba no hay nada de Google (#tb-google,
+     topPaint, siempre escondido).
    Estado propio (no se sube ni se restaura): "save:sync" {fileId, remoteModified, baseHash, lastPushedHash,
    localDirty, connectedAt, lastSync, lastPull, hint, reconnect (sin permiso desde…; con intentos de renovarlo, desde el
    primero), choice, tapAt (el último intento)} y "save:tok" {t, exp} (compartido por las pestañas). */
@@ -777,29 +777,11 @@ function cfgText(){
 function cfgPaint(){ document.querySelectorAll("[data-sync-cfg]").forEach(el => { el.textContent = cfgText(); }); topPaint(); }
 
 /* ---------- el botón de Google de la barra de arriba ----------
-   Mientras este aparato no tenga Google, un botón redondo con la G va en la barra de arriba, antes de las monedas y
-   Ajustes. Tocarlo pasa por la Puerta de mayores y abre Ajustes › Para mayores con el bloque de Google; si el script de
-   Google ya está listo (se empieza a preparar con este toque, mientras el mayor contesta la Puerta), la ventana de
-   Google se pide en ese mismo toque, como con «Entrar con Google». Con Google conectado no sale (queda solo en Para
-   mayores). Nunca con html[data-tech] (Tech Prep). El botón y su estilo están en la barra de index.html (#tb-google). */
-function topBtn(){
-  const b = $s("tb-google"); if(!b) return null;   /* el botón está en la barra de index.html, escondido */
-  if(!b._on){ b._on = true; b.addEventListener("click", topTap); }
-  return b;
-}
+   Ya no sale: la barra de arriba es del niño (sus monedas y Ajustes) y Google es cosa de mayores, solo en Ajustes › Para
+   mayores (tras la Puerta). El botón #tb-google sigue en la barra de index.html, siempre escondido. */
 function topPaint(){
-  const show = !meta().connectedAt && !document.documentElement.hasAttribute("data-tech");
-  const b = show ? topBtn() : $s("tb-google");
-  if(b && b.hidden === show) b.hidden = !show;
-}
-function topTap(e){
-  const b = e.currentTarget;
-  if(online() && !gisReady()) loadGis().catch(() => {});
-  gated("Para entrar con Google.", () => {
-    const ready = online() && gisReady() && !connected();
-    if(typeof window.openSettings === "function") window.openSettings("google", {from: b});
-    if(ready) connect();   /* dentro del toque: la ventana de Google sale enseguida */
-  }, b);
+  const b = $s("tb-google");
+  if(b && !b.hidden) b.hidden = true;
 }
 
 /* ---------- arranque ---------- */

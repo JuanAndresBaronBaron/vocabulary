@@ -101,9 +101,9 @@ def test_desk_bar_always_fits():
 
 def test_topbar_has_no_save_pill():
     """La barra de arriba ya no tiene la pastilla «Guardar» ni su hueco (la partida se guarda sola; lo de Google está en
-    Ajustes › Para mayores): a la derecha va el grupo de vidrio con las monedas y Ajustes y, sin Google (v24), antes el
-    botón redondo de Google (#tb-google, que no es de guardar), en claro y oscuro, con 245 y con 12345 monedas, de 44 px
-    de alto y dentro de la pantalla. No queda CSS de la pastilla."""
+    Ajustes › Para mayores): a la derecha va solo el grupo de vidrio con las monedas y Ajustes (el botón redondo de Google
+    de v24, #tb-google, ya no sale: lo de Google es solo de Ajustes › Para mayores), en claro y oscuro, con 245 y con
+    12345 monedas, de 44 px de alto y dentro de la pantalla. No queda CSS de la pastilla."""
     probs = []
     for scheme in ("light", "dark"):
         page = C.new_page("phone", color_scheme=scheme)
@@ -119,7 +119,7 @@ def test_topbar_has_no_save_pill():
                     h: Math.round(g.height), inView: g.left >= 0 && g.right <= innerWidth - 15.5,
                     css: [...document.styleSheets].flatMap(s => { try { return [...s.cssRules]; } catch (e) { return []; } })
                       .map(x => x.cssText).filter(t => /sv-chip|tb-slot/.test(t)).length}; }""")
-                if r != {"right": ["tb-google", "tb-group"], "slot": False, "chip": False, "h": 44, "inView": True, "css": 0}:
+                if r != {"right": ["tb-group"], "slot": False, "chip": False, "h": 44, "inView": True, "css": 0}:
                     probs.append(f"{scheme}, {coins} monedas: la barra de arriba: {r}")
             probs += C.errors(page)
         finally:
@@ -482,8 +482,8 @@ def test_sheets_opaque_and_centered_on_desk():
 def test_hoy_has_no_google_reminder():
     """En Hoy no sale ninguna fila de Google ni nada que pida guardar (la partida se guarda sola en el aparato): ni con
     la partida sembrada sin Google (antes, «Guarda tu partida · Enséñaselo a un mayor»), ni con Google conectado y el
-    permiso caducado hace días. Lo de Google queda en Ajustes, en la fila «Para mayores» (y, desde v24, sin Google, en el
-    botón redondo de la barra, #tb-google, que pasa por la Puerta de mayores)."""
+    permiso caducado hace días. Lo de Google queda en Ajustes, en la fila «Para mayores» (el botón redondo de la barra
+    de v24, #tb-google, ya no sale nunca)."""
     probs = []
     for how in ("sin Google", "permiso caducado hace días"):
         page = C.new_page("phone")
@@ -505,8 +505,8 @@ def test_hoy_has_no_google_reminder():
               top: !!document.querySelector('#tb-google:not([hidden])')})""")
             if "sync" in h["slots"] or h["rem"] or h["kid"] or h["save"] or any(re.search(r"guarda|google", t, re.I) for t in h["rows"]):
                 probs.append(f"{how}: en Hoy sale algo de guardar o de Google: {h}")
-            if h["top"] != (how == "sin Google"):   # v24: el botón redondo de Google de la barra, solo hasta conectar
-                probs.append(f"{how}: el botón de Google de la barra {'no sale' if not h['top'] else 'sale con Google conectado'}")
+            if h["top"]:   # el botón redondo de Google de la barra (v24) ya no sale: solo en Ajustes › Para mayores
+                probs.append(f"{how}: el botón de Google sale en la barra de arriba")
             page.locator(".topbar [data-open=ajustes]").click()
             page.wait_for_selector("dialog#ajustes[open]", timeout=4000)
             C.settle(page, 250)

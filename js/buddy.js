@@ -2,8 +2,16 @@
    El zorro ya no flota en una esquina: vive dentro del contenido (tarjeta de Hoy, camino) y sus frases de logros
    (misión cumplida) salen en la cápsula de avisos de arriba (M.toast). Nada de frases sueltas. Los aciertos seguidos
    de la lección los celebra ella misma (el chip de la llama de js/lesson.js).
-   - Hoy: home() de index.html pinta las dos piezas que da este módulo. «Misiones» (misPiece(): la siguiente misión y 3
-     puntos; al tocarla, la hoja #bd-mis-s con las 3 misiones de hoy, su progreso, «Recoger · 15» y el cofre de +25).
+   - Hoy: home() de index.html pinta las dos piezas que da este módulo. «Misiones» (misPiece(): la siguiente misión y un
+     anillo verde azulado de 3 trozos alrededor de su icono, uno por misión cumplida; al tocarla, la hoja #bd-mis-s con
+     las 3 misiones de hoy, su progreso y un altavoz en cada fila (las lee el zorro en español: hmSpeak de index.html),
+     «Recoger · 15» y el cofre sorpresa). Cada misión lleva a su sitio exacto (hrefOf): «Termina…» y «Acierta…», a la
+     siguiente lección (#/leccion/<id>; con el camino hecho, #/mapa); «Juega…», al último juego con su tema
+     (vocabShortcuts.lastGame(); si no, #/juegos). El cofre es una sorpresa con peso (chestPrize: 15-40 monedas, media
+     ≈ 25; 3 raciones de comida si js/farm.js da vocabFarm.giveFood; 1 vez de cada 10 el huevo de oro), la misma todo el
+     día (rng por fecha); nunca se dice antes qué ni cuánto da. No caduca: si las 3 se cumplieron y no se abrió, al día
+     siguiente sigue ahí («¡Un cofre sin abrir!», M.owed). Abierto, la tarjeta de Hoy dice «¡Lo de hoy, hecho!» (confeti
+     una vez: partyOnce()). Nada de «vuelve mañana»: Hoy y las misiones no anuncian premios futuros.
      «Palabra del día» (wotdPiece(): dibujo y palabra; al tocarla gira en 3D, enseña la traducción, la palabra y su IPA
      (ipaHtml() de index.html, salvo que un mayor la apague; va en el sitio de la etiqueta) y suena; detrás,
      «¡Me la sé!» la manda al repaso y da +3 la primera vez del día). Las monedas salen volando desde el botón
@@ -11,9 +19,12 @@
    - Mapa: el personaje junto a la lección actual (camina desde la anterior al terminar una) y «🎁 Regalo en N lecciones».
    - Mientras se juega a un minijuego (html[data-gm-play], lo pone games.js) los avisos de misión esperan al resultado.
    API: window.vocabBuddy = {missions(), misHtml(), paintMis(), misPiece(), openMissions(desde), claim(k, desde),
-        openChest(desde), wotdPick(), wotdPiece(), paintWotd(girada), attention(), wire(), cheer(texto, icono)}.
-        claim/openChest devuelven true si han pagado; attention() true si la pieza de Misiones ha saltado.
-   Guarda: store "buddy:missions" {day, list:[{k, goal, n, s (lo que ya vio en la hoja), got}], chest} · "buddy:wotd" {day, seen, known, paid}.
+        openChest(desde), openOwed(desde), chestPrize(día), hrefOf(k), partyOnce(), wotdPick(), wotdPiece(), paintWotd(girada), attention(),
+        wire(), cheer(texto, icono)}.
+        claim/openChest/openOwed devuelven true si han pagado; attention() true si la pieza de Misiones ha saltado; partyOnce()
+        true la primera vez que Hoy enseña «¡Lo de hoy, hecho!» (el confeti).
+   Guarda: store "buddy:missions" {day, list:[{k, goal, n, s (lo que ya vio en la hoja), got}], chest, prize? (lo que dio
+        el cofre: {c, egg?} o {food}), party? (confeti ya visto), owed? (días con el cofre ganado sin abrir)} · "buddy:wotd" {day, seen, known, paid}.
    ("buddy:hide" era el ✕ del zorro flotante: ya no se escribe, pero la clave se conserva en la partida). */
 (() => {
 "use strict";
@@ -34,7 +45,7 @@ function cheer(text, icon){
 const pick = a => a[Math.floor(Math.random() * a.length)];
 const dk = () => dayKey(new Date());
 const curH = () => location.hash.replace(/^#\/?/, "");
-const isHome = h => h === "" || h === "/";
+const isHome = h => h === "" || h === "/" || h.startsWith("?");
 const gmPlay = () => document.documentElement.hasAttribute("data-gm-play");
 
 /* temporizadores de la página actual: se limpian al cambiar de ruta */
@@ -61,14 +72,20 @@ const STYLE = `
 .bd-pl{display:flex;align-items:center;gap:6px;min-width:0;font:600 var(--fs-note)/1.33 var(--f-text);color:var(--label2)}
 .bd-pl .ico{flex:none;color:var(--brand-tint)}
 .bd-pl span{min-width:0;overflow-wrap:anywhere}   /* con texto grande pasa a dos líneas, sin cortarse con puntos */
-.bd-mt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin:8px 0 10px;font:600 var(--fs-head)/1.22 var(--f-text);overflow-wrap:anywhere}
-/* los 3 puntos de las misiones, iguales en la pieza de Hoy y en el cofre de la hoja: gris = por hacer, verde azulado =
-   hecha, y con la marca ✓ = premio recogido */
-.bd-dots{display:flex;gap:6px;margin-top:auto}
-.bd-dots i,.bd-cdots i{position:relative;width:14px;height:14px;border-radius:7px;background:var(--fill)}
-.bd-dots i.on,.bd-cdots i.on{background:var(--teal)}
-.bd-dots i.got::after,.bd-cdots i.got::after{content:"";position:absolute;left:4px;top:3px;width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
-@media (forced-colors:active){.bd-dots i,.bd-cdots i{border:1px solid CanvasText}.bd-dots i.on,.bd-cdots i.on{background:CanvasText}}
+.bd-mt{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;margin:8px 0 0;font:600 var(--fs-head)/1.22 var(--f-text);overflow-wrap:anywhere}
+/* el objetivo del día en la pieza: un anillo de 3 trozos alrededor del icono de Misiones (gris = por hacer, verde azulado
+   = hecha). Sobresale de su línea (márgenes negativos): la etiqueta mide lo mismo que la de «Palabra del día» */
+.bd-ring{position:relative;flex:none;display:grid;place-items:center;width:30px;height:30px;margin:-5px 0}
+.bd-ring svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.bd-ring circle{fill:none;stroke:var(--fill);stroke-width:3.5}
+.bd-ring circle.on{stroke:var(--teal)}
+.bd-pl .bd-ring .ico{position:relative}
+.bd-ring.all .ico{color:var(--teal)}
+/* los 3 puntos del cofre de la hoja: gris = por hacer, verde azulado = hecha, y con la marca ✓ = premio recogido */
+.bd-cdots i{position:relative;width:14px;height:14px;border-radius:7px;background:var(--fill)}
+.bd-cdots i.on{background:var(--teal)}
+.bd-cdots i.got::after{content:"";position:absolute;left:4px;top:3px;width:4px;height:7px;border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+@media (forced-colors:active){.bd-cdots i{border:1px solid CanvasText}.bd-cdots i.on{background:CanvasText}.bd-ring circle{stroke:GrayText}.bd-ring circle.on{stroke:CanvasText}}
 .bd-bounce{animation:bd-bounce .62s cubic-bezier(.3,1.3,.5,1) 1}
 @keyframes bd-bounce{0%,100%{translate:0 0}30%{translate:0 -12px}55%{translate:0 0}75%{translate:0 -4px}}
 /* palabra del día: dos caras (dibujo y palabra · traducción) que giran en 3D */
@@ -86,7 +103,7 @@ const STYLE = `
 .bd-wotd .bd-wimg img{display:block;width:64px;height:64px;max-width:none;max-height:none;object-fit:contain}
 @media (max-width:819px) and (max-height:760px){   /* móviles bajos: las piezas de Hoy, más bajas */
   .bd-mis{min-height:104px;padding:12px 14px}
-  .bd-mt{margin:4px 0 8px;-webkit-line-clamp:2}
+  .bd-mt{margin:6px 0 0;-webkit-line-clamp:2}
   .bd-face{padding:12px}
   .bd-wotd .bd-wimg img{width:48px;height:48px}}
 .bd-ww{display:block;max-width:100%;margin:auto 0 0;font:700 calc(1.625rem*var(--k,1))/1.15 var(--f-round);overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}
@@ -110,6 +127,14 @@ dialog.bd-ms{max-width:560px}
 :root[data-theme=dark] .bd-ms-g{background:var(--card-2)}
 .bd-row{position:relative;display:flex;align-items:center;gap:12px;min-height:64px;padding:10px 14px;color:var(--label);text-decoration:none}
 .bd-row+.bd-row::before{content:"";position:absolute;top:0;left:62px;right:0;height:1px;background:var(--sep);transform:scaleY(.5);transform-origin:0 0}
+/* la fila de una misión por hacer: el enlace a su sitio (icono, texto y flecha) y, al lado, el altavoz */
+.bd-row.go{padding:0 8px 0 0}
+.bd-go{display:flex;align-items:center;gap:12px;flex:1;min-width:0;min-height:64px;padding:10px 0 10px 14px;color:inherit;text-decoration:none;border-radius:var(--r-card);-webkit-tap-highlight-color:transparent}
+.bd-go:focus-visible{outline:3px solid var(--brand-tint);outline-offset:-3px}
+.bd-spk{flex:none;display:grid;place-items:center;width:var(--tap,44px);height:var(--tap,44px);margin:0 -6px 0 0;padding:0;border:0;border-radius:50%;background:none;color:var(--brand-ink);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.bd-spk.is-playing{background:var(--brand-soft)}
+.bd-spk:focus-visible{outline:3px solid var(--brand-tint);outline-offset:-3px}
+.bd-egg svg{display:block;width:22px;height:22px}
 .bd-ric{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:var(--brand-fill);color:#fff}
 .bd-row.done .bd-ric,.bd-chest.ready .bd-ric{background:var(--gold);color:var(--gold-on)}
 .bd-row.got .bd-ric,.bd-chest.open .bd-ric{background:var(--ok-fill);color:#fff}
@@ -125,7 +150,7 @@ dialog.bd-ms{max-width:560px}
 .bd-chev{flex:none;color:var(--label3)}
 :root[data-theme=dark] .bd-chev{color:rgba(235,235,245,.45)}
 .bd-row .glass-btn{flex:none}
-.bd-row.done{flex-wrap:wrap;row-gap:6px}.bd-row.done .bd-rt{flex-basis:calc(100% - 48px)}.bd-row.done .glass-btn{margin-left:48px}
+.bd-row.done{flex-wrap:wrap;row-gap:6px}.bd-row.done .bd-rt{flex-basis:calc(100% - 100px)}.bd-row.done .glass-btn{margin-left:48px}
 .bd-cdots{display:flex;flex:none;gap:6px}
 .bd-row.stamp .bd-ric{animation:bd-stamp .45s cubic-bezier(.3,1.6,.5,1)}
 .bd-chest .bd-ric.boom{animation:bd-open .5s forwards}
@@ -207,7 +232,7 @@ const plural = (n, one, many) => n === 1 ? `1 ${one}` : `${n} ${many}`;
 /* ev: evento que la hace avanzar · ok(): si se puede hacer hoy · goal(): cuánto hay que hacer */
 const MDEF = {
   les:  {ev: "lesson-done",  e: "🗺️", href: "#/mapa",     learn: true, t: g => `Termina ${plural(g, "lección", "lecciones")} del camino`},
-  ans:  {ev: "answer",       e: "✅", href: "#/mapa",     learn: true, t: g => `Acierta ${g} respuestas`},
+  ans:  {ev: "answer",       e: "⭐", href: "#/mapa",     learn: true, t: g => `Acierta ${g} respuestas`},
   rev:  {ev: "review-card",  e: "🔁", href: "#/repaso",   learn: true, t: g => `Repasa ${plural(g, "palabra", "palabras")}`, ok: () => dueList().length >= 4, goal: () => Math.min(10, dueList().length)},
   game: {ev: "game-done",    e: "🎮", href: "#/juegos",   t: () => "Juega a un minijuego", ok: () => typeof ROUTES === "object" && typeof ROUTES.juegos === "function"},
   /* cada animal come como mucho una vez cada 8 h: el objetivo son sus animales (hasta 4) */
@@ -237,13 +262,18 @@ function missions(){
   let M = store.get(MKEY, null);
   const bad = m => !m || typeof m !== "object" || !MDEF[m.k] || !(m.goal >= 1) || typeof m.n !== "number" || !(m.n >= 0);
   if(!M || typeof M !== "object" || M.day !== day || !Array.isArray(M.list) || M.list.length !== 3 || M.list.some(bad)){
-    M = makeMissions(day); store.set(MKEY, M);
+    /* el cofre no caduca: el de un día con las 3 cumplidas y sin abrir pasa a M.owed */
+    const old = M && typeof M === "object" ? M : null, owed = old && Array.isArray(old.owed) ? old.owed.filter(d => typeof d === "string") : [];
+    if(old && typeof old.day === "string" && old.day !== day && !old.chest && Array.isArray(old.list) && old.list.length === 3
+      && old.list.every(m => m && (m.got || m.n >= m.goal)) && !owed.includes(old.day)) owed.push(old.day);
+    M = makeMissions(day); if(owed.length) M.owed = owed;
+    store.set(MKEY, M);
   }
   return M;
 }
 const mText = m => MDEF[m.k].t(m.goal);
-/* icono de cada misión (Phosphor) */
-const MIC = {les: "map-trifold", ans: "check", rev: "arrow-counter-clockwise", game: "game-controller", feed: "bowl-food", harv: "basket", coll: "egg", find: "magnifying-glass"};
+/* icono de cada misión (Phosphor). «Acierta…» lleva una estrella: la ✓ es solo de lo ya conseguido */
+const MIC = {les: "map-trifold", ans: "star", rev: "arrow-counter-clockwise", game: "game-controller", feed: "bowl-food", harv: "basket", coll: "egg", find: "magnifying-glass"};
 const icon = (n, s = "bold", z = 20, c = "") => { try{ return typeof ico === "function" ? ico(n, s, z, c) : ""; }catch(e){ return ""; } };
 const COIN = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="11" fill="#FFCC00"/><circle cx="12" cy="12" r="10.5" fill="none" stroke="#C7A000" stroke-opacity=".8"/><circle cx="12" cy="12" r="7.6" fill="none" stroke="#B39000" stroke-opacity=".55" stroke-width="1.4"/><path d="M12 7.8 13.06 10.54 15.99 10.7 13.71 12.56 14.47 15.4 12 13.8 9.53 15.4 10.29 12.56 8.01 10.7 10.94 10.54Z" fill="#A88700" fill-opacity=".8"/></svg>`;
 const mKey = (M, m) => M.day + "|" + m.k;
@@ -289,25 +319,65 @@ function attention(){
   return bounce(el);
 }
 
-/* pieza de Hoy: la siguiente misión que toca y 3 puntos (uno por misión cumplida) */
+/* pieza de Hoy: la siguiente misión que toca y el anillo de 3 trozos alrededor del icono (uno por misión cumplida) */
 function misNext(M){
   if(M.list.some(m => !m.got && m.n >= m.goal)) return "¡Recoge tu premio!";
+  if(Array.isArray(M.owed) && M.owed.length) return "¡Tienes un cofre sin abrir!";
   const todo = M.list.find(m => m.n < m.goal);
   if(todo) return mText(todo);
-  return M.chest ? "¡Todo hecho! Mañana hay más" : "¡Abre el cofre sorpresa!";
+  return M.chest ? "¡Todo hecho por hoy!" : "¡Abre el cofre sorpresa!";
 }
 const misDots = M => M.list.map(m => `<i class="${m.n >= m.goal ? "on" : ""}${m.got ? " got" : ""}"></i>`).join("");
+/* 3 arcos (pathLength 100: 30 de cada uno y 3,3 de hueco), empezando arriba */
+const misRing = M => `<span class="bd-ring${M.list.every(m => m.n >= m.goal) ? " all" : ""}" aria-hidden="true"><svg viewBox="0 0 36 36" focusable="false">${M.list.map((m, i) =>
+  `<circle class="${m.n >= m.goal ? "on" : ""}" cx="18" cy="18" r="15.5" pathLength="100" stroke-dasharray="30 70" stroke-dashoffset="${(-(i * 100 / 3 + 1.67)).toFixed(2)}" transform="rotate(-90 18 18)"/>`).join("")}</svg>${icon("target", "fill", 16)}</span>`;
 function misPieceInner(){
   const M = missions();
-  return `<span class="bd-pl">${icon("target", "fill", 18)}<span>Misiones</span></span><span class="bd-mt">${esc(misNext(M))}</span>
-    <span class="bd-dots" aria-hidden="true">${misDots(M)}</span>`;
+  return `<span class="bd-pl">${misRing(M)}<span>Misiones</span></span><span class="bd-mt">${esc(misNext(M))}</span>`;
 }
 function misLabel(){ const M = missions(), done = M.list.filter(m => m.n >= m.goal).length; return `Misiones de hoy: ${misNext(M)} ${done} de 3 hechas.`; }
 function misPiece(){
   return `<button type="button" class="card bd-piece bd-mis" id="bd-mis" aria-haspopup="dialog" aria-label="${esc(misLabel())}">${misPieceInner()}</button>`;
 }
 
-/* contenido de la hoja: las 3 misiones con su barra y el cofre */
+/* adónde lleva cada misión: «Termina…» y «Acierta…», a la siguiente lección del camino (#/leccion/<id>; con todo el
+   camino hecho, #/mapa); «Juega…», al último juego con su tema (vocabShortcuts.lastGame(); sin él, #/juegos); las demás,
+   a su pantalla. NEXT: la siguiente lección (nextLesson() de index.html), al abrir la hoja y al volver a Hoy */
+let NEXT = null;
+function refreshNext(){
+  if(typeof nextLesson !== "function") return Promise.resolve(null);
+  return nextLesson().then(L => { NEXT = L && L.done ? {done: true} : L && L.l ? {id: L.l.id} : null; return NEXT; }).catch(() => null);
+}
+function hrefOf(k){
+  if(k === "les" || k === "ans") return NEXT && NEXT.id ? "#/leccion/" + encodeURIComponent(NEXT.id) : "#/mapa";
+  if(k === "game"){
+    try{ const g = window.vocabShortcuts && typeof vocabShortcuts.lastGame === "function" ? vocabShortcuts.lastGame() : null; if(g && g.href) return g.href; }catch(e){}
+    return "#/juegos";
+  }
+  return (MDEF[k] || {}).href || "#/";
+}
+/* lo que dice el zorro al tocar el altavoz de una fila */
+function rowSay(m){
+  if(m.got) return `${mText(m)}. ¡Conseguida!`;
+  if(m.n >= m.goal) return `${mText(m)}. ¡Lo lograste! Toca Recoger.`;
+  return `${mText(m)}. Llevas ${Math.min(m.n, m.goal)} de ${m.goal}.`;
+}
+const spkBtn = (k, what) => `<button type="button" class="bd-spk" data-spk="${k}" aria-label="Escuchar: ${esc(what)}">${icon("speaker-high", "fill", 20)}</button>`;
+/* el cofre: una sorpresa con peso, la misma todo el día (rng por fecha: recargar no la cambia). Media ≈ 25 monedas:
+   15 (20 %), 20 (25 %), 25 (20 %; o 3 raciones de comida si js/farm.js tiene vocabFarm.giveFood(n) y hay animales),
+   30 (15 %), 40 (10 %) o, 1 vez de cada 10, el huevo de oro (40) */
+const PRIZES = [[.20, {c: 15}], [.25, {c: 20}], [.20, {c: 25, food: 3}], [.15, {c: 30}], [.10, {c: 40}], [.10, {c: 40, egg: true}]];
+function chestPrize(day){
+  const x = rng("chest|" + (day || dk()))(); let a = 0;
+  for(const [w, p] of PRIZES){ a += w; if(x < a) return Object.assign({}, p); }
+  return Object.assign({}, PRIZES[0][1]);
+}
+const canFood = () => { try{ return !!(window.vocabFarm && typeof vocabFarm.giveFood === "function" && farmCount().an >= 1); }catch(e){ return false; } };
+/* el huevo de oro (dibujo propio) */
+const EGG = `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.5c3.6 0 7 6.1 7 11.1A7 7 0 0 1 5 13.6C5 8.6 8.4 2.5 12 2.5Z" fill="#FFCC00" stroke="#B38F00" stroke-width="1.2"/><path d="M9.3 7.6c-.9 1.3-1.6 3-1.8 4.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".8"/></svg>`;
+const prizeText = p => !p ? "" : p.food ? `¡${p.food} raciones de comida para tu granja!` : p.egg ? `¡Un huevo de oro! ${p.c} monedas` : `¡${p.c} monedas!`;
+
+/* contenido de la hoja: las 3 misiones con su barra y su altavoz, y el cofre */
 function misHtml(){
   const M = missions(), got = M.list.filter(m => m.got).length;
   const rows = M.list.map(m => {
@@ -319,18 +389,23 @@ function misHtml(){
     const txt = `<span class="bd-rt"><b>${esc(mText(m))}</b>
       <span class="bd-bar" role="progressbar" aria-label="${esc(mText(m))}" aria-valuemin="0" aria-valuemax="${m.goal}" aria-valuenow="${Math.min(m.n, m.goal)}"><i style="width:${grow > 0 ? pct0 : pct}%"${grow > 0 ? ` data-to="${pct}"` : ""}></i></span>
       <small>${m.got ? "¡Conseguida!" : full ? "¡Lo lograste!" : `${Math.min(m.n, m.goal)} de ${m.goal}`}${grow > 0 && !m.got ? `<span class="bd-plus" aria-hidden="true">+${grow}</span>` : ""}</small></span>`;
-    if(m.got) return `<div class="bd-row got" data-k="${m.k}">${ic}${txt}</div>`;
-    if(full) return `<div class="bd-row done" data-k="${m.k}">${ic}${txt}<button type="button" class="glass-btn glass-btn--pri glass-btn--sm" data-get="${m.k}" aria-label="Recoger 15 monedas">Recoger<span class="bd-c">${COIN}15</span></button></div>`;
-    return `<a class="bd-row" href="${MDEF[m.k].href}" data-k="${m.k}" aria-label="${esc(mText(m))}: ${m.n} de ${m.goal}. ¡Vamos!">${ic}${txt}${icon("caret-right", "bold", 16, "bd-chev")}</a>`;
+    const spk = spkBtn(m.k, mText(m));
+    if(m.got) return `<div class="bd-row got" data-k="${m.k}">${ic}${txt}${spk}</div>`;
+    if(full) return `<div class="bd-row done" data-k="${m.k}">${ic}${txt}${spk}<button type="button" class="glass-btn glass-btn--pri glass-btn--sm" data-get="${m.k}" aria-label="Recoger 15 monedas">Recoger<span class="bd-c">${COIN}15</span></button></div>`;
+    return `<div class="bd-row go" data-k="${m.k}"><a class="bd-go" href="${esc(hrefOf(m.k))}" data-go="${m.k}" aria-label="${esc(mText(m))}: ${m.n} de ${m.goal}. ¡Vamos!">${ic}${txt}${icon("caret-right", "bold", 16, "bd-chev")}</a>${spk}</div>`;
   }).join("");
+  const box = `<span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span>`, pz = M.prize || null;
   const chest = M.chest
-    ? `<div class="bd-row bd-chest open"><span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>¡Cofre abierto!</b><small>Mañana habrá misiones nuevas</small></span></div>`
+    ? `<div class="bd-row bd-chest open"><span class="bd-ric${pz && pz.egg ? " bd-egg" : ""}" aria-hidden="true">${pz && pz.egg ? EGG : icon(pz && pz.food ? "bowl-food" : "treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>¡Cofre abierto!</b><small>${pz ? esc(prizeText(pz)) : "¡Bien hecho!"}</small></span>${spkBtn("chest", "el cofre")}</div>`
     : got === M.list.length
-    ? `<div class="bd-row bd-chest ready"><span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>¡Cofre sorpresa!</b><small>Hiciste las 3 misiones</small></span><button type="button" class="glass-btn glass-btn--pri glass-btn--sm" data-chest="1" aria-label="Abrir el cofre: 25 monedas">Abrir<span class="bd-c">${COIN}25</span></button></div>`
-    : `<div class="bd-row bd-chest lock"><span class="bd-ric" aria-hidden="true">${icon("treasure-chest", "bold", 20)}</span><span class="bd-rt"><b>Cofre sorpresa</b><small>Recoge las 3 misiones para abrirlo</small></span><span class="bd-cdots" role="img" aria-label="${got} de 3 recogidas">${misDots(M)}</span></div>`;
+    ? `<div class="bd-row bd-chest ready">${box}<span class="bd-rt"><b>¡Cofre sorpresa!</b><small>Hiciste las 3 misiones</small></span>${spkBtn("chest", "el cofre")}<button type="button" class="glass-btn glass-btn--pri glass-btn--sm" data-chest="1" aria-label="Abrir el cofre sorpresa">Abrir</button></div>`
+    : `<div class="bd-row bd-chest lock">${box}<span class="bd-rt"><b>Cofre sorpresa</b><small>Recoge las 3 misiones para abrirlo</small></span><span class="bd-cdots" role="img" aria-label="${got} de 3 recogidas">${misDots(M)}</span>${spkBtn("chest", "el cofre")}</div>`;
+  /* los cofres de otros días que se quedaron sin abrir (no caducan) */
+  const n = Array.isArray(M.owed) ? M.owed.length : 0;
+  const owed = n ? `<div class="bd-row bd-chest ready owed">${box}<span class="bd-rt"><b>${n === 1 ? "¡Un cofre sin abrir!" : `¡${n} cofres sin abrir!`}</b><small>Te lo ganaste otro día</small></span>${spkBtn("owed", "el cofre sin abrir")}<button type="button" class="glass-btn glass-btn--pri glass-btn--sm" data-owed="1" aria-label="Abrir el cofre sin abrir">Abrir</button></div>` : "";
   return `<div class="m-head bd-ms-top"><h2 id="bd-ms-tt">Misiones de hoy</h2><button type="button" class="glass-btn glass-btn--sm m-head-x" data-close>Listo</button></div>
-    <p class="bd-ms-sub">${M.chest ? "¡Todas hechas! Mañana hay más." : "Haz las 3 y abre el cofre sorpresa."}</p>
-    <div class="bd-ms-g">${rows}</div><div class="bd-ms-g">${chest}</div>`;
+    <p class="bd-ms-sub">${M.chest ? "¡Todas hechas!" : "Haz las 3 y abre el cofre sorpresa."}</p>
+    <div class="bd-ms-g">${rows}</div><div class="bd-ms-g">${owed}${chest}</div>`;
 }
 /* pinta lo que se vea: la pieza de Hoy y la hoja (si está abierta) */
 function paintMis(){
@@ -348,8 +423,9 @@ function animBars(){
   if(RM()) return go();
   later(go, 420); later(() => snd("pop"), 460);
 }
-/* la hoja: se crea la primera vez y se cierra sola si se va a otra pantalla (una fila lleva a su sitio) */
-let MS = null;
+/* la hoja: se crea la primera vez y se cierra sola si se va a otra pantalla (una fila lleva a su sitio). Si se abrió el
+   cofre, al cerrarla Hoy se vuelve a pintar («¡Lo de hoy, hecho!») */
+let MS = null, CHESTED = false;
 function misSheet(){
   if(MS && MS.isConnected) return MS;
   MS = document.createElement("dialog"); MS.id = "bd-mis-s"; MS.className = "bd-ms"; MS.setAttribute("aria-labelledby", "bd-ms-tt");
@@ -357,6 +433,15 @@ function misSheet(){
   MS.addEventListener("click", e => {
     if(e.target.closest("[data-close]")){ closeMissions(); return; }
     onMisClick(e);
+  });
+  MS.addEventListener("close", () => {
+    try{ if(typeof speechSynthesis !== "undefined" && MS.querySelector(".bd-spk.is-playing")) speechSynthesis.cancel(); }catch(e){}
+    if(!CHESTED) return;
+    CHESTED = false;
+    if(isHome(curH()) && typeof home === "function") setTimeout(() => {
+      if(!isHome(curH())) return;
+      Promise.resolve(home()).then(() => { const b = document.getElementById("bd-mis"); try{ if(b) b.focus({preventScroll: true}); }catch(e){} }).catch(e => console.error(e));
+    }, 60);
   });
   document.body.appendChild(MS);
   return MS;
@@ -367,6 +452,8 @@ function openMissions(from){
   let p;
   try{ p = window.M && typeof M.openSheet === "function" ? M.openSheet(d, {from: from || null}) : (d.showModal(), Promise.resolve()); }catch(e){ console.error(e); p = Promise.resolve(); }
   animBars();
+  /* la lección de «Termina…» y «Acierta…», al día (el idioma o el camino pueden haber cambiado) */
+  refreshNext().then(() => { if(d.open) d.querySelectorAll("a.bd-go[data-go]").forEach(a => a.setAttribute("href", hrefOf(a.dataset.go))); });
   return p;
 }
 function closeMissions(){
@@ -395,27 +482,62 @@ function claim(k, from){
   }, 1300);
   return true;
 }
-/* abrir el cofre cuando las 3 están recogidas: +25 🪙 */
-function openChest(from){
-  const M = missions(); if(M.chest || !M.list.every(x => x.got)) return false;
-  M.chest = true; store.set(MKEY, M);
-  const box = MS && MS.querySelector(".bd-chest .bd-ric"); if(box) box.classList.add("boom");
+/* pagar un cofre (la sorpresa p de chestPrize): las monedas vuelan desde el botón; la comida va a la despensa de la
+   granja (vocabFarm.giveFood) y, si no cabe, son monedas. Devuelve lo que dio ({c, egg?} o {food}) */
+function payChest(p, from, box){
+  let food = null;
+  if(p.food && canFood()){ try{ const r = vocabFarm.giveFood(p.food); if(r && r.ok) food = {food: Math.max(1, Math.round(+r.n || p.food))}; }catch(e){ food = null; } }
+  if(box) box.classList.add("boom");
   snd("gift");
+  try{ if(window.G && typeof G.haptic === "function") G.haptic("success"); }catch(e){}
   const at = from && from.getBoundingClientRect ? from.getBoundingClientRect() : null;
   const pt = at && (at.width || at.height) ? {x: at.left + at.width / 2, y: at.top + at.height / 2} : null;
   setTimeout(() => {
-    if(pt) spark(pt, 16);
-    award(25, "¡Cofre de misiones!", false, pt); hop(); paintMis();
+    if(pt) spark(pt, p.egg ? 28 : 16);
+    if(food) cheer(prizeText(food), "🧺");
+    else award(p.c, p.egg ? "¡Un huevo de oro!" : "¡Cofre sorpresa!", false, pt);
+    hop(); paintMis();
   }, RM() ? 0 : 420);
+  return food || {c: p.c, ...(p.egg ? {egg: true} : {})};
+}
+/* abrir el cofre de hoy cuando las 3 están recogidas: la sorpresa del día (chestPrize) */
+function openChest(from){
+  const M = missions(); if(M.chest || !M.list.every(x => x.got)) return false;
+  M.chest = true; M.prize = payChest(chestPrize(M.day), from, MS && MS.querySelector(".bd-chest:not(.owed) .bd-ric"));
+  store.set(MKEY, M);
+  CHESTED = true;
+  return true;
+}
+/* abrir un cofre de otro día (el más antiguo): su sorpresa es la de su día */
+function openOwed(from){
+  const M = missions(); if(!Array.isArray(M.owed) || !M.owed.length) return false;
+  const d = M.owed.shift(); if(!M.owed.length) delete M.owed;
+  payChest(chestPrize(d), from, MS && MS.querySelector(".bd-chest.owed .bd-ric"));
+  store.set(MKEY, M);
+  later(() => { const r = MS && MS.open && MS.querySelector(".bd-chest"); if(r){ r.tabIndex = -1; try{ r.focus({preventScroll: true}); }catch(e){} } }, RM() ? 20 : 460);
+  return true;
+}
+/* la primera vez que Hoy enseña «¡Lo de hoy, hecho!» (con el cofre abierto): true y se apunta (el confeti, una vez) */
+function partyOnce(){
+  const M = missions(); if(!M.chest || M.party) return false;
+  M.party = true; store.set(MKEY, M);
   return true;
 }
 function onMisClick(e){
+  const sp = e.target.closest("[data-spk]");
+  if(sp){
+    const M = missions(), k = sp.dataset.spk, m = M.list.find(x => x.k === k);
+    const t = m ? rowSay(m) : k === "owed" ? "¡Tienes un cofre sin abrir! Toca Abrir." : M.chest ? `¡Cofre abierto! ${prizeText(M.prize)}` : M.list.every(x => x.got) ? "¡Cofre sorpresa! Toca Abrir." : "Cofre sorpresa. Recoge las 3 misiones para abrirlo.";
+    try{ if(typeof hmSpeak === "function") hmSpeak(t, sp); }catch(err){}
+    return;
+  }
   const g = e.target.closest("[data-get]");
   if(g){ if(claim(g.dataset.get, g)) g.disabled = true; return; }
   const c = e.target.closest("[data-chest]");
-  if(c && openChest(c)) c.disabled = true;
+  if(c && openChest(c)){ c.disabled = true; return; }
+  const o = e.target.closest("[data-owed]");
+  if(o && openOwed(o)) o.disabled = true;
 }
-
 /* ---------- palabra del día ---------- */
 /* temas con dibujos claros para un niño (si no existen, se usan todos los de «temas» y «3000») */
 const KID_DOCS = ["animales", "colores", "familia", "profesiones", "paises", "w02", "w03", "w04", "w05", "w06", "w07", "w09", "w10", "w13", "w15"];
@@ -570,6 +692,7 @@ function mapDeco(){
 bus.on("route", d => {
   const h = String((d && d.h) || "");
   clearLater(); if(!h.startsWith("juegos/")) pendMis = [];
+  if(isHome(h)) refreshNext();   /* adónde llevan «Termina…» y «Acierta…» */
   if(h.startsWith("mapa")){ try{ mapDeco(); }catch(e){ console.error(e); } }
   else if(!h.startsWith("leccion")) walk = null;
 });
@@ -593,5 +716,5 @@ bus.on("farm-harvest", d => bump("farm-harvest", d));
 bus.on("farm-collect", d => bump("farm-collect", d));
 bus.on("farm-find", d => bump("farm-find", d));
 
-window.vocabBuddy = {missions, misHtml, paintMis, misPiece, openMissions, claim, openChest, wotdPick, wotdPiece, paintWotd, attention, wire: wireHome, cheer};
+window.vocabBuddy = {missions, misHtml, paintMis, misPiece, openMissions, claim, openChest, openOwed, chestPrize, hrefOf, partyOnce, wotdPick, wotdPiece, paintWotd, attention, wire: wireHome, cheer};
 })();

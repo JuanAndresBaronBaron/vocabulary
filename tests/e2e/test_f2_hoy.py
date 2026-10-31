@@ -228,14 +228,15 @@ def test_review_row_starts_review():
 
 # ---------------------------------------------------------------- las dos piezas
 def test_missions_sheet_opens_and_closes():
-    """La pieza de Misiones dice la siguiente misión y tiene 3 puntos; al tocarla abre una hoja con las 3 misiones y el
+    """La pieza de Misiones dice la siguiente misión y lleva un anillo de 3 trozos alrededor de su icono (antes, 3
+    puntos; paquete «Inicio»); al tocarla abre una hoja con las 3 misiones y el
     cofre, que se cierra con «Listo» y con Escape (y el foco vuelve a la pieza)."""
     probs = []
     page = C.new_page("phone")
     try:
         C.seed(page)
         p = page.evaluate("""() => { const b = document.getElementById('bd-mis');
-          return {t: b.textContent, dots: b.querySelectorAll('.bd-dots i').length, popup: b.getAttribute('aria-haspopup')}; }""")
+          return {t: b.textContent, dots: b.querySelectorAll('.bd-ring circle').length, popup: b.getAttribute('aria-haspopup')}; }""")
         if "Misiones" not in p["t"] or p["dots"] != 3 or p["popup"] != "dialog":
             probs.append(f"la pieza de Misiones es {p}")
         for how in ("listo", "escape"):

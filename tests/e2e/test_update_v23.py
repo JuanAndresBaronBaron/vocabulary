@@ -259,10 +259,9 @@ def _v23_then_new(gh_cache):
         if pa.evaluate(_GIS_NEW):
             probs.append(f"{ta}: al abrir la versión nueva se pide el permiso sin un toque: {pa.evaluate(_GIS_NEW)}")
         C.shot(pa, f"v24-hoy-tras-actualizar-{var}", OUT)
-        if pa.evaluate(_TOPG):
-            probs.append(f"{ta}: con Google conectado sale el botón de Google en la barra de arriba")
-        if not pb.evaluate(_TOPG):
-            probs.append(f"{tb}: sin Google no sale el botón de Google en la barra de arriba")
+        for page, t in ((pa, ta), (pb, tb)):   # la G de la barra de arriba ya no sale nunca (solo en Ajustes › Para mayores)
+            if page.evaluate(_TOPG):
+                probs.append(f"{t}: sale el botón de Google en la barra de arriba")
         for page, t, old_media in ((pa, ta, media_a), (pb, tb, media_b)):
             _new_sw(page, v, shell, old_media, t, probs)
         # la partida igual: cada clave y la exportación (sin claves nuevas)

@@ -45,6 +45,17 @@ compartida no responde).
   pudo; capturas en `capturas/guardado-puerta`).
 - `test_f2_hoy.py` (F2c): Hoy sin scroll, la tarjeta de `nextAction()`, «Repasar N», Misiones y Palabra del día,
   Privacidad y el accesorio «Seguir».
+- `test_inicio.py` (Hoy, la primera vez y el día a día; `js/welcome.js`, `home()`/`nextAction()` de index.html y las
+  Misiones de `js/buddy.js`): la bienvenida de un aparato nuevo con `?hello=on` (a pantalla completa; el primer toque lee
+  la pregunta en español; las 3 banderas eligen el idioma y suenan con `say()`; el nombre; «¡Vamos!» a la primera
+  lección; «Saltar»; los avisos esperan; no sale con partida, con Google, con `?hello=off` ni sin `?hello=on` en un
+  navegador automático; 360 con letra grande, oscuro y 1280); el zorro lee Hoy y cada misión con la voz española
+  (`speechSynthesis` de mentira; sin voz española, sin altavoces); el anillo de Misiones, la semana con la llama,
+  «¡Lo de hoy, hecho!» con confeti una vez; el cofre (sorpresa por día, media ≈ 25, sin anunciar, no caduca); las 10
+  monedas del día como sorpresa visible de la primera práctica (nunca por abrir la app); la temporada alcanzable desde
+  la esquina de la tarjeta a 360×740 con letra grande; cada misión a su actividad y «Acierta…» con estrella; sin «G»
+  arriba; los 3 dibujos de lo que toca y Hoy sin scroll a 360×740 y 390×844 (también con letra grande). Capturas en
+  `capturas/inicio`.
 - `test_f2_nav.py` (F2 entero): `aria-selected` en cada ruta, tocar la pestaña activa, la memoria de cada pestaña,
   los segmentos, las insignias con partidas sembradas a propósito (pendientes, un animal con hambre, pegatinas nuevas),
   la barra arriba a 1280 px y abajo a 390 px, el modo foco, el menú de idioma, la tienda desde las monedas, Ajustes,
@@ -296,8 +307,7 @@ compartida no responde).
   voz?» en Voz y velocidad con los pasos de Android y el enlace a «Servicios de voz de Google» por la Puerta, y «Probar
   voz» con lo que ve el aparato; la nube del hambre de la granja (grande y pequeña) y el animal abren «¿Qué le das…?»,
   también con una pista de gestos encima de la nube;
-  el botón de Google arriba (cabe a 360 px con texto grande, Puerta, permiso dentro del toque, se va al conectar, nunca
-  con `html[data-tech]`); y el cazador: tres rondas seguidas con la cámara falsa de Chromium (un `.y4m` con los 4
+  la barra de arriba sin la «G» de Google (ya no sale nunca; cabe a 360 px con texto grande y 12345 monedas); y el cazador: tres rondas seguidas con la cámara falsa de Chromium (un `.y4m` con los 4
   colores) y dos con un vídeo «de iPhone» (al sonar algo se para y `play()` no contesta tras `pause()`). Capturas en
   `capturas/arreglos-v24`.
 - `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en

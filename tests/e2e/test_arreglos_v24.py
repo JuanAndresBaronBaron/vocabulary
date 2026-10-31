@@ -11,9 +11,9 @@
    en cuanto vuelve a sonar, se olvida.
 2. La granja (js/farm.js): tocar la nube blanca del hambre (.fm-ask, la grande y la pequeña) o el animal abre «¿Qué le
    das…?» para darle de comer.
-3. El botón de Google de la barra de arriba (js/sync.js, #tb-google): sale sin Google, cabe a 360 px con texto grande y
-   12345 monedas, pasa por la Puerta y pide el permiso de Google dentro del toque (GIS y Drive de mentira), abre Para
-   mayores; conectado, no sale; con html[data-tech], tampoco.
+3. El botón de Google de la barra de arriba (js/sync.js, #tb-google) ya no sale (paquete «Inicio»: lo de Google es
+   solo de Ajustes › Para mayores): ni sin Google, ni conectado, ni con html[data-tech]; la barra cabe a 360 px con texto
+   grande y 12345 monedas.
 4. El cazador (js/hunter.js): con la cámara falsa de Chromium (un .y4m que pasa por los 4 colores) tres rondas
    enteras seguidas, sin pausar el vídeo, una cámara por ronda; y con la cámara de lienzo y un vídeo «de iPhone» (tras
    pause(), play() no contesta y la imagen se queda quieta; al sonar algo, el vídeo se para) las cosas se siguen cazando.
@@ -28,9 +28,7 @@ import common as C
 import test_f2_ajustes as A
 import test_f2_fix as F2F
 import test_f4_granja as GR
-import test_f5_buzon as BZ
 import test_f6_cazador as HZ
-import test_update_v21 as U
 import test_voces as V
 
 OUT = C.CAPTURAS / "arreglos-v24"
@@ -327,59 +325,30 @@ _TOP = """() => { const b = document.getElementById('tb-google'), vis = e => !!e
     scroll: document.documentElement.scrollWidth <= innerWidth}; }"""
 
 
-def test_google_button_in_topbar_until_connected():
-    """Sin Google: el botón redondo con la G va primero en el grupo de la derecha (44×44, a 8 px de las monedas, en la
-    fila de la bandera) y cabe a 390 y a 360 px con texto grande y 12345 monedas, sin scroll de lado. Tocarlo abre la
-    Puerta de mayores; al pasarla se pide el permiso de Google en ese mismo toque, se abre Ajustes › Para mayores con el
-    bloque de Google y, conectado, el botón se va. Con Google conectado no sale; con html[data-tech], tampoco."""
+def test_no_google_button_in_topbar():
+    """La «G» de Google no va en la barra de arriba (era de v24; ahora Google es solo de Ajustes › Para mayores, tras la
+    Puerta): ni sin Google a 390 y a 360 px (con texto grande y 12345 monedas la barra cabe, sin scroll de lado), ni con
+    Google conectado, ni con html[data-tech]."""
     probs = []
+    bar = """() => { const g = document.querySelector('.topbar .tb-group').getBoundingClientRect();
+      return {inView: g.right <= innerWidth - 15.5 && g.left >= 0, scroll: document.documentElement.scrollWidth <= innerWidth}; }"""
     for kw, tag in (({}, "390"), (S360, "360")):
         page = C.new_page("phone", **kw)
         try:
-            page.add_init_script(A._GIS)
-            page.add_init_script(U._DRIVE)
             C.seed(page)
             C.goto(page, "#/")
-            r = page.evaluate(_TOP)
-            want = {"shown": True, "w": 44, "h": 44, "first": True, "label": "Entrar con Google (para mayores)", "logo": True, "gap": 8,
-                    "flag": True, "inView": True, "oneRow": True, "scroll": True}
-            if r != want:
-                probs.append(f"{tag}: el botón de Google: {r}")
+            if page.evaluate(_TOP)["shown"]:
+                probs.append(f"{tag}: sin Google, la G sale arriba")
             page.evaluate(F2F._COINS, 12345)
             page.evaluate("() => { document.documentElement.dataset.text = 'large'; }")
             page.wait_for_timeout(300)
-            r = page.evaluate(_TOP)
-            if not r.get("shown") or not r["inView"] or not r["flag"] or not r["oneRow"] or not r["scroll"]:
-                probs.append(f"{tag}: con texto grande y 12345 monedas no cabe: {r}")
-            C.shot(page, f"google-arriba-texto-grande-{tag}", OUT)
-            page.evaluate("() => { delete document.documentElement.dataset.text; }")
-            page.evaluate(F2F._COINS, 245)
-            page.wait_for_timeout(200)
-            C.shot(page, f"google-arriba-{tag}", OUT)
-            if tag == "390":
-                # Puerta → permiso dentro del toque → Para mayores → conectado y sin botón
-                page.locator("#tb-google").click()
-                page.wait_for_selector("dialog#gate[open]", timeout=3000)
-                if page.evaluate("window.__gis.length"):
-                    probs.append("se pide el permiso de Google antes de pasar la Puerta")
-                C.shot(page, "google-arriba-puerta-390", OUT)
-                BZ._pass_gate(page)
-                page.wait_for_function("() => window.__gis.length > 0", timeout=4000)
-                calls = page.evaluate("window.__gis")
-                if len(calls) != 1 or not calls[0]["tap"] or not calls[0]["act"]:
-                    probs.append(f"el permiso no se pide dentro del toque: {calls}")
-                page.wait_for_selector("dialog#ajustes[open] [data-sync-block] #sv-box", timeout=5000)
-                page.wait_for_function("() => !!vocabSync.state.meta.connectedAt", timeout=8000)
-                page.wait_for_timeout(400)
-                if page.evaluate(_TOP)["shown"]:
-                    probs.append("conectado, el botón de Google sigue en la barra de arriba")
-                if "Conectado" not in page.evaluate("() => document.getElementById('sv-box').textContent"):
-                    probs.append(f"Para mayores no dice que está conectado: {page.evaluate('() => document.getElementById(`sv-box`).textContent')[:200]}")
-                C.shot(page, "google-conectado-para-mayores-390", OUT)
+            r = page.evaluate(bar)
+            if page.evaluate(_TOP)["shown"] or r != {"inView": True, "scroll": True}:
+                probs.append(f"{tag}: con texto grande y 12345 monedas: {r}")
+            C.shot(page, f"sin-google-arriba-texto-grande-{tag}", OUT)
             probs += [f"{tag}: {e}" for e in C.errors(page)]
         finally:
             page.context.close()
-    # ya conectado: no sale · Tech Prep (html[data-tech]): no sale
     page = C.new_page("phone")
     try:
         page.add_init_script(A._GIS)

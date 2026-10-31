@@ -374,7 +374,7 @@ function rootHtml(){
       <div class="aj-av" aria-hidden="true">${heroBox()}</div>
       <div class="aj-me-t">
         <label class="aj-nm">${ico("pencil-simple", "bold", 16)}<input class="aj-name" id="aj-name" maxlength="20" autocomplete="off" enterkeyhint="done"
-          placeholder="Escribe tu nombre" aria-label="Tu nombre" value="${h(name)}"></label>
+          placeholder="Tu nombre" aria-label="Tu nombre" value="${h(name)}"></label>
         <p class="aj-st">${ico("fire", "fill", 18)}<span id="aj-streak">${h(streakText())}</span></p></div></div>
     <section class="st-sec" aria-label="Sonido y voz"><div class="st-g ics">
       <label class="st-r" for="aj-snd"><span class="st-ic tl" aria-hidden="true">${ico("speaker-high", "bold", 18)}</span><span class="st-l">Sonido</span>
