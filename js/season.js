@@ -9,7 +9,8 @@
      hora o la zona horaria hacia atrás y adelante no vuelve a pagar.
    - Hoy: una fila compacta (HOME_SLOTS, id "season"): «Truco o trato», «Bonfire Night» o «Calendario» con la ventanita del
      día. Lleva a #/temporada, una pantalla de Hoy (la pestaña Hoy queda marcada y al tocarla vuelve a Hoy; «‹ Hoy» es la
-     cápsula de la barra de arriba). La tarjeta de Hoy lleva dos dibujos de la temporada en sus esquinas (HOY_DECO).
+     cápsula de la barra de arriba). La tarjeta de Hoy lleva dos dibujos de la temporada en sus esquinas (HOY_DECO); el
+     de la derecha es un enlace a #/temporada (#ss-hd), por si la fila no cabe.
    - Halloween, «Truco o trato» (#/temporada): una calle de noche con 10 puertas. Al tocar una se abre y sale un dibujo; en
      una hoja suena la palabra y se elige entre 3 palabras escritas (o, la mitad de las veces, se oye y se elige entre 3
      dibujos). Acierto: ✓ verde, suena, la hoja se cierra sola al acabar el audio (nunca antes de 0,9 s) y un caramelo vuela
@@ -301,12 +302,18 @@ dialog#ss-q.m-sheet.glass{background:var(--card,#fff);-webkit-backdrop-filter:no
 .ss-q-dock .glass-btn{min-width:200px}
 /* Hoy */
 .ss-ric img{width:26px;height:26px;object-fit:contain}
-/* el adorno de la temporada en la tarjeta de Hoy (sin vidrio ni toques) */
+/* el adorno de la temporada en la tarjeta de Hoy: el de la derecha es un enlace de 44 px a #/temporada (con el nombre de
+   la temporada), así se llega siempre aunque su fila no quepa; el de la izquierda, solo un dibujo */
 .ss-hd{position:absolute;z-index:0;width:30px;height:30px;object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none}
-.ss-hd.l{left:12px;top:12px;rotate:-10deg}.ss-hd.r{right:12px;top:12px;rotate:8deg}
+.ss-hd.l{left:12px;top:12px;rotate:-10deg}
+.ss-hd-a{position:absolute;z-index:1;right:5px;top:5px;width:44px;height:44px;display:grid;place-items:center;border-radius:50%;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.ss-hd-a .ss-hd{position:static;rotate:8deg;transition:scale .15s}
+.ss-hd-a:active .ss-hd{scale:.92}
+.ss-hd-a:focus-visible{outline:3px solid var(--brand-tint);outline-offset:-2px}
+@media (hover:hover){.ss-hd-a:hover .ss-hd{scale:1.08}}
 /* en el móvil el zorro va en la esquina de la izquierda y el bocadillo llega casi al borde de la derecha: solo el adorno de
-   la derecha (el de la izquierda pisaba la cabeza del zorro) */
-@media (max-width:743px){.ss-hd.l{display:none}}
+   la derecha (el de la izquierda pisaba la cabeza del zorro), y el bocadillo le deja su sitio */
+@media (max-width:743px){.ss-hd.l{display:none}.hm-hero:has(.ss-hd-a) .hm-top{padding-right:34px}}
 .hm-hero:has(.ss-hd){position:relative}
 :root[data-theme=dark] .ss-ric{background:#F2F2F7}
 /* la granja */
@@ -330,13 +337,18 @@ function css(){
 const rowHtml = (img, t, sub) => `<a class="card hm-row ss-row" href="#/temporada" id="ss-row" aria-label="${esc(t)}. ${esc(sub)}">`
   + `<span class="hm-ric emo ss-ric" aria-hidden="true"><img src="${esc(img)}" alt="" width="26" height="26"></span>`
   + `<span class="hm-rt">${esc(t)}<small>${esc(sub)}</small></span>${IC("caret-right", "bold", 16, "hm-chev")}</a>`;
-/* el adorno de la tarjeta de Hoy: dos dibujos de la temporada en sus esquinas (se pinta después de la fila) */
+/* el adorno de la tarjeta de Hoy: dos dibujos de la temporada en sus esquinas (se pinta después de la fila); el de la
+   derecha lleva a #/temporada (la fila puede no caber: fit() de js/shortcuts.js o un móvil bajo con un solo HOME_SLOT) */
 const HOY_DECO = {halloween: ["img/season/pumpkin.png", "img/season/bat.png"], bonfire: ["img/season/firework.png", "img/season/sparkler.png"],
   advent: ["img/season/christmas-tree.png", "img/season/snowman.png"]};
 function decoHoy(id){
   const go = () => {
     const h = document.querySelector("#hm .hm-hero"); if(!h || h.querySelector(".ss-hd") || active() !== id) return;
-    h.insertAdjacentHTML("afterbegin", HOY_DECO[id].map((src, k) => `<img class="ss-hd ${k ? "r" : "l"}" src="${src}" alt="" aria-hidden="true" draggable="false">`).join(""));
+    const [l, r] = HOY_DECO[id], t = id === "advent" ? "Calendario de adviento" : STREET[id].title;
+    h.insertAdjacentHTML("afterbegin", `<img class="ss-hd l" src="${l}" alt="" aria-hidden="true" draggable="false">`
+      + `<a class="ss-hd-a" id="ss-hd" href="#/temporada" aria-label="${esc(t)}" title="${esc(t)}"><img class="ss-hd r" src="${r}" alt="" aria-hidden="true" draggable="false"></a>`);
+    /* el bocadillo le deja sitio y puede crecer: Hoy se vuelve a medir (sin scroll) */
+    try{ if(window.vocabShortcuts && typeof vocabShortcuts.fit === "function") vocabShortcuts.fit(); }catch(e){}
   };
   setTimeout(go, 0); setTimeout(go, 400);
 }

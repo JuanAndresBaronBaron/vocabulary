@@ -24,8 +24,9 @@
      (js/keys.js). Mantener pulsada una pieza (G.hold: se hunde y crece al cumplirse) o «Editar» (al final de la
      cabecera de la sección) abre una hoja con «Fijar» ↔ «Fijado» (conmutador) y «No sugerir» (30 días; M.toast «Ya no
      sale en Hoy» con «Deshacer» 9 s). Hoy sigue sin scroll: con la fila, en el móvil (< 744 px) homeSlots() deja 1 HOME_SLOT
-     (wantsRow()) y, si aun así no cabe, fit() quita los HOME_SLOTS que sobren, del último al primero (la fila manda,
-     salvo ante una carta sin abrir); en un móvil muy bajo compacta la fila y, como último recurso, la quita.
+     (wantsRow()) y, si aun así no cabe, fit() quita la frase de la cena, la semana y los HOME_SLOTS que sobren, del
+     último al primero (la fila manda, salvo ante una carta sin abrir); en un móvil muy bajo compacta la fila, quita los
+     dibujos de la tarjeta de Hoy y, como último recurso, quita la fila.
      html[data-sc] = cuántas piezas enseña.
    - «¿Lo pongo siempre despacio?»: si de las últimas 20 escuchas tocadas (altavoces y tortugas) el 60 % o más fueron
      con la tortuga, el zorro lo pregunta una vez en Hoy. «Sí, despacio» pone la velocidad «Lenta» del ajuste de siempre
@@ -44,7 +45,8 @@
        "<en|fr|da>/cuento:<id del cuento>".
    API: window.vocabShortcuts = {wantsRow(), paint(), covers(st), suggest(), log(clave), points(clave), keys, prefs(),
      pin(clave, on), hide(clave) → deshacer, unhide(clave), setOff(off), forget(), openEdit(desde), openItem(clave,
-     desde), closeSheet(), askSlow(forzar), slowWanted(), adultHtml(), fit(soft), SC, PREFS, shown (claves en la fila)}. */
+     desde), closeSheet(), askSlow(forzar), slowWanted(), adultHtml(), fit(soft), lastGame() (el último juego terminado,
+     como un atajo: {href, …} o null), SC, PREFS, shown (claves en la fila)}. */
 (() => {
 "use strict";
 const D = document, W = window, ROOT = D.documentElement;
@@ -186,6 +188,7 @@ function resolve(key){
 /* lo que ofrece la tarjeta principal de Hoy (la misma regla que nextAction() de index.html) */
 async function cardOffer(){
   try{
+    if(W.vocabBuddy && typeof vocabBuddy.missions === "function" && vocabBuddy.missions().chest) return null;   /* «¡Lo de hoy, hecho!» */
     if(typeof dueList === "function" && dueList().length >= 10) return {kind: "repaso"};
     const L = typeof nextLesson === "function" ? await nextLesson() : null;
     return L && !L.done && L.l ? {kind: "leccion", id: L.l.id} : null;
@@ -327,47 +330,76 @@ function render(res, slots){
   fit(true);   /* la medida buena llega con "acc", tras "route" (con la cabecera de Hoy y el accesorio ya puestos), y al cargar la letra */
   try{ if(D.fonts && D.fonts.status !== "loaded") D.fonts.ready.then(() => { if(sec.isConnected) fit(); }); }catch(e){}
 }
-/* Hoy sin scroll. Si con la fila no cabe: 1) se van los HOME_SLOTS, del último al primero; 2) la fila se compacta (piezas
-   de 44 px con el dibujo al lado; «Editar» sigue en la cabecera); 3) si aun así no cabe (un móvil bajo con mucho en Hoy),
-   la fila se va (y vuelven las filas que entonces quepan).
+/* Hoy sin scroll. Si no cabe, se va (de lo menos a lo más importante): 0) «La frase de la cena» (el HOME_SLOT phrase;
+   sigue en Juegos › Frases mágicas); 1) la semana (#hm-week, los 7 días de Hoy); 2) la fila de la temporada y la de la
+   carta con candado (season y mail-lock: a la temporada también se llega por el dibujo de la esquina de la tarjeta);
+   3) los 3 dibujos de la tarjeta de Hoy (#hm-hero.hm-notiles; no en la medida suave; en el móvil, < 744 px, con la fila
+   de atajos no hay dibujos nunca: la fila ya es de dibujos y así queda donde siempre, sin que la tape la hoja de una
+   pieza); 4) los demás HOME_SLOTS, del
+   último al primero; 5) la fila se compacta (piezas de 44 px con el dibujo al lado; «Editar» sigue en la cabecera);
+   6) si aun así no cabe (un móvil bajo con mucho en Hoy), la fila se va (y vuelven las filas que entonces quepan). Al
+   final, si hay sitio, la semana vuelve.
    La carta sin abrir («¡Tienes carta!», el primer HOME_SLOT cuando la hay: llega pocas veces y es de alguien de casa) va
-   antes que la fila: en el paso 1 se queda y, si con la fila compacta sigue sin caber, se va la fila (los atajos siguen
+   antes que la fila: en el paso 4 se queda y, si con la fila compacta sigue sin caber, se va la fila (los atajos siguen
    en Juegos). Salvo si la fila hace de accesorio «Seguir» (su pieza a medias): entonces la fila manda.
-   Se puede volver a llamar (con "route", al cargar la letra o al girar): antes de medir, vuelve a poner lo que quitó.
-   soft: sin el paso 3 (al pintar, antes de que route() ponga la cabecera de Hoy); ahí la carta también se va, y vuelve
-   con la medida buena ("acc").
-   El paso 1 vale también sin la fila (atajos apagados o aún sin atajos): con el accesorio «Seguir» en Hoy y dos
-   HOME_SLOTS, el último se va. Un HOME_SLOT que se va llama a su .skip(), si la tiene (así no gasta su vez). */
-const FIRST = new Set(["mail"]);   /* los HOME_SLOTS que van antes que la fila de atajos */
+   Se puede volver a llamar (con "route", "acc", al cargar la letra o al girar): antes de medir, vuelve a poner lo que
+   quitó, en su orden (data-ord).
+   soft: sin los pasos 3 y 6 (al pintar, antes de que route() ponga la cabecera de Hoy); ahí la carta también se va, y
+   vuelve con la medida buena ("acc").
+   Los pasos 0-4 valen también sin la fila (atajos apagados o aún sin atajos). Un HOME_SLOT que se va llama a su
+   .skip(), si la tiene (así no gasta su vez). */
+const FIRST = new Set(["mail"]);              /* los HOME_SLOTS que van antes que la fila de atajos */
+const LAST = new Set(["phrase"]);             /* los que se van antes que la semana */
+const MID = new Set(["season", "mail-lock"]); /* los que se van antes que los dibujos de la tarjeta */
 let CUT = [];
 function fit(soft){
-  const sec = D.getElementById("hm-sc"), box = D.getElementById("hm-slots");
+  const sec = D.getElementById("hm-sc"), box = D.getElementById("hm-slots"), wk = D.getElementById("hm-week"), hero = D.getElementById("hm-hero");
   if(!box || !onHoy()){ CUT = []; return; }
   const over = () => ROOT.scrollHeight > innerHeight;
+  const slots = () => [...box.querySelectorAll(":scope > .hm-slot")];
+  const back = () => {   /* lo quitado vuelve, cada fila en su sitio */
+    CUT.forEach(el => box.append(el)); CUT = []; CUT.box = box;
+    slots().sort((a, b) => (+a.dataset.ord || 0) - (+b.dataset.ord || 0)).forEach(el => box.append(el));
+  };
   if(sec) sec.classList.remove("sc-tight");
-  if(CUT.box === box) CUT.forEach(el => box.append(el));
-  CUT = []; CUT.box = box;
+  if(wk) wk.hidden = false;
+  if(hero) hero.classList.remove("hm-notiles");
+  if(CUT.box !== box) CUT = [];
+  back();
+  slots().forEach((el, i) => { if(el.dataset.ord == null) el.dataset.ord = String(i); });
+  if(sec && !TABLET.matches && hero && hero.querySelector(".hm-tiles")) hero.classList.add("hm-notiles");
   if(!over()) return;
-  const trim = (keep = 0) => {
-    const ss = [...box.querySelectorAll(":scope > .hm-slot")];
-    while(ss.length > keep && over()){
-      const el = ss.pop(); el.remove(); CUT.unshift(el);
+  /* quita filas del final mientras no quepa (only: solo esas; keep: deja las primeras) */
+  const trim = (keep = 0, only = null) => {
+    const ss = slots(), kept = new Set(ss.slice(0, keep));
+    for(const el of ss.reverse()){
+      if(!over()) break;
+      if(kept.has(el) || (only && !only.has(el.dataset.slot))) continue;
+      el.remove(); CUT.push(el);
       try{ const f = typeof HOME_SLOTS !== "undefined" && HOME_SLOTS.find(s => s && s.id && s.id === el.dataset.slot); if(f && typeof f.skip === "function") f.skip(); }catch(e){}
     }
   };
+  const tiles = () => { if(!soft && over() && hero && hero.querySelector(".hm-tiles")) hero.classList.add("hm-notiles"); };
+  const week = () => { if(wk && wk.hidden){ wk.hidden = false; if(over()) wk.hidden = true; } };
   const first = box.querySelector(":scope > .hm-slot");
-  const vip = !!(sec && !COVER && first && FIRST.has(first.dataset.slot));
-  trim(vip ? 1 : 0);
-  if(!sec) return;
+  const keep = sec && !COVER && first && FIRST.has(first.dataset.slot) ? 1 : 0;
+  trim(keep, LAST);
+  if(over() && wk) wk.hidden = true;
+  trim(keep, MID);
+  tiles();
+  trim(keep);
+  if(!sec){ week(); return; }
   if(over()) sec.classList.add("sc-tight");
   if(over() && soft) trim();
   if(over() && !soft){
     sec.remove(); clearGest(); ROOT.removeAttribute("data-sc"); SHOWN = [];
-    CUT.forEach(el => box.append(el)); CUT = []; CUT.box = box;   /* sin la fila vuelven las filas… */
-    trim();                                                          /* …las que quepan */
+    if(hero) hero.classList.remove("hm-notiles");   /* sin la fila vuelven los dibujos y las filas… */
+    back();
+    trim(0, LAST); trim(0, MID); tiles(); trim();     /* …las que quepan */
     /* la pieza a medias se fue: sale el accesorio «Seguir» y, con "acc", se vuelve a medir */
     if(COVER){ COVER = null; try{ W.vocabAccessory && vocabAccessory.refresh(); }catch(e){} }
   }
+  week();
 }
 let FIT_T = 0;
 W.addEventListener("resize", () => { clearTimeout(FIT_T); FIT_T = setTimeout(fit, 150); });
@@ -533,7 +565,18 @@ function onSheet(e){
 /* ---------- lo que se termina ---------- */
 let FLIP = null;   /* Tarjetas: las giradas en esta visita a la ficha */
 function on(ev, f){ try{ if(typeof bus !== "undefined") bus.on(ev, d => { try{ f(d || {}); }catch(e){ console.error(e); } }); }catch(e){} }
-on("game-done", d => { if(d.game) log(keys.game(String(d.game), d.tp ? String(d.tp) : "")); });
+on("game-done", d => { if(d.game){ LASTG = keys.game(String(d.game), d.tp ? String(d.tp) : ""); log(LASTG); } });
+/* el último juego terminado (la misión «Juega…» de js/buddy.js lleva ahí): el de esta visita o, si no, el de vocab:sc
+   del día más reciente (a igualdad, el de más puntos). Del idioma de ahora, con su tema; null si no hay ninguno */
+let LASTG = null;
+function lastGame(){
+  const L = ab(), o = scGet();
+  const ks = Object.entries(o.k).filter(([k, e]) => isObj(e) && (parse(k) || {}).type === "juego" && k.startsWith(L + "/"))
+    .sort((a, b) => (+b[1].t || 0) - (+a[1].t || 0) || (+b[1].s || 0) - (+a[1].s || 0)).map(([k]) => k);
+  if(LASTG && LASTG.startsWith(L + "/")) ks.unshift(LASTG);
+  for(const k of ks){ const it = resolve(k); if(it) return it; }
+  return null;
+}
 on("doc-done", d => {
   if(!d.id || !MODE_T[d.mode]) return;
   log(keys.doc(String(d.id), d.mode));
@@ -557,7 +600,11 @@ on("review-done", () => { PENDING = null; });
 /* con "route" el hueco del accesorio «Seguir» aún puede ser el de la pantalla anterior: ahí solo la medida suave (lo que
    quita vuelve en la siguiente); la buena, con "acc" (index.html, cuando el accesorio ya está puesto o quitado) */
 on("route", () => { FLIP = null; if(!onHoy()){ clearGest(); COVER = null; } else fit(true); });
-on("acc", () => { if(onHoy()) fit(); });
+on("acc", () => {
+  if(!onHoy()) return;
+  fit();
+  try{ if(D.fonts && D.fonts.status !== "loaded") D.fonts.ready.then(() => { if(onHoy()) fit(); }); }catch(e){}   /* con la letra ya puesta */
+});
 on("lang", () => { PENDING = null; });
 
 /* ---------- «¿Lo pongo siempre despacio?» ---------- */
@@ -770,7 +817,7 @@ css();
 
 W.vocabShortcuts = Object.freeze({
   wantsRow, paint, covers, suggest, log, points, keys, prefs, pin, hide, unhide, setOff, forget,
-  openEdit, openItem, closeSheet, askSlow, slowWanted, adultHtml, fit, SC, PREFS,
+  openEdit, openItem, closeSheet, askSlow, slowWanted, adultHtml, fit, lastGame, SC, PREFS,
   get shown(){ return SHOWN.slice(); },
 });
 })();

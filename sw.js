@@ -30,7 +30,7 @@ const SHELL = [
   "js/ctxmenu.js",
   "js/mailbox.js", "img/games/buzon.png",
   "js/phrases.js", "data/phrases.json", "img/games/frases.png",
-  "js/navmotion.js",
+  "js/navmotion.js", "js/welcome.js",
   "js/parrot.js",
   "js/calls.js", "data/calls/index.json",
   "data/calls/en/zoo.json", "data/calls/en/rain.json", "data/calls/en/breakfast.json", "data/calls/en/family.json", "data/calls/en/birthday.json",
