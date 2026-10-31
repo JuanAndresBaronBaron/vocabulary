@@ -419,6 +419,17 @@ def test_study_migration_from_finished_runs():
         _open(page, "#/review", reload=True)
         page.evaluate("() => IE.study.settled()")
         assert len(page.evaluate(_STUDY)["log"]) == n, "migrated twice"
+
+        # the first load opens straight on #/lesson/review (a reload there, a bookmark): the review waits for the
+        # migration, so it plays the migrated cards and its session does not wipe them
+        page.evaluate("() => { localStorage.removeItem('ielts:study'); localStorage.removeItem('ielts:run:review'); }")
+        _open(page, "#/lesson/review", reload=True)
+        page.evaluate("() => IE.study.settled()")
+        s = page.evaluate(_STUDY)
+        assert s and s.get("mig") == 1 and set(s["cards"]) == {q["id"] for q in qs}, s and sorted(s["cards"])
+        assert len(s["log"]) == n, (len(s["log"]), n)
+        assert s["session"] and sorted(s["session"]["ids"]) == sorted(q["id"] for q in qs), s["session"]
+        assert "Nothing due today" not in page.inner_text("#app")
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()
@@ -650,7 +661,9 @@ def test_study_home_plan_icons_storage_and_erase():
         assert page.evaluate("() => document.querySelector('#ie-rvcard').nextElementSibling.classList.contains('ie-scores')")
         keys0 = set(page.evaluate("Object.keys(localStorage)"))
         assert "ielts:study" not in keys0, "ielts:study written with nothing to store"
-        _finish(page, "u01-l1", {})
+        st = _finish(page, "u01-l1", {})
+        # stamped on every write, so core's restore keeps whichever copy of ielts:study is newer
+        assert isinstance(st.get("at"), (int, float)) and st["at"] > 0, st.get("at")
         page.evaluate(_AGE, 2)
         keys1 = set(page.evaluate("Object.keys(localStorage)"))
         assert keys1 - keys0 <= {"ielts:study", "ielts:run:u01-l1", "ielts:data"}, keys1 - keys0

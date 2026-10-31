@@ -6,7 +6,8 @@
      and exemplar calibration, for the player and My writing.
    · Stores one key, "ielts:study" = {v:1, cards:{qid: {lid, box, due, hits, last, n, p?, sec?}}, log:[{q, l, k, s, ok,
      tag?, x?, g?, m?, c?, a?, at}], session:{at, ids:[qid], ord:{qid:[original index…]}} | null,
-     exam:{date:"YYYY-MM-DD", from} | null, calib:[{iid, x, guess, band, at}], mig?}. Card: p = the reading/listening
+     exam:{date:"YYYY-MM-DD", from} | null, calib:[{iid, x, guess, band, at}], mig?, at}. at = the time of the last write
+     (a restore from a backup takes the newer copy). Card: p = the reading/listening
      item a set question lives in (a "wrapped" card), sec = when it was retired as secure. Log: x = a standalone
      exercise (not an exam-format question), g/m = marks got/available when a question is worth more than one, c/a = the
      right and the given answer of TRUE/FALSE/NOT GIVEN. Every read and write goes through IE.LS (try/catch); a missing
@@ -59,6 +60,7 @@ function sget(){
 function sset(s){
   if(RO) return false;
   if(migDone) s.mig = 1;
+  s.at = Date.now();   /* core's restore keeps whichever copy of ielts:study is newer */
   s.log = s.log.slice(-LOG_MAX); s.calib = s.calib.slice(-CAL_MAX);
   if(LS.set(SK, s)) return true;
   s.log = s.log.slice(-Math.floor(LOG_MAX / 3));   /* storage is full: keep the newest answers */
@@ -366,17 +368,19 @@ let cur = null, building = null;   /* cur: the review lesson in play {at, items,
 function reviewLesson(){
   if(building) return building;
   building = (async () => {
-    const s = sget(), t = Date.now();
+    await pending;   /* a migration or a lesson being logged writes the deck first (nothing in that chain waits on this) */
+    let s = sget();
+    const t = Date.now();
     if(s.session){
       const r = await buildItems(s.session, s, false);
       if(r.items.length){ cur = {at: s.session.at, items: r.items, meta: r.meta}; const L = reviewLessonOf(r.items); return {lesson: L, unit: reviewUnit(L)}; }
-      s.session = null;
+      s = sget(); s.session = null;   /* read again: the store may have changed while the units loaded */
     }
     LS.del(RK(RV));   /* a new session starts afresh */
     const ids = pickDue(s, t);
     if(!ids.length){ cur = null; if(!RO && LS.get(SK) != null) sset(s); const L = emptyLesson(s); return {lesson: L, unit: reviewUnit(L)}; }
     const sess = {at: t, ids, ord: {}}, r = await buildItems(sess, s, true);
-    sess.ids = r.ids; s.session = r.ids.length ? sess : null; sset(s);
+    sess.ids = r.ids; s = sget(); s.session = r.ids.length ? sess : null; sset(s);
     if(!r.items.length){ cur = null; const L = emptyLesson(s); return {lesson: L, unit: reviewUnit(L)}; }
     cur = {at: t, items: r.items, meta: r.meta};
     const L = reviewLessonOf(r.items); return {lesson: L, unit: reviewUnit(L)};
