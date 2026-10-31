@@ -330,6 +330,26 @@ def test_lives_lost_and_end():
         page.context.close()
 
 
+def test_nothing_done_is_try_again():
+    """Una partida sin hacer nada (1 enemigo por oleada, más deprisa, sin disparar ni recargar): los enemigos llegan,
+    «¡Se acabó la defensa!» y después el «¡Vamos otra vez!» de Juegos, sin estrellas, sin monedas y sin récord."""
+    page = C.new_page("phone")
+    try:
+        _open(page, per=1, speed=7)
+        page.wait_for_selector(".gm-over", timeout=25000)
+        assert "Se acabó la defensa" in page.text_content(".gm-over")
+        assert _st(page)["score"] == 0
+        page.wait_for_selector("#gm-end", timeout=6000)
+        assert "gm-end0" in page.get_attribute("#gm-end", "class")
+        assert "¡Vamos otra vez!" in page.text_content("#gm-end .gm-end-t")
+        assert not page.locator("#gm-end .gm-end-st, #gm-plus").count()
+        best = page.evaluate("JSON.parse(localStorage.getItem('games:best') || '{}').cuartel || null")
+        assert best is None, best
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
 def test_french_danish_and_listen_question():
     """En francés y danés las opciones y la radio están en el idioma (con su lang). La segunda pregunta es de escuchar:
     3 dibujos con su español, y la buena suena. En danés, con «Reducir movimiento»: los enemigos no se balancean."""
