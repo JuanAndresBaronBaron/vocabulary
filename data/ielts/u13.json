@@ -17,7 +17,7 @@
      "type": "card",
      "title": "Read the question exactly",
      "body": [
-      "At band 7 and above, the most common Task Achievement problem is not language: it is an essay that answers a *slightly different* question. Underline the topic, the specific claim, and every instruction word, then make sure each part is answered.",
+      "Task 1 is marked for Task Achievement; Task 2 for Task Response. At band 7 and above, the most common Task Response problem is not language: it is an essay that answers a *slightly different* question. Underline the topic, the specific claim, and every instruction word, then make sure each part is answered.",
       "'Some people think *all* young people should do a year of community service' is not the same as 'community service is good'. Your answer must deal with *all*, *young people* and *a year*, not with volunteering in general."
      ],
      "list": [
@@ -33,7 +33,7 @@
      "type": "card",
      "title": "A clear position, from start to finish",
      "body": [
-      "Band 9 requires 'a fully developed position'. The examiner should know your view from the introduction, see it supported in every body paragraph, and find it confirmed in the conclusion. Changing your mind halfway through, or only revealing your view at the end, lowers Task Achievement.",
+      "Band 9 requires 'a fully developed position'. The examiner should know your view from the introduction, see it supported in every body paragraph, and find it confirmed in the conclusion. Changing your mind halfway through, or only revealing your view at the end, lowers Task Response.",
       "A partial position is perfectly acceptable, as long as it is precise: *I agree that X is true in the case of Y, but not in the case of Z*. 'There are advantages and disadvantages' is not a position."
      ],
      "examples": [
@@ -96,12 +96,12 @@
      "q": "Question: 'Some people believe that all new buildings should be required by law to last at least one hundred years. To what extent do you agree or disagree?' Which thesis answers it most directly?",
      "options": [
       "Buildings are very important in modern cities, and their design affects everyone.",
-      "Although longer-lasting buildings would reduce construction waste, I disagree that a legal hundred-year minimum should apply to all new buildings, since many structures serve needs that change far more quickly.",
       "There are both advantages and disadvantages to making buildings last longer.",
-      "In this essay I will discuss the advantages and disadvantages of old buildings."
+      "In this essay I will discuss the advantages and disadvantages of old buildings.",
+      "Although longer-lasting buildings would reduce construction waste, I disagree that a legal hundred-year minimum should apply to all new buildings, since many structures serve needs that change far more quickly."
      ],
-     "answer": 1,
-     "why": "B engages with the precise claim (*by law*, *all*, *a hundred years*) and takes a clear, qualified position. A is off-topic, C is not a position, and D answers a different question."
+     "answer": 3,
+     "why": "D engages with the precise claim (*by law*, *all*, *a hundred years*) and takes a clear, qualified position. A is off-topic, B is not a position, and C answers a different question."
     },
     {
      "id": "u13-l1-i7",
@@ -166,26 +166,26 @@
      "type": "pick",
      "q": "Which conclusion is most appropriate for an essay that partly agrees with the statement?",
      "options": [
-      "In conclusion, buildings will probably be very different in the future, and we should all think carefully about this.",
       "In conclusion, while durability should certainly be encouraged, a blanket hundred-year requirement would impose high costs on buildings whose purpose is likely to change; a more flexible approach would achieve the same goal with fewer drawbacks.",
+      "In conclusion, buildings will probably be very different in the future, and we should all think carefully about this.",
       "In conclusion, I strongly agree with the statement.",
       "In conclusion, another important point is that old buildings are often more beautiful."
      ],
-     "answer": 1,
-     "why": "B restates the partial position in new words and summarises the reasoning. A drifts into a vague prediction, C contradicts a partial position, and D introduces a new argument."
+     "answer": 0,
+     "why": "A restates the partial position in new words and summarises the reasoning. B drifts into a vague prediction, C contradicts a partial position, and D introduces a new argument."
     },
     {
      "id": "u13-l1-i11",
      "type": "pick",
-     "q": "A question asks whether 'the advantages of working from home outweigh the disadvantages'. Which essay would score highest for Task Achievement?",
+     "q": "A question asks whether 'the advantages of working from home outweigh the disadvantages'. Which essay would score highest for Task Response?",
      "options": [
       "One that lists four advantages and four disadvantages in equal detail.",
-      "One that explains the main advantages and disadvantages and argues clearly that one side is weightier, with reasons.",
       "One that discusses only the advantages because the writer agrees with them.",
-      "One that explains why working from home became popular."
+      "One that explains why working from home became popular.",
+      "One that explains the main advantages and disadvantages and argues clearly that one side is weightier, with reasons."
      ],
-     "answer": 1,
-     "why": "'Outweigh' requires a comparison and a verdict. A has no verdict, C ignores half the question, and D answers a causes question."
+     "answer": 3,
+     "why": "'Outweigh' requires a comparison and a verdict. A has no verdict, B ignores half the question, and C answers a causes question."
     }
    ]
   },
@@ -215,7 +215,7 @@
      "id": "u13-l2-i2",
      "type": "writing",
      "task": 2,
-     "prompt": "Some people believe that all new buildings should be required by law to last for at least one hundred years.\n\nTo what extent do you agree or disagree?\n\nWrite at least 250 words.",
+     "prompt": "Some people believe that all new buildings should be required by law to last for at least one hundred years.\n\nTo what extent do you agree or disagree?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
      "minutes": 40,
      "minWords": 250,
      "plan": [
@@ -241,7 +241,25 @@
        "Lexis is precise and natural (*spread the energy... over*, *engineered for a century*, *reward adaptability rather than mere longevity*) with no memorised phrases.",
        "Complex structures (relative clauses, participle phrases, conditionals) are used accurately and only where they serve the meaning."
       ]
-     }
+     },
+     "exemplars": [
+      {
+       "band": 7,
+       "text": [
+        "Nowadays, many buildings are demolished after only a few decades, which wastes a great amount of resources. For this reason, some people argue that the law should force every new building to last at least a century. Although I agree that buildings should be more durable, I do not think this rule should apply to all of them.",
+        "On the one hand, there are clear benefits to making buildings last longer. Firstly, constructing a building uses huge quantities of concrete, steel and energy, so if it stands for a hundred years instead of thirty, this environmental cost is spread on a much longer period. Secondly, old buildings often become part of a city's identity. For example, in my home town the nineteenth-century railway station is still in use and local people are very proud of it. If modern buildings were built to the same standard, future generations could enjoy them in the same way.",
+        "On the other hand, a law which covers every building would create several problems. The main one is that our needs change quickly. A shopping centre or an office block that is useful today may be unnecessary in twenty years, because more people shop online or work from home. Making such buildings last for a century would increase the cost of construction, and this cost would be passed on to customers and tenants. Moreover, it is difficult to predict which buildings will still be needed in future, so the law would be hard to enforce in practice.",
+        "In conclusion, I believe that durability is an important aim, especially for homes and public buildings, but it should be encouraged rather than imposed by law on every building. Governments could, for instance, give tax reductions to developers who use long-lasting materials."
+       ],
+       "notes": [
+        "TR 7: the position (yes to durability, no to a law for *all* buildings) is clear and kept to the end, but the ideas are less developed than in the band 9 model: the point about enforcement is stated, not explained, and the tax idea appears for the first time in the conclusion.",
+        "CC 7: the paragraphs are logical and each has one central topic, but the linking is mechanical (*On the one hand... On the other hand*, *Firstly... Secondly*, *Moreover*): it shows the structure rather than how one idea leads to the next.",
+        "LR 7: some less common, well-chosen vocabulary (*durable*, *passed on to tenants*, *enforce*), with occasional slips: *a great amount of resources* (countable, so *large quantities of resources*) and *spread on* (*spread over*).",
+        "GRA 7: a mix of complex structures (conditionals, relative clauses, passives), and most sentences are free of error.",
+        "To reach band 8: take each idea one step further (why would the law be hard to enforce?), let reference and cause-and-effect language do the linking, and move the alternative from the conclusion into the body."
+       ]
+      }
+     ]
     }
    ]
   },
@@ -271,7 +289,7 @@
      "id": "u13-l3-i2",
      "type": "writing",
      "task": 2,
-     "prompt": "Some people think that schools should continue to teach children to write by hand, while others believe that the time would be better spent teaching typing and other digital skills.\n\nDiscuss both views and give your own opinion.\n\nWrite at least 250 words.",
+     "prompt": "Some people think that schools should continue to teach children to write by hand, while others believe that the time would be better spent teaching typing and other digital skills.\n\nDiscuss both views and give your own opinion.\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
      "minutes": 40,
      "minWords": 250,
      "plan": [

@@ -75,12 +75,12 @@
      "q": "Which version links the ideas most naturally?",
      "options": [
       "Many people now work from home. Moreover, this means they spend less time commuting. In addition, they can spend more time with their families.",
-      "Many people now work from home, and the time they no longer spend commuting is often spent with their families instead.",
       "Many people now work from home. Furthermore, commuting time is less. Also, family time is more.",
-      "Firstly, many people work from home. Secondly, commuting. Thirdly, families."
+      "Firstly, many people work from home. Secondly, commuting. Thirdly, families.",
+      "Many people now work from home, and the time they no longer spend commuting is often spent with their families instead."
      ],
-     "answer": 1,
-     "why": "B connects the ideas through the grammar of a single sentence. The others rely on stacked linkers or lose the logical relationship altogether."
+     "answer": 3,
+     "why": "D connects the ideas through the grammar of a single sentence. The others rely on stacked linkers or lose the logical relationship altogether."
     },
     {
      "id": "u15-l1-i5",
@@ -142,11 +142,11 @@
        "answer": 0
       },
       {
-       "label": "Some schools ban phones entirely. ___ has reduced distraction but frustrated parents.",
+       "label": "Some schools ban phones entirely. ___ has reduced distraction but frustrated parents. (a noun phrase summing up the policy)",
        "answer": 2
       },
       {
-       "label": "Learners are urged to read widely, as ___ builds vocabulary more effectively than lists.",
+       "label": "Learners are urged to read widely, as ___ builds vocabulary more effectively than lists. (replaces the verb phrase *read widely*)",
        "answer": 1
       },
       {
@@ -232,15 +232,15 @@
     {
      "id": "u15-l2-i4",
      "type": "pick",
-     "q": "Which collocation is natural?",
+     "q": "Which collocation is natural? 'Air pollution ___ a serious challenge to public health.'",
      "options": [
-      "make a challenge to public health",
-      "pose a challenge to public health",
-      "do a challenge to public health",
-      "give a challenge to public health"
+      "poses",
+      "meets",
+      "accepts",
+      "issues"
      ],
-     "answer": 1,
-     "why": "*Pose a challenge / threat / risk* is the standard collocation in formal writing."
+     "answer": 0,
+     "why": "Air pollution **poses a serious challenge to public health**: *pose a challenge / threat / risk* is the standard pattern when something causes a difficulty. We *meet* or *accept* a challenge when we respond to it, and we *issue* a challenge when we invite someone to compete."
     },
     {
      "id": "u15-l2-i5",
@@ -262,10 +262,11 @@
      "answer": [
       "narrow",
       "close",
-      "bridge"
+      "bridge",
+      "reduce"
      ],
      "limit": "ONE WORD",
-     "why": "We *narrow* or *close* a gap; *bridge* also works. *Reduce the gap* is acceptable but less precise."
+     "why": "We *narrow* or *close* a gap; *bridge* also works. *Reduce the gap* is accepted, but it is less precise."
     },
     {
      "id": "u15-l2-i7",
@@ -330,15 +331,15 @@
     {
      "id": "u15-l2-i10",
      "type": "pick",
-     "q": "'The government should do research about the problem.' Which revision has the most natural collocation?",
+     "q": "'The government should do research about the problem.' Which revision keeps the meaning and uses the most natural collocation?",
      "options": [
-      "The government should make research into the problem.",
+      "The government should review research into the problem.",
+      "The government should cite research into the problem.",
       "The government should commission research into the problem.",
-      "The government should create research on the problem.",
-      "The government should perform research about the problem."
+      "The government should question research into the problem."
      ],
-     "answer": 1,
-     "why": "Governments *commission* research (pay others to carry it out); researchers *conduct* or *carry out* research. The preposition is *into*."
+     "answer": 2,
+     "why": "The government should **commission research into the problem**: governments *commission* research (they pay others to carry it out), and the preposition is *into*. *Review*, *cite* and *question* also go with *research*, but they mean examining, quoting or doubting research that already exists, not getting it done."
     }
    ]
   },
@@ -418,18 +419,18 @@
      "type": "pick",
      "q": "Which is the most natural version?",
      "options": [
-      "In the event that the council commences the utilisation of the site, a plethora of issues will arise.",
       "If the council starts using the site, several problems are likely to arise.",
+      "In the event that the council commences the utilisation of the site, a plethora of issues will arise.",
       "If council start to use site, many problem will arise.",
       "Should the council commence utilising the site, numerous issues shall arise."
      ],
-     "answer": 1,
-     "why": "B is clear and correct. A and D are over-formal ('commences the utilisation', 'shall arise'), and C has article and agreement errors."
+     "answer": 0,
+     "why": "A is clear and correct. B and D are over-formal ('commences the utilisation', 'shall arise'), and C has article and agreement errors."
     },
     {
      "id": "u15-l3-i5",
      "type": "pick",
-     "q": "Which use of an idiom is acceptable in a Task 2 essay?",
+     "q": "Which is the best choice for a Task 2 essay?",
      "options": [
       "Social media is a double-edged sword, and every cloud has a silver lining.",
       "Last but not least, the tip of the iceberg is that pollution is rising.",
@@ -590,12 +591,12 @@
      "q": "Which is the best rewrite of: 'The factory closed. This caused unemployment. The unemployment was high.'",
      "options": [
       "The factory closed and this caused unemployment which was high.",
-      "The closure of the factory caused high unemployment.",
       "The factory, it closed, causing the unemployment to be high.",
-      "Because the factory was closed, so unemployment was high."
+      "Because the factory was closed, so unemployment was high.",
+      "The closure of the factory caused high unemployment."
      ],
-     "answer": 1,
-     "why": "Nominalisation (*The closure of the factory*) and a compressed noun phrase (*high unemployment*) express the same idea in one precise clause. D has a double conjunction (*Because... so*)."
+     "answer": 3,
+     "why": "Nominalisation (*The closure of the factory*) and a compressed noun phrase (*high unemployment*) express the same idea in one precise clause. C has a double conjunction (*Because... so*)."
     },
     {
      "id": "u15-l4-i9",
@@ -674,7 +675,7 @@
      "id": "u15-l5-i2",
      "type": "writing",
      "task": 2,
-     "prompt": "In many cities, on-street parking spaces are being replaced by cycle lanes, wider pavements and outdoor seating for cafés.\n\nDo the advantages of this development outweigh the disadvantages?\n\nWrite at least 250 words.",
+     "prompt": "In many cities, on-street parking spaces are being replaced by cycle lanes, wider pavements and outdoor seating for cafés.\n\nDo the advantages of this development outweigh the disadvantages?\n\nGive reasons for your answer and include any relevant examples from your own knowledge or experience.\n\nWrite at least 250 words.",
      "minutes": 40,
      "minWords": 250,
      "plan": [

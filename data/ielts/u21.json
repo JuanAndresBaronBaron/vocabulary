@@ -31,7 +31,7 @@
      "list": [
       "**Not only** does X..., **but** Y also...",
       "**Never** / **Rarely** / **Seldom** has / have...",
-      "**Only when / Only after / Only if** X, **does / will** Y...",
+      "**Only when / Only after / Only if** X **does / will** Y...",
       "**Not until** X **did** Y...",
       "**Under no circumstances / On no account** should...",
       "**No sooner** had X... **than** Y...",
@@ -207,12 +207,12 @@
      "q": "Which version sounds most natural in a Part 3 answer?",
      "options": [
       "Seldom have I been asked such a question, nor shall I answer it hastily.",
-      "What I'd say is that it really depends on the kind of job.",
       "Never would I have been thinking that.",
-      "Not only it depends, but also it varies."
+      "Not only it depends, but also it varies.",
+      "What I'd say is that it really depends on the kind of job."
      ],
-     "answer": 1,
-     "why": "A *what*-cleft (*What I'd say is...*) is common and natural in speech. A sounds theatrical, C is ungrammatical, and D has incorrect word order."
+     "answer": 3,
+     "why": "A *what*-cleft (*What I'd say is...*) is common and natural in speech. A sounds theatrical, B is ungrammatical, and C has incorrect word order."
     }
    ]
   },
@@ -236,7 +236,8 @@
        "note": "Two clauses compressed into one; the cause becomes a noun phrase subject."
       },
       {
-       "text": "The factory closed, which meant hundreds lost their jobs. / The closure of the factory cost hundreds of jobs."
+       "text": "The factory closed, which meant hundreds lost their jobs. / The closure of the factory cost hundreds of jobs.",
+       "note": "The event becomes a noun phrase subject (*The closure of the factory*), and one precise verb (*cost*) replaces *which meant... lost*."
       },
       {
        "text": "The failure of the scheme to reach rural areas was its main weakness.",
@@ -330,13 +331,13 @@
      "type": "pick",
      "q": "Which sentence is correct?",
      "options": [
-      "Having finished the report, the computer crashed.",
       "Having finished the report, she sent it to her manager.",
+      "Having finished the report, the computer crashed.",
       "Having finish the report, she sent it to her manager.",
       "Finished the report, she sent it to her manager."
      ],
-     "answer": 1,
-     "why": "B is correct: *she* is the person who finished. A is a dangling participle (the computer didn't finish the report), C has the wrong verb form, and D needs *Having finished*."
+     "answer": 0,
+     "why": "A is correct: *she* is the person who finished. B is a dangling participle (the computer didn't finish the report), C has the wrong verb form, and D needs *Having finished*."
     },
     {
      "id": "u21-l2-i9",
@@ -344,12 +345,12 @@
      "q": "Which version uses nominalisation most effectively?",
      "options": [
       "Because people are increasingly aware of plastic pollution, they buy fewer bottled drinks.",
-      "Growing awareness of plastic pollution has reduced demand for bottled drinks.",
       "The awareness is growing, the bottled drinks are reduced.",
-      "People are aware, so pollution of plastic is less bought."
+      "People are aware, so pollution of plastic is less bought.",
+      "Growing awareness of plastic pollution has reduced demand for bottled drinks."
      ],
-     "answer": 1,
-     "why": "B compresses the cause into a noun phrase (*growing awareness of plastic pollution*) and the effect into another (*demand for bottled drinks*)."
+     "answer": 3,
+     "why": "D compresses the cause into a noun phrase (*growing awareness of plastic pollution*) and the effect into another (*demand for bottled drinks*)."
     },
     {
      "id": "u21-l2-i10",
