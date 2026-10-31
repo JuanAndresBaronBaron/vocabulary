@@ -139,6 +139,9 @@ def test_ielts_content2_rules():
                     m = s.get("visual", {})
                     for mp in m.get("maps", []) if m.get("kind") == "map" else []:
                         bad += [f"{it['id']}: bad marker {z}" for z in mp["items"] if "mark" in z and (z["mark"] is not True or len(z["label"].strip()) > 3)]
+                        # content1's viz draws the outline of a marked place only when it names its shape
+                        bad += [f"{it['id']}: marker {z['label']} has a box but no shape" for z in mp["items"]
+                                if z.get("mark") and (z.get("w") or z.get("h")) and "shape" not in z]
                 if it["type"] == "listening":
                     ids = {s["id"]: s for s in it["speakers"]}
                     bad += [f"{it['id']}: accent {s['accent']!r}" for s in it["speakers"] if "accent" in s and s["accent"] not in {"gb", "us", "ca", "au", "nz", "ie", "za"}]
@@ -253,12 +256,20 @@ def test_ielts_content2_writing():
     assert new["prompt"].startswith("You should spend about 20 minutes on this task.") and "Calderford" in new["prompt"]
     assert not any("Calderford" in json.dumps(_unit(n)) for n in range(1, 23)), "Calderford is used elsewhere"
     text = " ".join(new["model"]["text"])
-    assert 150 <= _words(text) <= 260, _words(text)
+    assert 170 <= _words(text) <= 230, _words(text)
+    assert not re.search(r"\d", new["model"]["text"][1]), "the overview has no figures"
     totals = [sum(s["values"][i] for s in v["series"]) for i in range(len(v["x"]))]
     allowed = {float(x) for s in v["series"] for x in s["values"]} | {float(t) for t in totals} | {16.0, 29.0, 30.0, 49.0, 50.0, 2024.0}
     nums = {float(x) for x in re.findall(r"\d+(?:\.\d+)?", text)}
     assert nums <= allowed, sorted(nums - allowed)
     assert all(f"{t:g}" in text for t in totals), totals
+    # the notes quote the model as it is (a fragment with ... is quoted in parts)
+    for i in ("u23-l3-i2", "u24-l3-i2"):
+        m = _find(i)["model"]
+        body = " ".join(m["text"]).lower()
+        miss = [q for n in m["notes"] for q in re.findall(r"\*([^*]+)\*", n)
+                if not all(p.strip().lower() in body for p in q.split("...") if p.strip())]
+        assert not miss, (i, miss)
     assert _find("u24-l3-i2")["prompt"].startswith("You should spend about 20 minutes on this task.")
     for i in ("u23-l3-i3", "u24-l3-i3"):
         assert _find(i)["prompt"].startswith("You should spend about 40 minutes on this task.\n\nWrite about the following topic:"), i

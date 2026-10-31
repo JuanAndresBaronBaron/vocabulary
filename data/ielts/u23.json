@@ -397,6 +397,7 @@
            {
             "label": "C",
             "mark": true,
+            "shape": "rect",
             "x": 2,
             "y": 2,
             "w": 24,
@@ -405,6 +406,7 @@
            {
             "label": "E",
             "mark": true,
+            "shape": "rect",
             "x": 38,
             "y": 2,
             "w": 24,
@@ -413,6 +415,7 @@
            {
             "label": "F",
             "mark": true,
+            "shape": "rect",
             "x": 74,
             "y": 2,
             "w": 24,
@@ -421,6 +424,7 @@
            {
             "label": "B",
             "mark": true,
+            "shape": "rect",
             "x": 2,
             "y": 38,
             "w": 18,
@@ -429,6 +433,7 @@
            {
             "label": "D",
             "mark": true,
+            "shape": "rect",
             "x": 34,
             "y": 36,
             "w": 32,
@@ -437,6 +442,7 @@
            {
             "label": "H",
             "mark": true,
+            "shape": "rect",
             "x": 80,
             "y": 38,
             "w": 18,
@@ -445,6 +451,7 @@
            {
             "label": "A",
             "mark": true,
+            "shape": "rect",
             "x": 14,
             "y": 72,
             "w": 22,
@@ -453,6 +460,7 @@
            {
             "label": "G",
             "mark": true,
+            "shape": "rect",
             "x": 64,
             "y": 72,
             "w": 22,
@@ -1636,20 +1644,20 @@
      "minWords": 150,
      "plan": [
       "Paraphrase: what the chart measures, where, when, the four activities and the three age groups.",
-      "Overview: which activity dominates each age group, and which group spends least time on all four.",
+      "Overview: which activity takes the most hours in each age group, and which group spends least time on the four combined.",
       "Body 1: the two screen activities, which move in opposite directions as age rises.",
       "Body 2: sport and reading, then the combined totals."
      ],
      "model": {
       "text": [
-       "The bar chart compares how many hours a week, on average, people in three age groups in Calderford spent on four leisure activities in 2024.",
-       "Overall, screens took up most leisure time in every age group, but the type of screen changed with age: social media dominated the youngest group's free time, whereas television was by far the main pastime of the oldest. The middle group spent the least time on the four activities combined.",
+       "The bar chart compares the average weekly hours that people in three age groups in Calderford spent on four leisure activities in 2024.",
+       "Overall, screen-based activities accounted for most of the hours spent on these four pastimes in every age group, but the type of screen changed with age: social media led among the youngest, and television, by a wide margin, among the oldest. The middle group spent the least time on all four combined.",
        "The two screen activities moved in opposite directions. Young adults aged 16 to 29 spent 14 hours a week on social media, compared with 8 hours watching television and films. Among those aged 30 to 49 the position was reversed, with 10.5 hours of viewing against 7 hours online, and in the oldest group the gap widened dramatically: viewing rose to 17 hours, while social media use fell to just 2.5.",
-       "Sport and exercise peaked among the youngest group (6 hours), dipped to 3.5 in middle age and rose again to 5 among the over-50s. Reading, by contrast, increased steadily with age, from 2 hours a week among the youngest to 7.5 among the oldest, more than three times as much. In total, the four activities filled 24 hours a week for the middle group, against 30 and 32 hours for the younger and older groups."
+       "Sport and exercise peaked among 16- to 29-year-olds (6 hours), dipped to 3.5 in middle age and rose again to 5 among the over-50s. Reading, by contrast, rose with age, slightly at first (from 2 to 3 hours) and then sharply to 7.5 in the oldest group, more than three times as much as the youngest. In total, the four activities filled 24 hours a week for the middle group, against 30 and 32 for the younger and older groups."
       ],
       "notes": [
        "The overview picks out the two patterns that matter most, the shift from social media to television with age and the lower total for the middle group, without a single figure.",
-       "Each body paragraph groups activities that behave alike: first the two screen activities, which move in opposite directions, then the two smaller ones.",
+       "Each body paragraph groups related activities: first the two screen activities, which move in opposite directions, then the two smaller ones.",
        "Figures are selected and compared rather than listed: the end points, the reversal in the middle group and a multiple (*more than three times as much*: 7.5 against 2 hours).",
        "Every number matches the chart, including the totals (30, 24 and 32 hours), which the writer has added up rather than estimated.",
        "Comparative language is varied and precise: *the position was reversed*, *the gap widened dramatically*, *dipped*, *rose again*, *by contrast*.",

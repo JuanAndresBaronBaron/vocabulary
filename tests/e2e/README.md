@@ -456,7 +456,8 @@ de `data/ielts` directamente (sin navegador), salvo la última:
 - `rules`: las tres reglas de examen de content1 en u13-u24 (cada respuesta aceptada de un hueco cabe en su límite;
   un set «Label the» lleva `visual`; en una lección `test` con 4 o más `pick`, ningún índice tiene más de la mitad de
   las claves) y la forma de los campos nuevos: `exam`, `pause` (5-60 s, solo en una línea del narrador
-  `{id: 'nar', name: 'Narrator'}`), `accent`, `mark`, `followups` y `exemplars`.
+  `{id: 'nar', name: 'Narrator'}`), `accent`, `mark` (un sitio marcado con caja lleva `shape`, porque el viz de
+  content1 solo dibuja su contorno si la tiene), `followups` y `exemplars`.
 - `listening_exam`: u23-l1 y u24-l1 son exámenes enteros en modo examen: `exam: true`, cuarenta puntos numerados
   1-40 sin huecos («Questions a-b.» en cada set), el narrador con una pausa a mitad de las partes 1-3 que anuncia el
   set siguiente (la parte 4 va de un tirón), un acento que no es `gb` en las partes 2-4 y la duración de la tarjeta.
@@ -465,8 +466,10 @@ de `data/ielts` directamente (sin navegador), salvo la última:
   que entran, y que ningún id de ítem se repite en u01-u24.
 - `reading`: cuarenta puntos en 17 + 20 + 23 minutos; cada simulacro tiene short answer o sentence completion y una
   tabla o un Choose TWO (con dos respuestas).
-- `writing`: la Task 1 del simulacro 1 es inédita (no repite u11-l2-i2) y cada cifra de su modelo está en el gráfico
-  o en sus totales; las líneas oficiales de la consigna; «Task Achievement» solo aparece junto a «Task 1».
+- `writing`: la Task 1 del simulacro 1 es inédita (no repite u11-l2-i2), su modelo tiene 170-230 palabras, el
+  overview no lleva cifras y cada cifra está en el gráfico o en sus totales; las notas de los modelos de Task 1 de
+  u23 y u24 citan frases que están en el modelo; las líneas oficiales de la consigna; «Task Achievement» solo aparece
+  junto a «Task 1».
 - `speaking`: 12 preguntas de Part 1, `followups` y charlas de unas 300 palabras en Part 2, respuestas de Part 3 de
   90-130 palabras (u17, u18, u23, u24).
 - `exemplars`: un ensayo de banda 7 junto al modelo en u13-l2-i2 y u14-l2-i2, con notas TR, CC, LR y GRA.
