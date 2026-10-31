@@ -615,19 +615,23 @@ def _lesson_miss(page):
 def test_no_scroll_after_answers():
     """Tras un fallo en «Escucha y elige» con dibujos (la opción gris con ✗, «¡Casi! Es …» y el botón «Seguir») la
     lección no baja, en los móviles bajos, en 1280×720 y con «Texto más grande»; la ✓ y la ✗ van en una esquina de abajo del dibujo.
-    En los mismos tamaños y en 320×568, tras un fallo en las pantallas del repaso que corrige la app («Escucha y elige»,
-    «¿Cuál es…?» y las letras: gris con ✗, la respuesta y «Seguir») tampoco se baja, y se ven a la vez el dibujo (el de
-    la tarjeta, de 48 px o más; en «Escucha y elige», el de la buena, de 64 px o más), la palabra, su IPA y su audio.
+    En los mismos tamaños y en 320×568 (también con «Texto más grande», en oscuro y con las dos cosas), tras un fallo en
+    las pantallas del repaso que corrige la app («Escucha y elige», «¿Cuál es…?» y las letras: gris con ✗, la respuesta
+    y «Seguir») tampoco se baja, y se ven a la vez el dibujo (el de la tarjeta, de 48 px o más medido en el dibujo, sin
+    el margen blanco que lleva en oscuro; en «Escucha y elige», el de la buena, de 64 px o más), la palabra, su IPA y
+    su audio.
     El repaso con dos pistas no baja en 320×568 ni en 360×640, Letras con «Texto más grande» tampoco, y en Memoria oscuro
     la cara del dibujo es blanca."""
     probs = []
     # (la lección no se mira en 320×568: ahí solo el repaso, que ya lo prometía con la tarjeta de siempre)
-    for vp, big, lesson in [("375x667", False, True), ("360x640", False, True), ("360x740", False, True), ("1280x720", False, True),
-                            ("375x667", True, True), ("360x640", True, True), ("390x844", True, True), ("320x568", False, False)]:
-        page = _page(vp, ui={"text": "large"} if big else None)
+    for vp, big, lesson, dark in [("375x667", False, True, False), ("360x640", False, True, False), ("360x740", False, True, False),
+                                  ("1280x720", False, True, False), ("375x667", True, True, False), ("360x640", True, True, False),
+                                  ("390x844", True, True, False), ("320x568", False, False, False), ("320x568", True, False, False),
+                                  ("320x568", False, False, True), ("320x568", True, False, True)]:
+        page = _page(vp, ui={"text": "large"} if big else None, **({"color_scheme": "dark"} if dark else {}))
         try:
             d = _lesson_miss(page) if lesson else None
-            tag = f"{vp}{' (texto grande)' if big else ''}"
+            tag = f"{vp}{' (texto grande)' if big else ''}{' (oscuro)' if dark else ''}"
             if lesson and d is None:
                 probs.append(f"{tag}: no se pudo fallar en «Escucha y elige» con dibujos")
             elif d is not None:

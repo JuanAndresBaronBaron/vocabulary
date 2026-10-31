@@ -238,7 +238,9 @@ def test_review_app_graded_keys():
     """En las pantallas del repaso que corrige la app, todo con el teclado y una vez cada cosa (el repaso se queda sus
     teclas: keys.js no pulsa nada además). «Escucha y elige» (caja 0): Espacio la oye, Mayús+Espacio más despacio y 1-4
     eligen el dibujo (nota 2, un solo aviso). «¿Cuál es…?» (caja 1): Espacio no la dice (sería la respuesta; con el
-    dedo tampoco hay altavoz), 1-4 eligen (mal: nota 0) y Enter es «Seguir» una sola vez (pasa a la siguiente, no dos).
+    dedo tampoco hay altavoz), 1-4 eligen (mal: nota 0); fallada, con el foco en «Seguir», Espacio la vuelve a decir y
+    Mayús+Espacio más despacio (una vez cada una, sin pulsar «Seguir») y Enter es «Seguir» una sola vez (pasa a la
+    siguiente, no dos).
     Las letras (caja 2): cada letra tecleada pone su ficha y bien a la primera es nota 2."""
     page = C.new_page("phone")
     probs = []
@@ -287,7 +289,25 @@ def test_review_app_graded_keys():
             probs.append(f"«¿Cuál es…?»: Espacio sin contestar dice la palabra: {k['snd']}")
         page.keyboard.press(str((st["right"] + 1) % 4 + 1))
         page.wait_for_function("() => vocabReview.state.graded", timeout=3000)
-        page.wait_for_timeout(400)
+        page.wait_for_timeout(1500)          # que acabe de sonar la respuesta
+        # fallada, el foco va a «Seguir»: Espacio la vuelve a decir y Mayús+Espacio más despacio (como dicen sus
+        # etiquetas en el altavoz y la tortuga), sin pulsar «Seguir» ni pasar a la siguiente
+        if not page.evaluate("() => !!(document.activeElement && document.activeElement.closest('.rv-next'))"):
+            probs.append(f"«¿Cuál es…?» fallada: el foco no va a «Seguir» ({page.evaluate('() => document.activeElement.className')})")
+        heard = {}
+        for key, what in (("Space", "Espacio"), ("Shift+Space", "Mayús+Espacio")):
+            page.evaluate(_RESET)
+            page.keyboard.press(key)
+            page.wait_for_timeout(500)
+            k, now = page.evaluate(_K), page.evaluate("() => vocabReview.state")
+            heard[key] = n = _first(k["snd"])
+            if not n or len([x for x in k["snd"] if x["kind"] == n["kind"]]) != 1 or now["i"] != st["i"] or k["clk"]:
+                probs.append(f"«¿Cuál es…?» fallada: {what} con el foco en «Seguir» no la vuelve a decir una vez "
+                             f"(sonidos {k['snd']}, clics {k['clk']}, de {st['i']} a {now['i']})")
+            page.wait_for_timeout(1500)
+        n1, s1 = heard["Space"], heard["Shift+Space"]
+        if not n1 or not s1 or s1["kind"] != n1["kind"] or not s1["rate"] < n1["rate"]:
+            probs.append(f"«¿Cuál es…?» fallada: Mayús+Espacio no suena más despacio: normal {n1} · despacio {s1}")
         page.evaluate(_RESET)
         page.keyboard.press("Enter")
         page.wait_for_timeout(700)

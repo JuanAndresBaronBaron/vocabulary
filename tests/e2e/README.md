@@ -183,8 +183,9 @@ compartida no responde).
 - `test_f5_teclado.py` (F5b, `js/keys.js` y los `shortcuts` del manifest): en la lección Espacio suena una vez,
   Mayús+Espacio más despacio, 1-4 eligen, Enter pasa una sola vez (con el foco en la página y en el botón) y Esc abre
   «¿Paramos aquí?»; en el repaso ← es «No» y → «¡Sí!» (una nota cada una) y, en las pantallas que corrige la app,
-  Espacio oye «Escucha y elige» y Mayús+Espacio más despacio (en «¿Cuál es…?» no dice la respuesta), 1-4 eligen, las letras ponen fichas y Enter es
-  «Seguir» una vez; en Hoy Enter es «Empezar»; ? abre la hoja
+  Espacio oye «Escucha y elige» y Mayús+Espacio más despacio (en «¿Cuál es…?» no dice la respuesta), 1-4 eligen, las
+  letras ponen fichas y, tras un fallo con el foco en «Seguir», Espacio y Mayús+Espacio la vuelven a decir (sin
+  seguir) y Enter es «Seguir» una vez; en Hoy Enter es «Empezar»; ? abre la hoja
   «Teclas» y Esc la cierra; Tarjetas (Espacio gira y luego oye, → y Enter pasan una); escribiendo en un campo no pasa
   nada; en un juego las teclas son del juego y Esc pausa una vez; las etiquetas grises salen con la primera tecla y se
   van con un toque; el manifest sin errores en Chrome con 4 atajos e iconos PNG 96×96, y cada URL de atajo abre su
@@ -241,7 +242,9 @@ compartida no responde).
   sin atajos y con y sin «Reducir movimiento» (la carta sigue, sin scroll, y la fila vuelve cuando el accesorio se va);
   Hoy en un móvil bajo (360×740 claro, oscuro y en Halloween; 375×667) con atajos y una carta sin abrir (la carta se
   queda, la fila se compacta o, si no cabe, se va; «Palabra del día» en una línea y a la izquierda);
-  el teclado en el Buzón, Frases, la carta y las teclas 1-4 de los atajos sin nada repetido; un
+  el teclado en el Buzón, Frases, la carta y las teclas 1-4 de los atajos sin nada repetido; las etiquetas de las
+  teclas sin tocar nada (las de dentro de un botón, tampoco su texto: «¿Cuál es…?» con «hippopotamus» en 360×740,
+  390×844 y con «Texto más grande», sin partir ninguna palabra); un
   recorrido en inglés, francés y danés (lección con teclado, 3 partidas que hacen un atajo, Frases con sello, grabar y
   mandar, contestar como mayor y abrir la carta en otra pestaña); la actualización desde main 2e7dc3f (sw
   `vocab-shell-v19`, con `VOCAB_BASE19=<copia de ese commit>` o sacada con `git archive`), también con la caché HTTP de
@@ -340,8 +343,9 @@ compartida no responde).
   la ✗ va arriba del globo, las banderas llevan su caja 4:3 con filete, ningún globo es gris, tumbado (844×390 con
   márgenes seguros de 47 px, 667×375 y 568×320) los globos son grandes y no se baja, con «Reducir movimiento» no saltan
   de tamaño; tras un fallo en «Escucha y elige» la lección no baja (también en 1280×720 y con «Texto más grande») y la
-  ✓/✗ va en la esquina del dibujo, ni el repaso tras un fallo en sus pantallas que corrige la app (también en 320×568;
-  se ven a la vez el dibujo, de 48 px o más y 64 en «Escucha y elige», la palabra, su IPA y su audio), y la tarjeta de
+  ✓/✗ va en la esquina del dibujo, ni el repaso tras un fallo en sus pantallas que corrige la app (también en 320×568,
+  con «Texto más grande» y en oscuro; se ven a la vez el dibujo, de 48 px o más medido sin su margen blanco de oscuro y
+  64 en «Escucha y elige», la palabra, su IPA y su audio), y la tarjeta de
   siempre que viene tras un fallo se ve como recién abierta (con su pila y sus márgenes); el repaso con dos
   pistas, Letras con texto grande y la cara blanca de Memoria oscuro.
   Desde la unión con F5, también las pantallas nuevas con dibujos (`MIN_F5`): la bandeja de Frases mágicas (72 px en
