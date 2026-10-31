@@ -379,6 +379,24 @@ compartida no responde).
   caja 0; «Repasa tus fallos»; recargar sigue el mismo plan; «Ordena las letras» (artículo puesto, æøå, teclado),
   «Completa la frase», «Empareja»; los números enteros sin dibujo; «¿Ya lo sabes?» (10 de 12: 1 estrella y caja 2;
   menos: nada cambia); todo cabe a 360×740 y 390×844, claro y oscuro. Capturas en `capturas/lecciones`.
+- `test_hablar.py` (hablar, escuchar y leer: `say`/`sayP` de `index.html`, `js/calls.js`, `js/stories.js`,
+  `js/parrot.js`, `js/hunter.js`, `js/chant.js` y `js/simon.js`): las respuestas de las llamadas barajadas cada vez
+  (`vocabCalls.mix`: las mismas respuestas con su «re», el mismo yes/no, la buena contada otra vez; `get()` no cambia) y
+  la buena en pantalla; «Dilo conmigo» tras cada respuesta («Say it with me:» con la voz, la palabra con su mp3, la boca
+  y «¡Dilo tú!»; sin micrófono no escucha; con «Dilo» ya usado, «¡Te he oído!»; en francés y danés su frase);
+  «Llamar al zorro» (tarjeta de Juegos › Más, `#/llamadas` de la pestaña Jugar con ‹ Juegos, nuevas arriba y oídas abajo
+  con ✓, llamar y colgar la marca); una palabra sin audio y sin voz de su idioma no se dice (danés en Chrome de Windows:
+  `data-novoice` gris y un aviso por sesión; con mp3 sí suena; la IPA sigue); el mapa `audio/en.json` que no llega se
+  vuelve a pedir con `online` o pasados 30 s (bloqueado una vez con `page.route`, luego suena el mp3); «¿Te acuerdas?»
+  de los 12 cuentos (datos, `vocabStories.picWord` con IPA) y en «The Fox Wants to Play» (3 preguntas que dice la voz sin
+  texto, gris con ✗ y el bueno con ✓ que suena, teclas 1-3, monedas solo al acabar) y «Leer solo» (pasa sola, se para en
+  la de elegir y en una pregunta sin contestar); el Loro eco desde Juegos con el tema (`#/loro?t=w03`); el cazador
+  tocando que primero se escucha; «El zorro dice» (9 rondas en tres idiomas: la orden con la voz y el mp3, nada escrito
+  hasta contestar, dos en orden, color + dibujo según el idioma, 360×740 y 390×844 sin scroll) y «Rap del zorro» (8
+  palabras con mp3, el AudioContext dentro del toque, cada palabra en un pulso del reloj de audio a 84/90/96, color +
+  palabra en inglés y francés y otra vez dos palabras en danés, unirse tocando a tiempo y con un micrófono de mentira,
+  `window.__rapRounds`); capturas en `capturas/hablar` (360 claro, 390 oscuro con «Reducir movimiento» y 1280) con
+  contraste, paleta y `a11y.js`.
 - `audit.js`: la auditoría de pantalla de `test_f1.py` (contraste, paleta y `backdrop-filter`), reutilizable:
   `page.evaluate(AUDIT, {"what": ["contrast", "palette", "backdrop"]})`. Los logotipos de otras marcas van dentro de
   `[data-brand]` y la paleta no los mira.

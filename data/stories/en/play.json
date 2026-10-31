@@ -450,6 +450,18 @@
       "t": "The fox is happy. The duck is his new friend.",
       "es": "El zorro está contento. El pato es su nuevo amigo."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Who swims?",
+      "es": "¿Quién nada?",
+      "opts": [
+       "img/pj/pato.png",
+       "img/pj/perro.png",
+       "img/pj/vaca.png"
+      ],
+      "ok": 0
+     }
     ]
    },
    {
@@ -483,8 +495,42 @@
       "t": "The fox is happy. The dog is his new friend.",
       "es": "El zorro está contento. El perro es su nuevo amigo."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Who has a ball?",
+      "es": "¿Quién tiene un balón?",
+      "opts": [
+       "img/pj/perro.png",
+       "img/pj/pato.png",
+       "img/pj/gallina.png"
+      ],
+      "ok": 0
+     }
     ]
    }
   ]
- }
+ },
+ "quiz": [
+  {
+   "t": "Who has eggs?",
+   "es": "¿Quién tiene huevos?",
+   "opts": [
+    "img/pj/gallina.png",
+    "img/pj/vaca.png",
+    "img/pj/pato.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Who eats grass?",
+   "es": "¿Quién come hierba?",
+   "opts": [
+    "img/pj/vaca.png",
+    "img/pj/gallina.png",
+    "img/pj/perro.png"
+   ],
+   "ok": 0
+  }
+ ]
 }

@@ -142,7 +142,14 @@ def _to_wait(page, steps=160):
 
 
 def _oks(page, cid):
+    """La buena de cada pregunta en el guion (sin barajar: en pantalla las respuestas salen en otro orden)."""
     return page.evaluate("async id => (await vocabCalls.get(id)).lines.map(l => !l.a ? null : typeof l.ok === 'number' ? l.ok : -1)", cid)
+
+
+def _okj(cur):
+    """La buena de la pregunta de ahora tal como sale en pantalla (vocabCalls.current.ok; la primera si es abierta)."""
+    ok = (cur or {}).get("ok")
+    return ok if isinstance(ok, int) and ok >= 0 else 0
 
 
 def _pick(page, j):
@@ -152,15 +159,14 @@ def _pick(page, j):
 
 
 def _finish(page, wrong=False):
-    """Contesta las preguntas que quedan (la buena, o una mala con wrong) y espera a que cuelgue. Devuelve cuántas."""
-    cur = page.evaluate(_CUR)
-    oks = _oks(page, cur["id"])
+    """Contesta las preguntas que quedan (la buena, o una mala con wrong) y espera a que cuelgue. Devuelve cuántas.
+    Las respuestas salen barajadas: la buena es la de vocabCalls.current.ok."""
     n = 0
     while True:
         cur = _to_wait(page)
         if not cur:
             break
-        ok = oks[cur["i"]]
+        ok = cur["ok"] if isinstance(cur.get("ok"), int) else -1
         j = max(0, ok)
         if wrong and ok >= 0:
             j = 1 if ok == 0 else 0
@@ -556,18 +562,21 @@ def test_answer_speaks_with_voice_and_tap_moves_on():
         # la primera pregunta: una mala
         cur = _to_wait(page)
         oks = _oks(page, "en-zoo")
-        if not cur or oks[cur["i"]] != 0 or page.locator("#cl-ans .cl-a").count() != 3:
+        ok = cur["ok"] if cur else None
+        if not cur or oks[cur["i"]] != 0 or not isinstance(ok, int) or not 0 <= ok < 3 or page.locator("#cl-ans .cl-a").count() != 3:
             probs.append(f"la primera pregunta: {cur}")
+        ok = ok if isinstance(ok, int) and 0 <= ok < 3 else 0
+        bad = 1 if ok == 0 else 0
         imgs = page.evaluate("() => [...document.querySelectorAll('#cl-ans .cl-a img')].map(i => i.complete && i.naturalWidth > 0)")
         if imgs != [True, True, True]:
             probs.append(f"los dibujos de la pregunta no cargan: {imgs}")
         if page.locator("#cl-ans .cl-a .ipa").count() != 3:
             probs.append("las respuestas no llevan su IPA")
         s0 = page.evaluate("() => __spoken.length")
-        _pick(page, 1)
+        _pick(page, bad)
         cls = page.evaluate("() => [...document.querySelectorAll('#cl-ans .cl-a')].map(b => b.className)")
-        if "is-ok" not in cls[0] or "is-miss" not in cls[1]:
-            probs.append(f"marcas tras una mala: {cls}")
+        if "is-ok" not in cls[ok] or "is-miss" not in cls[bad]:
+            probs.append(f"marcas tras una mala (buena {ok}, tocada {bad}): {cls}")
         miss = page.evaluate("""() => { const b = document.querySelector('#cl-ans .is-miss'), m = b.querySelector('.cl-mk');
           return {bg: getComputedStyle(b).backgroundColor, mk: getComputedStyle(m).backgroundColor, x: !!m.querySelector('svg use[href="#i-x-bold"], svg use[href="#i-x-fill"]')}; }""")
         for k in ("bg", "mk"):
@@ -584,11 +593,11 @@ def test_answer_speaks_with_voice_and_tap_moves_on():
         nxt = _to_wait(page)
         if not nxt or nxt["i"] <= cur["i"] or nxt["answered"] != 1:
             probs.append(f"tras contestar no avanza: {nxt}")
-        # la siguiente con la tecla 1
+        # la siguiente con la tecla 1 (la primera respuesta en pantalla: buena o mala, contesta)
         page.keyboard.press("1")
         page.wait_for_timeout(150)
         cls = page.evaluate("() => [...document.querySelectorAll('#cl-ans .cl-a')].map(b => b.className)")
-        if not cls or "is-ok" not in cls[0]:
+        if not cls or not ("is-ok" in cls[0] or "is-miss" in cls[0]):
             probs.append(f"la tecla 1 no contesta: {cls}")
         # «Dilo»: listen() de mentira que oye «banana»
         page.evaluate("() => { window.listen = async () => ({status: 'ok', alts: ['a banana', 'banana']}); }")
@@ -599,8 +608,8 @@ def test_answer_speaks_with_voice_and_tap_moves_on():
             page.locator("#cl-mic").click()
             page.wait_for_timeout(300)
             cls = page.evaluate("() => [...document.querySelectorAll('#cl-ans .cl-a')].map(b => b.className)")
-            if not cls or "is-ok" not in cls[0]:
-                probs.append(f"«Dilo» no contesta con la voz: {cls}")
+            if not cls or "is-ok" not in cls[_okj(nxt)]:
+                probs.append(f"«Dilo» no contesta con la voz (buena {_okj(nxt)}): {cls}")
         if page.locator("#cl-ans .cl-a").first.is_visible() and page.locator("#cl-ans .cl-a").count() < 2:
             probs.append("con el micrófono no queda la opción de tocar")
         _finish(page)
@@ -928,7 +937,7 @@ def test_drawings_big_on_phones():
                 m = page.evaluate("() => { const t = document.querySelector('.cl-talk'); const b = document.getElementById('cl-hang').getBoundingClientRect(); return {sh: t.scrollHeight, ch: t.clientHeight, hang: b.bottom}; }")
                 if m["sh"] > m["ch"] + 1 or m["hang"] > h:
                     probs.append(f"{w}: la pregunta {cur['i']} necesita scroll ({m})")
-                _pick(page, max(0, _oks(page, cur["id"])[cur["i"]]))
+                _pick(page, _okj(cur))
             lim3 = 100 if w >= 390 else 90
             if min(sizes.get(3, [999])) < lim3:
                 probs.append(f"{w}: dibujos de 3 respuestas de {min(sizes[3]):.0f} px (mínimo {lim3})")
@@ -977,7 +986,7 @@ def test_export_equal_to_baseline_except_new_keys():
         if not set(changed) <= {"game"}:
             probs.append(f"una llamada cambió más que game: {changed}")
         st = json.loads(snap2["keys"]["calls"]) if isinstance(snap2["keys"].get("calls"), str) else snap2["keys"].get("calls")
-        if not isinstance(st, dict) or set(st) - {"v", "d", "h", "paid"} or st.get("v") != 1:
+        if not isinstance(st, dict) or set(st) - {"v", "d", "h", "paid", "heard"} or st.get("v") != 1:
             probs.append(f"«calls» guarda {st}")
         inv = page.evaluate("() => ({t: vocabSave.typeOf('calls'), dev: vocabSave.inventory.deviceOnly.includes('calls'), s: vocabSave.typeOf('vocab:call-s')})")
         if inv != {"t": "o", "dev": False, "s": None}:
@@ -1081,7 +1090,7 @@ def test_captures_and_audit():
                     if page.locator(".cl-endv").count() or not c2:
                         break
                     if c2 and c2["phase"] == "wait":
-                        _pick(page, max(0, _oks(page, c2["id"])[c2["i"]]))
+                        _pick(page, _okj(c2))
                     page.clock.run_for(400)
                     page.wait_for_timeout(20)
                 if page.locator(".cl-endv").count():

@@ -395,6 +395,18 @@
       "t": "The friends eat the cake together. They are very happy.",
       "es": "Los amigos comen el pastel juntos. Están muy contentos."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Who gives him apples?",
+      "es": "¿Quién le da manzanas?",
+      "opts": [
+       "img/pj/caballo.png",
+       "img/pj/cerdo.png",
+       "img/pj/vaca.png"
+      ],
+      "ok": 0
+     }
     ]
    },
    {
@@ -428,8 +440,42 @@
       "t": "The friends eat the cake together. They are very happy.",
       "es": "Los amigos comen el pastel juntos. Están muy contentos."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Who gives him chocolate?",
+      "es": "¿Quién le da chocolate?",
+      "opts": [
+       "img/pj/cerdo.png",
+       "img/pj/caballo.png",
+       "img/pj/gallina.png"
+      ],
+      "ok": 0
+     }
     ]
    }
   ]
- }
+ },
+ "quiz": [
+  {
+   "t": "Who gives him eggs?",
+   "es": "¿Quién le da huevos?",
+   "opts": [
+    "img/pj/gallina.png",
+    "img/pj/vaca.png",
+    "img/pj/caballo.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Who gives him milk?",
+   "es": "¿Quién le da leche?",
+   "opts": [
+    "img/pj/vaca.png",
+    "img/pj/cerdo.png",
+    "img/pj/gallina.png"
+   ],
+   "ok": 0
+  }
+ ]
 }

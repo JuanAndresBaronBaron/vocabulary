@@ -2,6 +2,10 @@
 
    Loro eco: #/loro es una pantalla de la pestaña Granja (‹ Granja vuelve). Se entra tocando el loro posado en la valla
    de la derecha de la granja, que este módulo pone en la escena con el bus "farm-mounted" (como js/season.js).
+   · Desde Juegos: la tarjeta «Loro eco» (vocabGames.register con href, sección «mas») abre #/loro?t=<tema> con las
+     palabras del tema elegido en Juegos que tienen dibujo y audio grabado (con «Mis palabras», o con menos de 3, las
+     del repaso de siempre); ‹ Juegos vuelve (rootOf y backOf de index.html miran ?t=) y la pestaña marcada es Jugar
+     (placeTab: "loro" pasa de las secs de Granja a las de Jugar antes de que la ruta se pinte).
    · Sale una palabra que el niño ya tiene en el repaso (srs:<lang>; las de caja < 4 salen el triple que las demás) con
      su dibujo, la palabra, su IPA (ipaHtml), el español y su audio grabado (audio/<ab>/<id>.mp3): sin dibujo o sin
      audio no sale. Con menos de 3, las 5 de la cápsula y los animales. Nunca una de las 4 últimas.
@@ -90,11 +94,20 @@ function rowWord(id, doc, es){
   return {ref: id + "|" + es, d: id, es: String(es), img: String(r.img || ""), word: String(L.word), ipa: String(L.ipa || ""), clip: "", wt: 1};
 }
 function shuffle(a){ for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-let POOL = null;   /* {ab, list, t}: lo que pidió la carga de antes de pintar (ROUTES.loro.load) vale unos segundos */
-async function pool(){
-  const a = ab(); if(POOL && POOL.ab === a && POOL.list.length >= 3 && Date.now() - POOL.t < 15000) return POOL.list;
+let POOL = null;   /* {ab, tp, list, t}: lo que pidió la carga de antes de pintar (ROUTES.loro.load) vale unos segundos */
+/* el tema de #/loro?t=<tema> (desde Juegos); "" desde la granja o con «Mis palabras» */
+const topicOf = (h = location.hash) => { try{ const t = new URLSearchParams(String(h).split("?")[1] || "").get("t") || ""; return /^[a-z0-9_-]{1,40}$/i.test(t) && t !== "mis" ? t : ""; }catch(e){ return ""; } };
+async function pool(tp = topicOf()){
+  const a = ab(); if(POOL && POOL.ab === a && POOL.tp === tp && POOL.list.length >= 3 && Date.now() - POOL.t < 15000) return POOL.list;
   const map = await clipMap(a), out = [], seen = new Set();
   const add = (w, wt) => { if(!w || !w.img || seen.has(w.ref)) return; const c = map[speakable(w.word)]; if(!c) return; w.clip = c; w.wt = wt; seen.add(w.ref); out.push(w); };
+  /* las del tema de Juegos (con dibujo y audio); con menos de 3, las de siempre */
+  if(tp){
+    const doc = await docOf(tp);
+    if(doc && Array.isArray(doc.rows)) for(const r of doc.rows) if(r && r.es) add(rowWord(tp, doc, r.es), 1);
+    if(out.length >= 3){ POOL = {ab: a, tp, list: out, t: Date.now()}; return out; }
+    out.length = 0; seen.clear();
+  }
   const ents = shuffle(Object.values(srsAll() || {}).filter(x => x && typeof x.d === "string" && typeof x.e === "string"));
   const ids = []; for(const x of ents){ if(!ids.includes(x.d)) ids.push(x.d); if(ids.length >= 8) break; }
   const docs = {}; await Promise.all(ids.map(async id => { docs[id] = await docOf(id); }));
@@ -104,7 +117,7 @@ async function pool(){
     const an = await docOf("animales");
     if(an) for(const r of an.rows || []) if(r && r.es) add(rowWord("animales", an, r.es), 1);
   }
-  POOL = {ab: a, list: out, t: Date.now()};
+  POOL = {ab: a, tp, list: out, t: Date.now()};
   return out;
 }
 /* la siguiente: al azar con peso, nunca una de las 4 últimas */
@@ -875,9 +888,33 @@ async function view(parts){
   show(pick(list));
   maybeOffer(my);
 }
-ROUTES.loro = parts => view(parts);
+ROUTES.loro = parts => { placeTab(); return view(parts); };
 ROUTES.loro.load = () => pool();
-try{ const T = TABS.find(t => t.id === "granja"); if(T && !T.secs.includes("loro")) T.secs.push("loro"); }catch(e){}
+/* la pestaña del loro: Granja (desde la valla) o Jugar (desde Juegos, con ?t=). Se decide antes de que route() marque la
+   pestaña: al tocar un enlace al loro, con Atrás/Adelante (popstate llega antes que hashchange) y al cargar */
+function placeTab(h = location.hash){
+  try{
+    const G0 = TABS.find(t => t.id === "granja"), J = TABS.find(t => t.id === "jugar"); if(!G0 || !J) return;
+    const want = /^#\/?loro\b/.test(h) && topicOf(h) ? J : G0, other = want === J ? G0 : J;
+    if(!want.secs.includes("loro")) want.secs.push("loro");
+    const i = other.secs.indexOf("loro"); if(i >= 0) other.secs.splice(i, 1);
+  }catch(e){}
+}
+placeTab();
+D.addEventListener("click", e => {
+  const a = e.target.closest && e.target.closest('a[href^="#/loro"]'); if(!a) return;
+  /* la tarjeta de Juegos lleva el tema elegido en ese momento */
+  if(a.matches('.gm-card[data-g="loro"]')){ let t = "animales"; try{ t = store.get("games:topic", "animales") || "animales"; }catch(err){} a.setAttribute("href", "#/loro?t=" + encodeURIComponent(t)); }
+  placeTab(a.getAttribute("href"));
+}, true);
+addEventListener("popstate", () => placeTab());
+/* la memoria de la pestaña Jugar vuelve al loro con su tema (route() la guarda sin ?t=) */
+bus.on("route", () => { try{ if(onLoro() && topicOf() && typeof TABMEM === "object" && TABMEM.jugar){ TABMEM.jugar.h = "#/" + location.hash.replace(/^#\/?/, ""); if(typeof memSave === "function") memSave(); } }catch(e){} });
+try{
+  if(W.vocabGames && typeof vocabGames.register === "function")
+    vocabGames.register("loro", {t: "Loro eco", sub: "Repite palabras con el loro", img: IMG, href: "#/loro?t=animales", sec: "mas",
+      line: () => "Con las palabras del tema"});
+}catch(e){ console.error(e); }
 function closeSheets(){ if(OFFER) shut(OFFER, true); }
 function leave(){ halt(); closeSheets(); rest(); }
 addEventListener("hashchange", () => { if(!onLoro()) leave(); if(!onPremios()) stopCap(); });
@@ -898,7 +935,7 @@ function perch(world){
   b.setAttribute("aria-label", "Loro eco: repite palabras conmigo");
   b.innerHTML = `<img src="${IMG}" alt="" width="256" height="217" draggable="false"><span class="lr-pl">Loro</span>`;
   /* el toque es del loro: no llega a la escena (pasear, mariposas…); y aquí empieza el sonido (Safari) */
-  b.addEventListener("click", e => { e.stopPropagation(); unlock(); location.hash = "#/loro"; });
+  b.addEventListener("click", e => { e.stopPropagation(); unlock(); placeTab("#/loro"); location.hash = "#/loro"; });
   world.appendChild(b);
 }
 

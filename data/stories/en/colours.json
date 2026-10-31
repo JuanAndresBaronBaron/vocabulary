@@ -362,6 +362,18 @@
       "t": "The fox and the tiger play all day.",
       "es": "El zorro y el tigre juegan todo el día."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Who is orange like the fox?",
+      "es": "¿Quién es naranja como el zorro?",
+      "opts": [
+       "img/pj/tigre.png",
+       "img/pj/abeja.png",
+       "img/pj/rana.png"
+      ],
+      "ok": 0
+     }
     ]
    },
    {
@@ -387,8 +399,42 @@
       "t": "But she is a good friend. The fox is happy!",
       "es": "Pero es una buena amiga. ¡El zorro está contento!"
      }
+    ],
+    "quiz": [
+     {
+      "t": "Who is yellow and black?",
+      "es": "¿Quién es amarillo y negro?",
+      "opts": [
+       "img/pj/abeja.png",
+       "img/pj/tigre.png",
+       "img/pj/oveja.png"
+      ],
+      "ok": 0
+     }
     ]
    }
   ]
- }
+ },
+ "quiz": [
+  {
+   "t": "What colour is the pig?",
+   "es": "¿De qué color es el cerdo?",
+   "opts": [
+    "img/b2ee2b0aa3.png",
+    "img/2368d85824.png",
+    "img/73c8a4092d.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Who is green?",
+   "es": "¿Quién es verde?",
+   "opts": [
+    "img/pj/rana.png",
+    "img/pj/gato.png",
+    "img/pj/oveja.png"
+   ],
+   "ok": 0
+  }
+ ]
 }

@@ -429,6 +429,18 @@
       "t": "Le renard est content. Le canard est son nouvel ami.",
       "es": "El zorro está contento. El pato es su nuevo amigo."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Qui nage ?",
+      "es": "¿Quién nada?",
+      "opts": [
+       "img/pj/pato.png",
+       "img/pj/perro.png",
+       "img/pj/vaca.png"
+      ],
+      "ok": 0
+     }
     ]
    },
    {
@@ -462,8 +474,42 @@
       "t": "Le renard est content. Le chien est son nouvel ami.",
       "es": "El zorro está contento. El perro es su nuevo amigo."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Qui a un ballon ?",
+      "es": "¿Quién tiene un balón?",
+      "opts": [
+       "img/pj/perro.png",
+       "img/pj/pato.png",
+       "img/pj/gallina.png"
+      ],
+      "ok": 0
+     }
     ]
    }
   ]
- }
+ },
+ "quiz": [
+  {
+   "t": "Qui a des œufs ?",
+   "es": "¿Quién tiene huevos?",
+   "opts": [
+    "img/pj/gallina.png",
+    "img/pj/vaca.png",
+    "img/pj/pato.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Qui mange de l'herbe ?",
+   "es": "¿Quién come hierba?",
+   "opts": [
+    "img/pj/vaca.png",
+    "img/pj/gallina.png",
+    "img/pj/perro.png"
+   ],
+   "ok": 0
+  }
+ ]
 }

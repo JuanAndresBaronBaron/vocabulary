@@ -11,7 +11,8 @@
    · #/cuento/<id>: el cuento en modo foco (html[data-focus=cuento]: sin barras, con la ✕ y las monedas), como un libro:
      arriba el dibujo grande (40 % del alto en el móvil, sobre una placa del color del cuento) y debajo el texto grande
      (28-40 px). Portada, páginas, la página de elegir (dos tarjetas con dibujo: cambian el final) y 2-4 páginas del
-     final elegido; después, «The End / Fin / Slut» con el zorro y los finales encontrados. Se pasa de página con
+     final elegido; luego «¿Te acuerdas?» (si el cuento trae quiz) y después «The End / Fin / Slut» con el zorro y los
+     finales encontrados. Se pasa de página con
      ‹ y «Siguiente» (abajo, siempre a la vista), deslizando la página (G.swipe) y con ← →: la página se va entera por
      el lado del gesto (con su velocidad) y la nueva entra por el otro; vibra solo al pasarla deslizando.
      Cada página se lee sola al llegar (y con el altavoz; la tortuga, despacio): una frase cada vez con la voz del
@@ -21,7 +22,15 @@
      con audio grabado (audio/<ab>.json) suena con su mp3; sin voz del idioma no se lee con otro acento (lo avisa).
      Tocar una palabra la dice despacio (su mp3 si lo tiene; si no, la voz a SLOW()) y abre un globo con su dibujo,
      la palabra, su IPA (ipaHtml) y su traducción. «Español» enseña la traducción de la página.
-     Al llegar al final: award(10) la primera vez que se termina cada cuento (como mucho 3 cuentos pagados al día; si
+     «Leer solo» (interruptor de la página, en vocab:ui.talesAuto, solo de este aparato): al acabar de leerse una página,
+     pasa sola 1,2 s después (sin voz, tras el tiempo de leerla); se para en la de elegir y en las preguntas.
+     «¿Te acuerdas?»: antes de «The End», 3 preguntas (las 2 de "quiz" del cuento y la del final elegido) que dice la voz
+     («Who gives him eggs?»), cada una con 3 dibujos del cuento en otro orden (teclas 1-3). La pregunta se lee escrita al
+     contestar (sin voz del idioma, desde el principio). Bien: ✓ en verde y suena la palabra del dibujo (su mp3 o la voz);
+     mal: el tocado en gris con ✗ y el bueno con ✓, y suena el bueno. Nadie suspende: cualquier respuesta sigue. La palabra
+     de un dibujo sale de "words" (el mismo img), de la glosa (el mismo img) o, para img/pj/<nombre>.png, de la glosa cuyo
+     español es <nombre> («gallina» → «the hen»), con su IPA. Sin quiz, el cuento va como siempre.
+     Al llegar al final (después de las preguntas): award(10) la primera vez que se termina cada cuento (como mucho 3 cuentos pagados al día; si
      ya hay 3, se paga al terminarlo otro día), la medalla «Ratón de biblioteca» con 4 cuentos (achList de index.html)
      y bus "story-done" {id, end, first} (los atajos de Hoy: js/shortcuts.js). Releer o ver el otro final no paga.
      Toda la pantalla lleva data-no-renew (js/sync.js no pide el permiso de Google en mitad de un cuento).
@@ -32,7 +41,9 @@
        (green|yellow|blue|teal), words: [{w, id: "tema|es" del corpus, img?}] (las palabras del cuento: cuentan para
        abrirlo), gloss: {"superficie en minúsculas" (1-3 palabras: "fox", "le renard", "det er nat"): {es, ipa, id?, img?}}
        (todas las palabras del texto tienen la suya), pages: [{img, also?: [hasta 2 dibujos más], t, es, gl?: {glosas
-       solo de esa página}}], choice: {img, also?, t, es, gl?, opts: [{key, t, es, img, pages: [...]}, {…}]}}.
+       solo de esa página}}], choice: {img, also?, t, es, gl?, opts: [{key, t, es, img, pages: [...], quiz?: [pregunta]}, {…}]},
+       quiz?: [pregunta, pregunta]}; pregunta = {t (en el idioma), es, opts: [3 dibujos del cuento, "img/…"], ok (el bueno,
+       desde 0), gl?}. El código baraja los dibujos.
      Cada camino (páginas + elegir + un final) tiene 8-12 páginas. Palabras: letras con ' ’ o - por dentro; se juntan
      en una unidad las 2-3 seguidas que tienen glosa (la más larga primero).
    Guardado:
@@ -41,6 +52,7 @@
        pagó}}, pay: {d: "AAAA-MM-DD", n: cuentos pagados ese día}}.
      vocab:ui (solo este aparato) → tales: {u: [ids abiertos la última vez que se vio la estantería]}.
      sessionStorage "vocab:cuento" = {id, p, ch, es}: por dónde va (al volver a entrar o recargar sigue ahí).
+     vocab:ui → talesAuto: true con «Leer solo» encendido.
    window.vocabStories = {ready() → Promise<índice>, index(), list(idioma?), story(id) → Promise, saved(), doneCount(),
      lock(id) → {free, open, need, has, left, miss}, shortcut(id) → atajo de Hoy | null, images() → Promise<[url]>,
      state() → lo que se ve, KEY}.
@@ -89,6 +101,11 @@ function valid(s){
     && s.pages.every(okPage) && isObj(s.choice) && okPage(s.choice) && Array.isArray(s.choice.opts) && s.choice.opts.length === 2
     && s.choice.opts.every(o => isObj(o) && typeof o.key === "string" && typeof o.t === "string" && typeof o.img === "string" && Array.isArray(o.pages) && o.pages.length > 0 && o.pages.every(okPage));
 }
+/* una pregunta de «¿Te acuerdas?» que se puede usar (si no, se salta: el cuento sigue valiendo) */
+const IMGRE = /^img\/[\w./-]+\.(png|jpe?g|svg|webp)$/;
+const okQ = q => isObj(q) && typeof q.t === "string" && q.t.trim() && typeof q.es === "string" && Array.isArray(q.opts) && q.opts.length >= 2 && q.opts.length <= 4
+  && q.opts.every(u => typeof u === "string" && IMGRE.test(u)) && new Set(q.opts).size === q.opts.length && Number.isInteger(q.ok) && q.ok >= 0 && q.ok < q.opts.length;
+const quizOf = (s, ch) => { const o = s.choice.opts.find(x => x.key === ch); return [...(Array.isArray(s.quiz) ? s.quiz : []), ...(o && Array.isArray(o.quiz) ? o.quiz : [])].filter(okQ); };
 async function story(id){
   if(FILES[id]) return FILES[id];
   await ready();
@@ -104,7 +121,7 @@ function storyImgs(s){
   const set = new Set([s.cover]);
   const add = p => { if(p && p.img) set.add(p.img); ((p && p.also) || []).forEach(u => set.add(u)); };
   s.pages.forEach(add); add(s.choice);
-  s.choice.opts.forEach(o => { set.add(o.img); o.pages.forEach(add); });
+  s.choice.opts.forEach(o => { set.add(o.img); o.pages.forEach(add); quizOf(s, o.key).forEach(q => q.opts.forEach(u => set.add(u))); });
   for(const g of Object.values(s.gloss)) if(g && g.img) set.add(g.img);
   return [...set].filter(u => typeof u === "string" && /^img\/[\w./-]+\.(png|jpe?g|svg|webp)$/.test(u));
 }
@@ -276,6 +293,41 @@ dialog.st-sh .st-ls-p{margin:0 0 12px;font:400 var(--fs-body)/1.4 var(--f-text);
 .st-opt[aria-pressed=true]{box-shadow:0 0 0 4px var(--brand-tint)}
 .st-opt[aria-pressed=true] .st-opt-ok{display:grid}
 .st-opt.is-nudge{box-shadow:0 0 0 4px var(--gold)}
+/* «¿Te acuerdas?» */
+.st-quiz{gap:12px}
+.st-qhd{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 4px}
+.st-qhd .st-kick{font-size:var(--fs-sub);color:var(--label)}
+.st-qdots{display:flex;gap:6px}
+.st-qdots i{display:block;width:12px;height:12px;border-radius:50%;background:var(--fill)}
+.st-qdots i.on{background:var(--teal)}
+.st-qq{display:flex;align-items:center;gap:14px;padding:0 4px}
+.st-qspk{width:72px;height:72px}
+.st-qt{flex:1;min-width:0;font-size:min(calc(1.5rem*var(--k)),34px);line-height:max(44px,1.6em)}   /* cada palabra, 44 px de alto para el dedo */
+.st-qhint{flex:1;margin:0;color:var(--label2);font:700 var(--fs-body)/1.35 var(--f-text)}
+.st-qos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.st-qo{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;margin:0;padding:6px 6px 8px;border:0;border-radius:var(--r-card);
+  background:var(--fill2);color:var(--label);font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:box-shadow var(--d-fast,160ms),background-color var(--d-fast,160ms)}
+.st-qo-pic{position:relative;display:block;width:100%;aspect-ratio:1/1;border-radius:16px;background:var(--st-tint);overflow:hidden}
+.st-qo-pic img{position:absolute;inset:5%;width:90%;height:90%;object-fit:contain;pointer-events:none;-webkit-user-drag:none;user-select:none}
+.st-qo-w{display:block;max-width:100%;margin-top:4px;font:800 var(--fs-sub)/1.2 var(--f-round);text-align:center;overflow-wrap:anywhere}
+.st-qo .ipa{display:block;max-width:100%;font-size:var(--fs-min);line-height:1.25;text-align:center}
+.st-qo-mk{position:absolute;top:6px;right:6px;display:none;place-items:center;width:34px;height:34px;border-radius:50%;color:#fff;box-shadow:0 0 0 2px var(--card)}
+.st-qo:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
+.st-qo[aria-disabled=true]{cursor:default}
+.st-qo.is-ok{box-shadow:0 0 0 4px var(--teal)}
+.st-qo.is-ok .st-qo-mk{display:grid;background:var(--teal)}
+.st-qo.is-miss{background:var(--miss-fill)}
+.st-qo.is-miss .st-qo-mk{display:grid;background:var(--miss)}
+.st-qo.is-miss img,.st-qo.is-dim img{filter:grayscale(1);opacity:.5}
+.st-qo.is-nudge{box-shadow:0 0 0 4px var(--gold)}
+/* «Leer solo» */
+.st-auto{display:inline-flex;align-items:center;gap:8px;min-height:var(--tap);margin:0;padding:0 14px 0 8px;border:0;border-radius:var(--r-pill);background:var(--fill2);color:var(--label);
+  font:700 var(--fs-note)/1 var(--f-text);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.st-auto-sw{position:relative;flex:none;width:36px;height:22px;border-radius:11px;background:var(--fill);transition:background-color var(--d-fast,160ms)}
+.st-auto-sw::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgb(0 0 0/.25);transition:translate var(--d-fast,160ms)}
+.st-auto[aria-pressed=true] .st-auto-sw{background:var(--ok-fill)}
+.st-auto[aria-pressed=true] .st-auto-sw::after{translate:14px 0}
+.st-auto:focus-visible{outline:3px solid var(--brand-tint);outline-offset:2px}
 /* el final */
 .st-end{align-items:center;text-align:center;padding:24px 16px}
 .st-fox{height:136px;display:grid;place-items:end center}
@@ -319,14 +371,16 @@ dialog.st-sh .st-ls-p{margin:0 0 12px;font:400 var(--fs-body)/1.4 var(--f-text);
 .st-bub[data-side=bottom] .st-bub-a{top:-7px}
 /* en tableta y ordenador, el libro abierto: el dibujo a la izquierda y el texto a la derecha */
 @media (min-width:820px){
-  .st-page:not(.st-end):not(.st-q){display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center;gap:24px;padding:16px}
+  .st-page:not(.st-end):not(.st-q):not(.st-quiz){display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);align-items:center;gap:24px;padding:16px}
   .st-page .st-art{height:clamp(300px,56vh,520px)}
   .st-txt{font-size:min(calc(2.25rem*var(--k)),52px)}
   .st-title{font-size:min(calc(2.5rem*var(--k)),58px)}
   .st-opts{gap:16px}
   .st-opt-pic{max-height:42vh}
+  .st-qos{gap:16px}
+  .st-qo-pic{max-height:34vh}
 }
-${DARK(".st-art,.st-cv-art,.st-opt-pic,.st-bub-pic,.st-endc.ok,.st-lw-pic", "background:#E8E8ED")}
+${DARK(".st-art,.st-cv-art,.st-opt-pic,.st-bub-pic,.st-endc.ok,.st-lw-pic,.st-qo-pic", "background:#E8E8ED")}
 ${DARK(".st-cv.is-lock .st-cv-art", "background:var(--fill2)")}
 `;
 function css(){
@@ -485,22 +539,22 @@ async function narrate(M, slow, btn, L){
   if(tok === SAY){ lit(-1); if(btn) btn.classList.remove("playing"); }
   return tok === SAY;
 }
-/* una palabra suelta, despacio: su mp3 si lo tiene; si no, la voz a SLOW() */
-function sayWord(text, btn, L){
+/* una palabra suelta, despacio: su mp3 si lo tiene; si no, la voz a SLOW() (con norm, a la velocidad de siempre) */
+function sayWord(text, btn, L, norm, cb){
   stopSay();
   const tok = SAY;
   if(btn) btn.classList.add(btn.classList.contains("st-u") ? "is-tap" : "playing");
   let done = false;
-  const off = () => { if(done) return; done = true; if(btn) btn.classList.remove("is-tap", "playing"); };
+  const off = () => { if(done) return; done = true; if(btn) btn.classList.remove("is-tap", "playing"); if(cb) try{ cb(tok === SAY); }catch(e){} };
   const tts = () => {
     if(tok !== SAY || !hasVoice(L)){ if(!hasVoice(L)) noVoice(L); return off(); }
     const u = new SpeechSynthesisUtterance(text);
-    u.rate = SLOW(); useVoice(u, L);
+    u.rate = norm ? rate : SLOW(); useVoice(u, L);
     u.onend = off; u.onerror = e => { if(!retryLocal(u, e, off)) off(); };
     setTimeout(off, 3000 + text.length * 220);
     try{ speechSynthesis.speak(u); }catch(e){ off(); }
   };
-  if(!playClip(clipKey(text), true, ok => ok ? off() : tts())) tts();
+  if(!playClip(clipKey(text), !norm, ok => ok ? off() : tts())) tts();
 }
 function noVoice(L){
   const n = $("#st-note"); if(!n || n.textContent) return;
@@ -654,7 +708,11 @@ function pathOf(s, ch){
   s.pages.forEach(pg => P.push({k: "page", pg}));
   P.push({k: "choice", pg: s.choice});
   const o = s.choice.opts.find(x => x.key === ch);
-  if(o) o.pages.forEach(pg => P.push({k: "page", pg, end: true}));
+  if(o){
+    o.pages.forEach(pg => P.push({k: "page", pg, end: true}));
+    const qs = quizOf(s, ch);
+    qs.forEach((q, qi) => P.push({k: "quiz", q, qi, qn: qs.length}));
+  }
   return P;
 }
 function sesSave(){ if(R && !R.fin) sesSet({id: R.id, p: R.p, ch: R.ch, es: R.es}); }
@@ -665,10 +723,11 @@ function artHtml(main, also){
     ${big.map(u => `<img class="st-big" src="${esc(u)}" alt="" draggable="false">`).join("")}
     ${stk.length ? `<span class="st-stks">${stk.map(u => `<img class="st-stk" src="${esc(u)}" alt="" draggable="false">`).join("")}</span>` : ""}</figure>`;
 }
+const autoHtml = () => `<button type="button" class="st-auto" id="st-auto" aria-pressed="${!!R.auto}"><span class="st-auto-sw" aria-hidden="true"></span>Leer solo</button>`;
 const actsHtml = () => `<div class="st-acts">
     <button type="button" class="st-spk" id="st-say" data-key="space" aria-label="Escuchar la página" title="Escuchar">${ico("speaker-high", "fill", 24)}</button>
     <button type="button" class="st-slow" id="st-slow" data-key="shift+space" aria-label="Escuchar despacio" title="Despacio">${ico("turtle", "fill", 26)}</button>
-    <button type="button" class="st-esb" id="st-esb" aria-pressed="${R.es}">Español</button></div>
+    ${autoHtml()}<button type="button" class="st-esb" id="st-esb" aria-pressed="${R.es}">Español</button></div>
   <p class="st-note" id="st-note" role="status"></p>`;
 /* la IPA de una frase corta (las opciones de elegir), juntando la de sus palabras; "" si alguna no la tiene */
 function ipaOf(text){
@@ -684,8 +743,123 @@ function pageHtml(x){
     <div class="st-opts" role="group" aria-label="Elige el final">${x.pg.opts.map((o, i) => `<button type="button" class="st-opt" data-k="${esc(o.key)}" data-key="${i + 1}" data-key-pos="in" aria-pressed="${R.ch === o.key}">
       <span class="st-opt-pic"><img src="${esc(o.img)}" alt="" draggable="false"></span><span class="st-opt-t" lang="${esc(c)}">${esc(o.t)}</span>${ipaHtml(ipaOf(o.t), c)}
       <small class="st-opt-es">${esc(o.es)}</small><span class="st-opt-ok" aria-hidden="true">${ico("check", "bold", 18)}</span></button>`).join("")}</div></div>`;
+  if(x.k === "quiz") return quizHtml(x, c, es);
   return `<article class="card st-page">${artHtml(x.pg.img, x.pg.also)}
     <div class="st-body"><p class="st-txt" id="st-txt" lang="${esc(c)}">${unitsHtml(R.M)}</p>${es(x.pg.es)}${actsHtml()}</div></article>`;
+}
+/* ---------- «¿Te acuerdas?» ---------- */
+/* el orden en que se ven los dibujos de la pregunta qi (barajado una vez por lectura) */
+function qOrder(x){
+  if(!R.qo[x.qi]){ const a = x.q.opts.map((_, i) => i); for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } R.qo[x.qi] = a; }
+  return R.qo[x.qi];
+}
+const normEs = t => String(t || "").toLocaleLowerCase("es").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/^(el|la|los|las|un|una|unos|unas)\s+/, "").trim();
+/* la palabra de un dibujo del cuento: {w, ipa} o null */
+function picWord(s, img){
+  const gl = s.gloss || {}, ks = Object.keys(gl).filter(k => isObj(gl[k]));
+  const last = k => k.split(" ").pop();
+  const ws = (Array.isArray(s.words) ? s.words : []).filter(w => isObj(w) && w.img === img && typeof w.w === "string").map(w => w.w.toLowerCase());
+  /* las glosas con ese dibujo (las que son una palabra del cuento, antes); para img/pj/<nombre>.png, la que en español es <nombre> */
+  let hit = ks.filter(k => gl[k].img === img);
+  const m = /^img\/pj\/([a-z]+)\.png$/.exec(img);
+  if(!hit.length && m) hit = ks.filter(k => normEs(gl[k].es) === m[1]);
+  const rank = k => ws.includes(k) ? 0 : ws.includes(last(k)) ? 1 : 2;
+  hit.sort((a, b) => rank(a) - rank(b) || b.length - a.length || a.localeCompare(b));
+  if(hit.length) return {w: hit[0], ipa: String(gl[hit[0]].ipa || "")};
+  if(!ws.length) return null;
+  const g = ks.find(k => k === ws[0] || last(k) === ws[0]);
+  return {w: ws[0], ipa: g ? String(gl[g].ipa || "") : ""};
+}
+/* el nombre en español de un dibujo del cuento (para el lector de pantalla, como en los juegos): de la glosa o de
+   "words" con el mismo img, o el de img/pj/<nombre>.png */
+function picEs(s, img){
+  const gl = s.gloss || {}, k = Object.keys(gl).find(k => isObj(gl[k]) && gl[k].img === img && gl[k].es);
+  if(k) return String(gl[k].es);
+  const w = (Array.isArray(s.words) ? s.words : []).find(w => isObj(w) && w.img === img && typeof w.id === "string" && w.id.includes("|"));
+  if(w) return w.id.split("|")[1].split(",")[0].trim();
+  const m = /^img\/pj\/([a-z]+)\.png$/.exec(img); if(!m) return "";
+  const g = Object.keys(gl).find(k => isObj(gl[k]) && normEs(gl[k].es) === m[1]);
+  return g ? String(gl[g].es) : m[1];
+}
+const qoName = (x, oi, i) => { const n = picEs(R.s, x.q.opts[oi]).toLocaleLowerCase("es"); return n ? `${i + 1}: ${n}` : `Dibujo ${i + 1}`; };
+function quizHtml(x, c, es){
+  const ord = qOrder(x), got = R.qa[x.qi] != null, show = got || !hasVoice(R.L);
+  const dots = Array.from({length: x.qn}, (_, i) => `<i${i <= x.qi ? ' class="on"' : ""}></i>`).join("");
+  return `<section class="card st-page st-quiz" aria-labelledby="st-qk">
+    <div class="st-qhd"><p class="st-kick" id="st-qk">¿Te acuerdas? · ${x.qi + 1} de ${x.qn}</p><span class="st-qdots" aria-hidden="true">${dots}</span></div>
+    <div class="st-qq"><button type="button" class="st-spk st-qspk" id="st-say" data-key="space" aria-label="Escuchar la pregunta" title="Escuchar">${ico("speaker-high", "fill", 32)}</button>
+      ${show ? `<p class="st-txt st-qt" id="st-txt" lang="${esc(c)}">${unitsHtml(R.M)}</p>` : `<p class="st-qhint" id="st-qhint">Escucha la pregunta y toca un dibujo.</p>`}</div>
+    ${es(x.q.es)}
+    <div class="st-acts"><button type="button" class="st-slow" id="st-slow" data-key="shift+space" aria-label="Escuchar despacio" title="Despacio">${ico("turtle", "fill", 26)}</button>
+      ${autoHtml()}<button type="button" class="st-esb" id="st-esb" aria-pressed="${R.es}">Español</button></div>
+    <div class="st-qos" role="group" aria-label="Elige un dibujo">${ord.map((oi, i) => `<button type="button" class="st-qo" data-i="${i}" data-key="${i + 1}" data-key-pos="in" aria-label="${esc(qoName(x, oi, i))}">
+      <span class="st-qo-pic"><img src="${esc(x.q.opts[oi])}" alt="" draggable="false"></span><span class="st-qo-x"></span><span class="st-qo-mk" aria-hidden="true"></span><span class="vh"></span></button>`).join("")}</div>
+    <p class="st-note" id="st-note" role="status"></p></section>`;
+}
+/* marca la pregunta contestada: el bueno con ✓ (y su palabra con la IPA), el tocado malo en gris con ✗ */
+function quizMarks(x){
+  const ord = qOrder(x), j = R.qa[x.qi], right = ord.indexOf(x.q.ok), c = code(R.L);
+  if(j == null) return;
+  DOC.querySelectorAll("#st-stage .st-qo").forEach(b => {
+    const i = +b.dataset.i, mk = b.querySelector(".st-qo-mk"), vh = b.querySelector(".vh"), name = qoName(x, ord[i], i);
+    const tell = t => { if(vh) vh.textContent = t; b.setAttribute("aria-label", name + t); };
+    b.setAttribute("aria-disabled", "true"); b.classList.remove("is-ok", "is-miss", "is-dim");
+    if(i === right){
+      b.classList.add("is-ok"); if(mk) mk.innerHTML = ico("check", "bold", 20);
+      const w = picWord(R.s, x.q.opts[x.q.ok]), xx = b.querySelector(".st-qo-x");
+      if(w && xx && !xx.innerHTML) xx.innerHTML = `<span class="st-qo-w" lang="${esc(c)}">${esc(w.w)}</span>${ipaHtml(w.ipa, c)}`;
+      tell(i === j ? " (¡bien!)" : " (este era)");
+    } else if(i === j){ b.classList.add("is-miss"); if(mk) mk.innerHTML = ico("x", "bold", 18); tell(" (no es)"); }
+    else b.classList.add("is-dim");
+  });
+  /* la pregunta escrita, ya contestada */
+  const hint = $("#st-qhint");
+  if(hint){ hint.outerHTML = `<p class="st-txt st-qt" id="st-txt" lang="${esc(c)}">${unitsHtml(R.M)}</p>`; const st = $("#st-stage"); if(st) fitTaps(st); }
+}
+function quizPick(i){
+  const x = R && R.path[R.p]; if(!x || x.k !== "quiz" || R.fin || R.qa[x.qi] != null) return;
+  const ord = qOrder(x); if(i < 0 || i >= ord.length) return;
+  closeBub(); clearTimeout(NT); clearTimeout(AUTO); stopSay();
+  R.qa[x.qi] = i;
+  const right = ord.indexOf(x.q.ok), good = i === right, at = R.p;
+  quizMarks(x); dock();
+  const b = DOC.querySelector(`#st-stage .st-qo[data-i="${right}"]`), w = picWord(R.s, x.q.opts[x.q.ok]);
+  const lv = $("#st-live"); if(lv) lv.textContent = good ? "¡Muy bien!" : `Era ${w ? w.w : "el otro dibujo"}.`;
+  if(good){ haptic("success"); if(W.M && typeof M.ok === "function") try{ M.ok(b.querySelector(".st-qo-mk") || b); }catch(e){} }
+  else if(W.M && typeof M.ok === "function") try{ M.ok(b.querySelector(".st-qo-mk") || b, {haptic: false}); }catch(e){}
+  const then = () => { if(R && R.p === at && !R.fin) autoNext(at, true); };
+  if(!w){ then(); return; }
+  /* suena la palabra del bueno; con «Leer solo», 1,2 s después pasa */
+  setTimeout(() => { if(R && R.p === at && !R.fin) sayWord(w.w, null, R.L, true, alive => { if(alive) then(); }); }, good ? 120 : 450);
+}
+/* en una pregunta sin contestar, «Siguiente» no pasa: los dibujos brillan (no es un fallo) */
+function nudgeQuiz(){
+  const os = DOC.querySelectorAll("#st-stage .st-qo"); os.forEach(o => o.classList.add("is-nudge"));
+  setTimeout(() => os.forEach(o => o.classList.remove("is-nudge")), 700);
+  const h = $("#st-pick"); if(h && W.M && typeof M.bump === "function") M.bump(h);
+}
+/* ---------- «Leer solo» ---------- */
+let AUTO = 0;
+function setAuto(on){
+  R.auto = !!on;
+  try{ if(W.vocabUI && typeof vocabUI.set === "function") vocabUI.set("talesAuto", on ? true : null); }catch(e){}
+  DOC.querySelectorAll("#st .st-auto").forEach(b => b.setAttribute("aria-pressed", String(R.auto)));
+  clearTimeout(AUTO);
+  if(R.auto && !R.fin && !$("#st-say.playing")) autoNext(R.p);
+}
+const autoOn = () => { try{ return !!(W.vocabUI && vocabUI.get().talesAuto === true); }catch(e){ return false; } };
+/* al acabar de leerse la página at, la siguiente 1,2 s después (nunca en la de elegir ni en una pregunta sin contestar).
+   Sin voz del idioma, tras el tiempo de leerla */
+function autoNext(at, answered){
+  clearTimeout(AUTO);
+  if(!R || !R.auto || R.fin || R.p !== at) return;
+  const x = R.path[at]; if(!x || x.k === "choice" || (x.k === "quiz" && !answered && R.qa[x.qi] == null)) return;
+  const ms = hasVoice(R.L) || x.k === "quiz" ? 1200 : Math.max(2500, ((R.M && R.M.text) || "").length * 70);
+  AUTO = setTimeout(() => { if(R && R.auto && R.p === at && !R.fin && !BUB && secOf(hashNow()) === "cuento") go(1); }, ms);
+}
+function readPage(slow, btn){
+  const at = R.p;
+  return narrate(R.M, slow, btn, R.L).then(ok => { if(ok && R && R.p === at) autoNext(at); return ok; });
 }
 function mount(){
   OFFS.forEach(f => { try{ f(); }catch(e){} }); OFFS = [];
@@ -701,8 +875,10 @@ function mount(){
     const t = ev.target; if(!t || !t.closest) return;
     const u = t.closest(".st-u");
     if(u && root.contains(u)){ tapUnit(u); return; }
-    if(t.closest("#st-say")){ const b = $("#st-say"); if(b.classList.contains("playing")) stopSay(); else narrate(R.M, false, b, R.L); return; }
-    if(t.closest("#st-slow")){ const b = $("#st-slow"); if(b.classList.contains("playing")) stopSay(); else narrate(R.M, true, b, R.L); return; }
+    if(t.closest("#st-say")){ const b = $("#st-say"); clearTimeout(AUTO); if(b.classList.contains("playing")) stopSay(); else readPage(false, b); return; }
+    if(t.closest("#st-slow")){ const b = $("#st-slow"); clearTimeout(AUTO); if(b.classList.contains("playing")) stopSay(); else readPage(true, b); return; }
+    if(t.closest("#st-auto")){ setAuto(!R.auto); return; }
+    const qo = t.closest(".st-qo"); if(qo && root.contains(qo) && !qo.closest(".st-ghost")){ quizPick(+qo.dataset.i); return; }
     if(t.closest("#st-esb")){ R.es = !R.es; sesSave(); const es = $("#st-es"), b = $("#st-esb"); if(es) es.hidden = !R.es; if(b) b.setAttribute("aria-pressed", String(R.es)); return; }
     const o = t.closest(".st-opt"); if(o){ pick(o.dataset.k, o); return; }
     if(t.closest("#st-prev")){ go(-1); return; }
@@ -735,15 +911,17 @@ function dock(){
   const off = R.p === 0;
   prev.classList.toggle("is-off", off); prev.disabled = off;
   if(off){ prev.setAttribute("aria-hidden", "true"); prev.tabIndex = -1; } else { prev.removeAttribute("aria-hidden"); prev.removeAttribute("tabindex"); }
-  const wantPick = x.k === "choice" && !R.ch;
+  const wantPick = (x.k === "choice" && !R.ch) || (x.k === "quiz" && R.qa[x.qi] == null);
   next.hidden = wantPick; hint.hidden = !wantPick;
+  hint.textContent = x.k === "quiz" ? "Toca un dibujo" : "Toca un dibujo para elegir";
   const label = R.p === 0 ? "Empezar" : last ? "Terminar" : "Siguiente";
   const sp = next.querySelector("span"); if(sp && sp.textContent !== label) sp.textContent = label;
 }
 function bar(){
   const b = $("#st-bar"); if(!b) return;
   const tot = totalOf(R.s), v = R.fin ? tot : Math.min(R.p, tot);
-  b.setAttribute("aria-valuenow", String(v)); b.setAttribute("aria-valuetext", R.fin ? "Cuento terminado" : R.p ? `Página ${R.p} de ${tot}` : "Portada");
+  const q = !R.fin && R.path[R.p] && R.path[R.p].k === "quiz";
+  b.setAttribute("aria-valuenow", String(v)); b.setAttribute("aria-valuetext", R.fin ? "Cuento terminado" : q ? "¿Te acuerdas?" : R.p ? `Página ${R.p} de ${tot}` : "Portada");
   const i = b.querySelector("i"); if(i) i.style.width = `${(100 * v / tot).toFixed(1)}%`;
 }
 /* pasar de página como un libro: la que se va sigue al dedo (desde donde la dejó y con la velocidad al soltar) y sale
@@ -791,13 +969,14 @@ let NT = 0;
 function show(dir, v){
   const x = R.path[R.p], stage = $("#st-stage"); if(!stage) return;
   closeBub();
-  R.M = x.k === "cover" ? model(R.s.title, R.s.gloss) : model(x.pg.t, R.s.gloss, x.pg.gl);
+  R.M = x.k === "cover" ? model(R.s.title, R.s.gloss) : x.k === "quiz" ? model(x.q.t, R.s.gloss, x.q.gl) : model(x.pg.t, R.s.gloss, x.pg.gl);
   swap(stage, pageHtml(x), dir, v);
+  if(x.k === "quiz") quizMarks(x);
   bar(); dock();
-  const lv = $("#st-live"); if(lv) lv.textContent = R.p ? (x.k === "choice" ? "Elige el final" : `Página ${R.p}`) : R.s.title;
-  clearTimeout(NT);
+  const lv = $("#st-live"); if(lv) lv.textContent = R.p ? (x.k === "choice" ? "Elige el final" : x.k === "quiz" ? `¿Te acuerdas? Pregunta ${x.qi + 1} de ${x.qn}` : `Página ${R.p}`) : R.s.title;
+  clearTimeout(NT); clearTimeout(AUTO);
   const at = R.p, id = R.id;
-  NT = setTimeout(() => { if(R && R.id === id && R.p === at && !R.fin && secOf(hashNow()) === "cuento") narrate(R.M, false, $("#st-say"), R.L); }, dir ? 360 : 520);
+  NT = setTimeout(() => { if(R && R.id === id && R.p === at && !R.fin && secOf(hashNow()) === "cuento") readPage(false, $("#st-say")); }, dir ? 360 : 520);
 }
 /* pasa de página: d = 1 o -1; sw = el gesto que la pasó ({v} en px/ms), si fue deslizando (solo entonces vibra).
    false si no se pudo (en la portada hacia atrás, o en la de elegir sin elegir) */
@@ -805,13 +984,14 @@ function go(d, sw){
   if(!R || R.fin) return false;
   if(d > 0){
     if(R.path[R.p].k === "choice" && !R.ch){ nudge(); return false; }
+    if(R.path[R.p].k === "quiz" && R.qa[R.path[R.p].qi] == null){ nudgeQuiz(); return false; }
     if(R.p >= R.path.length - 1){ stopSay(); end(sw); return true; }
     R.p++;
   } else {
     if(R.p <= 0) return false;
     R.p--;
   }
-  stopSay(); sesSave(); if(sw) haptic("selection");
+  stopSay(); clearTimeout(AUTO); sesSave(); if(sw) haptic("selection");
   show(d, sw ? sw.v : 0);
   return true;
 }
@@ -824,7 +1004,7 @@ function nudge(){
 function pick(key, btn){
   const o = R.s.choice.opts.find(x => x.key === key); if(!o) return;
   closeBub(); clearTimeout(NT);
-  R.ch = key; R.path = pathOf(R.s, key); sesSave();
+  R.ch = key; R.path = pathOf(R.s, key); R.qa = {}; R.qo = {}; sesSave();
   DOC.querySelectorAll(".st-opt").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.k === key)));
   if(W.M && typeof M.ok === "function") M.ok(btn);
   dock();
@@ -836,7 +1016,7 @@ function pick(key, btn){
 }
 /* el final del cuento */
 function end(sw){
-  R.fin = true; clearTimeout(NT); closeBub(); PICK++;
+  R.fin = true; clearTimeout(NT); clearTimeout(AUTO); closeBub(); PICK++;
   const res = finish(R.id, R.ch), E = END[R.L] || END.english, c = code(R.L), opts = R.s.choice.opts;
   sesSet(null);
   R.M = model(E.t, {[E.t.toLowerCase()]: {es: E.es, ipa: E.ipa}});
@@ -868,13 +1048,13 @@ function end(sw){
 function again(){
   if(!R) return;
   const d = saved().done[R.id], other = R.s.choice.opts.some(o => !(d && d.e.includes(o.key)));
-  R.fin = false; R.ch = null; R.path = pathOf(R.s, null); R.p = other ? choiceAt(R.s) : 0;
+  R.fin = false; R.ch = null; R.path = pathOf(R.s, null); R.p = other ? choiceAt(R.s) : 0; R.qa = {}; R.qo = {};
   $("#st-dock").innerHTML = dockHtml();
   sesSave(); show(-1);
 }
 function tapUnit(btn){
   const i = +btn.dataset.u, U = R && R.M && R.M.units[i]; if(!U) return;
-  clearTimeout(NT);
+  clearTimeout(NT); clearTimeout(AUTO);
   sayWord(U.text, btn, R.L);
   bubble(U, btn);
 }
@@ -925,7 +1105,8 @@ async function reader(parts){
   const st = lockOf(s.entry);
   if(!st.open){ PEND = id; location.replace("#/cuentos"); return; }
   const ses = sesGet(), keep = !!(ses && ses.id === id);
-  R = {id, s, L: s.L, p: keep ? Math.floor(+ses.p) || 0 : 0, ch: keep && typeof ses.ch === "string" ? ses.ch : null, es: !!(keep && ses.es), fin: false, M: null};
+  R = {id, s, L: s.L, p: keep ? Math.floor(+ses.p) || 0 : 0, ch: keep && typeof ses.ch === "string" ? ses.ch : null, es: !!(keep && ses.es), fin: false, M: null,
+    auto: autoOn(), qa: {}, qo: {}};
   if(R.ch && !s.choice.opts.some(o => o.key === R.ch)) R.ch = null;
   R.path = pathOf(s, R.ch);
   R.p = Math.max(0, Math.min(R.path.length - 1, R.p));
@@ -960,7 +1141,7 @@ function shortcut(id){
 }
 bus.on("route", () => {
   if(secOf(hashNow()) === "cuento" || (!R && !BUB && !OFFS.length)) return;   /* solo al salir de un cuento (no corta la voz de otras pantallas) */
-  stopSay(); closeBub(); clearTimeout(NT); PICK++; R = null;
+  stopSay(); closeBub(); clearTimeout(NT); clearTimeout(AUTO); PICK++; R = null;
   OFFS.forEach(f => { try{ f(); }catch(e){} }); OFFS = [];
 });
 /* el índice se pide pronto (pesa poco y está en el shell): así la tarjeta de Juegos y los atajos ya lo tienen */
@@ -970,6 +1151,9 @@ W.vocabStories = {
   KEY, ready, index: () => IX, list: L => list(L || lang), story, saved, doneCount, images, shortcut,
   lock: id => { const e = entryOf(id); return e ? lockOf(e) : null; },
   state: () => R ? {id: R.id, lang: R.L, p: R.p, total: totalOf(R.s), kind: R.fin ? "end" : R.path[R.p].k, ch: R.ch, fin: R.fin, es: R.es,
-    text: R.M ? R.M.text : "", units: R.M ? R.M.units.map(u => u.text) : [], lit: LIT, pages: R.path.length} : null,
+    text: R.M ? R.M.text : "", units: R.M ? R.M.units.map(u => u.text) : [], lit: LIT, pages: R.path.length, auto: !!R.auto,
+    quiz: (x => x && x.k === "quiz" ? {i: x.qi, n: x.qn, ok: qOrder(x).indexOf(x.q.ok), pick: R.qa[x.qi] == null ? null : R.qa[x.qi],
+      opts: qOrder(x).map(i => x.q.opts[i])} : null)(!R.fin && R.path[R.p])} : null,
+  picWord: (id, img) => FILES[id] ? picWord(FILES[id], img) : null,
 };
 })();

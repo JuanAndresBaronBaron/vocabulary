@@ -391,6 +391,18 @@
       "t": "Vennerne spiser kagen sammen. De er meget glade.",
       "es": "Los amigos comen el pastel juntos. Están muy contentos."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Hvem giver ham æbler?",
+      "es": "¿Quién le da manzanas?",
+      "opts": [
+       "img/pj/caballo.png",
+       "img/pj/cerdo.png",
+       "img/pj/vaca.png"
+      ],
+      "ok": 0
+     }
     ]
    },
    {
@@ -424,8 +436,42 @@
       "t": "Vennerne spiser kagen sammen. De er meget glade.",
       "es": "Los amigos comen el pastel juntos. Están muy contentos."
      }
+    ],
+    "quiz": [
+     {
+      "t": "Hvem giver ham chokolade?",
+      "es": "¿Quién le da chocolate?",
+      "opts": [
+       "img/pj/cerdo.png",
+       "img/pj/caballo.png",
+       "img/pj/gallina.png"
+      ],
+      "ok": 0
+     }
     ]
    }
   ]
- }
+ },
+ "quiz": [
+  {
+   "t": "Hvem giver ham æg?",
+   "es": "¿Quién le da huevos?",
+   "opts": [
+    "img/pj/gallina.png",
+    "img/pj/vaca.png",
+    "img/pj/caballo.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Hvem giver ham mælk?",
+   "es": "¿Quién le da leche?",
+   "opts": [
+    "img/pj/vaca.png",
+    "img/pj/cerdo.png",
+    "img/pj/gallina.png"
+   ],
+   "ok": 0
+  }
+ ]
 }

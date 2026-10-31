@@ -369,6 +369,18 @@
       "t": "Now he is tired. Good night, fox!",
       "es": "Ahora está cansado. ¡Buenas noches, zorro!"
      }
+    ],
+    "quiz": [
+     {
+      "t": "What does the fox drink?",
+      "es": "¿Qué bebe el zorro?",
+      "opts": [
+       "img/om_1F95B.png",
+       "img/om_1F4D6.png",
+       "img/om_1F319.png"
+      ],
+      "ok": 0
+     }
     ]
    },
    {
@@ -393,8 +405,42 @@
       "t": "Now he is tired. Good night, fox!",
       "es": "Ahora está cansado. ¡Buenas noches, zorro!"
      }
+    ],
+    "quiz": [
+     {
+      "t": "Who reads a story?",
+      "es": "¿Quién lee un cuento?",
+      "opts": [
+       "img/pj/buho.png",
+       "img/pj/oveja.png",
+       "img/pj/vaca.png"
+      ],
+      "ok": 0
+     }
     ]
    }
   ]
- }
+ },
+ "quiz": [
+  {
+   "t": "What is in the sky?",
+   "es": "¿Qué hay en el cielo?",
+   "opts": [
+    "img/om_1F319.png",
+    "img/om_1F6CF.png",
+    "img/om_1F95B.png"
+   ],
+   "ok": 0
+  },
+  {
+   "t": "Who is awake?",
+   "es": "¿Quién está despierto?",
+   "opts": [
+    "img/pj/buho.png",
+    "img/pj/vaca.png",
+    "img/pj/cerdo.png"
+   ],
+   "ok": 0
+  }
+ ]
 }

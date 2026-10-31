@@ -40,6 +40,7 @@ const SHELL = [
   "data/calls/da/cykel.json", "data/calls/da/havn.json", "data/calls/da/bondegaard.json", "data/calls/da/sne.json", "data/calls/da/familie.json",
   "data/calls/da/farver.json", "data/calls/da/krop.json", "data/calls/da/toej.json", "data/calls/da/skole.json", "data/calls/da/jul.json",
   "js/stories.js", "data/stories/index.json", "img/games/cuentos.png",
+  "js/chant.js", "img/games/rap.png", "js/simon.js", "img/games/zorrodice.png", "img/games/llamar.png",
   "js/hunter-boot.js", "js/hunter.js", "img/games/cazador.png",
   "data/stories/en/play.json", "data/stories/en/colours.json", "data/stories/en/cake.json", "data/stories/en/night.json",
   "data/stories/en/doctor.json", "data/stories/en/snow.json", "data/stories/en/school.json", "data/stories/en/halloween.json",

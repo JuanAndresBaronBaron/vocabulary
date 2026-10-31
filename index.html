@@ -657,6 +657,7 @@ input[type=search]{flex:1;min-width:180px;padding:10px 14px;border:1px solid var
 .say.sm{width:28px;height:28px;font-size:.85rem;vertical-align:middle;margin-left:4px}
 .say:hover{border-color:var(--brand)}
 .say.playing{background:var(--brand-fill);color:#fff;border-color:transparent}
+[data-novoice]{filter:grayscale(1);opacity:.5}
 .note{background:var(--soft);border:1px solid transparent;border-radius:14px;padding:10px 12px;font-size:.9rem;color:var(--muted);margin:10px 0}
 .empty{color:var(--muted);padding:30px 0;text-align:center}
 .ctrl{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
@@ -1116,19 +1117,41 @@ function speakable(t){
   return String(t).replace(/\((m|f|m\.\/f\.|pl)\.?\)/g,"").replace(/\(.*?\)/g,"").replace(/\s\/\s/g,", ").replace(/—/g,"").trim();
 }
 /* audios grabados (ElevenLabs): audio/<en|fr|da>.json dice qué archivo tiene cada palabra;
-   si una palabra no tiene audio o no carga, habla la voz del navegador como siempre */
+   si una palabra no tiene audio o no carga, habla la voz del navegador como siempre.
+   Si el mapa no llega (la app se abrió sin conexión o con mala red), no se queda vacío para siempre: se vuelve a pedir
+   al volver la conexión (evento online) o en el siguiente clipFor() (say, sayP…) pasados CLIP_RETRY ms del fallo */
 const CLIP_AB = {english:"en", "français":"fr", dansk:"da"};
-const clipMaps = {};
-function loadClips(l){
-  if(clipMaps[l] || !CLIP_AB[l]) return;
-  clipMaps[l] = {};
-  fetch(`audio/${CLIP_AB[l]}.json`).then(r => r.ok ? r.json() : {}).then(m => { clipMaps[l] = m || {}; }).catch(() => {});
+const clipMaps = {}, clipTry = {}, CLIP_RETRY = 30000;   /* clipTry[l] = {ok, busy, at: cuándo falló la última vez} */
+function loadClips(l, now){
+  if(!CLIP_AB[l]) return;
+  const t = clipTry[l] || (clipTry[l] = {ok: false, busy: false, at: 0});
+  if(t.ok || t.busy || (!now && t.at && Date.now() - t.at < CLIP_RETRY)) return;
+  t.busy = true;
+  if(!clipMaps[l]) clipMaps[l] = {};
+  fetch(`audio/${CLIP_AB[l]}.json`).then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
+    .then(m => { if(!m || typeof m !== "object") throw new Error("mapa"); clipMaps[l] = m; t.ok = true; t.busy = false; })
+    .catch(() => { t.busy = false; t.at = Date.now(); });
 }
 loadClips(lang);
-const clipFor = t => { const m = clipMaps[lang]; return m && m[speakable(t)]; };
+addEventListener("online", () => { for(const l in clipTry) if(!clipTry[l].ok) loadClips(l, true); });
+const clipFor = t => { if(!(clipTry[lang] && clipTry[lang].ok)) loadClips(lang); const m = clipMaps[lang]; return m && m[speakable(t)]; };
 /* ¿se oirá bien? tiene audio grabado, o el navegador tiene una voz de ese idioma (si aún no hay lista de voces, sí):
    sin voz, el navegador lo leería con otro acento y enseñaría mal la pronunciación */
 const canHear = t => !!clipFor(t) || ("speechSynthesis" in window && (!voices.length || langVoices(lang).length > 0));
+/* sin audio grabado y sin voz de ese idioma (la lista ya llegó y no trae ninguna; p. ej. danés en Chrome de Windows):
+   say() y sayP() no hablan (se oiría con otro acento), el altavoz sale en gris (data-novoice) y, una vez por sesión,
+   un aviso suave para los mayores. La IPA sigue a la vista. */
+const noVoiceFor = (l = lang) => "speechSynthesis" in window && voices.length > 0 && !langVoices(l).length;
+let voiceToldS = false;
+function mutedSay(btn){
+  if(btn){ btn.classList.remove("playing"); btn.setAttribute("data-novoice", ""); if(!btn.title || btn.title === "Escuchar") btn.title = "Sin voz en este aparato"; }
+  if(voiceToldS) return;
+  try{ if(sessionStorage.getItem("vocab:novoice") === lang){ voiceToldS = true; return; } }catch(e){}
+  voiceToldS = true;
+  try{ sessionStorage.setItem("vocab:novoice", lang); }catch(e){}
+  const t = `Esta palabra aún no tiene audio. Un mayor puede añadir la voz del ${LANGS[lang].name} en Ajustes › Voz y velocidad › ${langEs(lang)}.`;
+  try{ if(window.M && typeof M.toast === "function") M.toast(t, {icon: "🔇", ms: 6000}); }catch(e){}
+}
 let clipEl = null, clipEnd = null;
 function stopClip(){
   if(clipEl){ try{ clipEl.pause(); }catch(e){} clipEl = null; }
@@ -1315,10 +1338,12 @@ function say(text, btn, slow){
   if(!("speechSynthesis" in window) && !clipFor(text)) return alert("Tu navegador no permite audio.");
   if("speechSynthesis" in window) speechSynthesis.cancel(); else stopClip();
   document.querySelectorAll(".say.playing").forEach(b=>b.classList.remove("playing"));
-  if(btn) btn.classList.add("playing");
+  if(!clipFor(text) && noVoiceFor()) return mutedSay(btn);
+  if(btn){ btn.classList.add("playing"); btn.removeAttribute("data-novoice"); }
   const off = () => { if(btn) btn.classList.remove("playing"); };
   const tts = () => {
     if(!("speechSynthesis" in window)) return off();
+    if(noVoiceFor()){ off(); return mutedSay(btn); }   /* el mp3 no cargó y no hay voz de este idioma */
     const u = new SpeechSynthesisUtterance(speakable(text));
     u.rate = slow ? SLOW() : rate;
     useVoice(u, lang);
@@ -1335,11 +1360,13 @@ function sayP(text, btn){
     if(!text || (!("speechSynthesis" in window) && !clipFor(text))) return res();
     if("speechSynthesis" in window) speechSynthesis.cancel(); else stopClip();
     document.querySelectorAll(".say.playing").forEach(b=>b.classList.remove("playing"));
+    if(!clipFor(text) && noVoiceFor()){ mutedSay(btn); return res(); }
     let done = false;
     const fin = () => { if(done) return; done = true; if(btn) btn.classList.remove("playing"); res(); };
-    if(btn) btn.classList.add("playing");
+    if(btn){ btn.classList.add("playing"); btn.removeAttribute("data-novoice"); }
     const tts = () => {
       if(!("speechSynthesis" in window)) return fin();
+      if(noVoiceFor()){ mutedSay(btn); return fin(); }
       const u = new SpeechSynthesisUtterance(speakable(text));
       u.rate = rate;
       useVoice(u, lang);
@@ -1816,6 +1843,7 @@ const OFF_APP = ["./", "index.html", "privacy.html", "manifest.webmanifest", "da
   "data/calls/da/cykel.json", "data/calls/da/havn.json", "data/calls/da/bondegaard.json", "data/calls/da/sne.json", "data/calls/da/familie.json",
   "data/calls/da/farver.json", "data/calls/da/krop.json", "data/calls/da/toej.json", "data/calls/da/skole.json", "data/calls/da/jul.json",
   "js/stories.js", "data/stories/index.json", "img/games/cuentos.png",
+  "js/chant.js", "img/games/rap.png", "js/simon.js", "img/games/zorrodice.png", "img/games/llamar.png",
   "js/hunter-boot.js", "js/hunter.js", "img/games/cazador.png",
   "data/stories/en/play.json", "data/stories/en/colours.json", "data/stories/en/cake.json", "data/stories/en/night.json",
   "data/stories/en/doctor.json", "data/stories/en/snow.json", "data/stories/en/school.json", "data/stories/en/halloween.json",
@@ -2076,8 +2104,8 @@ function rootOf(h){
   if(a === "temporada") return "";   /* la temporada (js/season.js) es una pantalla de Hoy */
   if(a === "buzon" || a === "carta") return "juegos";   /* el Buzón y sus cartas (js/mailbox.js) se abren desde Juegos */
   if(a === "frases") return "juegos";   /* Frases mágicas y la frase de la cena (js/phrases.js) son de Juegos */
-  if(a === "loro") return "granja";   /* el loro eco y su cápsula (js/parrot.js) se abren desde la granja */
-  if(a === "cuentos" || a === "cuento") return "juegos";   /* los Cuentos del zorro (js/stories.js) son de Juegos */
+  if(a === "loro") return /[?&]t=/.test(location.hash) ? "juegos" : "granja";   /* el loro eco y su cápsula (js/parrot.js) se abren desde la granja; con ?t=<tema>, desde Juegos */
+  if(a === "cuentos" || a === "cuento" || a === "llamadas") return "juegos";   /* los Cuentos del zorro (js/stories.js) son de Juegos */
   if(a === "cazador") return "juegos";   /* el Cazador de cosas (js/hunter-boot.js, js/hunter.js) es de Juegos */
   if(a === "techunit" || a === "techsheet") return "techpath";   /* Tech Prep (js/tech-boot.js): una unidad y una chuleta son de Path, */
   if(a === "techcase") return "techcases";   /* un caso de My cases */
@@ -2166,10 +2194,10 @@ function paintSegBadges(){
 /* la cápsula de volver de la barra de arriba (#dv-back): adónde y con qué nombre */
 const backOf = h => window.vocabTech && typeof vocabTech.isSec === "function" && vocabTech.isSec(h) ? vocabTech.backOf(h)   /* Tech Prep: ‹ Path, ‹ My cases, ‹ My stories */
   : secOf(h) === "doc" ? {h: "#/palabras", t: "Palabras"} : /^album\/./.test(h) ? {h: "#/album", t: "Álbum"}
-  : secOf(h) === "temporada" ? {h: "#/", t: "Hoy"} : secOf(h) === "loro" ? {h: "#/granja", t: "Granja"}
+  : secOf(h) === "temporada" ? {h: "#/", t: "Hoy"} : secOf(h) === "loro" ? (/[?&]t=/.test(location.hash) ? {h: "#/juegos", t: "Juegos"} : {h: "#/granja", t: "Granja"})
   : secOf(h) === "frases" ? (window.vocabPhrases ? vocabPhrases.back() : {h: "#/juegos", t: "Juegos"})   /* a Hoy si se entró desde Hoy */
   : secOf(h) === "carta" || h === "buzon/responder" ? {h: "#/buzon", t: "Buzón"} : secOf(h) === "buzon" ? {h: "#/juegos", t: "Juegos"}
-  : secOf(h) === "cuentos" ? {h: "#/juegos", t: "Juegos"} : null;
+  : secOf(h) === "cuentos" || secOf(h) === "llamadas" ? {h: "#/juegos", t: "Juegos"} : null;
 /* lo que se ve de la barra: pestaña marcada, adónde lleva cada una, vidrio ligero en la granja y en las partidas */
 function paintTabs(h){
   const t = tabOf(h); if(t) curTab = t.id;
@@ -3054,6 +3082,8 @@ document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge();
 <script src="js/parrot.js?v=37"></script>
 <script src="js/calls.js?v=37"></script>
 <script src="js/stories.js?v=37"></script>
+<script src="js/chant.js?v=37"></script>
+<script src="js/simon.js?v=37"></script>
 <script src="js/hunter-boot.js?v=37"></script>
 <script src="js/ielts-boot.js?v=37"></script>
 <script src="js/tech-boot.js?v=37"></script>

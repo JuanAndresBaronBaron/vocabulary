@@ -239,15 +239,27 @@ def _lock(e, known):
             "miss": [i for i in ids if i not in known]}
 
 
+def _quiz(page, st, right=True):
+    """En una pregunta de «¿Te acuerdas?» sin contestar, toca el dibujo bueno (o el primero malo con right=False)."""
+    q = st["quiz"]
+    if q["pick"] is None:
+        j = q["ok"] if right else next(i for i in range(len(q["opts"])) if i != q["ok"])
+        page.locator(f"#st-stage .st-qo[data-i='{j}']:not(.st-ghost *)").click()   # no la de la página que se va
+        _wait_state(page, f"s.p !== {st['p']} || s.fin || (!!s.quiz && s.quiz.pick !== null)")
+
+
 def _read(page, key, how="buttons", wait_auto=False):
-    """Lee el cuento abierto hasta «The End» eligiendo key: how = "buttons" (‹ y «Siguiente») o "swipe". Devuelve los
-    textos de las páginas por las que pasó (sin la portada)."""
+    """Lee el cuento abierto hasta «The End» eligiendo key: how = "buttons" (‹ y «Siguiente») o "swipe". Las preguntas
+    de «¿Te acuerdas?» de antes del final se contestan con el dibujo bueno. Devuelve los textos de las páginas por las
+    que pasó (sin la portada ni las preguntas)."""
     seen = []
-    for _ in range(30):
+    for _ in range(36):
         st = _state(page)
         if st["fin"]:
             return seen
-        if st["kind"] != "cover":
+        if st["kind"] == "quiz":
+            _quiz(page, st)
+        elif st["kind"] != "cover":
             seen.append(st["text"])
         if st["kind"] == "choice":
             if not st["ch"]:
@@ -262,7 +274,7 @@ def _read(page, key, how="buttons", wait_auto=False):
         else:
             page.locator("#st-next").click()
         _wait_state(page, f"s.p > {p0} || s.fin", 4000)
-    raise AssertionError("el cuento no se acaba en 30 páginas")
+    raise AssertionError("el cuento no se acaba en 36 páginas")
 
 
 # ---------------------------------------------------------------- 1. los datos
@@ -943,7 +955,7 @@ def test_story_reads_offline_through_service_worker():
         C.reload(page)
         page.wait_for_selector("#st-stage .st-page", timeout=10000)
         broken = []
-        for _ in range(20):
+        for _ in range(32):
             st = _state(page)
             if st["fin"]:
                 break
@@ -952,6 +964,8 @@ def test_story_reads_offline_through_service_worker():
             if st["kind"] == "choice" and not st["ch"]:
                 page.locator(".st-opt").first.click()
                 _wait_state(page, "!!s.ch")
+            if st["kind"] == "quiz":
+                _quiz(page, st)
             p0 = st["p"]
             page.locator("#st-next").click()
             _wait_state(page, f"s.p > {p0} || s.fin", 4000)
