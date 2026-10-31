@@ -9,7 +9,7 @@ Dos niños con la v23 y la partida sembrada (C.seed), como en test_update_v22.py
 Se publica esta versión y los dos vuelven: sin caché HTTP (abren la app otra vez) o con la de GitHub Pages
 (Cache-Control: max-age=600; recargan antes de 10 minutos). Se comprueba que la primera carga ya es la app nueva entera
 (cada módulo de js/ que se ejecuta es el de esta versión con «?v=24», también js/tech-boot.js), que el sw nuevo se
-instala y controla (vocab-shell-v24 con todo SHELL, también js/tech.js, js/tech-lesson.js y js/tech-pages.js, sin
+instala y controla (vocab-shell-v24 con todo SHELL; js/tech.js, js/tech-lesson.js y js/tech-pages.js en SHELL o en LAZY, sin
 vocab-shell-v23, vocab-media sin perder nada), que la partida queda igual (cada clave de localStorage y la exportación
 como en la v23, sin claves nuevas: tampoco ninguna tech:…), que la granja tiene los mismos animales con el mismo hambre,
 que el mensaje grabado sigue en IndexedDB, que la IPA se ve de serie para Lucía y que para Leo sigue apagada hasta que un
@@ -265,9 +265,13 @@ def _v23_then_new(gh_cache):
     tag = "caché de GitHub Pages" if gh_cache else "sin caché HTTP"
     ta, tb = f"{tag} · Lucía", f"{tag} · Leo"
     v, shell = U._sw(C.ROOT)
-    for m in ["js/tech-boot.js"] + _TECH_MODS:
-        if m not in shell:
-            probs.append(f"{m} no está en SHELL de sw.js")
+    sw = (C.ROOT / "sw.js").read_text(encoding="utf-8")
+    lazy = re.findall(r'"([^"]+)"', re.search(r"const LAZY = \[(.*?)\];", sw, re.S).group(1)) if "const LAZY = [" in sw else []
+    if "js/tech-boot.js" not in shell:
+        probs.append("js/tech-boot.js no está en SHELL de sw.js")
+    for m in _TECH_MODS:   # los módulos de mayores: en SHELL o en LAZY (se guardan en el shell la primera vez que se usan)
+        if m not in shell and m not in lazy:
+            probs.append(f"{m} no está ni en SHELL ni en LAZY de sw.js")
     mods = [s.split("?")[0] for s in I4._tags((C.ROOT / "index.html").read_text(encoding="utf-8"))
             if not s.startswith(("http:", "https:", "//"))]
     srv, roots = F5._switching_server(base_dir, gh_cache)

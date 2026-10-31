@@ -106,6 +106,7 @@ const CSS = `
 .ln-star.on{color:var(--gold)}
 .ln-star .ico{filter:drop-shadow(0 1px 0 rgba(0,0,0,.14))}
 .ln-empty{margin:24px 0;text-align:center;font:400 var(--fs-body)/1.35 var(--f-text);color:var(--label2)}
+.gr-off{display:flex;flex-direction:column;align-items:center;gap:12px}.gr-off p{margin:0}
 .ln-kbd{display:none;position:absolute;left:8px;top:8px}
 :root[data-kbd] .ln-kbd{display:inline-flex}
 @media (hover:hover) and (pointer:fine){.ln-kbd{display:inline-flex}}
@@ -1534,8 +1535,13 @@ async function gramatica(lv){
       <summary class="st-r gr-s"><span class="gr-n" aria-hidden="true">${st ? ico("check", "bold", 18) : k + 1}</span><span class="st-l gr-tl">${esc(x.t)}</span>
         ${st ? `<span class="gr-st" role="img" aria-label="${st} de 3 estrellas">${stars(st, 15)}</span>` : ""}${ico("caret-down", "bold", 18, "gr-car")}</summary>
       <div class="gr-b">${x.sum ? `<p class="gr-sum">${md(x.sum)}</p>` : ""}${theory(x)}<div class="gr-go"><a class="glass-btn glass-btn--pri" href="#/leccion/${esc(gId(lv, k))}">${ico("play", "fill", 18)}Practicar</a></div></div></details>`; }).join("")}</div>`
+      : typeof gramOff === "function" && gramOff() ? `<div class="ln-empty gr-off" role="status"><p>Sin conexión. Vuelve a intentarlo cuando haya internet.</p>
+        <button type="button" class="glass-btn" id="gr-retry">${ico("arrows-clockwise", "bold", 18)}Reintentar</button></div>`
       : `<p class="ln-empty">Pronto habrá gramática de este nivel.</p>`}
   </div>`;
+  /* sin conexión la gramática no llegó (getGram() de index.html no lo guarda): «Reintentar» la vuelve a pedir */
+  const rt = $("#gr-retry");
+  if(rt) rt.onclick = () => { rt.disabled = true; getGram(true).then(() => { if(secOf(hashPath()) === "gramatica") gramatica(lv); }); };
   $("#gr").querySelectorAll(".gr-pg").forEach(a => a.addEventListener("click", () => {
     const o = store.get("gram:lv", null), n = o && typeof o === "object" && !Array.isArray(o) ? o : {};
     n[lang] = lv; store.set("gram:lv", n);
