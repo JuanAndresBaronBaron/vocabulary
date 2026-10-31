@@ -103,11 +103,11 @@
      "script": [
       {
        "s": "c",
-       "t": "I'd like to book for the twenty-third of May, please."
+       "t": "I'd like to book for the twenty-fifth of May, please."
       },
       {
        "s": "a",
-       "t": "The twenty-third is a Monday, I'm afraid, and we're closed on Mondays."
+       "t": "The twenty-fifth is a Monday, I'm afraid, and we're closed on Mondays."
       },
       {
        "s": "c",
@@ -129,10 +129,12 @@
          "answer": [
           "30th",
           "30",
-          "thirtieth"
+          "thirtieth",
+          "30th May",
+          "30 May"
          ],
          "limit": "ONE WORD AND/OR A NUMBER",
-         "why": "The 23rd is rejected because the place is closed on Mondays; the booking is for \"the thirtieth\"."
+         "why": "The 25th is rejected because the place is closed on Mondays; the booking is for \"the thirtieth\"."
         }
        ]
       }
@@ -349,7 +351,9 @@
          "text": "Adult ticket: £___",
          "answer": [
           "12.50",
-          "12.5"
+          "12.5",
+          "£12.50",
+          "£12.5"
          ],
          "limit": "ONE WORD AND/OR A NUMBER",
          "why": "\"Twelve pounds fifty for adults\"; £8 is the children's price."
@@ -399,11 +403,10 @@
          "type": "gap",
          "text": "Bring: ID and two passport ___",
          "answer": [
-          "photographs",
-          "photos"
+          "photographs"
          ],
          "limit": "ONE WORD ONLY",
-         "why": "\"Two passport photographs\": the plural -s is part of the answer."
+         "why": "\"Two passport photographs\": write the word you hear, and the plural -s is part of the answer."
         }
        ]
       }
@@ -627,11 +630,10 @@
          "answer": [
           "10.15",
           "10:15",
-          "ten fifteen",
           "1015"
          ],
          "limit": "ONE WORD AND/OR A NUMBER",
-         "why": "The 10.45 is her usual train; yesterday \"it was the ten fifteen\"."
+         "why": "The 10.45 is her usual train; yesterday \"it was the ten fifteen\". Write numbers as figures: faster, and never over the limit."
         },
         {
          "id": "u03-l2-i1-q4",
@@ -884,7 +886,9 @@
          "answer": [
           "12th",
           "12",
-          "twelfth"
+          "twelfth",
+          "12th June",
+          "12 June"
          ],
          "limit": "ONE WORD AND/OR A NUMBER",
          "why": "The 5th has gone and the 26th is rejected: \"Let's go for the twelfth\"."
@@ -896,7 +900,10 @@
          "answer": [
           "11",
           "eleven",
-          "11.00"
+          "11.00",
+          "11 pm",
+          "11pm",
+          "11.00 pm"
          ],
          "limit": "ONE WORD AND/OR A NUMBER",
          "why": "\"Music has to stop at eleven o'clock\"; half past is when guests must leave."
@@ -907,15 +914,51 @@
          "text": "Deposit: £___",
          "answer": [
           "150",
-          "one hundred and fifty"
+          "£150"
          ],
          "limit": "ONE WORD AND/OR A NUMBER",
-         "why": "The room is £300; \"a deposit of one hundred and fifty pounds\"."
+         "why": "The room is £300; \"a deposit of one hundred and fifty pounds\". Write numbers as figures: faster, and never over the limit."
         }
        ]
       },
       {
        "instr": "Complete the table below. Write ONE WORD AND/OR A NUMBER for each answer.",
+       "visual": {
+        "kind": "table",
+        "title": "Fernhill Hall: catering and extras",
+        "head": [
+         "Option",
+         "Details",
+         "Price"
+        ],
+        "rows": [
+         [
+          "Buffet",
+          "sandwiches, (6) ________ and desserts",
+          "£14 per head"
+         ],
+         [
+          "Hot meal",
+          "choice of (7) ________ main courses",
+          "£22 per head"
+         ],
+         [
+          "Afternoon tea",
+          "scones and cakes",
+          "£(8) ________ per head"
+         ],
+         [
+          "Speeches",
+          "a (9) ________ can be provided",
+          "£20"
+         ],
+         [
+          "Extra parking",
+          "at the (10) ________ next door, at weekends",
+          "–"
+         ]
+        ]
+       },
        "items": [
         {
          "id": "u03-l3-i1-q6",
@@ -944,7 +987,9 @@
          "text": "Afternoon tea: scones and cakes, £___ per head",
          "answer": [
           "11.50",
-          "11.5"
+          "11.5",
+          "£11.50",
+          "£11.5"
          ],
          "limit": "ONE WORD AND/OR A NUMBER",
          "why": "£10 was last year's price; now \"eleven pounds fifty\"."

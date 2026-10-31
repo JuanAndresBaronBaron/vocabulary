@@ -98,6 +98,117 @@ def test_ielts_locked_without_the_gate():
         page.context.close()
 
 
+def test_ielts_validator_rules():
+    """The exam rules of ielts_validate.py: the word-limit counter, 'Label the' needs a visual, the spread of pick keys
+    in a test and of Choose TWO pairs in a unit; the new optional fields (markers, callouts, alt); and every PENDING id
+    (left for content2) exists."""
+    import copy
+    fits = [("14th", "ONE WORD AND/OR A NUMBER"), ("07700 911483", "A NUMBER"), ("BS7 4QD", "ONE WORD AND/OR A NUMBER"),
+            ("10:15", "A NUMBER"), ("£85", "A NUMBER"), ("check-in", "ONE WORD ONLY"), ("15 minutes", "ONE WORD AND/OR A NUMBER"),
+            ("concrete core", "NO MORE THAN TWO WORDS"), ("Austria and Germany", "NO MORE THAN THREE WORDS AND/OR A NUMBER"),
+            ("a little", "ONE OR TWO WORDS"), ("has been converted", "TWO OR THREE WORDS"), ("fourteenth", "ONE WORD"),
+            ("the lower path", "NO MORE THAN THREE WORDS AND/OR A NUMBER"), ("Flat 3", "NO MORE THAN TWO WORDS AND/OR A NUMBER")]
+    over = [("the fourteenth", "ONE WORD AND/OR A NUMBER"), ("one hundred and eighty-five", "ONE WORD AND/OR A NUMBER"),
+            ("ten fifteen", "A NUMBER"), ("fifteen", "A NUMBER"), ("14", "ONE WORD ONLY"), ("12 and 14", "ONE WORD AND/OR A NUMBER"),
+            ("an old towel", "ONE WORD ONLY"), ("fully shielded lamps", "NO MORE THAN TWO WORDS"), ("towel", "ONE TOWEL"), ("towel", "")]
+    assert [a for a, lim in fits if not V.fits(a, lim)] == [], "rejected within the limit"
+    assert [a for a, lim in over if V.fits(a, lim)] == [], "accepted over the limit"
+    assert V.limit_of("NO MORE THAN THREE WORDS AND/OR A NUMBER") == (3, 1) and V.limit_of("A NUMBER") == (0, 1)
+    assert V.limit_of("ONE OR TWO WORDS") == (2, 0) and V.limit_of("one word") == (1, 0) and V.limit_of("FEW WORDS") is None
+    assert V.count_answer("07700 911483 or BS7 4QD") == (1, 2)
+
+    base = json.loads((V.DATA / "u03.json").read_text(encoding="utf-8"))
+    assert V.check_unit(copy.deepcopy(base), "u03") == []
+
+    def planted(change, expect):
+        u = copy.deepcopy(base)
+        change(u)
+        errs = V.check_unit(u, "u03")
+        assert any(expect in m for m in errs), (expect, errs)
+
+    les = base["lessons"]
+    lst = next(i for i, it in enumerate(les[1]["items"]) if it["type"] == "listening")
+    def over_limit(u):
+        u["lessons"][1]["items"][lst]["sets"][0]["items"][0]["answer"].append("a big rucksack")
+    def unknown_limit(u):
+        u["lessons"][1]["items"][lst]["sets"][0]["items"][0]["limit"] = "A FEW WORDS"
+    def label_no_visual(u):
+        u["lessons"][1]["items"][lst]["sets"][1]["instr"] = "Label the plan below. Choose the correct letter, A-C."
+    def keys_bunched(u):
+        u["lessons"][2]["items"].append({"id": "u03-l3-i2", "type": "reading", "title": "t", "minutes": 5, "paragraphs": [{"label": None, "text": "x"}],
+                                          "sets": [{"instr": "Choose A, B or C.", "items": [{"id": f"u03-l3-i2-q{k}", "type": "pick", "q": "q",
+                                                    "options": ["A  a", "B  b", "C  c"], "answer": 1 if k < 4 else 0, "why": "w"} for k in range(1, 5)]}]})
+    planted(over_limit, "'a big rucksack' is over the limit")
+    planted(unknown_limit, "unknown word limit")
+    planted(label_no_visual, "needs a visual")
+    planted(keys_bunched, "3 of the 4 pick keys share one letter")
+    # a correct visual on the set clears the 'Label the' error
+    def label_with_visual(u):
+        label_no_visual(u)
+        u["lessons"][1]["items"][lst]["sets"][1]["visual"] = {"kind": "map", "title": "Plan", "maps": [{"title": "Plan", "items": [
+            {"label": "A", "mark": True, "x": 10, "y": 10, "w": 10, "h": 10, "shape": "rect"}]}]}
+    u = copy.deepcopy(base)
+    label_with_visual(u)
+    assert V.check_unit(u, "u03") == [], V.check_unit(u, "u03")
+    # markers: a room (w and h, shape optional), a callout (0 x 0, no shape) and an alt text are all fine
+    def plan_items(u, items, **extra):
+        label_with_visual(u)
+        v = u["lessons"][1]["items"][lst]["sets"][1]["visual"]
+        v["maps"][0]["items"] = items
+        v.update(extra)
+    u = copy.deepcopy(base)
+    plan_items(u, [{"label": "A", "mark": True, "x": 10, "y": 10, "w": 20, "h": 12}, {"label": "B", "mark": True, "x": 50, "y": 50, "w": 0, "h": 0}],
+               alt="A: in the north-west corner. B: in the middle.")
+    assert V.check_unit(u, "u03") == [], V.check_unit(u, "u03")
+    planted(lambda u: plan_items(u, [{"label": "B", "mark": True, "x": 50, "y": 50, "w": 0, "h": 0, "shape": "rect"}]), "a callout marker (w and h 0) has no shape")
+    planted(lambda u: plan_items(u, [{"label": "B", "mark": True, "x": 50, "y": 50, "w": 0, "h": 12}]), "has both a width and a height")
+    planted(lambda u: plan_items(u, [{"label": "A", "mark": True, "x": 10, "y": 10, "w": 20, "h": 12}], alt=""), "alt is a text alternative")
+    def alt_on_table(u):
+        u["lessons"][2]["items"][0]["sets"][1]["visual"]["alt"] = "A table."
+    assert base["lessons"][2]["items"][0]["sets"][1]["visual"]["kind"] == "table"
+    planted(alt_on_table, "for a map visual only")
+    # Choose TWO: 3 of 4 multi questions with the same pair is too many; 2 of 4 is fine
+    def multis(pairs):
+        def change(u):
+            u["lessons"][2]["items"].append({"id": "u03-l3-i2", "type": "reading", "title": "t", "minutes": 5, "paragraphs": [{"label": None, "text": "x"}],
+                                              "sets": [{"instr": "Choose TWO letters, A-E.", "items": [{"id": f"u03-l3-i2-q{k}", "type": "multi", "q": "Which TWO?",
+                                                        "options": ["A  a", "B  b", "C  c", "D  d", "E  e"], "answer": list(p), "why": "w"} for k, p in enumerate(pairs, 1)]}]})
+        return change
+    planted(multis([(1, 3), (3, 1), (1, 3), (0, 4)]), "3 of the 4 multi questions share one answer pair")
+    u = copy.deepcopy(base)
+    multis([(1, 3), (3, 1), (0, 2), (0, 4)])(u)
+    assert V.check_unit(u, "u03") == [], V.check_unit(u, "u03")
+    # the new optional fields are checked too
+    def bad_fields(u):
+        it = u["lessons"][1]["items"][lst]
+        it["speakers"][0]["accent"] = "british"
+        it["script"][0]["pause"] = 3
+        u["lessons"][1]["exam"] = True
+    planted(bad_fields, "accent must be one of")
+    planted(bad_fields, "pause is a whole number")
+    planted(bad_fields, "exam: true is only for a test")
+    w = json.loads((V.DATA / "u11.json").read_text(encoding="utf-8"))
+    wi = next((li, ii) for li, l in enumerate(w["lessons"]) for ii, it in enumerate(l["items"]) if it["type"] == "writing" and it["task"] == 1)
+    def bad_writing(u):
+        it = u["lessons"][wi[0]]["items"][wi[1]]
+        it["exemplars"] = [{"band": 4.5, "text": ["a", "b"], "notes": ["n"]}]
+        it["visual2"] = {"kind": "chart", "title": "x"}
+    uw = copy.deepcopy(w)
+    bad_writing(uw)
+    errs = V.check_unit(uw, "u11")
+    assert any("exemplar needs band 5-9" in m for m in errs) and any("visual kind must be" in m for m in errs), errs
+
+    ids = set()
+    for n in (23, 24):
+        u = json.loads((V.DATA / f"u{n}.json").read_text(encoding="utf-8"))
+        for l in u["lessons"]:
+            ids.add(l["id"])
+            for it in l["items"]:
+                ids.add(it["id"])
+                ids.update(q["id"] for s in it.get("sets") or [] for q in s["items"])
+    assert V.PENDING <= ids, sorted(V.PENDING - ids)
+
+
 def test_ielts_marking():
     page = C.new_page("desk")
     try:

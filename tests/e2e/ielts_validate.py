@@ -5,6 +5,11 @@
     python3 tests/e2e/ielts_validate.py file…      # only those unit files
 
 Not a test_*.py: run.py does not pick it up by itself (test_ielts.py calls check_all()).
+
+Besides the shape of every item, four exam rules are errors: every accepted gap answer fits its word limit
+(fits()), a set whose instruction says "Label the ..." has a visual, in a test with 4 or more pick questions no
+answer letter holds more than half of their keys, and in a unit with 3 or more multi questions no answer pair holds
+more than half of them.
 """
 import json
 import re
@@ -23,6 +28,51 @@ AMERICAN = re.compile(r"\b(color|colors|favorite|center|centers|analyze|analyzed
                       r"apologize|summarize|summarized|emphasize|emphasized|minimize|maximize|prioritize|criticize|"
                       r"utilize|utilized|fiber|liter|meter|meters|centimeter|kilometer)\b")
 MARKUP = re.compile(r"<[a-z/][^>]*>|\[[^\]]+\]\(", re.I)
+ACCENTS = {"gb", "us", "ca", "au", "nz", "ie", "za"}
+# Package content2 fixes these in u23 and u24: errors of the exam rules on these ids are skipped.
+# the integrator empties this after merging content2
+PENDING = {"u23-l1-i2-q10", "u24-l1-i2-q4", "u23-l1-i3", "u23-l1", "u23-l2", "u24-l1", "u24-l2"}
+
+# ---------- word limits (ielts.org: "You will lose the mark for writing more than the word limit.") ----------
+_LIMIT = re.compile(r"(?:NO MORE THAN )?(ONE|TWO|THREE)(?: OR (TWO|THREE))? WORDS?(?: ONLY)?( AND/OR A NUMBER)?")
+_NUM = {"ONE": 1, "TWO": 2, "THREE": 3}
+
+
+def limit_of(limit):
+    """(words, numbers) that a limit allows: ONE = 1, TWO = 2, THREE = 3, ONE OR TWO = 2, TWO OR THREE = 3 words,
+    'A NUMBER' alone = no words; 'AND/OR A NUMBER' (and 'A NUMBER') also allows one number. None if unknown."""
+    s = re.sub(r"\s+", " ", str(limit or "")).strip().upper()
+    if s == "A NUMBER":
+        return (0, 1)
+    m = _LIMIT.fullmatch(s)
+    if not m:
+        return None
+    return (_NUM[m.group(2) or m.group(1)], 1 if m.group(3) else 0)
+
+
+def count_answer(a):
+    """(words, numbers) in an answer. Split on spaces, so a hyphenated word is one word; a run of consecutive
+    tokens that each contain a digit is one number (07700 911483, BS7 4QD, 10:15, £85, 14th); spelled-out numbers
+    are words."""
+    words = nums = 0
+    prev = False
+    for tok in str(a).split():
+        if re.search(r"\d", tok):
+            nums += 0 if prev else 1
+            prev = True
+        else:
+            words += 1
+            prev = False
+    return words, nums
+
+
+def fits(answer, limit):
+    """True if the answer is within the limit (an unknown limit fits nothing)."""
+    lim = limit_of(limit)
+    if lim is None:
+        return False
+    w, n = count_answer(answer)
+    return w <= lim[0] and n <= lim[1]
 
 
 def _texts(o):
@@ -33,7 +83,7 @@ def _texts(o):
             yield from _texts(x)
     elif isinstance(o, dict):
         for k, v in o.items():
-            if k not in ("id", "type", "kind", "mode", "voice", "s", "shape", "block", "answer"):
+            if k not in ("id", "type", "kind", "mode", "voice", "s", "shape", "block", "answer", "accent"):
                 yield from _texts(v)
 
 
@@ -45,7 +95,8 @@ def _strs(v, lo=1, hi=99):
     return isinstance(v, list) and lo <= len(v) <= hi and all(_str(x) for x in v)
 
 
-def check_scored(it, e, where):
+def check_scored(it, e, where, rule=None):
+    rule = rule or (lambda _id, msg: e(msg))
     t = it.get("type")
     if t == "pick":
         if not _str(it.get("q")) or not _strs(it.get("options"), 2, 5):
@@ -75,10 +126,16 @@ def check_scored(it, e, where):
     elif t == "gap":
         if not isinstance(it.get("text"), str) or it["text"].count("___") != 1:
             e(f"{where}: gap text needs exactly one ___")
-        if not _strs(it.get("answer"), 1, 8):
-            e(f"{where}: gap answer must be a list of strings")
+        if not _strs(it.get("answer"), 1, 16):
+            e(f"{where}: gap answer must be a list of 1-16 strings")
         if not _str(it.get("limit")) or not _str(it.get("why")):
             e(f"{where}: gap needs limit and why")
+        elif limit_of(it["limit"]) is None:
+            rule(where, f"{where}: unknown word limit {it['limit']!r}")
+        elif isinstance(it.get("answer"), list):
+            for a in it["answer"]:
+                if isinstance(a, str) and not fits(a, it["limit"]):
+                    rule(where, f"{where}: accepted answer {a!r} is over the limit {it['limit']}")
     elif t == "select":
         if not _str(it.get("q")) or not _strs(it.get("options"), 2, 12):
             e(f"{where}: select needs q and 2-12 options")
@@ -115,6 +172,8 @@ def check_visual(v, e, where):
         return e(f"{where}: visual kind must be one of {sorted(VISUALS)}")
     if not _str(v.get("title")):
         e(f"{where}: visual needs a title")
+    if "alt" in v and (k != "map" or not _str(v["alt"])):
+        e(f"{where}: alt is a text alternative (a non-empty string) for a map visual only")
     if k in ("line", "bar"):
         x, s = v.get("x"), v.get("series")
         if not _strs(x, 2, 14) or not isinstance(s, list) or not 1 <= len(s) <= 6:
@@ -156,9 +215,16 @@ def check_visual(v, e, where):
                     and all(isinstance(z.get(c), (int, float)) and 0 <= z[c] <= 100 for c in ("x", "y", "w", "h"))
                 if not ok:
                     e(f"{where}: bad map item {z!r}"[:200])
+                elif "mark" in z and (z["mark"] is not True or len(z["label"].strip()) > 3):
+                    e(f"{where}: a marker needs mark: true and a label of 1-3 characters (a letter or number): {z!r}"[:200])
+                elif z.get("mark") and (z["w"] == 0) != (z["h"] == 0):
+                    e(f"{where}: a marker's box is 0 x 0 (a callout) or has both a width and a height: {z!r}"[:200])
+                elif z.get("mark") and z["w"] == 0 and "shape" in z:
+                    e(f"{where}: a callout marker (w and h 0) has no shape: {z!r}"[:200])
 
 
-def check_sets(it, e, where, ids):
+def check_sets(it, e, where, ids, rule=None):
+    rule = rule or (lambda _id, msg: e(msg))
     sets = it.get("sets")
     if not isinstance(sets, list) or not sets:
         return e(f"{where}: needs sets")
@@ -166,6 +232,10 @@ def check_sets(it, e, where, ids):
         if not isinstance(s, dict) or not _str(s.get("instr")) or not isinstance(s.get("items"), list) or not s["items"]:
             e(f"{where} set {si}: needs instr and items")
             continue
+        if "visual" in s:
+            check_visual(s["visual"], e, f"{where} set {si}")
+        elif "label the" in s["instr"].lower():
+            rule(where, f"{where} set {si}: 'Label the ...' needs a visual (a plan, map or diagram)")
         for q in s["items"]:
             qid = q.get("id") if isinstance(q, dict) else None
             if not _str(qid):
@@ -177,16 +247,30 @@ def check_sets(it, e, where, ids):
             if q.get("type") not in SCORED:
                 e(f"{qid}: type {q.get('type')!r} cannot go inside a set")
             else:
-                check_scored(q, e, qid)
+                check_scored(q, e, qid, rule)
+
+
+def _words(paras):
+    return len(" ".join(paras).split())
 
 
 def check(path):
-    errs = []
-    e = errs.append
     try:
         u = json.load(open(path, encoding="utf-8"))
     except Exception as x:
         return [f"cannot parse JSON: {x}"]
+    return check_unit(u, Path(path).stem)
+
+
+def check_unit(u, stem=None):
+    """Every error in one unit (a dict). stem: the file name without .json, checked against the id."""
+    errs = []
+    e = errs.append
+
+    def rule(rid, msg):
+        """An error of the three exam rules, skipped for the ids content2 still has to fix (PENDING)."""
+        if rid not in PENDING:
+            e(msg)
     for k in ("format", "id", "n", "block", "title", "summary", "lessons"):
         if k not in u:
             e(f"missing unit field '{k}'")
@@ -196,7 +280,7 @@ def check(path):
         e("format must be 1")
     if not re.fullmatch(r"u\d\d", u["id"]) or int(u["id"][1:]) != u["n"]:
         e("id must be uNN and match n")
-    if Path(path).stem != u["id"]:
+    if stem is not None and stem != u["id"]:
         e("file name must match id")
     if u["block"] not in BLOCKS:
         e(f"unknown block {u['block']!r}")
@@ -219,6 +303,16 @@ def check(path):
         if not isinstance(items, list) or not items:
             e(f"{lid}: needs items")
             continue
+        if "exam" in l:
+            kinds = {it.get("type") for it in items if isinstance(it, dict)}
+            if l["exam"] is not True or l.get("kind") != "test" or "listening" not in kinds or not kinds <= {"listening", "card"}:
+                e(f"{lid}: exam: true is only for a test whose scored items are all in listening items")
+        picks = [q for it in items if isinstance(it, dict) for s in (it.get("sets") or [{"items": [it]}]) if isinstance(s, dict)
+                 for q in (s.get("items") or []) if isinstance(q, dict) and q.get("type") == "pick" and isinstance(q.get("answer"), int)]
+        if l.get("kind") == "test" and len(picks) >= 4:
+            top = max(sum(1 for q in picks if q["answer"] == a) for a in {q["answer"] for q in picks})
+            if top * 2 > len(picks):
+                rule(lid, f"{lid}: {top} of the {len(picks)} pick keys share one letter (at most half may)")
         for it in items:
             iid = it.get("id") if isinstance(it, dict) else None
             if not _str(iid) or not iid.startswith(lid + "-i"):
@@ -231,7 +325,7 @@ def check(path):
             if t not in TYPES:
                 e(f"{iid}: unknown type {t!r}")
             elif t in SCORED:
-                check_scored(it, e, iid)
+                check_scored(it, e, iid, rule)
             elif t == "card":
                 if not _str(it.get("title")) or not _strs(it.get("body"), 1, 8):
                     e(f"{iid}: card needs title and 1-8 body paragraphs")
@@ -245,7 +339,7 @@ def check(path):
                     e(f"{iid}: reading needs title and minutes")
                 if not isinstance(ps, list) or not ps or not all(isinstance(p, dict) and _str(p.get("text")) for p in ps):
                     e(f"{iid}: reading needs paragraphs [{{label, text}}]")
-                check_sets(it, e, iid, ids)
+                check_sets(it, e, iid, ids, rule)
             elif t == "listening":
                 sp = it.get("speakers")
                 spk = {s.get("id") for s in sp} if isinstance(sp, list) and all(isinstance(s, dict) for s in sp) else set()
@@ -253,10 +347,14 @@ def check(path):
                     e(f"{iid}: listening needs title, part 1-4 and context")
                 if not spk or not all(s.get("voice") in ("f", "m") and _str(s.get("name")) for s in sp):
                     e(f"{iid}: speakers need id, name and voice f/m")
+                if isinstance(sp, list) and any(isinstance(s, dict) and "accent" in s and s["accent"] not in ACCENTS for s in sp):
+                    e(f"{iid}: speaker accent must be one of {sorted(ACCENTS)}")
                 sc = it.get("script")
                 if not isinstance(sc, list) or len(sc) < 2 or not all(isinstance(x, dict) and x.get("s") in spk and _str(x.get("t")) for x in sc):
                     e(f"{iid}: script lines need s (a speaker id) and t")
-                check_sets(it, e, iid, ids)
+                elif any("pause" in x and not (type(x["pause"]) is int and 5 <= x["pause"] <= 60) for x in sc):
+                    e(f"{iid}: a script line's pause is a whole number of seconds, 5-60")
+                check_sets(it, e, iid, ids, rule)
             elif t == "writing":
                 if it.get("task") not in (1, 2) or not _str(it.get("prompt")):
                     e(f"{iid}: writing needs task 1/2 and prompt")
@@ -274,6 +372,23 @@ def check(path):
                         e(f"{iid}: task 1 needs a visual")
                     else:
                         check_visual(it["visual"], e, iid)
+                if "visual2" in it:
+                    if it.get("task") != 1 or "visual" not in it:
+                        e(f"{iid}: visual2 is a second visual, for Task 1 only")
+                    else:
+                        check_visual(it["visual2"], e, iid + " visual2")
+                if "exemplars" in it:
+                    ex = it["exemplars"]
+                    if not isinstance(ex, list) or not 1 <= len(ex) <= 3:
+                        e(f"{iid}: exemplars must be a list of 1-3")
+                    else:
+                        for x in ex:
+                            b = x.get("band") if isinstance(x, dict) else None
+                            if not (isinstance(b, (int, float)) and not isinstance(b, bool) and 5 <= b <= 9 and float(b * 2).is_integer()) \
+                                    or not _strs(x.get("text"), 2, 8) or not _strs(x.get("notes"), 1, 6):
+                                e(f"{iid}: each exemplar needs band 5-9 (halves allowed), text (2-8 paragraphs) and notes (1-6)")
+                            elif _words(x["text"]) < it.get("minWords", 0):
+                                e(f"{iid}: a band {b} exemplar has {_words(x['text'])} words, below minWords")
             elif t == "speaking":
                 p = it.get("part")
                 if p not in (1, 2, 3) or not _str(it.get("topic")):
@@ -286,6 +401,8 @@ def check(path):
                     e(f"{iid}: parts 1 and 3 need questions")
                 if not isinstance(it.get("prep"), int) or not isinstance(it.get("talk"), int):
                     e(f"{iid}: speaking needs prep and talk (seconds)")
+                if "followups" in it and (p != 2 or not _strs(it["followups"], 1, 2)):
+                    e(f"{iid}: followups are 1-2 questions, for Part 2 only")
                 m = it.get("model")
                 if not isinstance(m, dict) or not _strs(m.get("text"), 1, 10) or not _strs(m.get("notes"), 1, 10):
                     e(f"{iid}: speaking model needs text and notes")
@@ -295,6 +412,15 @@ def check(path):
         if l.get("kind") == "test" and not sum(marks(q) for it in items for s in (it.get("sets") or [{"items": [it]}]) for q in s.get("items", [])) \
                 and not any(it.get("type") in ("writing", "speaking") for it in items):
             e(f"{lid}: a test needs scored questions or a writing/speaking task")
+    # Choose TWO: in a unit with 3 or more multi questions, no answer pair holds more than half of them
+    pairs = [tuple(sorted(q["answer"])) for l in les if isinstance(l, dict) for it in (l.get("items") or []) if isinstance(it, dict)
+             for s in (it.get("sets") or [{"items": [it]}]) if isinstance(s, dict) for q in (s.get("items") or [])
+             if isinstance(q, dict) and q.get("type") == "multi" and isinstance(q.get("answer"), list)
+             and all(isinstance(x, int) for x in q["answer"])]
+    if len(pairs) >= 3:
+        top = max(pairs.count(p) for p in set(pairs))
+        if top * 2 > len(pairs):
+            rule(u["id"], f"{u['id']}: {top} of the {len(pairs)} multi questions share one answer pair (at most half may)")
     for s in _texts(u):
         if MARKUP.search(s):
             e(f"markup not allowed: {s[:80]!r}")

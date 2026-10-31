@@ -26,7 +26,7 @@
      "type": "listening",
      "title": "Pottery course enquiry",
      "part": 1,
-     "context": "You will hear a woman phoning an arts centre to ask about a pottery course. First, you have some time to look at questions 1 to 6.",
+     "context": "You will hear a woman phoning an arts centre to ask about a pottery course. First, you have some time to look at questions 1 to 7.",
      "speakers": [
       {
        "id": "t",
@@ -74,7 +74,7 @@
       },
       {
        "s": "t",
-       "t": "The Tuesday group starts on the seventh of September, and Thursday's a week later, so the fourteenth."
+       "t": "The Tuesday group starts on the twelfth of September, and Thursday's two days later, on the fourteenth."
       },
       {
        "s": "h",
@@ -187,10 +187,11 @@
           "14th",
           "14",
           "fourteenth",
-          "the fourteenth"
+          "14th September",
+          "14 September"
          ],
          "limit": "ONE WORD AND/OR A NUMBER",
-         "why": "The 7th is the Tuesday group's start date; Thursday is \"a week later, so the fourteenth\"."
+         "why": "The 12th is the Tuesday group's start date; Thursday's group starts \"two days later, on the fourteenth\". Write numbers as figures: faster, and never over the limit."
         },
         {
          "id": "u02-l1-i2-q3",
@@ -198,10 +199,10 @@
          "text": "Total cost, including materials: £___",
          "answer": [
           "185",
-          "one hundred and eighty-five"
+          "£185"
          ],
          "limit": "ONE WORD AND/OR A NUMBER",
-         "why": "£165 is the tuition only; with £20 for materials it is \"one hundred and eighty-five pounds in total\"."
+         "why": "£165 is the tuition only; with £20 for materials it is \"one hundred and eighty-five pounds in total\". Write numbers as figures: faster, and never over the limit."
         },
         {
          "id": "u02-l1-i2-q4",
@@ -267,10 +268,10 @@
          "q": "Why does Helen want to do the course?",
          "options": [
           "A  to make presents",
-          "B  to relax after work",
-          "C  to meet new people"
+          "B  to meet new people",
+          "C  to relax after work"
          ],
-         "answer": 1,
+         "answer": 2,
          "why": "Presents are what \"everyone assumes\"; her reason is \"something to help me switch off after work\"."
         },
         {
@@ -447,11 +448,11 @@
          "type": "pick",
          "q": "Why did the students choose urban beekeeping as their topic?",
          "options": [
-          "A  Their tutor suggested it.",
-          "B  One of them has a family link with it.",
+          "A  One of them has a family link with it.",
+          "B  Their tutor suggested it.",
           "C  There was plenty of published research on it."
          ],
-         "answer": 1,
+         "answer": 0,
          "why": "The tutor suggested allotments, which had \"a huge literature\"; \"it came down to Daniel's uncle\", who keeps bees."
         },
         {
@@ -484,10 +485,10 @@
          "q": "What do the students agree about the interviews?",
          "options": [
           "A  They should be shortened.",
-          "B  They are the best part of the project.",
-          "C  They should be transcribed again."
+          "B  They should be transcribed again.",
+          "C  They are the best part of the project."
          ],
-         "answer": 1,
+         "answer": 2,
          "why": "Cutting them was considered and rejected: \"they're the strongest part of the project\"."
         }
        ]
@@ -500,14 +501,14 @@
          "type": "multi",
          "q": "Which TWO challenges did respondents mention most often?",
          "options": [
-          "A  complaints from neighbours",
-          "B  a shortage of flowering plants",
+          "A  a shortage of flowering plants",
+          "B  complaints from neighbours",
           "C  the cost of equipment",
           "D  disease",
           "E  lack of time"
          ],
          "answer": [
-          1,
+          0,
           3
          ],
          "why": "\"The two big ones were finding enough flowering plants… and disease.\" Neighbours were \"hardly\" mentioned; cost and time \"nowhere near as often\"."
@@ -687,7 +688,7 @@
         {
          "id": "u02-l2-i1-q7",
          "type": "gap",
-         "text": "Sea turtle hatchlings naturally move towards the ___ over the sea.",
+         "text": "Just after leaving the egg, baby turtles head for the ___ above the water.",
          "answer": [
           "brighter horizon"
          ],
@@ -697,7 +698,7 @@
         {
          "id": "u02-l2-i1-q8",
          "type": "gap",
-         "text": "Evening light from the blue end of the spectrum reduces the body's release of ___.",
+         "text": "Bluish light after dark lowers the body's output of ___.",
          "answer": [
           "melatonin"
          ],
@@ -707,17 +708,18 @@
         {
          "id": "u02-l2-i1-q9",
          "type": "gap",
-         "text": "Older street lights using ___ gave many cities an orange colour.",
+         "text": "The amber glow of town roads in the past came from ___.",
          "answer": [
-          "sodium lamps"
+          "sodium lamps",
+          "sodium"
          ],
          "limit": "NO MORE THAN TWO WORDS",
-         "why": "Paragraph E: \"the sodium lamps that once gave city streets their orange tint\"."
+         "why": "Paragraph E: \"the sodium lamps that once gave city streets their orange tint\". *Sodium* alone is also accepted."
         },
         {
          "id": "u02-l2-i1-q10",
          "type": "gap",
-         "text": "Engineers recommend ___ fittings that send light downwards.",
+         "text": "One proposed remedy is ___ lamps that point their beam at the ground.",
          "answer": [
           "fully shielded",
           "shielded"

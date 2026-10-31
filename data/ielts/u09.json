@@ -109,10 +109,10 @@
          "q": "Summary: Modern tram systems are popular with property (1) ___ because lines are rarely moved, but construction is (2) ___ and can disrupt local trade. Cheaper options include buses that follow (3) ___ on the road.",
          "options": [
           "A  passengers",
-          "B  developers",
+          "B  builders",
           "C  expensive",
           "D  quick",
-          "E  markings",
+          "E  lines",
           "F  tracks"
          ],
          "rows": [
@@ -129,7 +129,7 @@
            "answer": 4
           }
          ],
-         "why": "\"Property developers… favour sites near tram stops\"; \"The main obstacle is cost\" (expensive); trackless trams \"follow markings painted on the road\". F is a trap: the point is that they do *not* need tracks."
+         "why": "\"Property developers... favour sites near tram stops\" (builders); \"The main obstacle is cost\" (expensive); trackless trams \"follow markings painted on the road\" (lines). F is a trap: the point is that they do *not* need tracks."
         }
        ]
       },
@@ -324,22 +324,53 @@
          "q": "What does the writer say about fire in large timber buildings?",
          "options": [
           "A  The danger has been completely removed.",
-          "B  The charred surface helps to protect the inner wood.",
-          "C  Sprinklers are no longer necessary.",
-          "D  Insurers have accepted the technology everywhere."
+          "B  Sprinklers are no longer necessary.",
+          "C  Insurers have accepted the technology everywhere.",
+          "D  The charred surface helps to protect the inner wood."
          ],
-         "answer": 1,
+         "answer": 3,
          "why": "Paragraph E: the char \"insulates the wood beneath it\". Sprinklers are still used, and insurers \"in some countries remain cautious\"."
         }
        ]
       },
       {
-       "instr": "Questions 10-13. Complete the notes below. Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+       "instr": "Questions 10-13. Complete the table below. Choose NO MORE THAN TWO WORDS from the passage for each answer.",
+       "visual": {
+        "kind": "table",
+        "title": "Practical challenges for tall timber buildings",
+        "head": [
+         "Challenge",
+         "Difficulty",
+         "Effect or response"
+        ],
+        "rows": [
+         [
+          "Moisture",
+          "Wood is vulnerable to water.",
+          "Panels are protected from (10) ________ while building is in progress."
+         ],
+         [
+          "Noise",
+          "Timber floors let (11) ________ through more easily than concrete.",
+          "Extra layers are added to the floors."
+         ],
+         [
+          "Skills",
+          "Few engineers and builders have experience of timber.",
+          "This can increase (12) ________ and slow approval."
+         ],
+         [
+          "Hybrid buildings",
+          "Wood is not used for every part.",
+          "A (13) ________ holds the lifts and stairs."
+         ]
+        ]
+       },
        "items": [
         {
          "id": "u09-l2-i1-q10",
          "type": "gap",
-         "text": "Moisture: panels must be protected from ___ while building is in progress.",
+         "text": "Moisture: panels are protected from ___ while building is in progress.",
          "answer": [
           "rain"
          ],
@@ -349,7 +380,7 @@
         {
          "id": "u09-l2-i1-q11",
          "type": "gap",
-         "text": "Noise: timber floors can let ___ through more easily than concrete.",
+         "text": "Noise: timber floors let ___ through more easily than concrete.",
          "answer": [
           "sound"
          ],
@@ -359,7 +390,7 @@
         {
          "id": "u09-l2-i1-q12",
          "type": "gap",
-         "text": "Skills: a lack of experienced engineers can increase ___.",
+         "text": "Skills: few experienced engineers and builders can increase ___.",
          "answer": [
           "costs"
          ],
@@ -371,10 +402,55 @@
          "type": "gap",
          "text": "Hybrid buildings: a ___ holds the lifts and stairs.",
          "answer": [
-          "concrete core"
+          "concrete core",
+          "core"
          ],
          "limit": "NO MORE THAN TWO WORDS",
-         "why": "Paragraph G: \"a concrete core containing the lifts and stairs\"."
+         "why": "Paragraph G: \"a concrete core containing the lifts and stairs\". *Core* alone is also accepted, since the table is about the hybrid design."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 14-16. Answer the questions below. Choose NO MORE THAN THREE WORDS AND/OR A NUMBER from the passage for each answer.",
+       "items": [
+        {
+         "id": "u09-l2-i1-q14",
+         "type": "gap",
+         "text": "What has changed in a number of countries to allow taller timber buildings? ___",
+         "answer": [
+          "building codes",
+          "the building codes",
+          "codes",
+          "building regulations",
+          "the building regulations",
+          "regulations"
+         ],
+         "limit": "NO MORE THAN THREE WORDS AND/OR A NUMBER",
+         "why": "Paragraph A uses two terms for the same rules: \"building regulations limited timber structures to a few storeys\", and the shift came from \"changes to building codes\", which in a number of countries now permit taller timber structures. Either term is accepted."
+        },
+        {
+         "id": "u09-l2-i1-q15",
+         "type": "gap",
+         "text": "In which two countries was cross-laminated timber first produced? ___",
+         "answer": [
+          "Austria and Germany",
+          "Germany and Austria"
+         ],
+         "limit": "NO MORE THAN THREE WORDS AND/OR A NUMBER",
+         "why": "Paragraph B: CLT \"was developed in Austria and Germany in the 1990s\". Three words, within the limit."
+        },
+        {
+         "id": "u09-l2-i1-q16",
+         "type": "gap",
+         "text": "Because timber is light, what can sometimes be added on top of existing buildings? ___",
+         "answer": [
+          "extra storeys",
+          "storeys",
+          "extra stories",
+          "stories"
+         ],
+         "limit": "NO MORE THAN THREE WORDS AND/OR A NUMBER",
+         "why": "Paragraph C: a lighter structure makes it possible \"to add extra storeys on top of existing buildings\". (The US spelling *stories* is also accepted.)"
         }
        ]
       }
@@ -483,12 +559,106 @@
        ]
       },
       {
-       "instr": "Questions 5-9. Complete the flow chart below. Choose ONE WORD ONLY from the passage for each answer.",
+       "instr": "Questions 5-9. Label the diagram below. Choose ONE WORD ONLY from the passage for each answer.",
+       "visual": {
+        "kind": "map",
+        "title": "Drilling an ice core",
+        "maps": [
+         {
+          "title": "Cross-section through an ice sheet (not to scale)",
+          "items": [
+           {
+            "label": "Drilling rig",
+            "x": 56,
+            "y": 0.5,
+            "w": 32,
+            "h": 7,
+            "shape": "rect"
+           },
+           {
+            "label": "Snow",
+            "x": 0,
+            "y": 9,
+            "w": 100,
+            "h": 5,
+            "shape": "rect"
+           },
+           {
+            "label": "Upper layer",
+            "x": 0,
+            "y": 14,
+            "w": 100,
+            "h": 22,
+            "shape": "rect"
+           },
+           {
+            "label": "Solid ice",
+            "x": 0,
+            "y": 36,
+            "w": 100,
+            "h": 63,
+            "shape": "rect"
+           },
+           {
+            "label": "Borehole",
+            "x": 67,
+            "y": 9,
+            "w": 10,
+            "h": 88,
+            "shape": "road"
+           },
+           {
+            "label": "5",
+            "mark": true,
+            "x": 71.4,
+            "y": 3,
+            "w": 1.2,
+            "h": 25,
+            "shape": "rect"
+           },
+           {
+            "label": "8",
+            "mark": true,
+            "x": 68.5,
+            "y": 28,
+            "w": 7,
+            "h": 13,
+            "shape": "rect"
+           },
+           {
+            "label": "6",
+            "mark": true,
+            "x": 16,
+            "y": 25,
+            "w": 0,
+            "h": 0
+           },
+           {
+            "label": "7",
+            "mark": true,
+            "x": 16,
+            "y": 55,
+            "w": 0,
+            "h": 0
+           },
+           {
+            "label": "9",
+            "mark": true,
+            "x": 72,
+            "y": 79,
+            "w": 0,
+            "h": 0
+           }
+          ]
+         }
+        ],
+        "alt": "A cross-section through an ice sheet. On the surface, a drilling rig stands over a borehole that runs down through a thin layer of snow, a thick upper layer and then solid ice. Marker 5 is on the line from the rig down to the drill. Marker 6 is in the upper layer, below the snow. Marker 7 is in the solid ice. Marker 8 is on the drill itself, near the top of the solid ice. Marker 9 is in the borehole, below the drill."
+       },
        "items": [
         {
          "id": "u09-l3-i1-q5",
          "type": "gap",
-         "text": "A hollow drill on a ___ cuts a cylinder of ice.",
+         "text": "The drill hangs from a ___.",
          "answer": [
           "cable"
          ],
@@ -496,44 +666,45 @@
          "why": "Paragraph B: \"A hollow drill, lowered on a cable\"."
         },
         {
-         "id": "u09-l3-i1-q6",
+         "id": "u09-l3-i1-q14",
          "type": "gap",
-         "text": "Each section is measured and ___ at the surface.",
+         "text": "Upper layer: partly compressed snow, called ___",
          "answer": [
-          "logged"
+          "firn"
          ],
          "limit": "ONE WORD ONLY",
-         "why": "Paragraph B: \"measured and logged before the drill descends again\"."
+         "why": "Paragraph A: snow is compressed \"first into a granular material called firn\" and only deeper down into solid ice."
         },
         {
-         "id": "u09-l3-i1-q7",
+         "id": "u09-l3-i1-q15",
          "type": "gap",
-         "text": "Cores are transported to laboratories while still ___.",
+         "text": "Solid ice: ancient air trapped as ___",
          "answer": [
-          "frozen"
+          "bubbles"
          ],
          "limit": "ONE WORD ONLY",
-         "why": "Paragraph C: \"transported, still frozen, to laboratories\"."
+         "why": "Paragraph A: \"small pockets of air become sealed inside the ice as bubbles\"."
         },
         {
-         "id": "u09-l3-i1-q8",
+         "id": "u09-l3-i1-q16",
          "type": "gap",
-         "text": "Air is released by crushing or ___ small samples.",
+         "text": "Inside the hollow drill: a ___ of ice several metres in length",
          "answer": [
-          "melting"
+          "cylinder",
+          "core"
          ],
          "limit": "ONE WORD ONLY",
-         "why": "Paragraph C: \"usually by crushing or melting small samples\"."
+         "why": "Paragraph B: the drill \"cuts a cylinder of ice a few metres long\". *Core*, the passage's other word for it, is also accepted."
         },
         {
-         "id": "u09-l3-i1-q9",
+         "id": "u09-l3-i1-q17",
          "type": "gap",
-         "text": "The ratio of heavier and lighter ___ in the ice shows past temperatures.",
+         "text": "The borehole is filled with a special ___ so that the ice cannot squeeze it shut.",
          "answer": [
-          "isotopes"
+          "fluid"
          ],
          "limit": "ONE WORD ONLY",
-         "why": "Paragraph D: water molecules come in \"isotopes\"; their ratio reflects temperature."
+         "why": "Paragraph B: the weight of the ice \"slowly squeezes it closed, and it is usually filled with a special fluid to prevent this\"."
         }
        ]
       },
@@ -572,7 +743,7 @@
            "answer": 6
           }
          ],
-         "why": "E: \"providing fixed points\"; dust is more abundant \"during cold, dry periods\". F: CO2 and temperature \"have risen and fallen closely together\" and have now risen \"far faster\": rapidly."
+         "why": "Paragraph E: eruption layers provide \"fixed points\" (A), and dust is more abundant \"during cold, dry periods\" (C). Paragraph F: carbon dioxide and temperature \"have risen and fallen closely together\" (D), but present levels have risen \"far faster\" (G). B (warm) is the strongest distractor for gap 11: it is carbon dioxide, not dust, that is higher in warm periods."
         }
        ]
       }

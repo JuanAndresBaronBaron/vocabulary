@@ -144,12 +144,12 @@
         {
          "id": "u06-l1-i7-q1",
          "type": "gap",
-         "text": "Everyday Roman lamps burned olive ___",
+         "text": "Fuel in everyday Roman lamps: ___",
          "answer": [
           "oil"
          ],
          "limit": "ONE WORD ONLY",
-         "why": "Wax is what \"most people imagine\"; the lamps \"burned olive oil\"."
+         "why": "Wax is what \"most people imagine\"; the lamps \"burned olive oil\". With ONE WORD ONLY, write *oil*."
         }
        ]
       }
@@ -340,11 +340,16 @@
          ],
          "limit": "ONE WORD ONLY",
          "why": "\"What are often called urban canyons\"; the plural is needed."
-        },
+        }
+       ]
+      },
+      {
+       "instr": "Complete the sentences below. Write ONE WORD ONLY for each answer.",
+       "items": [
         {
          "id": "u06-l2-i1-q6",
          "type": "gap",
-         "text": "Cause 4: waste heat, increasingly from air ___ units.",
+         "text": "A growing share of the heat released into city streets comes from air ___ units.",
          "answer": [
           "conditioning"
          ],
@@ -354,7 +359,7 @@
         {
          "id": "u06-l2-i1-q7",
          "type": "gap",
-         "text": "Main concern: ___, especially during heatwaves.",
+         "text": "The lecturer's main reason for concern about heat islands is their effect on ___.",
          "answer": [
           "health"
          ],
@@ -364,7 +369,7 @@
         {
          "id": "u06-l2-i1-q8",
          "type": "gap",
-         "text": "Cool roofs: a white or ___ coating.",
+         "text": "A cool roof has a white or ___ covering that sends sunlight back into the sky.",
          "answer": [
           "reflective"
          ],
@@ -374,7 +379,7 @@
         {
          "id": "u06-l2-i1-q9",
          "type": "gap",
-         "text": "Green roofs: main drawback is their ___.",
+         "text": "Many older buildings could only take a green roof's ___ if they were reinforced first.",
          "answer": [
           "weight"
          ],
@@ -384,7 +389,7 @@
         {
          "id": "u06-l2-i1-q10",
          "type": "gap",
-         "text": "Street trees: their ___ is often the most effective cooling for pedestrians.",
+         "text": "For people on foot, the ___ that trees give is often the best way to make a street feel cooler.",
          "answer": [
           "shade"
          ],
@@ -414,7 +419,8 @@
       {
        "id": "l",
        "name": "Lecturer",
-       "voice": "m"
+       "voice": "m",
+       "accent": "us"
       }
      ],
      "script": [
@@ -512,11 +518,16 @@
          ],
          "limit": "ONE WORD ONLY",
          "why": "The air is \"a common belief\"; research points to the flour and \"the baker's own hands\"."
-        },
+        }
+       ]
+      },
+      {
+       "instr": "Complete the summary below. Write ONE WORD ONLY for each answer.\n\n**Why slow fermentation matters**",
+       "items": [
         {
          "id": "u06-l3-i1-q6",
          "type": "gap",
-         "text": "Effect 1: bread resists ___ and stales more slowly.",
+         "text": "Its acidity helps sourdough keep: it is slow to go stale and resists ___.",
          "answer": [
           "mould",
           "mold"
@@ -527,7 +538,7 @@
         {
          "id": "u06-l3-i1-q7",
          "type": "gap",
-         "text": "Effect 2: ___ have longer to act, giving an open texture and dark crust.",
+         "text": "The long rise gives the flour's ___ extra time to act, which produces an open crumb and a dark crust.",
          "answer": [
           "enzymes"
          ],
@@ -537,7 +548,7 @@
         {
          "id": "u06-l3-i1-q8",
          "type": "gap",
-         "text": "Effect 3: long fermentation breaks down phytic acid, so more iron and ___ can be absorbed.",
+         "text": "As phytic acid is broken down, the body can absorb more iron and ___ from wholegrain bread.",
          "answer": [
           "zinc"
          ],
@@ -547,7 +558,7 @@
         {
          "id": "u06-l3-i1-q9",
          "type": "gap",
-         "text": "Popular with bakeries: ingredients are ___, and fermentation can run overnight.",
+         "text": "Small bakeries also find it good business: the ingredients are ___, and the slow rise can be timed to happen overnight.",
          "answer": [
           "cheap"
          ],
@@ -557,7 +568,7 @@
         {
          "id": "u06-l3-i1-q10",
          "type": "gap",
-         "text": "A starter must be ___ regularly with flour and water.",
+         "text": "A starter stays healthy only if it is ___ at regular intervals with new flour and water.",
          "answer": [
           "fed"
          ],

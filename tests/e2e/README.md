@@ -499,3 +499,43 @@ def test_algo():
     finally:
         page.context.close()
 ```
+
+<!-- ---- paquete: content1 (IELTS Prep) ---- -->
+## IELTS Prep: contenido (paquete content1)
+
+`python3 tests/e2e/run.py --only test_ielts` corre `test_ielts.py` y `test_ielts_content1.py` (ambos empiezan por
+`test_ielts`). Los datos se validan con `python3 tests/e2e/ielts_validate.py` (imprime `OK`).
+
+- `test_ielts.py::test_ielts_validator_rules`: las reglas de examen de `ielts_validate.py`. Cada respuesta
+  aceptada de un hueco cabe en su límite (`fits`, `limit_of`, `count_answer`: «ONE WORD AND/OR A NUMBER» admite
+  `14th`, no `the fourteenth`); un set cuyo `instr` dice «Label the» lleva `visual`; en una lección `test` con 4 o
+  más `pick`, ninguna letra tiene más de la mitad de las claves; en una unidad con 3 o más `multi`, ningún par de
+  respuestas tiene más de la mitad. Siembra cada error en una copia de u03/u11 y comprueba que el validador lo ve;
+  también los campos nuevos (`exam`, `pause`, `accent`, `visual2`, `exemplars`, `followups`, `mark`, los marcadores
+  de 0 × 0 sin `shape`, `alt` solo en un `map`) y que los ids de `PENDING` (u23/u24, para content2) existen.
+- `test_ielts_content1.py` lee los JSON directamente (sin navegador), salvo la última prueba:
+  - `keys`: las claves corregidas y las variantes que deben puntuar (`£185`, `15 minutes`, `levelled off`…).
+  - `limits`: ninguna respuesta de u01-u12 pasa de su límite.
+  - `numbers`: un set «Questions a-b» lleva los números que le da el reproductor (`questions()` de
+    `js/ielts-player.js`); los huecos numerados de una tabla (`(10) ________`) y los marcadores de un diagrama son
+    los números de sus preguntas; las letras de un plano son las opciones.
+  - `plan`, `types`, `task1`, `spread`, `choose_two`, `ids`, `schema_doc`: el plano de u04 (y el `alt` del plano y
+    del diagrama, sin respuestas), los tipos de pregunta de u03-u10 (sentence, summary y table completion, short
+    answers, diagram labelling, Choose TWO), la cobertura de Task 1 en u11 (línea, barras, tartas, tabla y una prueba
+    de 20 minutos), el reparto de claves del diagnóstico de u02 y de los pares de Choose TWO, los ids nuevos (y que
+    los quitados no vuelven) y que SCHEMA.md documenta cada campo nuevo. El `alt` del plano sitúa las letras por
+    puntos cardinales, nunca con las palabras del guion (`left`, `right`, `behind`, `far`, `bank`…).
+  - `remap`: `REMAP` (índice viejo → nuevo de cada pregunta cuyas opciones se reordenaron) convierte cada clave
+    vieja (`OLD_KEY`, v38) en la clave actual. La migración única del integrador (`ielts:mig:content1`) aplica ese
+    mapa a las respuestas guardadas en `ielts:run:<lid>`, así que debe seguir al día con los datos. Cuando la
+    migración ya esté en `js/ielts.js`, su `MAP` debe ser `REMAP` y `prog.erase()` debe conservar las claves
+    `ielts:mig:*` («Erase my progress» no recarga la página: sin la bandera, la migración volvería a mover las
+    respuestas guardadas después de borrar, que ya usan el orden nuevo).
+  - `visuals_render`: dibuja con `IE.viz.html` el plano, el diagrama, las tablas y los gráficos nuevos a 360 px,
+    claro y oscuro: las barras tienen su altura (`rect.ie-col`; la clase `.ie-bar` es la barra de progreso del
+    reproductor y las aplastaba a 4 px), el eje llega al paso redondo siguiente (52 % → 60 %), los marcadores
+    salen, nada se sale de lado y ninguna etiqueta del SVG queda cortada. En los mapas (u12, el plano, el diagrama y
+    unas salas como las de u23) cada etiqueta cabe en su caja (se encoge hasta 3,2), un marcador sin `shape` lleva
+    su caja, uno de 0 × 0 es solo el círculo, y el `alt` está en la página, oculto a la vista. En las tartas de u11-l5
+    cada porción lleva su porcentaje, como en el examen: la de menos del 6 % («Other», 2 %) fuera del círculo con una
+    línea guía y el color del texto, sin cortes ni solapes.

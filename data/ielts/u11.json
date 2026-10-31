@@ -18,8 +18,8 @@
      "title": "What Task 1 is really testing",
      "body": [
       "Task 1 asks you to *summarise* a visual by **selecting and reporting the main features** and making comparisons where relevant. It is not a description of every number, and it is not an essay: no opinions, no causes, no predictions beyond what the chart shows.",
-      "Examiners score four criteria equally: Task Achievement, Coherence and Cohesion, Lexical Resource, and Grammatical Range and Accuracy. For Task Achievement the single biggest separator between band 7 and band 9 is a **clear overview** that states the most important trends or differences without numbers.",
-      "Aim for 170-200 words in about 20 minutes. Longer answers rarely score higher; they usually contain more slips and more trivial detail."
+      "An overview is needed from band 6 up, and band 7 needs a clear one; what lifts a script from 7 to 9 is selecting every key feature, with accurate figures and comparisons, and nothing trivial or wrong.",
+      "Aim for about 170-230 words in about 20 minutes. Longer answers rarely score higher; they usually contain more slips and more trivial detail."
      ],
      "list": [
       "Introduction: one sentence paraphrasing what the visual shows (what, where, when, units).",
@@ -143,12 +143,20 @@
      "answer": [
       "plateaued",
       "levelled off",
+      "levelled out",
+      "leveled off",
+      "leveled out",
       "stabilised",
       "stabilized",
-      "flattened out"
+      "flattened out",
+      "flattened",
+      "remained",
+      "stayed",
+      "hovered",
+      "held steady"
      ],
      "limit": "ONE OR TWO WORDS",
-     "why": "*Plateaued* (or *levelled off*) describes a line that stops rising and stays flat."
+     "why": "Several verbs work here: *plateaued*, *levelled off* (or *out*), *stabilised*, *held steady*, *remained* or *stayed*. Each describes a line that stops rising and stays roughly flat; *plateaued* and *levelled off* are the most precise."
     },
     {
      "id": "u11-l1-i9",
@@ -228,7 +236,7 @@
      "items": [
       "The graph illustrates how the proportion of commuters using four modes of transport in a British city changed between 1990 and 2020.",
       "Overall, the car remained the most common choice despite a steady decline, whereas cycling grew from a marginal option into the second most popular.",
-      "Car use stood at just over 60% in 1990 and fell gradually to 41% by the end of the period, while the share of bus passengers almost halved, from a fifth to 12%.",
+      "Car use stood at just over 60% in 1990 and fell gradually to 41% by the end of the period, while the share of bus passengers fell by two fifths, from a fifth to 12%.",
       "In contrast, cycling, which accounted for only 4% of journeys in 1990, climbed steeply after 2000 to reach almost a quarter in 2020."
      ],
      "why": "Introduction (paraphrase), overview (no figures), then two body paragraphs grouping declining modes and the rising mode. 'In contrast' signals the second group."
@@ -363,8 +371,8 @@
      "model": {
       "text": [
        "The line graph illustrates how the share of commuters in a British city who travelled to work by car, bus, bicycle and train changed over the thirty years from 1990.",
-       "Overall, the car remained by far the most common means of getting to work, although its dominance was steadily eroded. The most striking development was the growth of cycling, which rose from a marginal option to the second most popular mode, overtaking the bus in the process.",
-       "In 1990, just over three fifths of commuters drove to work, a figure that edged up to 64% in 1995 before falling continuously to 41% by 2020, a decline of roughly a third. Bus use followed a similar downward path but at a more modest pace: having accounted for a fifth of journeys at the start of the period, it fell to 15% by 2000 and then drifted down to 12%.",
+       "Overall, the car remained by far the most common means of getting to work, although its dominance was eroded after the mid-1990s. The most striking development was the growth of cycling, which rose from a marginal option to the second most popular mode, overtaking the bus in the process.",
+       "In 1990, just over three fifths of commuters drove to work, a figure that edged up to 64% in 1995 before falling continuously to 41% by 2020, a decline of roughly a third. Bus use also declined, though by fewer percentage points: having accounted for a fifth of journeys at the start of the period, it fell to 15% by 2000 and then drifted down to 12%.",
        "Cycling, by contrast, was the least common mode in 1990, at only 4%, and changed little for a decade. After 2000, however, it climbed steeply, overtaking rail around 2010 and the bus shortly afterwards, and by 2020 almost a quarter of commuters cycled, a sixfold increase on the original figure. Rail use grew gradually from 8% to a peak of 13% in 2015, before slipping back to 11% in the final five years."
       ],
       "notes": [
@@ -391,7 +399,7 @@
      "title": "Tables: find the story before you write",
      "body": [
       "A table gives you numbers without a shape, so the danger is listing them row by row. Before writing, rank the rows, calculate the rough size of each change, and look for a relationship between columns.",
-      "In this task, notice that every museum that grew also had a higher share of overseas visitors than the museums that shrank. You must not say *why* (that would be speculation), but you can report the pattern: *the two museums with the highest share of overseas visitors were also those that grew most*."
+      "In this task, look at how the last column relates to growth. You must not say *why* (that would be speculation), but you can report the pattern: *all three museums that grew drew a larger share of their visitors from overseas (26-41%) than the two that shrank (8-12%)*."
      ],
      "list": [
       "Rank: which was largest in 2012 and in 2022? Did the ranking change?",
@@ -469,6 +477,259 @@
        "Changes are expressed as proportions (*about two thirds*, *around a third*) as well as raw figures, which shows real analysis of the data.",
        "Reference (*the latter*, *the former*, *the remaining two museums*) keeps the text cohesive without heavy linkers.",
        "The writer notes the pattern in overseas visitors but does not speculate about why it exists, which keeps the response within Task 1."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "u11-l4",
+   "title": "Bar charts: comparing categories",
+   "kind": "practice",
+   "minutes": 30,
+   "items": [
+    {
+     "id": "u11-l4-i1",
+     "type": "card",
+     "title": "Bar charts: grouping and ranking",
+     "body": [
+      "A bar chart with five categories and two years invites a list: this one rose, that one fell. Resist it. First rank the categories in each year, then group those that moved the same way, so that each paragraph compares a group rather than walking through the bars one by one.",
+      "Ranking language lets you compare without quoting every figure: superlatives for the extremes, multiples for large gaps, and small-difference phrases for near ties. Check each phrase against the bars: *twice as many* must really be about double, and *slightly ahead of* suits a gap of a point or two, not ten."
+     ],
+     "list": [
+      "**the most / the least common**: *cash was the most common method in 2014*",
+      "**the second most popular / ranked third**",
+      "**by far the largest / a close second**",
+      "**twice / three times as many as**: *more than twice as many contactless payments as mobile ones*",
+      "**slightly ahead of / just behind / almost level with**: for a gap of a point or two",
+      "**overtook / was overtaken by**: when the order changes between the two years",
+      "**accounted for / made up**: a share of all payments"
+     ],
+     "tip": "With two years and five categories, the strongest split is usually 'what shrank' and 'what grew'. Mention a small, stable category in one clause: examiners reward selection, not completeness."
+    },
+    {
+     "id": "u11-l4-i2",
+     "type": "pick",
+     "q": "In 2024, contactless cards accounted for 46% of payments and mobile phones for 21%. Which comparison is accurate?",
+     "options": [
+      "Contactless payments were three times as common as payments by mobile phone.",
+      "Contactless payments were more than twice as common as payments by mobile phone.",
+      "Contactless payments were slightly ahead of payments by mobile phone.",
+      "Payments by mobile phone were almost as common as contactless ones."
+     ],
+     "answer": 1,
+     "why": "Twice 21% is 42%, so 46% is *more than twice* as common. *Three times* would need about 63%, and *slightly ahead of* suits a gap of a point or two, not 25."
+    },
+    {
+     "id": "u11-l4-i3",
+     "type": "pick",
+     "q": "In 2024, chip-and-PIN cards accounted for 15% of payments and cash for 14%. Which sentence fits best?",
+     "options": [
+      "Chip and PIN was slightly ahead of cash.",
+      "Chip and PIN was far more popular than cash.",
+      "Cash overtook chip and PIN.",
+      "Chip and PIN was twice as common as cash."
+     ],
+     "answer": 0,
+     "why": "One percentage point is a near tie, so *slightly ahead of* (or *just ahead of*) is exact. Cash did not overtake chip and PIN: in 2024 it was just behind it."
+    },
+    {
+     "id": "u11-l4-i4",
+     "type": "writing",
+     "task": 1,
+     "prompt": "The bar chart below shows the methods people used to pay for purchases in shops in one European country in 2014 and 2024.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.",
+     "visual": {
+      "kind": "bar",
+      "title": "Methods of payment in shops in one European country, 2014 and 2024 (% of all payments)",
+      "unit": "%",
+      "x": [
+       "Cash",
+       "Chip and PIN card",
+       "Contactless card",
+       "Mobile phone",
+       "Other"
+      ],
+      "series": [
+       {
+        "name": "2014",
+        "values": [
+         52,
+         33,
+         6,
+         1,
+         8
+        ]
+       },
+       {
+        "name": "2024",
+        "values": [
+         14,
+         15,
+         46,
+         21,
+         4
+        ]
+       }
+      ]
+     },
+     "minutes": 20,
+     "minWords": 150,
+     "plan": [
+      "Paraphrase: how shoppers paid, five methods, one European country, 2014 and 2024.",
+      "Overview: a shift from cash and inserted cards to contactless and mobile; contactless became by far the most common.",
+      "Body 1: the two methods that shrank (cash, chip and PIN), including the change in order between them.",
+      "Body 2: the two that grew (contactless, mobile), compared with each other; 'other' in one clause."
+     ],
+     "model": {
+      "text": [
+       "The bar chart compares the proportion of shop purchases in one European country that were paid for in cash, by chip-and-PIN card, by contactless card, by mobile phone or by other means in 2014 and 2024.",
+       "Overall, the decade saw a decisive shift away from cash and inserted cards towards contactless methods. Contactless cards, a marginal option at the start of the period, had become by far the most common way to pay ten years later, while notes and coins lost their place as the leading method.",
+       "In 2014, just over half of all payments were made in cash and a further third by chip and PIN, so these two methods together accounted for 85% of transactions. By 2024, the share of cash had collapsed to 14%, little more than a quarter of its earlier level, and chip-and-PIN payments had more than halved to 15%, leaving the two almost level, with the card now slightly ahead.",
+       "The newer methods moved in the opposite direction. Contactless payments rose from only 6% to 46%, almost an eightfold increase, and the share made by mobile phone climbed from a negligible 1% to just over a fifth. Even so, contactless payments remained more than twice as common as mobile ones. The remaining category, other methods, was minor throughout, and its share halved from 8% to 4%."
+      ],
+      "notes": [
+       "The overview gives the overall shift and the change at the top of the ranking without a single figure.",
+       "The body paragraphs group the methods by direction: the two older methods that shrank, then the two newer ones that grew, with *other* in a single clause because it is minor.",
+       "Ranking and comparison language does the analysis: *by far the most common*, *almost level*, *slightly ahead*, *more than twice as common*.",
+       "Derived figures are checked against the bars: 52% + 33% = 85%; 14% is a little more than a quarter of 52%; 6% to 46% is almost eightfold; 21% is just over a fifth.",
+       "Nothing is invented or explained: the chart gives no reasons, so the answer gives none."
+      ]
+     }
+    }
+   ]
+  },
+  {
+   "id": "u11-l5",
+   "title": "Timed Task 1: pie charts and a table",
+   "kind": "test",
+   "minutes": 20,
+   "timed": 1200,
+   "items": [
+    {
+     "id": "u11-l5-i1",
+     "type": "writing",
+     "task": 1,
+     "prompt": "You should spend about 20 minutes on this task.\n\nThe pie charts below show how the household waste collected in a British city was dealt with in 2005 and 2025. The table shows the amount of household waste produced per person in the same two years.\n\nSummarise the information by selecting and reporting the main features, and make comparisons where relevant.\n\nWrite at least 150 words.",
+     "visual": {
+      "kind": "pie",
+      "title": "How household waste was dealt with in a British city, 2005 and 2025 (%)",
+      "unit": "%",
+      "charts": [
+       {
+        "title": "2005",
+        "slices": [
+         {
+          "label": "Landfill",
+          "value": 62
+         },
+         {
+          "label": "Recycling",
+          "value": 18
+         },
+         {
+          "label": "Composting",
+          "value": 6
+         },
+         {
+          "label": "Burnt for energy",
+          "value": 12
+         },
+         {
+          "label": "Other",
+          "value": 2
+         }
+        ]
+       },
+       {
+        "title": "2025",
+        "slices": [
+         {
+          "label": "Landfill",
+          "value": 9
+         },
+         {
+          "label": "Recycling",
+          "value": 41
+         },
+         {
+          "label": "Composting",
+          "value": 17
+         },
+         {
+          "label": "Burnt for energy",
+          "value": 31
+         },
+         {
+          "label": "Other",
+          "value": 2
+         }
+        ]
+       }
+      ]
+     },
+     "visual2": {
+      "kind": "table",
+      "title": "Household waste produced per person in the same city (kg per year)",
+      "head": [
+       "Type of waste",
+       "2005",
+       "2025"
+      ],
+      "rows": [
+       [
+        "Food and garden",
+        "190",
+        "140"
+       ],
+       [
+        "Paper and card",
+        "120",
+        "70"
+       ],
+       [
+        "Plastics",
+        "45",
+        "60"
+       ],
+       [
+        "Glass and metal",
+        "70",
+        "55"
+       ],
+       [
+        "Other",
+        "95",
+        "85"
+       ],
+       [
+        "Total",
+        "520",
+        "410"
+       ]
+      ]
+     },
+     "minutes": 20,
+     "minWords": 150,
+     "plan": [
+      "Paraphrase both visuals: what happened to household waste (pies) and how much each person produced (table), 2005 and 2025.",
+      "Overview: landfill replaced by recycling, composting and energy; less waste per person, except plastics.",
+      "Body 1: the pies, led by the biggest changes (landfill, recycling), then energy and composting.",
+      "Body 2: the table: the total, the two largest falls, and plastics as the exception."
+     ],
+     "model": {
+      "text": [
+       "The pie charts show how a British city dealt with its household waste in 2005 and 2025, and the table gives the amount produced per person, by type, in the same years.",
+       "Overall, the city moved decisively away from landfill, and by 2025 most of its rubbish was recycled, composted or burnt to produce energy. At the same time, each resident was throwing away considerably less, although plastics went against this trend.",
+       "In 2005, just over three fifths of household waste went to landfill, with recycling a distant second at 18% and incineration for energy at 12%. By 2025, the landfill share had fallen to under a tenth. Recycling had more than doubled to 41%, making it the main method, energy recovery had grown to almost a third, and the proportion composted had nearly tripled, from 6% to 17%. Other methods accounted for 2% in both years.",
+       "According to the table, the total produced per person fell by about a fifth, from 520 to 410 kilograms a year. Paper and card declined most steeply in relative terms, by over two fifths to 70 kg, while food and garden waste, the largest category in both years, dropped by the same absolute amount, 50 kg, to 140. The other two categories also decreased, but more modestly. Plastics were the only exception, rising by a third to 60 kg."
+      ],
+      "notes": [
+       "Two visuals, one overview: the sentence on landfill sums up the pie charts and the sentence on waste per person sums up the table, with no figures in either.",
+       "The pies are compared by what changed most (landfill and recycling) and by rank, not slice by slice in the order of the key.",
+       "Approximations are checked: 62% is *just over three fifths*, 9% *under a tenth*, 31% *almost a third*, 6% to 17% *nearly tripled*.",
+       "The table paragraph separates relative from absolute change: paper and card fell further in proportion, but by the same 50 kilograms as food and garden waste.",
+       "The exception, plastics, is singled out: selecting the feature that breaks the pattern is what examiners reward.",
+       "No causes are offered, although recycling schemes or packaging habits would be tempting explanations."
       ]
      }
     }
