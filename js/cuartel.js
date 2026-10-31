@@ -18,7 +18,7 @@
      «Forward, march!», «Mayday»… con su español y su IPA.
    Acaba al superar las 5 oleadas o sin vidas. Puntos = enemigos neutralizados; estrellas por enemigos y recargas bien
      (★★★: casi todos y 3 de cada 4 bien; ★★: la mitad y la mitad bien). Palabras del resultado: las de las preguntas
-     (en gris las falladas).
+     (en gris las falladas). Sin neutralizar a nadie ni una recarga bien, el «¡Vamos otra vez!» de Juegos (sin récord).
    Usa de games.js lo de los demás juegos: tarjeta del menú, récord, explicación la primera vez, «?», pausa (todo se
      para: los enemigos, la radio y el panel) y finish() (récord en "games:best".cuartel, monedas desde «+N»).
    Pruebas: window.__cuartel = {per: n, speed: k} (n enemigos por oleada, k veces más rápido); run.root.cuState() → el
@@ -613,7 +613,8 @@ async function start(app, api, mode){
       const stars = (score >= TOTAL * .9 || win) && acc >= .75 ? 3 : score >= TOTAL * .5 && acc >= .5 ? 2 : 1;
       const words = [...asked.values()].sort((a, b) => b.miss - a.miss);
       const en = `${score} enemigo${score === 1 ? "" : "s"} neutralizado${score === 1 ? "" : "s"}`;
-      api.finish(run, ID, {score, stars, words,
+      /* neutralizar no es contestar (las recargas bien ya cuentan con api.answer): played dice a Juegos que se jugó */
+      api.finish(run, ID, {score, stars, words, played: score > 0,
         line: n ? `¡${en} y ${right} de ${n} recarga${n === 1 ? "" : "s"} bien!` : `¡${en}!`});
     }, 1900);
   }

@@ -38,7 +38,9 @@ FRAME = {"english": "Touch the", "français": "Touche", "dansk": "Find"}
 AND = {"english": "and the", "français": "et", "dansk": "og"}
 ECHO = {"english": "Say it with me:", "français": "Répète avec moi :", "dansk": "Sig det med mig:"}
 STORIES = [f"{ab}/{n}" for ab in ("en", "fr", "da") for n in ("cake", "colours", "night", "play")]
-OLD4 = ("en-rain", "en-breakfast", "en-family", "en-birthday")
+# las llamadas en inglés menos en-zoo (todas las de data/calls/index.json): se siembran como sonadas hace días para que
+# suene en-zoo, la que hace más que no sonaba (entre las que nunca sonaron, js/calls.js elige al azar)
+NOT_ZOO = CL._EN_NOT_ZOO
 _FINISH = CU._FINISH
 
 # el AudioContext de verdad, contado (y si nació dentro de un toque); el micrófono, un tono que se enciende con __micG
@@ -147,7 +149,7 @@ def test_calls_answers_shuffled_with_their_reactions():
     probs = []
     page = CL._page()
     try:
-        CL._seed(page, CL._keys(calls={"v": 1, "h": {i: CL._day(C.FIXED_NOW, -9) for i in OLD4}}))
+        CL._seed(page, CL._keys(calls={"v": 1, "h": {i: CL._day(C.FIXED_NOW, -9) for i in NOT_ZOO}}))
         out = page.evaluate("""async () => {
           const out = [], ids = (await vocabCalls.list('english')).map(m => m.id);
           if (ids.length < 5) out.push('pocas llamadas: ' + ids);
@@ -215,7 +217,7 @@ def test_say_it_with_me_after_each_answer():
     probs = []
     page = CL._page()
     try:
-        CL._seed(page, CL._keys(calls={"v": 1, "h": {i: CL._day(C.FIXED_NOW, -9) for i in OLD4}}))
+        CL._seed(page, CL._keys(calls={"v": 1, "h": {i: CL._day(C.FIXED_NOW, -9) for i in NOT_ZOO}}))
         CL._ring(page)
         CL._answer(page)
         lines = page.evaluate("""async () => (await vocabCalls.get('en-zoo')).lines.map(l => !l.a ? null :
@@ -951,6 +953,45 @@ def test_fox_says_fits_phones():
     assert not probs, "\n".join(probs)
 
 
+def test_fox_says_all_second_tries_still_result():
+    """Las 9 rondas a la segunda (primero un dibujo malo, luego los buenos): ninguna cuenta como acierto (api.answer),
+    pero la partida se jugó entera, así que sale el resultado y no el «¡Vamos otra vez!» de Juegos: 1 estrella,
+    «¡Las 9 rondas, hechas!», 5 monedas y el récord (games:best.zorrodice = 0 puntos, 1 estrella, 1 partida)."""
+    probs = []
+    page = _gpage()
+    try:
+        _game(page, "zorrodice", "english")
+        for ri in range(9):
+            s = _zd_round(page, ri)
+            t = s["targets"]
+            _zd_tap(page, next(k for k in range(4) if k not in t))
+            page.wait_for_timeout(150)
+            for k in t:
+                _zd_tap(page, k)
+            page.wait_for_timeout(120)
+            if not _zd(page)["over"]:
+                probs.append(f"ronda {ri + 1} no se acaba al tocar los buenos tras uno malo")
+            page.clock.run_for(2700)
+        page.wait_for_selector("#gm-end", timeout=10000)
+        r = page.evaluate("""() => { const e = document.getElementById('gm-end'), p = document.getElementById('gm-plus');
+          return {txt: e.textContent.replace(/\\s+/g, ' '), zero: e.classList.contains('gm-end0'), stars: e.querySelectorAll('.gm-end-st .gm-es.on').length,
+            starsBox: !!e.querySelector('.gm-end-st'), coins: p ? p.getAttribute('aria-label') : null,
+            best: (JSON.parse(localStorage.getItem('games:best') || '{}')).zorrodice || null}; }""")
+        if r["zero"] or "Vamos otra vez" in r["txt"] or not r["starsBox"] or r["stars"] != 1:
+            probs.append(f"el final a la segunda no es el resultado con 1 estrella: {r['txt'][:160]!r} (estrellas {r['stars']})")
+        if "¡Las 9 rondas, hechas!" not in r["txt"]:
+            probs.append(f"el final no dice «¡Las 9 rondas, hechas!»: {r['txt'][:160]!r}")
+        if r["coins"] != "5 monedas":
+            probs.append(f"las monedas: {r['coins']}")
+        b = r["best"]
+        if not b or (b.get("score"), b.get("stars"), b.get("plays")) != (0, 1, 1):
+            probs.append(f"el récord de El zorro dice: {b}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
 # ---------------------------------------------------------------- 9. «Rap del zorro»
 def _rap_open(page, L="english", rounds=None):
     _game(page, "rap", L)
@@ -1075,6 +1116,31 @@ def test_fox_rap_join_by_tap_and_by_mic():
     assert not probs, "\n".join(probs)
 
 
+def test_fox_rap_no_joins_is_try_again():
+    """Una ronda (window.__rapRounds = 1) sin unirse nunca (ni tocar ni cantar): al acabar, el «¡Vamos otra vez!» de
+    Juegos, sin estrellas, sin monedas y sin récord del rap. 360×740."""
+    probs = []
+    page = _gpage(viewport={"width": 360, "height": 740})
+    try:
+        _rap_open(page, "english", rounds=1)
+        page.locator("#rp-go").click()
+        page.wait_for_function("() => document.getElementById('rp').rap().started", timeout=5000)
+        page.wait_for_selector("#gm-end", timeout=20000)
+        r = page.evaluate("""() => { const e = document.getElementById('gm-end');
+          return {txt: e.textContent.replace(/\\s+/g, ' '), zero: e.classList.contains('gm-end0'), stars: !!e.querySelector('.gm-end-st'),
+            coins: !!document.getElementById('gm-plus'), best: (JSON.parse(localStorage.getItem('games:best') || '{}')).rap || null}; }""")
+        if not r["zero"] or "¡Vamos otra vez!" not in r["txt"]:
+            probs.append(f"el final sin unirse: {r['txt'][:160]!r}")
+        if r["stars"] or r["coins"] or "Rapeaste" in r["txt"]:
+            probs.append(f"sin unirse no hay estrellas ni monedas: {r}")
+        if r["best"] is not None:
+            probs.append(f"sin unirse se guardó un récord del rap: {r['best']}")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
 # ---------------------------------------------------------------- 10. capturas
 def test_captures_audit_three_configs():
     """Capturas en capturas/hablar: «El zorro dice», «Rap del zorro», una pregunta de «¿Te acuerdas?», #/llamadas, el
@@ -1145,7 +1211,7 @@ def test_captures_audit_three_configs():
         page = CL._page(kind, **kw)
         try:
             old = CL._day(C.FIXED_NOW, -9)
-            CL._seed(page, CL._keys(calls={"v": 1, "h": {i: old for i in OLD4}, "heard": {"en-rain": old}}), hash="#/llamadas", armed=False)
+            CL._seed(page, CL._keys(calls={"v": 1, "h": {i: old for i in NOT_ZOO}, "heard": {"en-rain": old}}), hash="#/llamadas", armed=False)
             page.wait_for_selector("#cl-list .cl-li", timeout=8000)
             _audit(page, f"{tag}-llamadas", ("cl-l",), probs)
             C.shot(page, f"{tag}-llamadas", OUT, full_page=False)

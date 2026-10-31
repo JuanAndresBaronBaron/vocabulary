@@ -306,10 +306,13 @@ def test_full_game_to_result():
 
 def test_lives_lost_and_end():
     """Cada enemigo que llega a los sacos quita un corazón (queda gris, nunca rojo) y la radio dice «Mayday». Sin
-    corazones acaba la defensa y sale el resultado."""
+    corazones acaba la defensa y sale el resultado. Se neutraliza al primero y los demás llegan: neutralizar cuenta como
+    jugar aunque no haya ninguna recarga (una partida sin hacer nada es el «¡Vamos otra vez!» de Juegos, sin récord)."""
     page = C.new_page("phone")
     try:
         _open(page, per=1, speed=7)
+        _lane_key(page)
+        page.wait_for_function("() => document.querySelector('#cu').cuState().score === 1", timeout=3000)
         page.wait_for_function("() => document.querySelectorAll('#gm-lives i.lost').length === 1", timeout=10000)
         page.wait_for_selector("#cu-radio.on b:text('Mayday')", timeout=3000)
         col = page.evaluate("getComputedStyle(document.querySelector('#gm-lives i.lost')).color")
@@ -320,7 +323,28 @@ def test_lives_lost_and_end():
         assert "Se acabó la defensa" in page.text_content(".gm-over")
         page.wait_for_selector("#gm-end", timeout=6000)
         best = page.evaluate("JSON.parse(localStorage.getItem('games:best')).cuartel")
-        assert best["plays"] == 1 and best["score"] == 0 and best["stars"] == 1, best
+        assert best["plays"] == 1 and best["score"] == 1 and best["stars"] == 1, best
+        assert "1 enemigo neutralizado" in page.text_content(".gm-end-l")
+        assert not C.errors(page), C.errors(page)
+    finally:
+        page.context.close()
+
+
+def test_nothing_done_is_try_again():
+    """Una partida sin hacer nada (1 enemigo por oleada, más deprisa, sin disparar ni recargar): los enemigos llegan,
+    «¡Se acabó la defensa!» y después el «¡Vamos otra vez!» de Juegos, sin estrellas, sin monedas y sin récord."""
+    page = C.new_page("phone")
+    try:
+        _open(page, per=1, speed=7)
+        page.wait_for_selector(".gm-over", timeout=25000)
+        assert "Se acabó la defensa" in page.text_content(".gm-over")
+        assert _st(page)["score"] == 0
+        page.wait_for_selector("#gm-end", timeout=6000)
+        assert "gm-end0" in page.get_attribute("#gm-end", "class")
+        assert "¡Vamos otra vez!" in page.text_content("#gm-end .gm-end-t")
+        assert not page.locator("#gm-end .gm-end-st, #gm-plus").count()
+        best = page.evaluate("JSON.parse(localStorage.getItem('games:best') || '{}').cuartel || null")
+        assert best is None, best
         assert not C.errors(page), C.errors(page)
     finally:
         page.context.close()

@@ -335,8 +335,10 @@ async function start(app, api, mode){
     if(done) return;
     done = true; stopSeq();
     const stars = score >= 8 ? 3 : score >= 5 ? 2 : 1;
-    api.finish(run, ID, {score, stars, words: [...seen.values()].sort((a, b) => b.miss - a.miss),
-      line: score === R ? `¡Las ${R} a la primera! El zorro está muy contento.` : `¡${score} de ${R} a la primera!`});
+    /* solo se llega aquí con todas las rondas tocadas bien; las de segunda no llaman a api.answer (no cuentan para las
+       misiones), así que played: si no, una partida entera a la segunda saldría como «¡Vamos otra vez!» */
+    api.finish(run, ID, {score, stars, words: [...seen.values()].sort((a, b) => b.miss - a.miss), played: true,
+      line: score === R ? `¡Las ${R} a la primera! El zorro está muy contento.` : score ? `¡${score} de ${R} a la primera!` : `¡Las ${R} rondas, hechas!`});
   }
   grid.addEventListener("click", e => { const b = e.target.closest(".zd-c"); if(b) tap(+b.dataset.k); });
   sayB.onclick = () => { if(Q && !run.paused) speakSeq(Q.over ? cardParts(Q.targets[Q.targets.length - 1]) : Q.parts); };

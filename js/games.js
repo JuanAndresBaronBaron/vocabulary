@@ -30,8 +30,10 @@
      las del tema hasta 4). Solo cuentan las palabras con k = "<doc>|<es>" (la clave del repaso, srsK de index.html).
      Una partida sin ningún acierto (api.answer(true, …) no se llamó; p. ej. dejar pasar el tiempo sin tocar nada) no
      da estrellas, monedas, récord ni "game-done": sale «¡Vamos otra vez!». finish(run, g, {played: true}) o
-     def.played lo saltan; los de «Para jugar en grupo» (sección "grupo") lo saltan siempre salvo con def.played: false
-     (en El impostor en grupo votan las personas: no hay respuestas del niño).
+     def.played lo saltan (así lo dicen los juegos cuyo acierto no es una respuesta: el rap si se unió alguna vez, el
+     cuartel si neutralizó a alguno, El zorro dice con las rondas acabadas aunque fuera a la segunda); los de «Para
+     jugar en grupo» (sección "grupo") lo saltan siempre salvo con def.played: false (en El impostor en grupo votan las
+     personas: no hay respuestas del niño).
    Niveles 1-3 (def.levels: true; los 4 juegos de aquí): "games:best".<juego>.lv; ★★★ en el nivel N abre el N+1 (chip
      «¡Nivel 2!» en el resultado y «Nivel 2» en la tarjeta). Memoria 6/8/10 parejas, Globos 4/6 globos (sin el ojo en
      el 3), Letras palabras de 3-5, 4-7 y 6-8 letras, Lluvia más rápida.
