@@ -134,8 +134,14 @@ def _play_memoria(page):
 
 
 def _play_lluvia(page):
-    """Pierde las 3 vidas tocando burbujas que no son la pedida (la pedida es la última palabra dicha)."""
+    """Atrapa la primera palabra pedida (sin ningún acierto la partida no cuenta: «¡Vamos otra vez!») y luego pierde las
+    3 vidas tocando burbujas que no son la pedida (la pedida es la última palabra dicha)."""
     page.wait_for_function("() => __said.length > 0", timeout=5000)
+    page.wait_for_function("""() => { const t = __said[__said.length - 1], sky = document.getElementById('gm-sky');
+      const b = [...document.querySelectorAll('#gm-sky .gm-bub:not(.bad):not(.pop):not(.gone)')].find(x => x.getAttribute('aria-label') === t && !x.disabled
+        && x.getBoundingClientRect().top > sky.getBoundingClientRect().top);
+      if (!b) return false; b.click(); return true; }""", timeout=15000)
+    page.wait_for_timeout(400)
     miss = None
     for _ in range(120):
         if page.locator("#gm-end").count():
@@ -255,8 +261,8 @@ DRIVERS = {"memoria": _play_memoria, "lluvia": _play_lluvia, "globos": _play_glo
 # ---------------------------------------------------------------- pruebas
 def test_menu_cards_and_topic_sheet():
     """El menú: sin zorro, «← Inicio», «¡Pruébalo!» ni #gm-tpanel; 5 tarjetas sólidas con radio 24, el récord en estrellas
-    de oro (las que faltan en gris) y «Sin récord» si no se ha jugado, en una sola línea de 36 px; «Nuevo» en Lince hasta
-    su primera partida; el nombre accesible sin «?.». La pastilla «Tema: Animales ▾» abre la hoja con «Mis palabras»
+    de oro (las que faltan en gris) al lado del dibujo y «Sin récord» si no se ha jugado, entero en una sola línea;
+    «Nuevo» en Lince hasta su primera partida; el nombre accesible sin «?.». La pastilla «Tema: Animales ▾» abre la hoja con «Mis palabras»
     primero y luego «Temas» y «Las 3000» (radio, el elegido marcado); tocar «Colores» lo guarda en "games:topic",
     cambia la pastilla y cierra la hoja; al volver, la pastilla sigue en Colores y los juegos usan sus palabras."""
     probs = []
@@ -269,7 +275,10 @@ def test_menu_cards_and_topic_sheet():
               onColor: (c.querySelector('.gm-st i.on') ? getComputedStyle(c.querySelector('.gm-st i.on')).color : null),
               offColor: (c.querySelector('.gm-st i:not(.on)') ? getComputedStyle(c.querySelector('.gm-st i:not(.on)')).color : null),
               rec: c.querySelector('.gm-rt').textContent, href: c.getAttribute('href'), aria: c.getAttribute('aria-label'),
-              nuevo: !!c.querySelector('.gm-new'), recH: Math.round(c.querySelector('.gm-cr').getBoundingClientRect().height),
+              nuevo: !!c.querySelector('.gm-new'), recClip: (() => { const rt = c.querySelector('.gm-rt'), r = rt.getBoundingClientRect(), k = c.getBoundingClientRect();
+                return rt.scrollWidth > rt.clientWidth + 1 || r.bottom > k.bottom + .5 || r.right > k.right + .5 || getComputedStyle(rt).textOverflow === 'ellipsis'; })(),
+              starsBeside: (() => { const s = c.querySelector('.gm-ch .gm-st, .gm-ch .gm-new'), i = c.querySelector('.gm-ch .gm-ci'); if (!s || !i) return false;
+                const a = s.getBoundingClientRect(), b = i.getBoundingClientRect(); return a.left >= b.right && a.top < b.bottom; })(),
               recLines: Math.round(c.querySelector('.gm-rt').getBoundingClientRect().height / parseFloat(getComputedStyle(c.querySelector('.gm-rt')).lineHeight))}; });
           return {cards, fox: /¡A jugar!/.test(t), inicio: /← Inicio/.test(t), prueba: /Pruébalo/.test(t), tpanel: !!document.getElementById('gm-tpanel'),
             pill: document.getElementById('gm-tpill').textContent.replace(/\\s+/g, ' ').trim()}; }""")
@@ -293,8 +302,9 @@ def test_menu_cards_and_topic_sheet():
                 probs.append(f"{c['g']}: sin jugar dice {c['rec']!r}")
             if c["nuevo"] != (c["g"] in FRESH and not b):
                 probs.append(f"{c['g']}: chip «Nuevo» {c['nuevo']} (récord {b})")
-            if re.search(r"[?!.]\.", c["aria"] or "") or c["recH"] != 36 or c["recLines"] != 1:
-                probs.append(f"{c['g']}: nombre {c['aria']!r} o fila del récord de {c['recH']} px y {c['recLines']} líneas")
+            # las estrellas (o «Nuevo») junto al dibujo; el récord entero en una línea, sin cortarse
+            if re.search(r"[?!.]\.", c["aria"] or "") or c["recClip"] or c["recLines"] != 1 or not c["starsBeside"]:
+                probs.append(f"{c['g']}: nombre {c['aria']!r}, récord cortado {c['recClip']} en {c['recLines']} líneas, estrellas al lado {c['starsBeside']}")
         if m["pill"] != "Tema: Animales":
             probs.append(f"pastilla: {m['pill']!r}")
         page.locator("#gm-tpill").click()
@@ -625,8 +635,9 @@ def test_lince_rounds_audio_and_record():
                 probs.append(f"ronda {r + 1}: punto {dots[-1]}")
         page.wait_for_selector("#gm-end", timeout=8000)
         score = sum(res)
-        best = page.evaluate(_BEST).get("lince")
-        if best != {"score": score, "stars": 2, "plays": 1}:
+        best = dict(page.evaluate(_BEST).get("lince") or {})
+        at = best.pop("at", None)   # cuándo se jugó («Seguir jugando» y el reto), en ms
+        if best != {"score": score, "stars": 2, "plays": 1} or not isinstance(at, (int, float)) or at <= 0:
             probs.append(f"récord de Lince: {best} (aciertos {score})")
         line = page.evaluate("() => document.querySelector('.gm-end-l').textContent")
         if f"{score} de 8" not in line:
