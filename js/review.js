@@ -14,6 +14,10 @@
      Nota de lo que corrige la app: 2 a la primera, 1 con pista o a la segunda (una letra mal), 0 mal (la elegida o la
      segunda letra mal, en gris con ✗): entonces, a la vez, el dibujo, la palabra, su IPA y su audio, y «Seguir». Bien:
      verde con ✓, suena, la IPA y pasa sola tras el audio (nunca antes de 0,9 s). Monedas = la nota.
+     Como la tarjeta: la palabra nunca se parte (las opciones bajan de tamaño juntas, fitOpts) y nada hace bajar la
+     página, tampoco la respuesta al contestar (ceden los márgenes y, ya contestada, lo que ya no se toca; solo luego
+     encoge el dibujo, que nunca se va; fitRoom). Teclas: 1-4 eligen (su número, dentro de cada opción), las letras
+     ponen fichas, Espacio y Mayús+Espacio la oyen (sin contestar, solo en «Escucha y elige»), Intro «Seguir».
    · Una fallada (de cualquier tipo) vuelve 3 a 5 tarjetas después, una sola vez; esa vuelta vale 1 como mucho y, si se
      vuelve a fallar, ya no baja más de caja (srsGrade con again) y vuelve mañana.
    · Pila de tarjetas (detrás asoman las 2 siguientes). Cara de la pregunta: el dibujo (o, si no hay, la palabra en
@@ -426,6 +430,18 @@ ${DARK(".rv-opt", "box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)")}
 .rv-opt.is-miss{background:var(--miss-fill);color:var(--miss-on);box-shadow:none}
 .rv-opt .chk{flex:none;width:24px;height:24px}
 .rv-opt .xm{flex:none;color:var(--miss)}
+/* una palabra nunca se parte (como en la lección, fitOpts): si no cabe, la marca va encima y las 4 bajan de tamaño
+   juntas; solo si ni así cabe, se parte */
+.rv-opt>span{display:block;min-width:0;max-width:100%;overflow-wrap:normal;word-break:normal;-webkit-hyphens:manual;hyphens:manual}
+.rv-opts.is-long .rv-opt{font-size:var(--fs-head)}
+.rv-opts.is-xlong .rv-opt{font-size:var(--fs-sub)}
+.rv-opts.is-break .rv-opt>span{overflow-wrap:anywhere;-webkit-hyphens:auto;hyphens:auto}
+.rv-opt.is-stack{flex-direction:column;gap:2px;padding-top:6px;padding-bottom:6px}
+.rv-opt.is-stack .chk,.rv-opt.is-stack .xm{width:20px;height:20px}
+/* con el teclado, si una palabra llegaría al número de su esquina (fitOpts), las 4 la llevan debajo de él: centrada, sin
+   encoger ni partirse más (el número: 8 px arriba y 1,6 em de --fs-min de alto; luego 4 px de aire y lo que la letra
+   sube por encima de su línea) */
+.rv-opts.is-kbv .rv-opt:not(:disabled){padding-top:calc(12px + 1.6 * var(--fs-min,.8125rem) + .25em)}
 /* «Escucha y elige»: cuatro dibujos grandes, cuadrados; la marca en una esquina */
 .rv-opt.pic{aspect-ratio:1;min-height:0;padding:10px}
 .rv-opt.pic img{display:block;width:100%;height:100%;object-fit:contain;-webkit-user-drag:none;pointer-events:none}
@@ -466,6 +482,36 @@ ${DARK(".rv-tile", "box-shadow:0 3px 0 rgba(255,255,255,.12)")}
 .rv[data-graded] .rv-stage{padding-bottom:16px}
 .rv[data-graded] .rv-t .rv-audio{margin-top:8px}
 .rv[data-kind] .rv-ask--give{font-size:var(--fs-t3)}
+/* sin bajar (fitRoom), por pasos y antes de que el dibujo encoja: 1) los márgenes justos (is-tight; ya contestada, la
+   pregunta se va: la respuesta ocupa su sitio); 2) ya contestada (is-snug), las opciones que ya no se tocan más bajas y
+   la IPA con el altavoz y la tortuga en una línea, bajo la palabra; 3) solo entonces el dibujo, hasta su mínimo; 4) si
+   ni así, las tarjetas de detrás (is-bare; vacías) y «Así se dice…» más pequeño (en una línea), y el dibujo vuelve a
+   medirse. El dibujo de la tarjeta nunca se va:
+   tras un fallo se ven a la vez el dibujo, la palabra, su IPA y su audio */
+.rv.is-tight .rv-stage{padding-bottom:16px}
+.rv.is-tight .rv-t{padding:12px 16px}
+.rv.is-tight .rv-t .rv-es{margin-top:4px}
+.rv.is-tight .rv-t .rv-qq{margin-top:2px}
+.rv.is-tight[data-graded] .rv-t .rv-qq{display:none}
+.rv.is-tight .rv-t .rv-word{margin-top:4px}
+.rv.is-tight .rv-t .rv-audio{margin-top:6px;gap:12px}
+.rv.is-tight .rv-t .rv-spk{width:52px;height:52px}
+.rv.is-tight .rv-t .rv-slow{width:44px;height:44px}
+.rv.is-tight .rv-sp{margin-top:8px}
+.rv.is-tight .rv-slot{height:44px}
+.rv.is-tight .rv-dock,.rv.is-tight .rv-opts,.rv.is-tight .rv-tiles{gap:8px}
+.rv.is-tight .rv-opt:not(.pic){min-height:52px}
+.rv.is-tight .rv-tile{height:50px}
+.rv.is-snug .rv-stack{min-height:0}
+.rv.is-snug .rv-opt:not(.pic){min-height:44px;padding-top:4px;padding-bottom:4px}
+.rv.is-snug .rv-t{flex-flow:row wrap;align-content:center;column-gap:12px}
+.rv.is-snug .rv-ans{display:contents}
+.rv.is-snug .rv-t>*,.rv.is-snug .rv-ans>*{flex:0 0 100%}
+.rv.is-snug .rv-t .rv-ipa{flex:0 1 auto;order:1;margin-top:4px}
+.rv.is-snug .rv-t .rv-audio{flex:none;order:2;margin-top:4px}
+.rv.is-bare .rv-back{display:none}
+.rv.is-bare .rv-stage{padding-bottom:8px}
+.rv.is-bare .rv-ask--give{font-size:var(--fs-sub)}
 @keyframes rv-in{from{opacity:0;scale:.9}to{opacity:1;scale:1}}
 @keyframes rv-wave{0%{opacity:.55;scale:.9}100%{opacity:0;scale:1.28}}
 @keyframes rv-hop{0%{translate:0 0}35%{translate:0 -14px}70%{translate:0 0}85%{translate:0 -4px}100%{translate:0 0}}
@@ -627,7 +673,7 @@ function draw(o = {}){
   }
   const task = rv.c.kind !== "card";
   if(task){ root.dataset.kind = rv.c.kind; root.removeAttribute("data-mic"); root.toggleAttribute("data-graded", !!rv.c.graded); }
-  else { delete root.dataset.kind; root.removeAttribute("data-graded"); }
+  else { delete root.dataset.kind; root.removeAttribute("data-graded"); clearRoom(root); }
   paintProg();
   if(task){ mountTask(!!o.rise); paintTask(); } else { mountCard(!!o.rise); paintDock(); }
   /* una tarjeta nueva: el lector de pantalla la lee (el foco va a la tarjeta, no a un botón de abajo) */
@@ -649,9 +695,10 @@ function taskAsk(it){
   if(k === "spell") return `${esc(it.r.es)}. Escríbela en ${lname()}: ${it.sp.chars.filter(isL).length} letras.`;
   return `${esc(it.r.es)}. ¿Cuál es en ${lname()}?`;
 }
+/* el altavoz y la tortuga, con sus teclas (Espacio y Mayús+Espacio, que trata el repaso: keys.js solo pone la etiqueta) */
 const spkHtml = () => `<div class="rv-audio">
-  <button type="button" class="rv-spk" data-rv="spk" aria-label="Escuchar">${ico("speaker-high", "fill", 32)}</button>
-  <button type="button" class="rv-slow" data-rv="slow" aria-label="Escuchar despacio">${ico("turtle", "fill", 30)}</button></div>`;
+  <button type="button" class="rv-spk" data-rv="spk" data-key="space" aria-label="Escuchar">${ico("speaker-high", "fill", 32)}</button>
+  <button type="button" class="rv-slow" data-rv="slow" data-key="shift+space" aria-label="Escuchar despacio">${ico("turtle", "fill", 30)}</button></div>`;
 /* la respuesta, al contestar: la palabra (en las letras ya está en los huecos, salvo si se falló), su IPA y el audio */
 function ansHtml(it, c){
   const d = it.r.l[lang], ipa = ipaHtml(d.ipa, code()), word = !(c.kind === "spell" && c.g > 0);
@@ -678,14 +725,16 @@ function taskFace(it, c){
   return `<div class="rv-face rv-t" tabindex="-1" role="group" aria-label="${k === "listen" ? "Escucha y elige" : `${esc(r.es)}. ${qText(k)}`}">
     ${head}${c.graded ? ansHtml(it, c) : ""}</div>`;
 }
-/* en lo que se toca: la buena en verde con ✓, la elegida mala en gris con ✗, las demás apagadas */
+/* en lo que se toca: la buena en verde con ✓, la elegida mala en gris con ✗, las demás apagadas. Con el teclado, cada
+   opción lleva su número (1-4) dentro, arriba a la derecha (keys.js solo pone la etiqueta: #rv se queda sus teclas);
+   ya contestada, sin número (deshabilitada, keys.js no la etiqueta) */
 function optHtml(it, c, r, i){
   const ok = r === it.r, done = c.graded, st = !done ? "" : ok ? " is-ok" : i === c.pick ? " is-miss" : " is-dim";
   const mark = done && ok ? CHK : done && i === c.pick ? ico("x", "bold", 22, "xm") : "";
   if(c.kind === "listen")
-    return `<button type="button" class="rv-opt pic${st}" data-rv="opt" data-i="${i}" aria-label="${esc(r.es)}"${done ? " disabled" : ""}>
+    return `<button type="button" class="rv-opt pic${st}" data-rv="opt" data-i="${i}" data-key="${i + 1}" data-key-pos="in" aria-label="${esc(r.es)}"${done ? " disabled" : ""}>
       <img src="${esc(r.img)}" alt="" draggable="false">${mark}</button>`;
-  return `<button type="button" class="rv-opt${st}" data-rv="opt" data-i="${i}" lang="${esc(code())}"${done ? " disabled" : ""}>${mark}<span>${esc(r.l[lang].word)}</span></button>`;
+  return `<button type="button" class="rv-opt${st}" data-rv="opt" data-i="${i}" data-key="${i + 1}" data-key-pos="in" lang="${esc(code())}"${done ? " disabled" : ""}>${mark}<span>${esc(r.l[lang].word)}</span></button>`;
 }
 const tipsLeft = (it, c) => !c.graded && c.hint < 2 && it.sp.chars.filter(isL).length - c.put > 1;
 /* lo de abajo: las opciones o las fichas y, ya contestada, «La dijiste…» o «Así se dice» con «Seguir» */
@@ -743,7 +792,109 @@ function paintTask(){
       || dock.querySelector(".rv-next") || dock.querySelector("button:not(:disabled):not(.is-used)");
     if(b) b.focus({preventScroll: true});
   }
+  fitOpts(); fitRoom();
 }
+/* «¿Cuál es…?»: ninguna palabra se parte («hippo-pot-amus»), como en la lección: con la ✓ o la ✗ al lado que no cabe, la
+   marca va encima; si aun así alguna no cabe, las 4 bajan de tamaño juntas (titular y luego 17 px); solo si ni así, se
+   parte. Con el teclado, sin contestar, cada opción lleva su número (1-4) arriba a la derecha: si una palabra llegaría a
+   él (con 4 px de aire), las 4 bajan la palabra por debajo del número (is-kbv), sin quitarle ancho */
+function fitOpts(){
+  const box = DOC.querySelector("#rv-dock .rv-opts:not(.pics)"); if(!box) return;
+  box.classList.remove("is-long", "is-xlong", "is-break", "is-kbv");
+  box.querySelectorAll(".rv-opt.is-stack").forEach(o => o.classList.remove("is-stack"));
+  const ts = [...box.querySelectorAll(".rv-opt > span")], over = t => t.scrollWidth > t.clientWidth + 1;
+  box.querySelectorAll(".rv-opt").forEach(o => { const t = o.querySelector(":scope > span"); if(t && o.querySelector(".chk,.xm") && over(t)) o.classList.add("is-stack"); });
+  for(const k of ["is-long", "is-xlong", "is-break"]){ if(!ts.some(over)) break; box.classList.add(k); }
+  if(DOC.documentElement.hasAttribute("data-kbd") && [...box.querySelectorAll(".rv-opt:not(:disabled)")].some(kbHits)) box.classList.add("is-kbv");
+}
+/* ¿la palabra de la opción llega a su número (con 4 px de aire)? El número lo pone keys.js en su vuelta: si aún no está,
+   se mide uno igual, escondido, en su sitio */
+function kbHits(o){
+  const t = o.querySelector(":scope > span"); if(!t) return false;
+  let k = o.querySelector(":scope > kbd.kb-tag"), tmp = null;
+  if(!k){ tmp = k = DOC.createElement("kbd"); k.className = "kb-tag"; k.dataset.k = o.dataset.key || "1"; k.style.visibility = "hidden"; o.appendChild(k); }
+  const q = k.getBoundingClientRect(), g = DOC.createRange();
+  if(tmp) tmp.remove();
+  g.selectNodeContents(t);
+  return [...g.getClientRects()].some(r => r.width && r.left < q.right + 4 && r.right > q.left - 4 && r.top < q.bottom + 4 && r.bottom > q.top - 4);
+}
+/* sin bajar, como la tarjeta de siempre y la lección: si la tarjeta y lo de abajo no caben en la pantalla (un móvil bajo,
+   «Texto más grande», la respuesta que sale al contestar), ceden primero los márgenes (is-tight), luego, ya contestada,
+   lo que ya no se toca (is-snug: las opciones más bajas y la IPA con su audio en una línea) y solo entonces el dibujo:
+   el de la tarjeta, nunca por debajo de 72 px (48 ya contestada; nunca se va); en «Escucha y elige», los 4 dibujos,
+   nunca por debajo de 64 px cada uno. Los dos, medidos en el dibujo: sin el margen de su botón ni el blanco que lleva
+   la tarjeta en oscuro. Si ya contestada ni así cabe, se van las tarjetas de detrás y «Así se dice…» baja de tamaño
+   (is-bare), y el dibujo se vuelve a medir. Cuenta lo que baja la página y lo que la tarjeta
+   recorta. Lo de una tarjeta no pasa a la siguiente: se quita antes de nada (y en draw, para la de siempre) */
+const PIC_MIN = 72, PIC_ANS = 48, OPT_IMG = 64;
+/* lo que la cara de la tarjeta recorta: lo que ocupa su contenido (en el sitio que le da la maqueta, sin las
+   animaciones de entrada) menos lo que cabe dentro de su relleno */
+function faceOver(){
+  const f = DOC.querySelector("#rv-card .rv-t"); if(!f) return 0;
+  let top = Infinity, bot = -Infinity;
+  const add = box => {
+    for(const e of box.children){
+      const s = getComputedStyle(e);
+      if(s.display === "contents"){ add(e); continue; }
+      if(s.display === "none" || s.position === "absolute" || s.position === "fixed" || e.offsetParent !== f) continue;
+      top = Math.min(top, e.offsetTop - (parseFloat(s.marginTop) || 0));
+      bot = Math.max(bot, e.offsetTop + e.offsetHeight + (parseFloat(s.marginBottom) || 0));
+    }
+  };
+  add(f);
+  if(top === Infinity) return 0;
+  const cs = getComputedStyle(f);
+  return Math.ceil(bot - top - (f.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0)));
+}
+const roomOver = () => Math.max(DOC.documentElement.scrollHeight - innerHeight, faceOver());
+function clearRoom(root){ if(root) root.classList.remove("is-tight", "is-snug", "is-bare"); }
+function fitRoom(){
+  const root = DOC.getElementById("rv"); if(!root) return;
+  clearRoom(root);
+  const c = rv && rv.c;
+  if(!c || c.kind === "card" || !onRepaso()) return;
+  const listen = c.kind === "listen", el = root.querySelector(listen ? "#rv-dock .rv-opts.pics" : "#rv-card .rv-pic");
+  if(el) el.style.width = "";
+  if(roomOver() <= 0) return;
+  root.classList.add("is-tight");
+  if(roomOver() <= 0) return;
+  if(c.graded){ root.classList.add("is-snug"); if(roomOver() <= 0) return; }
+  /* el dibujo, lo justo: en «Escucha y elige» se encoge la rejilla de los 4 (dos por fila, con su hueco y el relleno de
+     cada botón) */
+  let min = c.graded ? PIC_ANS : PIC_MIN;
+  if(listen && el){
+    const b = el.querySelector(".rv-opt"), bs = b ? getComputedStyle(b) : null;
+    min = 2 * (OPT_IMG + (bs ? (parseFloat(bs.paddingLeft) || 0) + (parseFloat(bs.paddingRight) || 0) : 0)) + (parseFloat(getComputedStyle(el).columnGap) || 0);
+  } else if(el){
+    /* el de la tarjeta lleva en oscuro un margen blanco (padding): el mínimo es del dibujo, no de su caja */
+    const ps = getComputedStyle(el);
+    min += (parseFloat(ps.paddingLeft) || 0) + (parseFloat(ps.paddingRight) || 0);
+  }
+  const shrink = () => {
+    if(el) for(let k = 0, o = roomOver(); k < 3 && o > 0; k++){
+      const w = el.offsetWidth, was = el.style.width; if(w <= min) break;
+      el.style.width = Math.max(min, Math.floor(w - o)) + "px";
+      const o2 = roomOver(); if(o2 >= o){ el.style.width = was; break; }   /* no gana nada: se queda como estaba */
+      o = o2;
+    }
+    return roomOver();
+  };
+  if(shrink() <= 0 || !c.graded) return;
+  root.classList.add("is-bare");
+  if(el) el.style.width = "";
+  shrink();
+}
+/* al girar el móvil o cuando llega la letra redonda, se vuelve a medir */
+let refitRaf = 0;
+function refitTask(){
+  if(refitRaf) return;
+  refitRaf = requestAnimationFrame(() => { refitRaf = 0; if(rv && rv.c && rv.c.kind !== "card" && !rv.end && DOC.getElementById("rv-card")){ fitOpts(); fitRoom(); } });
+}
+W.addEventListener("resize", refitTask);
+/* y al salir o irse las etiquetas de las teclas (html[data-kbd]): el número de cada opción pide su sitio (fitOpts) */
+if(typeof MutationObserver === "function") new MutationObserver(refitTask).observe(DOC.documentElement, {attributes: true, attributeFilter: ["data-kbd"]});
+if(DOC.fonts && DOC.fonts.ready) DOC.fonts.ready.then(refitTask, () => {});
+if(DOC.fonts && typeof DOC.fonts.addEventListener === "function") DOC.fonts.addEventListener("loadingdone", refitTask);
 function repaintTask(){
   const it = cur(), c = rv && rv.c, card = DOC.getElementById("rv-card"); if(!it || !c || !card) return;
   const had = card.contains(DOC.activeElement) ? DOC.activeElement.dataset.rv || "face" : null;
@@ -1105,7 +1256,7 @@ async function repaso(){
     if(c && !c.flip){ c.t0 = clock(); c.paused = 0; c.pz.clear(); c.pauseAt = 0; c.mic = c.mic === "listening" ? "idle" : c.mic; }
     /* una tarjeta que corrige la app, ya bien contestada (se salió antes de que pasara sola): ya tiene su nota, pasa */
     if(c && c.graded && c.kind !== "card" && c.g > 0){ rv.i++; rv.c = null; }
-    draw({first: true}); updFocus(); scrollTo(0, 0);
+    draw({first: true}); updFocus(); scrollTo(0, 0); refitTask();   /* medida ya en modo foco */
     /* una tarjeta dicha bien que se quedó sin nota (por si acaso): se da por decidida y pasa */
     if(c && rv && rv.c === c && c.said && !c.decided){ c.decided = true; commit(grade(true, c), 1, 0); }
     return;
@@ -1153,7 +1304,7 @@ async function rvStart(){
   rv = {q: take, i: 0, done: 0, total: take.length, coins: 0, flips: 0, sid: clock().toString(36) + Math.random().toString(36).slice(2, 6), c: null,
     docs: [...new Set(take.map(it => it.id))]};
   for(const it of take){ prep(it, rv.docs); it.ready = true; }
-  draw({first: true}); updFocus(); scrollTo(0, 0);
+  draw({first: true}); updFocus(); scrollTo(0, 0); refitTask();   /* medida ya en modo foco */
   return {n: take.length, off: off.length};
 }
 
@@ -1242,13 +1393,19 @@ DOC.addEventListener("keydown", e => {
   if(rv.end){ if(e.key === "Enter" && !onCtl && clock() - (rv.endAt || 0) >= (rm() ? 300 : 600)){ e.preventDefault(); goHome(); } return; }
   const c = rv.c; if(!c) return;
   if(e.key === "Escape"){ e.preventDefault(); exit(DOC.getElementById("fx-x")); return; }
-  /* las que corrige la app: 1-4 eligen, las letras ponen fichas, Espacio la oye, Intro sigue tras un fallo */
+  /* las que corrige la app: 1-4 eligen, las letras ponen fichas, Espacio la oye (antes de contestar, solo en «Escucha y
+     elige»), Intro sigue tras un fallo. Fallada, el foco va a «Seguir»: ahí Intro es su clic, pero Espacio (y Mayús+Espacio)
+     la vuelve a decir, como dicen sus etiquetas en el altavoz y la tortuga, y no la salta (preventDefault quita el clic
+     de Espacio del botón) */
   if(c.kind !== "card"){
     if(e.key === " " || e.key === "Enter"){
-      if(onCtl) return;
+      if(onCtl && !(e.key === " " && c.graded && t.closest(".rv-next"))) return;
       e.preventDefault();
       if(c.graded && c.g === 0 && e.key === "Enter") taskNext();
-      else if(e.key === " ") c.kind === "listen" && !c.graded ? hearIt(0) : replay(e.shiftKey);
+      /* sin contestar solo suena «Escucha y elige»: en «¿Cuál es…?» y en las letras, oírla sería decir la respuesta (con el
+         dedo tampoco se puede: no hay altavoz hasta contestar) */
+      else if(e.key === " " && c.graded) replay(e.shiftKey);
+      else if(e.key === " " && c.kind === "listen") e.shiftKey ? replay(true) : hearIt(0);
       return;
     }
     if(c.graded) return;

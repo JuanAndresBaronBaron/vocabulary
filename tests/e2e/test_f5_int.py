@@ -40,6 +40,8 @@ import test_f4_int as I4
 import test_f4_temporadas as T
 import test_f5_atajos as SC
 import test_f5_buzon as BZ
+import test_f3_fix as F3
+import test_f3_repaso as V
 import test_f5_teclado as K
 
 OUT = C.CAPTURAS / "F5"
@@ -768,24 +770,46 @@ _TAGHIT = r"""() => {
       if (e === host || host.contains(e) || e.contains(host) || t.contains(e)) continue;
       if (near(r, e.getBoundingClientRect(), 3.5)) { out.push(`«${t.dataset.k}» (${who(host)}) toca ${who(e)} «${(e.textContent || '').trim().slice(0, 24)}»`); break; }
     }
+    /* la que va dentro (data-key-pos="in"): tampoco tapa el texto de su propio botón (cada línea, como se pinta) */
+    if (host.getAttribute('data-key-pos') === 'in') {
+      const w = document.createTreeWalker(host, NodeFilter.SHOW_TEXT);
+      for (let n; (n = w.nextNode());) {
+        if (!n.textContent.trim() || t.contains(n) || !vis(n.parentElement)) continue;
+        const g = document.createRange(); g.selectNodeContents(n);
+        if ([...g.getClientRects()].some(q => q.width && near(r, q, 0))) { out.push(`«${t.dataset.k}» (${who(host)}) tapa su texto «${n.textContent.trim().slice(0, 24)}»`); break; }
+      }
+    }
   });
   if (document.documentElement.scrollWidth > innerWidth + 0.5) out.push(`la página se ensancha (${document.documentElement.scrollWidth} > ${innerWidth})`);
   return {n: tags.length, hits: out, pos: tags.map(t => [t.dataset.k, who(t.parentElement), t.dataset.pos || 'b'])};
 }"""
 
 
+# las opciones de «¿Cuál es…?»: cada palabra, en cuántas líneas va
+_RV_OPT_LINES = """() => [...document.querySelectorAll('#rv-dock .rv-opt > span')].map(e => { const g = document.createRange(); g.selectNodeContents(e);
+  return [e.textContent, new Set([...g.getClientRects()].filter(r => r.width).map(r => Math.round(r.top))).size]; })"""
+# el repaso: una palabra con dibujo delante, en la pantalla kind (como si su caja fuera la que la da)
+_RV_AS = """kind => { const x = rv.q.slice(rv.i).find(x => x.r.img) || rv.q[rv.i];
+  rv.q.splice(rv.i, 0, {id: x.id, r: x.r, x: x.x, kind}); rv.c = null; rvDraw(); return vocabReview.state.kind; }"""
+
+
 def test_key_tags_never_touch_their_neighbours():
     """Con el teclado, cada etiqueta de tecla deja al menos 4 px con lo de al lado (otra etiqueta, otro botón, un
     texto u otra tarjeta) y no se sale de la pantalla: en Hoy con «Tus atajos» (1-3 dentro de cada pieza), en la
-    lección (Esc, Espacio y ⇧ Espacio en una línea sobre los botones redondos, Enter), en el repaso, en Tarjetas (sin
+    lección (Esc, Espacio y ⇧ Espacio en una línea sobre los botones redondos, Enter), en el repaso (la tarjeta de
+    siempre y las que corrige la app: «Escucha y elige» y «¿Cuál es…?» con 1-4 dentro de cada opción, que se van al
+    contestar (no tocan la ✓ ni la ✗), «¿Cuál es…?» también fallada, y las letras), en Tarjetas (sin
     ensanchar la página: nunca se prueba un sitio fuera de la pantalla), en el Buzón (1-4 dentro, Espacio,
     Enter del micrófono), en Frases mágicas, en la frase de la cena y en la hoja «Teclas» (Esc de «Listo»), en claro y
-    en oscuro. Al cambiar de pantalla con las etiquetas puestas, el nombre de «‹ Volver» no se mete en la suya. En la hoja «Teclas» la acción va a la izquierda y las teclas a la derecha, sin partir las acciones."""
+    en oscuro. Una etiqueta dentro de su botón (data-key-pos="in") tampoco tapa el texto de ese botón: en «¿Cuál es…?»
+    con «hippopotamus» delante (360×740, 390×844 y 360×740 con «Texto más grande») el número no tapa la palabra y, con
+    él, ninguna palabra se parte. Al cambiar de pantalla con las etiquetas puestas, el nombre de «‹ Volver» no se mete en la suya. En la hoja «Teclas» la acción va a la izquierda y las teclas a la derecha, sin partir las acciones."""
     probs = []
     for scheme in ("light", "dark"):
         page = BZ._page(color_scheme=scheme)
         try:
-            C.seed(page, _keys())
+            # las pendientes en la caja 4: el repaso empieza por la tarjeta de siempre (la que gira con Espacio)
+            C.seed(page, _keys(srs__english=V._card_keys()["srs:english"]))
             page.evaluate("() => sessionStorage.setItem('__mic', 'ok')")
             _hoy(page)
 
@@ -822,6 +846,25 @@ def test_key_tags_never_touch_their_neighbours():
             page.wait_for_function("() => vocabReview.state.flip", timeout=3000)
             page.wait_for_timeout(600)
             look("repaso", ["Esc", "Espacio", "⇧ Espacio"])
+            # las pantallas que corrige la app (una palabra con dibujo, como si su caja fuera la 0, la 1 o la 2); en
+            # «¿Cuál es…?», también tras un fallo (la respuesta con su altavoz y «Seguir»)
+            for kind, need in (("listen", ["Esc", "Espacio", "⇧ Espacio", "1", "2", "3", "4"]), ("pick", ["Esc", "1", "2", "3", "4"]),
+                               ("spell", ["Esc"])):
+                got = page.evaluate(_RV_AS, kind)
+                if got != kind:
+                    probs.append(f"{scheme} repaso: no sale la pantalla {kind} ({got})")
+                    continue
+                page.wait_for_timeout(600)
+                look(f"repaso-{kind}", need)
+                if kind == "pick":
+                    st = page.evaluate("() => vocabReview.state")
+                    page.keyboard.press(str((st["right"] + 1) % 4 + 1))
+                    page.wait_for_function("() => vocabReview.state.graded", timeout=3000)
+                    page.wait_for_timeout(400)
+                    res = look("repaso-pick-mal", ["Esc", "Espacio", "⇧ Espacio", "Enter"])
+                    left = [p for p in res["pos"] if p[0] in ("1", "2", "3", "4")]
+                    if left:
+                        probs.append(f"{scheme} repaso-pick-mal: ya contestada, las opciones siguen con su número {left}")
             C.goto(page, f"#/doc/{R.TOPIC}?m=tarjetas")
             page.wait_for_selector("#card", timeout=6000)
             page.wait_for_timeout(500)
@@ -854,7 +897,47 @@ def test_key_tags_never_touch_their_neighbours():
             probs += C.errors(page)
         finally:
             page.context.close()
+    # «¿Cuál es…?» con «hippopotamus» (la palabra más larga) delante, en los móviles de pie (también con «Texto más grande»)
+    for vp, big in (("360x740", False), ("390x844", False), ("360x740", True)):
+        w, h = map(int, vp.split("x"))
+        tag = f"{vp}{' texto grande' if big else ''}"
+        page = BZ._page(viewport={"width": w, "height": h})
+        try:
+            keys = _keys(srs__english=V._card_keys()["srs:english"])
+            if big:
+                keys["vocab:ui"] = json.dumps(dict(_HINTS, text="large"))
+            C.seed(page, keys, hash="#/repaso")
+            page.wait_for_selector("#rv-card", timeout=8000)
+            page.wait_for_timeout(600)
+
+            def look_rv(name, need):
+                page.keyboard.press("ArrowUp")
+                page.wait_for_timeout(700)
+                page.evaluate(_FINISH)
+                page.wait_for_timeout(300)
+                res = page.evaluate(_TAGHIT)
+                ks = [p[0] for p in res["pos"]]
+                probs.extend(f"{tag} {name}: falta la etiqueta «{k}» ({res['pos']})" for k in need if k not in ks)
+                probs.extend(f"{tag} {name}: {x}" for x in res["hits"])
+                C.shot(page, f"F5-etiquetas-{name}-{vp}{'-grande' if big else ''}-light", OUT, full_page=False)
+            _hippo_pick(page, look_rv, probs, tag)
+            probs += [f"{tag}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
     assert not probs, "\n".join(probs)
+
+
+def _hippo_pick(page, look, probs, tag):
+    """«¿Cuál es…?» con «hippopotamus» (de la partida sembrada) delante: los números 1-4 dentro de cada opción no tapan
+    ninguna palabra (look) y, con ellos, ninguna se parte: «hippopotamus» sigue en una línea (no le quitan ancho)."""
+    if page.evaluate(F3._HIPPO, "pick") != "pick":
+        probs.append(f"{tag}: «hippopotamus» no sale en «¿Cuál es…?»")
+        return
+    page.wait_for_timeout(600)
+    look("repaso-pick-hippo", ["1", "2", "3", "4"])
+    bad = [w for w in page.evaluate(_RV_OPT_LINES) if w[1] != 1]
+    if bad:
+        probs.append(f"{tag} repaso-pick-hippo: con los números, se parten {bad}")
 
 
 # ---------------------------------------------------------------- recorrido en inglés, francés y danés

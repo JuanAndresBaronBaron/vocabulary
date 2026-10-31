@@ -100,9 +100,11 @@ compartida no responde).
   «Sin conexión» sin contar lo que no se puede abrir; capturas en `<VOCAB_CAPTURAS>/repaso` a 360, 390 y 1280 px, en
   oscuro y con reducir movimiento, con la auditoría de contraste y colores. Las pruebas que leen `srs:<idioma>` de
   `localStorage` justo después de una nota llaman antes a `srsFlush()` (`C.storage()` ya lo hace).
-- `test_f3_fix.py` (arreglos de la revisión de F3): la palabra nueva de la lección nunca se parte, dos toques rápidos
+- `test_f3_fix.py` (arreglos de la revisión de F3): la palabra nueva de la lección nunca se parte (ni la del repaso:
+  la tarjeta, las opciones de «¿Cuál es…?», los huecos de las letras y la respuesta), dos toques rápidos
   no se saltan el final (lección y repaso), decir la palabra y salir antes de decidir sigue puntuando, una tarjeta
-  que vuelve cuenta como mucho una vez, el micrófono sin red o sin aparato, la lección guardada conserva las
+  que vuelve (3 a 5 después, marcada; también «¿Cuál es…?» y las letras) vale 1 como mucho y cuenta una vez, el
+  micrófono sin red o sin aparato, la lección guardada conserva las
   repeticiones y rechaza valores malos (también tras cerrar la pestaña), la hoja «Cómo suena» se cierra al salir,
   detalles de la lección y del repaso (foco, avisos, textos), la flecha de la ficha en la barra de arriba con los
   detalles de Aprender (Lista, Tarjetas, Preguntas, Escribir con su hoja «Opciones») y las columnas del ordenador.
@@ -180,7 +182,10 @@ compartida no responde).
   de GitHub Pages y recargando al momento) y sin conexión.
 - `test_f5_teclado.py` (F5b, `js/keys.js` y los `shortcuts` del manifest): en la lección Espacio suena una vez,
   Mayús+Espacio más despacio, 1-4 eligen, Enter pasa una sola vez (con el foco en la página y en el botón) y Esc abre
-  «¿Paramos aquí?»; en el repaso ← es «No» y → «¡Sí!» (una nota cada una); en Hoy Enter es «Empezar»; ? abre la hoja
+  «¿Paramos aquí?»; en el repaso ← es «No» y → «¡Sí!» (una nota cada una) y, en las pantallas que corrige la app,
+  Espacio oye «Escucha y elige» y Mayús+Espacio más despacio (en «¿Cuál es…?» no dice la respuesta), 1-4 eligen, las
+  letras ponen fichas y, tras un fallo con el foco en «Seguir», Espacio y Mayús+Espacio la vuelven a decir (sin
+  seguir) y Enter es «Seguir» una vez; en Hoy Enter es «Empezar»; ? abre la hoja
   «Teclas» y Esc la cierra; Tarjetas (Espacio gira y luego oye, → y Enter pasan una); escribiendo en un campo no pasa
   nada; en un juego las teclas son del juego y Esc pausa una vez; las etiquetas grises salen con la primera tecla y se
   van con un toque; el manifest sin errores en Chrome con 4 atajos e iconos PNG 96×96, y cada URL de atajo abre su
@@ -237,7 +242,9 @@ compartida no responde).
   sin atajos y con y sin «Reducir movimiento» (la carta sigue, sin scroll, y la fila vuelve cuando el accesorio se va);
   Hoy en un móvil bajo (360×740 claro, oscuro y en Halloween; 375×667) con atajos y una carta sin abrir (la carta se
   queda, la fila se compacta o, si no cabe, se va; «Palabra del día» en una línea y a la izquierda);
-  el teclado en el Buzón, Frases, la carta y las teclas 1-4 de los atajos sin nada repetido; un
+  el teclado en el Buzón, Frases, la carta y las teclas 1-4 de los atajos sin nada repetido; las etiquetas de las
+  teclas sin tocar nada (las de dentro de un botón, tampoco su texto: «¿Cuál es…?» con «hippopotamus» en 360×740,
+  390×844 y con «Texto más grande», sin partir ninguna palabra); un
   recorrido en inglés, francés y danés (lección con teclado, 3 partidas que hacen un atajo, Frases con sello, grabar y
   mandar, contestar como mayor y abrir la carta en otra pestaña); la actualización desde main 2e7dc3f (sw
   `vocab-shell-v19`, con `VOCAB_BASE19=<copia de ese commit>` o sacada con `git archive`), también con la caché HTTP de
@@ -327,7 +334,8 @@ compartida no responde).
   colores) y dos con un vídeo «de iPhone» (al sonar algo se para y `play()` no contesta tras `pause()`). Capturas en
   `capturas/arreglos-v24`.
 - `test_imagenes_movil.py` (dibujos grandes en el celular): el lado del dibujo (el cuadrado que cabe en su `<img>`) en
-  Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso, «Escucha y elige» de la lección y
+  Globos con el tema Familia, Memoria, Letras locas, Lluvia, Oído de lince, el repaso (la tarjeta de siempre y las que
+  corrige la app: los 4 dibujos de «Escucha y elige», el de «¿Cuál es…?» y el de las letras), «Escucha y elige» de la lección y
   «Elige el dibujo» de Truco o trato, en 360×740 y 390×844 (Globos también en 320, 375, 430 y 844×390) contra un mínimo;
   la zona de juego sin scroll en los celulares de la lista con 4 globos (que no se tocan ni se salen; un fallo, gris con
   ✗, sigue cabiendo); y en el iPad 820×1180 y el ordenador 1280×800 ningún dibujo más pequeño que antes (`BEFORE`).
@@ -335,7 +343,11 @@ compartida no responde).
   la ✗ va arriba del globo, las banderas llevan su caja 4:3 con filete, ningún globo es gris, tumbado (844×390 con
   márgenes seguros de 47 px, 667×375 y 568×320) los globos son grandes y no se baja, con «Reducir movimiento» no saltan
   de tamaño; tras un fallo en «Escucha y elige» la lección no baja (también en 1280×720 y con «Texto más grande») y la
-  ✓/✗ va en la esquina del dibujo; el repaso con dos pistas, Letras con texto grande y la cara blanca de Memoria oscuro.
+  ✓/✗ va en la esquina del dibujo, ni el repaso tras un fallo en sus pantallas que corrige la app (también en 320×568,
+  con «Texto más grande» y en oscuro; se ven a la vez el dibujo, de 48 px o más medido sin su margen blanco de oscuro y
+  64 en «Escucha y elige», la palabra, su IPA y su audio), y la tarjeta de
+  siempre que viene tras un fallo se ve como recién abierta (con su pila y sus márgenes); el repaso con dos
+  pistas, Letras con texto grande y la cara blanca de Memoria oscuro.
   Desde la unión con F5, también las pantallas nuevas con dibujos (`MIN_F5`): la bandeja de Frases mágicas (72 px en
   390×844, con los árboles recortados de `img/fam2/`, sin un rectángulo blanco sobre la placa en oscuro), las plantillas
   del Buzón (60), las tarjetas de Juegos del Buzón y

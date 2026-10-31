@@ -18,12 +18,21 @@ grande» y en 1280×720), con dos pistas en el repaso ni en Letras con «Texto m
 
 Y las pantallas de F5 con dibujos, con el mismo criterio (MIN_F5): la bandeja de Frases mágicas (con los árboles de
 familia recortados), las plantillas del Buzón, las tarjetas de Juegos del Buzón y de Frases y la fila «Tus atajos» de Hoy,
-sin scroll donde antes no lo había; y img/fam2 fuera de SHELL, en «Descargar todo» y sin conexión una vez visto."""
+sin scroll donde antes no lo había; y img/fam2 fuera de SHELL, en «Descargar todo» y sin conexión una vez visto.
+
+El repaso tiene, además de la tarjeta de siempre (palabras de la caja 4 o más), las pantallas que corrige la app: en
+«Escucha y elige» (caja 0) los 4 dibujos son tan grandes como los de la lección (MIN «opciones») y en «¿Cuál es…?» (caja 1)
+y las letras (cajas 2-3) el dibujo de la tarjeta, como el de siempre (MIN «repaso»); caben sin scroll y, tras un fallo
+(gris con ✗, la respuesta y «Seguir»), tampoco se baja, en los mismos tamaños que la lección y en 320×568, sin que se
+vaya el dibujo (48 px o más; en «Escucha y elige», 64) ni la palabra, su IPA o su audio. Lo que hace sitio tras un
+fallo no pasa a la tarjeta de siempre que viene detrás."""
 from __future__ import annotations
 
 import json
 
 import common as C
+import test_f3_repaso as V
+import test_repaso_metodo as RM
 
 PHONES = {
     "320x568": dict(viewport={"width": 320, "height": 568}, has_touch=True, is_mobile=True, device_scale_factor=2),
@@ -449,10 +458,75 @@ def _halloween_pic_sheet(page):
     return False
 
 
+# el repaso con las tres pantallas que corrige la app, una tras otra: Perro (caja 0, «Escucha y elige»), Gato (caja 1,
+# «¿Cuál es…?») y Conejo (caja 2, las letras); después, tarjetas de siempre
+_TASKS = RM._keys(RM._ent("Perro", 0, RM.T - 6), RM._ent("Gato", 1, RM.T - 5), RM._ent("Conejo", 2, RM.T - 4),
+                  RM._fillers(4, skip=("Perro", "Gato", "Conejo")))
+# lo que se mide en cada una: los 4 dibujos de «Escucha y elige» (como los de la lección) o el dibujo de la tarjeta
+_TASK_PIC = {"listen": ("#rv-dock .rv-opt.pic img", "opciones"), "pick": ("#rv-card .rv-pic", "repaso"), "spell": ("#rv-card .rv-pic", "repaso")}
+# tras un fallo se ve, a la vez y sin bajar, el dibujo, la palabra, su IPA y su audio (metodo.md, regla 6): el dibujo de la
+# tarjeta nunca por debajo de 48 px; en «Escucha y elige», el de la buena (con la ✓) nunca por debajo de 64 px
+_MISS_PIC = {"listen": ("#rv-dock .rv-opt.pic.is-ok img", 64), "pick": ("#rv-card .rv-pic", 48), "spell": ("#rv-card .rv-pic", 48)}
+_MISS_SEEN = """() => { const q = s => document.querySelector(s);
+  const inside = e => { if (!e || !e.getClientRects().length || getComputedStyle(e).visibility === 'hidden') return false;
+    const r = e.getBoundingClientRect(); return r.top >= -0.5 && r.left >= -0.5 && r.bottom <= innerHeight + 0.5 && r.right <= innerWidth + 0.5; };
+  return {word: inside(q('#rv-card .rv-ans .rv-word')), ipa: inside(q('#rv-card .rv-ans .rv-ipa')), spk: inside(q('#rv-card .rv-spk')),
+    slow: inside(q('#rv-card .rv-slow'))}; }"""
+# cómo queda la tarjeta de siempre: lo que fitRoom pone en #rv, la pila de detrás y los márgenes
+_RV_LOOK = """() => { const rv = document.getElementById('rv');
+  return {cls: [...rv.classList].filter(c => c !== 'rv').sort(), backs: [...document.querySelectorAll('#rv-stack .rv-back')].map(b => getComputedStyle(b).display),
+    stage: getComputedStyle(document.querySelector('.rv-stage')).paddingBottom, gap: getComputedStyle(document.querySelector('.rv-dock')).rowGap}; }"""
+
+
+def _miss_probs(page, kind):
+    """Lo que falta tras un fallo en la pantalla kind del repaso: sin scroll, el dibujo visible y grande (_MISS_PIC) y la
+    palabra, su IPA, el altavoz y la tortuga dentro de la pantalla."""
+    out = []
+    ok, f = _fits(page)
+    if not ok:
+        out.append(f"tras un fallo en el repaso ({kind}) se baja {f}")
+    sel, least = _MISS_PIC[kind]
+    s = _sides(page, sel)
+    if len(s) != 1 or s[0] < least:
+        out.append(f"tras un fallo en el repaso ({kind}) el dibujo no se ve o es pequeño: {s} (mínimo {least})")
+    seen = page.evaluate(_MISS_SEEN)
+    if not all(seen.values()):
+        out.append(f"tras un fallo en el repaso ({kind}) no se ve todo en la pantalla {seen}")
+    return out
+
+
+def _review(page, keys, ui=None):
+    """#/repaso con la partida de ejemplo y el repaso de keys (los mismos ajustes de _page)."""
+    keys = dict(keys)
+    keys["vocab:ui"] = json.dumps(dict(_UI, **(ui or {})))
+    C.seed(page, keys, hash="#/repaso")
+    page.wait_for_selector("#rv-card", timeout=10000)
+
+
+def _review_tasks(page, at):
+    """Recorre «Escucha y elige», «¿Cuál es…?» y las letras (de _TASKS, ya abierto): at(kind, "q") con la pregunta y
+    at(kind, "miss") tras fallarla con el dedo (una opción mala; en las letras, dos fichas malas); luego «Seguir»."""
+    for kind in ("listen", "pick", "spell"):
+        page.wait_for_function("k => { const s = vocabReview.state; return !!s && s.kind === k && !s.graded; }", arg=kind, timeout=8000)
+        _settle(page, 500)
+        at(kind, "q")
+        st = page.evaluate("() => vocabReview.state")
+        if kind == "spell":
+            for i in [i for i, t in enumerate(st["tiles"]) if t.lower() != st["letters"][0].lower()][:2]:
+                page.locator(f'#rv-dock .rv-tile[data-i="{i}"]').click()
+                page.wait_for_timeout(120)
+        else:
+            page.locator(f'#rv-dock .rv-opt[data-i="{(st["right"] + 1) % 4}"]').click()
+        page.wait_for_function("() => vocabReview.state.graded", timeout=4000)
+        _settle(page, 500)
+        at(kind, "miss")
+        page.locator('#rv-dock [data-rv="tnext"]').click()
+
+
 def _others(page, vp, probs, check_fit):
     lim = lambda k: MIN[k].get(vp, BEFORE.get(vp, {}).get(k))   # noqa: E731
-    # el repaso: la tarjeta con dibujo
-    _fresh(page, "#/repaso")
+    # el repaso: la tarjeta de siempre (palabras de la caja 4 o más), con dibujo
+    _review(page, V._card_keys())
     page.wait_for_selector(".rv-q .rv-pic", timeout=8000)
     _settle(page, 500)
     s = _sides(page, ".rv-q .rv-pic")
@@ -461,6 +535,21 @@ def _others(page, vp, probs, check_fit):
     ok, f = _fits(page)
     if check_fit and not ok:
         probs.append(f"{vp}: el repaso no cabe sin scroll {f}")
+
+    # y las que corrige la app, sin contestar: el dibujo tan grande como en la tarjeta (en «Escucha y elige», los 4 como
+    # los de la lección) y sin scroll
+    def task(kind, when):
+        if when != "q":
+            return
+        sel, k = _TASK_PIC[kind]
+        s = _sides(page, sel)
+        if not s or (kind == "listen" and len(s) != 4) or (lim(k) and min(s) < lim(k)):
+            probs.append(f"{vp}: dibujo del repaso ({kind}) {s} (mínimo {lim(k)})")
+        ok, f = _fits(page)
+        if check_fit and not ok:
+            probs.append(f"{vp}: el repaso ({kind}) no cabe sin scroll {f}")
+    _review(page, _TASKS)
+    _review_tasks(page, task)
     # la lección: «Escucha y elige» con dibujos
     if _lesson_pic_options(page):
         _settle(page, 300)
@@ -482,8 +571,9 @@ def _others(page, vp, probs, check_fit):
 
 
 def test_review_lesson_season_drawings():
-    """El repaso, «Escucha y elige» con dibujos y «Elige el dibujo»: al menos MIN en 360×740 y 390×844; el repaso y la
-    lección siguen cabiendo sin scroll en los celulares de pie; en el iPad y el ordenador, no más pequeños que antes."""
+    """El repaso (la tarjeta de siempre y las que corrige la app), «Escucha y elige» con dibujos y «Elige el dibujo»: al
+    menos MIN en 360×740 y 390×844; el repaso y la lección siguen cabiendo sin scroll en los celulares de pie; en el iPad
+    y el ordenador, no más pequeños que antes."""
     probs = []
     for vp in ["360x740", "390x844", "320x568", "375x667", "430x932", "820x1180", "1280x800"]:
         page = _page(vp)
@@ -525,32 +615,47 @@ def _lesson_miss(page):
 def test_no_scroll_after_answers():
     """Tras un fallo en «Escucha y elige» con dibujos (la opción gris con ✗, «¡Casi! Es …» y el botón «Seguir») la
     lección no baja, en los móviles bajos, en 1280×720 y con «Texto más grande»; la ✓ y la ✗ van en una esquina de abajo del dibujo.
+    En los mismos tamaños y en 320×568 (también con «Texto más grande», en oscuro y con las dos cosas), tras un fallo en
+    las pantallas del repaso que corrige la app («Escucha y elige», «¿Cuál es…?» y las letras: gris con ✗, la respuesta
+    y «Seguir») tampoco se baja, y se ven a la vez el dibujo (el de la tarjeta, de 48 px o más medido en el dibujo, sin
+    el margen blanco que lleva en oscuro; en «Escucha y elige», el de la buena, de 64 px o más), la palabra, su IPA y
+    su audio.
     El repaso con dos pistas no baja en 320×568 ni en 360×640, Letras con «Texto más grande» tampoco, y en Memoria oscuro
     la cara del dibujo es blanca."""
     probs = []
-    for vp, big in [("375x667", False), ("360x640", False), ("360x740", False), ("1280x720", False),
-                    ("375x667", True), ("360x640", True), ("390x844", True)]:
-        page = _page(vp, ui={"text": "large"} if big else None)
+    # (la lección no se mira en 320×568: ahí solo el repaso, que ya lo prometía con la tarjeta de siempre)
+    for vp, big, lesson, dark in [("375x667", False, True, False), ("360x640", False, True, False), ("360x740", False, True, False),
+                                  ("1280x720", False, True, False), ("375x667", True, True, False), ("360x640", True, True, False),
+                                  ("390x844", True, True, False), ("320x568", False, False, False), ("320x568", True, False, False),
+                                  ("320x568", False, False, True), ("320x568", True, False, True)]:
+        page = _page(vp, ui={"text": "large"} if big else None, **({"color_scheme": "dark"} if dark else {}))
         try:
-            d = _lesson_miss(page)
-            tag = f"{vp}{' (texto grande)' if big else ''}"
-            if d is None:
+            d = _lesson_miss(page) if lesson else None
+            tag = f"{vp}{' (texto grande)' if big else ''}{' (oscuro)' if dark else ''}"
+            if lesson and d is None:
                 probs.append(f"{tag}: no se pudo fallar en «Escucha y elige» con dibujos")
-            else:
+            elif d is not None:
                 if d["over"] > 1:
                     probs.append(f"{tag}: tras un fallo en «Escucha y elige» la lección baja {d['over']} px")
                 if d["fbBottom"] is not None and d["dockTop"] is not None and d["fbBottom"] > d["dockTop"] - 4:
                     probs.append(f"{tag}: la respuesta queda debajo del botón «Seguir» {d}")
                 if not d["marks"] or any(m is None or m > 20 for m in d["marks"]):
                     probs.append(f"{tag}: la ✓ o la ✗ no van en la esquina del dibujo {d['marks']}")
+
+            # el repaso: un fallo en cada pantalla que corrige la app
+            def task(kind, when):
+                if when == "miss":
+                    probs.extend(f"{tag}: {e}" for e in _miss_probs(page, kind))
+            _review(page, _TASKS, ui={"text": "large"} if big else None)
+            _review_tasks(page, task)
             probs += [f"{tag}: {e}" for e in C.errors(page)]
         finally:
             page.context.close()
-    # el repaso: dos pistas
+    # el repaso: dos pistas (en la tarjeta de siempre)
     for vp in ["320x568", "360x640"]:
         page = _page(vp)
         try:
-            _fresh(page, "#/repaso")
+            _review(page, V._card_keys())
             page.wait_for_selector(".rv-q .rv-pic", timeout=8000)
             _settle(page, 400)
             for _ in range(2):
@@ -587,6 +692,53 @@ def test_no_scroll_after_answers():
         page.context.close()
     assert not probs, "\n".join(probs)
 
+
+
+def test_flip_card_after_a_miss_looks_fresh():
+    """Lo que hace sitio tras un fallo (los márgenes justos, la respuesta más junta, sin las tarjetas de detrás) es de esa
+    tarjeta: la tarjeta de siempre que viene detrás (#rv es el mismo en todo el repaso) se ve como una recién abierta, con
+    la pila de detrás y sus márgenes. Tras «¿Cuál es…?» fallada en 320×568 y tras «Escucha y elige» fallada en 360×640 con
+    «Texto más grande»."""
+    probs = []
+    for vp, big, es, box in [("320x568", False, "Gato", 1), ("360x640", True, "Perro", 0)]:
+        ui = {"text": "large"} if big else None
+        tag = f"{vp}{' (texto grande)' if big else ''}"
+        # una recién abierta: solo tarjetas de siempre (caja 4)
+        page = _page(vp, ui=ui)
+        try:
+            _review(page, RM._keys(RM._fillers(5)), ui=ui)
+            page.wait_for_function("() => vocabReview.state && vocabReview.state.kind === 'card'", timeout=8000)
+            _settle(page, 600)
+            fresh = page.evaluate(_RV_LOOK)
+        finally:
+            page.context.close()
+        page = _page(vp, ui=ui)
+        try:
+            _review(page, RM._keys(RM._ent(es, box, RM.T - 5), RM._fillers(4, skip=(es,))), ui=ui)
+            kind = "pick" if box == 1 else "listen"
+            st = page.wait_for_function("k => { const s = vocabReview.state; return s && s.kind === k && !s.graded ? s : null; }",
+                                        arg=kind, timeout=8000).json_value()
+            _settle(page, 500)
+            page.locator(f'#rv-dock .rv-opt[data-i="{(st["right"] + 1) % 4}"]').click()
+            page.wait_for_function("() => vocabReview.state.graded", timeout=4000)
+            _settle(page, 500)
+            miss = page.evaluate(_RV_LOOK)
+            if not miss["cls"]:
+                probs.append(f"{tag}: tras fallar ({kind}) no hacía falta sitio: la prueba no mira nada {miss}")
+            probs.extend(f"{tag}: {e}" for e in _miss_probs(page, kind))
+            page.locator('#rv-dock [data-rv="tnext"]').click()
+            page.wait_for_function("() => vocabReview.state.kind === 'card' && !!document.querySelector('#rv-card .rv-q')", timeout=6000)
+            _settle(page, 600)
+            after = page.evaluate(_RV_LOOK)
+            if after != fresh:
+                probs.append(f"{tag}: la tarjeta de siempre tras fallar ({kind}) {after} no es como una recién abierta {fresh}")
+            ok, f = _fits(page)
+            if not ok:
+                probs.append(f"{tag}: la tarjeta de siempre tras fallar baja {f}")
+            probs += [f"{tag}: {e}" for e in C.errors(page)]
+        finally:
+            page.context.close()
+    assert not probs, "\n".join(probs)
 
 # ---------------------------------------------------------------- las pantallas de F5 con dibujos
 # lado mínimo en los móviles: las fichas de Frases mágicas (antes 48 en 360 y 56 en 390), las plantillas del Buzón

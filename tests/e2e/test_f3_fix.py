@@ -14,6 +14,7 @@ import json
 import common as C
 import test_f3_leccion as L
 import test_f3_repaso as V
+import test_repaso_metodo as M
 import routes as R
 
 _ONE_LINE = """sel => { const el = document.querySelector(sel); if (!el) return null; const cs = getComputedStyle(el);
@@ -23,18 +24,88 @@ _ONE_LINE = """sel => { const el = document.querySelector(sel); if (!el) return 
 _PAGE = ".ls-stage > .ls-page:not(.ls-ghost)"
 
 
-def _ui_keys(text=""):
-    keys = C.seed_keys()
+def _ui_keys(text="", keys=None):
+    keys = C.seed_keys() if keys is None else keys
     if text:
         keys["vocab:ui"] = json.dumps({"text": text})
     return keys
+
+
+# el repaso: «hippopotamus» delante, en la pantalla que le daría su caja (kind: la tarjeta de siempre, «¿Cuál es…?», las
+# letras o «Escucha y elige»)
+_HIPPO = """kind => { const k = rv.q.findIndex(x => x.r.l[lang].word === 'hippopotamus'); if (k < 0) return null;
+  const x = rv.q[k]; rv.q.splice(rv.i, 0, {id: x.id, r: x.r, x: x.x, kind}); rv.c = null; rvDraw(); return vocabReview.state.kind; }"""
+# en cuántas líneas va cada texto (una palabra sola, nunca en dos)
+_LINES = """sel => [...document.querySelectorAll(sel)].map(el => { const g = document.createRange(); g.selectNodeContents(el);
+  return {t: el.textContent, lines: new Set([...g.getClientRects()].filter(r => r.width).map(r => Math.round(r.top))).size,
+    over: el.scrollWidth > el.clientWidth + 1}; })"""
+# los huecos de las letras: en una fila, dentro de la tarjeta, y cada letra dentro de su hueco
+_SLOTS = """() => { const sp = document.getElementById('rv-sp'); if (!sp) return null; const r = sp.getBoundingClientRect(), f = sp.closest('.rv-face').getBoundingClientRect();
+  const s = [...sp.querySelectorAll('.rv-slot')];
+  return {rows: new Set(s.map(e => Math.round(e.getBoundingClientRect().top))).size, inside: r.left >= f.left - .5 && r.right <= f.right + .5,
+    over: sp.scrollWidth > sp.clientWidth + 1 || s.some(e => e.scrollWidth > e.clientWidth + 1), text: s.map(e => e.textContent).join('')}; }"""
+
+
+def _review_word_whole(page, tag, probs):
+    """«hippopotamus» en las pantallas que corrige la app: las 4 opciones de «¿Cuál es…?» (antes y después de contestar,
+    con la ✓ al lado), la respuesta que sale al contestar («¿Cuál es…?», «Escucha y elige» y las letras falladas) y los
+    huecos de las letras: una sola línea, sin partir; la respuesta nunca por debajo de 28 px."""
+    def answer(what):
+        m = page.evaluate(_ONE_LINE, "#rv-card .rv-ans .rv-word")
+        if not m or not m["one"] or m["brk"] or m["over"] or m["fs"] < 28 or m["t"] != "hippopotamus":
+            probs.append(f"{tag}: la respuesta de {what} se parte: {m}")
+
+    def opts(what):
+        bad = [o for o in page.evaluate(_LINES, "#rv-dock .rv-opt > span") if " " not in o["t"] and (o["lines"] != 1 or o["over"])]
+        if bad:
+            probs.append(f"{tag}: en «¿Cuál es…?» {what} se parten {bad}")
+    # «¿Cuál es…?»: las opciones y, bien contestada, la respuesta
+    if page.evaluate(_HIPPO, "pick") != "pick":
+        probs.append(f"{tag}: «hippopotamus» no sale en «¿Cuál es…?»")
+        return
+    page.wait_for_timeout(300)
+    opts("sin contestar")
+    page.keyboard.press(str(page.evaluate(V._ST)["right"] + 1))
+    page.wait_for_function("() => vocabReview.state.graded", timeout=4000)
+    page.wait_for_timeout(250)
+    opts("contestada")
+    answer("«¿Cuál es…?»")
+    # las letras: los huecos y, con dos letras mal, la respuesta y los huecos llenos
+    if page.evaluate(_HIPPO, "spell") != "spell":
+        probs.append(f"{tag}: «hippopotamus» no sale con las letras")
+        return
+    page.wait_for_timeout(300)
+    s = page.evaluate(_SLOTS)
+    if not s or s["rows"] != 1 or not s["inside"] or s["over"]:
+        probs.append(f"{tag}: los huecos de las letras: {s}")
+    st = page.evaluate(V._ST)
+    for t in [t for t in st["tiles"] if t.lower() != st["letters"][0].lower()][:2]:
+        page.keyboard.press(t)
+        page.wait_for_timeout(80)
+    page.wait_for_function("() => vocabReview.state.graded", timeout=4000)
+    page.wait_for_timeout(250)
+    s = page.evaluate(_SLOTS)
+    if not s or s["rows"] != 1 or not s["inside"] or s["over"] or s["text"] != "hippopotamus":
+        probs.append(f"{tag}: los huecos con la respuesta: {s}")
+    answer("las letras")
+    # «Escucha y elige»: la respuesta
+    if page.evaluate(_HIPPO, "listen") != "listen":
+        probs.append(f"{tag}: «hippopotamus» no sale en «Escucha y elige»")
+        return
+    page.wait_for_timeout(300)
+    page.keyboard.press(str(page.evaluate(V._ST)["right"] + 1))
+    page.wait_for_function("() => vocabReview.state.graded", timeout=4000)
+    page.wait_for_timeout(250)
+    answer("«Escucha y elige»")
 
 
 # ---------------------------------------------------------------- la palabra entera
 def test_learning_word_never_splits():
     """La palabra nueva de la lección («granddaughter»), la del repaso («hippopotamus») y la de Tarjetas quedan en una
     sola línea, sin partir ni guiones: a 360×740, a 375×667 con «Texto más grande» y a 390×844 con texto grande. Si no
-    caben, bajan de tamaño (nunca de 28 px)."""
+    caben, bajan de tamaño (nunca de 28 px). En el repaso, la tarjeta de siempre (caja 4 o más) y también las pantallas
+    que corrige la app: las opciones de «¿Cuál es…?» (bajan de tamaño juntas), los huecos de las letras y la respuesta
+    que sale al contestar."""
     probs = []
     for w, h, text in ((360, 740, ""), (375, 667, "large"), (390, 844, "large")):
         tag = f"{w}×{h}{' texto grande' if text else ''}"
@@ -63,12 +134,11 @@ def test_learning_word_never_splits():
                 L._go(page)
             if "granddaughter" not in seen:
                 probs.append(f"{tag}: no salió «granddaughter» en las palabras nuevas: {seen}")
-            # el repaso (con la partida recién sembrada: la lección a medias no cuenta): «hippopotamus» delante y girada
-            C.seed(page, keys=_ui_keys(text), hash="#/repaso")
+            # el repaso (con la partida recién sembrada: la lección a medias no cuenta; las pendientes en la caja 4, la
+            # tarjeta de siempre): «hippopotamus» delante y girada
+            C.seed(page, keys=_ui_keys(text, V._card_keys()), hash="#/repaso")
             page.wait_for_selector("#rv-card", timeout=8000)
-            ok = page.evaluate("""() => { const k = rv.q.findIndex((x, j) => j >= rv.i && x.r.l[lang].word === 'hippopotamus'); if (k < 0) return false;
-              const [it] = rv.q.splice(k, 1); rv.q.splice(rv.i, 0, it); rv.c = null; rvDraw(); return true; }""")
-            if not ok:
+            if page.evaluate(_HIPPO, "card") != "card":
                 probs.append(f"{tag}: «hippopotamus» no está en el repaso sembrado")
             else:
                 V._tap_card(page)
@@ -76,6 +146,7 @@ def test_learning_word_never_splits():
                 m = page.evaluate(_ONE_LINE, "#rv-card .rv-word")
                 if not m["one"] or m["brk"] or m["over"] or m["fs"] < 28 or m["t"] != "hippopotamus":
                     probs.append(f"{tag}: en el repaso se parte: {m}")
+                _review_word_whole(page, tag, probs)
             # Tarjetas de la familia: «granddaughter» girada
             C.goto(page, "#/doc/familia")
             page.locator("#dv-tab-tarjetas").click()
@@ -211,9 +282,26 @@ def test_spoken_word_then_leave_still_grades():
     assert not probs, "\n".join(probs)
 
 
+# la vuelta de la fallada key (con again), ya delante
+_AGAIN_NOW = """key => { const k = rv.q.findIndex((x, j) => j >= rv.i && x.again && srsK(x.id, x.r) === key); if (k < 0) return false;
+  const [it] = rv.q.splice(k, 1); rv.q.splice(rv.i, 0, it); rv.c = null; rvDraw(); return true; }"""
+_AGAINS = "key => rv.q.filter(x => x.again && srsK(x.id, x.r) === key).length"
+
+
+def _missed_comes_back(page, st0, label, probs):
+    """Tras fallar st0: vuelve una vez, marcada (again), 3 a 5 tarjetas después, y aún no cuenta como hecha."""
+    back, st = V._back_in(page, st0), page.evaluate(V._ST)
+    if not back or not 3 <= back["gap"] <= 5 or page.evaluate(_AGAINS, st0["key"]) != 1:
+        probs.append(f"{label}: la fallada no vuelve una vez, 3 a 5 tarjetas después: {back}")
+    if st["done"] != st0["done"] or st["total"] != st0["total"]:
+        probs.append(f"{label}: la fallada cuenta ya como hecha ({st0['done']}/{st0['total']} → {st['done']}/{st['total']})")
+
+
 def test_requeued_card_counts_at_most_one():
-    """Una tarjeta con «No» vuelve al final de la cola; esa segunda vez acaba de ver la respuesta, así que «¡Sí!» rápido
-    vale 1 (lo que escribe srsGrade con 1), no 2. Las demás siguen valiendo 2."""
+    """Una tarjeta con «No» vuelve 3 a 5 tarjetas después (una sola vez, marcada); esa segunda vez acaba de ver la
+    respuesta, así que «¡Sí!» rápido vale 1 (lo que escribe srsGrade con 1), no 2, y entonces cuenta como hecha (una vez).
+    Las demás siguen valiendo 2. Lo mismo en las que corrige la app: «¿Cuál es…?» y las letras falladas vuelven
+    marcadas, con la misma pantalla, y bien contestadas valen 1 (y 1 moneda)."""
     probs = []
     page = V._page()
     try:
@@ -223,7 +311,8 @@ def test_requeued_card_counts_at_most_one():
         page.locator(".rv-no").click()
         V._wait_next(page, st0["i"])
         page.wait_for_selector("#rv-card:not(.is-flipped)", timeout=3000)
-        page.evaluate("() => { const it = rv.q.pop(); rv.q.splice(rv.i, 0, it); rv.c = null; rvDraw(); }")
+        _missed_comes_back(page, st0, "la tarjeta", probs)
+        page.evaluate(_AGAIN_NOW, st0["key"])
         st1, before = page.evaluate(V._ST), page.evaluate(V._SNAP)
         if st1["key"] != st0["key"] or not st1["again"]:
             probs.append(f"la tarjeta que vuelve no está marcada: {st1}")
@@ -231,6 +320,9 @@ def test_requeued_card_counts_at_most_one():
         page.locator(".rv-yes").click()
         V._wait_next(page, st1["i"])
         V._graded(page, st1, before, 1, "la segunda vez, ¡Sí! rápido", probs)
+        st = page.evaluate(V._ST)
+        if st["done"] != st0["done"] + 1 or page.evaluate(_AGAINS, st0["key"]) != 1:
+            probs.append(f"la vuelta no cuenta una vez: hechas {st0['done']} → {st['done']}, vueltas {page.evaluate(_AGAINS, st0['key'])}")
         page.wait_for_selector("#rv-card:not(.is-flipped)", timeout=3000)
         st2, before = page.evaluate(V._ST), page.evaluate(V._SNAP)
         V._tap_card(page)
@@ -239,6 +331,48 @@ def test_requeued_card_counts_at_most_one():
         V._graded(page, st2, before, 2, "otra tarjeta, ¡Sí! rápido", probs)
         if page.evaluate("() => vocabReview.grade(true, {again: true, thinkMs: 0})") != 1:
             probs.append("vocabReview.grade no limita a 1 la segunda vez")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    # las que corrige la app: Gato (caja 1, «¿Cuál es…?») y Conejo (caja 2, las letras), mal; luego sus vueltas, bien
+    page = V._page()
+    try:
+        V._open(page, M._keys(M._ent("Gato", 1, M.T - 6), M._ent("Conejo", 2, M.T - 5), M._fillers(6, skip=("Gato", "Conejo"))))
+        firsts = []
+        for want in ("pick", "spell"):
+            page.wait_for_function("k => { const s = vocabReview.state; return !!s && s.kind === k && !s.graded; }", arg=want, timeout=6000)
+            st0 = page.evaluate(V._ST)
+            if want == "pick":
+                page.keyboard.press(str((st0["right"] + 1) % 4 + 1))
+            else:
+                for t in [t for t in st0["tiles"] if t.lower() != st0["letters"][0].lower()][:2]:
+                    page.keyboard.press(t)
+                    page.wait_for_timeout(80)
+            page.wait_for_function("() => vocabReview.state.graded", timeout=4000)
+            if page.evaluate(V._ST)["g"] != 0:
+                probs.append(f"{want}: mal no es 0: {page.evaluate(V._ST)}")
+            _missed_comes_back(page, st0, want, probs)
+            firsts.append(st0)
+            page.keyboard.press("Enter")
+            V._wait_next(page, st0["i"])
+        for st0 in firsts:
+            page.evaluate(_AGAIN_NOW, st0["key"])
+            st1, before, n_aw = page.evaluate(V._ST), page.evaluate(V._SNAP), len(V._awards(page))
+            if st1["key"] != st0["key"] or not st1["again"] or st1["kind"] != st0["kind"]:
+                probs.append(f"{st0['kind']}: la que vuelve no está marcada o cambia de pantalla: {st1}")
+                continue
+            if st1["kind"] == "pick":
+                page.keyboard.press(str(st1["right"] + 1))
+            else:
+                M._type(page, st1["letters"])
+            page.wait_for_function("() => vocabReview.state.graded", timeout=4000)
+            if page.evaluate(V._ST)["g"] != 1 or V._awards(page)[n_aw:] != [[1, "", True, None]]:
+                probs.append(f"{st1['kind']}: la vuelta bien vale {page.evaluate(V._ST)['g']} y da {V._awards(page)[n_aw:]} (1 y 1 moneda)")
+            V._wait_next(page, st1["i"], timeout=9000)
+            V._graded(page, st1, before, 1, f"{st1['kind']}: la vuelta, bien", probs, self=False)
+            st = page.evaluate(V._ST)
+            if st["done"] != st1["done"] + 1 or page.evaluate(_AGAINS, st0["key"]) != 1:
+                probs.append(f"{st1['kind']}: la vuelta no cuenta una vez: hechas {st1['done']} → {st['done']}")
         probs += C.errors(page)
     finally:
         page.context.close()
