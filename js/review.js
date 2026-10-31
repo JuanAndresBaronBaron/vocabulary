@@ -15,8 +15,9 @@
      segunda letra mal, en gris con ✗): entonces, a la vez, el dibujo, la palabra, su IPA y su audio, y «Seguir». Bien:
      verde con ✓, suena, la IPA y pasa sola tras el audio (nunca antes de 0,9 s). Monedas = la nota.
      Como la tarjeta: la palabra nunca se parte (las opciones bajan de tamaño juntas, fitOpts) y nada hace bajar la
-     página, tampoco la respuesta al contestar (cede el dibujo, luego los márgenes; fitRoom). Teclas: 1-4 eligen, las
-     letras ponen fichas, Espacio y Mayús+Espacio la oyen (sin contestar, solo en «Escucha y elige»), Intro «Seguir».
+     página, tampoco la respuesta al contestar (ceden los márgenes y, ya contestada, lo que ya no se toca; solo luego
+     encoge el dibujo, que nunca se va; fitRoom). Teclas: 1-4 eligen (su número, dentro de cada opción), las letras
+     ponen fichas, Espacio y Mayús+Espacio la oyen (sin contestar, solo en «Escucha y elige»), Intro «Seguir».
    · Una fallada (de cualquier tipo) vuelve 3 a 5 tarjetas después, una sola vez; esa vuelta vale 1 como mucho y, si se
      vuelve a fallar, ya no baja más de caja (srsGrade con again) y vuelve mañana.
    · Pila de tarjetas (detrás asoman las 2 siguientes). Cara de la pregunta: el dibujo (o, si no hay, la palabra en
@@ -477,8 +478,11 @@ ${DARK(".rv-tile", "box-shadow:0 3px 0 rgba(255,255,255,.12)")}
 .rv[data-graded] .rv-stage{padding-bottom:16px}
 .rv[data-graded] .rv-t .rv-audio{margin-top:8px}
 .rv[data-kind] .rv-ask--give{font-size:var(--fs-t3)}
-/* sin bajar (fitRoom): si aun con el dibujo más pequeño no cabe, los márgenes justos (is-tight; ya contestada, la pregunta
-   se va: la respuesta ocupa su sitio) y, ya contestada, el dibujo de la tarjeta (no-pic) */
+/* sin bajar (fitRoom), por pasos y antes de que el dibujo encoja: 1) los márgenes justos (is-tight; ya contestada, la
+   pregunta se va: la respuesta ocupa su sitio); 2) ya contestada (is-snug), las opciones que ya no se tocan más bajas y
+   la IPA con el altavoz y la tortuga en una línea, bajo la palabra; 3) solo entonces el dibujo, hasta su mínimo; 4) si
+   ni así, las tarjetas de detrás (is-bare; vacías) y el dibujo vuelve a medirse. El dibujo de la tarjeta nunca se va:
+   tras un fallo se ven a la vez el dibujo, la palabra, su IPA y su audio */
 .rv.is-tight .rv-stage{padding-bottom:16px}
 .rv.is-tight .rv-t{padding:12px 16px}
 .rv.is-tight .rv-t .rv-es{margin-top:4px}
@@ -493,8 +497,15 @@ ${DARK(".rv-tile", "box-shadow:0 3px 0 rgba(255,255,255,.12)")}
 .rv.is-tight .rv-dock,.rv.is-tight .rv-opts,.rv.is-tight .rv-tiles{gap:8px}
 .rv.is-tight .rv-opt:not(.pic){min-height:52px}
 .rv.is-tight .rv-tile{height:50px}
-.rv.no-pic .rv-t .rv-picw,.rv.no-pic .rv-back{display:none}
-.rv.no-pic .rv-stage{padding-bottom:8px}
+.rv.is-snug .rv-stack{min-height:0}
+.rv.is-snug .rv-opt:not(.pic){min-height:44px;padding-top:4px;padding-bottom:4px}
+.rv.is-snug .rv-t{flex-flow:row wrap;align-content:center;column-gap:12px}
+.rv.is-snug .rv-ans{display:contents}
+.rv.is-snug .rv-t>*,.rv.is-snug .rv-ans>*{flex:0 0 100%}
+.rv.is-snug .rv-t .rv-ipa{flex:0 1 auto;order:1;margin-top:4px}
+.rv.is-snug .rv-t .rv-audio{flex:none;order:2;margin-top:4px}
+.rv.is-bare .rv-back{display:none}
+.rv.is-bare .rv-stage{padding-bottom:8px}
 @keyframes rv-in{from{opacity:0;scale:.9}to{opacity:1;scale:1}}
 @keyframes rv-wave{0%{opacity:.55;scale:.9}100%{opacity:0;scale:1.28}}
 @keyframes rv-hop{0%{translate:0 0}35%{translate:0 -14px}70%{translate:0 0}85%{translate:0 -4px}100%{translate:0 0}}
@@ -656,7 +667,7 @@ function draw(o = {}){
   }
   const task = rv.c.kind !== "card";
   if(task){ root.dataset.kind = rv.c.kind; root.removeAttribute("data-mic"); root.toggleAttribute("data-graded", !!rv.c.graded); }
-  else { delete root.dataset.kind; root.removeAttribute("data-graded"); }
+  else { delete root.dataset.kind; root.removeAttribute("data-graded"); clearRoom(root); }
   paintProg();
   if(task){ mountTask(!!o.rise); paintTask(); } else { mountCard(!!o.rise); paintDock(); }
   /* una tarjeta nueva: el lector de pantalla la lee (el foco va a la tarjeta, no a un botón de abajo) */
@@ -708,14 +719,16 @@ function taskFace(it, c){
   return `<div class="rv-face rv-t" tabindex="-1" role="group" aria-label="${k === "listen" ? "Escucha y elige" : `${esc(r.es)}. ${qText(k)}`}">
     ${head}${c.graded ? ansHtml(it, c) : ""}</div>`;
 }
-/* en lo que se toca: la buena en verde con ✓, la elegida mala en gris con ✗, las demás apagadas */
+/* en lo que se toca: la buena en verde con ✓, la elegida mala en gris con ✗, las demás apagadas. Con el teclado, cada
+   opción lleva su número (1-4) dentro, arriba a la derecha (keys.js solo pone la etiqueta: #rv se queda sus teclas);
+   ya contestada, sin número (deshabilitada, keys.js no la etiqueta) */
 function optHtml(it, c, r, i){
   const ok = r === it.r, done = c.graded, st = !done ? "" : ok ? " is-ok" : i === c.pick ? " is-miss" : " is-dim";
   const mark = done && ok ? CHK : done && i === c.pick ? ico("x", "bold", 22, "xm") : "";
   if(c.kind === "listen")
-    return `<button type="button" class="rv-opt pic${st}" data-rv="opt" data-i="${i}" aria-label="${esc(r.es)}"${done ? " disabled" : ""}>
+    return `<button type="button" class="rv-opt pic${st}" data-rv="opt" data-i="${i}" data-key="${i + 1}" data-key-pos="in" aria-label="${esc(r.es)}"${done ? " disabled" : ""}>
       <img src="${esc(r.img)}" alt="" draggable="false">${mark}</button>`;
-  return `<button type="button" class="rv-opt${st}" data-rv="opt" data-i="${i}" lang="${esc(code())}"${done ? " disabled" : ""}>${mark}<span>${esc(r.l[lang].word)}</span></button>`;
+  return `<button type="button" class="rv-opt${st}" data-rv="opt" data-i="${i}" data-key="${i + 1}" data-key-pos="in" lang="${esc(code())}"${done ? " disabled" : ""}>${mark}<span>${esc(r.l[lang].word)}</span></button>`;
 }
 const tipsLeft = (it, c) => !c.graded && c.hint < 2 && it.sp.chars.filter(isL).length - c.put > 1;
 /* lo de abajo: las opciones o las fichas y, ya contestada, «La dijiste…» o «Así se dice» con «Seguir» */
@@ -787,41 +800,65 @@ function fitOpts(){
   for(const k of ["is-long", "is-xlong", "is-break"]){ if(!ts.some(over)) return; box.classList.add(k); }
 }
 /* sin bajar, como la tarjeta de siempre y la lección: si la tarjeta y lo de abajo no caben en la pantalla (un móvil bajo,
-   «Texto más grande», la respuesta que sale al contestar), cede primero el dibujo (nunca por debajo de 72 px; en «Escucha
-   y elige», los 4 dibujos, nunca por debajo de 64 px cada uno), luego los márgenes (is-tight) y, ya contestada, el dibujo
-   de la tarjeta baja hasta 48 px y, si ni así, se va (quedan la palabra, su IPA y su audio). Cuenta lo que baja la página
-   y lo que la tarjeta recorta */
-const PIC_MIN = 72, OPT_MIN = 64;
+   «Texto más grande», la respuesta que sale al contestar), ceden primero los márgenes (is-tight), luego, ya contestada,
+   lo que ya no se toca (is-snug: las opciones más bajas y la IPA con su audio en una línea) y solo entonces el dibujo:
+   el de la tarjeta, nunca por debajo de 72 px (48 ya contestada; nunca se va); en «Escucha y elige», los 4 dibujos,
+   nunca por debajo de 64 px cada uno (medido en el dibujo, sin el margen de su botón). Si ya contestada ni así cabe, se
+   van las tarjetas de detrás (is-bare) y el dibujo se vuelve a medir. Cuenta lo que baja la página y lo que la tarjeta
+   recorta. Lo de una tarjeta no pasa a la siguiente: se quita antes de nada (y en draw, para la de siempre) */
+const PIC_MIN = 72, PIC_ANS = 48, OPT_IMG = 64;
+/* lo que la cara de la tarjeta recorta: lo que ocupa su contenido (en el sitio que le da la maqueta, sin las
+   animaciones de entrada) menos lo que cabe dentro de su relleno */
 function faceOver(){
   const f = DOC.querySelector("#rv-card .rv-t"); if(!f) return 0;
+  let top = Infinity, bot = -Infinity;
+  const add = box => {
+    for(const e of box.children){
+      const s = getComputedStyle(e);
+      if(s.display === "contents"){ add(e); continue; }
+      if(s.display === "none" || s.position === "absolute" || s.position === "fixed" || e.offsetParent !== f) continue;
+      top = Math.min(top, e.offsetTop - (parseFloat(s.marginTop) || 0));
+      bot = Math.max(bot, e.offsetTop + e.offsetHeight + (parseFloat(s.marginBottom) || 0));
+    }
+  };
+  add(f);
+  if(top === Infinity) return 0;
   const cs = getComputedStyle(f);
-  let h = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-  for(const e of f.children){
-    if(!e.getClientRects().length) continue;
-    const s = getComputedStyle(e); h += e.offsetHeight + (parseFloat(s.marginTop) || 0) + (parseFloat(s.marginBottom) || 0);
-  }
-  return Math.ceil(h - f.clientHeight);
+  return Math.ceil(bot - top - (f.clientHeight - (parseFloat(cs.paddingTop) || 0) - (parseFloat(cs.paddingBottom) || 0)));
 }
 const roomOver = () => Math.max(DOC.documentElement.scrollHeight - innerHeight, faceOver());
+function clearRoom(root){ if(root) root.classList.remove("is-tight", "is-snug", "is-bare"); }
 function fitRoom(){
-  const root = DOC.getElementById("rv"), c = rv && rv.c;
-  if(!root || !c || c.kind === "card" || !onRepaso()) return;
+  const root = DOC.getElementById("rv"); if(!root) return;
+  clearRoom(root);
+  const c = rv && rv.c;
+  if(!c || c.kind === "card" || !onRepaso()) return;
   const listen = c.kind === "listen", el = root.querySelector(listen ? "#rv-dock .rv-opts.pics" : "#rv-card .rv-pic");
-  root.classList.remove("is-tight", "no-pic");
   if(el) el.style.width = "";
-  const give = (min = listen ? 2 * OPT_MIN + 12 : PIC_MIN) => {
-    const o = roomOver(); if(o <= 0 || !el) return o;
-    const w = el.getBoundingClientRect().width;
-    if(w > min) el.style.width = Math.max(min, Math.floor(w - o)) + "px";
+  if(roomOver() <= 0) return;
+  root.classList.add("is-tight");
+  if(roomOver() <= 0) return;
+  if(c.graded){ root.classList.add("is-snug"); if(roomOver() <= 0) return; }
+  /* el dibujo, lo justo: en «Escucha y elige» se encoge la rejilla de los 4 (dos por fila, con su hueco y el relleno de
+     cada botón) */
+  let min = c.graded ? PIC_ANS : PIC_MIN;
+  if(listen && el){
+    const b = el.querySelector(".rv-opt"), bs = b ? getComputedStyle(b) : null;
+    min = 2 * (OPT_IMG + (bs ? (parseFloat(bs.paddingLeft) || 0) + (parseFloat(bs.paddingRight) || 0) : 0)) + (parseFloat(getComputedStyle(el).columnGap) || 0);
+  }
+  const shrink = () => {
+    if(el) for(let k = 0, o = roomOver(); k < 3 && o > 0; k++){
+      const w = el.offsetWidth, was = el.style.width; if(w <= min) break;
+      el.style.width = Math.max(min, Math.floor(w - o)) + "px";
+      const o2 = roomOver(); if(o2 >= o){ el.style.width = was; break; }   /* no gana nada: se queda como estaba */
+      o = o2;
+    }
     return roomOver();
   };
-  if(give() <= 0) return;
-  root.classList.add("is-tight");
+  if(shrink() <= 0 || !c.graded) return;
+  root.classList.add("is-bare");
   if(el) el.style.width = "";
-  if(give() <= 0 || listen || !c.graded) return;
-  /* contestada: el dibujo, aún más pequeño (48 px) antes que nada; si ni así, se va */
-  if(give(48) <= 0) return;
-  root.classList.add("no-pic");
+  shrink();
 }
 /* al girar el móvil o cuando llega la letra redonda, se vuelve a medir */
 let refitRaf = 0;

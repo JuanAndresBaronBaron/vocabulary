@@ -784,7 +784,8 @@ def test_key_tags_never_touch_their_neighbours():
     """Con el teclado, cada etiqueta de tecla deja al menos 4 px con lo de al lado (otra etiqueta, otro botón, un
     texto u otra tarjeta) y no se sale de la pantalla: en Hoy con «Tus atajos» (1-3 dentro de cada pieza), en la
     lección (Esc, Espacio y ⇧ Espacio en una línea sobre los botones redondos, Enter), en el repaso (la tarjeta de
-    siempre y las que corrige la app: «Escucha y elige», «¿Cuál es…?» también fallada, y las letras), en Tarjetas (sin
+    siempre y las que corrige la app: «Escucha y elige» y «¿Cuál es…?» con 1-4 dentro de cada opción, que se van al
+    contestar (no tocan la ✓ ni la ✗), «¿Cuál es…?» también fallada, y las letras), en Tarjetas (sin
     ensanchar la página: nunca se prueba un sitio fuera de la pantalla), en el Buzón (1-4 dentro, Espacio,
     Enter del micrófono), en Frases mágicas, en la frase de la cena y en la hoja «Teclas» (Esc de «Listo»), en claro y
     en oscuro. Al cambiar de pantalla con las etiquetas puestas, el nombre de «‹ Volver» no se mete en la suya. En la hoja «Teclas» la acción va a la izquierda y las teclas a la derecha, sin partir las acciones."""
@@ -832,7 +833,8 @@ def test_key_tags_never_touch_their_neighbours():
             look("repaso", ["Esc", "Espacio", "⇧ Espacio"])
             # las pantallas que corrige la app (una palabra con dibujo, como si su caja fuera la 0, la 1 o la 2); en
             # «¿Cuál es…?», también tras un fallo (la respuesta con su altavoz y «Seguir»)
-            for kind, need in (("listen", ["Esc", "Espacio", "⇧ Espacio"]), ("pick", ["Esc"]), ("spell", ["Esc"])):
+            for kind, need in (("listen", ["Esc", "Espacio", "⇧ Espacio", "1", "2", "3", "4"]), ("pick", ["Esc", "1", "2", "3", "4"]),
+                               ("spell", ["Esc"])):
                 got = page.evaluate(_RV_AS, kind)
                 if got != kind:
                     probs.append(f"{scheme} repaso: no sale la pantalla {kind} ({got})")
@@ -844,7 +846,10 @@ def test_key_tags_never_touch_their_neighbours():
                     page.keyboard.press(str((st["right"] + 1) % 4 + 1))
                     page.wait_for_function("() => vocabReview.state.graded", timeout=3000)
                     page.wait_for_timeout(400)
-                    look("repaso-pick-mal", ["Esc", "Espacio", "⇧ Espacio", "Enter"])
+                    res = look("repaso-pick-mal", ["Esc", "Espacio", "⇧ Espacio", "Enter"])
+                    left = [p for p in res["pos"] if p[0] in ("1", "2", "3", "4")]
+                    if left:
+                        probs.append(f"{scheme} repaso-pick-mal: ya contestada, las opciones siguen con su número {left}")
             C.goto(page, f"#/doc/{R.TOPIC}?m=tarjetas")
             page.wait_for_selector("#card", timeout=6000)
             page.wait_for_timeout(500)

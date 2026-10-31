@@ -183,7 +183,7 @@ compartida no responde).
 - `test_f5_teclado.py` (F5b, `js/keys.js` y los `shortcuts` del manifest): en la lección Espacio suena una vez,
   Mayús+Espacio más despacio, 1-4 eligen, Enter pasa una sola vez (con el foco en la página y en el botón) y Esc abre
   «¿Paramos aquí?»; en el repaso ← es «No» y → «¡Sí!» (una nota cada una) y, en las pantallas que corrige la app,
-  Espacio oye «Escucha y elige» (en «¿Cuál es…?» no dice la respuesta), 1-4 eligen, las letras ponen fichas y Enter es
+  Espacio oye «Escucha y elige» y Mayús+Espacio más despacio (en «¿Cuál es…?» no dice la respuesta), 1-4 eligen, las letras ponen fichas y Enter es
   «Seguir» una vez; en Hoy Enter es «Empezar»; ? abre la hoja
   «Teclas» y Esc la cierra; Tarjetas (Espacio gira y luego oye, → y Enter pasan una); escribiendo en un campo no pasa
   nada; en un juego las teclas son del juego y Esc pausa una vez; las etiquetas grises salen con la primera tecla y se
@@ -340,7 +340,9 @@ compartida no responde).
   la ✗ va arriba del globo, las banderas llevan su caja 4:3 con filete, ningún globo es gris, tumbado (844×390 con
   márgenes seguros de 47 px, 667×375 y 568×320) los globos son grandes y no se baja, con «Reducir movimiento» no saltan
   de tamaño; tras un fallo en «Escucha y elige» la lección no baja (también en 1280×720 y con «Texto más grande») y la
-  ✓/✗ va en la esquina del dibujo, ni el repaso tras un fallo en sus pantallas que corrige la app; el repaso con dos
+  ✓/✗ va en la esquina del dibujo, ni el repaso tras un fallo en sus pantallas que corrige la app (también en 320×568;
+  se ven a la vez el dibujo, de 48 px o más y 64 en «Escucha y elige», la palabra, su IPA y su audio), y la tarjeta de
+  siempre que viene tras un fallo se ve como recién abierta (con su pila y sus márgenes); el repaso con dos
   pistas, Letras con texto grande y la cara blanca de Memoria oscuro.
   Desde la unión con F5, también las pantallas nuevas con dibujos (`MIN_F5`): la bandeja de Frases mágicas (72 px en
   390×844, con los árboles recortados de `img/fam2/`, sin un rectángulo blanco sobre la placa en oscuro), las plantillas

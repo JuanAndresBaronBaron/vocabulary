@@ -236,7 +236,7 @@ def test_review_arrows_are_no_and_yes():
 
 def test_review_app_graded_keys():
     """En las pantallas del repaso que corrige la app, todo con el teclado y una vez cada cosa (el repaso se queda sus
-    teclas: keys.js no pulsa nada además). «Escucha y elige» (caja 0): Espacio la oye, Mayús+Espacio despacio y 1-4
+    teclas: keys.js no pulsa nada además). «Escucha y elige» (caja 0): Espacio la oye, Mayús+Espacio más despacio y 1-4
     eligen el dibujo (nota 2, un solo aviso). «¿Cuál es…?» (caja 1): Espacio no la dice (sería la respuesta; con el
     dedo tampoco hay altavoz), 1-4 eligen (mal: nota 0) y Enter es «Seguir» una sola vez (pasa a la siguiente, no dos).
     Las letras (caja 2): cada letra tecleada pone su ficha y bien a la primera es nota 2."""
@@ -254,13 +254,20 @@ def test_review_app_graded_keys():
         page.wait_for_function("() => rv.c && rv.c.played", timeout=4000)
         page.wait_for_timeout(600)
         page.evaluate(_BLUR)
+        heard = {}
         for key, what in (("Space", "Espacio"), ("Shift+Space", "Mayús+Espacio")):
             page.evaluate(_RESET)
             page.keyboard.press(key)
             page.wait_for_timeout(500)
             k = page.evaluate(_K)
+            heard[key] = _first(k["snd"])
             if not k["snd"] or [c for c in k["clk"] if not c["trusted"]]:
                 probs.append(f"«Escucha y elige»: {what} no la oye (o keys.js pulsa además): {k}")
+            page.wait_for_timeout(1500)      # que acabe de sonar antes de la siguiente
+        # Mayús+Espacio, más despacio que Espacio (el mismo sonido: la grabación o la voz del navegador)
+        n1, s1 = heard["Space"], heard["Shift+Space"]
+        if not n1 or not s1 or s1["kind"] != n1["kind"] or not s1["rate"] < n1["rate"]:
+            probs.append(f"«Escucha y elige»: Mayús+Espacio no suena más despacio: normal {n1} · despacio {s1}")
         page.evaluate(_RESET)
         page.keyboard.press(str(st["right"] + 1))
         page.wait_for_function("() => vocabReview.state.graded", timeout=3000)
