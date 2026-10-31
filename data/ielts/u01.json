@@ -33,9 +33,9 @@
      "type": "card",
      "title": "Listening",
      "body": [
-      "You hear each recording **once only**. Part 1 is an everyday conversation (booking, enquiring), Part 2 an everyday monologue (a tour, a talk to visitors), Part 3 an academic discussion between two to four speakers, and Part 4 a single-speaker lecture. Difficulty rises from Part 1 to Part 4.",
-      "There is time to read the questions before each part, and the questions follow the order of the recording. On the computer-delivered test you type answers as you go and get a short review period at the end (around two minutes); the old paper test gave ten minutes to transfer answers to a separate sheet.",
-      "Spelling counts. A correctly heard word that is misspelt scores nothing, and so does an answer that exceeds the word limit."
+      "You hear each recording **once only**. Part 1 is an everyday conversation between two people (booking, enquiring), Part 2 an everyday monologue (a tour, a talk to visitors), Part 3 an academic discussion with two main speakers, for example students with a tutor, and Part 4 a single-speaker lecture. Difficulty rises from Part 1 to Part 4. Speakers have a range of accents, including British, Australian, New Zealand and North American.",
+      "There is time to read the questions before each part, and the questions follow the order of the recording. On computer you type your answers as you listen and have **2 minutes** at the end to review them. (The old paper test gave ten minutes to transfer answers to a separate sheet; that step no longer exists.)",
+      "Spelling counts. A correctly heard word that is misspelt scores nothing, and so does an answer that goes over the word limit. A hyphenated word such as *check-in* counts as one word; contracted forms such as *they're* are not tested."
      ]
     },
     {
@@ -43,9 +43,22 @@
      "type": "card",
      "title": "Reading",
      "body": [
-      "Three long passages, taken from books, journals, magazines and newspapers, written for a non-specialist audience. They get harder and more argumentative as you go: Passage 3 is often a dense discussion of ideas with the writer's own views woven in.",
+      "Three long passages, taken from books, journals, magazines and newspapers and written for a non-specialist audience. They may include diagrams, graphs or illustrations, and any technical term comes with a simple definition. The passages get harder and more argumentative as you go: Passage 3 is often a dense discussion of ideas with the writer's own views woven in.",
       "There is **no extra transfer time**. The 60 minutes include everything, so a realistic plan is about 17, 20 and 23 minutes for the three passages.",
-      "Question types include TRUE/FALSE/NOT GIVEN, YES/NO/NOT GIVEN, matching headings, matching information and features, sentence, summary, note, table and flow-chart completion, diagram labelling and multiple choice. Each is trained in its own unit."
+      "The official list has eleven question types, and any of them can appear with any passage:"
+     ],
+     "list": [
+      "multiple choice",
+      "identifying information (TRUE / FALSE / NOT GIVEN)",
+      "identifying the writer's views or claims (YES / NO / NOT GIVEN)",
+      "matching information",
+      "matching headings",
+      "matching features",
+      "matching sentence endings",
+      "sentence completion",
+      "summary, note, table or flow-chart completion",
+      "diagram label completion",
+      "short-answer questions"
      ]
     },
     {
@@ -55,9 +68,10 @@
      "body": [
       "**Task 1** (at least 150 words, about 20 minutes): describe and compare the key features of a graph, table, chart, process diagram or map. You report what the data shows; you do not explain causes or give opinions.",
       "**Task 2** (at least 250 words, about 40 minutes): an essay responding to a point of view, argument or problem. Task 2 carries **twice the weight** of Task 1 in the Writing band, so never let Task 1 eat into its time.",
-      "Writing below the minimum is penalised under the task criterion. There is no maximum, but a longer essay is not a better one: band 9 Task 2 scripts are usually somewhere between 270 and 380 words, because precision, not volume, earns the top band."
+      "Write in full sentences: notes and bullet points are penalised, and so is anything that does not relate to the topic. A response below the minimum may not give enough evidence for the higher bands. Under the band descriptors revised in May 2023, a response of 20 words or fewer is rated band 1, words copied from the question are discounted, and a totally memorised answer gets band 0.",
+      "There is no maximum. In our experience 270-320 well-developed words are enough for Task 2; length itself earns nothing."
      ],
-     "tip": "Some centres now let you handwrite the Writing paper while the rest of the test is on computer. Typing or writing does not change the tasks or the marking."
+     "tip": "In some locations the British Council offers **Writing on Paper**: you handwrite both tasks while the rest of the test is on computer. The tasks and the marking are the same either way."
     },
     {
      "id": "u01-l1-i5",
@@ -73,9 +87,9 @@
      "type": "card",
      "title": "Computer delivery and One Skill Retake",
      "body": [
-      "IELTS has announced that, from mid-2026, paper-based IELTS is being phased out and all tests delivered on computer, with timelines varying by country. In selected countries candidates can choose to handwrite the Writing paper (**Writing on Paper**). Check the current options at your own test centre before booking.",
-      "On computer you can highlight text in Reading, see a word count in Writing and move freely between questions within a paper. Results normally arrive within a few days.",
-      "**One Skill Retake** lets you resit a single paper, rather than all four, within 60 days of a full computer-delivered test, once per test, at centres that offer it. Not every institution accepts it, so check with the organisation that will receive your scores."
+      "Paper-based IELTS has ended: IDP announced that from 27 June 2026 all IELTS tests are delivered on computer, at a test centre. The British Council keeps a **Writing on Paper** option in some locations, where you handwrite the Writing tasks and take the rest of the test on computer. Check what your centre offers before booking.",
+      "On computer you can highlight text in Reading, see a word count in Writing and move freely between questions within a paper. Results normally arrive within 1-2 days.",
+      "**One Skill Retake** lets you resit one paper, rather than all four, within 60 days of your test, once per test. It is not available for IELTS Online. You receive a new Test Report Form and can use either that or the original. UKVI accepts it in selected locations, and each organisation decides whether to accept it, so check with the one that will receive your scores."
      ]
     },
     {
@@ -139,7 +153,7 @@
      "mode": "tfng",
      "statement": "One Skill Retake must be taken within 60 days of the original full test.",
      "answer": "T",
-     "why": "IELTS states that a One Skill Retake must be booked and taken **within 60 days** of the original computer-delivered test."
+     "why": "One Skill Retake must be taken **within 60 days** of the original test, and only once per test."
     }
    ]
   },
@@ -154,7 +168,7 @@
      "type": "card",
      "title": "From raw score to band",
      "body": [
-      "In Listening and Reading every question is worth one mark, and your raw score out of 40 is converted to a band using a published table. For Academic Reading, 39-40 correct is band 9, 37-38 is 8.5 and 35-36 is 8. Listening is almost identical at the top: 39-40 for 9, 37-38 for 8.5, 35-36 for 8.",
+      "In Listening and Reading every question is worth one mark, and your raw score out of 40 is converted to a band with a conversion table. The conversion is approximate: cut-offs vary slightly between versions of the test. As a guide, for Academic Reading 39-40 correct is band 9, 37-38 is 8.5 and 35-36 is 8, and Listening is almost identical at the top.",
       "So the difference between 8 and 9 is four or five questions across the whole paper. Each careless spelling, plural *s* or extra word costs real money."
      ],
      "list": [
@@ -199,7 +213,7 @@
      "type": "card",
      "title": "Bands and the CEFR",
      "body": [
-      "IELTS maps its bands onto the Common European Framework of Reference. Roughly: bands 5.5-6.5 sit at B2, 7-8 at C1, and **8.5-9 at C2**. Your target is therefore not 'more C1' but a different kind of control.",
+      "IELTS maps its bands onto the Common European Framework of Reference. According to ielts.org, **8.5-9 is C2**, with 8 on the borderline of C2; the C1 threshold lies between 6.5 and 7, and bands 5.5-6.5 broadly correspond to B2. Your target is therefore not 'more C1' but a different kind of control.",
       "The mapping is approximate and institutions publish their own requirements, so treat it as orientation, not a guarantee."
      ]
     },
@@ -282,7 +296,7 @@
       "C2"
      ],
      "answer": 2,
-     "why": "IELTS maps **8.5-9 to C2**; 7-8 broadly corresponds to C1."
+     "why": "8.5-9 is **C2** (8 is borderline C2), and the C1 threshold lies between 6.5 and 7. The mapping is approximate."
     }
    ]
   },
@@ -367,12 +381,12 @@
      "type": "pick",
      "q": "A Task 2 essay ignores the second half of a two-part question. Which criterion is hit hardest?",
      "options": [
-      "Coherence and Cohesion",
       "Task Response",
+      "Coherence and Cohesion",
       "Lexical Resource",
       "Grammatical Range and Accuracy"
      ],
-     "answer": 1,
+     "answer": 0,
      "why": "Not addressing all parts of the task is a **Task Response** problem, and it caps that criterion however good the language is."
     },
     {
@@ -389,11 +403,11 @@
      "q": "Which habit is most typical of a band 6-7 writer rather than a band 9 writer?",
      "options": [
       "Using reference words such as 'this trend'",
-      "Starting most sentences with 'Moreover' or 'Furthermore'",
       "Varying sentence length",
-      "Using a single central idea per paragraph"
+      "Using a single central idea per paragraph",
+      "Starting most sentences with 'Moreover' or 'Furthermore'"
      ],
-     "answer": 1,
+     "answer": 3,
      "why": "Mechanical, overused linkers are a classic mid-band feature; band 9 cohesion **attracts no attention**."
     },
     {
@@ -402,11 +416,11 @@
      "q": "In Speaking Fluency and Coherence, which kind of hesitation is consistent with band 9?",
      "options": [
       "Pausing to search for a word",
-      "Pausing to decide what to say next",
       "Repeating the question back",
+      "Pausing to decide what to say next",
       "Restarting sentences frequently"
      ],
-     "answer": 1,
+     "answer": 2,
      "why": "At the top band hesitation is **content-related**, not caused by searching for language."
     },
     {

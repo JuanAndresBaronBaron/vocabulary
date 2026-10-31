@@ -115,6 +115,7 @@
      "answer": [
       "it",
       "instead it",
+      "instead, it",
       "this"
      ],
      "limit": "ONE OR TWO WORDS",
@@ -156,7 +157,12 @@
       "was turned",
       "has been turned",
       "was transformed",
-      "has been transformed"
+      "has been transformed",
+      "was developed",
+      "has been developed",
+      "was expanded",
+      "has been expanded",
+      "was redeveloped"
      ],
      "limit": "TWO OR THREE WORDS",
      "why": "*Converted into* fits a change of use. The passive is required because the harbour did not change itself."
@@ -164,7 +170,7 @@
     {
      "id": "u12-l1-i11",
      "type": "gap",
-     "text": "A new road was built running ___ from the main road through the former woodland.",
+     "text": "A new road was built running ___ from the main road between the farmland and the woodland.",
      "answer": [
       "north",
       "northwards",
@@ -189,7 +195,7 @@
        "answer": 1
       },
       {
-       "label": "The woodland was reduced in size to make way for a hotel.",
+       "label": "Part of the woodland made way for a hotel.",
        "answer": 0
       },
       {
@@ -299,12 +305,12 @@
       "text": [
        "The diagram illustrates the stages involved in turning freshly picked olives into bottled olive oil.",
        "Overall, the process consists of nine main stages, beginning with the harvest and ending with the bottling of the oil. It is a largely mechanical sequence, and at one point it divides, generating a solid by-product that is put to use rather than discarded.",
-       "First, the olives are harvested, either by hand or with machines that shake the trees, and are taken to a mill within twenty-four hours. Here they are washed and any leaves and twigs are removed. The clean olives are then crushed, using either traditional stone wheels or steel hammer mills, into a thick paste, which is mixed slowly for between thirty and forty minutes so that the tiny droplets of oil can combine.",
-       "The paste is next pumped into a centrifuge, which spins at high speed and separates it into three parts: oil, water and solid residue. The residue, known as pomace, is collected and either dried for use as fuel or spread on fields as fertiliser. The oil, meanwhile, is passed through filters to remove any remaining particles and is then stored in stainless steel tanks, where it is kept at a stable temperature until it is bottled in dark glass to protect it from light."
+       "First, the olives are harvested, either by hand or with machines that shake the trees, and are taken to a mill within twenty-four hours. Here they are washed and any leaves and twigs are removed. The clean olives are then crushed into a paste, using either stone wheels or steel hammer mills, and this paste is mixed slowly for between thirty and forty minutes so that the droplets of oil can combine.",
+       "The paste next goes into a centrifuge, which separates it into three parts: oil, water and solid residue. The residue, known as pomace, forms a separate branch of the process and is either dried for use as fuel or used as fertiliser. The oil, meanwhile, is passed through filters to remove any remaining particles and is then stored in stainless steel tanks, where it is kept at a stable temperature until it is bottled in dark glass to protect it from light."
       ],
       "notes": [
        "The overview states the number of stages, the start and end points and the branch, which is exactly what a process overview needs.",
-       "The passive dominates, but it is varied with active verbs (*a centrifuge, which spins...*), relative clauses and purpose clauses (*so that*, *to protect it*).",
+       "The passive dominates, but it is varied with active verbs (*a centrifuge, which separates...*, *the paste next goes into*), relative clauses and purpose clauses (*so that*, *to protect it*).",
        "Sequencing is mostly carried by grammar and reference (*Here*, *The clean olives*, *The residue*, *meanwhile*) rather than a list of numbered linkers.",
        "Every stage on the diagram is covered, including the by-product, and nothing is invented beyond the notes on the diagram.",
        "Labels are turned into verbs and full clauses rather than copied (*Washing* becomes *they are washed*)."
@@ -537,7 +543,7 @@
        "The two maps show how the coastal village of Westhaven has developed between 2000 and the present day.",
        "Overall, the village has been transformed from a small farming and fishing community into a more residential settlement geared towards leisure and tourism. The main road and the original houses have been retained, but almost every other feature has been either reduced in size or put to a new use.",
        "North of the main road, the western part of the farmland has made way for a housing estate, leaving only a narrow strip of fields. To the east, the woodland has been cut back to roughly half its former size, and a hotel now stands on the cleared land to its south. A new road has also been laid, running north from the main road between the remaining farmland and the woods.",
-       "The changes south of the main road are equally striking. The car park that stood to the east of the houses has been replaced by a row of shops and a café, and a smaller car park has been built further east, next to the main road. The fishing harbour has been converted into a marina more than twice its size, which has reduced the length of the beach, and a cycle path now runs along the shore."
+       "The changes south of the main road are equally striking. The car park that stood to the east of the houses has been replaced by a row of shops and a café, and a smaller car park has been built further east, next to the main road. The fishing harbour has been converted into a marina more than twice its size, while the beach has been shortened at its eastern end, and a cycle path now runs along the shore."
       ],
       "notes": [
        "The overview captures the overall character of the change and also what remained the same.",

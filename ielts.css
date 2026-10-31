@@ -273,3 +273,22 @@ a.ie-row:active{background:var(--fill2)}
 .ie-toast.is-on{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){.ie-toast,.ie-bar span,.ie-lbar span{transition:none}}
 :root[data-motion=calm] .ie-toast,:root[data-motion=calm] .ie-bar span{transition:none}
+
+/* ---- package: content1 ---- */
+/* map and plan labels: bigger, on a halo so they read over any shape (js/ielts-viz.js sizes the wrapping to match) */
+.ie-mlab{font-size:4.2px;paint-order:stroke;stroke:#fff;stroke-width:.9px;stroke-linejoin:round}
+:root[data-theme=dark] .ie-mlab{stroke:#1C1C1E}
+.ie-mlab.is-on-dark,:root[data-theme=dark] .ie-mlab.is-on-dark{stroke:#26394A}
+/* markers (mark: true): the letter or number a learner matches, bold in a circle */
+.ie-mk-c{fill:#fff;stroke:#0B2545;stroke-width:.7}
+.ie-mk-t{fill:#0B2545;font:700 4.7px var(--f-text)}
+:root[data-theme=dark] .ie-mk-c{fill:#1C1C1E;stroke:#E5E5EA}
+:root[data-theme=dark] .ie-mk-t{fill:#fff}
+/* a single plan or diagram does not need the full desktop width */
+.ie-maps>.ie-map:only-child{width:100%;max-width:520px;justify-self:center}
+/* tables of words (a table to complete) read left to right; tables of figures stay right-aligned */
+.ie-table.is-words th,.ie-table.is-words td{text-align:left;vertical-align:top}
+/* chart columns: the player's progress bar owns .ie-bar (height:4px), which flattened every SVG bar, so the bars use .ie-col */
+.ie-col{fill:var(--c)}
+/* on a phone a three-column table of words fits without sideways scrolling: tighter cells, and a long word may wrap */
+@media (max-width:600px){.ie-table.is-words th,.ie-table.is-words td{padding:8px 5px}.ie-table.is-words td{overflow-wrap:anywhere;hyphens:auto}}

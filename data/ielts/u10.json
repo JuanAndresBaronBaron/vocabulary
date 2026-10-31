@@ -54,7 +54,7 @@
      "type": "card",
      "title": "Reading a dense passage at speed",
      "body": [
-      "Passage 3 is often 900 words of abstract argument. You do not have time to understand every sentence, and you do not need to. First spend two minutes reading **only the first sentence of each paragraph** and the last paragraph: this gives you the shape of the argument and the writer's conclusion.",
+      "Passage 3 is often the longest and most abstract, up to about 900 words. You do not have time to understand every sentence, and you do not need to. First spend two minutes reading **only the first sentence of each paragraph** and the last paragraph: this gives you the shape of the argument and the writer's conclusion.",
       "Then work question by question, reading closely only the part of the text each question points to. YES/NO/NOT GIVEN statements follow the order of the passage, so each one narrows the search for the next."
      ],
      "list": [
@@ -345,12 +345,12 @@
          "type": "pick",
          "q": "In paragraph D, the writer's purpose is to",
          "options": [
-          "A  argue that people should seek out monotonous work.",
-          "B  limit the scope of the argument.",
+          "A  limit the scope of the argument.",
+          "B  argue that people should seek out monotonous work.",
           "C  describe the causes of depression.",
           "D  criticise institutions."
          ],
-         "answer": 1,
+         "answer": 0,
          "why": "\"None of this amounts to a case for deliberately making life tedious… The argument is a narrower one.\""
         },
         {
@@ -379,7 +379,7 @@
           "A  is a capacity that can weaken without practice.",
           "B  is mainly a problem for adults.",
           "C  can be replaced by organised activities.",
-          "D  turns attention inwards.",
+          "D  offers nothing to hold our attention.",
           "E  should be banned in schools.",
           "F  offers information as well as distraction."
          ],
@@ -397,7 +397,29 @@
            "answer": 5
           }
          ],
-         "why": "C: when the external world offers nothing, \"attention turns inwards\". E: tolerating a period without stimulation \"is a skill\" and unpractised skills \"tend to weaken\". F: technologies \"also supply information, friendship and work\"."
+         "why": "Paragraph C: when the external world \"offers nothing of interest, attention turns inwards\" (D). Paragraph E: tolerating a period without stimulation \"is a skill\", and unpractised skills \"tend to weaken\" (A); C is the strongest distractor, but organised activities are what crowd out that skill, not a substitute for it. Paragraph F: the same technologies \"also supply information, friendship and work\" (F)."
+        }
+       ]
+      },
+      {
+       "instr": "Questions 14-15. Choose TWO letters, A-E.",
+       "items": [
+        {
+         "id": "u10-l2-i1-q12",
+         "type": "multi",
+         "q": "Which TWO of the following points does the writer make?",
+         "options": [
+          "A  Children today are less imaginative than children in the past.",
+          "B  Schools are under pressure to make every moment of a lesson engaging.",
+          "C  The experiments on boredom involved large and varied groups of people.",
+          "D  Most people would support a ban on phones in public places.",
+          "E  Many creative people report having their best ideas at idle moments."
+         ],
+         "answer": [
+          1,
+          4
+         ],
+         "why": "Paragraph E: lessons are \"increasingly designed to be stimulating from the first minute to the last\" (B). Paragraph C: the studies fit \"the experience of many writers and scientists\" whose best ideas came \"when they were doing nothing in particular\" (E). A is the strongest distractor: the writer warns against a \"nostalgic picture\" of the past instead of claiming that children have changed. C is contradicted (\"small groups of students\"), and D goes beyond the passage, which reports no public opinion on a ban."
         }
        ]
       }
@@ -531,7 +553,7 @@
            "answer": 4
           }
          ],
-         "why": "B: a school \"may concentrate its efforts on pupils just below the pass mark\". C: combined indicators \"are harder to manipulate\". D: trusted people \"tend to behave differently\". E: numbers are most useful when they \"prompt questions… rather than automatically triggering rewards or sanctions\"."
+         "why": "Paragraph B: a school \"may concentrate its efforts on pupils just below the pass mark\" (C). Paragraph C: indicators that combine several measures \"are harder to manipulate\" (A). Paragraph D: people who feel trusted \"tend to behave differently\" (D). Paragraph E: numbers are most useful when they \"prompt questions... rather than automatically triggering rewards or sanctions\" (E). G is the strongest distractor: paragraph F says indicators for learning should be kept apart from those for accountability, which is about indicators, not about when numbers are most useful."
         }
        ]
       },

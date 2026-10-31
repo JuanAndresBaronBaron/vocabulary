@@ -240,11 +240,11 @@
      "type": "pick",
      "q": "A speaker says, 'I take your point, but I'm not sure it's practical.' What is she doing?",
      "options": [
-      "agreeing fully",
       "politely disagreeing",
+      "agreeing fully",
       "changing the subject"
      ],
-     "answer": 1,
+     "answer": 0,
      "why": "'I take your point, but…' is a typical **soft disagreement**."
     },
     {
@@ -253,10 +253,10 @@
      "q": "A question asks what the students *decide*. Which should you listen for?",
      "options": [
       "the first suggestion made",
-      "the point both speakers finally accept",
-      "the tutor's personal opinion"
+      "the tutor's personal opinion",
+      "the point both speakers finally accept"
      ],
-     "answer": 1,
+     "answer": 2,
      "why": "A decision is the option the speakers **finally agree** on; first suggestions are often rejected."
     }
    ]
@@ -488,7 +488,7 @@
         {
          "id": "u05-l2-i1-q5",
          "type": "multi",
-         "q": "Which TWO types of visual does Dr Collins recommend?",
+         "q": "Which TWO types of visual does Dr Collins say work especially well?",
          "options": [
           "A  photographs",
           "B  a timeline",
@@ -564,7 +564,8 @@
       {
        "id": "j",
        "name": "Josh",
-       "voice": "m"
+       "voice": "m",
+       "accent": "nz"
       }
      ],
      "script": [
@@ -680,7 +681,7 @@
         {
          "id": "u05-l3-i1-q1",
          "type": "pick",
-         "q": "Why did the students choose the library for their study?",
+         "q": "What was the main reason the students chose the library for their study?",
          "options": [
           "A  Many students had complained about it.",
           "B  Its layout had recently been changed on one floor.",
@@ -756,7 +757,8 @@
          "text": "Step 2: noise recorded at fixed points every ___ minutes for two weeks",
          "answer": [
           "15",
-          "fifteen"
+          "fifteen",
+          "15 minutes"
          ],
          "limit": "ONE WORD AND/OR A NUMBER",
          "why": "Thirty minutes was the original plan, rejected: \"Every fifteen minutes.\""

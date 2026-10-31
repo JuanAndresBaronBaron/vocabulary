@@ -36,21 +36,21 @@
      "type": "card",
      "title": "Qualifiers decide the answer",
      "body": [
-      "Many statements turn on one small word. **All / some / most / few**, **always / usually / sometimes / never**, **the first / the only / the main**, **proved / suggested / claimed**: a mismatch in any of these makes a TRUE statement FALSE.",
-      "The same is true of verbs of certainty. 'Scientists have shown' versus a passage that says 'scientists suspect' is a contradiction about the strength of the evidence: FALSE."
+      "Many statements turn on one small word. **All / some / most / few**, **always / usually / sometimes / never**, **the first / the only / the main**, **proved / suggested / claimed**: a mismatch can make the answer FALSE, but only when the passage rules the statement out. When the passage simply says less ('several species benefit' against 'all species benefit'), it has not excluded the stronger claim, so the answer is NOT GIVEN.",
+      "Verbs of certainty work the same way. If the passage says scientists only *suspect* a link, or that it 'remains unproven', a statement that they *have shown* it is ruled out: FALSE."
      ],
      "examples": [
       {
-       "text": "Passage: 'Some species may benefit.' Statement: 'All species will benefit.'",
-       "note": "FALSE"
+       "text": "Passage: 'Only some species benefit.' Statement: 'All species benefit.'",
+       "note": "FALSE: 'only some' rules out 'all'."
       },
       {
-       "text": "Passage: 'The method is thought to date from the 1300s.' Statement: 'The method certainly dates from the 1300s.'",
-       "note": "FALSE"
+       "text": "Passage: 'The date of the method is uncertain; it is thought to come from the 1300s.' Statement: 'The method certainly dates from the 1300s.'",
+       "note": "FALSE: the passage says the date is uncertain."
       },
       {
-       "text": "Passage: 'The method dates from the 1300s.' Statement: 'The method was invented in Italy.'",
-       "note": "NOT GIVEN"
+       "text": "Passage: 'Several species have benefited.' Statement: 'All species have benefited.'",
+       "note": "NOT GIVEN: 'several' says less, but does not exclude the rest."
       }
      ]
     },
@@ -155,7 +155,7 @@
       },
       {
        "label": null,
-       "text": "Several causes have been proposed. The removal of hedgerows has reduced the places where hedgehogs can nest and forage, and pesticides have cut the supply of the beetles and caterpillars on which they feed. Badgers, which compete with hedgehogs for food and will also eat them, have increased in some areas, although researchers caution that the two species have coexisted for a very long time and the relationship is not a simple one."
+       "text": "Several causes have been proposed. The removal of hedgerows has reduced the places where hedgehogs can nest and forage, and pesticides have cut the supply of the beetles and caterpillars on which they feed. Badgers, which compete with hedgehogs for food and will also eat them, have increased in some areas, although researchers caution that the two species have coexisted for a very long time and the relationship is not a simple one. There is no agreement on which of these factors matters most."
       },
       {
        "label": null,
@@ -176,7 +176,7 @@
          "mode": "tfng",
          "statement": "Hedgehog numbers in the countryside have fallen considerably in recent decades.",
          "answer": "T",
-         "why": "Surveys suggest hedgehogs \"have become markedly less common in the British countryside\"."
+         "why": "Surveys \"suggest\" that hedgehogs \"have become markedly less common in the British countryside\". The statement claims no certainty, so \"surveys suggest\" is enough for TRUE."
         },
         {
          "id": "u07-l1-i7-q2",
@@ -192,7 +192,7 @@
          "mode": "tfng",
          "statement": "Researchers agree that badgers are the main reason for the decline.",
          "answer": "F",
-         "why": "Researchers \"caution… the relationship is not a simple one\"; the passage lists badgers as one of several proposed causes."
+         "why": "Badgers are only one of several proposed causes, researchers caution that \"the relationship is not a simple one\", and the passage states: \"There is no agreement on which of these factors matters most.\""
         },
         {
          "id": "u07-l1-i7-q4",
@@ -479,9 +479,9 @@
          "id": "u07-l3-i1-q2",
          "type": "tfng",
          "mode": "tfng",
-         "statement": "Operators used telescopes to read signals from neighbouring towers.",
+         "statement": "Signals were viewed with a magnifying instrument from station to station.",
          "answer": "T",
-         "why": "Paragraph A: the operator \"would read the signal through a telescope\"."
+         "why": "Paragraph A: the operator in the next tower \"would read the signal through a telescope\"."
         },
         {
          "id": "u07-l3-i1-q3",
@@ -497,15 +497,15 @@
          "mode": "tfng",
          "statement": "The French network eventually reached every town in the country.",
          "answer": "F",
-         "why": "Paragraph B: it \"reached most of the country's major cities\", not every town."
+         "why": "Paragraph B: it \"reached most of the country's major cities\". If some major cities were not reached, it cannot have reached every town."
         },
         {
          "id": "u07-l3-i1-q5",
          "type": "tfng",
          "mode": "tfng",
-         "statement": "The system could operate in light rain but not in fog.",
+         "statement": "Rain had no effect on the system's operation.",
          "answer": "F",
-         "why": "Paragraph C: \"fog, rain or haze could stop it altogether\"."
+         "why": "Paragraph C: \"fog, rain or haze could stop it altogether\", so rain could stop it."
         },
         {
          "id": "u07-l3-i1-q6",
@@ -547,17 +547,17 @@
         {
          "id": "u07-l3-i1-q10",
          "type": "gap",
-         "text": "Some historians regard optical telegraphs as merely an engineering ___.",
+         "text": "Some scholars have regarded the towers as little more than a technical ___.",
          "answer": [
           "curiosity"
          ],
          "limit": "NO MORE THAN TWO WORDS",
-         "why": "Paragraph E: \"treated these optical telegraphs as an engineering curiosity\"."
+         "why": "Paragraph E: historians have \"treated these optical telegraphs as an engineering curiosity\"."
         },
         {
          "id": "u07-l3-i1-q11",
          "type": "gap",
-         "text": "In fact, they pioneered ideas such as ___ and methods of checking that messages had arrived correctly.",
+         "text": "Yet they introduced concepts such as ___ and checks that each transmission had arrived intact.",
          "answer": [
           "standardised codes",
           "standardized codes"
@@ -568,7 +568,7 @@
         {
          "id": "u07-l3-i1-q12",
          "type": "gap",
-         "text": "Electric telegraphs carried much more traffic and required fewer ___.",
+         "text": "The rival technology that replaced them could work after dark, handle a much greater volume of messages and be run with fewer ___.",
          "answer": [
           "staff"
          ],
@@ -580,7 +580,8 @@
          "type": "gap",
          "text": "Today, some ___ in France can be visited by the public.",
          "answer": [
-          "restored towers"
+          "restored towers",
+          "towers"
          ],
          "limit": "NO MORE THAN TWO WORDS",
          "why": "Paragraph G: \"restored towers have been opened to visitors\"."
