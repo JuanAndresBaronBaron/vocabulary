@@ -67,7 +67,7 @@
    paid?: {id: "AAAA-MM-DD"} (las pagadas hoy), heard?: {id: "AAAA-MM-DD"} (las que se contestaron: el ✓ de la lista)}.
    API: window.vocabCalls = {KEY, CHANCE, GAP, state(), blocked(), calm(), check(), ring(id?) → Promise<boolean>,
      answer(), pick(i), replay(slow), hangUp(), notNow(), callBack(), list(lang?), get(id), setOff(off), slot,
-     adultHtml(), images(), files(), mix(llamada), call(id) (llamar desde la lista), get current() (con ok: la buena de la
+     adultHtml(), images(read?), files(), mix(llamada), call(id) (llamar desde la lista), get current() (con ok: la buena de la
      pregunta en pantalla, en el orden que se ve; -1 si es de gustos)}. */
 (() => {
 "use strict";
@@ -891,13 +891,14 @@ async function files(){
   for(const l of Object.keys(LANGS)) (isObj(x[l]) && Array.isArray(x[l].calls) ? x[l].calls : []).forEach(c => out.push("data/calls/" + c.f));
   return out;
 }
-/* los dibujos que no vienen en los temas (los abuelos de img/calls) y la foto del zorro */
-async function images(){
+/* los dibujos que no vienen en los temas (los abuelos de img/calls) y la foto del zorro. read(url) → JSON: «Descargar
+   todo» da las llamadas que acaba de bajar (sin él, se piden) */
+async function images(read){
   const set = new Set([IMG]);
   try{
     const fs = (await files()).filter(f => f !== "data/calls/index.json");
     await Promise.all(fs.map(async f => {
-      try{ const c = await (await fetch(f)).json(); (c.lines || []).forEach(l => (l.a || []).forEach(a => { if(typeof a.img === "string") set.add(a.img); })); }catch(e){}
+      try{ const c = read ? await read(f) : await (await fetch(f)).json(); (c.lines || []).forEach(l => (l.a || []).forEach(a => { if(typeof a.img === "string") set.add(a.img); })); }catch(e){}
     }));
   }catch(e){}
   return [...set];

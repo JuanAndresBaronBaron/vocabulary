@@ -211,8 +211,10 @@ def test_migrates_nationalities_once():
 
 # ---------------------------------------------------------------- el calendario
 def test_scheduler_rules():
-    """srsStep/srsGrade: las cajas, el tope de lo que puntúa él, la dominada a los 30 días con "mastered" una vez, el
-    ajuste por niño y rv:stat (solo lo que corrige la app)."""
+    """srsStep/srsGrade: las cajas, el tope de lo que puntúa él, la dominada a los 30 días con "mastered" una vez (el día
+    que le toca, o comprobando el «¡Sí!» que se puso en la caja 5 el día que tocaba, x.s = 2; un acierto antes de que le
+    toque en la caja 5, en Preguntas o en una lección, no la domina ni le mueve la fecha ni su x.s, tampoco tras el «¡Sí!»
+    de la caja 4 que la subió a la 5), el ajuste por niño y rv:stat (solo lo que corrige la app)."""
     probs = []
     page = C.new_page("desk")
     try:
@@ -222,10 +224,12 @@ def test_scheduler_rules():
           return {IV, MASTER, two: S({b: 2}, 2), one: S({b: 3}, 1), oneone: S({b: 3, h: 1}, 1), zero: S({b: 3}, 0), zero1: S({b: 1}, 0),
             again: S({b: 3}, 0, {again: true}), top: S({b: 7}, 2), selfUp: S({b: 3}, 2, {self: true}), selfCap: S({b: 3, s: 1}, 2, {self: true}),
             selfLow: S({b: 2, s: 1}, 2, {self: true}), self5: S({b: 4}, 2, {self: true}), self55: S({b: 5}, 2, {self: true}), app5: S({b: 5}, 2),
-            selfOne: S({b: 3, s: 1, h: 1}, 1, {self: true})}; }""")
+            selfOne: S({b: 3, s: 1, h: 1}, 1, {self: true}), early51: S({b: 5, s: 1, due: today() + 9}, 2),
+            early52: S({b: 5, s: 2, due: today() + 9}, 2)}; }""")
         want = {"IV": [0, 1, 3, 7, 14, 30, 60, 120], "MASTER": 6, "two": [3, 0, 7], "one": [3, 1, 7], "oneone": [4, 0, 14], "zero": [1, 0, 0],
                 "zero1": [0, 0, 0], "again": [3, 0, 1], "top": [7, 0, 120], "selfUp": [4, 0, 14], "selfCap": [3, 0, 7], "selfLow": [3, 0, 7],
-                "self5": [5, 0, 30], "self55": [5, 0, 30], "app5": [6, 0, 60], "selfOne": [3, 0, 7]}
+                "self5": [5, 0, 30], "self55": [5, 0, 30], "app5": [6, 0, 60], "selfOne": [3, 0, 7], "early51": [5, 0, 9],
+                "early52": [6, 0, 60]}
         for k, v in want.items():
             if r[k] != v:
                 probs.append(f"srsStep {k}: {r[k]} (se esperaba {v})")
@@ -244,18 +248,152 @@ def test_scheduler_rules():
           srsGrade('animales', r, 2, {self: true}); out.self = snap(); out.ev0 = ev.length;
           srsGrade('animales', r, 2); out.app = snap(); out.ev1 = ev.slice();
           srsGrade('animales', r, 0); out.miss = snap();
-          srsGrade('animales', r, 2); srsGrade('animales', r, 2); out.back = snap(); out.ev2 = ev.length;
-          out.stat = store.get('rv:stat', null); out.t = today(); return out; }""")
-        if g["self"]["b"] != 5 or g["self"].get("s") != 1 or g["ev0"]:
-            probs.append(f"«¡Sí!» en la caja 5 sin comprobar: {g['self']} (se queda en la 5, sin dominar), avisos {g['ev0']}")
+          srsGrade('animales', r, 2); out.back5 = snap(); srsAll()[K].due = today(); srsGrade('animales', r, 2); out.back = snap(); out.ev2 = ev.length;
+          out.stat = store.get('rv:stat', null); out.t = today();
+          /* en la caja 5, aún sin tocarle (dentro de 9 días): acertar, a la primera o con ayuda, no cambia nada */
+          const m2 = srsAll(); m2[K] = {d: 'animales', e: 'Perro', b: 5, due: today() + 9, n: 4}; srsPut(m2);
+          srsGrade('animales', r, 2); srsGrade('animales', r, 1); out.early = snap(); out.ev3 = ev.length;
+          /* caja 4, le toca hoy: su «¡Sí!» la sube a la 5 (x.s = 1) y un acierto comprobado ese mismo día (Preguntas, la
+             granja, Dilo) no la domina, ni le mueve la fecha ni le quita x.s; el día que le toca, comprobada, sí */
+          const r2 = d.rows.find(x => x.es === 'Gato'), K2 = 'animales|Gato', snap2 = () => Object.assign({}, srsAll()[K2]);
+          const m3 = srsAll(); m3[K2] = {d: 'animales', e: 'Gato', b: 4, due: today(), n: 4}; srsPut(m3);
+          srsGrade('animales', r2, 2, {self: true}); out.self4 = snap2();
+          srsGrade('animales', r2, 2); out.self4app = snap2(); out.ev4 = ev.length; out.kind4 = vocabReview.kindOf(r2, srsAll()[K2]);
+          srsAll()[K2].due = today(); srsGrade('animales', r2, 2); out.self4due = snap2(); out.ev5 = ev.map(e => e.k);
+          return out; }""")
+        if g["self"]["b"] != 5 or g["self"].get("s") != 2 or g["self"]["due"] != g["t"] + 30 or g["ev0"]:
+            probs.append(f"«¡Sí!» en la caja 5 el día que toca, sin comprobar: {g['self']} (se queda en la 5 con x.s = 2, sin "
+                         f"dominar), avisos {g['ev0']}")
         if g["app"]["b"] != 6 or g["app"].get("m") != 1 or "s" in g["app"] or g["app"]["due"] != g["t"] + 60:
             probs.append(f"bien, comprobado, en la caja 5: {g['app']} (se esperaba caja 6, m: 1, dentro de 60 días)")
         if g["ev1"] != [{"k": "animales|Perro", "doc": "animales", "es": "Perro", "lang": "english"}]:
             probs.append(f"bus mastered: {g['ev1']}")
-        if g["miss"]["b"] != 4 or g["back"]["b"] != 6 or g["ev2"] != 1:
-            probs.append(f"fallada y vuelta a dominar: {g['miss']} → {g['back']}, avisos {g['ev2']} (solo uno por palabra)")
+        if g["miss"]["b"] != 4 or g["back5"]["b"] != 5 or g["back"]["b"] != 6 or g["ev2"] != 1:
+            probs.append(f"fallada y vuelta a dominar: {g['miss']} → {g['back5']} → {g['back']}, avisos {g['ev2']} (solo uno por palabra)")
+        e = g["early"]
+        if e["b"] != 5 or e["due"] != g["t"] + 9 or e.get("m") or e.get("h") or e["n"] != 6 or g["ev3"] != 1:
+            probs.append(f"acertar en la caja 5 antes de que toque: {e}, avisos {g['ev3']} (se esperaba caja 5 con la misma fecha y sin dominar)")
+        s4, a4, d4 = g["self4"], g["self4app"], g["self4due"]
+        if s4["b"] != 5 or s4.get("s") != 1 or s4["due"] != g["t"] + 30:
+            probs.append(f"«¡Sí!» en la caja 4: {s4} (se esperaba caja 5, x.s = 1, dentro de 30 días)")
+        if a4["b"] != 5 or a4["due"] != s4["due"] or a4.get("s") != 1 or a4.get("m") or g["ev4"] != 1 or g["kind4"] == "card":
+            probs.append(f"acierto comprobado el mismo día tras el «¡Sí!» de la caja 4: {a4}, avisos {g['ev4']}, tarjeta "
+                         f"{g['kind4']} (se esperaba caja 5 con la misma fecha y x.s, sin dominar; el día que toca la corrige la app)")
+        if d4["b"] != 6 or d4.get("m") != 1 or "s" in d4 or g["ev5"] != ["animales|Perro", "animales|Gato"]:
+            probs.append(f"comprobada el día que le toca: {d4}, avisos {g['ev5']} (se esperaba caja 6, m: 1, un aviso)")
         if (g["stat"] or {}).get("r") != "1011":
             probs.append(f"rv:stat apunta {g['stat']} (solo lo comprobado: 1011)")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    assert not probs, "\n".join(probs)
+
+
+_GAME = """([id, ws]) => vocabGames.register(id, {t: 'Prueba', img: 'img/games/globos.png', words: 'Prueba',
+  start(app, api) { const run = api.mount(app, '<div class="gm"><p class="gm-tip">Prueba</p></div>', '');
+    api.answer(true, {es: 'gato', word: 'cat'});
+    api.later(run, () => api.finish(run, id, {score: 3, stars: 2, line: 'Prueba terminada', words: ws}), 80); }})"""
+
+
+def test_mastery_pays_once_and_game_misses_reach_review():
+    """Entre paquetes: dominar una palabra (srsGrade, venga del repaso, la granja o Preguntas) da +5 de js/rewards.js
+    («mastered» → «mastered-paid») una sola vez, también si se falla y se vuelve a dominar y tras recargar; un acierto en
+    la caja 5 antes de que le toque no la domina ni paga, tampoco justo después del «¡Sí!» de la caja 4 que la subió a la
+    5. Las falladas de un juego llegan al repaso: las que ya estaban, para hoy y en su caja, salvo las de la caja 5, que
+    bajan a la 4 (acertarla justo después no la domina ni paga); las nuevas (3 como mucho), en la caja 0 para hoy; y la
+    sesión de #/repaso las trae."""
+    import test_f4_juegos as J
+    probs = []
+    grade = """async ([es, setDue]) => { const d = await getDoc('animales'), r = d.rows.find(x => x.es === es), K = 'animales|' + es;
+      const c0 = game().coins, a0 = __aw.length, m0 = __mast.length, p0 = __paid.length;
+      if (setDue !== null) { const m = srsAll(); m[K].b = 5; m[K].due = today() + setDue; srsPut(m); }
+      const x0 = Object.assign({}, srsAll()[K]); srsGrade('animales', r, 2);
+      await new Promise(f => setTimeout(f, 600));
+      return {x0, x: Object.assign({}, srsAll()[K]), coins: game().coins - c0, aw: __aw.slice(a0), mast: __mast.length - m0, paid: __paid.slice(p0), t: today()}; }"""
+    spy = _SPY.replace("bus.on('review-card'", "window.__paid = []; bus.on('mastered-paid', d => __paid.push([d.k, d.coins])); bus.on('review-card'")
+    page = C.new_page("phone")
+    try:
+        C.seed(page)
+        page.evaluate(spy)
+        a = page.evaluate(grade, ["Perro", 0])
+        if a["x"]["b"] != 6 or a["x"].get("m") != 1 or a["mast"] != 1 or a["coins"] != 5 or a["paid"] != [["animales|Perro", 5]] \
+                or [w[0] for w in a["aw"]] != [5]:
+            probs.append(f"dominar el día que toca: {a} (se esperaba caja 6, m: 1, +5 una vez)")
+        page.evaluate("async () => { const d = await getDoc('animales'); srsGrade('animales', d.rows.find(x => x.es === 'Perro'), 0); }")
+        b = page.evaluate(grade, ["Perro", 0])
+        if b["x"]["b"] != 6 or b["mast"] or b["coins"] or b["paid"]:
+            probs.append(f"fallada y vuelta a dominar en la misma visita: {b} (no se paga otra vez)")
+        e = page.evaluate(grade, ["Pez", None])
+        if e["x"]["b"] != 5 or e["x"]["due"] != e["x0"]["due"] or e["x0"]["due"] <= e["t"] or e["mast"] or e["coins"]:
+            probs.append(f"acertar en la caja 5 antes de que toque: {e} (ni dominada ni monedas, la misma fecha)")
+        # caja 4, le toca hoy, sin micrófono: «¡Sí!» (la sube a la 5) y, el mismo día, un acierto comprobado (Preguntas)
+        f = page.evaluate("""async () => { const d = await getDoc('animales'), r = d.rows.find(x => x.es === 'Gato'), K = 'animales|Gato';
+          const m = srsAll(); m[K] = {d: 'animales', e: 'Gato', b: 4, due: today(), n: 4}; srsPut(m);
+          const c0 = game().coins, m0 = __mast.length, p0 = __paid.length;
+          srsGrade('animales', r, 2, {self: true}); const x1 = Object.assign({}, srsAll()[K]);
+          srsGrade('animales', r, 2); await new Promise(f => setTimeout(f, 600));
+          return {x1, x: Object.assign({}, srsAll()[K]), coins: game().coins - c0, mast: __mast.length - m0, paid: __paid.slice(p0), t: today()}; }""")
+        if f["x1"]["b"] != 5 or f["x"]["b"] != 5 or f["x"]["due"] != f["x1"]["due"] or f["x"].get("m") or f["mast"] or f["coins"] \
+                or f["paid"]:
+            probs.append(f"«¡Sí!» en la caja 4 y acierto el mismo día: {f} (se esperaba caja 5 con la misma fecha, ni dominada ni monedas)")
+        C.reload(page)
+        page.evaluate(spy)
+        r = page.evaluate(grade, ["Perro", 0])
+        if r["x0"].get("m") != 1 or r["mast"] or r["coins"] or r["paid"]:
+            probs.append(f"tras recargar, dominada otra vez: {r} (x.m se guarda y no se paga otra vez)")
+        probs += C.errors(page)
+    finally:
+        page.context.close()
+    page = C.new_page("phone")
+    try:
+        J._open(page, None, kind_hash="#/juegos")
+        info = page.evaluate("""async () => { const m = srsAll(); let fresh = [], doc = '';
+          for (const it of await getIndex()) { const d = await getDoc(it.id), f = (d.rows || []).filter(r => r.es && r.l && r.l[lang] && !m[it.id + '|' + r.es]);
+            if (f.length >= 4) { fresh = f.slice(0, 4).map(r => r.es); doc = it.id; break; } }
+          return {fresh, doc, t: today(), had: {Gato: Object.assign({}, m['animales|Gato']), Perro: Object.assign({}, m['animales|Perro']),
+            Pez: Object.assign({}, m['animales|Pez'])}}; }""")
+        D, t = info["doc"], info["t"]
+        assert len(info["fresh"]) == 4, f"no hay un tema con 4 palabras fuera del repaso: {info}"
+        pez = info["had"]["Pez"]
+        assert pez.get("b") == 5 and pez.get("due", t) > t and not pez.get("m"), f"Pez no está en la caja 5 sin tocarle: {pez}"
+        ws = [{"k": "animales|Gato", "es": "Gato", "word": "cat", "img": "img/games/globos.png", "miss": True},
+              {"k": "animales|Perro", "es": "Perro", "word": "dog", "miss": True},
+              {"k": "animales|Pez", "es": "Pez", "word": "fish", "miss": True}]
+        ws += [{"k": f"{D}|{es}", "es": es, "word": es.lower(), "miss": True} for es in info["fresh"]]
+        page.evaluate(_GAME, ["prueba-rv", ws])
+        page.evaluate("() => { location.hash = '#/juegos/prueba-rv'; }")
+        page.wait_for_selector("#gm-end", timeout=8000)
+        page.wait_for_timeout(300)
+        rv = page.evaluate("() => (document.getElementById('gm-rv') || {}).textContent || ''")
+        srs = page.evaluate(_SRS)
+        for es, x0 in info["had"].items():
+            x = srs.get("animales|" + es) or {}
+            want = x0["b"] - 1 if x0["b"] == 5 else x0["b"]
+            if x.get("due") != t or x.get("b") != want:
+                probs.append(f"fallada que ya estaba en el repaso, animales|{es}: {x0} → {x} (se esperaba para hoy y en la caja {want})")
+        new = [f"{D}|{es}" for es in info["fresh"] if f"{D}|{es}" in srs]
+        if len(new) != 3 or any(srs[k]["b"] != 0 or srs[k]["due"] != t for k in new):
+            probs.append(f"falladas nuevas: {[(k, srs.get(k)) for k in new]} (se esperaban 3, en la caja 0 para hoy)")
+        if "6 palabras irán a tu repaso" not in rv:
+            probs.append(f"el resultado del juego dice {rv!r}")
+        due = set(page.evaluate("() => dueList().map(x => x.d + '|' + x.e)"))
+        lost = [k for k in ["animales|Gato", "animales|Perro", "animales|Pez"] + new if k not in due]
+        if lost:
+            probs.append(f"no están pendientes: {lost}")
+        C.goto(page, "#/repaso")
+        page.wait_for_timeout(500)
+        q = dict(page.evaluate("() => ((typeof rv !== 'undefined' && rv && rv.q) || []).map(it => [it.id + '|' + it.r.es, it.kind])"))
+        lost = [k for k in ["animales|Gato", "animales|Perro", "animales|Pez"] + new if k not in q]
+        if lost or any(q[k] not in ("listen", "pick") for k in new if k in q):
+            probs.append(f"la sesión de repaso no las trae (o no como caja 0): faltan {lost}, {q}")
+        # la de la caja 5 fallada en el juego, acertada ese mismo día (Dilo, Preguntas, la granja): ni dominada ni +5
+        z = page.evaluate("""async () => { const d = await getDoc('animales'), r = d.rows.find(x => x.es === 'Pez'), K = 'animales|Pez', mast = [], paid = [];
+          bus.on('mastered', e => mast.push(e.k)); bus.on('mastered-paid', e => paid.push(e.k));
+          const c0 = game().coins; srsGrade('animales', r, 2); await new Promise(f => setTimeout(f, 600));
+          return {x: Object.assign({}, srsAll()[K]), coins: game().coins - c0, mast, paid, t: today()}; }""")
+        if z["x"].get("b") != 5 or z["x"].get("m") or z["x"].get("due", 0) < z["t"] + 30 or z["mast"] or z["paid"] or z["coins"]:
+            probs.append(f"fallada en el juego desde la caja 5 y acertada el mismo día: {z} (se esperaba caja 5 dentro de 30 días o "
+                         f"más, ni dominada ni monedas)")
         probs += C.errors(page)
     finally:
         page.context.close()
@@ -265,7 +403,7 @@ def test_scheduler_rules():
 def test_in_memory_map_writes_late():
     """El repaso vive en memoria: 10 notas seguidas no escriben nada; se escribe una vez a los 250 ms, y enseguida al
     esconder la app o al cerrarla; srsAll(), store.get y la copia de la partida ven lo mismo; si otro cambia
-    localStorage, se nota al leer."""
+    localStorage, se nota al leer y, con una nota aún sin escribir, srsFlush no lo pisa (una partida cargada manda)."""
     page = C.new_page("desk")
     try:
         C.seed(page)
@@ -293,8 +431,10 @@ def test_in_memory_map_writes_late():
           } finally { Storage.prototype.setItem = s0; }
           const m = JSON.parse(localStorage.getItem('srs:english')); m['animales|Perro'].b = 7; localStorage.setItem('srs:english', JSON.stringify(m));
           out.other = srsAll()['animales|Perro'].b;
+          srsGrade('animales', rows[3], 2); m['animales|Perro'].b = 2; localStorage.setItem('srs:english', JSON.stringify(m)); srsFlush();
+          out.kept = JSON.parse(localStorage.getItem('srs:english'))['animales|Perro'].b;
           return out; }""")
-        want = {"now": 0, "mid": 0, "after": 1, "eq": True, "pend": 1, "hid": 2, "ph": 3, "snap": True, "other": 7, "same": True}
+        want = {"now": 0, "mid": 0, "after": 1, "eq": True, "pend": 1, "hid": 2, "ph": 3, "snap": True, "other": 7, "kept": 2, "same": True}
         bad = {k: r[k] for k in want if r[k] != want[k]}
         assert not bad and r["ms"] < 200 and not C.errors(page), f"{bad} ({r}) {C.errors(page)}"
     finally:

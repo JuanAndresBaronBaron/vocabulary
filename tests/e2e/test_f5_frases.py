@@ -575,7 +575,7 @@ def test_dilo_is_tolerant_and_never_a_failure():
         page.locator(".ph-tile").first.click()
         _wait_quiet(page)
         st = page.evaluate(_ST)
-        before = page.evaluate("() => [localStorage.getItem('srs:english'), game().coins]")
+        before = page.evaluate("() => (srsFlush(), [localStorage.getItem('srs:english'), game().coins])")
 
         def say(alts=None, err=None):
             page.evaluate("([a, e]) => { window.__srAlts = a; window.__srErr = e; }", [alts, err])
@@ -598,7 +598,7 @@ def test_dilo_is_tolerant_and_never_a_failure():
         r = say(None, "not-allowed")
         if r["ok"] or "micrófono" not in r["t"]:
             probs.append(f"sin permiso: {r}")
-        if page.evaluate("() => [localStorage.getItem('srs:english'), game().coins]") != before:
+        if page.evaluate("() => (srsFlush(), [localStorage.getItem('srs:english'), game().coins])") != before:
             probs.append("«Dilo» cambió el repaso o las monedas")
         if page.evaluate("() => document.querySelector('#ph-card .miss, #ph-card [class*=nope]') !== null"):
             probs.append("sale un fallo")

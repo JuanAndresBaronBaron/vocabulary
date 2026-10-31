@@ -89,8 +89,12 @@ compartida no responde).
 - `test_repaso_metodo.py` (el repaso con método, `metodo.md`): el español único por tema e idioma en `data/*.json` y
   nacionalidades con la nacionalidad (y su paso, una vez, de las claves guardadas con el país, apuntado en `mig`); las
   reglas de `srsStep`/`srsGrade` (cajas, «1» que mantiene el intervalo, 0 que baja dos, tope de lo que puntúa el niño,
-  dominada en la caja 6 solo comprobada y a 30 días o más con `bus` "mastered" una vez, ajuste por niño con `rv:stat`);
-  el mapa en memoria (una escritura a los 250 ms y al esconder o cerrar, `vocabSave.snapshot()` al día); repasos de 20
+  dominada en la caja 6 solo comprobada y a 30 días o más con `bus` "mastered" una vez (un acierto en la caja 5 antes de
+  que toque no la mueve, tampoco justo después del «¡Sí!» de la caja 4 que la subió a la 5), ajuste por niño con
+  `rv:stat`); entre paquetes, dominar paga +5 una sola vez (también tras fallarla o recargar), un «¡Sí!» de la caja 4
+  y un acierto el mismo día no pagan, y las falladas de un juego llegan al repaso y a su sesión (las de la caja 5,
+  en la 4: acertarlas justo después no las domina); el mapa en memoria (una escritura a los
+  250 ms y al esconder o cerrar, `vocabSave.snapshot()` al día, sin pisar lo que otro escribió); repasos de 20
   ordenados y «Otra tanda (N más)»; «Escucha y elige», «¿Cuál es…?» y las letras corregidas por la app (monedas = nota,
   fallo en gris con ✗ y la respuesta entera, vuelta 3 a 5 tarjetas después que vale 1); lo que ya no existe se quita;
   «Sin conexión» sin contar lo que no se puede abrir; capturas en `<VOCAB_CAPTURAS>/repaso` a 360, 390 y 1280 px, en

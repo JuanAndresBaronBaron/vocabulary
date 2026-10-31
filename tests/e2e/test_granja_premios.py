@@ -716,7 +716,7 @@ def test_visitante_del_dia():
     page = C.new_page("phone", viewport={"width": 360, "height": 740})
     try:
         _open(page)
-        srs0 = page.evaluate("() => JSON.parse(localStorage.getItem('srs:english'))")
+        srs0 = page.evaluate("() => (srsFlush(), JSON.parse(localStorage.getItem('srs:english')))")
         today = page.evaluate("() => today()")
         _farm(page)
         page.wait_for_selector("#app .fm-vis", timeout=9000)
@@ -738,7 +738,7 @@ def test_visitante_del_dia():
         C.shot(page, "visitante-pregunta-360", OUT, full_page=False)
         page.evaluate("w => [...document.querySelectorAll('#app .fm-pop .fm-opt')].find(o => o.textContent.trim() === w).click()", w)
         page.wait_for_timeout(700)
-        srs1 = page.evaluate("() => JSON.parse(localStorage.getItem('srs:english'))")
+        srs1 = page.evaluate("() => (srsFlush(), JSON.parse(localStorage.getItem('srs:english')))")
         ch = [k for k in set(srs0) | set(srs1) if srs0.get(k) != srs1.get(k)]
         if len(ch) != 1 or not (srs0[ch[0]]["due"] <= today < srs1[ch[0]]["due"]):
             probs.append(f"acertar no puntúa una palabra pendiente: {[(k, srs0.get(k), srs1.get(k)) for k in ch]}")
@@ -767,7 +767,7 @@ def test_visitante_del_dia():
     page = C.new_page("phone", reduced_motion="reduce", color_scheme="dark")
     try:
         _open(page)
-        srs0 = page.evaluate("() => JSON.parse(localStorage.getItem('srs:english'))")
+        srs0 = page.evaluate("() => (srsFlush(), JSON.parse(localStorage.getItem('srs:english')))")
         _farm(page)
         w = _visit(page)
         page.evaluate("w => [...document.querySelectorAll('#app .fm-pop .fm-opt')].find(o => o.textContent.trim() !== w).click()", w)
@@ -782,7 +782,7 @@ def test_visitante_del_dia():
                 probs.append(f"la mala no es gris: {r['bg']}")
         if page.evaluate(_GAME)["coins"] != 245 or "bad" in page.evaluate("() => __sfx"):
             probs.append(f"fallar da monedas o suena triste: {page.evaluate(_GAME)['coins']} {page.evaluate('() => __sfx')}")
-        srs1 = page.evaluate("() => JSON.parse(localStorage.getItem('srs:english'))")
+        srs1 = page.evaluate("() => (srsFlush(), JSON.parse(localStorage.getItem('srs:english')))")
         ch = [k for k in set(srs0) | set(srs1) if srs0.get(k) != srs1.get(k)]
         if len(ch) != 1 or srs1[ch[0]]["b"] != 0:
             probs.append(f"fallar no pone la palabra a 0: {[(k, srs0.get(k), srs1.get(k)) for k in ch]}")

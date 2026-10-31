@@ -149,7 +149,7 @@ def test_oido_round_feedback_audio_retry_and_level_up():
         _open(page)
         P = page.evaluate("() => vocabOido.pairs().english")
         lv1, lv2 = _words(P, 1), _words(P, 2) - _words(P, 1)
-        srs0 = page.evaluate("() => localStorage.getItem('srs:english')")
+        srs0 = page.evaluate("() => (srsFlush(), localStorage.getItem('srs:english'))")
         st = page.evaluate(_STATE)
         if st["dots"] != 20 or "Nivel 1" not in st["lv"]:
             probs.append(f"inicio: {st['dots']} puntos, «{st['lv']}»")
@@ -208,7 +208,7 @@ def test_oido_round_feedback_audio_retry_and_level_up():
             probs.append(f"resultado: {end}")
         if end["tts"]:
             probs.append(f"habló la voz del navegador: {end['tts']}")
-        if page.evaluate("() => localStorage.getItem('srs:english')") != srs0:
+        if page.evaluate("() => (srsFlush(), localStorage.getItem('srs:english'))") != srs0:
             probs.append("las palabras fueron al repaso")
         rec = page.evaluate("() => vocabGames.level('oido')")
         if rec != 2:

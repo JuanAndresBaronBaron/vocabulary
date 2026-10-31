@@ -24,8 +24,9 @@
    Enlace directo con tema: #/juegos/<juego>?t=<tema> juega con ese tema sin cambiar "games:topic" (atajos de Hoy).
    Resultado (finish): estrellas, récord, monedas y las palabras del juego (10 como mucho, las falladas primero con ✗
      gris, cada una con su IPA; a menos de 380 px en una columna y la letra se achica para que ninguna se parta). Las
-     falladas van solas al repaso: las que ya están en él se ponen para hoy y las nuevas entran con srsAdd(doc, [fila],
-     0), 3 como mucho por partida (nunca con Soldados ni en los juegos de gramática: def.words "Gramática" o
+     falladas van solas al repaso: las que ya están en él se ponen para hoy (las de la caja 5 bajan a la 4: el acierto
+     que siga no es el recuerdo a los 30 días que la domina) y las nuevas entran con srsAdd(doc, [fila], 0), 3 como
+     mucho por partida (nunca con Soldados ni en los juegos de gramática: def.words "Gramática" o
      def.noReview); sale «✓ N palabras irán a tu repaso» y el botón «Jugar con estas» (Globos con esas palabras, más
      las del tema hasta 4). Solo cuentan las palabras con k = "<doc>|<es>" (la clave del repaso, srsK de index.html).
      Una partida sin ningún acierto (api.answer(true, …) no se llamó; p. ej. dejar pasar el tiempo sin tocar nada) no
@@ -1311,16 +1312,17 @@ function endWords(ws){
   }
   return out.sort((a, b) => (b.miss ? 1 : 0) - (a.miss ? 1 : 0)).slice(0, 10);
 }
-/* las falladas van solas al repaso: las que ya están en él, para hoy; las nuevas (3 como mucho por partida), con
-   srsAdd(doc, [fila], 0) como Palabras. Nunca con Soldados ni en los juegos de gramática (def.words "Gramática" o
-   def.noReview). Solo las que traen k = "<doc>|<es>" (la clave del repaso). Devuelve {n (cuántas irán al repaso),
-   play (las falladas con dibujo, para «Jugar con estas»)} */
+/* las falladas van solas al repaso: las que ya están en él, para hoy (y las de la caja 5, a la 4: si no, acertarla justo
+   después, en el repaso, Preguntas o la granja, la dejaría dominada sin el recuerdo a los 30 días que pide el repaso de
+   index.html); las nuevas (3 como mucho por partida), con srsAdd(doc, [fila], 0) como Palabras. Nunca con Soldados ni
+   en los juegos de gramática (def.words "Gramática" o def.noReview). Solo las que traen k = "<doc>|<es>" (la clave del
+   repaso). Devuelve {n (cuántas irán al repaso), play (las falladas con dibujo, para «Jugar con estas»)} */
 function toReview(g, ws){
   const G0 = GAMES[g] || {}, out = {n: 0, play: []};
   if(G0.noReview || G0.words === "Gramática" || secFor(g) === "soldados" || (usesTopic(g) && CUR_TP === MIL)) return out;
   let m = null; try{ m = srsAll(); }catch(e){}
   if(!m || typeof m !== "object") return out;
-  const t = today(), add = [], seen = new Set();
+  const t = today(), add = [], seen = new Set(), B5 = (typeof MASTER === "number" ? MASTER : 6) - 1;
   let due = 0, put = false;
   for(const w of Array.isArray(ws) ? ws : []){
     if(!w || !w.miss || typeof w.k !== "string" || seen.has(w.k)) continue;
@@ -1329,7 +1331,11 @@ function toReview(g, ws){
     seen.add(w.k);
     if(w.img && w.word) out.play.push(w);
     const x = m[w.k];
-    if(x && typeof x === "object"){ if(!(x.due <= t)){ x.due = t; put = true; } due++; }
+    if(x && typeof x === "object"){
+      if(!(x.due <= t)){ x.due = t; put = true; }
+      if(Math.floor(+x.b || 0) === B5){ x.b = B5 - 1; put = true; }
+      due++;
+    }
     else if(add.length < 3) add.push({d, es});
   }
   try{

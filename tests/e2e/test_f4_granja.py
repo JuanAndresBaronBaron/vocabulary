@@ -84,7 +84,7 @@ _HOOKS = """() => {
 }"""
 _FARM = "() => JSON.parse(localStorage.getItem('farm:state'))"
 _GAME = "() => JSON.parse(localStorage.getItem('game'))"
-_STORE = """() => { const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); o[k] = localStorage.getItem(k); } return o; }"""
+_STORE = """() => { srsFlush(); const o = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); o[k] = localStorage.getItem(k); } return o; }"""
 _FINISH = """() => { for (const a of document.getAnimations()) { try {
   const t = a.effect && a.effect.getComputedTiming();
   if (t && t.iterations !== Infinity && isFinite(t.endTime)) a.finish();

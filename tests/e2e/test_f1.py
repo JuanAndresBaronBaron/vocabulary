@@ -508,17 +508,19 @@ def test_listen_never_hangs():
 def test_download_saves_current_language_audio():
     """«Descargar todo» guarda en vocab-media los mp3 del idioma actual (inglés en la partida sembrada) enteros y con
     200, y ninguno de los otros idiomas. Para que sean pocas peticiones, el mapa de audios se recorta a 3 y los temas, salvo
-    uno, se sirven vacíos mientras descarga."""
+    uno, se sirven vacíos mientras descarga. Nada se pide dos veces (lo de OFF_APP no se vuelve a pedir para vocab-media,
+    ni los documentos de llamadas, cuentos y temporadas para sacar sus dibujos)."""
     amap = json.loads((C.ROOT / "audio" / "en.json").read_text(encoding="utf-8"))
     ids = sorted({v for v in amap.values() if re.fullmatch(r"[\w-]+", str(v))})[:3]
     small = {w: i for w, i in amap.items() if i in ids}
     keep = {"index", "map", "game", "sprites", "grammar_en", "grammar_fr", "grammar_da", R.TOPIC}
-    st = {"on": False, "n": 0, "stub": 0}
+    st = {"on": False, "n": 0, "stub": 0, "seen": {}}
 
     def route(rt):
         path = urlsplit(rt.request.url).path
         if st["on"]:
             st["n"] += 1
+            st["seen"][path] = st["seen"].get(path, 0) + 1
         if path == "/audio/en.json":
             return rt.fulfill(status=200, content_type="application/json", body=json.dumps(small))
         m = re.fullmatch(r"/data/([\w-]+)\.json", path)
@@ -532,6 +534,8 @@ def test_download_saves_current_language_audio():
         page.route("**/*", route)
         C.seed(page)
         assert page.evaluate("() => lang") == "english"
+        # el índice de las llamadas se pide solo a los 600 ms de abrir la app (js/calls.js): ya pedido, no cuenta en la descarga
+        page.evaluate("async () => { if (window.vocabCalls) await vocabCalls.files(); }")
         st["on"] = True
         page.evaluate("() => downloadAll()")
         st["on"] = False
@@ -559,7 +563,13 @@ def test_download_saves_current_language_audio():
     assert not info["other"], f"se guardaron audios de otros idiomas: {info['other'][:5]}"
     assert doc and info["img"] > 0, f"no se guardaron el tema {R.TOPIC} ni sus dibujos: doc={doc}, dibujos={info['img']}"
     assert info["offline"] == "true", f"sin fallos tiene que marcar 'offline': {info['offline']!r}"
-    assert st["n"] < 600, f"demasiadas peticiones para la prueba: {st['n']}"
+    twice = sorted(p for p, n in st["seen"].items() if n > 1)
+    assert not twice, f"{len(twice)} archivos pedidos más de una vez, p. ej.: {twice[:6]}"
+    # lo que hace falta de verdad (v38, medido): OFF_APP 163 + 90 temas + 3 gramáticas + el mapa de audios + 347 dibujos
+    # (de los temas, la tienda, los personajes, Juegos, temporadas, Buzón, llamadas, cuentos y Cazador) + 3 mp3 = 607.
+    # Era 579 antes de los cuentos y las llamadas nuevas (+27 documentos, +48 dibujos) y los juegos nuevos (4 js, 4 dibujos
+    # de Juegos, 4 de temporadas), menos lo que pasó a LAZY (Tech Prep e IELTS, 10). El margen es para crecer un poco.
+    assert st["n"] < 640, f"demasiadas peticiones para la prueba: {st['n']}"
     assert not errs, "errores:\n  " + "\n  ".join(errs)
 
 

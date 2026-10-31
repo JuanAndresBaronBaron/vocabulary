@@ -37,7 +37,7 @@
      advent: {open: [ventanitas abiertas], paid: día de las últimas monedas}}}. Solo se escribe al jugar; se guardan este
      año y el anterior. Las monedas solo entran por award().
    Para otros módulos y pruebas: window.vocabSeason = {active(), byDate(fecha), forced(), today(), load(), slot,
-     decorate(capa, hz), images() (promesa: sus dibujos, para «Descargar todo»), state}. Emite bus "season-done"
+     decorate(capa, hz), images(read?) (promesa: sus dibujos, para «Descargar todo»), state}. Emite bus "season-done"
      {season, sticker, paid} y "season-window" {n, today, first}. */
 (() => {
 "use strict";
@@ -780,11 +780,11 @@ bus.on("route", d => {
 bus.on("boot", () => { if(active()) load().catch(() => {}); });
 
 /* los dibujos de las temporadas para «Descargar todo»: los de img/season de la calle, la fila de Hoy y la granja, y los
-   de sus palabras (data/season.json) */
-async function images(){
+   de sus palabras (data/season.json; read(url) → JSON: «Descargar todo» da el que acaba de bajar) */
+async function images(read){
   const out = new Set([ADV_ROW, ...FARM_DECO.map(p => p.img), ...Object.values(HOY_DECO).flat()]);
   for(const s of Object.values(STREET)) for(const k of ["row", "fly", "deco"]) if(s[k]) out.add(s[k]);
-  try{ const D = await load(); for(const id of IDS) (Array.isArray(D[id]) ? D[id] : []).forEach(w => { if(okW(w)) out.add(w.img); }); }
+  try{ const D = read && !DATA ? await read("data/season.json") : await load(); for(const id of IDS) (Array.isArray(D[id]) ? D[id] : []).forEach(w => { if(okW(w)) out.add(w.img); }); }
   catch(e){ console.warn("[season] sin data/season.json:", (e && e.message) || e); }
   return [...out];
 }

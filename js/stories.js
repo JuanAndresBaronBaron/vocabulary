@@ -54,7 +54,7 @@
      sessionStorage "vocab:cuento" = {id, p, ch, es}: por dónde va (al volver a entrar o recargar sigue ahí).
      vocab:ui → talesAuto: true con «Leer solo» encendido.
    window.vocabStories = {ready() → Promise<índice>, index(), list(idioma?), story(id) → Promise, saved(), doneCount(),
-     lock(id) → {free, open, need, has, left, miss}, shortcut(id) → atajo de Hoy | null, images() → Promise<[url]>,
+     lock(id) → {free, open, need, has, left, miss}, shortcut(id) → atajo de Hoy | null, images(read?) → Promise<[url]>,
      state() → lo que se ve, KEY}.
    Usa de index.html: lang, LANGS, store, bus, ROUTES, TABS, esc, ico, getDoc, srsAll, dayKey, award, heroHtml, say,
    playClip, clipFor, stopClip, useVoice, retryLocal, voices, langVoices, langEs, rate, SLOW, ipaHtml, speakable, navTo,
@@ -129,12 +129,17 @@ function storyImgs(s){
    y el cuento se puede leer entero sin conexión */
 function heroImgs(){ try{ return [...heroHtml(120).matchAll(/\ssrc="([^"]+)"/g)].map(m => m[1].replace(/&amp;/g, "&")); }catch(e){ return []; } }
 function preload(s){ [...storyImgs(s), ...heroImgs()].forEach(u => { const i = new Image(); i.decoding = "async"; i.src = u; }); }
-async function images(){
+/* read(url) → JSON: «Descargar todo» da los cuentos que acaba de bajar (sin él, story() los pide) */
+async function images(read){
   await ready();
   const out = new Set([IMG]);
   for(const L of Object.keys(LANGS)) for(const e of list(L)){
     out.add(e.cover);
-    try{ storyImgs(await story(e.id)).forEach(u => out.add(u)); }catch(err){ console.warn("[cuentos]", err.message); }
+    try{
+      const s = read && !FILES[e.id] ? await read(e.file) : await story(e.id);
+      if(!valid(s)) throw new Error(e.file + " no es un cuento válido");
+      storyImgs(s).forEach(u => out.add(u));
+    }catch(err){ console.warn("[cuentos]", err.message); }
   }
   return [...out];
 }

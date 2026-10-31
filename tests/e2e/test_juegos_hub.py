@@ -479,7 +479,7 @@ def test_zero_right_is_lets_go_again():
         for mode in ("zero", "def", "fin", "right"):
             gid = f"prueba-{mode}"
             page.evaluate(_REG, [gid, mode, GATO["img"]])
-            s0 = page.evaluate("() => ({coins: JSON.parse(localStorage.getItem('game')).coins, day: localStorage.getItem('games:day'), srs: localStorage.getItem('srs:english')})")
+            s0 = page.evaluate("() => (srsFlush(), {coins: JSON.parse(localStorage.getItem('game')).coins, day: localStorage.getItem('games:day'), srs: localStorage.getItem('srs:english')})")
             page.evaluate("() => { __aw.length = 0; __gd.length = 0; }")
             page.evaluate("id => { location.hash = '#/juegos/' + id; }", gid)
             page.wait_for_selector("#gm-end", timeout=8000)
@@ -488,7 +488,7 @@ def test_zero_right_is_lets_go_again():
               aw: __aw.length, gd: __gd.length, again: !!document.getElementById('gm-again'), these: !!document.getElementById('gm-these'),
               rv: (document.getElementById('gm-rv') || {}).textContent || '', miss: document.querySelectorAll('.gm-wc.gm-miss').length,
               stars: document.querySelectorAll('.gm-end-st .gm-es.on').length, wl: document.querySelectorAll('.gm-wc').length})""")
-            s1 = page.evaluate("() => ({coins: JSON.parse(localStorage.getItem('game')).coins, day: localStorage.getItem('games:day'), srs: localStorage.getItem('srs:english')})")
+            s1 = page.evaluate("() => (srsFlush(), {coins: JSON.parse(localStorage.getItem('game')).coins, day: localStorage.getItem('games:day'), srs: localStorage.getItem('srs:english')})")
             best = page.evaluate(J._BEST).get(gid)
             if mode == "zero":
                 if e["t"] != "¡Vamos otra vez!" or e["st"] or e["plus"] or e["aw"] or e["gd"] or not e["again"] or e["these"] or e["rv"] or e["miss"] or e["wl"] != 1:

@@ -102,7 +102,7 @@ def test_story_locks_open_early_and_learn_these_words():
             page.locator("#st-lw-next").click()
         page.wait_for_function("() => !document.querySelector('dialog#st-lock-s[open]')", timeout=4000)
         page.wait_for_timeout(500)
-        srs = page.evaluate("() => JSON.parse(localStorage.getItem('srs:english'))")
+        srs = page.evaluate("() => (srsFlush(), JSON.parse(localStorage.getItem('srs:english')))")
         bad = [m for m in lk["miss"] if not srs.get(m) or srs[m].get("b") != 1]
         if bad:
             probs.append(f"no fueron al repaso (caja 1): {bad}")

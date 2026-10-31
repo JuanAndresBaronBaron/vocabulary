@@ -40,7 +40,7 @@ _DATA = ["data/lince.json", "data/season.json"]
 _ROUTE_N = "() => window.__vocabRouteN || 0"
 _GAME = "() => JSON.parse(localStorage.getItem('game'))"
 _FARM = "() => JSON.parse(localStorage.getItem('farm:state'))"
-_STORE = "() => Object.fromEntries(Object.keys(localStorage).map(k => [k, localStorage.getItem(k)]))"
+_STORE = "() => { if (typeof srsFlush === 'function') srsFlush(); return Object.fromEntries(Object.keys(localStorage).map(k => [k, localStorage.getItem(k)])); }"
 _TZ = ZoneInfo(C.TZ)
 # la versión publicada antes del rediseño (commit 1721796, sw vocab-v13): la carpeta de VOCAB_BASE si se da (una copia
 # de ese commit, p. ej. un git worktree) y, si no, se saca del repo con git archive a una carpeta temporal
@@ -179,8 +179,8 @@ def test_every_written_key_is_registered_and_download_has_new_drawings():
     """Tras usar todo F4 (jugar Oído de lince, comprar en la granja y en Mi zorro, abrir puertas de Halloween, el
     adviento, despegar pegatinas), cada clave de localStorage que la app escribe está en el inventario de js/save.js
     (exacta, por idioma, prácticas, solo del aparato o propia del módulo): ninguna se perdería al exportar o se colaría
-    sin control. «Descargar todo» guarda también los dibujos de la tienda (img/shop), de Juegos (img/games) y de las
-    temporadas (img/season, vía vocabSeason.images())."""
+    sin control. «Descargar todo» guarda también los dibujos de la tienda (img/shop), de Juegos (img/games: en el shell
+    los que van en OFF_APP, sin repetirlos en vocab-media) y de las temporadas (img/season, vía vocabSeason.images())."""
     probs = []
     page = T._page("phone", now=T.OCT)
     try:
@@ -226,7 +226,10 @@ def test_every_written_key_is_registered_and_download_has_new_drawings():
         page.evaluate("() => { window.audioIds = async () => []; }")
         res = page.evaluate("""async () => { await downloadAll(); for (let i = 0; i < 600 && offJob && !offJob.end; i++) await new Promise(r => setTimeout(r, 100));
           const m = await caches.open('vocab-media'), have = new Set((await m.keys()).map(r => new URL(r.url).pathname));
-          return {end: offJob ? offJob.end : 'sin trabajo', shop: have.has('/img/shop/gorra.png'), games: have.has('/img/games/lince.png'),
+          /* lo que está en OFF_APP (los dibujos de Juegos) se guarda en el shell y no otra vez en vocab-media */
+          const sh = new Set((await (await caches.open(await offShellName())).keys()).map(r => new URL(r.url).pathname));
+          const lince = '/img/games/lince.png', inApp = OFF_APP.includes(lince.slice(1));
+          return {end: offJob ? offJob.end : 'sin trabajo', shop: have.has('/img/shop/gorra.png'), games: inApp ? sh.has(lince) : have.has(lince),
             season: have.has('/img/season/pumpkin.png') && have.has('/img/season/angel.png')}; }""")
         if not (res["shop"] and res["games"] and res["season"]):
             probs.append(f"«Descargar todo» no guarda los dibujos nuevos: {res}")
