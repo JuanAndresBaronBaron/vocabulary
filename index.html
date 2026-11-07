@@ -1207,6 +1207,7 @@ function speakable(t){
    al volver la conexión (evento online) o en el siguiente clipFor() (say, sayP…) pasados CLIP_RETRY ms del fallo */
 const CLIP_AB = {english:"en", "français":"fr", dansk:"da"};
 const clipMaps = {}, clipTry = {}, CLIP_RETRY = 30000;   /* clipTry[l] = {ok, busy, at: cuándo falló la última vez} */
+const clipAlt = {}, clipAltRun = {};   /* los audios guardados de otra versión del mismo texto (ver audioRenew, más abajo) */
 function loadClips(l, now){
   if(!CLIP_AB[l]) return;
   const t = clipTry[l] || (clipTry[l] = {ok: false, busy: false, at: 0});
@@ -1214,12 +1215,24 @@ function loadClips(l, now){
   t.busy = true;
   if(!clipMaps[l]) clipMaps[l] = {};
   fetch(`audio/${CLIP_AB[l]}.json`).then(r => { if(!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-    .then(m => { if(!m || typeof m !== "object") throw new Error("mapa"); clipMaps[l] = m; t.ok = true; t.busy = false; })
+    .then(m => { if(!m || typeof m !== "object") throw new Error("mapa"); clipMaps[l] = m; t.ok = true; t.busy = false; clipAltSoon(l); })
     .catch(() => { t.busy = false; t.at = Date.now(); });
 }
 loadClips(lang);
 addEventListener("online", () => { for(const l in clipTry) if(!clipTry[l].ok) loadClips(l, true); });
-const clipFor = t => { if(!(clipTry[lang] && clipTry[lang].ok)) loadClips(lang); const m = clipMaps[lang]; return m && m[speakable(t)]; };
+const clipFor = t => {
+  if(!(clipTry[lang] && clipTry[lang].ok)) loadClips(lang);
+  const m = clipMaps[lang], a = clipAlt[lang], k = speakable(t);
+  return (a && a[k]) || (m && m[k]);
+};
+/* el mapa de un idioma (ab: en, fr, da) con los audios de clipAlt, para los juegos que leen los nombres ellos mismos
+   (js/chant.js, js/simon.js, js/parrot.js); null si aún no llegó */
+window.vocabClipMap = ab => {
+  const l = Object.keys(CLIP_AB).find(L => CLIP_AB[L] === ab && clipTry[L] && clipTry[L].ok);
+  if(!l) return null;
+  const a = clipAlt[l];
+  return a && Object.keys(a).length ? Object.assign({}, clipMaps[l], a) : clipMaps[l];
+};
 /* ¿se oirá bien? tiene audio grabado, o el navegador tiene una voz de ese idioma (si aún no hay lista de voces, sí):
    sin voz, el navegador lo leería con otro acento y enseñaría mal la pronunciación */
 const canHear = t => !!clipFor(t) || ("speechSynthesis" in window && (!voices.length || langVoices(lang).length > 0));
@@ -2056,7 +2069,7 @@ let rv = null;
 /* «Descargar todo»: la app va a la caché del shell actual (la de sw.js) y los documentos, la gramática, los dibujos y los
    audios del idioma actual a vocab-media, que se conserva entre versiones. 6 descargas a la vez, con progreso y Cancelar.
    Pide con cache:"no-store" para que sw.js no lo guarde otra vez por su cuenta. */
-const OFF_SHELL = "vocab-shell-v39", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
+const OFF_SHELL = "vocab-shell-v40", OFF_MEDIA = "vocab-media";   /* los mismos nombres que sw.js */
 const OFF_APP = ["index.html", "privacy.html", "manifest.webmanifest", "data/index.json", "data/map.json", "data/game.json",
   "data/sprites.json", "js/motion.js", "js/gestures.js", "js/lesson.js", "js/learn.js", "js/sfx.js", "js/farm.js", "js/games.js", "js/lince.js", "data/lince.json", "js/party.js", "data/party.json", "img/games/impostor.png", "img/games/ordenar.png", "js/buddy.js", "js/album.js", "js/rewards.js",
   "js/save.js", "js/sync.js", "js/gate.js", "js/settings.js", "js/review.js", "js/shop.js", "icons/icon.svg", "icons/icon-180.png", "icons/icon-192.png", "icons/icon-512.png",
@@ -2094,10 +2107,11 @@ const OFF_APP = ["index.html", "privacy.html", "manifest.webmanifest", "data/ind
   "img/pj/zorro.png", "img/pj/loro.png"];
 /* OFF_APP = SHELL de sw.js. Lo de LAZY (sw.js) que es del niño, los fondos de Pajarito volador, va en los dibujos */
 const OFF_LATER_IMG = ["img/games/vuelo-en.jpg", "img/games/vuelo-fr.jpg", "img/games/vuelo-da.jpg"];
-/* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 33 MiB) */
+/* tamaños medidos en Chrome (MiB y KiB; todo en inglés ocupa unos 27 MiB). Los audios, desde la v40 sin el silencio del
+   principio: 4,4 / 5,7 / 4,6 KiB de media en disco, más lo que añade la caché */
 const OFF_FIRST_MB = 6.2;                         /* la app, los documentos y la gramática (se piden siempre) */
 const OFF_IMG_MB = 8, OFF_IMG_N = 996;            /* dibujos y personajes, con img/fam2 (los que ya están no se vuelven a pedir) */
-const AUDIO_KB = {en:7.1, fr:9.5, da:8.2}, ENTRY_KB = .4;    /* audio medio de cada idioma y lo que suma cada entrada */
+const AUDIO_KB = {en:4.6, fr:5.9, da:4.8}, ENTRY_KB = .4;    /* audio medio de cada idioma y lo que suma cada entrada */
 const OFF_NET_FAILS = 10;                         /* tantos fallos de red seguidos = no hay conexión: se para */
 const OFF_MEDIA_RE = /\.(png|jpe?g|gif|webp|svg|mp3)$/i;
 let offJob = null;                                /* la descarga en curso (sigue aunque se cambie de pantalla) */
@@ -2268,6 +2282,7 @@ async function downloadAll(){
       fin(`Casi: ${job.fails} de ${job.total} archivos no se pudieron guardar. Vuelve a intentarlo con buena conexión.`, false);
     } else {
       store.set("offline", true);
+      clipAltSoon(l);
       fin(`✓ Listo: ${job.total} archivos guardados, con los audios del ${LANGS[l].name}. Ya puedes usarla sin internet.`, true);
     }
   }catch(e){
@@ -2297,7 +2312,8 @@ if("serviceWorker" in navigator && window.isSecureContext) addEventListener("loa
    el mapa de audios del idioma, y los temas y los dibujos de las 2 lecciones siguientes del camino, del tema elegido en
    Juegos y de las palabras que tocan en el repaso (las 40 que antes tocan). Se repite al cambiar de idioma o de tema, al acabar una lección, al volver la conexión y cada día (warmKey).
    Si queda poco sitio (navigator.storage.estimate: menos de 40 MB libres o más del 90 % usado) no guarda nada; un fallo
-   de red lo para. Pide con cache:"no-store" (sw.js no lo guarda otra vez). Los mp3 no: solo «Descargar todo».
+   de red lo para. Pide con cache:"no-store" (sw.js no lo guarda otra vez). Los mp3 no: solo «Descargar todo» (y
+   audioRenew, al final, cambia los mp3 guardados que se recortaron de nuevo).
    Mientras se instala una versión nueva de la app (warmHold), espera: cada petición pasa por el service worker de
    ahora, y con peticiones seguidas el navegador no lo suelta y la versión nueva no se activa. */
 const WARM_ROOM = 40 * 1048576, WARM_DUE = 40, WARM_POOL = 10;
@@ -2382,7 +2398,12 @@ async function warmCache(){
       if(navigator.onLine === false) return;
       if(navigator.storage && navigator.storage.estimate){
         const q = await navigator.storage.estimate().catch(() => null);
-        if(q && q.quota && (q.quota - (q.usage || 0) < WARM_ROOM || (q.usage || 0) > .9 * q.quota)){ st.skipped = "space"; warmDone = key; warmLast = st; return; }
+        if(q && q.quota && (q.quota - (q.usage || 0) < WARM_ROOM || (q.usage || 0) > .9 * q.quota)){
+          /* sin sitio no se guarda nada más, pero los audios recortados de nuevo sí se cambian: ocupan menos y el viejo se borra */
+          st.skipped = "space";
+          if(!warmHold) await audioRenew(await caches.open(OFF_MEDIA), st).catch(() => false);
+          warmDone = key; warmLast = st; return;
+        }
       }
       const media = await caches.open(OFF_MEDIA), have = new Set((await media.keys()).map(r => r.url));
       const abs = u => new URL(u, location.href).href;
@@ -2402,13 +2423,127 @@ async function warmCache(){
       const imgs = await warmList((u, noBody) => save(u, !noBody));
       let i = 0;
       await Promise.all([0, 1].map(async () => { while(i < imgs.length && !net && !warmHold) await save(imgs[i++], false); }));
+      let aud = true;
+      if(!net && !warmHold && navigator.onLine !== false)
+        aud = await audioRenew(media, st).catch(e => { console.warn("[sin internet] no se pudieron cambiar los audios:", e && e.message); return false; });
       if(net) st.skipped = "net";
       else if(warmHold) st.skipped = "update";
+      else if(!aud) st.skipped = "audio";
       else warmDone = key;
       offImgs = null; warmLast = st;
     } while(warmAgain && navigator.onLine !== false);
   })().finally(() => { warmRun = null; });
   return warmRun;
+}
+/* ---------- los audios guardados de otra versión (clipAlt, audioRenew) ----------
+   Un audio que se vuelve a recortar cambia de nombre: sw.js guarda los mp3 por su nombre y no los vuelve a pedir. El
+   nombre son los 10 primeros caracteres de sha1 del texto, solo o con «v2:» o «v3:» delante (AUDIO_GEN), así que de un
+   mp3 guardado se sabe de qué texto es.
+   · clipAlt[l] = {texto: nombre}: los textos cuyo mp3 del mapa no está guardado en vocab-media pero sí otro del mismo
+     texto (de antes o, si el mapa es el viejo, de después; el más nuevo); clipFor y vocabClipMap dan ese. Así, sin
+     conexión, suena el audio guardado y no la voz del navegador, tenga el aparato el mapa que tenga. Se calcula
+     (clipAltSoon) al llegar el mapa, tras audioRenew y tras «Descargar todo»; sin mp3 guardados fuera del mapa, vacío.
+   · audioRenew, al acabar warmCache, con red: el mapa de cada idioma con mp3 guardados se pide a la red
+     (cache:"no-store"), se guarda y pasa a la app; cada mp3 que ya no usa se cambia por el de ahora del mismo texto (se
+     baja el nuevo, se guarda y luego se borra el viejo) y, si su texto ya no está, se borra. Si el nuevo no llega (404…)
+     el viejo se queda (la próxima sesión lo vuelve a intentar); si no cabe, se borra el viejo y se prueba otra vez, y si
+     tampoco cabe se para. De 2 en 2; un fallo de red lo para y devuelve false (warmCache lo repite al volver la red). Una
+     vez por idioma y sesión. Con un mapa raro (menos de 500 audios o nombres que no son 10 letras hex) no toca nada. */
+const AUDIO_GEN = ["", "v2:", "v3:"], CLIP_ID = /^[0-9a-f]{10}$/, audioDone = new Set();
+async function sha10(s){
+  const b = new Uint8Array(await crypto.subtle.digest("SHA-1", new TextEncoder().encode(s)));
+  let h = "";
+  for(let i = 0; i < 5; i++) h += b[i].toString(16).padStart(2, "0");
+  return h;
+}
+const clipHash = () => !!(window.crypto && crypto.subtle && window.TextEncoder);
+/* los mp3 guardados de un idioma: nombre -> Request */
+async function clipSaved(media, ab){
+  const re = /\/audio\/([a-z]{2})\/([\w-]+)\.mp3$/, have = new Map();
+  for(const r of await media.keys()){ const x = re.exec(new URL(r.url).pathname); if(x && x[1] === ab) have.set(x[2], r); }
+  return have;
+}
+/* de cada nombre de `stray` (guardado, fuera del mapa): {t: su texto en el mapa, g: su generación en AUDIO_GEN} */
+async function clipTexts(map, stray){
+  const out = new Map(), all = Object.keys(map);
+  for(let k = 0; k < all.length; k += 200) await Promise.all(all.slice(k, k + 200).map(async t => {
+    for(let g = 0; g < AUDIO_GEN.length; g++){ const o = await sha10(AUDIO_GEN[g] + t); if(o !== map[t] && stray.has(o)) out.set(o, {t, g}); }
+  }));
+  return out;
+}
+async function clipAltFor(l){
+  const ab = CLIP_AB[l], map = clipMaps[l];
+  if(!ab || !map || !(clipTry[l] && clipTry[l].ok) || !("caches" in window) || !clipHash()) return;
+  const have = await clipSaved(await caches.open(OFF_MEDIA), ab), cur = new Set(Object.values(map));
+  const stray = new Set([...have.keys()].filter(id => !cur.has(id))), best = {};
+  if(stray.size) for(const [o, {t, g}] of await clipTexts(map, stray))
+    if(!have.has(map[t]) && (!best[t] || g > best[t].g)) best[t] = {o, g};
+  if(clipMaps[l] !== map) return clipAltSoon(l);       /* el mapa cambió mientras: otra vez */
+  const alt = {};
+  for(const t in best) alt[t] = best[t].o;
+  clipAlt[l] = alt;
+}
+function clipAltSoon(l){
+  const k = clipAltRun[l] || (clipAltRun[l] = {busy: false, again: false});
+  if(k.busy){ k.again = true; return; }
+  k.busy = true;
+  const go = () => clipAltFor(l).catch(() => {}).finally(() => { k.busy = false; if(k.again){ k.again = false; clipAltSoon(l); } });
+  if("requestIdleCallback" in window) requestIdleCallback(go, {timeout: 3000}); else setTimeout(go, 300);
+}
+async function audioRenew(media, st){
+  if(!clipHash()) return true;
+  st.audio = st.audio || 0; st.audioOld = st.audioOld || 0;
+  const abs = new Set();
+  for(const r of await media.keys()){ const x = /\/audio\/([a-z]{2})\/[\w-]+\.mp3$/.exec(new URL(r.url).pathname); if(x) abs.add(x[1]); }
+  for(const ab of abs){
+    if(audioDone.has(ab)) continue;
+    if(warmHold || navigator.onLine === false) return false;
+    let map, res;
+    try{
+      res = await fetch(`audio/${ab}.json`, {cache: "no-store"});
+      if(res.status !== 200) continue;
+      map = await res.clone().json();
+    }catch(e){ return false; }
+    const ids = map && typeof map === "object" && !Array.isArray(map) ? Object.values(map) : [];
+    if(ids.length < 500 || ids.filter(id => CLIP_ID.test(id)).length < ids.length * .98){ audioDone.add(ab); continue; }
+    await media.put(`audio/${ab}.json`, res).catch(() => {});
+    const Ls = Object.keys(CLIP_AB).filter(L => CLIP_AB[L] === ab && clipTry[L] && clipTry[L].ok);
+    Ls.forEach(L => { clipMaps[L] = map; });            /* la app ya usa los de ahora (con clipAlt para los que faltan) */
+    const have = await clipSaved(media, ab), cur = new Set(ids), old = [...have.keys()].filter(id => !cur.has(id));
+    let net = false;
+    if(old.length){
+      const txt = await clipTexts(map, new Set(old)), put = (id, r) => media.put(`audio/${ab}/${id}.mp3`, r).then(() => true, () => false);
+      let i = 0, full = false;
+      const drop = async o => {
+        await media.delete(have.get(o)); have.delete(o); st.audioOld++;
+        const x = txt.get(o);                         /* clipAlt ya no lo da */
+        if(x) Ls.forEach(L => { const a = clipAlt[L]; if(a && a[x.t] === o) delete a[x.t]; });
+      };
+      await Promise.all([0, 1].map(async () => {
+        while(i < old.length && !net && !full && !warmHold){
+          const o = old[i++], x = txt.get(o), id = x && map[x.t];
+          if(id && !have.has(id)){
+            let r;
+            try{ r = await fetch(`audio/${ab}/${id}.mp3`, {cache: "no-store"}); }catch(e){ net = true; break; }
+            if(r.status !== 200) continue;            /* el nuevo no llega: el viejo se queda */
+            const copy = r.clone();
+            if(!await put(id, r)){
+              await drop(o);                          /* no cabe: fuera el viejo, que el mapa ya no usa, y otra vez */
+              if(!await put(id, copy)){ full = true; break; }
+              have.set(id, null); st.audio++;
+              continue;
+            }
+            have.set(id, null); st.audio++;
+          }
+          await drop(o);
+        }
+      }));
+    }
+    Ls.forEach(clipAltSoon);
+    if(net || warmHold) return false;
+    audioDone.add(ab);
+  }
+  return true;
 }
 bus.on("route", () => warmSoon());
 bus.on("lang", () => warmSoon(true));
@@ -3624,47 +3759,47 @@ renderTabbar(); wireNav(); renderLangs(); wireLangs(); watchBar();
 document.addEventListener("DOMContentLoaded", () => { renderLangs(); updBadge(); paintCoins(); calmMaybe(); bus.emit("boot"); route(); });
 </script>
 <!-- ?v= es la VERSION de sw.js (se sube con ella): así una versión nueva no sale con módulos viejos de la caché HTTP -->
-<script src="js/motion.js?v=39"></script>
-<script src="js/gestures.js?v=39"></script>
-<script src="js/keys.js?v=39"></script>
-<script src="js/ctxmenu.js?v=39"></script>
-<script src="js/lesson.js?v=39"></script>
-<script src="js/learn.js?v=39"></script>
-<script src="js/sfx.js?v=39"></script>
-<script src="js/shop.js?v=39"></script>
-<script src="js/farm.js?v=39"></script>
-<script src="js/games.js?v=39"></script>
-<script src="js/lince.js?v=39"></script>
-<script src="js/party.js?v=39"></script>
-<script src="js/buddy.js?v=39"></script>
-<script src="js/album.js?v=39"></script>
-<script src="js/rewards.js?v=39"></script>
-<script src="js/army.js?v=39"></script>
-<script src="js/flyer.js?v=39"></script>
-<script src="js/topos.js?v=39"></script>
-<script src="js/cuartel.js?v=39"></script>
-<script src="js/wordplay.js?v=39"></script>
-<script src="js/quiz.js?v=39"></script>
-<script src="js/grammargames.js?v=39"></script>
-<script src="js/save.js?v=39"></script>
-<script src="js/sync.js?v=39"></script>
-<script src="js/gate.js?v=39"></script>
-<script src="js/settings.js?v=39"></script>
-<script src="js/review.js?v=39"></script>
-<script src="js/season.js?v=39"></script>
-<script src="js/shortcuts.js?v=39"></script>
-<script src="js/mailbox.js?v=39"></script>
-<script src="js/phrases.js?v=39"></script>
-<script src="js/parrot.js?v=39"></script>
-<script src="js/calls.js?v=39"></script>
-<script src="js/stories.js?v=39"></script>
-<script src="js/chant.js?v=39"></script>
-<script src="js/simon.js?v=39"></script>
-<script src="js/oido.js?v=39"></script>
-<script src="js/hunter-boot.js?v=39"></script>
-<script src="js/ielts-boot.js?v=39"></script>
-<script src="js/tech-boot.js?v=39"></script>
-<script src="js/welcome.js?v=39"></script>
-<script src="js/navmotion.js?v=39"></script>
+<script src="js/motion.js?v=40"></script>
+<script src="js/gestures.js?v=40"></script>
+<script src="js/keys.js?v=40"></script>
+<script src="js/ctxmenu.js?v=40"></script>
+<script src="js/lesson.js?v=40"></script>
+<script src="js/learn.js?v=40"></script>
+<script src="js/sfx.js?v=40"></script>
+<script src="js/shop.js?v=40"></script>
+<script src="js/farm.js?v=40"></script>
+<script src="js/games.js?v=40"></script>
+<script src="js/lince.js?v=40"></script>
+<script src="js/party.js?v=40"></script>
+<script src="js/buddy.js?v=40"></script>
+<script src="js/album.js?v=40"></script>
+<script src="js/rewards.js?v=40"></script>
+<script src="js/army.js?v=40"></script>
+<script src="js/flyer.js?v=40"></script>
+<script src="js/topos.js?v=40"></script>
+<script src="js/cuartel.js?v=40"></script>
+<script src="js/wordplay.js?v=40"></script>
+<script src="js/quiz.js?v=40"></script>
+<script src="js/grammargames.js?v=40"></script>
+<script src="js/save.js?v=40"></script>
+<script src="js/sync.js?v=40"></script>
+<script src="js/gate.js?v=40"></script>
+<script src="js/settings.js?v=40"></script>
+<script src="js/review.js?v=40"></script>
+<script src="js/season.js?v=40"></script>
+<script src="js/shortcuts.js?v=40"></script>
+<script src="js/mailbox.js?v=40"></script>
+<script src="js/phrases.js?v=40"></script>
+<script src="js/parrot.js?v=40"></script>
+<script src="js/calls.js?v=40"></script>
+<script src="js/stories.js?v=40"></script>
+<script src="js/chant.js?v=40"></script>
+<script src="js/simon.js?v=40"></script>
+<script src="js/oido.js?v=40"></script>
+<script src="js/hunter-boot.js?v=40"></script>
+<script src="js/ielts-boot.js?v=40"></script>
+<script src="js/tech-boot.js?v=40"></script>
+<script src="js/welcome.js?v=40"></script>
+<script src="js/navmotion.js?v=40"></script>
 </body>
 </html>

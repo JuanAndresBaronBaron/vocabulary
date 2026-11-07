@@ -81,6 +81,9 @@ const save = s => store.set(KEY, s);
 /* ---------- las palabras ---------- */
 const MAPS = {};
 function clipMap(a){
+  /* el de index.html, con los audios guardados de otra versión (clipAlt) */
+  const g = typeof window.vocabClipMap === "function" ? window.vocabClipMap(a) : null;
+  if(g && Object.keys(g).length) return Promise.resolve(g);
   if(!MAPS[a]) MAPS[a] = fetch(`audio/${a}.json`).then(r => r.ok ? r.json() : {}).catch(() => ({})).then(m => {
     if(!isObj(m) || !Object.keys(m).length){ delete MAPS[a]; return {}; }
     return m;

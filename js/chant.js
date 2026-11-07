@@ -50,6 +50,9 @@ function colOk(L, w, c){
 const colText = (L, w, cw) => L === "français" && /^(la|une)\s/i.test(w) && cw === "bleu" ? "bleue" : cw;
 const MAPS = {};
 async function clipMap(ab){
+  /* el de index.html, con los audios guardados de otra versión (clipAlt) */
+  const g = typeof window.vocabClipMap === "function" ? window.vocabClipMap(ab) : null;
+  if(g && Object.keys(g).length) return g;
   if(MAPS[ab]) return MAPS[ab];
   try{ const r = await fetch(`audio/${ab}.json`); if(!r.ok) throw new Error(r.status); const m = await r.json(); if(m && typeof m === "object") return (MAPS[ab] = m); }catch(e){}
   return {};
